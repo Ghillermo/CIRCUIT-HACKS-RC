@@ -1,0 +1,2427 @@
+# Circuit Tracks — mapa técnico y modelo de seguridad
+
+Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la última en Components).
+
+## Hardware (repo userx14/CircuitTracksReverseEngineering)
+- MCU **STM32F745VE** (Cortex-M7, 512 KB de flash, 320 KB de SRAM). DSP Freescale DSP56724. NOR QSPI MX25L256 (32 MB: samples, sesiones, staging de actualizaciones). SDRAM de 32 MB.
+- Bootloader en 0x08000000–0x0800FFFF (64 KB). Aplicación en **0x08010000**. SP inicial 0x20050000.
+- Conector de depuración SWD (TC2050) en la placa. El repo trae volcados de flash y RAM hechos con ST-Link.
+  - `ram_dump_firmware_0x08037988.bin` = **firmware en marcha** (el que sirve para seguir objetos de MIDI).
+  - En `dumpCT_ram_0x20000000.bin` la zona 0x200069E0 está sin inicializar (relleno 0xA5).
+
+## Origen del firmware
+- API de Components: `GET https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`. La 4486 es el id 168 (`/api/v2/firmwares/168/file`).
+- SHA-256 del .syx oficial: `bd2d294b…a0bd` (432 961 bytes). Imagen: 0x4CDDC bytes, CRC 0x4E74DA9E, SHA-256 `b897e0f0…f8da`.
+- El `.bin` del repo userx14 es exactamente esa imagen. `ct_fw.py` regenera el .syx oficial idéntico byte a byte.
+
+## Formato SysEx
+- `71` INIT: `01 64 00 00` + versión de protocolo 0x572 (4 nibbles).
+- `7C` HEADER: versión (6 nibbles), tamaño (8 nibbles) y CRC-32/MPEG-2 (poly 0x04C11DB7, init 0xFFFFFFFF, sin reflejar, xorout 0) de la imagen, en 8 nibbles.
+- `72` WRITE: bloques de 32 bytes → 37 bytes de 7 bits, desde el bloque 1; el último se rellena con 0xFF.
+- `73` FINISH: bloque 0.
+- Diferencia con el OG: **tamaño variable y CRC en la cabecera** → se puede añadir código al final de la imagen.
+
+## Bloque de versión (offset 0x1C8 de la imagen, justo tras la tabla de vectores)
+- 0x26 bytes: `01 01` · build `86 11` (0x1186 = 4486, little-endian) · producto `01 64` · `"GB1.1.5143.4486"` terminada en NUL · relleno de ceros.
+- **El bootloader solo instala una imagen si este bloque difiere del instalado** (`memcmp` de 0x26 bytes en `0x08003BE4`–`0x08003BF6`). Si es idéntico, descarta la actualización en silencio, aunque el cargador reciba "éxito".
+- Cada build lleva una marca única en el relleno (+0x20: `SC02`…`SC14`), sin tocar el número de build ni la cadena.
+
+## Protocolo de carga (extraído de Components, solo lectura)
+- Configuración del Tracks: `sendToMainApplication`, confirmación con **Play** (23 s), `listenForDeviceStatusReport`. El `.syx` se trocea por mensajes F0…F7 **sin modificarlo**.
+- Host → puerto principal: `71` INIT y, a continuación, `7C` HEADER.
+- Dispositivo → `F0 00 20 29 00 73 cc …` (10 bytes) con estados: 0 inicio, 1 esperando Play, 16 cancelado, 17 timeout, 124/126 fallo, 125 recibido no viable, **127 éxito**.
+- Dispositivo → `F0 00 20 29 00 72 a b c F7`: solicitud de paquete con contador `a + b<<7 + c<<14` (también hay una forma de 15 bytes en nibbles). El host envía el siguiente si el contador es mayor que el último o vale 0.
+- Tras `73` FINISH el host espera el estado 127. Después el dispositivo reinicia y el bootloader instala desde el staging (con verificación de CRC).
+- Identidad: `F0 7E 7F 06 01 F7` → respuesta de 17 bytes; byte 9: 1 = firmware, 17 = bootloader; build = `d[14]*128 + d[15]`.
+- Implementado en `tools/ct_uploader.html` (Web MIDI, Chrome/Edge). Solo envía SHA-256 de una lista blanca. Probado en hardware el 2026-10-03.
+
+## Modelo de seguridad del bootloader (desensamblado)
+- `0x08002FDE` main: lee la cabecera de staging de la NOR (offset 0x80000) → **150 ms de sondeo de botones** (`0x08003B66`) → si no hay combinación, aplica el staging (`0x08003B9A`) y salta a la app.
+- Combinación de botones (`0x08003AB0`): IDs lógicos 0x12, 0x08 y 0x09 = **Scales + Preset + Note** → se queda en el bootloader.
+- Aplicar el staging exige:
+  - tamaño < 0x70001;
+  - producto `01 64` (comparado con 0x080001C8);
+  - CRC de la NOR = CRC de la cabecera;
+  - **bloque de versión distinto del instalado**.
+- Solo si se cumple todo borra los **sectores 2–5** y copia (`0x08003C24`). Después verifica el CRC de la flash interna.
+- La aplicación solo se valida porque su primera palabra (SP) sea 0x20050000. No se comprueba el CRC al arrancar: una app que pase el CRC pero se cuelgue **sí** arrancará, y se recupera con la combinación de botones.
+- La app de stock no contiene FLASH_KEYR/KEY1/KEY2 → no puede escribir la flash interna ni el bootloader.
+- Conclusión: el riesgo de dejarlo irrecuperable por SysEx es muy bajo **siempre que nuestro código nunca toque la flash interna, las option bytes ni el área de staging de la NOR**.
+
+## Espacio para funciones nuevas
+- La imagen 4486 termina en 0x0805CDDC. El bootloader acepta hasta 0x70000 bytes → **~140 KB libres** (hasta 0x0807FFFF).
+- Verificado: ninguna carga de literal del firmware apunta a 0x0805CDDC–0x0807FFFF (`0x08044800` era código, no un puntero). La app no puede escribir la flash interna. → **Zona usable para código nuevo** (cuevas desde 0x0805CDE0).
+- **RAM y heap:**
+  - allocator `0x0801D7D8`: punteros de inicio, límite y actual en 0x20002B40 / 44 / 48 = 0x20006A58 / **0x20044E58** / 0x20044D68 (`bkpt` si se agota);
+  - `free` (`0x0801D0E8`) → `bkpt`: no se libera nunca;
+  - el único que llama a `malloc` (`0x0801D0D0`) es `0x0801C91C`, que crea tareas del RTOS (pila 4·n + TCB 0x5C), solo al arrancar;
+  - **0x20044E58–0x2004FE00 NO es libre**: es la zona de la MSP / el arranque (SC13 la usó y se colgó);
+  - SC14 reserva sus 24 bytes bajando el límite del heap a 0x20044E38.
+- **Tiempo y tempo:**
+  - SysTick `0x0805998C`: contador [0x20006A28] y HAL uwTick en [0x2000081C] (ms; frecuencia en el byte [0x20000818] = 1);
+  - DWT_CYCCNT en 0xE0001004;
+  - store del tempo del proyecto = `[[[0x200069E4]+0x48]+0x48]` (0x20011404): p0 = BPM, p2 = swing.
+- **Bucle de servicio del DSP:** `0x08021392` (desde el bucle de la tarea principal en 0x0801D5D8, con el lock del DSP tomado) → … → `b.w 0x08028382`, en 0x080213AA.
+
+## Ajustes globales (Setup View)
+- Almacén de parámetros con doble búfer (4 bytes por parámetro): `0x0803542C` lectura, `0x080354FA` puntero de escritura (marca sucio), `0x080353C0` confirmar (avisa a los listeners → aplicar ajustes).
+- Objeto de ajustes en RAM: 0x200111CC (en el volcado). Accesible desde cualquier sitio con `[[[0x200069E4]] + 0x54]`.
+- Índices: 3 = canal del Synth 1, 4 = Synth 2, 5 = MIDI 1, 6 = MIDI 2, 7 = Drums (por defecto 0, 1, 2, 3, 9). Track id: 0, 1, 2, 3, 0x10. `0x080514B4` / `0x080514EA` = canal por track id (lectura / escritura).
+- **Parámetro 2** (flags):
+
+  | Bit | Uso |
+  |---|---|
+  | 1 | Velocidad fija para la entrada de los pads (el kind 0 fuerza vel = 0x60) |
+  | 10 | Brillo |
+  | 3 / 2 | Note Rx / Tx |
+  | 7 / 6 | CC Rx / Tx |
+  | 9 / 8 | PGM Rx / Tx |
+  | 4 / 5 | Clock Rx / Tx |
+  | 13–15 | Clock analógico |
+  | 11, 16, 17 | Usados por algo más |
+  | **24 / 25** | **Ch16 Rx / Tx bloqueado** (SC03 por separado; SC04+ los mueve juntos) |
+  | **26 / 27** | **Patch flip MIDI 1 / MIDI 2** (SC06) |
+  | **28 / 29** | **Retorno reverb → tira 3 / delay → tira 4** (SC10) |
+  | 16 | MIDI Thru: 1 = Thru por hardware (GPIOB 4), 0 = Out 2 (Advanced Setup, Duplicate) |
+  | 17 | Advanced Setup, botón 9 (probablemente Easy Start) |
+  | **30 / 31** | **MIDI Thru Merge / Filter** (SC38.3, con el bit 16 a 0) |
+
+  La polaridad varía según el bit. Valor del volcado: 0x3281E.
+- Vista Setup: vtable en 0x0805A984, constructor cerca de 0x08046D12; entrada 0 = manejador de pads `0x08046DF0`.
+  - Pads 0–15: canales; el 16 (índice 15) está reservado al proyecto y en SC04+ es el toggle Ch16.
+  - Pads 0x10–0x14: clock analógico (`bfi` en los bits 13–15).
+  - Pads 0x15/0x16: libres en stock.
+  - Pads 0x17–0x1F: brillo y Tx/Rx (`tbb` en 0x08046E88).
+- LEDs de canal: bucle en `0x080473DC` (r4 = track seleccionado, r5 = paleta, r8 = canal); en stock el canal 16 = índice de paleta 0xCF. LEDs de los toggles: `0x080471C2`–`0x080472E0`. Validador al cargar: `0x08046D7A`.
+- Paleta de LEDs en `0x08056464`: halfwords índice → código de color. Rampas de brillo consecutivas (p. ej. 0x32→0x38 para el Synth 1). El índice 0 es el código 0 (apagado). La tabla RGB final no se ha localizado.
+
+## Enrutado MIDI
+- Aplicar ajustes → MIDI: `0x08034F68` (objeto L = `[[0x200069E4]]`: `+0x18` = rx, `+0x1C` = X = interfaz Tx, `+0x54` = almacén).
+  - Byte de flags Rx (`0x080477F0`, `A+0x14`): bit 0 Note, bit 1 CC, bit 2 PGM, bit 3 siempre activo; **bit 4 = Ch16 bloqueado (SC03+)**; **bit 5 = "inyección interna en curso" (SC05)**.
+  - Byte de flags Tx (`txobj+0x18`): bit 0 Note, bit 1 CC, bit 2 PGM, bit 3 Clock; bit 4 = Ch16 bloqueado (SC03+); **bits 5/6 = patch flip MIDI 1/2 (SC06)**.
+- **Entrada MIDI:**
+  - Manejador `0x080518F4(puerto, msg)`: comprueba `0x080223FA(0x20000A6C)`, con el bit 2 = entrada desactivada.
+  - Llama al callback global `[0x200069E0]` con contexto `[0x200069E4]` (en el volcado en marcha: `0x08047829`, ctx `A = 0x20044CB8`).
+- **Despachador:** `0x08051720(A, msg)`.
+  - `A+0` = listener (vtable 0x080592E0: [0] noteOn 0x08034D10, [4] noteOff 0x08034D56, [0x2C] selección de patch de drums).
+  - **Tabla A** (`A+4`, 5 tracks): reparto de notas por canal. `0x08052ACC` (¿algún track en ese canal?) mira los 5; `0x08052AF6` da el id: el primero de los índices 0–3 (Synth 1, Synth 2, MIDI 1, MIDI 2) que coincide, y si no, `0x10` = Drums. Con canales repetidos gana el primero. **Las notas en el canal de Drums con MIDI 1 en ese canal van al propio MIDI 1** (comprobado en emulación, 2026-10-11: ver «Estudio … las pistas MIDI tocan los drums»).
+  - **Tabla B** (`A+9`: Synth 1, Synth 2, Drums, `0x20`, `0x21`, estos dos fijos en el canal 16): CC y PC. Ruta de PC: 0x080518C6.
+  - CC de proyecto y de parámetros → `0x08052854([A+0x10], …)`.
+- **Cadena de notas (síncrona):**
+  - noteOn `0x08034D10` → `0x08034460` → `0x0801A99A` → **enrutador `0x0803222C`** (`tbh` con 30 claves).
+  - `0x08034460(this, track, nota, vel)` (noteOff `0x080344AA`): track < 4 → clave = nota + 12; **Drums (`0x10`): solo las notas fijas 60 / 62 / 64 / 65 = drum 1..4** (en el código, no en el Setup); las demás se ignoran.
+  - Claves: 0–3 pads; 0xA–0xD MIDI entrante; 0xF/0x10 sonar sinte; 0x19–0x1C grabar…
+  - → entrada del secuenciador `0x080325AC` → combinador `0x08040ADC` → rastreadores de notas pulsadas `0x0804A3E4` → sonido (clave 0xF) y **grabador (clave 0x19 → `0x0803243A`)**.
+  - El sonido acaba en `0x08031DA4` → DSP (espera activa en `0x0802106A`).
+- **Puertas del grabador** (objeto 0x2003C168, vtable 0x0805B820; almacén de transporte `[obj+8]`: graba si p0 && p1 && !p2):
+  - `0x0802E56A` Note On → `[obj + 0xC + track*4]`;
+  - `0x0802E5CC` Note Off;
+  - `0x0802E62C` automatización de parámetros (tabla 0x08059080 → `0x0803FC20`).
+  - Todo es síncrono dentro de la llamada de entrada MIDI.
+- **Transmisión:** emisor central `0x0803BEDA(puerto=7, msg)`.
+  - Notas: solo por la vtable `0x08059FC4` (noteOn `0x08029EFE`) y `0x08059FC8` (noteOff `0x08029F2A`). r0 = interfaz Tx (`0x20011334` en el volcado en marcha), r1 = track id (MIDI 1/2 = 2/3). Canal de notas = `[[tx+0xC] + track]`.
+  - PC: `0x0802A018` (puerta en el bit 2 de los flags Tx; canal en `[tx+0xC] + 5 + índice`).
+  - **CC/NRPN de parámetros: `0x0802A000` → `0x0803BF4C(obj, puerto, track id, índice, valor)`**. Los ids `0x20`/`0x21` son parámetros de proyecto → canal 16.
+  - **Plantillas de los tracks MIDI:** `0x0802EA4C` → `0x08040260` (tipo 0–4) → `0x0804A356(canal, 0xB0, cc, valor)`, que solo lo llama esta ruta; el RPN va directo al emisor central.
+
+## DSP (DSP56724, núcleo DSP56300)
+- **Los programas del DSP van dentro de la imagen del ARM**, en formato bootstrap de Motorola: palabra de nº de palabras + palabra de dirección de carga + código en palabras de 24 bits big-endian.
+- Los sube `0x08029260(modo)` → `0x08029200(img, núcleo)`, con la tabla de punteros en `0x08029700`.
+
+  | Bloque | Dirección en flash | Palabras | Carga |
+  |---|---|---|---|
+  | Núcleo 0, modo 0 (principal) | 0x080101F0–0x08018110 | 0x2A5E | P:0 |
+  | Núcleo 1, modo 0 | 0x08018110–0x0801855A | 0x16C | P:0 |
+  | Núcleo 0, modo 1 | 0x08054EFC | 0x328 | P:0 |
+  | Núcleo 1, modo 1 | 0x0805587C | 0x168 | P:0 |
+
+- Núcleo 0 principal:
+  - Reset → `jmp $100`.
+  - Interrupción ESAI (vector 0x3E) → `func_0001B4`, sincronización por trama de audio. El procesado por bloques está en `func_0001ED`, que llama a mezcla, efectos y similares.
+  - Interrupción SHI (vector 0x44) → `func_000156`: **protocolo de comandos genérico desde el ARM**. Bits del comando: 21 comando a x:$12; 22 lectura; 20/19 modos de dirección; 23 bloque, con x:$11 bit 15 = espacio Y. Puntero en x:$10. **→ El ARM puede leer y escribir cualquier posición X/Y del DSP.**
+- Herramientas: desensamblador, ensamblador y emulador del proyecto libre dsp56300/dsp56300, compilado en el contenedor con permiso del usuario. Listados en `ct/dsp/*.asm`.
+
+## Parches
+
+### BETA4 = SC39.4 con la marca de la quinta beta; `tools/patchtool.py`; casilla del rc_uploader — ⏳ pendiente de probar
+- `build_beta4.py`, BETA4 `9ebd6be8…660c` (0x67f28 B). Manual: A14 con los gestos nuevos, A15 «Guardar el patch del sinte en el pack», A16 «Destinos de los macro knobs», atajos 21-24; todo lo de las betas marcado «solo BETA4».
+- **`tools/patchtool.py`** (el usuario: «herramienta que permita volcar presets de sinte, leer su índice y asignarles un nombre» … «tiene que leer y escribir los patches propios, no los de stock» … «administrar y editar los patches individualmente, así el usuario podrá subir los que quiera a su pack. Si es posible, también leerá y permitirá editar parámetros»): los **patches del sinte propio** como ficheros `.ctm` de 64 B (los 42 B del patch + el nombre) y como huecos de un pack (`PACK:N`, N = 0..63 = el relleno del registro N): `list PACK`, `show DÓNDE` (motor + los 34 valores con nombre; con el motor granular, el significado granular de los códigos 17-34), `set DÓNDE nombre=valor … engine=osc|va-drum|granular|line|fxseq|off dual= route= velocity= sd=` (rehace la suma), `name`, `new FICHERO [engine]` (valores iniciales = `DEFAULTS` de la build, comprobado contra `vcf21`), `copy ORIGEN DESTINO` (fichero ↔ hueco, hueco ↔ hueco, entre packs), `dump PACK DIR`, `clear PACK:N`. Motor por las banderas: apagado = bit 0 a 0; línea = on; secuenciador de efectos = on + bit 2; oscilador = on + osc; VA-drum = on + osc + bit 2; granular = on + osc + bit 3. Un registro o banco que no existe se crea con `0xFF` (patch de sinte vacío, lo mismo que deja el aparato entre patches) y el registro se completa a 512 B (el intercambio del aparato toma un relleno corto por vacío). **El nombre** (16 ASCII) va en el relleno + 44..59: el aparato lo ignora; `c_psxswap` mueve 64 B (patch + nombre) y un guardado en el aparato (`c_mpsave` escribe los 172 B) lo borra. Nunca toca los 340 B del patch de sinte; copia `.bak` la primera vez. La herramienta no conoce el rango de cada knob: acepta −64..127. Para los de sinte: `slist` / `sname` / `sdump`. Probado con packs sintéticos (los bytes que genera = los de `emu_sc39_1.patch_bytes`); sin probar con una tarjeta real ni cargando en el aparato un patch editado en el PC.
+- **rc_uploader** (el usuario): casilla obligatoria para toda versión que no sea «S» ni «Oficial»: «He copiado los datos de la tarjeta microSD a otro almacenamiento y no usaré la memoria interna de Circuit para guardar proyectos»; se desmarca al cambiar de versión; Enviar queda desactivado sin ella. Comprobado en el navegador (visible en RC0.5 / BETA, oculta en RC0.5S / Oficial).
+
+### SC39.4 = SC39.3 + **guardar el patch del sinte en el banco** y el mismo gesto para el sinte propio (`tools/psave.py`) — ⏳ pendiente de probar, sin publicar
+- **Pedido del usuario (2026-10-12):** «implementa antes de publicar la función de guardado de patches»; gesto: «Clear + pad si está disponible (entendido como que "borra" el almacén y lo sustituye por el patch actual)»; «pide confirmar»; «mantén el mismo atajo para guardar patches de sinte propio … y además Duplicate intercambia posiciones».
+- **El gesto estaba libre:** el manejador de pads de la vista Preset del sinte (`0x0804D242`, ranura 0 de `0x0805AC9C`) no lee los botones mantenidos: en stock Clear + pad elige el patch como un toque normal. La máscara del contenedor ya admite Clear en las vistas Preset.
+- **El patch en uso en la RAM** (volcado del aparato + emulación, cambiando parámetros con `0x08034D92` y comparando): 340 B en el formato del banco (nombre 16 B, categoría, género, 14 reservados, parámetros) en **`0x20010044` (Synth 1)** y **344 B después (Synth 2)**; delante de cada uno hay un puntero a sí mismo (`[0x20010040] = 0x20010044`). **Parámetro i ↔ byte del patch:** 0 → 16, 1 → 17, i ≥ 2 → `30 + i` salvo los agrupados (62-65 → 91, 73-77 → 99…) y algunos sin byte (14, 23, 88, 98, ≥ 310). El guardado de stock de un hueco existente (`0x0802FC0C`) toma el origen de `[0x20006948]` (= `0x200075FC` en el volcado, otro búfer: el de Components), no de aquí.
+- **`c_pswrite(sinte, patch)`:** comprueba el puntero de delante (si no coincide, estado 9 y nada escrito); cerrojo del búfer compartido; tamaño del banco (`mpatch.c_mpsz`); si el hueco está tras el final, `0xFF` desde el final del fichero hasta el hueco (como `0x0802FBCC` y `packio` FFGAP: «déjalos vacíos»); 340 B desde la RAM en `512 × (patch % 8)` (`mpatch.c_mpw`, el pack cargado por número). El relleno del registro (patch del sinte propio) no se toca.
+- **`c_pspad`** (delante de `c_mcpad`): solo con la Preset del sinte en pantalla y sin la vista de la fuente / step-drummer (`packio.c_srcv`), Clear mantenido y Duplicate no. patch = pad + 32 × página (`[vista + 0x20]` p0). Primera vez: pregunta (estado + hora). Segunda vez sobre el mismo patch y sinte en < 20 × 256 ms: escribe y **deja pasar el pad a la cadena**: el stock elige el hueco (lo carga de la tarjeta, idéntico) salvo que ya fuera el elegido. `c_psleds`: el pad preguntado parpadea blanco (`HAL >> 7`), la pregunta caduca.
+- **Sinte propio (MIDI 1 / 2)**, gancho delante de `mpatch.c_mppad` / `c_mpleds` (mpatch no cambia; SC39.1-SC39.3 idénticas): pads 9-24 con Clear = pregunta / `c_mpsave(pista, hueco)`; con Duplicate = A (parpadea melocotón mientras se mantiene), después B → `c_psxswap`: lee 64 B de A (los 42 del patch + el nombre de `patchtool.py`; debe llevar `CTM1`), exige que el registro de B exista (`tamaño ≥ 512 (B % 8) + 340`), lee B (o `0xFF` si su relleno no está en el fichero), escribe A en B y B en A; el «último hueco» de la caché sigue a su patch. Un pad sin botones pasa a mpatch (cargar). **Se pierde:** vaciar un hueco (Clear + pad) y Duplicate + pad = guardar.
+- **Añadido el mismo día (el usuario):** «en MIDI 1 y MIDI 2: Clear + MIDI 1 / 2: restablece a parche inicial» = `c_psbtn` (nueva cabeza de la cadena de `0x08033320`, delante de `c_mcbtn`): ids 2 / 3 con Clear mantenido, la vista Preset o de pista de esa pista en pantalla (`[ctrl + 0x152] − 9 (t + 2)` = 0 / 1) y el editor de CC cerrado → `vcf21.c_vreset(pista)` (lo que hacía Clear + pad 27 hasta SC39; sigue en la imagen). «Los pads que corresponden a parches vacíos se colorean en purple» = `c_psxleds` pinta `0x49` (violeta, fijo) en los pads 9-24 que `c_mpleds` deja a 0. «Durante la selección de patch de usuario, reproduce la tónica de la escala con el patch seleccionado» = tras cargar (el «último hueco» de la caché es el tocado) `c_sdtonic` + `c_sdio(pista, 1, 100, nota)` (la escucha del step-drummer: una nota de la pista MIDI por los envoltorios de notas); `c_psaoff` la termina al soltar el pad (ranura 1 de la vista de plantillas, `c_psxrel`), con otro pad o con cualquier botón. **`c_mpload` llama a `SAVE_FN` antes de volver: la nota empieza después del guardado de ajustes; en emulación `SAVE_FN` no termina y la prueba lo sustituye.** La nota escribe el código 14 (segunda nota), como cualquier nota.
+- **Estado:** 8 B en `c_gst() + 124`: `[0]` `0x5A`, `[1]` `0x80 | patch o hueco`, `[2]` 0 / 1 = Synth 1 / 2, 2 / 3 = MIDI 1 / 2, 4 = A de Duplicate, `[3]` pack de A, `[4..5]` hora, `[6]` `0x80 | nota` de la escucha, `[7]` su pista.
+- **El botón Clear cierra la vista de la fuente** (como cualquier botón): Clear + pad «en la vista de la fuente» es ya la vista Preset.
+- Builder `build_sc39_4.py`. SC39.4 `9626ab9a…1c1e` (0x67f28 B, 1456 B más que SC39.3).
+- **Pruebas:** `emu_sc39_4.py`; regresión `emu_sc39_3.py`, `emu_sc39_1_gr.py`, `emu_sc39.py`, `emu_sc38_9.py`, `emu_sc39_1_reg.py`, `emu_sc35.py` sobre SC39.4. `emu_sc39_1.py` espera los gestos antiguos del sinte propio.
+- **Por confirmar en el aparato:** la dirección del patch en la RAM (el puntero lo protege), que el stock cargue el hueco recién escrito, Components leyendo el pack después.
+- **Al publicar:** manual (A14: gestos nuevos; sección nueva de guardar patch de sinte y del editor de macros, ES / EN), `CHANGELOG.md` (cambio de gestos respecto a BETA2 / BETA3), rc_uploader.
+
+### SC39.3 = SC39.2 + **editor de los destinos de los macro knobs del sinte** (`tools/macroed.py`) — ⏳ pendiente de probar, sin publicar
+- **Pedido del usuario (2026-10-12):** destinos de los macro knobs ajustables desde el aparato; entrada en la vista de la fuente; el macro se elige girando su knob; campos en el orden ranura (1-4) → inicio → fin → destino → profundidad; el destino por su CC / NRPN, «primero los CC en orden … ascendente y luego los NRPN»; guardado con el proyecto. «Orden correcto, construye.»
+- **Datos:** 8 macros × 4 ranuras en el patch. Índices de parámetro (tipo 0 = Synth 1, 1 = Synth 2; lectura `0x08036192(tipo, índice)`, escritura `0x08034D92(this + 4, tipo, índice, valor)` con `this = [[[0x200069E4] + 0x10]]`, la misma ruta que el MIDI): posición del macro `174 + 17 m`; ranura `r`: destino `175 + 17 m + 4 r`, inicio `+ 1`, fin `+ 2`, profundidad `+ 3` (64 = 0).
+- **Tablas** (al principio del código, 280 B): `ORDER` (lugar → destino), `INV` (destino → lugar), `NUM` (el número que se dibuja), `COL` (su color). `ORDER` = los 31 destinos con CC por número de CC (0, 2-19, 1, 22, 23, 27, 21, 28, 25, 20, 26, 24, 44, 45), luego 29-43 y 46-69.
+- **Estado:** 4 B en `c_gst() + PM_CACHE + 16` (= + 120, búfer de LEDs ocioso de Master FX): `[0]` magia `0xE7`; `[1]` bit 7 encendido, bit 6 macro elegido, bit 3 sinte, bits 0-2 macro; `[2]` bits 0-2 campo, bits 4-5 ranura; `[3]` eventos del knob contados hacia el paso siguiente (con signo). Nada se guarda: el editor arranca apagado.
+- **Ganchos:** ranuras 0 / 7 de la vista Preset del sinte (`0x0805AC9C` → `c_mcpad` / `c_mcleds`, delante de las del step-drummer / la fuente); ranuras 4 / 7 de los manejadores de macros (`0x0805AC64` → `c_mcknob` / `c_mckleds`); cabeza de la cadena de botones (`0x08033320` → `c_mcbtn`, delante de `c_mpbtn`); las llamadas de la tarea de LEDs (`c_mcledtask`: Octave ▼ / ▲, LEDs 51 / 52). `c_mcsrc` = la vista de la fuente está en pantalla (vista activa = el contenedor, `[ctrl + 0x152]` = 0 / 9, bit 2 del byte + 20 de SC14, sin step-drummer).
+- **Manejo:** pad 32 (índice 31) enciende / apaga; con el editor encendido un knob elige su macro (el primer giro no cambia nada) y después cambia el campo: ranura y destino por pasos (un giro del knob real manda muchos eventos ± 1, SC36.1: `c_mcacc` los suma y da un paso cada `STEP_SLOT` = 16 / `STEP_DEST` = 2; cambiar de campo o de macro olvida la fracción), inicio / fin / profundidad sumando el giro, todo limitado y sin vuelta. Octave ▼ = campo siguiente, ▲ = anterior. Cualquier pad suelta el macro; cualquier botón que no sea Shift ni Octave apaga el editor. Un destino fuera de rango en el patch empieza el recorrido por el primer lugar.
+- **LEDs:** el número con `c_ednum` (los glifos del editor de CC de SC23); ranura amarillo `0x2D`, inicio verde `0x17`, fin naranja `0x2B`, destino CC blanco `0x01` / NRPN banco 0 `0x13`, 1 `0x32`, 2 `0x49`, profundidad `0x4D` positiva / `0x53` negativa / `0x02` cero (se dibuja la magnitud); pad 32 `0x4D` / `0x4E`; knobs `0x01` brillante el elegido, `0x4D` tenue el resto. Ninguno es un color animado.
+- Builder `build_sc39_3.py`. SC39.3 `373bcdf8…4326` (0x67978 B, 1328 B más que SC39.2).
+- **Pruebas:** `emu_sc39_3.py` (rutas reales; el recorrido entero de los 70 destinos arriba y abajo, cada campo escribe solo su parámetro, Synth 2, SC39.2 sin cambios); regresión `emu_sc39_1.py`, `emu_sc39_1_gr.py`, `emu_sc39.py`, `emu_sc38_9.py`, `emu_sc39_1_reg.py` sobre SC39.3.
+- **Por confirmar en el aparato:** los destinos 41-45 (deducidos), que el sonido siga al destino, los colores, el guardado con el proyecto.
+- **Al publicar:** manual (sección nueva en los sintes, ES / EN), `CHANGELOG.md`, rc_uploader.
+
+### Estudio (sin build, 2026-10-12): **destinos de los macro knobs del sinte** — tabla de los 70 destinos con su CC / NRPN
+- **Pedido del usuario:** editar los destinos de los macros desde el aparato «como se haría en Components o a través de controlador externo»; «elabora una tabla con los destinos 0-70 y valora la posibilidad de que se muestren con su equivalente CC».
+- **Formato (Programmer's Reference Guide de Circuit Tracks, sección «Macro Knobs»):** macro k (1-8): posición CC 79 + k; cuatro ranuras A-D, cada una con destino (NRPN 3:16 (k − 1) + 4 r), posición inicial (+ 1, 0-127, por defecto 0), posición final (+ 2, 0-127, por defecto 127) y profundidad (+ 3, 0-127 = −64..63, por defecto 64 = 0). No hay «mínimo / máximo»: hay rango de entrada (inicio, fin) y una profundidad con signo. La guía da el destino como «0 – 70» y **no trae la lista de destinos**.
+- **La lista sale del firmware:** tabla de 70 bytes en `0x0805A2B0` (única referencia: `0x08036114`); el bucle de `0x0803608A` recorre **70** destinos (`movs r4, #0x46`), compara el desplazamiento calculado de cada uno (70 halfwords por sinte, `0x8C` bytes) y marca el parámetro `tabla[d]` (`0x08021E9C`). `0x080360B2` aplica el desplazamiento al leer: valor + desplazamiento, limitado a 0..127. Los macros los calcula el ARM. **Son 70 destinos (0..69)**; el valor 70 de la guía queda fuera del bucle (sin efecto, por comprobar).
+- **Índices de parámetro:** los valores de la tabla son los índices de `0x08036192(tipo 0 / 1, índice)` y de `0x08034D92(this + 4, tipo, índice, valor)` (comprobado en emulación: escribir el índice X cambia el índice X). Tabla de parámetros del sinte en `0x08054552…` (registros de 8 B: MSB (`0xFF` = CC), LSB, id; id − 31 = índice en casi toda la tabla; en el tramo LFO 2 … ecualizador la columna de id no cuenta los 4 bits de banderas de cada LFO, y los índices reales se han fijado por los valores por defecto y los máximos leídos en emulación: LFO 1 = 54..60, banderas 61..65; LFO 2 = 66..72; distorsión / chorus level = 78 / 79; EQ = 80..85).
+- **31 destinos tienen CC y 39 solo NRPN** (corregido: antes ponía 26 / 44) (envolventes 2 y 3, LFO, chorus y las 20 profundidades de la matriz de modulación; la guía de Tracks lista 12 ranuras de matriz, el firmware tiene 20).
+
+| Destino | Parámetro | CC / NRPN | Índice |
+|---|---|---|---|
+| 0 | Portamento rate | CC 5 | 3 |
+| 1 | Post FX level | CC 59 | 29 |
+| 2 | Osc 1 wave interpolate | CC 20 | 7 |
+| 3 | Osc 1 pulse width index | CC 21 | 8 |
+| 4 | Osc 1 virtual sync depth | CC 22 | 9 |
+| 5 | Osc 1 density | CC 24 | 10 |
+| 6 | Osc 1 density detune | CC 25 | 11 |
+| 7 | Osc 1 semitones | CC 26 | 12 |
+| 8 | Osc 1 cents | CC 27 | 13 |
+| 9 | Osc 2 wave interpolate | CC 30 | 16 |
+| 10 | Osc 2 pulse width index | CC 31 | 17 |
+| 11 | Osc 2 virtual sync depth | CC 33 | 18 |
+| 12 | Osc 2 density | CC 35 | 19 |
+| 13 | Osc 2 density detune | CC 36 | 20 |
+| 14 | Osc 2 semitones | CC 37 | 21 |
+| 15 | Osc 2 cents | CC 39 | 22 |
+| 16 | Osc 1 level | CC 51 | 24 |
+| 17 | Osc 2 level | CC 52 | 25 |
+| 18 | Ring mod level | CC 54 | 26 |
+| 19 | Noise level | CC 56 | 27 |
+| 20 | Filter frequency | CC 74 | 34 |
+| 21 | Filter resonance | CC 71 | 36 |
+| 22 | Filter drive | CC 63 | 31 |
+| 23 | Filter tracking | CC 69 | 35 |
+| 24 | Env 2 → filter frequency | CC 79 | 38 |
+| 25 | Env 1 attack | CC 73 | 40 |
+| 26 | Env 1 decay | CC 75 | 41 |
+| 27 | Env 1 sustain | CC 70 | 42 |
+| 28 | Env 1 release | CC 72 | 43 |
+| 29 | Env 2 attack | NRPN 0:1 | 45 |
+| 30 | Env 2 decay | NRPN 0:2 | 46 |
+| 31 | Env 2 sustain | NRPN 0:3 | 47 |
+| 32 | Env 2 release | NRPN 0:4 | 48 |
+| 33 | Env 3 delay | NRPN 0:14 | 49 |
+| 34 | Env 3 attack | NRPN 0:15 | 50 |
+| 35 | Env 3 decay | NRPN 0:16 | 51 |
+| 36 | Env 3 sustain | NRPN 0:17 | 52 |
+| 37 | Env 3 release | NRPN 0:18 | 53 |
+| 38 | LFO 1 rate | NRPN 0:76 | 59 |
+| 39 | LFO 1 rate sync | NRPN 0:77 | 60 |
+| 40 | LFO 1 slew rate | NRPN 0:72 | 56 |
+| 41 | LFO 2 rate | NRPN 0:85 | 71 |
+| 42 | LFO 2 rate sync | NRPN 0:86 | 72 |
+| 43 | LFO 2 slew rate | NRPN 0:81 | 68 |
+| 44 | Distortion level | CC 91 | 78 |
+| 45 | Chorus level | CC 93 | 79 |
+| 46 | Chorus rate | NRPN 1:25 | 89 |
+| 47 | Chorus feedback | NRPN 1:27 | 91 |
+| 48 | Chorus mod depth | NRPN 1:28 | 92 |
+| 49 | Chorus delay | NRPN 1:29 | 93 |
+| 50 | Mod matrix 1 depth | NRPN 1:86 | 96 |
+| 51 | Mod matrix 2 depth | NRPN 1:91 | 100 |
+| 52 | Mod matrix 3 depth | NRPN 1:96 | 104 |
+| 53 | Mod matrix 4 depth | NRPN 1:101 | 108 |
+| 54 | Mod matrix 5 depth | NRPN 1:106 | 112 |
+| 55 | Mod matrix 6 depth | NRPN 1:111 | 116 |
+| 56 | Mod matrix 7 depth | NRPN 1:116 | 120 |
+| 57 | Mod matrix 8 depth | NRPN 1:121 | 124 |
+| 58 | Mod matrix 9 depth | NRPN 1:126 | 128 |
+| 59 | Mod matrix 10 depth | NRPN 2:3 | 132 |
+| 60 | Mod matrix 11 depth | NRPN 2:8 | 136 |
+| 61 | Mod matrix 12 depth | NRPN 2:13 | 140 |
+| 62 | Mod matrix 13 depth | NRPN 2:18 | 144 |
+| 63 | Mod matrix 14 depth | NRPN 2:23 | 148 |
+| 64 | Mod matrix 15 depth | NRPN 2:28 | 152 |
+| 65 | Mod matrix 16 depth | NRPN 2:33 | 156 |
+| 66 | Mod matrix 17 depth | NRPN 2:38 | 160 |
+| 67 | Mod matrix 18 depth | NRPN 2:43 | 164 |
+| 68 | Mod matrix 19 depth | NRPN 2:48 | 168 |
+| 69 | Mod matrix 20 depth | NRPN 2:53 | 172 |
+
+- **Los destinos 41-45** (LFO 2 y los dos niveles) están deducidos por simetría con el LFO 1 y por los valores por defecto, no por un registro directo de la tabla: confirmarlos en el aparato antes de darlos por buenos.
+- **Mostrar el destino por su CC / NRPN (valoración):** viable. El knob recorre los 70 destinos en el orden del firmware y los pads dibujan el número (como el editor de CC de MIDI): para los 31 con CC, el número de CC; para los 39 sin CC, el LSB del NRPN, con el color de los dígitos diciendo el banco (CC / NRPN 0 / NRPN 1 / NRPN 2). Los números no son únicos entre bancos (CC 26 y NRPN 1:26), por eso hace falta el color. Alternativa: mostrar el número de destino 0-69 y dejar el CC para el manual.
+- **Orden de recorrido (decisión del usuario, 2026-10-12):** «primero los CC en orden parámetro destino ascendente y luego los NRPN en orden destino ascendente»: el knob recorre una lista de presentación de 70 posiciones (una tabla de 70 bytes con el destino de cada posición): los 31 destinos con CC ordenados por número de CC (5, 20, 21, 22, 24-27, 30, 31, 33, 35-37, 39, 51, 52, 54, 56, 59, 63, 69-75, 79, 91, 93) y después los 39 de NRPN en el orden de los destinos (29-43, 46-69). En el patch se guarda el número de destino de siempre.
+- Fuentes: guía oficial (`circuit_tracks_programmer_s_reference_guide_v3.pdf`, descargada de Novation), el firmware 4486 y el editor de patches del propio usuario (`CircuitPatchEditor`, para el Circuit original: mismos nombres, otro orden).
+
+### RC0.5 / RC0.5S = RC0.4 / RC0.4S + **el sample capturado delante de los efectos de Master FX** (`sampler_dsp.PRE`); SC39.2 = SC39.1 + lo mismo; BETA3 = SC39.2 — ⏳ pendiente de probar
+- **Bug del usuario (2026-10-12):** «en el trigger de sample de master fx, los efectos 2, 3, 4, 5, 6 no afectan al sample en reproducción». Era el diseño de SC33: `smp_post` colgaba de `fx_out`, el final de la cadena (así la captura llevaba los efectos). **Decisión del usuario:** «sample antes de efectos (efectos aplican a captura, no se graban)».
+- **`sampler_dsp.PRE`:** la rutina entera pasa al principio de la cadena. La primera instrucción de `fx_hook` (`move x:>FX_ON,x0`, 2 palabras) se sustituye por `jmp smp_post`; `smp_post` termina con esa instrucción y `jmp fx_hook + 2` en vez de `move #>$2e10,r1` + `rts`; `fx_out` conserva su final propio. **Una palabra más** (el núcleo 0 termina en `P:$3FED`: 19 libres; `$3FE7` en la S). La pila no crece (se entra con `jmp`).
+- **Consecuencias:** el sample que suena pasa por los cinco efectos; la captura graba el master antes de ellos y sigue sin grabarse a sí misma (el paso de grabar va antes que el de reproducir); la cola de `smp_post` (las copias para el núcleo 1 y el **Glitch**, que sustituye el master) también queda delante: los efectos procesan la salida del Glitch y el Glitch trabaja con el master sin efectos.
+- Partir la rutina en dos (reproducir delante, grabar detrás) no cabía con margen: ~22 palabras por duplicar el guardado / restauración de `r2`, `m2`, `m4`, `m5`.
+- Builders `build_rc0_5.py`, `build_rc0_5s.py`, `build_sc39_2.py`, `build_beta3.py`. RC0.5 `38a1f4e3…1e69` (0x66014 B), RC0.5S `fb3c2e4a…29e3` (0x6447c B), SC39.2 `7e5eb057…7ef7` (0x67448 B), BETA3 `10763abe…1a3c`.
+- **Pruebas:** `emu_sc39_2_dsp.py` (imagen + lógica con una cadena de prueba, sobre las cuatro builds); `emu_sc37_4_dsp.py` y `emu_sc36_dsp.py` sobre SC39.2 (el programa real: la cola, las voces; el único fallo de `emu_sc36_dsp` es el de siempre en builds posteriores a SC37.5, el tamaño del núcleo 1). Las pruebas ARM son las de RC0.4 / SC39.1 (el ARM no cambia).
+
+### Preguntas del usuario sobre las salidas (2026-10-12) — respuesta desde la lista de componentes, sin medir
+- La placa lleva **un solo códec estéreo** (AKM AK4556: 2 entradas, 2 salidas; lista de chips del repositorio `CircuitTracksReverseEngineering`). Main y auriculares salen del mismo par de salidas del códec: **no pueden llevar mezclas distintas**; lo único posible es separar por canal (izquierdo = una señal, derecho = otra, en las dos salidas a la vez).
+- Las entradas de línea son las dos entradas del mismo códec: **no pueden usarse como salidas**.
+- Sync Out es un pin digital del micro (pulsos de reloj): **no hay conversor**; como mucho pulsos / una onda cuadrada o PWM, y habría que localizar antes el pin y su temporizador en el firmware (sin estudiar).
+
+### SC39.1 = SC39 + **patches del sinte propio** (`tools/mpatch.py`) + **Clear + página** (`vcf21.use_resetview()`) + **selector de fuente del granular** (`vcf21.use_grsrc()`); BETA2 = SC39.1 con la marca de la tercera beta — ⏳ pendiente de probar
+- **Pedidos del usuario (2026-10-12):** guardar los parámetros de los sintes propios de MIDI 1 / 2 en «las dos filas centrales de la vista preset de midi 1/2, en un color que no esté en uso» (el del fondo del song pointer), guardar = Duplicate, huecos compartidos, «guarda todo si cabe», «4 páginas de 16 (con octave up/down) en los 64 primeros sintes, si no existen se crean init»; «incluye en esta build el selector de granular»; «para inicializar … debería ocurrir al pulsar clear+vista, no clear+toggle».
+- **Patches (`mpatch.py`):**
+  - Formato, 42 B en el relleno del registro (desplazamiento 340): `CTM1`, banderas (bit 0 modo, 1 oscilador, 2 / 3 nibble de motor de `O_SIG`, 4 dos osciladores = bit 7 de `RT_VEL`, 5 orden = bit 7 de `RT_NOTE`), nibble del step-drummer (`O_SD`), los 26 valores (`TAIL + STRIDE t + O_PAR`), los 8 de OSC2 (`c_gfst() + V2_OFF + 8 t`), suma, versión. Se escriben los 172 B (el resto `0xFF`). **Cabe todo** (no hubo que descartar el step-drummer ni el secuenciador de efectos; sus pasos son notas / carriles del patrón).
+  - Hueco n (0..63) = registro `n & 7` del banco `n >> 3` del pack cargado (por su número, `c_curpack`). `c_mpsave`: si el registro no existe, completa el relleno del último (`0xFF` hasta 512), escribe el **Initial Patch** (`0x080584F0`, 340 B) + 172 B de `0xFF` en cada registro que falte y el Initial Patch en el suyo; luego el bloque. `c_mpload`: lee 44 B, comprueba firma y suma, `c_mpapply` (escribe las banderas y los valores, `c_vset` marca todo para reenviar, quita el patch flip si el modo queda encendido, página 0) y guarda los ajustes fuera del cerrojo del búfer. `c_mpclear`: `0xFF` sobre lo que el fichero tenga del relleno.
+  - Vista: ranuras 0 / 7 de la vista de plantillas (`0x0805AE5C`; la 0 era de stock `0x0804D59A`, la 7 `c_vleds`) → `c_mppad` / `c_mpleds`; solo con `c_mpon()` (vista activa = el contenedor, `[MGR + 0x152]` = 18 / 27, editor de CC apagado, ninguna vista del step-drummer). `c_mphmask` (ranura 8 del contenedor, delante de `c_hmask`): Duplicate mantenido también en la Preset de MIDI.
+  - Páginas: `c_mpbtn` es la nueva cabeza de la cadena de `0x08033320` (delante de `c_vbtn`): Octave ▼ (19) = siguiente, ▲ (20) = anterior, sin Shift; `c_mpledtask` (las dos llamadas de la tarea de LEDs, delante de `c_pkled`): LEDs 51 / 52.
+  - Estado sin RAM nueva: 16 B en el búfer de LEDs ocioso de Master FX (`c_gst() + 104`, el sitio de la caché de `pmode`, con otra etiqueta `0x4D51`): página, último hueco, 16 bits «en uso» de la página con el pack / página / hora de lectura (se releen los dos bancos de la página al cambiar y cada ~4 s). Si otra vista usa el búfer (Master FX, la Preset de un sinte, el editor de CC), se vuelve a la página 1.
+- **Clear + página (`c_mprst`, en `c_mppad`):** Clear mantenido + pad 1-5 con el modo encendido = los códigos de esa página (tabla de 16 por página; con el motor granular la página 2 es `GR_TAB`) a `DEFAULTS` / `DEFAULTS_V2`, marcados y guardados. `vcf21.use_resetview()` quita el Clear + pad 27 de SC38.7 (`c_vreset` queda sin usar).
+- **Selector de fuente del granular (`vcf21.use_grsrc()`, `grsrc_routines`):** Shift + K8 (índice 15 de la página granular, código 25) ya no pasa por `c_grknob`: `c_grsrc` mueve una posición 0..127 un clic por evento (zona = `5 p >> 7`) y escribe en el código 25 el valor de la zona (`c_grzv`: −1 la captura; `GETTER(0x10, 7 d)` = el sample actual del drum d). La posición vive en 1 B por pista (`c_gfst() + 64 + 82 + t`, los 2 B del búfer ocioso que no usa la copia del editor de CC) y solo vale si su zona sigue dando el valor guardado; si no, se parte del centro de la zona que lo da (la del Drum 1 si ninguna). LED (`c_grsled`): color de la zona (`GRS_COL`: `0x53`, `0x45`, `0x2D`, `0x49`, `0x4D`), brillo 48..111 a lo largo de la zona durante el recorrido, 127 fuera; blanco tenue si ningún drum tiene el sample guardado. **Arreglo de paso:** Clear + knob en la página granular reiniciaba los códigos de la página del oscilador que comparten el knob (`c_vclear` usa la tabla de páginas, no `GR_TAB`: Clear + K8 ponía a 0 el modo de nota, código 26); ahora `c_grclear` reinicia los dos códigos del knob en `GR_TAB` (`c_vclrcode` = la cola de `c_vclr1`) y, en K8, deja la fuente en la captura (−1).
+- **Colores animados en uso (revisión):** de las constantes de color del mod solo quedan en códigos animados `CLR_DIM = 3` (blanco tenue que pulsa despacio: pad 8 de Master FX sin nada que borrar, hueco sin asignar, Clear en la vista de packs antes de SC38.4) y `0x05` en los diagnósticos; `PM_GLIDE` se corrigió en SC39. No se cambian (probados así en el aparato sin queja).
+- **Bug (el usuario, 2026-10-12), arreglado en RC0.5 / SC39.2: los efectos de Master FX no afectan al sample que se dispara con el pad 7.** Es el diseño de SC33: el reproductor se suma en `smp_post`, al final de la cadena (`fx_out`), después de los cinco efectos, para que la captura lleve los efectos y no se grabe a sí misma. Pasarlo delante exige partir `smp_post` en dos ganchos (reproducir al entrar en la cadena, grabar al salir): unas 15-20 palabras, y **el núcleo 0 tiene 20 libres** (`P:$3FEC` de `$4000`); además la captura pasaría a grabar también el sample que suena. Pendiente de que el usuario decida.
+- `tools/build_sc39_1.py`, `tools/build_beta2.py`; imagen de 0x67444 B (SC39 + 2552 B; 35772 B libres). SC39.1 `.syx` `4c5bbb73…3520`, CRC 0x8af83678; BETA2 `464900cb…2fb3`, CRC 0x98fc8154.
+- **Pruebas:** `emu_sc39_1.py`, `emu_sc39_1_gr.py`; `emu_sc39.py` y `emu_sc38_9.py` sobre SC39.1. `emu_sc38_7.py` no se pasa sobre SC39.1 (Clear + pad 27 ya no reinicia). Las pruebas del motor con el arnés sin tarjeta (`emu_sc36_1`, `emu_sc38_1`) fallaban sobre SC39.1 porque la vista Preset de MIDI consulta la SD en cada pasada de LEDs: `emu_sc39_1_reg.py` las corre respondiendo a la API como una tarjeta sin bancos (ALL PASS).
+
+### SC39 = SC38.9 + **random-mutate por paso** (`tools/mutate39.py`) + patches de glide en color fijo (`packio.use_pmode2()`); BETA1 = SC39 con la marca de la segunda beta — ✅ probado 2026-10-12: «funciona»
+- **Pedido del usuario (2026-10-11 / 12):** random-mutate en la vista de probabilidad de stock (fila 4, melocotón): pad 25 apagado; 26 octava 6 %; 27 escala 6 %; 28 las dos 6 %; 29 escala 12 %; 30 octava 12 %; 31 escala 25 %; 32 octava 25 % + escala 50 %. Con Record la nota mutada se escribe; sin Record suena una vez. «SC39: construye, push, sube a beta, documenta» (2026-10-12). El nombre es SC39 porque `SC38.10` se corta a `SC38.1` (la marca de SC38.1).
+- **Dónde va el valor:** byte `[2]` del paso (0..7). El almacén de la vista (`[[vista + 0xC] + 8]`, Synth 1 `0x20039F28`) tiene tres copias del paso elegido (escritura `0x080354FA`, lectura `0x0803542C`); `0x080353C0` confirma **los 28 bytes** en el patrón (comprobado en emulación: escribir `[2]` y confirmar lo lleva a `0x20011B22`).
+- **La vista** (clase `0x0805ACD4`, 4 instancias: Synth 1 / 2 y MIDI 1 / 2 `0x20042890 + 0x3C t`; se abre con **Shift + botón 12 = Pattern Settings**, submodo 5): su búfer de LEDs `[[vista + 4]]` son **16 halfwords** (fila 3 = 0..7, fila 4 = 8..15; el stock solo escribe la fila 3). Ganchos: ranura 0 → `c_mutpad` (8..15: el nivel, con las mismas condiciones que el stock pone a la probabilidad; un paso sin notas no se toca), ranura 8 y el thunk de la segunda vtable (`0x0805AD00`) → `c_mutled` (el listener de stock + la fila 4), ranura 7 (`0x08047592`, el búfer en cada pasada de LEDs) → `c_mutbuf` (la fila 4 antes de devolverlo: se ve desde que se abre la vista). Fila 4: `0x6A` hasta el nivel, `0x6B` tenue por encima, apagada si el paso no tiene notas.
+- **El reproductor** (SEQWD): objeto de pista con vtable `0x0805B750` (Synth 1 `0x20040200`, + `0x184` por pista; `+ 0x48` patrones, `+ 0x4C` interfaz de notas `0x0805BF54`; no es el grabador `0x2003C194`). En `0x08040EFC` los dos `ldrb` (nota y velocity) pasan a `bl c_mutnote; nop`. `c_mutnote` (r4 = unidad − 4, r7 = n.º de unidad, r0 = el reproductor, r6 = `[r4 + 5]`): paso = `r4 − 4 r7`; nivel 0 → nada (ni se llama al generador). No muta si la unidad tiene tie (bit 7 de `[r4 + 5]`), si continúa una ligadura (su bit en `this + 0x128`) o si la nota nueva ya suena (`[this + 0x9B + nota] != 0xFF`): el stock empareja esas notas por la nota del paso. Probabilidades en dieciseisavos (`CHANCE`: octava | escala << 4 por nivel) con 4 bits del generador de stock `0x08049908` cada una (bits 6-9 escala, luego octava; el resto elige el grado).
+- **Escala:** un solo objeto para todas las pistas (`[0x20041044 + 0xC]` = `0x2003FA8C`: `[0]` mínimo, `[1]` máximo, `[4]` máscara de 2 bits por grado sobre la tónica, 0 = en la escala; tónica en `[[0x20041044 + 0x10]]`); `[vista de pista + 0x38]` = `0x20041044` en las cuatro pistas. `c_mutscale`: grado = (nota − tónica + 120) mod 12; elige al azar otro grado de la escala y devuelve nota − grado + nuevo (± 12 si se sale de 0..127).
+- **Octava:** ± 12 por un bit del generador; si se sale de 0..127, al otro lado.
+- **Record:** la misma puerta que el grabador de stock (`0x20011034`: parámetros 0 y 1 puestos, 2 no) → `strb` de la nota mutada en `[r4 + 4]`.
+- **Note-off:** `0x08040FA2` guarda la nota que recibe (lista `this + 0x7C / 0x7E`) y `0x0804104A` apaga esa: la nota mutada se apaga sola.
+- **Purple que parpadeaba (SC38.8 / SC38.9, medido en el aparato con PATCHD):** el búfer de LEDs de la vista Preset era fijo (`4C`), pero **la tabla RGB de RAM `0x20003804` tiene entradas animadas**: 6 lecturas seguidas de los 128 colores dan 35 códigos que cambian (pulsan o alternan): `03 04 05 06 10 11 15 16 19 1A 1B 1C 1D 27 28 2F 30 39 3A 42 43 47 48 4B 4C 4F 50 56 57 58 59 5A 5B 61 62`. Las familias van en grupos «fijo, tenue, parpadeo, pulso» (`49` / `4A` / `4B` / `4C`). `packio.use_pmode2()`: glide `0x49` (lavanda), el elegido `0x5C`. **No usar esos 35 códigos para un color fijo** (los usan, entre otros, `CLR_DIM = 3` del pad 8 de Master FX y el gris `0x05` de los diagnósticos).
+- **El stock no guarda patches desde el panel** (ver RELEVO): los pasos de PATCHD que lo pedían se hacen desde Components.
+- `tools/build_sc39.py`, `tools/build_beta1.py`; código nuevo 556 B en `0x8076820`; imagen de 0x66a4c B (SC38.9 + 556 B). SC39 `.syx` `acdc68af…c7c9`, CRC 0x67a3e078; BETA1 `694b0a09…57a2`, CRC 0xe5175373.
+- **Pruebas:** `emu_sc39.py` (la vista por el controlador; el reproductor real con el generador sustituido = el modelo en 4 655 reproducciones; tie, continuación, nota que ya suena; Record; tasas con el generador de stock; `emu_sc38_8` con los colores nuevos), `emu_sc38_9.py` sobre SC39. **Sin comprobar en emulación:** el reproductor en marcha y las ligaduras entre pasos.
+
+### SEQWD («seqwatch», diagnóstico) = SC38.9 + `rdiag.WATCH`: punto de observación DWT para encontrar el reproductor de notas — ✅ probado 2026-10-12: encontró el reproductor
+- **Pedido del usuario (2026-10-12):** «construye la versión de diagnóstico, commit y push» (tras la propuesta: el random-mutate necesita el código que lee las notas de un paso al reproducir).
+- **Lo que no encontramos en emulación:** con Play y el tick de stock (`0x0802C418`, el motor `0x0802B884`, los almacenes de pista `[0x20038ECC + 0x30 + 4 t]` con sus suscriptores `0x0803EA1C` / `0x0803D6A0`, que solo sincronizan los ajustes del patrón) las posiciones de paso avanzan, pero ningún código lee los pasos del patrón (`[[0x2003C168 + 0xC + 4 t] + 0x48] + 0xCA8 p + 28 s`; Synth 1 = `0x20011B20`) ni llega a la interfaz de notas del sinte (`0x0801D38E`). Lo que indexa pasos de 28 B (`0x0803F2xx`, `0x0803F7xx`) es el grabador; `0x0803D5xx` / `0x0803E7xx` el Mutate de stock; el generador aleatorio de stock es `0x08049908` (LCG con barajado de Bays-Durham, constante `0x0019660D`). La vista de probabilidad de stock es **Shift + botón 12** (submodo 5, clase `0x0805ACD4`): la fila 3 (valores 0..7) escribe el byte [1] del paso por el almacén `[[vista + 0xC] + 8]`; **la fila 4 llega como 8..15 y el stock la ignora** (`cmp r4, #8; bge`).
+- **`rdiag.WATCH`** (órdenes 10-12, versión + `$80`): `watch` arma el comparador 0 del DWT (desbloqueo LAR `0xC5ACCE55`, `COMP0` / `MASK0` / `FUNCTION0` = 5 lectura, 6 escritura, 7 las dos; `DEMCR` |= TRCENA | MON_EN) y borra el registro; `poke` escribe RAM (`0x20000000–0x2004FFFF`); `wlog` devuelve las lecturas y hasta 8 pares (PC, LR) distintos. **`c_dmon`** en la entrada 12 del vector de la aplicación (DebugMonitor; el de stock era `0x0805998B`): toma el marco de MSP o PSP según el bit 2 de EXC_RETURN, apunta PC / LR, borra `DFSR.DWTTRAP` y lee `FUNCTION0`. El registro vive en el búfer de LEDs ocioso de Master FX, tras la caché de PMODE: `c_gst() + 120`, 68 B: sin RAM nueva.
+- **`ctremote.py`:** `watch ADDR [read|write|rw|off] [MASK]`, `wlog`, `poke ADDR HEX --yes`, `step TRACK PATTERN STEP` (dirección y bytes del paso desde los grabadores) y `seqwatch TRACK PATTERN STEP [BYTE] [modo]`.
+- Builder `tools/build_seqwatch.py` (como PATCHD), `firmware/seqwatch/` (0x66e30 B), SHA-256 `49f17a79…ec73`, CRC 0x1d06ed3f.
+- **Pruebas:** `emu_seqwatch.py` (ALL PASS), `emu_sc35d8.py --dspx` (ALL PASS; ahora conoce WATCH: versión + `$80`, orden desconocida = 13).
+- **Resultado en el aparato (2026-10-12; Synth 1, patrón 1, paso 1 con la nota 0x3C; vigilado `0x20011B24` = nota de la unidad 0):** parado, 0 lecturas; reproduciendo, 23 lecturas desde 5 PC. El reproductor es el bloque `0x08040D4C`–`0x08040F6C` (`this` = el objeto de pista, en `[sp + 8]` dentro de `0x08040E5A`; patrones en `[this + 0x48]`, `0xCA8 × patrón + 28 × paso`):
+  - `0x08040D4C(this, patrón, paso, tick…)` = qué unidades empiezan este micropaso: para cada una de las 6 unidades (`[paso]` máscara, `[paso + 1]` probabilidad contra el contador `[this + 4] & 7`, `[unidad + 6]` micropaso) pone el bit en `[this + 0x13C + micropaso]`; después apaga las que ya suenan (`[unidad + 4]` = nota, tabla de notas activas `this + 0x54` / `0x128`). Lecturas de nota en `0x08040DC8` (hit `0x08040DD0`).
+  - **`0x08040E5A(this, patrón, paso, micropaso)` = el que toca las notas** (hits `0x08040EA0` y `0x08040EFE`): primero libera las notas vivas de esas unidades (`0x08041078`); después, para cada unidad con su bit en `[this + 0x13C + micropaso]`: `r5 = [unidad + 4]` (**nota**, `0x08040EFC`), `r6 = [unidad + 5]` (duración `& 0x7F`, tie en el bit 7), `sl = [unidad + 7]` (**velocity**, `0x08040EFE`), calcula la duración con la tabla de `[0x08040F70]` y llama a **`0x08040FA2(this, nota, velocity, duración, tie)`** = el note-on (si la nota no está en la máscara `[this + 0x128]` llama al método 0 del objeto `[this + 0x4C]`, la interfaz de notas; guarda la nota en la lista de duraciones `this + 0x68 / 0x7C`).
+  - `0x0804104A(this, i)` = note-off (método 1 del objeto `[this + 0x4C]`), `0x08041078` = libera una entrada.
+  - Los otros hits (`0x080251A8` con LR `0x0803DC91`, `0x0801AA40` con LR `0x0803DCC1`) son copias en bloque del patrón (ldm / stm) desde `0x0803DC8x`, no el reproductor.
+  - **Gancho para el random-mutate:** la nota se lee en `0x08040EFC` (`ldrb r5, [r4, #4]`, justo antes de `ldrb.w sl, [r4, #7]`); una función nuestra puede sustituir `r5` por la nota mutada (octava ± 12 / otra nota de la escala) leyendo el valor del paso `[paso + 2]` (`r4` apunta a la unidad, `paso = r4 − 4 × unidad`; en `[sp + 8]` está `this`). Notas colgadas: el note-off (`0x0804104A`) usa la nota guardada en la lista `this + 0x7E` por el note-on (`0x08040FA2` guarda la nota que se le pasó), así que mutar antes de `0x08040FA2` apaga la nota mutada. **Por comprobar:** `0x08040D4C` consulta la tabla de notas activas (`this + 0x54`) con la nota original (`[unidad + 4]`), no con la mutada. La escritura con Record = escribir la nota mutada en `[unidad + 4]` desde nuestra función.
+
+### PATCHD («patchdiag») = SC38.9 + **diagnóstico remoto del relleno de los patches** — ✅ probado 2026-10-12: el relleno se conserva
+- **Resultado en el aparato (2026-10-12, `27_PACK`, banco 0 con 4 patches; marcas A = relleno del registro 0, B = tras el último patch, C = registro nuevo vacío; el fichero pasó de 1876 a 2560 B):** las tres marcas **intactas** tras (1) guardar el proyecto, (2) cargar otro pack y volver, (3) apagar y encender, y (4) los guardados de patch del usuario (el stock no guarda patches desde el panel: ver «SC39»): el banco quedó con 7 registros (3412 B, relleno `MFFMMF-`), con el registro 0 sobrescrito («Sub Hard»), el hueco vacío C ocupado («Blip Bass») y dos patches nuevos tras el final. **Conclusión: los 172 B de relleno de cada registro son utilizables** para los patches del sinte propio; el caso que el código hacía temer (guardar tras el final pisa el relleno del último registro) no afecta cuando el último registro ya está completo hasta 512 B (la marca B lo dejó así). Marcas quitadas al acabar (`padtest.py unmark 0 --yes`: relleno `FFFFFF-`, 7 registros, 3412 B).
+- **Objetivo:** comprobar en el aparato el estudio «patches del sinte propio»: que el relleno de 172 B tras cada patch de sinte sobrevive a los guardados de stock, al cambio de pack, al apagado y (opcional) a Components.
+- **Nombre:** el usuario pidió otro nombre que «SC38.9D» (en uso en otra sesión): marca `PATCHD`, `firmware/patchdiag/`, `tools/build_patchdiag.py`.
+- **Build:** SC38.9 + `rdiag.install` (info / lectura / escritura de ficheros de la SD por SysEx USB, `tools/ctremote.py`). `rdiag.DSPX` ya lo deja activo un builder anterior de la cadena al importarse: se fija explícito (lecturas del DSP, solo lectura, como SC342D); sin `DELETE`. Ping = `$35E8`.
+- **`tools/padtest.py`** (Windows; usa `ctremote.Link`):
+  - `scan`: tamaño, patches y estado del relleno de los 16 bancos;
+  - `mark BANK`: marcas de 40 B (firma `CTPD`, banco, registro, patrón, suma) en tres sitios: A = relleno del registro 0; B = tras el último patch (el fichero crece hasta 512 n); C = registro nuevo tras el final (340 B `0xFF` + marca);
+  - `check` / `unmark`; el estado queda en `tools/padtest_BANK.json`.
+- **Pruebas:**
+  - `emu_sc35d8.py --dspx` sobre PATCHD (la ruta real del despachador de SysEx; la opción nueva acepta las órdenes del DSP);
+  - `emu_padtest.py`: modelo de la SD con el protocolo real y los guardados de stock `0x0802FC66` (hueco existente) y `0x0802FBCC` (tras el final: `0xFF` desde el final del fichero). Las marcas sobreviven a los tres casos. El modelo descubrió que la marca medía 39 B: corregido.
+  - `ctremote.py` se puede importar en Linux (CFUNCTYPE si no hay WINFUNCTYPE) para las pruebas.
+- `.syx` `d3cc136c…4b50`; imagen de 0x66C80 bytes; CRC 0x31F57866. Pasos en `firmware/patchdiag/PRUEBA.md`.
+
+### Diseño (sin build, 2026-10-11): **selector de fuente del granular** con la captura y los samples de los cuatro drums — para la próxima versión
+- **Ámbito (aclaración del usuario, 2026-10-12):** es el selector del **sinte granular** (motor de MIDI 1 / 2, Shift + K8 de su página), **no el Glitch** (el efecto granular de Master FX). Master FX solo aparece abajo como sitio donde guardar 2 bits: su búfer de LEDs ocioso es RAM que la vista Master FX repinta al abrirse.
+- **Pedido del usuario:** «en el modo granular del sinte propio, el selector de sample (Shift + K8) selecciona entre el sample capturado (izquierda, rojo) y el sample de banco seleccionado actualmente por drum 1 (naranja), 2 (amarillo), 3 (purple) o 4 (derecha, teal). Haz el recorrido largo y cambia de color. Al soltar Shift, el pad queda fijado hasta que se vuelva a tocar Shift + K8».
+- **Hoy (SC36):** Shift + K8 = código 25 (`GR_TAB[15]` = (25, −1, 63, un paso por giro, LED tipo 3)). El valor va tal cual al núcleo 1: P25 < 0 = la captura (`$E80000`); 0..63 = la entrada N de la tabla de samples (`X:$1D8D + 4N`).
+- **Propuesta, sin tocar el DSP** (el núcleo 1 está en 2047 de 2048 palabras):
+  - **El código 25 sigue guardando lo que suena:** −1 = la captura, N = el sample. Se guarda con el resto (persiste al apagar) y **queda fijado aunque el drum cambie de sample después**, hasta el siguiente Shift + K8.
+  - **Recorrido largo:** durante el gesto se lleva una posición 0..127, un paso por clic (128 clics de punta a punta, unos 25 por zona). Cinco zonas, zona = p × 5 >> 7:
+    - 0 = captura (rojo);
+    - 1-4 = el sample que tiene **en ese momento** el drum 1-4 (`GETTER(0x10, 7 d)`, el parámetro 0 del drum = su sample), con los colores de los drums (paleta 5-8: 0x45 naranja, 0x2D amarillo, 0x49, 0x4D).
+  - Cada clic escribe el código 25 con el sample de la zona: se oye al momento (marca sucio, se guarda).
+  - **La posición es transitoria:** vive en 2 B del búfer de LEDs ocioso de Master FX (sin RAM nueva, como `pmode` de SC38.8). Hay que elegir bytes que no use la copia del editor de CC (`S_SCR`, 81 B) ni `pmode`. Se marca con un bit «gesto en curso» y se borra cuando el LED de los knobs ve Shift suelto. Al empezar un gesto, la posición sale del valor guardado:
+    - −1 → centro de la zona 0;
+    - N igual al sample actual de un drum → centro de su zona;
+    - si no coincide con ninguno (el drum cambió después) → centro de la zona del drum 1.
+  - **LED de K8 con Shift:**
+    - durante el gesto, el color de la zona y el brillo = la posición dentro de la zona;
+    - fuera del gesto, el color del drum que tiene ahora ese sample (rojo para la captura);
+    - si ningún drum lo tiene, **blanco tenue** = «fijado a un sample que ya no está en ningún drum».
+  - **Otros puntos:**
+    - CC / NRPN de salida del código 25: sale N (como hoy);
+    - Clear + K8 (SC38.7) → la captura;
+    - pruebas por la ruta real del knob con los drums con samples distintos, cambiando el sample del drum tras soltar Shift.
+- **Respuestas del usuario (2026-10-11):**
+  1. Sí: blanco tenue cuando el sample fijado ya no está en ningún drum.
+  2. Con dos drums con el mismo sample: **da igual qué canal se recuerde** («es el mismo sample», 2026-10-12). Fuera del gesto, el LED muestra el color del primer drum que tenga ese sample. No hace falta guardar la zona: solo el código 25 (N o −1) y la posición transitoria del gesto (1 B por pista en el búfer ocioso).
+
+### Estudio (sin build, 2026-10-11): **patches del sinte propio** (motor de MIDI 1 / 2) en el relleno de los registros de patch
+- **El hueco:** cada registro de `Patches/NN_PATCHBANK.cpb` ocupa 512 B: 340 de patch de sinte (16 de nombre + datos) y **172 B de relleno `0xFF`**; 16 bancos × 8 = 128 registros por pack.
+- **El stock no pisa el relleno** (código leído hoy):
+  - guardar en un hueco que existe escribe solo sus 340 B (`0x0802FC66`);
+  - guardar tras el final del banco (`0x0802FBCC`): `r5 = 512 × (hueco % 8)`, `r6` = tamaño del fichero (`0x0803C9CA`); si `r6 < r5`, rellena con `0xFF` **desde el final actual del fichero** y escribe los 340 B; si no, escribe los 340 B en `r5`. Un registro nuestro escrito completo (512 B) sobrevive a los dos casos.
+  - Los huecos vacíos son registros `0xFF` o lo que hay tras el final del fichero; el stock los toma por vacíos.
+- **Lo que hay que guardar por patch propio** (≈ 40 B, cabe de sobra en 172):
+  - firma + versión (3 B);
+  - motor (1 B): modo encendido, fuente oscilador / línea, bits del motor (VA-drum, granular / velocity), dos osciladores (bit 7 de `RT_VEL`), orden de la cadena (bit 7 de `RT_NOTE`), secuenciador de efectos;
+  - los códigos 1..26 (26 B, los guardados del tail);
+  - los códigos 27..34 (8 B, hoy volátiles: OSC2, MIX, FM, RING…; con un patch dejarían de perderse al apagar);
+  - el nibble del step-drummer (activado + destino) y una suma de control (2 B).
+  - Se podrían guardar varios por registro, pero uno por registro es más simple: **128 patches propios por pack**, independientes del patch de sinte que comparta el registro.
+- **Cargar:** escribir valores y bits del motor en la pista y marcar todo sucio + guardar. Es exactamente lo que ya hace `c_vreset` de SC38.7 con los valores por defecto.
+- **Leer / escribir:** con la API de la SD que ya usa `packio` (op 6 / 7) en `512 × (hueco % 8) + 340` del banco `hueco >> 3`.
+  - Hueco tras el final del fichero, o último registro del banco (sin relleno): escribir `0xFF` × 340 + el registro, que el stock seguirá viendo como hueco vacío.
+- **Vista propuesta** (vista Preset de MIDI 1 / 2, mismos gestos que la vista de packs):
+  - un pad libre (p. ej. el 32) abre la vista de patches propios;
+  - pads 1-32 = 32 huecos de la página; Octave ▼ / ▲ = página 1-4 (128 huecos);
+  - color de la pista brillante = hay patch propio; tenue = vacío; blanco = el cargado;
+  - **tocar = cargar** en la pista;
+  - **Duplicate + pad = guardar** ahí el estado de la pista (con un hueco ocupado, pedir confirmación como al borrar packs);
+  - **Clear + pad = borrar** (`0xFF` en nuestros 40 B).
+  - Para encender los pads hay que leer la firma de los 32 huecos de la página (4 bancos, como `pmode` de SC38.8). Los bits caben en el búfer de LEDs ocioso de Master FX.
+- **Riesgos:**
+  - Components podría reescribir bancos enteros con `0xFF` (sin comprobar: haría falta una prueba con una copia de la SD);
+  - copiar patches de sinte entre packs (SC37.x) mueve solo los 340 B, así que el patch propio no viaja con ellos (es independiente);
+  - un pack sin bancos (sin ficheros) necesita crear el fichero.
+- **Recursos:**
+  - ARM ≈ 1,5-2 KB (quedan ≈ 40 KB de flash);
+  - sin RAM nueva (búfer ocioso) y sin DSP.
+- **Plan:**
+  1. Diagnóstico remoto con `rdiag` (ya probado) para leer / escribir el relleno de un registro y comprobar que el stock y la carga de packs lo respetan.
+  2. Guardar / cargar sin vista (un gesto provisional) y pruebas con el modelo de la SD de `emu_sc35`.
+  3. La vista.
+
+### SC02 "Shared MIDI channels" — ✅ funciona en hardware
+- MIDI 1/2 pueden compartir canal con cualquier track. La unicidad se mantiene entre Synth 1/2 y Drums.
+- 3 reescrituras in situ (A 0x08046E00, B 0x080473FA, C 0x08046D7A) + marca. `.syx` `0f663591…a8e8`.
+
+### SC03 = SC02 + toggles Ch16 Rx/Tx (pads 22/23) — ✅ funciona en hardware
+- Ganchos: 0x08046E82 (pads), 0x080472E0 (LEDs), 0x08034F9E (flags Rx), 0x08035066 (flags Tx), 0x08051722 (filtro Rx), 0x0802A002 (filtro Tx). `.syx` `b003164d…61f1`.
+
+### SC04 = SC02 + un solo toggle Ch16 (Rx+Tx) en el pad rojo del canal 16 — ✅ funciona en hardware (2026-10-03)
+- Pad 16: rojo = activo; apagado = bloqueado. LED en la cola de la región B (0x0804746E: `cmp.w r8,#15; it eq; bleq c_led16`).
+- `.syx` `4c41ced0…e257`; imagen de 0x4CE88 bytes.
+
+### SC05 = SC04 + **loopback MIDI interno sin cable** — ✅ funciona en hardware (2026-10-03)
+- Contexto: con cable, las notas de los tracks MIDI se grababan también en el sinte. El usuario quiere que funcione sin cable y sin esa doble grabación.
+- Inyección:
+  - Envoltorios en la vtable de notas: llaman al original y, si el track es MIDI 1/2 y su canal = canal del Synth 1/2, inyectan.
+  - El helper de plantillas `0x0804A356` (b.w a la cueva) envía como en stock e inyecta si el canal = canal Rx de CC del Synth 1/2 o de Drums (`A+9..11`).
+  - `c_inject(msg)`: si la entrada MIDI está habilitada y existe ctx, activa el bit 5 de `A+0x14`, llama a `0x08051720(A, msg)` y borra el bit.
+- Puertas del grabador (b.w a la cueva en `0x0802E56A`/`0x0802E5CC`/`0x0802E62C`): si el bit 5 está activo, devuelven sin grabar (r0 = 1); si no, ejecutan el prólogo original reubicado y vuelven a addr+4.
+- Límites:
+  - notas no hacia Drums (evita bucles);
+  - RPN de plantilla no inyectado;
+  - respeta Note/CC Rx; independiente de Note/CC Tx;
+  - **hay que quitar el cable de bucle**.
+- `.syx` `5f32507d…4521`; imagen de 0x4CFF4 bytes; CRC 0xA64E626A.
+- Emulación con el volcado en marcha y el transporte forzado a "grabando" (`tools/emu_sc05.py`):
+  - stock: nota externa → suena y se graba; SC05: nota de MIDI 1 en el canal 1 → externo + suena + no se graba;
+  - el Note Off llega al sinte;
+  - casos sin inyección: canal propio, canal de Drums y eco del sinte;
+  - CC de macro 80/81/85: stock externo se aplica y se graba; SC05 interno se aplica y no se graba;
+  - la regresión de SC04 pasa sobre SC05.
+
+### SC06 = SC05 + **patch flip** en MIDI 1/2 — ✅ funciona en hardware (2026-10-03); el ajuste no se guardaba y el LED no aparecía al entrar → SC07
+- **Vista Preset (plantillas) de los tracks MIDI:**
+  - vtable 0x0805AE5C; manejador de pads `0x0804D59A` (pads < 8 → `[obj+0xC]` vtable0(track `[obj+0x10]`, pad)); dibujo `0x0804D5CA` (paleta 0x08056464, búfer de LEDs `[[obj+4]]`, halfword por pad).
+  - Instancias en el volcado: 0x20042AE8 (`[+0x10]` = 0x6A, MIDI 1) y 0x20042B50 (0x6B, MIDI 2).
+- **Pad 25** (índice 24, abajo a la izquierda) = toggle patch flip. Colores: índice de paleta 1 (activo, código 0x32) y 9 (inactivo, código 0x38).
+- Se guarda en el parámetro 2: **bit 26 = MIDI 1, bit 27 = MIDI 2**. Al aplicar los ajustes se copian a los flags Tx `[X+0x18]`: **bit 5 = MIDI 1, bit 6 = MIDI 2**. El gancho de 0x08035066 apunta a `c_txf2`, que también copia el bit 25 → 0x10.
+- Acceso a los ajustes desde cualquier sitio: `[[0x200069E4]]` = L (objeto de aplicar ajustes, 0x20044BD4); `[L+0x54]` = almacén (0x200111CC); `[L+0x1C]` = X = interfaz Tx 0x20011334.
+- Ganchos:
+  - `0x0804D59E` b.w `c_tpad`. Al pulsar el pad 24: PARAM_PTR + EOR del bit + `0x080353C0` (confirmar, que vuelve a aplicar los ajustes) + redibujo, y vuelve a 0x0804D5C0.
+  - `0x0804D5F0` bl `c_tdraw`: pinta el pad 24 y ejecuta las 2 instrucciones reubicadas.
+- Notas:
+  - Los envoltorios de la vtable de notas comprueban el bit PF. Note On → `[0xC0|canal, nota & 0x7F]`: externo por `0x0803BEDA(7)` si PGM Tx (bit 2 Tx) está activo, e interno (`c_injB`) si el canal coincide con `A+9..11`.
+  - El Note Off se suprime. Sin PF, el comportamiento es el de SC05.
+- `.syx` `1f0a6cae…89c8`; imagen de 0x4D114 bytes; CRC 0x58F0E945; 650 bytes de cueva desde 0x0805CE88 (sustituye a la de SC05).
+- Emulación (`tools/emu_sc06.py`):
+  - pads 0–7 como en stock y el resto inactivos;
+  - el toggle cambia el bit y los flags Tx (0x0F → 0x2F/0x4F) y el LED;
+  - el dibujo es idéntico salvo el pad 24;
+  - PF: `C0 05` externo y el PC llega por dentro (0x080518C6);
+  - las regresiones de SC05 y SC04 pasan.
+- Confirmado en hardware: MIDI 1 = instancia 0x6A, como se suponía (la construye `0x0804262E`; la 0x6B, `0x0804266E`).
+
+### SC07 = SC06 + LED del pad 25 al entrar + guardado de los bits 24–27 — ✅ funciona en hardware (2026-10-03)
+- **LED:** la vista Preset solo se dibuja al construirse (en el arranque, cuando `[0x200069E4]` aún no apunta a los ajustes) y al cambiar de plantilla. El gestor de UI lee los LEDs de la vista activa por el **slot 7 de la vtable** (`0x0804758C` despacha → `0x08047592` devuelve `[[obj+4]]`; lo llama `0x08034212` 69 veces por refresco). SC07 cambia el slot 7 de la vtable de plantillas (`0x0805AE78`) por `c_tleds`, que pinta el pad 24 (`c_tpaint`) y devuelve el búfer. El gancho de dibujo usa el mismo pintor.
+- **Guardado de ajustes globales:**
+  - Objeto de persistencia 0x2003974C (vtable 0x0805BAB0; `[+0x9C]` = almacén de ajustes). Escucha un almacén de 1 parámetro (0x200396E8, junto al controlador de UI) y en `0x0802D278` hace: `0x0802D300` "¿cambió?" → si cambió, `0x0802D2AC` guarda (copia los 8 primeros parámetros en `[obj+8..]` y escribe con `0x0803C920`).
+  - **`0x0802D300` compara el parámetro 2 con `ubfx #0, #0x13` (bits 0–18)** → los cambios en los bits 24–27 nunca disparaban un guardado (sí se guardaban si cambiaba otra cosa).
+  - SC07: `bl c_m1` en 0x0802D348 y `bl c_m2` en 0x0802D352 → máscara 0x0F07FFFF (bits 0–18 + 24–27).
+- **Falsa pista descartada:** el listener 10 del almacén (0x20044B94, vtable 0x0805B050, filtro `0x08034B4A` sobre los bits 0, 2–10) no guarda en flash: envía los ajustes por MIDI/SysEx (`0x0802A094` → `0x0803BEFA`, condicionado a `[tx+0x19]` bit 3). Probablemente es para Components.
+- Listeners del almacén de ajustes: capacidad 12 y los 12 ocupados (byte 1 de la cabecera); `0x08035398` no comprueba la capacidad → **no se pueden añadir listeners**.
+- `.syx` `68f845d3…d666`; imagen de 0x4D14C bytes; CRC 0x09BB8B3D. Se genera con `build_sc06.py --v2`; SC06 se sigue reproduciendo idéntico.
+- Emulación (`emu_sc06.py STOCK SC07 manifest SC06`):
+  - la lectura de LEDs pinta el pad 24 (0x32 activo / 0x38 inactivo);
+  - el detector de cambios guarda con PF/Ch16 en SC07 y no en SC06, e ignora los bits 20 y 28 en ambos;
+  - de punta a punta, PF de MIDI 2 → la copia guardada contiene el bit 27;
+  - las regresiones de SC06, SC05 y SC04 pasan.
+- Sin verificar: que la carga en el arranque no enmascare los bits 24–27.
+
+### SC08 = SC07 + **vista Preset cromática de drums** — ✅ con SC09 (el modo no necesita guardarse)
+- **Decisiones del usuario (2026-10-03):**
+  - orden: lo rápido primero (Preset cromática → retorno de FX 3/4 → noise → line in → Master FX → macros de sample);
+  - retorno de FX: toggles separados en Setup (tira 3 = reverb, tira 4 = delay);
+  - noise → line in: entrada elegible por sinte;
+  - Preset cromática: se activa con Shift + Preset.
+- **Interfaz de usuario (controlador 0x20040B10, vtable 0x0805A100):**
+  - botones `0x08033320(ctrl, id)`: tbh en 0x080333C4. Ids: 0–7 tracks (Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1–4), **8 = Preset**, 9 = Note, 10 = Velocity (con Shift: velocidad fija), 13/14/15/18/22/26 = otras vistas (18 = Scales).
+  - **Shift** = parámetro 0 del almacén `[ctrl+0xC]`. Con Shift pulsado solo pasan los botones de la máscara 0x07DBBE00 (en stock, Shift + Preset no hace nada). Comprobado en emulación con la imagen de stock: Shift + id 0–8 (Synth 1/2, MIDI 1/2, Drum 1–4, Preset) no llega al `tbh` ni cambia estado, vista ni LEDs; el botón de pulsar es el slot 2 de la vtable 0x0805A100 y solo lo atiende `0x08033320`. La máscara 0x07DBBE00 deja pasar los ids 9–13, 15–17, 19, 20, 22–26 (y 0x1B por separado); Shift + 14 y Shift + 21 tampoco pasan.
+  - `[ctrl+0x2C]` = contenedor de vistas de track 0x20040DB8 (vtable 0x0805A62C); `0x0805011E(cont)` = track seleccionado; `[cont+0x18C]` = submodo (0 = Preset, 6 = Note…); `0x08043A84(cont, track, modo)` = subvista.
+  - El controlador pide los LEDs a la vista activa con una sola llamada al slot 7 por refresco (`0x08034196`).
+- **Vista Preset de drums** (clase vtable 0x0805ABBC, 4 instancias, objeto de 0x54 bytes: `[cont+0x8C+4·(track−4)]`):
+  - slot 0 = pulsar `0x0804D934`, slot 1 = soltar `0x0804DA38`, slot 7 = LEDs;
+  - `+0x0C` = objeto setter de parámetros (vt0(obj, id, valor) → grabador de automatización `0x0802E62C` → almacén → DSP);
+  - `+0x10` = interfaz de notas;
+  - `+0x24` = id del parámetro patch del drum (44/49/54/59);
+  - `+0x25` = n.º de drum;
+  - `+0x26` = índice de color base (seleccionado = base, resto = base + 2);
+  - `+0x2C` = almacén del sample elegido;
+  - `0x0804E0BA(view, pad, vel)` = golpe; `0x0804E0E8` = cerrar la nota pendiente; `0x0804DAEC(view, sample, color)` = pintar un pad.
+- **Ids de parámetro de drums** (vía setter): por drum, base 40 + 5·(d−1): +0 Pitch, +1 Decay, +2 Distortion, +3 EQ, +4 Patch. El Pitch se guarda tal cual (CC 14: 64 = original). **No va por semitonos** en stock (ver SC09).
+- **Escalas:** tabla de máscaras de 2 bits en `0x0805A3C4`, idéntica a la del Circuit OG. Objeto escala `{min, max, máscara}` en `[[view+0xC]+0x44]` y puntero a la tónica en `[[view+0xC]+0x48]`. `[view+0xC]+0x3C` es el secuenciador (vtable 0x0805B840, se usa como comprobación). Cuantizador `0x080408C6`.
+- **Parches:**
+  - `0x0804D89C` strb.w → **strh.w** r0,[r5,#0x50] (pone a 0 el byte +0x51 = flag cromático);
+  - `0x080333B2` b.w `c_shbtn` (Shift + Preset con un drum: alterna el flag y abre Preset; con cualquier otra cosa, la máscara de stock);
+  - vtable 0x0805ABBC slot 0 → `c_dpad`, slot 7 → `c_dleds`.
+  - Cueva: `c_scale` (tónica, N, intervalos), `c_padval` (pad → valor de Pitch y si es tónica), `c_dstock` (repintar la vista de stock).
+- `.syx` `5797ab52…175c`; imagen de 0x4D380 bytes; CRC 0x736F67D6; 562 bytes de cueva desde 0x0805D14C.
+- Emulación (`emu_sc08.py`):
+  - 16 escalas × 3 tónicas × 32 pads = modelo;
+  - Pitch con id/valor correctos en los 4 drums; golpe sin cambiar el sample; grabador de automatización;
+  - LEDs; Shift + Preset (activar, desactivar con repintado idéntico al volcado, solo drums);
+  - todo lo demás igual que stock; regresiones de SC07, SC06, SC05 y SC04.
+
+### SC09 = SC08 + **Pitch de drums en semitonos** — ✅ funciona en hardware (los extremos se quedan en los topes)
+- **Hallazgo:** el Pitch de drums de stock es un cambio **lineal** de velocidad.
+  - El ARM (`0x0802878C`) envía palabra = (256 + 2·trunc(1.5·(v−64))) << 8 → relación = palabra/0x10000, de 0,25× a 1,73× (−24 a +9,5 semitonos, pasos desiguales). El Circuit OG usa la misma fórmula; el modelo "1 semitono por paso" de tracelistener era incorrecto.
+  - Confirmado en el aparato: 12 pasos sonaban a menos de una octava.
+- **DSP, voz de drums** (núcleo 0, `func_00208a` / `func_0020b3`): bloque de parámetros por drum en X:$A3 + 10·d (+0 sample, +1 pitch, +2 decay…); tabla de samples en X:$1D8D + 4·sample (inicio, ?, incremento base). Al disparar: incremento = incremento base × palabra de pitch (mpy, asl #15). → Cualquier relación es posible.
+- **Mapa de las escrituras ARM→DSP de los drums** (manejadores en `0x080287DE` + 0x9C·d, tabla `0x08021534`): índice de parámetro (kind 0x10, base 7·d) 0 → X:$A3, 1 (nivel) → 0x80FD, 2 (pitch) → X:$A4, 3 (decay) → X:$A5, 4 (distorsión) → 0x8105, 5 (EQ) → 0x8109, 6 → 0x8101. Escritura DSP: `0x080292F8(núcleo, valor, dirección)`.
+- **Cadena ARM de parámetros:** el CC llega al setter, que escribe un espejo de bytes por tipo; `0x08021FDC(tipo, índice)` marca un grupo sucio en 0x20006A0C; una tarea vacía los grupos con manejadores por grupo (proyecto: tabla 0x0805B3B0, 10 grupos) que convierten y escriben en el DSP.
+- **SC09:**
+  - `0x0802878C` reescrita in situ: `ands #0x7F; ldr r0,[tabla + v·4]`, con la tabla de 128 palabras en 0x0805D380: round(0x10000·2^((v−64)/12));
+  - los 4 llamadores, `lsls r1,r0,#8` → `mov r1,r0`, envían la palabra de 24 bits completa.
+- `.syx` `9a99783b…feb6`; imagen de 0x4D580 bytes; CRC 0x3E4C6142.
+- Emulación (`emu_sc09.py`): en los 4 drums, stock = fórmula lineal y SC09 = tabla; el resto de escrituras son iguales; regresiones de SC08, SC07, SC06, SC05 y SC04.
+- Por vigilar: con relaciones muy altas (más de unas +3 octavas) el incremento puede saturar en el DSP.
+
+### SC10 = SC09 + **retorno de FX por las tiras 3/4** — ✅ funciona en hardware (2026-10-03; primer parche de DSP)
+- **Flujo de señal del DSP, núcleo 0** (bloques de x:$3a tramas estéreo; mapeado con trazas ARM y lectura del programa):
+  - Parámetros ARM→DSP (`0x080292F8(núcleo, valor<<8, dirección)`; grupos de proyecto en la tabla 0x0805B3B0):
+    - niveles y pan en X: Synth 1 $52/$53, Synth 2 $54/$55, Audio In 1 $56/$57, Audio In 2 $58/$59;
+    - envíos a reverb: Synth 1/2 $E3/$E4, Drums $AB/$B5/$BF/$C9, Audio 1/2 $E5/$E6;
+    - envíos a delay: $E7/$E8, $AC/$B6/$C0/$CA, $E9/$EA;
+    - sidechain: Synth 1 $3F2–$3F6, Synth 2 $564–$568, Audio 1 $28C–$290, Audio 2 $291–$295;
+    - parámetros de reverb $D1–$DD, de delay $948–$94E.
+  - Índices de proyecto (tipo 0x20):
+    - 0–7 envíos a reverb, 8–10 reverb, 11–18 envíos a delay, 19–24 delay;
+    - 26–30 / 31–35 / 36–40 / 41–45 sidechain de Synth 1 / Synth 2 / Audio 1 / Audio 2;
+    - 46/47 nivel de Synth 1/2, 48/49 nivel de Audio 1/2, 50–53 pan.
+  - `func_001b2b`: ganancia L/R = nivel × 0,125 × (2 − 2·pan / 2·pan) suavizada; a nivel 127 vale 0,0615. Resultado en Y:$57/$59/$5B/$5D.
+  - `func_0012ed`: ganancias por trama = L/R × envolvente del sidechain (Y:$2028/$2048/$2068/$2088). Seco → X:$1B32 / $1B72 / $020C / $024C; delay → X:$1BB2 / $1BF2 / $1C32 / $1C72; reverb → X:$1CB2 / $1CF2 / $018C / $01CC.
+  - Mezcla principal (P:$230–$24E): Y:$800 = (Synth 1 Y:$840 + Synth 2 Y:$880) × ganancias − entradas × ganancias, todo << 2.
+    - Las entradas se leen de y:(y:$FFD): tramas [in1, in2] del anillo del ADC.
+    - Luego + X:$2E70 (drums) en P:$24F–$25B.
+  - Bus de delay (`func_000cb8`): Y:$9C0 = X:$2EF0 (drums) + sintes × X:$1BB2/$1BF2 + entradas × X:$1C32/$1C72 → `func_001157`.
+  - Bus de reverb: Y:$840 = X:$2EB0 + sintes × X:$1CB2/$1CF2 + entradas × X:$18C/$1CC → `func_001964` (salida en Y:$880).
+  - Retornos: P:$D21–$D31, Y:$880 = (delay Y:$9C0 + reverb Y:$880) >> x:$18B. Mezcla final en P:$D32–$D52 hacia X:$2C02/$2C24.
+  - Interrupciones activas: solo ESAI y SHI (IPRP = 9). Vectores P:$02–$3D y $46–$FF en blanco; **P:$80–$FF se usa como espacio de código**.
+  - X:$EB–$10F: ninguna referencia absoluta del DSP ni escrituras del ARM; **X:$EC = flags de SC10**.
+  - ⚠️ **Error (corregido 2026-10-03):** X:$EB–$15A es la **tabla de slots de voz** (ver «Tabla de voces del DSP»). X:$EC es el r0 de la voz 0 del Synth 1. SC10–SC14 lo sobrescriben.
+- **SC10:**
+  - Setup: pad 22 → bit 28 (reverb → tira 3), pad 23 → bit 29 (delay → tira 4). Ruta: `c_pad_ign` de SC04 → `c_fxpad` (PARAM_PTR + COMMIT + `0x0803BDCC(0x20, 48)`).
+  - H9 (`0x08028EEC` → `c_h9`) escribe X:$EC = (p2 >> 28) & 3.
+  - LEDs mediante el slot 7 de la vtable de Setup (0x0805A9A8). Máscara de guardado 0x3F07FFFF.
+  - DSP:
+    - P:$10B `jsr init_hook` (X:$EC = 0);
+    - P:$23C `jsr premix` (anula in1/in2 en el anillo según el flag);
+    - P:$D21 `jsr returns` + `jmp $D32` (reverb × X:$20C ×16 si bit 0; delay × X:$24C ×16 si bit 1; luego la suma de stock).
+- Herramientas nuevas:
+  - `tools/dsp56.py`: codificador DSP56300, verificado contra el desensamblador;
+  - `dsptool` (`ct/dsptool`, enlazado con libdsp56kEmu; usar execInterpreter, el JIT no está inicializado) y `tools/dspemu.py`;
+  - `emu_sc10_dsp.py` (DSP) y `emu_sc10.py` (ARM).
+- `.syx` `d96468ec…84b2`; imagen de 0x4D628 bytes; CRC 0xCEF64D02.
+
+### SC11 = SC10 + **knob Pitch como afinación en el modo cromático** — ✅ funciona en hardware
+- Byte +0x52 de la vista Preset de drums = afinación (en semitonos, con signo). Constructor: `0x0804D89C` → `str.w r0,[r5,#0x50]`, que pone a 0 +0x51..+0x53.
+- Al activar el modo (`c_shbtn2`, gancho 0x080333B2), la afinación vale Pitch − 64. Pitch actual = espejo DSP `0x08036192(0x10, 2 + 7·d)`.
+- Mando de drums: manejador de macros por track `[cont + 0x148 + 4·track]` (vtable 0x0805AADC; slot 4 = giro (obj, knob, delta), stock `0x0804FCC4`; +0x30 = id de Pitch del drum, 40/45/50/55). `c_dknob`: con el knob 1 (macro 2) llama a stock y, si el modo cromático está activo, suma a la afinación el cambio aplicado.
+- Pad: `c_dpad2` = SC08 + afinación, limitado a 0–127.
+- Vista desde cualquier sitio: `[[[0x200069E4]+0x40]+0x2C]` (A → controlador → contenedor) + 0x8C + 4·d, comprobando la vtable 0x0805ABBC.
+- Mandos en las vistas de track: controlador `0x08033848(ctrl, knob, delta)` → contenedor slot 4 → `0x08043A20` (manejador por track) → slot 4.
+- `.syx` `476063e4…414c`; imagen de 0x4D79C bytes; CRC 0xC6CD07D9.
+
+### SC12 = SC11 + **afinación fina en cents de los drums** — ✅ funciona en hardware
+- Byte +0x53 de la vista Preset de drums = cents con signo (−100..+100); el constructor de SC11 ya lo pone a 0. No se guarda.
+- Los 4 `bl 0x0802878C` de los manejadores DSP (0x080287FA/896/92A/9BE) → `c_conv0..3`: palabra de semitonos × tabla Q16 2^(c/1200) (201 entradas tras el código) con `umull` y `>>16`, limitado a 0x7FFFFF. Se aplica en todos los modos.
+- Slot 4 de la vtable 0x0805AADC → `c_dknob3`: knob 1 en modo cromático sin Shift → cents += delta y `0x0803BDCC(0x10, 2+7·d)` (el tipo 0x10 marca el drum ⌊idx/7⌋ en 0x20006A0C); con Shift → `c_dknob` de SC11; fuera del modo → stock.
+- Shift = `PARAM_GET([[[0x200069E4]+0x40]+0xC], 0)` byte.
+- `.syx` `0c4993a9…c93b`; imagen de 0x4DBCC bytes; CRC 0xE669FA76.
+- Emulación (`emu_sc12.py`, 106 comprobaciones). El volcado de RAM tiene basura en +0x53: las pruebas antiguas se ejecutan con `tools/zero53.py` delante. `emu_sc04`/`06`/`08`/`09`/`10`/`10_dsp`/`11` pasan, salvo los cambios intencionados.
+- Entorno: si falta `unicorn` (PyPI bloqueado), compilarlo desde el clon de GitHub (`cmake -DUNICORN_ARCH=arm`) y usar `PYTHONPATH=bindings/python LIBUNICORN_PATH=build`.
+
+### SC14.2 = SC14 con el flag de SC10 en X:$3A00 — ✅ funciona en hardware (2026-10-03)
+- Motivo: X:$EC es el r0 de la voz 0 del Synth 1 en la tabla de voces (X:$EB–$15A).
+- **Memoria libre del DSP** (`tools/dsp_free_scan.py`): zonas que en una emulación completa del núcleo 0 (todos los grupos, sintes, drums, 72 bloques) no se leen ni se escriben, el ARM no escribe y no tienen referencias absolutas ni bases inmediatas a menos de 0x100 palabras. X: $6C2–$6E6, $6ED–$730, $737–$77A, $B16–$BFF, $156A–$15FF, $1E70–$1E8C, $2500–$262B, $29DD–$29F5, $2AF6–$2BFF, $3035–$3234, **$3339–$3BFF**, $3D00–$3FFF. Y: parecidas (`$3339–$3BFF` incluida). Advertencia: la cobertura de la emulación no es total (sin núcleo 1, sin FX con envíos, sin delay en memoria externa); preferir el centro de las zonas grandes, lejos de las bases.
+- Cambios: 4 operandos DSP (P:$83/$88/$A0/$B4), `c_h9` con `movw r2,#0x3A00`, marca de 6 bytes `SC14.2` (+0x20..+0x25 del bloque de versión).
+- `tools/build_sc14_2.py` (fija `build_sc10.FLAGS` antes de construir SC14); `tools/emu_sc14_2.py` (núcleo completo: tabla de voces, voz 0 y lista del núcleo 1 idénticas a stock).
+- `.syx` `3da5085d…b86a`; imagen de 0x4DEB0 bytes; CRC 0x2CAD20F1.
+
+### Estudio (sin build, 2026-10-04): cómo guardar nuestros valores en el proyecto
+- **Objeto de sesión** `ctx` = 0x20010038 (el `this` de los getters de parámetros `0x08036192` → `0x08029A34` → `0x0803BE60`). Contiene **cinco almacenes de blobs** (20 B cada objeto, vtable 0x0805BBAC), punteros en `ctx + 0x344 / 0x348 / 0x34C / 0x350 / 0x354`:
+
+  | Tipo | Objeto | Datos | Tamaño | Descriptor | Contenido |
+  |---|---|---|---|---|---|
+  | 0 | 0x20010390 | 0x20010044 | 340 B (0x154) | 0x0805454C | parche del Synth 1 |
+  | 1 | 0x200103A4 | 0x2001019C | 340 B | 0x0805454C | parche del Synth 2 |
+  | 0x10 | 0x200103B8 | 0x200102F4 | 44 B (0x2C) | 0x08058FA0 | los 4 drums (11 B por drum) |
+  | 0x20 | 0x200103CC | 0x20010324 | 60 B (0x3C) | 0x08057AD0 | parámetros de proyecto (envíos, reverb, delay, sidechain, niveles, pan) |
+  | 0x21 | 0x200103E0 | 0x20010364 | 21 B (0x15) | 0x080598E8 | master (filtro, resonancia…) |
+
+  Los datos son contiguos (puntero de 4 B + datos) y el parche empieza con el nombre ASCII. Descriptor = entradas de 8 B: `u16 offset, u8 tipo, s8, s8, u8 máx, u8, u8 CC`. Slot 3 de la vtable (`0x0803BBE2`) = copiar `size` bytes **al** almacén; slot 4 (`0x0803BC00`) = copiar `size` bytes **desde** el almacén. Son los que usa el guardado / carga.
+- **Guardar proyecto** = `0x0802F63C(obj)`: con `obj+0x6C` = `ctx` y `obj+0x14` = búfer del registro de sesión, vuelca con el slot 4 los almacenes 0x344, 0x348, 0x34C y 0x350 en `búfer + 0x26D14 / +0x26E68 / +0x26FBC / +0x26FE8` (consecutivos; el registro tiene > 156 KB: son los últimos de una cabecera de parches antes de otros datos). Carga: `0x0802F2xx–0x0802F5B8` (parches de sinte, con ruta de blob entero o parámetro a parámetro según un flag) y `0x0802F5BC` (drums + proyecto, y `0x08029A00(ctx, 0x10000, 1)` para reenviar todo). **El master (0x354) no va en el proyecto**, va en los ajustes globales.
+- **Bytes que ningún descriptor cubre (reservados, a 0 en el volcado)** y que el blob completo arrastra al guardar y cargar:
+  - sinte: offsets 18–31 (14 B), 101, 103, 104, 111–115 (22 B por sinte, 44 B en total);
+  - drums: offsets 7–10, 18–21, 29–32, 40–43 (**4 B por drum**, 16 B);
+  - proyecto: offsets 11–15 y 30 (6 B);
+  - master: 7–12 y 18–19 (8 B, pero es global).
+  - Total por proyecto: 66 B. Un parche de la biblioteca que se carga en un sinte reescribe su blob entero (los 22 B de ese sinte se pierden); los parámetros sueltos de un drum no tocan los 4 B reservados.
+- **Ajustes globales** (no por proyecto; ya los usan SC07 y SC10): objeto 0x2003974C, registro de **128 B** en `obj+8 … obj+0x88` guardado por `0x0802D2AC` (`0x0803C920(…, tamaño 0x80, búfer obj+8)`): 32 B de ajustes (+8), blob master de 21 B (+0x28) y **75 B finales a 0** (`obj+0x3D … obj+0x87`). El detector de cambios es `0x0802D300` (compara solo campos concretos); un cambio nuestro solo se guarda si se llama a `0x0802D2AC(obj)` a mano.
+- **Estado que habría que guardar** (SC18.2): por drum 11 valores (K1 envolvente, Shift + K1 cantidad al tono, K3 frecuencia ring mod, Shift + K3 cantidad, K5 LFO, Shift + K5 velocidad, K7 env → corte, Shift + K7 modo de filtro 0–4, Shift + K8 resonancia, extendidos de K4 y K6 de 4 bits) ≈ 67 bits; modos de fuente del sinte (2 × 3 bits); Master FX: 5 juegos × 4 parámetros de 7 bits (20 B) y 7 huecos de 4 B (28 B); sidechain de drums de SC13 (4 B).
+- **Decisiones del usuario (2026-10-04):**
+  - las **asignaciones de Master FX a la fila inferior** (efecto + copia de 4 parámetros por hueco, 28 B) se guardan **por proyecto**;
+  - el **estado encendido** de los Master FX (retenidos con Shift) y el **song pointer** (inicio, final, saltos) **no se guardan**: se ponen a 0 al cambiar de proyecto y al encender (hay que enganchar el final de la carga, `0x0802F5FA`);
+  - los **ajustes de setup** (asignaciones MIDI, estado de retornos de FX y entrada de línea, también los modos de fuente del sinte) van al **setup general** (registro global de 128 B: los 75 B finales a 0 o bits de la palabra de ajustes), no al proyecto ni al parche.
+- **Drums completos** (estado de los knobs nuevos de SC18.1/18.2): 8 valores de 7 bits (K1 envolvente, Shift + K1 tono, K3, Shift + K3, K5, Shift + K5, K7, Shift + K8; en el DSP son PE, RMF, LFO, LSPD, EC, RES, ENVS, RMA) + modo de filtro (0–4, 3 bits) + extendidos de K4 / K6 (2 × 4 bits) = **67 bits ≈ 8,4 B por drum, 34 B los cuatro**. Hoy viven solo en el DSP (el ARM no los conoce) y en los nibbles `+0x31` de los gestores de macros. Guardarlos exige que el estado pase a vivir en los bytes reservados (valor 0 = por defecto en todos) y que el ARM envíe valores absolutos al DSP.
+- **Conclusión de capacidad:** por proyecto caben los modos del sinte (1 B en cada parche) y, del resto, solo ~32 bits por drum; lo demás (Master FX, que además es de directo y no de canción) cabe en los 75 B globales. Hace falta una prueba en el aparato para confirmar que los bytes reservados sobreviven a guardar → apagar → cargar (ver el chat).
+
+### Estudio: ¿se pueden usar las wavetables originales del sinte? (2026-10-05) — solo análisis, sin build
+- **No están en el fichero del firmware.** Barrido de `stock/…4486-STOCK.bin` (16 bits LE, 24 bits BE / LE, bloques de 512-768 B suaves y con amplitud): solo tablas pequeñas de código / parámetros, ningún bloque de audio. El .syx lleva la aplicación y los programas de los dos núcleos del DSP (núcleo 0: 10 846 palabras; núcleo 1: **364 palabras**) y las tablas de coeficientes X:$C00–$23FF (2 880 palabras, sin direcciones de ondas).
+- **El núcleo 1 es un motor de lectura (gather):** su bucle (P:$100–$12A) toma de la lista de la memoria compartida (`X:$30002…`, el puntero final está en `X:$30000`; stock lo deja en `$30202` = 512 entradas) cada dirección, lee `X:(dirección)` **en su propio espacio** y devuelve el dato en el mismo hueco. El núcleo 0 no ve esas memorias: se las pide así (la rutina que rellena la lista está en P:$79B, dentro de la de la voz).
+- **Dónde están:** una nota (Synth 1, nota 60) pide pares `X:$173000 + 44 k` / `X:$174000 + 44 k`, … (paso ≈ 22 palabras por muestra = 4096 × 261,6 Hz / 48 kHz): **una tabla de 4 096 palabras de un ciclo en `X:$173000` y otra de 4 096 palabras `+$1000`** (lo más probable: valor y pendiente para interpolar). La dirección base depende de la onda elegida (aún por averiguar: mapa onda → base, formato de las palabras, mipmaps por nota).
+- **De dónde salen los datos:** la placa tiene una NOR QSPI de 32 MB (muestras) y una SDRAM de 32 MB; el firmware de la aplicación no accede a ella con constantes visibles en `re/app.asm`. Sin dump del aparato (o sin emular el núcleo 1 con su memoria) no se pueden leer.
+- **Caminos:** A) diagnóstico (SC22D): pedir por la lista del núcleo 1 las direcciones de unas cuantas ondas, copiar los datos a Y libre y sacarlos por MIDI SysEx para volcarlos aquí; luego incrustar copias decimadas (256 – 512 puntos; el programa del DSP tiene ~1 500 palabras libres y Y ~2 000) en el oscilador; B) leer en directo con la misma lista (más fiel, pero la lista de stock ya viene llena y compartirla con las voces puede romper el sinte). Recomendado: A.
+
+### SC23 = SC22.4 + **editor de CC de los macros MIDI en el propio aparato** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-06): asignar desde el aparato los CC de los macros de MIDI 1 / MIDI 2 (hasta ahora solo desde Components): tocar un knob lo selecciona y enseña su CC (girar lo cambia); un botón avanza CC → inicio → fin → guardar; caso especial para NRPN; los números se dibujan con los 32 pads (como el tempo). Correcciones del usuario: las plantillas se guardan en el aparato (no en la sesión) y Octave ▲ / ▼ están ocupados por el teclado → el botón de la propia pista, solo hacia delante. Pad de entrada: **pad 25** (índice 24).
+- **Hecho** (`vcf21.use_cced()`, `cced_routines`): estado volátil en los 4 bytes libres de la cola (`+71..+74`); `c_edrec` (registro del knob = `[[SETOBJ − 4] + 0xC] + 0x78 × plantilla + 0x28 + 10 k`, plantilla leída por `[vista + 0x14]`), `c_edfield` (tablas por clase: CC 3 campos, NRPN / RPN de 7 bits 4, de 14 bits 6), `c_ednum` / `c_eddig` (dibujo con la fuente de stock en `0x08050DB8`), `c_edapply` (re-elegir la plantilla por el router `[vista + 0xC]`: reconstruye los descriptores del emisor), `c_edsave` (`0x08031320`), `c_edknob`, `c_edadv`, `c_vbtn` (delante de `c_bentry` en `0x08033320`), ganchos en `c_vpad` / `c_vleds` / `c_vknob` y borrado al encender.
+- **Tipos de registro** (byte 0 → tipo de `0x08040260`): 1 = CC (0), 2 = NRPN 14 bits (3), 3 = RPN 14 bits (1), 4 = NRPN 7 bits (4), 5 = RPN 7 bits (2); 0 = desactivado.
+- **Hallazgo del emulador:** la tercera escritura seguida al almacén persistente (`0x0803C920`) espera a que su tarea vacíe la cola y agota el presupuesto de instrucciones; en la prueba se sustituye por un retorno inmediato.
+- Pruebas: `tools/emu_sc23_ed.py` (41 comprobaciones por las rutas reales) y `tools/emu_sc23.py`.
+- Marca `SC23`, `firmware/sc23/` (0x5e4cc B). Reserva SC22.4.
+
+### Estudio (sin build, 2026-10-07): formato de los patrones de las pistas MIDI y automatización por paso (para el «step-drummer»)
+- **Dónde están.** Grabadores de las pistas = `[gate + 0xC + 4 i]` con `gate = 0x2003C168`: i = 0 / 1 sintes, **2 = MIDI 1, 3 = MIDI 2**, 4..7 drums. Base de los patrones de una pista = `[rec + 0x48]` (MIDI 1 = `0x2002BAB8` en el volcado; las pistas van a `+0x6540`); **8 patrones por pista, cada uno de `0xCA8` bytes** (función de stock `0x0801D02A` = «dirección del carril»: `base + 0xCA8 · patrón + 0x3A8 + 192 · carril`).
+- **Paso (28 bytes, 32 pasos desde el inicio del patrón, `0x0802B008` inicializa el patrón vacío):** `[0]` = 0, `[1]` = 7, `[2..3]` = u16, y **6 unidades de nota de 4 bytes desde `+4`**: `(nota, ?, ?, velocidad)`. Vacío = `(0, 0, 0, 0x60)`; con nota p. ej. `(0x48, 0x02, 0, 0x7E)` (un valor `0x3C` en la segunda posición en otras pistas: se interpreta como longitud de nota, sin confirmar). Seis notas por paso (polifonía de 6). Cola del patrón `+0x380..0x3A7`: ajustes del patrón (longitud, etc.).
+- **Automatización (lanes):** **12 carriles × 192 bytes** desde `+0x3A8` de cada patrón = **6 microsubpasos × 32 pasos**, valor 0..127 o **0xFF = sin automatización**. Tabla de stock `0x08059080` (`0x0802E62C(gate, id, valor)`): las macros de MIDI 1 son los ids 20 + k → grabador 2, carril k (k = 0..7); MIDI 2 = ids 30 + k → grabador 3. La grabación (`0x0803FE24` → `0x080400A4` microsubpasos / `0x08040188` paso) escribe en esos carriles; los carriles 8..11 son de sintes (ids 60..).
+- **Qué sabemos:** todo es RAM escribible (se puede reescribir una nota o un valor de carril directamente) y es lo que guarda el proyecto. **Qué no sabemos aún:** qué patrón suena en cada pista (índice de patrón en el almacén del secuenciador) y la posición de microsubpaso para leer el carril desde nuestro tick; si la reproducción aplica los carriles al almacén de macros (lo que podríamos leer) o los manda solo a MIDI / DSP; la tónica (octava 2) de la escala de las pistas MIDI; el significado exacto de los bytes 1 y 2 de la unidad de nota.
+- **Decisiones del usuario para el step-drummer (2026-10-07):** pad de entrada abajo (pad 30, el primero libre; no hay hueco entre el patch flip y el pad 27); los 8 knobs = 8 pares de pasos (1-2, 3-4, …); página arriba = pitch (**valor de carril de la macro 1, ±12 semitonos, 0..127, valor del par en sus dos pasos**), página abajo = velocity (de las notas del par); se conservan las **posiciones** de las notas y todas pasan a la **tónica 2**; un paso nuevo toma la nota y la velocity de la nota anterior más cercana (dando la vuelta al patrón; sin ninguna: tónica en tercera octava y velocity 64); solo MIDI 1 / 2 con el pad 27 encendido; unísono siempre. Sin RAM nuestra (los valores viven en el patrón), pero hace falta enganchar la creación de un paso y leer el carril en la reproducción.
+
+### Estudio: sustituir el sample de un drum por audio de la salida máster (2026-10-08, sin build)
+- Petición del usuario: «sustituir un sample por un sample del audio de salida máster; permite ajustar la duración, que ajusta el start y el end». Pidió no compilar todavía.
+- **Cómo lee el sample la voz de drums** (núcleo 0, `func_0020b3`):
+  - al disparar copia de la tabla `X:$1D8D + 4 × sample` el inicio (`x:(r3+0)`) y el final (`x:(r3+1)`), y el incremento = base × pitch (`x:(r3+2)`);
+  - en el bucle de bloque genera las posiciones (`y:$1BB5…`) y lee **`y:(r4)+` con `n4` = inicio**: los samples se leen **directamente de la memoria Y**, no por el núcleo 1;
+  - la voz se para cuando la posición pasa del final (`P:$20F0–$20F6`).
+  - Basta con cambiar inicio / final al disparar (el gancho `dtrig` de SC18 en `P:$20E0` ya está ahí) para que un drum lea otra zona de Y.
+- **Cómo llegan los samples a Y** (comando del ARM en `Y:$2C`, despachador `P:$1C53`): palabra = dirección / 2 (bits 4-22) | comando (bits 0-3).
+  - Comando 6: copia 512 palabras de `X:$C00` a `Y:(dirección)+` (carga de samples por bloques).
+  - Comando 7: entrada de la tabla de samples (`X:$C00` = índice, inicio, final, incremento base).
+  - Comandos 0-5: inicializan zonas (retardos de delay / reverb).
+- **Mapa de la memoria externa Y** (ARM `0x08035E28`): 30 zonas de `0x28800` palabras (≈ 3,46 s a 48 kHz) desde `Y:$100000`.
+  - Zonas 0, 1, 2 y 13 se inicializan con los comandos 2-5 (retardos).
+  - Zonas 14-29 reciben samples desde la flash.
+  - Zonas 3-12 no reciben comando al arrancar: **uso sin identificar**.
+  - El final de la última zona es `Y:$5BF000`; la SDRAM es de 32 MB.
+- **Diseño posible** (pendiente de decisiones del usuario):
+  - **DSP:**
+    - captura de la mezcla máster (mono, L + R) en una zona libre de Y externa, una palabra por muestra, mientras dure la grabación (longitud máxima = la zona);
+    - por drum, una marca «sample capturado» + inicio / final dentro del búfer;
+    - en `dtrig`, con la marca puesta, se sustituyen `x:(r3+0)` / `x:(r3+1)` (el pitch sigue funcionando: el incremento base es el de stock).
+  - **ARM:** gesto de grabar / parar y asignar al drum elegido; knobs de inicio / duración (final = inicio + duración, limitado al búfer).
+  - **Riesgos y pasos previos:**
+    - confirmar en el aparato qué zona de Y está libre: un build de diagnóstico que escriba y relea un patrón (riesgo bajo: es la misma memoria que ya usa el stock; si la zona estuviera en uso se oiría como un fallo en ese sample / retardo hasta apagar);
+    - localizar el punto de la mezcla máster en el núcleo 0;
+    - la memoria es volátil: el sample capturado se pierde al apagar y al recargar los samples del proyecto, salvo que se encuentre la ruta de guardado de samples de stock (no estudiada).
+- **Decisiones del usuario (2026-10-08):**
+  - **captura mientras se mantiene** un control (al soltar, el audio pasa a ser el sample);
+  - el control va en **Master FX**;
+  - **inicio y final** con dos knobs independientes;
+  - **volátil** para empezar.
+- **Propuesta para lo que falta:**
+  - Master FX no tiene pads libres (1-6 efectos, 7 saltar, 8 apagar, 9-24 song pointer, 25-32 fila de actuación y huecos): hay que elegir pad o combinación;
+  - drum de destino: el último drum seleccionado;
+  - K5 = inicio, K6 = final (K1-K4 son los parámetros del efecto).
+- **Punto de captura:** la mezcla final está en `P:$D32–$D52` (hacia `X:$2C02 / $2C24`; los retornos se suman en `X:$20C / $24C`). Falta confirmar que el filtro master queda antes del punto elegido (que el sample se grabe como se oye).
+- **Siguiente paso** (sin build todavía): build de diagnóstico de la memoria Y externa; elegir la zona; escribir el código DSP (captura + sustitución en `dtrig`) y ARM (Master FX) con sus pruebas.
+- **Rediseño del usuario (2026-10-08, sustituye a la sustitución del sample de un drum):** el sample capturado es un **efecto más de Master FX** y el song pointer cambia.
+  - **Pads 6 (Vinyl) y 7 (saltar) se eliminan.**
+  - **Song pointer:**
+    - **un paso mantenido** = retrigger por paso: el paso suena en el siguiente paso y se repite mientras se mantiene; al soltar todo sigue normal (el comportamiento del antiguo pad 7 + paso, `JUMP_HOLD`);
+    - **dos pasos mantenidos** = repetición de frase entre los dos (el bucle entre ellos); al soltar vuelve a la normalidad;
+    - **Shift + dos pasos** = la frase queda fijada; **Shift + un paso** = inicio de frase (como ahora, espera el segundo);
+    - mientras hay una frase fijada, **el paso 1 (pad 9) se ve blanco**; tocarlo la quita.
+  - **Pad 7 = captura:** mientras se mantiene, graba la salida máster (máximo ~3,4 s, una zona de la memoria externa del DSP).
+  - **Pad 6 = disparo del sample**, como un efecto de Master FX:
+    - tocarlo dispara el sample;
+    - se puede asignar a la fila inferior (hueco, con su copia de parámetros);
+    - parámetros (K1-K4): **pitch**, **modo** (one-shot / gate / loop), **start**, **end**; end < start = **reverse**;
+    - **Shift + pad = loop** del sample, sea cual sea el modo.
+  - Ventajas: el sample ocupa el sitio de Vinyl (efecto índice 5, conjunto de parámetros 4: los huecos y su validación «efecto ≤ 5» siguen valiendo); no hace falta un drum de destino.
+- **Cambio del usuario (2026-10-08, tras SC32D):** el **pad 6 sigue siendo Vinyl**; **pad 7 = disparo** del sample (con sus parámetros K1-K4: pitch, modo, start, end; Shift = loop), **pad 32 = grabar** (rojo, mantener = capturar). El sample necesita un sexto conjunto de parámetros (4 B; quedan 4 B de margen en el bloque de Master FX) y el pad 32 sale de los huecos asignables. Pedido también: grabación en tiempo real en el step-drummer (ver `docs/CHECKLIST.md`, «Pedidos para la próxima build»).
+- **Plan** (el usuario pidió los pasos 1 y 2 el 2026-10-08; los pasos 3 y 4 están en **SC33**):
+  1. Build de diagnóstico de la memoria Y externa para elegir la zona del búfer: SC32D (probado: solo la zona 0 se relee) → SC32D.1 (probado: **memoria de 16 bits**, M0 = `$FFFF`) → SC32D2 (probado: todo se escribe, nada cambia) → **búfer propuesto en `Y:$600000`**, fuera del mapa de stock.
+  2. ARM, solo song pointer: **hecho, SC32** (`build_sc17.use_sp2()`, pendiente de probar).
+  3. DSP: captura en el inserto máster de Master FX (`P:$274`, tras el filtro master) a la zona elegida; reproductor (posición fraccionaria, incremento = pitch, start / end, reverse, one-shot / gate / loop) en lugar de Vinyl en la cadena de Master FX.
+  4. ARM: pad 7 captura (mantener), pad 6 disparo / gate / Shift = loop, K1-K4, LEDs, huecos.
+
+### SC38.9 = SC38.8 + **Synth 1 + Synth 2 = teclado partido** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «pulsar synth1 y synth2 a la vez abre una vista de pads para tocar donde la fila superior es synth 1 y la inferior synth 2».
+- **El stock (emulación):** la vista de pista de un sinte (submodo 1 del contenedor de vistas de track `0x20040DB8`, vtable `0x0805A62C`; objeto `0x08043A84(cont, pista, 1)` = `0x200412E0` / `0x200415D4`, clase `0x0805A064`) toca con los pads 17-32 (su mitad de teclado; ranura 0 = pulsar `0x0804AB5A(vista, pad, vel)`, 1 = soltar, 7 = ventana de LEDs de 32 entradas, la mitad de abajo = las 16 primeras). El contenedor reparte los pads (ranura 0 `0x080435B0`: máscara de pads pulsados en `[cont + 0x190]`, `0x08043B6E` / `0x08043E86` eligen subvista y pad) y **rehace su búfer de LEDs en cada llamada** (ranura 7 `0x08043C42`: mitad de arriba, mitad de abajo, knobs, botones). **La vista de Synth 2 oculta toca Synth 2** (su nota con su octava: pad 20 = 91 frente a 67 en Synth 1), con su nota soltada al soltar.
+- **`srcview.use_split()`:** bits 3 / 4 del byte de estado de SC14 (+20, el de la vista de la fuente) = Synth 1 / 2 mantenido (`c_bentry` al pulsar; `c_brel`, nuevo gancho en los 4 primeros bytes de la suelta de stock `0x0803381A`, mismo prólogo que la pulsación); un botón Synth pulsado con el otro mantenido (sin Shift) se traga, suelta los pads que el stock tenía pulsados (su ranura 1), toca Note (id 9, por la entrada enganchada: cierra la vista de la fuente que pudo abrir la «segunda pulsación» del primero) y pone el bit 5 (`F_SPLIT`). Con el bit, las ranuras 0 / 1 / 7 del contenedor son nuestras: pads 1-16 → vista de pista de Synth 1 con pad + 16, pads 17-32 → la de Synth 2 (cada uno con su escala, octava y velocity), máscara del contenedor para que cada suelta vaya a la vista que tocó; LEDs = el búfer del contenedor con los pads 1-16 = ventana de teclado de Synth 1 y 17-32 = la de Synth 2. Termina con cualquier botón de pista o de vista (ids 0-15; las notas aún pulsadas se sueltan antes); un solo botón Synth va directo al stock (no cuenta como «segunda pulsación»); Play, Record, Octave, Shift, Clear… no lo cambian. Knobs y Octave: los de la vista de debajo (el primer sinte).
+- Builder `tools/build_sc38_9.py`, `firmware/sc38.9/` (0x66820 B, +568 B), SHA-256 `0b5018a8…378e`, CRC 0xe0c59c08. Sin RAM nueva.
+- **Pruebas:** `emu_sc38_9.py` (por la entrada y la suelta de botones y la ruta de pads del controlador: Synth 1 mantenido + Synth 2 = teclado partido, la vista de pista de Synth 1 debajo y la de la fuente cerrada; pad 3 = la nota de Synth 1 de su pad 19, pad 21 = la de Synth 2 de su pad 21; sueltas en el sinte que tocó; LEDs; Play / Octave no lo quitan; Note con un pad pulsado: lo suelta y sale; bits de mantenido a 0 al soltar; Synth 2 solo: su vista; el otro orden; un botón Synth solo termina sin abrir la vista de la fuente; SC38.8: Synth 2 abre su vista). Regresiones como SC38.8 + `emu_sc38_8`.
+- **Sin probar:** grabación con Record (cada mitad pasa por la vista de su sinte, que es la que graba en el stock), LEDs de los botones Synth 1 / 2 (el panel enseña el primer sinte).
+
+### SC38.8 = SC38.7 + **patches de sinte coloreados por modo de voz** y **Advanced Setup sin los pads 22 / 23** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «en la vista del selector de patch de synth stock se muestra el pad en color azul oscuro si el patch es mono, purple si es glide e inalterado si es poly». Pregunta después: «¿alguna visualización que consuma menos RAM? (intensidad, parpadeo…)»: la RAM no depende de cómo se enseña, sino de saber el modo de cada patch (solo está en la SD); la solución no usa RAM nueva.
+- **Formato:** el byte 32 de cada patch (registro de 512 B del banco `Patches/NN_PATCHBANK.cpb`) es el modo de voz: 0 Mono, 1 Mono AG (auto-glide), 2 Poly (comprobado en el pack de fábrica de la copia de la SD: 26 + 9 mono, 12 mono AG, 81 poly; solo 0..2). El stock solo lee un patch al elegirlo (`0x0802FA9A`), así que los modos no están en RAM.
+- **La vista Preset del sinte (stock):** su búfer de LEDs se pinta por eventos: `0x0804D3C2` (al construirla, al cambiar de página y al mostrarla: `[+0x28]` p0 bit 1 = vista visible; sin él se borra) pinta los 32 pads con `tabla[[+0x26] + 1]` y el patch elegido (`[+0x14]` parámetro 10) con `tabla[[+0x26]]` (tabla `0x08056464`); el listener (ranura 8) solo repinta los dos pads de un cambio de patch. Synth 1: 0x32 (magenta) y 0x01 (blanco) el elegido. Página = `[+0x20]` p0 (patch = 32 × página + pad).
+- **`packio.use_pmode()`, `c_pmode`** (en `c_spl`, ranura 7 de la vista, cada pasada de la tarea de LEDs): guarda los 32 modos de la página que se ve (2 bits por pad) con una etiqueta (magia `0xA5C3`, pack, página, patch elegido, hora) en el **búfer de LEDs ocioso de Master FX** (`c_gst() + 40 + 64`, el mismo que usa el editor de CC como borrador mientras se ve la vista Preset de MIDI; Master FX lo repinta entero cuando se muestra): **sin RAM nueva**. Con otra etiqueta (otro pack, otra página, otro patch elegido, o 4 s después) vuelve a leer los cuatro bancos de la página (tamaño con la op 1, el banco entero, ≤ 4 KB, al búfer compartido bajo su cerrojo con la op 6, como `c_pswap`; el pack cargado por su número, FIX2). Solo se recolorean los pads que siguen en un color de stock (tenue / elegido del sinte) o en uno nuestro: **mono 0x0E** (azul oscuro; el elegido 0x09), **glide 0x4C** (morado; el elegido 0x49), poly / vacío / sin fichero con el color de stock (un pad que pasa a poly lo recupera). Lo demás que dibuje el stock (parpadeos) se ve igual. No actúa sobre la vista de la fuente ni la del step-drummer.
+- **Glitch del Advanced Setup** (el usuario, 2026-10-11: «dos pads se encienden durante el reinicio en modo setup avanzado … conviene evaluar si es síntoma de algo más»): son los pads 22 / 23 (retornos de reverb / delay por las tiras 3 / 4, SC10 / SC37.4): `c_setleds` (ranura 7 de la vista Setup) los pintaba sin mirar el byte `+0x24` (vista avanzada). **Solo LEDs:** el manejador de pads de stock (`0x08046DF0`) ignora todos los pads con `+0x24` puesto (`ldrb r0, [r4, #0x24]; cbnz`) antes de nuestros ganchos, así que en el Advanced Setup no cambiaban nada. `build_sc10.use_advleds()`: con `+0x24` puesto, el búfer de stock tal cual.
+- Builder `tools/build_sc38_8.py`, `firmware/sc38.8/` (0x665e8 B, +536 B), SHA-256 `6acec1a0…0410`, CRC 0x7aa07467.
+- **Pruebas:** `emu_sc38_8.py` (la vista Preset de Synth 1 por la tarea de LEDs real y el modelo de la SD de `emu_sc35`: bancos con modos mono / glide / poly, uno de 3 patches, uno sin fichero, uno con registros `0xFF`; cuatro tamaños y tres lecturas, cerrojo equilibrado; nada en los fotogramas siguientes; otro patch elegido: el anterior a su tenue, el nuevo brillante; un modo cambiado en la tarjeta: a los 4 s; página 2; otro pack; Master FX entre medias; Advanced Setup: los pads 22 / 23 de stock, Setup normal como antes; SC38.7: colores de stock y los pads pintados en el Advanced Setup). Regresiones: `emu_sc35`, `emu_sc38_7`, `emu_sc38_5`, `emu_sc38_3`, `emu_sc38_1`, `emu_sc37_9`, `emu_sc37_6`, `emu_sc37_4`, `emu_sc36_1`, `emu_sc25`.
+
+### RC0.4 / RC0.4S / BETA0 = arreglos de SC38.2-SC38.6 (quinta versión candidata) y SC38.7 como beta — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «sube a RC0.4 todos los fixes, y en la rama pública crea una versión beta0 con las características nuevas».
+- **RC0.4** (`tools/build_rc0_4.py`) = RC0.3 + `build_sc17.use_armplay()` + `use_armplay2()` (captura armada desde el primer pulso de Play, SC38.2 / SC38.4) + `use_latch7()` (Shift + pad 7 = bucle enganchado, SC38.5) + `packio.use_empty()` + `use_ffgap()` (Duplicate entre packs a huecos vacíos, los intermedios con `0xFF`, SC38.4 / SC38.6) + `use_pkled3()` (Clear blanco fijo, SC38.4). Sin `stretch` (SC38.1), `midithru` (SC38.3) ni `resetall` (SC38.7). `firmware/rc0.4/` (`3d1f116d…2276`, CRC 0x6525e9f9, 0x66010 B).
+- **RC0.4S** (`tools/build_rc0_4s.py`) = RC0.3S + `use_armplay()` + `use_armplay2()` + `use_latch7()` (lo de `packio` es de la gestión del pack). `firmware/rc0.4s/` (`99880f7d…2928`, CRC 0x469e362d, 0x64478 B).
+- **BETA0** (`tools/build_beta0.py`) = SC38.7 con la marca `BETA0` (solo cambia la marca). Sin versión «S». `firmware/beta0/` (`add68b14…ea6c`, CRC 0x28e264a9, 0x663d0 B).
+- **Manual** (versión RC0.4): C5 (Shift + pad 32 desde Play, Shift + pad 7 enganchado frente al modo loop), A8 (huecos vacíos, Clear blanco fijo), atajos 16-18; lo de BETA0 marcado **solo BETA0**: B5 (MIDI Thru Merge / Filter, tabla de modos y LED), C1 (Clear + pad 27), D5 (modo stretch); E2 (RC0.4 / RC0.4S / BETA0). `CHANGELOG.md`: RC0.4 / RC0.4S (arreglos) y BETA0 (novedades). `rc_uploader`: RC0.4, RC0.4S, BETA0, RC0.3, RC0.3S; `patch_official` por defecto RC0.4.
+- **Pruebas:** RC0.4 `emu_sc35`, `emu_sc38_4` / `emu_sc38_5` / `emu_sc38_2` (frente a RC0.3), `emu_sc38`, `emu_sc36_1`, `emu_sc37_9`, `emu_sc37_6`, `emu_sc37_4`; RC0.4S lo mismo sin `emu_sc35` (frente a RC0.3S); BETA0 `emu_sc38_7`.
+
+### SC38.7 = SC38.6 + **Clear + pad 27 = el motor de la pista a sus valores iniciales** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «atajo en sintes propios: restablece con una pulsación todos los estados al inicial».
+- **Atajo:** Clear + pad 27 en la vista Preset de MIDI 1 / 2 (el pad del motor). Libre en el stock (la vista Preset de MIDI solo usa los pads de plantilla 1-8); en nuestro firmware Clear + 27 solo cambiaba de motor como el 27 solo.
+- **`vcf21.use_resetall()`, `c_vreset(pista)`:** escribe `DEFAULTS` en los códigos guardados 1..26 (todas las páginas, las dos capas de cada knob: VCA-VCF, OSC1 / granular / VA-drum) y `DEFAULTS_V2` en los volátiles 27..34 (OSC2), marca todos los bits sucios de la pista (`RT_DLO`, `RT_DHI`, `RT_DX`, `RT_AUX`; los volátiles los manda el barrido) y guarda (`c_vsave`); el motor (estado del pad 27, firma) no cambia. `c_vpad`: con el pad 27 y Clear mantenido (bit 0 de `[[MGR + 0x20] + 0xC]`) va a `c_vreset` en lugar de `vp_tri`.
+- Builder `tools/build_sc38_7.py`, `firmware/sc38.7/` (0x663d0 B, +324 B), SHA-256 `01a705a9…2b7d`, CRC 0x491d27a.
+- **Pruebas:** `emu_sc38_7.py` (MIDI 1 con el oscilador, 11 códigos cambiados en las tres páginas; Clear + 27: los 34 a su valor inicial, motor y firma iguales, guardado, 38 códigos de nuevo al DSP; el 27 solo cambia de motor; SC38.6: Clear + 27 cambiaba de motor).
+
+### SC38.6 = SC38.5 con los **huecos de patch intermedios vacíos** (como el stock) — ⏳ pendiente de probar
+- **Decisión del usuario (2026-10-11):** «déjalos vacíos como hasta ahora» (frente al Initial Patch de SC38.5).
+- **`packio.use_ffgap()`** (en lugar de `use_initgap()`): como el guardado de patches del stock (`0x0802FBCC`), al copiar a un hueco tras el final del banco se escribe `0xFF` desde el final del fichero hasta el hueco (una sola escritura desde el búfer compartido + 512, como mucho 7 × 512 B; `__aeabi_memset` `0x0801A9BC`) y después A en su hueco: los huecos intermedios quedan como registros `0xFF`, vacíos para el stock.
+- Builder `tools/build_sc38_6.py`, `firmware/sc38.6/` (0x6628c B), SHA-256 `2292ba05…a659`, CRC 0xedbee812.
+- **Pruebas:** `emu_sc35.py` (banco sin fichero: `0xFF` × 2560 y A; banco con 3 patches: lo que había, `0xFF` hasta 2560 y A; escrituras `(final, hueco)` y `(2560, 340)`), `emu_sc38_5.py`.
+
+### Estudio (sin build, 2026-10-11): el relleno de los patches y **guardar patches de sinte de MIDI 1 / 2** (idea para el futuro)
+- **Pregunta del usuario:** «y si cargo un patch, cambio sus valores de CC a través de un controlador externo y guardo el patch, ¿esos 172 B siguen libres? Si es así, y realmente no se usan, anotar para una futura característica: guardar patches de sinte MIDI 1 / 2».
+- **Formato (copia de la SD, 2026-10-11):** `Patches/NN_PATCHBANK.cpb` = hasta 8 registros de 512 B: 340 B de patch (16 de nombre + datos) y 172 B de relleno `0xFF`; el último registro sin relleno; un hueco vacío = tras el final del fichero (un banco sin patches no tiene fichero). Las 988 zonas de relleno de las dos copias de la SD son `0xFF`.
+- **El stock (código):** carga / guarda de un patch en `0x0802FA9A`–`0x0802FC7E`: elemento {tipo 3, banco P >> 3, pack}, desplazamiento `512 × (P % 8)`, longitud `0x154` (340); tamaño del fichero `0x0803C9CA`; lectura `0x0803C8D4`; **guardar en un hueco que existe escribe solo sus 340 B** (`0x0803C946` en `0x0802FC66`): el relleno no se toca (cambiar valores por CC y guardar lo conserva). **Guardar tras el final del banco** (`0x0802FBCC`): rellena con `0xFF` (`0x0801A9BC`) desde el final anterior hasta el hueco y copia los 340 B (`0x0801AA14`): pisa el relleno del último registro y los huecos intermedios quedan como registros `0xFF` (que el stock tomará por vacíos). Components: sin comprobar (podría reescribir bancos enteros con `0xFF`).
+- **Idea: guardar patches de sinte de MIDI 1 / 2** en los 172 B de relleno de los registros de patch: el motor de las pistas MIDI (VCA-VCF, osciladores, VA-drum, granular: los códigos 1-34 por pista, ~40 B con banderas y la firma) cabe de sobra; un «patch MIDI» por registro (128 por pack), con el mismo gesto que los patches de sinte en la vista Preset de MIDI 1 / 2 (cargar = elegir el hueco; guardar = el gesto de stock o uno propio), leído / escrito con la API (op 6 / 7) en `512 × hueco + 340`, longitud ≤ 172. Riesgos: el relleno del último registro de un banco lo pisa el stock al añadir un patch detrás (se puede reescribir tras ese guardado o guardar solo en registros que no sean el último); Components; un registro sin patch (tras el final) no tiene relleno hasta que se crea. Sin implementar: pendiente de que el usuario lo pida.
+- **Relacionado (SC38.5, `packio.use_initgap()`):** el stock deja los huecos intermedios como registros `0xFF` (vacíos), no con un patch; SC38.5 los llena con el «Initial Patch» (quedan ocupados). El usuario prefirió el comportamiento del stock: SC38.6.
+
+### SC38.5 = SC38.4 + **Shift + pad 7 = loop enganchado** y **huecos de patch con el Initial Patch** — ⏳ pendiente de probar
+- **Aclaración del usuario (2026-10-11):** «hay dos comportamientos llamados loop, pero son distintos: en el modo de reproducción loop, el sample se repite en loop mientras el pad se mantenga pulsado y para inmediatamente al soltar; al pulsar shift + 7, el pad se reproduce en bucle (independientemente del modo seleccionado) hasta que se vuelva a pulsar 7». SC34.1 (`loophold`) había hecho también de Shift + 7 un loop mantenido: eso era el «ya no reproduce en bucle».
+- **`build_sc17.use_latch7()`:** Shift + pad 7 (o Shift + un hueco del sample) arranca un loop forzado (orden 2) con el gate y `SMB_LOOP` = enganchado; al soltar, o al salir de Master FX, el gate se queda (el `HOLD` del DSP solo para un loop cuando cae el gate); la siguiente pulsación del 7 o de un hueco del sample (con o sin Shift) lo para (gate y loop fuera, orden 3); el pad 8 también. El modo loop (K2) no cambia.
+  - **Fallo encontrado al probarlo:** Master FX tomaba «gate abierto» por «pad 7 pulsado», y un hueco de la fila inferior pulsado entonces **asignaba el sample** a ese hueco. Con el loop enganchado, cualquier hueco (también uno de efecto) se habría reasignado: ahora «pad 7 pulsado» = gate sin loop enganchado.
+- **`packio.use_initgap()`** (pregunta del usuario: «¿es posible que se rellene con el parche por defecto?»): el stock guarda en la flash un patch por defecto, **«Initial Patch»** en `0x080584F0` (16 B de nombre y los datos, como en un banco; `0x0802998E` lo carga en los sintes). Al copiar a un hueco vacío de un banco más corto, los huecos vacíos anteriores se escriben desde ahí (la escritura toma la dirección de la flash como búfer) y B recibe A.
+- **Relleno de los registros** (pregunta del usuario: «¿estamos guardando datos nuestros en ese relleno?»): no. Cada registro ocupa 512 B y el stock solo lee los 340 B del patch; escribimos exactamente esos 340 B. Al extender un banco, el hueco entre el final del último patch y el siguiente registro lo deja el sistema de ficheros (contenido indefinido), sin uso. Podría servir para datos propios por patch (172 B × 128): no se usa.
+- Builder `tools/build_sc38_5.py`, `firmware/sc38.5/` (0x662b0 B, +96 B), SHA-256 `492c2d12…eeaf`, CRC 0x18c182be.
+- **Pruebas:** `emu_sc38_5.py` (Shift + 7: enganchado al soltar y al salir de la vista, el tick manda gate y orden 2; el 7 otra vez lo para; el 7 solo como antes; pad 8; Shift + hueco del sample y el hueco otra vez; un hueco de efecto con el loop enganchado sigue siendo su efecto; SC38.4 soltaba el loop); `emu_sc35.py` (los huecos anteriores = el Initial Patch de la imagen, B = A). En emulación el DSP repite el loop forzado con el gate abierto (`HOLD`).
+
+### SC38.4 = SC38.3 + **arreglos tras probar SC37.4–SC38.3** — ⏳ pendiente de probar
+- **Pruebas del usuario en el aparato (2026-10-11):** SC38 bien; SC37.9 bien; SC37.6 bien; SC37.5 bien; SC37.4 bien salvo Duplicate entre packs («duplicate patch entre packs funciona sólo si el hueco del patch no está vacío»); SC37.8: «Clear sigue parpadeando al abrir. Clear debe estar blanco fijo al abrir el view, y mantener los colores y parpadeos anteriores al hacer una selección y confirmar»; SC38.2: «desde parado > empieza a grabar en el segundo compás, debería hacerlo en el primero»; SC38.3: MIDI Merge y Filter bien; «en master fx, shift + sample pad ya no reproduce en bucle» (por aclarar, ver abajo).
+- **Captura armada (`build_sc17.use_armplay2()`):** el Play de stock arranca el transporte con `0x0802BD3C bl SET_TICKS(motor, 0)` (en emulación: un Play desde parado la hace, parar no), que toca el primer pulso (`0x0802C008`); en el aparato el primer tick llega enseguida y `c_smtick` (SC38.2) no llegaba a ver el almacén de ticks a 0. `c_stk` en la entrada de `SET_TICKS` (`push {r4-r6, lr}; mov r4, r0` desplazados): llamada desde ese arranque (LR = `0x0802BD41`) con posición 0 y la captura armada sin su compás en marcha → empieza ahí, en el primer pulso; `c_sptick` la termina en la línea de compás 96. Nuestro song pointer llama a `SET_TICKS` desde `c_sptick`: no cuenta.
+- **Duplicate entre packs a un hueco vacío (`packio.use_empty()`):** antes se leía B y se abandonaba si estaba vacío (sample: fichero de más de 44 B; patch: sus 340 B). Formato visto en la copia de la SD: un banco `Patches/NN_PATCHBANK.cpb` guarda los patches seguidos (16 B de nombre, los datos, relleno `0xFF` hasta 512; el último sin relleno: 3924 = 8 patches, 1876 = 4, 340 = 1) y un hueco vacío es lo que queda tras el final (un banco sin patches no tiene fichero). Ahora, entre packs: un sample B vacío no se lee ni se respalda, la copia va a la memoria libre (no en su sitio: no tiene) y su fichero se crea (op 7; `c_d2f` borra sin mirar el resultado); un patch B no se lee: el tamaño del banco da los patches que tiene (`n = (tamaño + 511) / 512`) y A se escribe en el hueco de B y en cada hueco vacío anterior (un banco no puede tener agujeros: quedan como copias de A). Dentro del pack, Duplicate sigue intercambiando (los dos tienen que existir).
+- **Clear en la vista de packs (`packio.use_pkled3()`):** blanco fijo (`CLR_ON`) desde que se abre la vista (antes, blanco tenue); la pregunta y la confirmación como en SC37.8 (los packs parpadean en el fotograma, Clear blanco fijo). En emulación SC37.8 ya daba un tenue fijo al abrir: si en el aparato sigue parpadeando, lo escribe otra parte del stock (haría falta un diagnóstico).
+- **Shift + pad 7 (sample) en Master FX:** sin cambios desde SC34.1 en el ARM (emulación de SC34.1 a SC38.3: loop + gate, orden 2, igual en todas) y en el DSP (el loop forzado con el gate pulsado da la vuelta dentro de start / end). Desde SC34.1 (petición del usuario) el loop **solo suena mientras se mantiene** el pad; pendiente de que el usuario precise qué ve.
+- Builder `tools/build_sc38_4.py`, `firmware/sc38.4/` (0x66250 B, +248 B), SHA-256 `77b087fc…ca0a`, CRC 0xe7fb52a8.
+- **Pruebas:** `emu_sc38_4.py` (arnés de `emu_sc17_6`, sin sustituto de `SET_TICKS`: el Play real empieza la captura; armada parada sin Play: nada; SC38.3: Play la deja armada); `emu_sc35.py` (patch a un hueco de un banco sin fichero: escribe los huecos 0..5, banco de 2900 B; de un banco con 3: huecos 3..5; sample a un hueco vacío: fichero creado = el de A, entrada en la memoria libre; Clear blanco fijo; el modelo de la SD extiende el fichero al escribir tras el final, como FatFs).
+
+### SC38.3 = SC38.2 + **MIDI Thru: modos Merge y Filter** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «comportamiento de MIDI thru: ahora mismo, midi thru sólo se puede configurar como segundo MIDI out o Thru. Queremos añadir en su toggle otros dos modos: Midi Merge: se clona todo lo de MIDI in a MIDI thru y también el MIDI generado por el aparato. Midi Filter: se clona todo lo de MIDI in menos los canales en los que Circuit está escuchando».
+- **El stock (código y emulación):**
+  - El toggle es **Duplicate en la vista Advanced Setup** (guía de usuario de Novation, apéndice: verde brillante = segundo MIDI Out, rojo tenue = «a hardware thru switch is activated»). La vista Setup (`0x20044958`, vtable `0x0805A984`) con el byte `+0x24` puesto es la avanzada; su método de botones `0x08047016` manda el id 24 a `0x0804709A`: **bit 16 del parámetro 2 de los ajustes** (1 = Thru, por defecto; 0 = Out 2). Otros del modo avanzado: id 9 → bit 17 (probablemente Easy Start: el listener `0x08029E04` lo aplica), id 15 → compresor (otro almacén).
+  - **Conmutador de hardware:** el listener `0x0802D28C` escribe el bit 16 en el pin **GPIOB 4** (`0x0803C9D8` → `0x0801B130`, BSRR `0x40020418`): 1 = el DIN In va al jack Thru por hardware, 0 = el jack Thru es la **USART2 TX**. El listener salta con cualquier cambio del parámetro 2.
+  - **LED de Duplicate** (`0x080472E4`, dibujado por el listener de la vista `0x080470F4` → `0x08047122`): paleta `+0x34E` = `0x55` (rojo tenue, Thru), `+0x34C` = `0x74` (verde, Out 2).
+  - **Salida MIDI:** enrutador `[0x200069F4]` (`0x08020C42(R, máscara, bytes)`; el emisor central `0x0803BEDA` tiene una compuerta, el bit 2 de su palabra): puertos 0 = USB, 1 = USART1 TX (MIDI Out), 2 = USART2 TX (jack Thru en Out 2), todos de la clase `0x0805B60C` (ranura 2 = enviar, `0x0803599A`: encola el mensaje; un puerto UART comprime el running status). Los mensajes son punteros a los bytes MIDI.
+  - **Entrada MIDI:** solo la USART1 RX (DIN In) se sondea, **puerto 1** (el 0 es USB); la interrupción `0x0801DD86` (USART1 / USART2; la USART6 no se usa) solo mueve bytes a los anillos; el sondeo `0x08020FB2` lee **un byte por llamada** y `0x08020FF2` lo analiza (`0x08035C58`); cada mensaje corto completo (tiempo real incluido) se publica con `0x0801C894(cola, puerto, bytes)` en `0x08021024`; el SysEx va por `0x0802103C` a otra cola.
+  - **Canales en escucha:** el despachador D = `[[[[0x200069E4]] + 0x18] + 8]` (`0x20044CB8` en el volcado): `D + 4..8` = Synth 1, Synth 2, MIDI 1, MIDI 2, Drums (0, 1, 2, 3, 9), `D + 9..13` = la tabla de CC / PC (0, 1, 9, 15, 15: el canal 16 del proyecto), `D + 0x14` bit 4 = canal 16 bloqueado (SC03 / SC04).
+- **`tools/midithru.py`** (modos por software sobre el cableado de Out 2; el bit 16 a 0, así el listener de stock deja el pin en la USART2):
+  - **Merge** (bit 30): `c_thin` en lugar de la publicación de `0x08021024` copia cada mensaje del DIN In (puerto 1) al puerto 2 con `0x0803599A` y lo publica igual; el MIDI del aparato va al puerto 2 como en Out 2.
+  - **Filter** (bit 31): copia lo del DIN In salvo los mensajes de canal (`0x80`–`0xEF`) en un canal en escucha (`D + 4..13`; el 16 no cuenta si está bloqueado); `c_thtx` en la ranura 2 de la clase de los puertos descarta lo que el aparato manda al puerto 2 (`c_thin` llama al envío directamente).
+  - **Duplicate en Advanced Setup** (`c_thbtn` en `0x080470A0`, tras la primera confirmación de stock; la confirmación de los ajustes es la de stock): Thru → Out 2 → Merge → Filter → Thru. **LED** (`c_thled` en `0x080472F4`): rojo tenue / verde / **amarillo** `0x2D` / **azul** `0x09`.
+  - **Guardado:** máscara de `c_m1` / `c_m2` (SC07 / SC10) a `0xFF07FFFF` (bits 30 / 31). Con el firmware original, Merge / Filter vuelven a Out 2 (bit 16 a 0; el original no guarda los bits 30 / 31).
+  - **No se copia el SysEx** del DIN In (va por otra cola y el envío largo del puerto espera a vaciarla). En Merge, si el aparato sigue el reloj del DIN In y tiene Clock Tx, el jack Thru lleva dos relojes: desactivar Clock Tx.
+- Builder `tools/build_sc38_3.py`, `firmware/sc38.3/` (0x66158 B, +296 B), SHA-256 `767901bc…c85e`, CRC 0x3250fcb.
+- **Pruebas:** `emu_sc38_3.py` (método de botones de la vista Setup con `+0x24`: el ciclo de los cuatro modos, el LED de Duplicate por el listener de la vista, el pin GPIOB 4 (puesto solo en Thru), el MIDI del aparato por el enrutador (puerto 2 salvo en Filter), la máscara de guardado; el DIN In con bytes en el anillo de la USART1 y el sondeo de stock, una instancia por modo: Thru / Out 2 nada, Merge todo, Filter solo canal 6, reloj y PC del canal 7; todo se publica igual al aparato). En emulación, tras el sondeo la siguiente confirmación de ajustes queda bloqueada (un artefacto del emulador: en el aparato son tareas distintas): por eso una instancia por modo.
+
+### SC38.2 = SC38.1 + **captura armada desde Play** (un compás exacto) — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «en el modo arm record de captura de sample (pulsar shift+captura para que empiece a grabar al pulsar play) se termina la grabación al final del compás». También: «No cambies el knob» (la envolvente de tono de drums se queda en Shift + K1).
+- **Causa:** el stock toca el primer pulso de un arranque (tick 0) desde el manejador de Play (`0x0802BBAA` → `0x0802C008`), no por la función de tick `0x0802C418` donde está el gancho `c_sptick`; al parar, `0x0802BFE0(motor, 0)` deja el almacén de ticks a 0. Así `c_sptick` veía el primer tick como 1 y la grabación armada esperaba a la línea de compás 96: **empezaba un compás tarde y terminaba al final del segundo** (comprobado en emulación sobre SC38.1).
+- **`build_sc17.use_armplay()`:** en `c_smtick` (tick de Master FX, cada pasada del servicio del DSP): armado (bit 31 de `S_SMT`), sin su compás en marcha (bit 30), el transporte en marcha (`PLAY_STORE` p0) y el almacén de ticks aún a 0 (un arranque antes de su primer tick) → empieza ya (`SMT_LATCH`, `SMB_REC`: el mismo `STATE` 1 al DSP). `c_sptick` la termina en la línea de compás 96 como antes. Armada con el transporte en marcha: la siguiente línea de compás, como antes. Con reloj MIDI externo, Play sin reloj todavía también empieza (el almacén está a 0).
+- Builder `tools/build_sc38_2.py`, `firmware/sc38.2/` (0x66030 B, +80 B), SHA-256 `9d6ecebd…d741`, CRC 0xb3f50c65.
+- **Pruebas:** `emu_sc38_2.py` (armada parada: nada; Play con ticks a 0: graba ya, `STATE` 1; ticks 1..95 grabando; tick 96 termina y desarma; armada a mitad (ticks 500): espera a 576; SC38.1: en Play nada y empieza en el tick 96). `emu_sc33` / `emu_sc34_2` no se pasan sobre SC38.x (fallan igual en SC38.1: funciones posteriores).
+
+### SC38.1 = SC38 + **stretch del granular** (duración sin cambiar el tono) — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «sample stretch que altera el tempo / duración pero no el pitch. ¿Factible? ¿Cabe en nuestro dispo?»; luego «seguimos trabajando en privado en el stretch» (con la propuesta: tercer modo de nota en Shift + K6, K3 = duración en pasos).
+- **Por qué solo en el granular y solo en el ARM:** el núcleo 0 del DSP tiene 19 palabras libres (SC38 termina en `P:$3FEC`) y el núcleo 1 una (2047 de 2048): un stretch en el lector de samples de stock (drums) o en el del sample capturado no cabe. El granular ya separa tono (K1, las notas) y posición; su scan (K3) no sirve para el tempo (velocidad `v|v|/64` muestras por bloque: 0..2×, cuadrática, 1× exacto no existe).
+- **`vcf21.use_stretch()`:** Shift + K6 (código 26) = 0 tono / 1 slicer / **2 stretch** (`GR_TAB`, LED de tres niveles: 16 / 64 / 127, tipo 5 de `c_grlvl`). En el modo stretch (`c_strm`: motor granular y código 26 = 2) `c_stx`, en `c_vsend` tras `c_sdfx`, cambia lo que va al DSP sin tocar lo guardado:
+  - código 26 → 0 (modo tono: las notas siguen cambiando el tono); al enviarlo marca otra vez 19 / 21 / 23 (bits 2 / 4 / 6 de `RT_DX`), así entrar o salir del modo reenvía los valores;
+  - código 21 (scan) → 0, código 23 (zona) → −64: zona Z = L / 128, inicio `(L − Z) P19 / 128`, y el cabezal del scan se queda en `[0, Z)` (error ≤ L / 128);
+  - código 19 (posición) → `s + (126 − s) × p / (6 N)`, s = K2 (inicio del tramo), p = ticks del transporte (`[[ENGINE + 0x90]]` parámetro 0) mod 6 N, N = `ST_STEPS[(K3 + 64) × 12 / 128]` = 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64 pasos (tabla de 12 B tras `GR_TAB`).
+  - La posición se marca cada 4 ms (al principio de `c_vsend`, `HAL & 3 = 1`, fuera de las ventanas del latido y del barrido); el límite de un mensaje por voz cada 2 ms se mantiene.
+  - K3 en el modo stretch enseña su duración (valor + 64) en el LED.
+- **Comportamiento:** el tramo (de K2 al final del sample) dura N pasos a cualquier tempo, alineado con el inicio del transporte (cada N pasos vuelve a empezar); una nota a mitad suena desde donde va. Con el transporte parado la posición no avanza (textura congelada). La resolución de la posición es 1/127 del tramo (un loop de 2 s: saltos de ~16 ms; los granos de 40 ms o más y la dispersión de posición los tapan). En el modo stretch K7 / K8 (LFO / envolvente → posición) casi no hacen nada (se escalan con la zona, ahora L / 128).
+- **Coste:** 340 B de flash (imagen 0x65fe0); sin RAM, sin guardado nuevo (el valor 2 del código 26 cabe donde estaba), **sin cambios en el DSP**.
+- Builder `tools/build_sc38_1.py`, `firmware/sc38.1/`, SHA-256 `6bd58380…0278`, CRC 0xabba6a7f.
+- **Pruebas:** `emu_sc38_1.py` (Shift + K6 0 / 1 / 2 con tope, LED; buzón: 31 = 0, 26 = 0, 28 = −64, posición en 9 casos de K2 / K3 / ticks; LED de K3; vuelta al slicer con los valores guardados; el estado del secuenciador de efectos no es stretch; SC38 se queda en 1); `emu_sc38_1_core1.py` (núcleo 1 sin cambios: zona L / 128, inicio `(L − Z) P19 / 128`, grano en S + inicio, un cabezal anterior vuelve a `[0, Z)`).
+- **Drums (consulta del usuario, 2026-10-11: «en drums, K3 + Shift reasignado a envolvente a pitch y K1 + Shift stretch, ¿posible?»):** mover la cantidad de la envolvente de tono (código 1) de Shift + K1 a Shift + K3 es solo la tabla `REMAP_SHIFT` / `REMAP_SHIFT_STOCK` / LEDs de `persist19` (Shift + K3 hoy = el decay de stock, igual que K3 solo); el stretch en drums no cabe en tiempo real (lector de stock en el núcleo 0, 19 palabras libres). **El usuario lo descartó (2026-10-11): «No cambies el knob».**
+
+### RC0.3 / RC0.3S = SC38 / RC0.2S + lo de SC37.6-SC38 fuera de la SD (cuarta versión candidata) — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «Sube a RC0.3 y RC0.3.S, documenta las nuevas funciones en listado y manual (en los dos idiomas) y documenta funciones nuevas y hotfixes en un changelog».
+- **RC0.3** (`tools/build_rc0_3.py`) = SC38 con la marca `RC0.3` (solo cambian los 4 bytes de la marca). `firmware/rc0.3/` (0x65e8c B), SHA-256 `14822684…fb12`, CRC 0xb8b82c8b.
+- **RC0.3S** (`tools/build_rc0_3s.py`) = RC0.2S + `drumrep.use_clearrep()` (SC37.6) + `persist19.use_blue7()` + `build_sc17.use_gclear()` (SC37.9) + `mixshift` (SC38); lo de `packio` de SC37.6-SC37.8 (`impguard`, `srcguard`, `inplace`, `pkled2`) es de la gestión del pack y no va en las versiones más seguras. `firmware/rc0.3s/` (0x64398 B, RC0.2S + 380 B), SHA-256 `1e9a53d1…a524`, CRC 0x288de298. El DSP es el de RC0.2S (listado igual).
+- **Manual** (`tools/make_manual.py`, `tools/manual_en.py`, versión RC0.3): A4 Clear + knob (tabla por vista, azul de drums, Master FX), A8 (copias en su sitio, borrado con Clear blanco fijo, guardas), A9 Clear + pad, **A11 nueva** (Mixer: Shift + knob, con dibujo), mapa de atajos (fila 15), E2 (RC0.3 / RC0.3S). La lista de características del README enlaza **`CHANGELOG.md`** (nuevo, español e inglés: novedades, cambios y arreglos de RC0 a RC0.3).
+- **Pruebas:** RC0.3 `emu_sc35`, `emu_sc36_1`; RC0.3S `emu_sc38` (frente a RC0.2S), `emu_sc37_9`, `emu_sc37_6` (solo Clear + pad: sin `packio`, `emu_sc35.E35` y `emu_sc37_6` ya aceptan una imagen sin él), `emu_sc36_1`, `emu_sc37_4`, `emu_sc25`, `emu_sc23_5_gfx`. `emu_sc35` no se pasa sobre las versiones «S» (comprueba la gestión del pack).
+
+### SC38 = SC37.9 + **Mixer: Shift + knob = nivel a 100 / 0** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-11):** «Nueva característica en el mixer: shift+derecha en un knob establece el canal a 100. Shift+izquierda lo pone a 0. Comprueba que el atajo no pisa ninguna característica de stock o del firmware».
+- **Qué hacía Shift + knob antes:** nada propio. El manejador de stock de los knobs del Mixer (ranura 4 de `0x0805A668` = `0x080466C4`) no mira Shift (emulado en el original y en SC37.9: Shift + K1 sube el nivel como el knob solo). Nuestra cadena (`nrpn28.c_ngknob` → `build_sc17.c_gknob` → stock) solo actúa en Master FX.
+- **Lo que hay alrededor y se respeta:** la página de panorama del Mixer (byte `[vista + 0xAD]` = 1 con Octave ▼, 0 con Octave ▲: `0x08033648` / `0x08033688`); el Clear del stock en el Mixer (`[vista + 0x74]`; en la página de niveles cualquier sentido cuenta en `[vista + 0xAE + knob]` y a 40 borra la automatización; en la de panorama, izquierda borra y derecha vuelve al centro); Master FX (Mixer dos veces, `c_gact`).
+- **`tools/mixshift.py`, `c_mxsh`** (delante de la ranura 4): con Shift, fuera de Master FX, en la página de niveles y sin Clear, el giro se convierte en (objetivo − nivel), objetivo 100 (derecha) o 0 (izquierda), y sigue por el manejador de stock: el mismo recorte, escritura, salida MIDI y grabación de automatización que un giro de verdad. En el resto de casos todo sigue igual.
+- Builder `tools/build_sc38.py`, `firmware/sc38/` (0x65e8c B), SHA-256 `569c3517…4c51`, CRC 0x3cdaebac.
+- **Pruebas:** `emu_sc38.py` (original y SC37.9: Shift + K1 = el knob solo; SC38: derecha 100, izquierda 0, otra vez 0, el knob solo sigue igual; página de panorama sin cambios; Clear cuenta como en SC37.9; Master FX sin cambios).
+
+### Estudio (sin build, 2026-10-11): las pistas MIDI tocan los drums por el canal compartido — **descartado**
+- **Descartado por el usuario (2026-10-11):** «Descarta la propuesta midi-drums». No se compila; el prototipo `tools/study_drumloop.py` se quitó del árbol (está en el commit `7f595ad`). Queda como referencia de la ruta de las notas.
+- **Pedido del usuario (2026-10-10):** «implementar si no tiene coste: MIDI tracks pueden secuenciar drums también si se configuran en el mismo canal midi». Después (2026-10-11): «Propón, no compiles».
+- **Por qué SC05 no llega a los drums:** su `c_inject` pasa por el despachador `0x08051720`, y para una nota `0x08052AF6` devuelve el primero de Synth 1 / Synth 2 / MIDI 1 / MIDI 2 que tiene ese canal; solo si no hay ninguno, `0x10` = Drums. Con MIDI 1 en el canal de drums la nota inyectada vuelve a MIDI 1 (el listener recibe el track 2: LED de su pad; con el bit 5 no se graba) y nunca llega a los drums. Una nota externa en ese canal hace lo mismo en stock: va a MIDI 1 y se graba allí. En emulación no hubo bucle (la entrada de MIDI 1 no reenvía la nota por la vtable de Tx), pero tampoco drums.
+- **Ruta de una nota de drums** (emulación con el volcado en marcha): listener `[A]` (vtable `0x080592E0`), ranura 0 = noteOn `0x08034D10(L, track, nota, vel)` (velocidad 0 → ranura 1), ranura 1 = noteOff `0x08034D56` → `0x08034460` / `0x080344AA`: **mapa fijo 60 / 62 / 64 / 65 → drum 1..4** (las demás notas no hacen nada) → `0x0801A99A` → enrutador `0x0803222C` (clave 0xE … 0x13) → `0x08031DA4` → `0x08029A08` → `0x080497CA(0x10, nota, vel)` → DSP. Toma el semáforo del servicio del DSP (`0x08021064`, desde `0x0803BD6C`) una vez, igual que la nota de sinte del loopback de SC05, que funciona en el aparato desde el secuenciador y los pads. La grabación pasa por la puerta `0x0802E56A` (clave 0x1B): la de SC05 no graba con el bit 5 de `A+0x14`. La nota de drums no sale por la vtable de Tx (sin eco).
+- **Propuesta** (prototipo `study_drumloop.py`, en emulación sobre SC37.8, 15 comprobaciones bien):
+  - `c_dnon` / `c_dnoff` (138 B): los saltos finales `b.w c_non` / `b.w c_noff` de `c_vnon` / `c_vnoff` (vcf21; en `c_vnon_f + 6` / `c_vnoff_f + 6`, comprobados antes de cambiarlos) van a ellos. Llaman al envoltorio de SC06 (salida externa, loopback de sintes, patch flip) y después, si la pista es MIDI 1 / 2, su patch flip está apagado (bits 5 / 6 de `[tx + 0x18]`), su canal es el de drums (`[[tx + 0xC] + 4]`), la entrada MIDI está activa (bit 2 de `0x20000A6C`), Note Rx está activo (bit 0 de `A+0x14`) y no hay otra inyección en curso (bit 5), ponen el bit 5, llaman al listener directamente con el track `0x10` (lo que haría el despachador si ganaran los drums) y borran el bit 5.
+  - Por ahí pasan todas las notas de las pistas MIDI: la vtable de notas `0x08059FC4` / `C8` (secuenciador, pads) y la escucha del step-drummer (`c_sdio` llama a `c_vnon` / `c_vnoff` directamente).
+  - Descartado: inyectar por el despachador (gana MIDI 1); quitar MIDI 1 / 2 de la tabla A durante la inyección (la entrada MIDI, en otra tarea, podría ver la tabla cambiada); una opción dentro del `c_non` de SC06 (la cueva de SC06 crece y se mueve todo lo que va detrás); envolver la entrada de la vtable (la escucha del step-drummer no pasaría).
+- **Resultado del prototipo:** MIDI 1 en el canal 10, pad 24 (nota 60) → sale `99 3C 60` y suena el drum 1; grabando, solo se graba la nota de MIDI 1; la nota off sale y llega al drum (interna); el bit 5 queda limpio; pads 25-28 (escala menor del volcado: 62, 63, 65, 67): solo 62 y 65 suenan (drums 2 y 4); MIDI 1 en su propio canal: nada interno; en el canal del Synth 1: el loopback de SC05 igual, sin drums; patch flip: Program Change (SC06), sin nota de drums; Note Rx apagado: nada; MIDI 2 por la vtable (la llamada del secuenciador): drum 3; sin el envoltorio: solo sale por MIDI.
+- **Coste:** 138 B de flash, sin RAM, sin nada guardado, sin cambios en el DSP. Por cada nota de pista MIDI, unas 15 instrucciones si el canal no coincide; si coincide, lo mismo que una nota externa de drums (un disparo y una toma del semáforo, como el loopback de sintes). Funciona solo con el canal compartido, como SC05: sin ajuste nuevo.
+- **Limitaciones y decisiones para el usuario:**
+  - solo las notas 60 / 62 / 64 / 65 (Do, Re, Mi, Fa; el mapa de stock, el mismo de la entrada MIDI). Con una escala menor la vista de notas de MIDI 1 no tiene el 64 (drum 3): usar la escala cromática o mayor. Otro mapa (p. ej. cualquier nota → drum según el grado de la escala) costaría poco más;
+  - las notas **externas** en ese canal siguen yendo solo a MIDI 1 (stock); no se propone cambiarlo;
+  - mute de la pista de drums: lo mismo que con una nota externa de drums (sin comprobar).
+
+### SC37.9 = SC37.8 + **azul de Clear + knob como el original** y **Clear + knob en Master FX** — ⏳ pendiente de probar
+- **Informe del usuario (2026-10-11):** «en master fx, clear+knob no funciona. en drums, clear+derecha funciona pero no se enciende led azul».
+- **Drums (`persist19.use_blue7()`):** el stock lee los colores del Clear de una paleta en RAM, donde + 0x1A vale **0x07** (azul intenso); `persist19` usaba 0x46, la entrada de la paleta de la flash, que sale como un rojo anaranjado tenue (RGB (B, G, R) = 3, 12, 41): por eso no se veía el azul. Comprobado emulando el firmware original (Drum 1, Clear + K4 derecha × 40 → código 0x07, RGB 204, 41, 41). El rojo 0x53 era correcto. Las pruebas de SC20.1 solo comparaban con 0x46.
+- **Master FX (`build_sc17.use_gclear()`):** el manejador de knobs de Master FX no miraba Clear. Ahora, con Clear mantenido (bit 0 de los botones mantenidos; la vista Mixer admite Clear), girar a la derecha un knob del efecto elegido lo devuelve a su valor por defecto (`DEFAULTS`; Glitch `GL_DEF` = velocidad normal, continuo, sin retraso ni caos; sample `SMP_DEF` = sin transporte, one-shot, inicio 0, final 127: se aplica como un giro, `c_gcur`) e izquierda no hace nada (Master FX no tiene automatización). Mientras Clear está pulsado, los LEDs de esos knobs son azules en su valor por defecto y rojos si no (`c_gclrled`, al final de los LEDs de Master FX).
+- Builder `tools/build_sc37_9.py`, `firmware/sc37.9/` (0x65e2c B), SHA-256 `1960b2d4…06b5`, CRC 0xe3cf5743.
+- `emu_sc23_5_gfx.py` (cabezal del song pointer) no se pasaba desde SC34 y fallaba desde SC37.4: tomaba los colores esperados del Vinyl del manifiesto (ahora melocotón), pero el song pointer conserva a propósito los de la paleta; ahora los lee de la paleta de la imagen y se pasa también en SC37.9 (todo correcto).
+- **Pruebas:** `emu_sc37_9.py` (el azul de los drums con el mismo RGB que el original; K3 izquierda × 40 rojo / derecha × 40 azul; Master FX: Gater K1 al valor por defecto con LED azul, K2 en rojo, izquierda sin cambios, al soltar los LEDs normales; Glitch K1 → 127; sample K1 → sin transporte).
+
+### SC37.8 = SC37.7 + **vista de packs: los packs parpadean y vuelven, Clear blanco fijo** — ⏳ pendiente de probar
+- **Informe del usuario (2026-10-11, SC37.7 en el aparato):** «En el modo cargar pack, el botón Clear parpadea blanco. Mejor, blanco fijo. Al pulsar clear, se apagan todos los pads menos el seleccionado; los pads siguen apagados al soltar clear».
+- **Causa:** `c_ppl` (ranura 7 de la vista de packs) escribía el parpadeo rojo / apagado en el propio búfer de LEDs de la vista; en la fase apagada dejaba ceros, que la pasada siguiente tomaba por huecos vacíos, y los packs se quedaban apagados hasta que el aparato repintaba la vista (lo hace al pulsar Clear y en otros eventos, no en cada pasada). Los botones del panel son blancos: el parpadeo «rojo» de Clear se veía blanco. Las pruebas aceptaban «rojo o apagado» y no miraban después. Dato: los packs de stock se pintan con 0x53.
+- **`packio.use_pkled2()` (`PKLED2`):** `c_ppl` deja el búfer en paz; `c_pkled` (en cada pasada de la tarea de LEDs, cuando el stock ya copió el búfer al fotograma; entrada k del fotograma = pad k) hace parpadear en el fotograma los packs con color salvo el cargado (armado) o solo el preguntado; al caducar la pregunta se ven otra vez los colores del stock. Clear: blanco tenue en la vista, blanco fijo (`CLR_ON` = 0x01) mientras dura la pregunta.
+- Builder `tools/build_sc37_8.py`, `firmware/sc37.8/` (0x65d24 B), SHA-256 `217de3d3…3e1b`, CRC 0x91cb3480.
+- **Pruebas:** `emu_sc35.py` por el llamador real de la tarea de LEDs (`0x08033B3E`): armado, fotograma a fotograma los 15 packs con color parpadean, el cargado conserva su color, los huecos vacíos siguen apagados, Clear fijo; el búfer de la vista no cambia; preguntado, solo ese parpadea; caducada la pregunta, todos vuelven a su color y Clear tenue.
+- **Revisado también (2026-10-11, Clear + knob de drums):** en el original, con Clear mantenido, 40 pasos a la **izquierda** borran la automatización del knob (`0x0803C68C`, LED rojo) y 40 a la **derecha** lo devuelven a su valor por defecto (LED azul, sin borrar la automatización). En SC37.8 los knobs que siguen yendo al stock (K1 tono, K3 decay, K5 EQ, K8 distorsión: `persist19.REMAP_PLAIN_STOCK`) hacen exactamente eso (emulación, igual que SC20.1). Cada drum tiene 5 carriles de automatización (`[manejador + 0x30]` = 40, 45, 50, 55: 4 knobs + 1): las funciones nuevas de drums no tienen carril, de ahí que no se automaticen.
+
+### SC37.7 = SC37.6 + **copias entre packs en el sitio del sample sustituido** y **memoria de importación que se reinicia sola** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-10):** «¿Es posible que el búfer de 44 s se limpie al consolidar los pads a la SD?», luego «Sí» a: (1) copiar en el sitio del sample sustituido cuando cabe, (2) reiniciar el búfer tras cargar un pack.
+- **El cargador de stock** (`0x08049A1C`, por sample `0x08049A80`): los 64 samples seguidos desde `Y:$580000`; cada uno ocupa (bytes de datos & ~511) / 2 palabras + `0x100` de ceros (`lsrs r6, r0, #9; lsls r6, #9; r8 = r6 / 2 + 0x100`, el siguiente empieza en inicio + r8; «Sample Memory Exceeded» desde `$E80000`); la entrada de la tabla queda 2 palabras dentro de su sitio.
+- **(1) `packio.use_inplace()` (`INPLACE`), `c_inplace`:** la copia de X:A va primero a la memoria libre como hasta ahora (temporal); si sus palabras de datos + `PADW` ceros caben entre el inicio de B y el inicio de la siguiente entrada − 2 (`c_nextstart`: la entrada más cercana por encima de B dentro de `$580000–$E7FFFF`; si no hay, la longitud propia de B + `PADW`), la copia por bloques del DSP (1024 palabras por bloque de audio, trozos de 64 K palabras) la lleva al sitio de B, siguen los ceros, la entrada de B conserva su inicio con la longitud nueva y `X:IMPW` no avanza. Si no cabe (sample nuevo más largo que el sitio), queda en la memoria libre como antes. Así, sustituir un drum por otro de duración parecida o menor no gasta memoria libre.
+- **(2) `c_impdst`:** si ninguna entrada de la tabla empieza dentro de `$380000–$57EFFF` (tras recargar el pack, o si todo lo importado se sustituyó en su sitio), la siguiente importación empieza otra vez en `$380000`. No se engancha el cargador de stock: corre en la tarea de almacenamiento y desde ahí no se debe tomar el semáforo del servicio del DSP.
+- Builder `tools/build_sc37_7.py`, `firmware/sc37.7/` (0x65cf0 B), SHA-256 `976432ef…3f88`, CRC 0xfba09786.
+- **Pruebas:** `emu_sc35.py` (el sample 20 con 6000 muestras y el siguiente 6400 palabras más allá recibe 5000 en su sitio con 256 ceros detrás y nada más allá tocado, sin mover `X:IMPW`; un sitio de 300 palabras: a la memoria libre; sin entradas en la memoria libre: la importación vuelve a `$380016`; las pruebas anteriores siguen con el sitio de B limitado), `emu_sc36_1`, `emu_sc25`, `emu_sc37_6`, `emu_sc37_4`.
+
+### SC37.6 = SC37.5 + **revisión: Clear + pad para sustituir por la captura, memoria de importación protegida, vista de la fuente protegida** — ⏳ pendiente de probar
+- **Pedidos del usuario (2026-10-10):** «Revisa en busca de fallos potenciales y corrígelos, así [como] vías de optimización de recursos en las herramientas y el firmware. Repite hasta que no encuentres nada»; «Shift+sample (usado para sobreescribir sample con captura) ya tenía asignación (selección silenciosa) ponemos otro atajo».
+- **Sustituir un drum por la captura con Clear + pad (`drumrep.use_clearrep()`, `CLEARREP`):** el modificador es Clear mantenido (bit 0 de `[[MGR + 0x20] + 0xC]`; las vistas Preset admiten Clear) en vez de Shift, así que Shift + pad vuelve a ser la selección silenciosa de stock. En emulación, con Clear mantenido un pad de la Preset de drums cambia exactamente los mismos bytes de RAM que sin él: el stock no usa Clear + pad ahí. El manifiesto lleva `drumrep.clearrep`.
+- **Memoria de importación (`packio.use_impguard()`, `IMPGUARD`; fallo encontrado en la revisión):** cuando la memoria libre de importación (`$380000–$57EFFF`, ≈ 44 s) se llenaba, `c_impdst` volvía a su inicio sin mirar si allí empezaba un sample que la tabla aún tocaba (sonaría mal hasta recargar el pack). `c_impfree` recorre las 64 entradas; si una empieza en el sitio, `c_impdst` devuelve 0 y no cambia nada.
+- **Vista de la fuente (`packio.use_srcguard()`, `SRCGUARD`; fallo encontrado en la revisión):** con Duplicate ya pulsado al abrir la vista de la fuente de SC19.1 (pulsado en la vista de pista, luego Synth 1), un pad de esa vista copiaba el patch página × 32 + pad y otro lo intercambiaba / copiaba. `c_srcv` (vista de la fuente o del step-drummer) hace que `c_spp` / `c_spl` pasen todo al stock. Pulsar Duplicate dentro de la vista la cierra (como cualquier botón) y entonces Duplicate + pad es la lista de patches: correcto.
+- **Herramientas (revisión):** `dspemu.run` y `dsp_session.run` dejaban un directorio temporal por ejecución (5,4 GB, el disco lleno); la caché del ensamblador del DSP no tenía las líneas de la sobrecarga de RC0.2 (`patch_official.py` sin dsptool habría fallado en RC0.2 / RC0.2S: regenerada, y `verify_builds.py` construye ahora sin dsptool salvo con `DSP_ASM_CACHE_UPDATE=1`); las pruebas eligen qué comprobar por las etiquetas del manifiesto (`emu_sc35.FEATURE_LABELS`, `c_vosc`, `granular`) en vez de listas de marcas, que se olvidaban al crear versiones; `tools/publish_rc.py` publica una versión candidata (árbol de RC sin binarios, comprobación de datos personales, RC / main pública / Pages) y reproduce exactamente el árbol de RC0.2.
+- **Recursos (revisión):** el núcleo 1 del DSP está en 2047 de 2048 palabras de programa: la vía de optimización más clara es sacar de P las tablas `SIZE_T` (128 palabras) y `PT` (86) — p. ej. el ARM las escribe una vez en la memoria compartida `X:$37700…` y el núcleo 1 espera una palabra mágica — ≈ 200 palabras; no se hace hasta que una función lo necesite (el motor granular aún no se ha probado en el aparato). Núcleo 0: 20 palabras libres; flash ARM: ≈ 41 KB libres; heap: 4 B.
+- Builder `tools/build_sc37_6.py`, `firmware/sc37.6/` (0x65bdc B), SHA-256 `c761dc64…6984`, CRC 0xfc845b31.
+- **Pruebas:** `emu_sc37_6.py` (vista de la fuente: el caso con Duplicate pulsado antes no copia nada y en SC37.5 copiaba el patch 26; Duplicate cierra la vista y luego copia; Clear + pad pregunta y confirma; Shift + pad llega al stock), `emu_sc35.py` (memoria llena con un sample que suena al inicio: nada escrito; sin él, vuelve al inicio), `emu_sc36_1`, `emu_sc25`, `emu_sc37_4`.
+
+### RC0.2 / RC0.2S = SC37.5 / RC0.1S + la sobrecarga del Glitch (tercera versión candidata) — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-10):** «actualiza 37.5 como RC0.2 y actualiza manuales y documentación».
+- `tools/build_rc0_2.py` = `build_sc37_5` con la marca `RC0.2` (solo cambian los 5 bytes de la marca); `firmware/rc0.2/` (0x65b48 B), SHA-256 `d09f8838…e73a`, CRC 0xb9b74c68.
+- `tools/build_rc0_2s.py` = `build_rc0_1s` + `granular_dsp.use_overload()` (el LED de Clear es de `packio`, que las versiones S no llevan); `firmware/rc0.2s/` (0x6421c B), SHA-256 `2710e58f…3ccf`, CRC 0x67b76409.
+- rc_uploader: RC0.2, RC0.2S, RC0.1, RC0.1S (RC0 / RC0S siguen con `patch_official.py --version`); manual en RC0.2 (K4 del Glitch, motor del Glitch, LED de Clear, instalación).
+
+### SC37.5 = SC37.4 + **sobrecarga simulada en el Glitch** + **LED de Clear en la vista de packs** — ⏳ pendiente de probar
+- **Pedidos del usuario (2026-10-10):** tras la prueba de carga de SC35DB («las pruebas más intensas producían stuttering y reproducción más grave y lenta … sería posible reproducir ese efecto de forma segura a través del master fx glitch», luego «ok, implementalo»); en SC37.4 «Clear no se ilumina en ningún momento durante el borrado de pack. El borrado funciona».
+- **Sobrecarga (`granular_dsp.use_overload()`, `OVERLOAD`, núcleo 1):** K4 ≥ 64 deja de ser caos (`gl_end`: `cmp #>64`, sin tocar el caos 1..63: mismas instrucciones y mismos números aleatorios que SC37.4) y es la carga: al final de cada bloque, con p = (K4 − 64) / 128, la cabeza vuelve 32 muestras (el bloque suena otra vez) y en el siguiente bloque tarde avanza 32 (recupera); `S_OV` (palabra 14 del estado del Glitch) alterna 0 / 64, así que la cabeza nunca va por delante de su camino ni más de 32 muestras por detrás. Freno: K4 ≥ `OV_BRAKE` (88) con la cabeza hacia delante (K1 ≥ 64): K1 − (K4 − 88), sin bajar de la parada; con K1 arriba empieza en K4 96 y llega a 24 / 56 = 0,43 × en K4 127. Coste: unas 25 instrucciones por bloque, sin memoria nueva. **El programa del núcleo 1 queda en 2047 de 2048 palabras.**
+- **LED de Clear (`packio.use_pkled()`, `PKLED`):** la tarea de LEDs no llama a la ranura 8 de los botones mantenidos en la vista de packs, así que `c_mbl` nunca pintaba Clear. `c_pkled` toma las dos llamadas de la tarea de LEDs (`0x08033B46`, `0x0803415A`, delante del `c_vledtask` de vcf21) y, con la vista de packs en pantalla, escribe el LED 55 del panel: tenue blanco, rojo parpadeante mientras la pregunta está fresca. La prueba entra por el llamador real (`0x08033B3E`): SC37.4 da 0 (el fallo del aparato), SC37.5 0x03 / 0x53.
+- Builder `tools/build_sc37_5.py`, `firmware/sc37.5/` (0x65b48 B), SHA-256 `2d835b3e…eb54`, CRC 0x52f05aa1.
+- **Pruebas:** `emu_sc37_5_core1.py` (K4 0 / 40 / 63 idénticos a SC37.4; K4 94: 32 / 0 / 64 alternados empezando por la repetición, desfase siempre 0 o −32; K4 90 sin freno; K4 127 frenado a 13,71 muestras por bloque; hacia atrás sin freno; sin caos arriba), `emu_sc35.py` (LED de Clear por la tarea de LEDs), `emu_sc36_1`, `emu_sc25`, `emu_sc37_4`.
+
+### RC0.1 / RC0.1S = SC37.4 / RC0S + lo de SC37.4 fuera de la SD (segunda versión candidata) — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-10):** «Pushea 37.4 al repo público renombrándolo como RC0.1 y su correspondiente RC0.1S. Actualiza el manual y los dibujos».
+- `tools/build_rc0_1.py` = `build_sc37_4` con la marca `RC0.1` (la imagen difiere de SC37.4 solo en los 5 bytes de la marca, `0x1E8–0x1ED`); `firmware/rc0.1/` (0x65a3c B), SHA-256 `dea625dd…8244`, CRC 0x5c91a23a.
+- `tools/build_rc0_1s.py` = `build_sc362s` + `vcf21_dsp.use_stglide()`, `vcf21.use_dualhide()`, `build_sc17.use_glitch3()`, `use_vinyl_peach()`, `build_sc10.use_retcols()` (lo de SC37.4 que no escribe en la SD); `firmware/rc0.1s/` (0x6417c B, RC0S + 176 B), SHA-256 `0f171163…178b`, CRC 0x810f921c.
+- `rc_uploader.html` ofrece RC0.1, RC0.1S, RC0 y RC0S; `patch_official.py --version` por defecto RC0.1; manual (`VERSION = "RC0.1"`) sin las versiones SC37.x en el texto público; dibujos nuevos: Setup con los pads 22 / 23 en sus colores, copia de patches en la Preset del sinte, Preset de MIDI con el oscilador (para que se vea el pad 28), Vinyl melocotón en Master FX.
+- **`tools/dspemu.py` dejaba en `%TEMP%` un directorio de 48 KB por cada ejecución del emulador del DSP** (`mkdtemp` sin borrar): 109 469 directorios, 5,4 GB, el disco lleno el 2026-10-10. Ahora se borra al terminar cada ejecución.
+- **Pruebas:** RC0.1: `emu_sc35`, `emu_sc36_1`, `emu_sc25`, `emu_sc37_4`; RC0.1S: `emu_sc36_1` (pad 28, dos Glitch, Vinyl), `emu_sc25`, `emu_sc37_4` (Setup), `emu_sc37_4_dsp` (frente a RC0S).
+
+### SC37.4 = SC37.3 + **Duplicate en Preset de sinte / drums, copiar entre packs, envolvente sin clic, dos Glitch sin copiar knobs, colores** — ⏳ pendiente de probar
+- **Pedidos e informes del usuario (2026-10-10):** «al cambiar entre modos de generador (osc, vadrum...) a veces se produce un pequeño artefacto» (clic o corte); «oculta el selector de 1 osc / 2 osc mientras estén desactivados»; «al duplicar un sample ENTRE PACKS, copia el primer sample al segundo … mantén el primero intacto (duplicate dentro de la misma sesión sí que los intercambia)»; en SC37.3 «duplicate no se enciende con parches de sinte, ni parece hacer nada pulsarlo»; «al asignar a la barra inferior dos granular [Glitch] con parámetros distintos y pulsar los dos a la vez se copian sus parámetros»; «cambia el color de vinyl a peach»; «cambia el color de los toggles return reverb delay por sus respectivos colores».
+- **Envolvente (`vcf21_dsp.use_stglide()`, `STGLIDE`):** el clic al cambiar de motor con una nota mantenida era el salto del sustain: VA-drum pone SUSF = 0 (la envolvente caía a 0 en un bloque) y al volver al oscilador saltaba a SUS. Ahora la etapa 3 se desliza hacia SUSF con el coeficiente del decay (sin la asignación ENV = SUSF del final del decay); girar SUS con la nota mantenida también se desliza. Ataque y decay salen bloque a bloque iguales que SC37.3; la diferencia del sustain es < 0,05 % y se cierra sola. `emu_sc37_4_dsp.py`.
+- **Pad 28 (`vcf21.use_dualhide()`, `DUALHIDE`):** `c_vosc(pista)` = el motor suena con osciladores (modo encendido, fuente OSC, no granular); con otro motor el pad 28 se apaga y no conmuta. `emu_sc36_1.py` (pad 27 por los seis estados, ruta real).
+- **Duplicate en las vistas Preset (`packio.use_dupmask()`, `DUPMASK`; causa del fallo de SC37.3):** el stock admite botones mantenidos por vista: el controlador lee la ranura 8 de la vista activa (`0x08033B52`) en `[objeto de botones + 0x1C]` al cambiar de vista, y la pulsación (`0x08041530`) solo marca el bit si la máscara lo tiene. El contenedor de las vistas de pista (vtable `0x0805A62C`, ranura 8 `0x08059F18`, tipo en `[+0x18C]`) da 1 (solo Clear) en toda vista Preset, así que Duplicate nunca se encendía ni quedaba mantenido y `c_spp` / `c_pdp` no lo veían (**las pruebas ponían el bit a mano**). `c_hmask` añade Duplicate cuando `[MGR + 0x152]` es la Preset de Synth 1 / 2 o Drum 1..4 (0, 9, 36, 45, 54, 63). Las pruebas de `emu_sc35.py` pulsan ahora el botón real (id 24) en SC37.4.
+- **Copiar entre packs (`packio.use_copyx()`, `COPYX`):** `c_xcopy2` = X:A → DSP, el fichero de B → DSP detrás (copia de seguridad), la copia de X:A → B (si falla, B vuelve desde su copia); la copia queda como sample en vivo de B (entrada = datos + 22, n − 2, 256 ceros detrás, `X:IMPW` avanza). Solo este pack tiene que caber en su memoria. Patches: entre packs `c_pswap` escribe solo B. Dentro del pack, Duplicate sigue intercambiando.
+- **Dos Glitch (`build_sc17.use_glitch3()`, `GL3`):** «pad 31 mantenido + pad inferior = asignar el Glitch» miraba el bit 7 de KG (el Glitch suena), que también pone un hueco con Glitch: con el hueco A pulsado, pulsar B le asignaba el Glitch otra vez con los knobs de A. Ahora el pad 31 físico es el bit `GL_SLOT` (5) de `S_SLOTH` (ese hueco nunca se asigna: sus bytes son KG; la asignación de un efecto de arriba al hueco mantenido lo enmascara) y solo él asigna; `c_glrel3` al soltar: si sigue mantenido otro hueco con Glitch, carga sus knobs y sigue sonando; si sigue el pad 31, sigue; si no, apaga.
+- **Colores:** `build_sc17.use_vinyl_peach()` (Vinyl = 0x6A / 0x6B, los de los pads 1-16 de la vista FX; el song pointer conserva sus colores, tomados de la entrada de Vinyl de la paleta: `L["pal_sp"]`); `build_sc10.use_retcols()` (pads 22 / 23 de Setup: reverb crema 0x29 / 0x2A, delay melocotón 0x6A / 0x6B, el mismo tamaño de código; antes los dos en el magenta de Synth 1, 0x32 / 0x38). `emu_sc37_4.py`.
+- Builder `tools/build_sc37_4.py`, marca `SC37.4`, `firmware/sc37.4/` (0x65a3c B), SHA-256 `26ff69b5…ec59`, CRC 0x31951fe9. DSP del núcleo 0 hasta `P:$3FEB` (20 palabras libres).
+- **Pruebas:** `emu_sc35.py` (Duplicate real en Preset de drums y de sinte, máscara 3; copia entre packs: X:20 intacto, solo se borra y escribe B, ceros detrás del sample en vivo; patch: el banco de A intacto), `emu_sc36_1.py` (pad 28; dos Glitch: cada hueco conserva sus knobs, suena el último, al soltarlo vuelve el otro, el pad 31 no se asigna; Vinyl 0x6B; en SC36.1–SC37.3 la prueba reproduce el fallo), `emu_sc37_4.py`, `emu_sc37_4_dsp.py`, `emu_sc25.py`.
+
+### SC37.3 = SC37.2 + **intercambios con los ficheros exactos** (sin clic al final) — ⏳ pendiente de probar
+- **Informe del usuario (2026-10-10):** «se produce un click al final del sample».
+- **Causa (comprobada en la SD del usuario, `E:\Tracks` frente a su copia):** el cargador de stock (`0x08049AFA`) carga cada fichero en bloques enteros de 512 bytes (tamaño & ~511, más `0x100` palabras de relleno a cero) y la entrada de la tabla empieza 2 muestras dentro. Los WAV que el mod reescribía desde la memoria del DSP (`c_wav` en el intercambio de SC35 y en el de SC37–SC37.2) salían **2 muestras adelantados y cortados a cero** en el último bloque: `29_PACK/PCM/09_PCM.wav` = `00_…/09_HousePercB3.wav` desplazado 2 muestras, con las últimas ~85 a cero donde el original sigue (14, 97, 149…): un corte seco = el clic. Los ficheros copiados de fichero a fichero (`13_PCM.wav`, `30_PACK/09_PCM.wav`) eran idénticos. La SD está bien en todo lo demás: los packs 00–16 coinciden byte a byte con la copia del usuario.
+- **`packio.use_exact()` (`EXACT`):** `c_f2d` (fichero → palabras del DSP, cabecera incluida, por `c_ywin` + la copia por bloques), `c_f2f` (fichero → fichero en trozos de 4 KB), `c_d2f` (palabras → fichero), `c_zpad` (`PADW` = 256 ceros), `c_impdst`. Entre packs (`c_xswap2`): X:A → DSP, B → X:A, la copia → B; la copia queda como sample de B (entrada = sus datos (+22 palabras de cabecera), n − 2, el incremento de B; ceros detrás; `X:IMPW` avanza). Dentro del pack (`c_swap2`): A → DSP (temporal, sin mover `X:IMPW`), B → A, la copia → B, las entradas intercambiadas; una entrada en una ranura de captura usa el `c_swap` de SC35. Un paso que falla repone los ficheros desde las copias.
+- Builder `tools/build_sc37_3.py`, marca `SC37.3`, `firmware/sc37.3/` (0x657d0 B), SHA-256 `7b20bf33…56d8`, CRC 0x70b9158d. Sin cambios en el DSP.
+- **Pruebas:** `emu_sc35.py` sobre SC37.3: el intercambio dentro del pack mueve los ficheros tal cual aunque la memoria del DSP tenga otra cosa, entre packs X:20 = el fichero antiguo de B byte a byte, el sample en vivo tras su cabecera con 256 ceros detrás, la segunda importación detrás, sin cambios si falla la primera lectura; `emu_sc36_1`, `emu_sc25`, `emu_sc36_dsp`.
+
+### SC37.2 = SC37.1 + **arreglos del intercambio entre packs y del borrado de packs** — ⏳ pendiente de probar
+- **SC37.1 en el aparato (2026-10-10):** intercambio dentro del pack bien; **entre packs (samples y patches) no funciona**: «a veces se copia, a veces se borran, a veces se intercambia otro sample distinto»; lo copiado de otro pack sí parpadea en amarillo (la copia en `X:$3D25 / $3D27` sobrevive a cargar otro pack). **Borrar packs tampoco:** Clear no está blanco tenue y nada parpadea.
+- **Causa del intercambio:** `0x0803676C` (al principio de las ops 1 / 5 / 6 / 7 con tipos 2-6) **cambia el pack actual de la tarea de almacenamiento** (`[[0x20006914]]`, el que significa `0xFF`) al pack del elemento. Tras leer `X:A`, todos los elementos `0xFF` (tamaño y borrado de B, comprobación de sitio, escritura de B) eran del pack X, y la «reselección» final leía `[[0x20006914]]` (ya X). El simulador de `emu_sc35` no lo modelaba; ahora sí (`scur`), y con él SC37.1 falla como en el aparato.
+- **Causa del borrado:** en la vista de packs la tarea de LEDs no llama a la ranura 8 del objeto de botones mantenidos (comprobado en emulación con la tarea `0x08034196`), y el bit «Clear mantenido» (`[[ctrl + 0x20] + 0xC]` p0) no lo pone `0x08041530` (lo pone otra parte, que en esta vista no actúa): la pregunta nunca se hacía. Las pruebas de SC35 llamaban a las ranuras directamente y ponían ese bit a mano.
+- **`packio.use_fix2()` (`FIX2`):**
+  - `c_curpack` = `[0x20044128 + 0x10]` p0 (la vista de packs, si su vtable es `0x0805A6A4`; si no, `[[0x20006914]]`); `c_resel(pack)` = op 0 sobre su PCM 0;
+  - `c_xswap` / `c_pswap`: B con el número del pack cargado en todos sus elementos (`c_isizep`, `c_fitsp`), `c_resel` al salir por cualquier camino; si la copia de `X:A` en B falla tras borrar B, B se reescribe desde la memoria del DSP (`c_wavp`);
+  - el intercambio dentro del pack hace `c_resel` antes;
+  - borrar un pack con pulsaciones: Clear (sin Shift) arma (`PQ_ARMED = $FE`, ~5 s; `c_ppl` hace parpadear en rojo los pads encendidos salvo el cargado), un pad con la pregunta fresca la apunta a ese pack (sin cargarlo; con Shift, el del stock), Clear otra vez borra; Clear mantenido + pad sigue preguntando.
+- Builder `tools/build_sc37_2.py`, marca `SC37.2`, `firmware/sc37.2/` (0x650f0 B), SHA-256 `4394d74b…6d43`, CRC 0x67bae548. Sin cambios en el DSP.
+- **Pruebas:** `emu_sc35.py` sobre SC37.2 con el cambio de pack de la tarea modelado: solo se tocan B del pack cargado y A del pack X, por su número, la tarea vuelve al pack cargado, B restaurado si falla una lectura; y `delete_tests_fix2` por las rutas reales (Shift + Projects, Clear y pads por el controlador, LED por la tarea de LEDs). `emu_sc36_1`, `emu_sc25`, `emu_sc36_dsp`; SC35 / SC37 / SC37.1 siguen pasando con su modelo.
+
+### SC37.1 = SC37 + **intercambio de patches de sinte entre packs** y amarillo — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-10):** «implementa intercambio de synth patch entre packs. usa amarillo en vez de magenta (synth1 es magenta)».
+- **Formato (copia de la SD del usuario, `00_Circuit Tracks Factory Pack`):** `Patches/NN_PATCHBANK.cpb`, 16 ficheros de 3 924 B = **8 patches de 340 B cada 512 B** (el nombre, 16 caracteres, al principio de cada uno): 128 patches por pack, tipo 3 de la API, banco = patch / 8, offset = 512 × (patch % 8).
+- **Los patches no están en RAM:** en el volcado de RAM solo aparecen dos nombres (los patches de Synth 1 / 2 en uso, `0x20010044` / `0x2001019C`, y sus copias de la sesión en `0x20038550` / `0x200386A4`). Elegir un patch lo lee de la tarjeta: la vista Preset del sinte (vtable `0x0805AC9C`, pad = `0x0804D243`) calcula patch = página (`[vista + 0x20]` p0) × 32 + pad y llama al selector (`[vista + 0xC]` → `0x08040729` → `0x0803C68C`).
+- **`packio.use_cross2()`** (`PATCHX`, `CROSS_COL = YELLOW` (0x2D); `sampler_dsp.CLIP2` borra `X:PCLIPW = $3D27` en la primera llamada: el núcleo 0 llega a `P:$3FEE`, **17 libres**):
+  - `c_spp` delante de la ranura 0 de la vista Preset del sinte: con Duplicate mantenido y fuera de las vistas de la fuente / step-drummer (`c_sdscr` = 0xFF): sin copia → copia (`$A6 << 16 | pack << 8 | patch` en `X:PCLIPW`); con copia → la borra y, si no es el mismo patch del mismo pack, `c_pswap`; si va bien, sigue al manejador anterior con el mismo pad, que vuelve a elegir B (lo carga de la tarjeta);
+  - `c_pswap(A, pack, B)`: lee los dos patches de 340 B (op 6, comprobando los bytes leídos), escribe cada uno en el sitio del otro (op 7, sin recortar), y vuelve a seleccionar el pack actual (op 0);
+  - `c_spl` delante de la ranura 7: con Duplicate mantenido lee la copia del DSP (solo entonces) y hace parpadear el patch copiado en su página (azul en su pack, amarillo en otro).
+- Builder `tools/build_sc37_1.py`, marca `SC37.1`, `firmware/sc37.1/` (0x64ff0 B), SHA-256 `b65f1a2c…cd24`, CRC 0x2404bcd2. SC37 sin cambios (`verify_builds`).
+- **Pruebas:** `emu_sc35.py` sobre SC37.1 (`patch_tests`, por la ruta real de pads de la vista Preset de Synth 1): copia sin lecturas ni escrituras, LED azul / amarillo, el intercambio con otro pack (dos lecturas y dos escrituras de 340 B en los offsets 1 024 / 2 560, solo esos bytes cambian, el manejador de stock llamado después), en el mismo pack, cancelar, banco inexistente, sin Duplicate = stock; más todas las de SC37 con el amarillo; `emu_sc36_1`, `emu_sc25`, `emu_sc36_dsp`.
+
+### SC37 = RC0 + **intercambio de samples entre packs** — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-10):** «implementa intercambio de samples entre packs».
+- **Uso:** vista Preset de drums, **Duplicate + pad A** copia el sample A del pack actual; la copia sobrevive a soltar Duplicate, a otras vistas y a cargar otro pack. **Duplicate + pad B**: mismo pack = el intercambio de SC35 (A otra vez = cancelar); otro pack = `c_xswap`.
+- **Estado:** la copia va en el DSP, `X:CLIPW = $3D25` = `$A5 << 16 | pack << 8 | sample` (`sampler_dsp.CLIP`: la primera llamada del sampler lo borra junto con `X:IMPW = $3D26`, +4 palabras: el núcleo 0 llega a `P:$3FEC`, **19 libres**). No queda RAM fiable en el ARM (el byte 179 de Master FX lo reescribe persist19 y el relleno de la vista no se inicializa): los bytes `+0x52 / +0x53` de la vista Preset de drums guardan solo un reflejo para los LED (`$C0 | pack`, `$40 | sample`).
+- **`c_xswap(A, X, B)`** (`packio.use_cross`, tarea de la interfaz, sin el tick del DSP):
+  1. tamaño de `X:A` (op 1 con el pack X); longitud del B actual (tabla, o el fichero si es del pack); comprobación de que **los dos packs** siguen cabiendo en su memoria de samples (`c_fitsp`, con el pack como parámetro);
+  2. borra B y copia el fichero `X:A` → B del pack actual en trozos de 4 KB (op 6 leer, op 7 escribir, búfer compartido `0x20003D04` con su cerrojo);
+  3. escribe el audio del B antiguo (aún en la memoria del DSP) como sample A del pack X (`c_wavp`, el `c_wav` de SC35 con el pack como parámetro);
+  4. relee B desde la tarjeta y lo carga en la memoria externa libre `$380000–$57EFFF` (`X:IMPW` = la siguiente dirección; vuelve al principio si no cabe hasta el final): 64 muestras cada vez por escrituras del puerto de host en `Y:$3B40` (dirección `0x8000 | dir`, el manejador SHI del stock elige Y con el bit 15) y la copia por bloques del sampler a la memoria externa; la entrada de la tabla de B = (destino, n − 2, su incremento). Una cabecera que no sea un WAV PCM mono de 16 bits de 44 bytes: el intercambio queda hecho en la tarjeta y suena al recargar el pack (estado 1);
+  5. vuelve a seleccionar el pack actual en la tarea de almacenamiento (op 0 sobre su PCM 0, como el borrado de packs).
+- **LED:** con Duplicate mantenido, el pad del sample copiado parpadea en azul en su pack y en magenta (`0x32`) en otro.
+- Builder `tools/build_sc37.py` (= `build_sc36_2` + `packio.use_cross()`), marca `SC37`, `firmware/sc37/` (0x64d10 B), SHA-256 `e6dd8c70…0c77`, CRC 0x1319b50c. Solo la versión completa (la segura no escribe en la SD).
+- **Pruebas:** `emu_sc35.py` sobre SC37 (lectura simulada con `&done`, escrituras Y del puerto de host, copia Y → Y genérica, el pack actual con alias 0xFF): el fichero copiado byte a byte en 3 trozos de 4 KB, el B antiguo escrito en el pack X, los borrados en orden, el sample cargado exacto en `$380000` con su entrada, una segunda importación detrás, sin cambios si no cabe o si el copiado no existe, la copia que sobrevive a soltar Duplicate, LED magenta, semáforo y cerrojo equilibrados; además `emu_sc36_1`, `emu_sc25`, `emu_sc36_dsp`; `emu_sc35` sobre SC35 sigue pasando.
+
+### RC0 / RC0S = SC36.2 / SC362S con el nombre de la primera versión candidata — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-09):** usar la versión del rc_uploader (SC36.2) y llamarla RC0.
+- `tools/build_rc0.py` / `tools/build_rc0s.py` importan la configuración de SC36.2 / SC362S y solo cambian `NAME`: las imágenes difieren de SC36.2 / SC362S **solo en la marca** (offset 0x1E8, `RC0` / `RC0S` rellenas con ceros).
+- `firmware/rc0/` (0x64848 B, SHA-256 `5a13f8be…a87d`, CRC 0xae88cb61) y `firmware/rc0s/` (0x640cc B, SHA-256 `74151080…7a7a`, CRC 0x42e32783).
+- `rc_uploader.html`, `patch_official.py` (por defecto), el manual y el README ofrecen RC0 / RC0S. Pruebas: `emu_sc36_1.py` y `emu_sc25` reconocen las marcas.
+
+### SC36.2 / SC362S = SC36.1 / SC361S + **knob del secuenciador de efectos arreglado** — ⏳ pendiente de probar
+- **Informe del usuario (2026-10-09, SC36.1 en el aparato):** el secuenciador de efectos solo conmutaba entre apagado y el pad 31; no llegaba al resto de la fila inferior ni cambiaba el color.
+- **Causa:** un giro físico manda muchos eventos de knob (delta ± 1 cada uno) y `c_sdknob` de SC36.1 movía un valor por evento con tope 0..6: llega a 0 o a 6 al instante. Un par vacío partía de la base (64) y el primer evento lo dejaba en 6. La emulación no lo vio porque mandaba pocos eventos con delta grande.
+- **`vcf21.use_fxseq3()` (`FXSEQ3`, `FSQ_U = 16`, `FSQ_MAX = 96`):**
+  - `c_sdknob`: el carril del par guarda una **posición 0..96** = posición + delta con tope (par vacío o > 96 = 0);
+  - valor = `(posición + 8) >> 4` (0 = nada, 1..6 = huecos 0..5), en `c_fsqbits` y en `c_sdkleds` (color de `c_slotcol(v − 1)`; > 96 = apagado);
+  - los valores 0-6 guardados con SC36.1 se leen como «nada».
+- Builders `tools/build_sc36_2.py` (marca `SC36.2`, `firmware/sc36.2/`, 0x64848 B, SHA-256 `b99b5051…de4b`, CRC 0xb0e5252d) y `tools/build_sc362s.py` (marca `SC362S`, `firmware/sc362s/`, 0x640cc B, SHA-256 `1c2b2878…1414`, CRC 0x4a83de4).
+- **Pruebas:** `emu_sc36_1.py` elige el modo por la marca: posición movida por el delta, 100 eventos − 1 y 30 + 1 → posición 30 = valor 2 (no el tope), huecos por posición, el paso por el tick de Master FX y los LEDs de los knobs con `c_sdkleds` (Gater, Glitch, vacío apagado); `emu_sc25`.
+
+### SC361S = SC36.1 sin escrituras propias en la SD («versión más segura») — ⏳ pendiente de probar
+- **Pedido del usuario (2026-10-09):** ofrecer una versión sin funciones que escriban en la SD.
+- **Builder:** `tools/build_sc361s.py` = la configuración de SC36.1 con el `extra` de SC34.2 (sin `packio` ni `rdiag`) más el núcleo 1 granular.
+- **Lo que queda:** `persist19` (nuestros bytes dentro del proyecto los escribe el Save de stock). `SMP_SAVEBIT` queda en el DSP sin uso.
+- Marca `SC361S` (la de 6 bytes no puede ser «SC36.1S»: chocaría con SC36.1). `firmware/sc361s/` (0x640cc B), SHA-256 `f8d646fb…2bf3`, CRC 0xaf7978be.
+
+### SC36.1 = SC36 + **Glitch asignable** y **secuenciador de efectos con la fila inferior** — ⏳ pendiente de probar
+Pedido del usuario (2026-10-09): knobs del secuenciador más lentos, con el color del efecto, tomando los efectos de la fila inferior; el Glitch asignable como el resto.
+- **`build_sc17.use_glitch2()` (`GL2`):**
+  - **Asignar:** en `c_s_press`, con el Glitch mantenido (bit 7 del byte 0 del hueco 5) y sin Shift, otro pad de abajo hace `c_sassign(hueco, GL_SEL = 7)`. La copia de K1..K4 sale de `setmap[7] = 40`.
+  - **Tocar un hueco del Glitch:** en `c_f_press`, `c_sload` (lo pone en el Glitch) y luego `c_glpress`, con el hueco mantenido para el LED. Al soltar, `c_f_rel` llama a `c_glrel`. Color `GL_ON` / `GL_DIM` en `c_f_leds`.
+  - **`c_fsqfx`:** convierte en bits de efecto los huecos que pide el secuenciador:
+    - el efecto del hueco, con `c_sldif` (carga la copia del hueco solo si difiere de los parámetros vivos, para no marcar sucio en cada tick);
+    - un Glitch (copia en los bits 0-6 de sus bytes, bit 7 intacto);
+    - el pad 31.
+  - `c_fxtick` y `c_gltick` usan `c_fsqfx` en lugar de `c_fxsq`. `c_slotcol` (hueco → color) lo usa vcf21.
+- **`vcf21.use_fxseq2()` (`FXSEQ2`):**
+  - valor del par 0 = nada, 1..6 = hueco 0..5 (pads 26-31); más de 6 o sin valor = nada;
+  - `c_sdknob` mueve ± 1 por giro con tope 0..6;
+  - `c_sdkleds` pinta el color de `c_slotcol(v − 1)` a brillo máximo (0 = apagado);
+  - `c_fsqbits` devuelve la máscara de huecos.
+- **Sin `rdiag`** (pedido del usuario, 2026-10-09): el `extra` de SC36.1 es el de SC35 sin el diagnóstico remoto (el gancho en `0x0801EB30`): nada propio en el protocolo SysEx.
+- Builder `tools/build_sc36_1.py`, marca `SC36.1`, `firmware/sc36.1/` (0x64848 B), SHA-256 `f4cfad46…2ba0`, CRC 0xfeeafe62.
+- **Pruebas:** `emu_sc36_1.py` (ARM); `emu_sc36` pasa salvo las zonas de SC36, que cambian a propósito; `emu_sc25` (ya conoce las marcas SC36 / SC36.1).
+
+### SC36 = SC35 + **sinte granular**, **Glitch** y **secuenciador de efectos** (núcleo 1 del DSP) — ⏳ pendiente de probar
+Diseño aprobado por el usuario (2026-10-09): ver «Diseño (usuario, 2026-10-09): sinte granular» más abajo. El usuario pidió implementarlo todo y hacer push sin confirmación.
+- **`drums2_dsp.COMPACT`** (paso 2 del plan): libera 123 palabras de programa del núcleo 0, con el mismo sonido (`emu_compact.py`).
+- **Núcleo 1 (`tools/granular_dsp.py`, `core1_code` + `patch_core1`):**
+  - **Enganche:** `P:$12A` = `jmp c1loop`, como SC35D / SC35DB. El programa ocupa hasta `$7C9`: quedan 55 palabras de las 2 K.
+  - **Trabajo por tareas:** el trabajo va en **tareas cortas, una por vuelta del bucle de stock**, porque el núcleo 0 espera a que ese bucle le sirva sus lecturas y SC35DB mostró que un núcleo 1 ocupado frena todo el audio. La tarea va en `TASK = GB + 6`:
+    - 0: esperar un bloque nuevo; luego el búfer circular del master y los búferes de salida del bloque (`OBP` / `GOBP`);
+    - 1: preparar la voz 0;
+    - 2 … 17: sus granos, uno por tarea;
+    - 18: preparar la voz 1;
+    - 19 … 34: sus granos;
+    - 35: el Glitch, y vuelta a 0.
+  - **Vuelta más larga:** 1 173 instrucciones (preparar una voz con 4 granos nuevos); un grano son 867.
+  - **Memoria compartida X, `GB = $37000`:**
+    - `CNT` / `LASTC` / `TASK` / `OBP` / `GOBP` / `RDOFS` (`GB + 5`);
+    - `GIN` = las palabras del Glitch;
+    - estado de las voces en `VS0 + 48 t`; aquí el núcleo 0 suma GNEW en `+30`;
+    - estado del Glitch en `GS = GB + $80`;
+    - `MIN` = el master, 64 palabras;
+    - `OUT` / `GOUT`: 2 búferes de 64 cada uno;
+    - granos en `GR0 = GB + $240` (2 × 16 × 12 palabras);
+    - `SHA = GB + $400`: copias de `X:$3900..$39BF` (bloques de los osciladores) y `X:$3B80..$3BDF` (bloques de las voces) del núcleo 0;
+    - `SHT`: la tabla de samples, un cuarto por bloque;
+    - `SHLEN`: la longitud de la captura.
+  - **Búfer circular del master:** estéreo en la memoria externa, L en `$340000`, R en `$360000`, `$20000` frames (2,7 s). Está en la zona libre `$337000–$57F000` (SC35D3). `RL` está alineado a `RN`, así que `and` + `or` dan la vuelta a una dirección.
+  - **Voz granular:**
+    - activa con ACT 2 + `DFLAGS` bit 4;
+    - fuente = la entrada `N` de la tabla de samples, o la captura (`$E80000`, `X:$3D09`) si P25 < 0;
+    - zona: modo tono, Z = L (P23 + 65) / 128 desde (L − Z) P19 / 128; slicer, L / 16 con la porción (NOTE − 36) & 15;
+    - el cabezal avanza P21 |P21| / 64 muestras por bloque;
+    - tamaño = `SIZE_T[P18 + 64]` (240..24 000 muestras) × (1 + P27 / 64 × LV);
+    - densidad D = 1 + P20 × 154 / 1024; intervalo = tamaño / D; ganancia = `GAIN_T[D]` = 0,6 / √D;
+    - como mucho 4 granos nuevos por bloque.
+  - **Grano:**
+    - incremento Q19 de la tabla `PT` (−48..+37 semitonos, interpolada en 1/64 de semitono): P17 (± 24) + P28 / 64 + la nota − 60 (dos notas alternas) + la dispersión de tono (P29);
+    - si el recorrido no cabe, el grano se acorta;
+    - posición = inicio de la zona + cabezal + Z × (P22 / 64 × ENV + P24 / 64 × LV) + dispersión (P33 × L / 2), limitada al sample;
+    - al revés con probabilidad P34 / 128;
+    - ventana trapezoidal: ataque / caída = tamaño × fa / 256 y × fr / 256 (`model_window`: 0 rectangular, 50 triangular, 100 percusiva), pendientes por división (`udiv`, `rep #24` + `div` con el dividendo × 2);
+    - interpolación lineal entre dos lecturas de la memoria externa.
+  - **Glitch:**
+    - al pulsar: cabeza = ahora − (K3 × 1 024 + 64) frames, con entrada gradual de 64 muestras;
+    - velocidad K1: ≥ 120 = 1; 64..119 = (K1 − 64) / 56; < 64 = −(64 − K1) / 64; hacia atrás con la dirección invertida;
+    - segmentos de `SIZE_T[K2]` × 2: al final vuelve al inicio del segmento (repetición), salvo K2 = 127, que es continuo y sin fundidos;
+    - caos K4: salto atrás aleatorio (p = K4 / 256), silencio (K4 / 384), cambio de sentido (K4 / 384);
+    - lee la muestra más cercana (sonido «lo-fi»).
+- **Núcleo 0:**
+  - **`vcf21_dsp.GRAN`:** con `DFLAGS` bit 4, la voz toma `OUT[RDOFS + 32 t]` en lugar del oscilador. El buzón separa ACT bit 12 → `DFLAGS` bit 4. GNEW se suma al estado de la voz del núcleo 1.
+  - **`sampler_dsp.TAIL` (`granular_dsp.core0_tail`):** al final de la cadena de Master FX hace:
+    - las copias de `CPT_LIST`, más un cuarto de la tabla de samples;
+    - el Glitch sustituye el master por `GOUT[RDOFS]` mientras `X:$3D20` = `$C0FFEE`;
+    - `CNT + 1` y `RDOFS = 64 ((CNT + 1) & 1)`.
+  - **Latencia:** 2 bloques, fija.
+  - **Coste:** 929 instrucciones por bloque.
+  - **Programa del núcleo 0:** termina en `P:$3FE8`; quedan 24 palabras libres.
+- **ARM (`vcf21.use_gran` / `use_fxseq`, `build_sc17.use_glitch`):**
+  - **Estado del motor por pista** en el nibble de la firma, con los bits (VA-drum t, velocity 2 + t):
+    - (0, 0) oscilador;
+    - (1, x) VA-drum;
+    - (0, 1) granular;
+    - modo encendido + sin oscilador + bit VA-drum = **secuenciador de efectos**: ACT 0, step-drummer activado; al salir se apaga.
+  - **ACT:** granular = 2 | 1 << 12. Pad 27: color `COL_GR` / `COL_FS`; el pad 31 solo funciona en VA-drum.
+  - **Página del granular** (página 1 con el motor granular):
+    - `GR_TAB` = (código, mínimo, máximo, banderas) por knob; las banderas dicen si avanza un paso por giro y cómo se muestra el LED;
+    - `c_grknob` / `c_grlvl` / `c_grpg`;
+    - los valores son los de los códigos 17-26 (guardados) y 27-30, 33, 34 (volátiles).
+  - **Secuenciador:** `c_fsqbits`, desde el tick del servicio del DSP, que no toma semáforo. En marcha, para cada pista en ese estado con el step-drummer activado, mira el paso que suena (`c_sdpos` / `c_sdpat` / `c_sdstp` / `c_sdlna`). Si tiene nota y su par tiene valor v (1..127): zona `(v − 1) × 7 >> 7`, donde 0-5 son los pads de arriba y 6 el Glitch. Llega a Master FX por `c_fxsq` de `build_sc17`, que `vcf21.install` parchea con un `b.w`.
+  - **Glitch:** el pad 31 (hueco 5) deja de ser asignable. Sus 4 bytes guardan K1..K4; bit 7 del byte 0 = mantenido, del byte 1 = por enviar, del byte 2 = enviado encendido. `c_gltick` escribe `X:$3D20..$3D24` y suelta el pad si no se ve ninguna de las dos vistas. `setmap[7] = 40`, `S_SEL = 7`.
+- **Pruebas:**
+  - `emu_gran_core1.py`: núcleo 1, modelos exactos de la envolvente, la interpolación y el Glitch; la vuelta más larga;
+  - `emu_sc36_dsp.py`: núcleo 0, comparación con SC35 y coste;
+  - `emu_sc36.py`: ARM;
+  - regresiones de SC25 (sabe que hay 6 estados), SC28, SC30, SC31 y SC33_sd sobre SC36;
+  - `emu_sc34*` / `emu_sc35` no se pasan sobre SC36: el pad 31 y el código del sampler cambian a propósito.
+- **Otros cambios:** `build_shared_channels.disasm` muestra `.hword` donde una tabla no es una instrucción, en lugar de fallar. Solo afecta al listado del manifiesto.
+- Builder `tools/build_sc36.py`, marca `SC36`, `firmware/sc36/` (0x64a7c B), SHA-256 `0a429c32…4a07`, CRC 0x6eedcfa1.
+
+### SC35DB = diagnóstico del flujo de audio **núcleo 1 → núcleo 0** para el sinte granular — ✅ probado 2026-10-09
+- **`tools/probe36_dsp.py`** (cadena de SC35D9; núcleo 1 reubicado como en SC35D, palabras compartidas en `X:$37D00…` (`SH5`), búfer doble `X:$37C00` / `$37C40`, 64 palabras):
+  - **núcleo 1:** cuenta sus vueltas por bloque (última / mínima); cuando el contador de bloques del núcleo 0 (`SH5 + 8`) pasa a b: primero la **carga** (W «granos» × 64 muestras: `move y:(r4)+,x0` desde la memoria de samples `Y:$580000` + `mac`; W = 0 la salta), después el bloque b en el búfer b & 1 (palabra i = (b & $FF) << 16 | i) y `READY` = b;
+  - **núcleo 0** (gancho `P:$23C`): en su bloque b comprueba `READY` == b (si no, «tarde») y las palabras 0 / 63 (si no, «corrupto»), sube el contador y pasa W (`X:$3BE8`, lo escribe el PC) al núcleo 1. Resultados en su X interna: `X:$3BE0` marca `$C1D1B0`, `+1` bloques, `+2` tarde, `+3` corruptos, `+4` vueltas libres mínimas, `+5` última, `+6` vueltas / 256, `+7` W en uso, `+8` W pedido, `+9` = 1 → reiniciar contadores.
+- **`rdiag.DSPW`** (orden 9): escribir una palabra de la X del DSP con el semáforo tomado; `ctremote.py dspw DIR VALOR`. Ping `$3619`.
+- **Uso:** `dspw 0x3BE8 W`, `dspw 0x3BE9 1` (reiniciar), esperar, `dspr X 0x3BE0 10` → con qué W empiezan los bloques tarde y cuánto margen queda: cuántos granos caben por bloque.
+- **Resultado en el aparato (2026-10-09, remoto):**
+  - **El flujo funciona:** el núcleo 0 recibe ~1 570 bloques / s (bloques de 32 muestras a 48 kHz), sin un solo bloque tarde con ninguna W.
+  - **Falsos corruptos:** el contador de corruptos sube en la mitad de los bloques, los que tienen el bit 7 de b a 1. Es un fallo del comprobador: el núcleo 0 forma (b & $FF) << 16 con `asl` y deja a2 = 0, así que con b ≥ $80 el número no coincide en signo con `x0`. El búfer que escribe el núcleo 1 está bien.
+  - **El reinicio no funciona:** la petición por `X:$3BE9` no reinició ni los contadores ni el mínimo. Sin consecuencias: se miden diferencias.
+  - **Medidas por bloque, según W (cada W = 64 lecturas de la memoria externa + 64 `mac`):**
+
+    | W | vueltas libres del núcleo 1 | bloques del núcleo 0 / 3 s |
+    |---|---|---|
+    | 0 | ~2 345 | ~4 700 |
+    | 32 | 1 511 | normal |
+    | 64 | 962 | normal |
+    | 80 | 717 | 4 732 (normal) |
+    | 96 | 627 | **3 812** |
+    | 128 | 627 | **2 427** |
+    | 160 | 625 | **1 875** |
+
+    Cada W cuesta ~22 vueltas.
+  - **Límite:** a partir de W ≈ 90 (~5 800 lecturas externas por bloque, ~9 M lecturas / s) el que se frena es el **núcleo 0**: menos bloques por segundo, es decir, el audio entero se ralentiza o se corta. El núcleo 1 no llega tarde. Por encima del límite, bloques × W × 64 ≈ 6,5–7 M lecturas / s, constante: es el ancho de banda de la memoria externa (o una espera del núcleo 0 al núcleo 1 dentro del bucle de stock).
+  - **Al oído (2026-10-09, con el aparato sonando):** con W 64 (4 096 lecturas por bloque) ya hay **chasquidos**, y los bloques por segundo bajan solo un 1 %. Con W ≥ 96 el audio se **ralentiza**. Al usuario el efecto le parece interesante: **idea, reservarlo como efecto «freno»** (una carga controlada en el núcleo 1). Antes habría que comprobar qué pasa con la sincronía del secuenciador, el MIDI clock y una duración larga.
+  - **Umbral al oído (2026-10-09):** pasada de W 16 a W 56 (hasta 3 584 lecturas por bloque) con varias pistas sonando: **limpio**. Los chasquidos empiezan entre W 56 y W 64.
+  - **Presupuesto para el sinte granular:** ≤ **2 048 lecturas externas por bloque de 32 muestras** (W 32, ~57 % del umbral) = **32 granos con interpolación lineal** (2 lecturas por muestra). Al núcleo 1 le queda más de la mitad de su tiempo libre para ventana, mezcla y control.
+- Builder `tools/build_sc35db.py`, marca `SC35DB`, `firmware/sc35db/` (0x5c6b4 B), SHA-256 `d45b6fea…7e9b`, CRC 0xdecb07d5. Prueba `tools/emu_sc35db.py` (imagen, núcleo 1 con W 0 / 3, núcleo 0: bien / tarde / corrupto / reinicio / sin núcleo 1, orden 9; y las de SC35D9).
+
+### Diseño (usuario, 2026-10-09): **sinte granular** — hecho en SC36
+- **Dónde:** motor de las pistas MIDI 1 / 2, quinto estado del pad 27 (como el VA-drum): se toca con notas y pasa por el VCA / VCF / FX del modo.
+- **Fuente:** cualquiera de los 64 samples del pack cargado (elegido con un knob; la captura sirve en cuanto se consolida en un hueco con Shift + pad dos veces); **modo adicional: entrada en vivo** (búfer circular que graba sin parar: granular / freeze en tiempo real).
+- **Controles imprescindibles:** posición + avance / freeze (también hacia atrás), tamaño + densidad, dispersión (posición, altura, probabilidad de grano invertido), ventana / forma.
+- **Notas:** un knob elige si la nota cambia la **altura** de los granos (parafonía de 2 notas, como el VA-drum) o la **posición** en el material (tipo slicer).
+- **Arquitectura:** el **núcleo 1** del DSP (≈ 1,6 K palabras de programa libres, ≥ 976 vueltas libres por bloque, memoria externa compartida en los dos sentidos: SC35D.1 / SC35D2) genera los granos leyendo el material directamente de la memoria externa (los samples del pack están en `$580000…` con su tabla `X:$1D8D + 4N`; la captura en `$E80000`) y deja cada bloque en un búfer doble de la memoria compartida; el **núcleo 0** solo lo recoge como fuente de la voz (en el sitio del oscilador): unas 15-30 palabras, que hay que liberar comprimiendo tablas de `vcf21_dsp` (100-150 posibles). Parámetros: ARM → núcleo 0 → memoria compartida → núcleo 1.
+- **Pasos:** (1) diagnóstico remoto del flujo núcleo 1 → núcleo 0 (bloques, cortes, CPU con una carga de N granos que lee la memoria externa); (2) liberar programa del núcleo 0; (3) motor + interfaz.
+- **Estado (2026-10-09):** paso 1 hecho (SC35DB). Paso 2 hecho: `drums2_dsp.COMPACT` guarda TATK con sus primeras 65 palabras y TDEC con sus últimas 64, y el índice de la envolvente de drums se limita. Libera 123 palabras: sobre SC35, el programa del núcleo 0 terminaría en `P:$3F7B` en vez de `$3FF6`. `vcf21_dsp` resta 64 a la etiqueta de TDEC. Prueba diferencial `tools/emu_compact.py` frente a SC35: tablas, drums con ENVS −64..63 en ataque / decay, y VCA-VCF con barridos de ATK / DEC / SUS / REL en línea / oscilador / VA-drum más 40 estados aleatorios: todo idéntico.
+- **Diseño aprobado (usuario, 2026-10-09):**
+  - **Activación:** pad 27 de la vista Preset de MIDI 1 / 2 = oscilador → VA-drum → **granular** → apagado. Pasa por el VCA / VCF / FX del modo.
+  - **Granos:** como mucho 16 por pista, con interpolación lineal y ventana.
+  - **Knobs** (página del OSC con el motor granular):
+
+    | Knob | Sin Shift | Con Shift |
+    |---|---|---|
+    | K1 | tono ± 24 st | fino ± 1 st |
+    | K2 | posición | spray de posición |
+    | K3 | scan (centro freeze, ± velocidad) | probabilidad de reverso |
+    | K4 | tamaño, 5–500 ms | spray de tono |
+    | K5 | densidad, 1–16 | ventana: rect → Hann → percusiva |
+    | K6 | longitud de la zona del scan | modo de nota: tono ↔ slicer (*colocado por Claude: el usuario no lo situó*) |
+    | K7 | LFO → posición | LFO → tamaño (*Claude*) |
+    | K8 | envolvente → posición | **fuente**: sample 1–64 del pack, luego la captura |
+
+  - **Fases:** SC36 = samples del pack y captura consolidada; SC36.1 = entrada en vivo.
+  - **Valores (usuario, 2026-10-09: «compartir con el OSC»):** la RAM guardada está llena, así que los 16 knobs del granular reinterpretan los valores de las páginas del oscilador. Los códigos 17-26 se guardan; 6 de Shift usan los códigos volátiles 27-32 del OSC2. Al cambiar de motor, los mismos valores significan otra cosa.
+- **Pedido del usuario (2026-10-09): secuenciador de efectos.** Literal: «un toggle entre los modos de sinte / OSC / VA-drum que activa el modo step-drum, pero en vez de controlar un sinte, elige un efecto de Master FX y lo activa durante ese paso (knob a 0 sin efecto)». Interpretación pendiente de confirmar:
+  - un estado más del pad 27 de MIDI 1 / 2;
+  - el step-drummer de esa pista no suena: el valor de cada par de pasos elige un efecto de Master FX (0 = ninguno; zonas con color, como los tipos), y ese efecto se enciende sobre el master durante los pasos con nota del par;
+  - usa los knobs actuales de cada efecto en Master FX.
+- **Pedido del usuario (2026-10-09): Glitch en el pad 31 de Master FX y de la vista FX.** Es un efecto granular sobre la salida master, como los demás de Master FX, con parámetros parecidos a los del sinte. Está pensado para «romper y retrasar el audio como en las pruebas»: los chasquidos y la ralentización de SC35DB.
+  - **Propuesta de Claude, aprobada por el usuario (2026-10-09):**
+    - el pad 31 deja de ser hueco asignable y es un pad fijo, como la captura en el 32;
+    - sus 4 knobs van en los 4 bytes del hueco 31, sin RAM nueva;
+    - mantener = efecto (100 % húmedo);
+    - búfer circular estéreo del master en la memoria externa libre (`$337000–$57F000`);
+    - granos estéreo en el núcleo 1 (≤ 6, ~800 lecturas por bloque; con el sinte, ≤ ~2 900, bajo el umbral limpio de 3 584).
+  - **K1 velocidad:** 127 = normal; al bajar frena como una cinta hasta pararse; por debajo del centro, hacia atrás.
+  - **K2 tamaño de la repetición.**
+  - **K3 retardo:** hasta dónde mira atrás en el búfer, hasta ~2,5 s.
+  - **K4 caos:** cortes, repeticiones, reverso y spray al azar.
+
+### SC35 = SC34.2 + **samples del pack en la tarjeta** (guardar la captura, intercambiar, borrar un pack) — ⏳ pendiente de probar
+- Diseño aceptado por el usuario (2026-10-09), con el cambio de gesto del borrado: «Shift + Clear ya es el metrónomo: mejor Clear + pack seleccionado, Clear parpadea, volver a pulsar Clear para confirmar; Clear encendido en la vista de carga de packs» (mantener Clear + pad; la pregunta caduca a los 5 s; Clear blanco tenue; reiniciar para reutilizar el hueco).
+- **`tools/packio.py`:**
+  - **Save** (`bl` de `0x0802FE5E` → `c_svs` → `c_pl_save` de persist19): recorre la tabla de samples del DSP (`X:$1D8D + 4N`); cada entrada que apunta al principio de una ranura de captura k con el bit k de `X:SAVED` (`$3D1E`) a 0 se escribe como `PCM/NN_PCM.wav` (`c_wav`: borrar el fichero viejo (op 5), cabecera WAV de 44 B + muestras de 16 bits, trozos de 4 KB en el búfer compartido `0x20003D04` con su cerrojo (`0x08026D06(5)` / `0x08026D34`), escritura op 7 síncrona), solo si cabe (`c_fits`: Σ de los 64 PCM `(tamaño − 44) / 2 + 0x100` + el nuevo ≤ `$900000` palabras); después pone el bit k. Las muestras salen de la memoria externa del DSP con la copia por bloques del sampler a la ventana `Y:$3B40` (64 palabras), con el semáforo del servicio del DSP tomado en cada acceso (todo en la tarea de la interfaz).
+  - **`build_sc17.SMP_SAVEBIT`:** cuando el tick manda la orden 4 (una sustitución), lee `X:REPK` (la ranura que va a usar el DSP) y borra su bit de `X:SAVED`.
+  - **Intercambio** (vista Preset de drums, `c_pdp` / `c_pdl` delante de drumrep): Duplicate mantenido + pad A (parpadea azul) + pad B: `c_swap` escribe el fichero A con el audio de B y el B con el de A (leídos de la memoria del DSP: la longitud sale del tamaño del fichero, o de la tabla si es una ranura de captura) y cambia las dos entradas de la tabla (inicio, longitud, incremento): suena cambiado al instante. Estado en `vista + 0x52` = `0xA5` (marca) y `+0x53` = A (**el relleno no está garantizado a 0: en el volcado del emulador vale `B5`**).
+  - **Borrar un pack** (vista de packs, vtable `0x0805A6A4`; objeto de botones mantenidos, vtable `0x0805A91C`): Clear mantenido sin Shift + pad (`c_ppk`) → pregunta en `vista + 0x25` (marca `0xA5`), `+0x26` (pad), `+0x27` (instante, ms >> 8); Clear pulsado otra vez (ranura 2 del objeto de botones → `c_mbp`, primero el stock) con la vista de packs activa y la pregunta de menos de ~5 s → op 5 tipo 1 sobre ese pack y op 0 sobre el PCM 0 del actual (vuelve a seleccionarlo). Nunca el pack actual; Shift + Clear sigue siendo el metrónomo. LED: el pad y Clear parpadean en rojo con la pregunta viva; en la vista de packs Clear = blanco tenue `0x03` (ranura 8 → `c_mbl`).
+  - El diagnóstico remoto (`rdiag` con `DSPX`, sin borrado) va incluido para probar desde el PC.
+- Builder `tools/build_sc35.py`, marca `SC35`, `firmware/sc35/` (0x62de8 B), SHA-256 `3eae83c6…fb94`, CRC 0x138da116. Prueba `tools/emu_sc35.py` (SC34.2 + guardar: fichero exacto en 1 y 3 trozos, no repetir, no cabe; el tick borra el bit; intercambio por la ruta real de pads con la basura del relleno; borrar pack por las rutas reales de pad y botón, caducidad, Shift, pack actual, LED).
+
+### Hallazgos para SC35 (2026-10-09) y **SC35DA** = SC342D + borrar un pack entero — ⏳ pendiente de probar
+- **Botones mantenidos** (vistos en el aparato con `tools/ctwatch.py`): el parámetro 0 del almacén `[[ctrl + 0x20] + 0xC]` (`0x20039844` en este arranque): bit 0 = **Clear**, bit 1 = **Duplicate**. Es lo que lee la ranura 8 de ese objeto (vtable `0x0805A91C`) para los LED de esos botones; el controlador manda los ids 23 / 24 a esa ranura.
+- **Vista de packs:** objeto `0x20044128`, vtable **`0x0805A6A4`** (proyectos: `0x0805A71C`). Ranura 0 (vista, pad): el pack actual (`[vista + 0x10]` p0) no hace nada; **Duplicate + pad** = duplicar el pack actual en ese hueco (`0x0803C68C` + temporizador de 500 ms); pad solo = cargar ese pack (`[vista + 0x18]` p0 = pad). **Clear no se usa** en esta vista. `[vista + 0x1C]` = el almacén de botones mantenidos. El número de pad es el número de pack del stock, el mismo que la API (= carpeta + 1; pack actual `0x1F` = `30_PACK`, leído en `[vista + 0x10]` y en `[[0x20006914]]`).
+- **Búfer grande compartido** `0x20003D04` (4 KB, el doble búfer de la carga de samples): cerrojo `0x08026D06(dueño)` / `0x08026D34`; lo cogen con su cerrojo la SysEx de Components (dueño 5) y las operaciones 9 / 10 de la tarea de almacenamiento (copias); las operaciones 5 / 7 no lo usan. SC35 lo podrá coger para escribir los `.wav` en trozos de 4 KB.
+- **Bytes libres:** vista Preset de drums `+0x52` / `+0x53` (el objeto termina en `+0x54`; `+0x51` lo usan SC08 / SC34); vista de packs `+0x25..+0x27` (relleno sin inicializar: usar con marca); `X:$3D1E` del DSP (estado del sampler, no lo borra la primera llamada, a 0 al arrancar).
+- **Riesgo del borrado de un pack (op 5, tipo 1):** el código deja el «pack actual» de la tarea de almacenamiento a `0xFF` (`0x08036D1E`). **SC35DA** (`rdiag.DEL_PACK`): la orden 7 con tipo 1 borra un pack explícito que no sea el actual (`[[0x20006914]]`) y después pide `exists` del PCM 0 del pack actual, lo que lo vuelve a abrir en la tarea de almacenamiento; responde estado, existe y el pack actual. Ping `$3609`. `ctremote.py delpack PACK --yes`. Builder `tools/build_sc35da.py`, marca `SC35DA`, `firmware/sc35da/` (0x626ec B), SHA-256 `9a2d4eed…6e3d`, CRC 0xbf51025d. Prueba `emu_sc342d.py … --delpack`.
+- **Prueba prevista** (pack 31 cargado): borrar el pack 30 (`29_PACK`, permiso del usuario), comprobar que el pack actual sigue respondiendo (`info pcm 5`), que el aparato guarda un proyecto y que la vista de packs muestra el 30 vacío.
+- **Resultado (2026-10-09):** `delpack 30` en 3 s → estado 0, reselección existe = 1, actual = 31. Después: pack 30 sin PCM 0 / 5 ni sesión 0 (borrado); pack 31 y «actual» (`0x7F`) intactos (PCM 0 = 187 188, PCM 5 = la captura 245 036, sesión 0 = 160 780); el aparato responde. En el aparato: guardar / recargar proyectos y cambiar de pack funcionan; **el pack borrado no se puede cargar ni sobrescribir y su pad sigue encendido hasta reiniciar; tras reiniciar el hueco queda libre** (Components hace la misma operación: `0x0802617C` borra la carpeta y la vuelve a crear vacía; la lista de packs se rehace al arrancar).
+
+### Resultado de **SC342D** en el aparato (2026-10-09): **la captura llega del DSP a la tarjeta** (todo el camino de SC35, hecho a mano)
+- Ping `$35E9`. Estado del sampler (`dspr X 0x3D00 24`): `LEN` = `WP` = `$1DE80` = 122 496 muestras (2,55 s), `CPLEN` = 0.
+- `ctremote.py capture` (2 552 peticiones `dspx` de 48 muestras): **16 s**; audio real (pico −8,9 dBFS, envolvente rítmica cada 0,25 s), sin saltos en las costuras de los trozos (paso medio 59 en las costuras frente a 50 dentro). Fichero `captura_sc342d.wav` en la raíz del repositorio (mono, 16 bits, 48 kHz).
+- En el pack 31 (`30_PACK`, permiso del usuario): copia del sample 5 anterior (`05_Kick 4.wav`, 19 844 B) → `del pcm 5` → `put` de la captura (245 036 B en 24 s) → existe, 245 036 B, **idéntico** al `.wav` del PC; los samples 4 y 6 intactos. Falta: recargar el pack y oírla desde el aparato.
+- Ritmos medidos por USB con trozos de 64 B: lectura de la tarjeta ≈ 15 KB/s, escritura ≈ 10 KB/s, memoria del DSP ≈ 15 KB/s (48 muestras por petición).
+
+### SC342D = SC34.2 + diagnóstico remoto con **lectura de la memoria del DSP** — ✅ probado (ver arriba)
+- La última pieza de SC35: llevar la captura de la memoria externa del DSP a la tarjeta. El ARM solo lee el DSP por el puerto de host con direcciones de 16 bits (`0x08029344(0, dir)` = X, `0x8000 | dir` = Y; devuelve el valor << 8); `$E80000` no se alcanza. **Sin código DSP nuevo** (SC34.2 tiene 9 palabras libres): la copia por bloques de la sustitución de drums (`sampler_dsp.V34`: `CPSRC` / `CPDST` / `CPLEN` = `X:$3D14..$3D16`, `CHUNK` palabras por bloque) copia de la memoria externa a donde diga `CPDST`; el ARM pone `CPSRC` = origen, `CPDST` = la ventana `Y:$3B40` (ninguna referencia en SC34.2; el búfer más cercano empieza en `$3B80`), `CPLEN` = n y, en el bloque siguiente, lee las n palabras de la ventana.
+- **Semáforo del servicio del DSP:** `[[0x2000030C] + 0xC]` (el mismo que toma `MARK_DIRTY`): `0x08021064(sem)` lo toma (espera cediendo), `0x08029028(&holder)` lo devuelve. `rdiag` lo toma alrededor de cada acceso al puerto de host (lecturas, las tres escrituras, cada consulta de `CPLEN`) y lo suelta mientras espera (`0x0801BE78(1)`, hasta 100 veces).
+- **`rdiag.DSPX`:** orden 3 = `dspr` (≤ 24 palabras de la X / Y interna, 6 nibbles), orden 8 = `dspx` (≤ 48 muestras = bits 23..8 de la memoria externa; estado 3 = ya hay una copia en curso, 4 = no terminó). Ping = `$35E9`. `ctremote.py dspr X|Y DIR N`, `dspx ORIGEN N`, **`capture FICHERO.wav`** (lee `X:LEN`, descarga la captura desde `$E80000` y la guarda como `.wav` mono 16 bits 48 kHz, el formato de los samples del pack).
+- **SC342D** = SC34.2 + `rdiag` (`DELETE` + `DSPX`): builder `tools/build_sc342d.py`, marca `SC342D`, `firmware/sc342d/` (0x6268c B), SHA-256 `12dce7c8…d3e1`, CRC 0x143a6129. Prueba `tools/emu_sc342d.py` (las de SC35D9 + las del DSP simulado: orden de las escrituras, copia, semáforo siempre tomado, ocupado / sin terminar); `emu_sc34_2.py` también pasa sobre SC342D.
+- **Prueba prevista:** el usuario graba una captura (pad 32 de Master FX) → `ctremote.py capture cap.wav` → escuchar `cap.wav` en el PC → `del` + `put` en el pack 30 → recargar y oírla como sample del pack.
+
+### Resultado de **SC35D9** en el aparato (2026-10-09): **sustituir un sample (borrar + crear) funciona, también por uno más largo**
+- Permiso del usuario: «haz lo que quieras con pack 30 y 31». La numeración del usuario (Components / pantalla) empieza en 1: el byte de la estructura del pack actual (`[[0x20006914]]`) es ese número y la carpeta es número − 1 (`0x1E` = pack 30 = carpeta `29_PACK`; `0x1F` = pack 31 = `30_PACK`).
+- En `29_PACK` (duplicado del 15): `05_Kick 4.wav` copiado (igual a la copia de la tarjeta) → `del pcm 5` estado 0 → `info` existe 0 (los samples 4 y 6 intactos) → `put` de la copia: 19 844 B en 2 s → existe, 19 844 B, **idéntico**. Después `del` + `put` de `00_808.wav` (187 188 B, 17 s) en la posición 5 → 187 188 B, **idéntico**; los vecinos sin cambios.
+- La primera escritura tras el borrado crea el elemento (`PCM/05_PCM.wav`, por confirmar en el PC) y lo añade al índice del pack; el tamaño nuevo es libre. Falta: recargar el pack en el aparato y oír el sample 5 (debe sonar como el 808).
+
+### SC35D9 = SC35D8 + **borrar un elemento del pack** — ✅ probado (ver arriba)
+- **Operaciones de la tarea de almacenamiento** (switch `0x08022B24` sobre el byte de operación, 0-10): 0 existe `0x080367F8`, 1 tamaño `0x080368D6`, 2 `0x080369B0` (64 bits), 3 `0x080369F8`, 4 `0x08036870`, **5 borrar `0x08036CCC`**, 6 leer `0x08036A7E`, 7 escribir `0x08036B1C`, 8 `0x0803724A`, 9 / 10 por ver.
+- **Borrar (op 5):** tipos 2-6: si existe, `0x08026680(pack, fichero, carpeta, índice)` cierra el fichero, imprime `DeleteItem: %s`, lo quita del índice (`0x0803B04C`) y lo borra de la tarjeta (ranura `0xC` del objeto de fichero); después `0x0802645E` reindexa el pack. **Tipo 1 = el pack entero:** selecciona el pack, `0x080266D4` borra todos sus elementos y deja el pack actual a `0xFF`. Lado del cliente: `0x0803CC34(elemento, cb, ctx)` (síncrono con 0, 0).
+- **`rdiag.DELETE`** (orden 7): borra un elemento de los tipos 2-6; el tipo 1 (y cualquier otro) se rechaza con estado `0xFFFFFFFE`. Ping = versión `$35D9`. `ctremote.py del TIPO IDX [PACK] --yes` y `put TIPO IDX FICHERO [PACK] --yes` (escribe un fichero del PC desde el offset 0, de 64 en 64 B). Builder `tools/build_sc35d9.py`, marca `SC35D9`, `firmware/sc35d9/` (0x5bcd8 B), SHA-256 `aa3425b6…eb15`, CRC 0x628966a2. Prueba `emu_sc35d8.py … --delete`.
+- **Prueba prevista en el aparato (en `30_PACK`, con permiso):** borrar `PCM/05_Kick 4.wav`, comprobar que ya no existe, escribir de nuevo su contenido (copia) con `put` → debe crearse `PCM/05_PCM.wav` con el mismo tamaño y contenido; luego recargar el pack y escucharlo. Es la secuencia de «sustituir un sample» de SC35 (con cualquier longitud nueva, si cabe en la memoria de samples del pack).
+
+### Resultado de **SC35D8** en el aparato (2026-10-09): **el diagnóstico remoto funciona; primera escritura en la SD por la API del stock, sin cambios en el fichero**
+- `ctremote.py ports` → `Circuit Tracks` (entrada y salida); `ping` → versión `$35D8`, puerto 0; `info pcm 0..7` = los tamaños de SC35D5; `mem 0x08010000 32` = la cabecera de la aplicación.
+- **Pack actual:** `[[0x20006914]]` = byte `0x1F` seguido del nombre `30_PACK` (un duplicado del pack 15 hecho por el usuario).
+- `dump pcm 5` (311 peticiones de 64 B) en **1,3 s**: `05_Kick 4.wav` idéntico byte a byte a la copia de la tarjeta.
+- **Escritura (con permiso del usuario, en `30_PACK`):** los 64 primeros bytes de `PCM/05_Kick 4.wav` leídos (iguales a la copia) y **vueltos a escribir iguales** con la op 7 → estado 0; después tamaño 19 844 (sin recortar), el fichero entero idéntico a la copia y el aparato sigue respondiendo. La tarea de almacenamiento devuelve 3 si los bytes escritos no son los pedidos, así que el estado 0 indica que la escritura se hizo. **Escritura confirmada (2026-10-09, con permiso):** el último byte de `05_Kick 4.wav` (offset 19 843) `FF` → `FE` (estado 0, relectura `FE`, tamaño 19 844) y restaurado a `FF` (relectura `FF`); el fichero entero vuelve a ser idéntico a la copia. **La escritura por la API del stock funciona en el aparato, en el sitio, sin recortar.**
+
+### SC35D8 = diagnóstico **remoto por SysEx USB** (lo maneja Claude desde el PC) — ⏳ pendiente de probar
+- Pedido del usuario (2026-10-09): «crea una herramienta de diagnóstico que puedas manejar, sin necesidad de tener que pulsar yo botones ni capturar con herramienta externa».
+- **Entrada de SysEx del stock:** `0x0801EB30(puerto, msg = {buf, len}, x)` (se llama por un puntero, literal en `0x0801EDE0`): para los puertos 0 / 1 pasa cada SysEx a los manejadores de Novation (`0x0802484C`, `0x080248F0`, `0x080249B0`, `0x08024B6C`, `0x08024C4C`, `0x08024D2C`, `0x0802503C`) y a la respuesta de identidad `0x0801EC54`. **Salida de SysEx:** `0x08020C90(router, máscara de puertos, &{buf, len})` (no es la entrada: valida `F0…F7` y bytes < `0x80`, copia el mensaje (≤ `0x168` B) y lo manda a cada puerto de la máscara); el objeto router = `[[0x0801EDD0]]` (= `[0x200069F4]`), como lo usa la respuesta de identidad.
+- **`tools/rdiag.py`:** los 4 primeros bytes de `0x0801EB30` (`push.w {r4-r8, lr}`) → `b.w c_rdin`; un SysEx que empieza por `F0 7D 43 54` (`7D` = fabricante no comercial, ningún manejador de stock lo atiende) es nuestro, el resto ejecuta el prólogo original y sigue en `0x0801EB34`. Petición `F0 7D 43 54 orden seq datos… F7`, respuesta `F0 7D 43 54 orden|0x40 seq datos… F7` al mismo puerto; números como 8 nibbles, bytes como 2 nibbles. **La respuesta se escribe en el propio búfer de la petición** (el PC rellena cada petición hasta `PAD` = 232 B; una más corta se descarta sin responder): sin RAM nueva y con 40 B de pila. Órdenes: 1 ping (versión `$35D8`, puerto), 2 leer memoria del ARM (solo flash `0x08000000–0x0807FFFF` y RAM `0x20000000–0x2004FFFF`, ≤ 64 B), 4 info de un elemento de la SD (existe, tamaño), 5 leer (≤ 64 B desde un offset), 6 escribir (≤ 64 B). Las operaciones de la SD llaman a la API de contenido de forma síncrona desde la misma tarea en que lo hace la transferencia por SysEx de Components.
+- **`tools/ctremote.py`** (Windows, WinMM por ctypes): `ports`, `ping`, `mem DIR LEN`, `info TIPO IDX [PACK]`, `read TIPO IDX OFF LEN [PACK]`, `dump TIPO IDX FICHERO [PACK]` (el elemento entero, de 64 en 64 B), `write … --yes`. Necesita que ningún otro programa tenga abiertos los puertos MIDI del aparato.
+- SC35D8 = SC35D7 + `rdiag` (los pads de SC35D7 siguen). Builder `tools/build_sc35d8.py`, marca `SC35D8`, `firmware/sc35d8/` (0x5bc8c B), SHA-256 `867834b6…cc50`, CRC 0x73ba1238. Prueba `tools/emu_sc35d8.py` (por `0x0801EB30`: mensaje ajeno reenviado, petición corta descartada, ping por los puertos 0 / 1 con el router y la máscara, memoria dentro / fuera, info / leer / escribir con los argumentos exactos a la API, orden desconocida; y el protocolo de `ctremote.py` contra el firmware).
+
+### Resultado de **SC35D6** (2026-10-09) y **SC35D7** = la escritura en los pads 17-24 — ⏳ pendiente de probar
+- **SC35D6 en el aparato:** dos tandas de los pads 9-16 = 16 volcados de **solo lectura** (marca `C5D004`, mismos tamaños y cabeceras que SC35D5): la rama de escritura no se ejecutó. Entre las tandas el aparato mandó `F0 00 20 29 01 64 08 01 F7` y al final `… 08 00 F7` (SysEx de Novation; probablemente Shift pulsado / soltado), así que la segunda tanda parece hecha con Shift y aun así `c_shift` (sc15: p0 del almacén de Shift) devolvió 0 en ese momento. Causa sin aclarar (¿otro camino de Shift en la vista Preset del sinte?). Los ficheros no cambiaron.
+- **SC35D7** = SC35D6 con `probe35s.WB_PADS` (builder `tools/build_sc35d7.py`, marca `SC35D7`, `firmware/sc35d7/` (0x5b9f4 B), SHA-256 `aba1091c…06b0`, CRC 0xa59bb5a1): **pads 17-24 (rojos) = reescribir sin cambios** los 21 primeros bytes de los samples 0-7 y releer (mismo volcado `$C5D006`); pads 9-16 = solo lectura (con o sin Shift). Prueba `emu_sc35d4.py … --kind 4 --wbpads`.
+
+### Resultado de **SC35D5** (2026-10-09) y **SC35D6** = prueba de escritura sin cambios — ⏳ pendiente de probar
+- **SC35D5 en el aparato** (pads 9-16, pack con `00_808.wav`…): existe = 1, estado 0, 21 bytes, cabecera `RIFF` + 187 180 + `WAVEfmt ` + 16 + formato 1 (el pad 9), y los tamaños **187 188, 70 546, 217 232, 51 180, 41 660, 19 844, 279 338, 397 996** = exactamente `00_808.wav`, `01_Kick 1.wav`, `02_Laser Kick.wav`, `03_Reverse Laser.wav`, `04_Kick 3.wav`, `05_Kick 4.wav`, `06_808.wav`, `07_Noise FX.wav` de la copia de la tarjeta (packs 09 / 15 / 16, que tienen los mismos samples). **La API lee los samples del pack y encuentra cada fichero por su prefijo `NN_`, sea cual sea el nombre.**
+- **Escritura en la tarea de almacenamiento (op 7, `0x08036B1C`, tipos 2-6):** `0x08026552` mira si el elemento ya existe; `0x080367DA` → `Pack::openItem` `0x08026610(pack, fichero, carpeta, índice, modo 1)`: si existe, abre su ruta actual (`0x0803B08C`, el nombre que tenga); si no, crea `carpeta/NN` + sufijo (`_PCM.wav`) con `0x0803B0B4`. El objeto de fichero abre con la ranura 0 de su vtable (lectura / escritura / abrir siempre, sin recortar, según SC34D) y escribe con la ranura `0x14`; si el elemento era nuevo, `0x0802645E` lo añade al índice del pack. Consecuencias para SC35: sobrescribir un sample más corto dejaría cola (el tamaño del fichero no baja) salvo que antes se borre (`DeleteItem`, por localizar); un sample nuevo se llamaría `NN_PCM.wav` (para `NN_CAPxx.wav` hará falta otra vía o renombrar).
+- **SC35D6** = SC35D5 + `probe35s.WRITEBACK` (builder `tools/build_sc35d6.py`, marca `SC35D6`, `firmware/sc35d6/` (0x5b9e8 B), SHA-256 `058093a9…6f86`, CRC 0x336a907e): **Shift + pad 9-16** lee los 21 primeros bytes del sample, los **vuelve a escribir iguales** con `0x0803CC16(elemento, 0, buf, 21, 0, 0)` (síncrono), y lee de nuevo tamaño y bytes. Volcado: marca `$C5D006`, existe, tamaño antes, estado de la escritura, tamaño después, estado << 8 | bytes de la relectura, los 21 bytes releídos, tipo << 8 | `0x80` | índice. Sin Shift = SC35D5. Prueba `emu_sc35d4.py … --kind 4 --writeback` (la escritura recibe exactamente los bytes leídos, en el offset 0). Se pide probarlo en un pack duplicado.
+
+### Pedidos para SC35 (usuario, 2026-10-09)
+- Además de guardar la captura en `PCM/` del pack: **intercambiar la posición de dos samples** del pack, **importar un sample o un patch de otro pack** (el elemento de la API lleva el pack: leer de otro y escribir en el actual) y **borrar un pack por completo**. Los samples creados en el aparato se llamarán **`NN_CAPxx.wav`** (xx = número correlativo de 2 cifras) (la API genera `NN_PCM.wav`: hay que averiguar cómo pone el nombre Components y quitar el `NN_*.wav` anterior) (lista en `docs/CHECKLIST.md`). Para borrar: la cadena `DeleteItem: %s` (`0x080267B8`) y las operaciones de la API aún sin identificar (2, 3, 5, 8); siempre con confirmación en el aparato y probado antes en un pack duplicado.
+
+### Resultado de **SC35D4** (2026-10-09) y **SC35D5** = el mismo sondeo con los PCM — ⏳ pendiente de probar
+- **SC35D4 en el aparato** (pad 9, varias veces, mismo resultado): marca `C5D004`, existe = 1, tamaño = `$02740C` = **160 780 B**, estado de la lectura 0, 21 bytes: `55 53 45 52 0C 74 02 00 01 00 00 00 0A 00 00 00 55 73 …` («USER…»). **La API de contenido funciona desde la tarea de la interfaz, de forma síncrona, sin colgar el aparato.** Pero 160 780 B es el tamaño de un `NN_SESSION.ncs`: el tipo 2 leyó la **sesión 0**.
+- **Numeración real de los tipos** (la tarea de almacenamiento, `0x08036B1C`: 0 = `_GLOB.cg` global, 1 = el pack, 2..6 = las carpetas de la tabla `0x0805A4F8` en orden): **2 Sessions, 3 Patches, 4 PCM, 5 meta, 6 efectos**. Encaja con `0x08039570` (bytes del SysEx 3..8 → 2, 3, 4, 6, 5, 0). El «info» de la tabla (tipo | cantidad << 8) usa otra numeración.
+- **SC35D5** = SC35D4 con `probe35s.KIND = 4` (builder `tools/build_sc35d5.py`, marca `SC35D5`, `firmware/sc35d5/` (0x5b90c B), SHA-256 `0d9c322e…24e6`, CRC 0x3aa6c846; prueba `emu_sc35d4.py … --kind 4`): pads 9-16 = PCM 0-7. Debe leer `RIFF…WAVEfmt` y el tamaño del `NN_nombre.wav`, lo que además dirá si el stock encuentra los ficheros por el prefijo `NN_` (su constructor de rutas genera `NN_PCM.wav`).
+
+### SC34.2 = SC34.1 + modo frase del song pointer — ⏳ pendiente de probar
+- Pedido del usuario (2026-10-09): «en master fx (song pointer): shift + cualquier paso (pads 9-24) entra en el modo frase y coloca el pad pulsado como inicio (pulsar pad1 blanco o shift+pad de inicio para salir de modo frase), mientras está en el modo frase, el modo retrigger no se activa y tocar un pad una vez cambia el final de la frase a ese pad. shift+nuevo ajusta el inicio al nuevo pad».
+- **`build_sc17.use_sp3()`** (`SP3`, requiere `SP2`): `sp2_press` se parte en una cabecera (`sp2_head` = SC32 sin cambios, `sp3_head` = lo nuevo) y la parte común de pasos mantenidos (`q_mom`); SC32-SC34.1 salen idénticos. Estado = el de SC32: `LS` (SC14 + 21, ≠ 0 = modo frase), `LE` (SC14 + 22, 0 = 16).
+  - Shift + paso sin frase: `LS` = paso, `LE` = 0 (frase paso..16), se olvidan los pasos mantenidos y el retrigger;
+  - en modo frase, sin Shift: el pad 9 (paso 1, blanco con `SP2_WHITE`) sale; otro paso = el final (`LE`); uno anterior al inicio pasa a ser el inicio y el inicio anterior el final; nunca retrigger ni frase momentánea (no se tocan `H1` / `H2` / `S_JT`);
+  - Shift + otro paso: nuevo inicio (un final anterior a él vuelve a 16); Shift + el inicio: sale;
+  - sin modo frase: SC32 (un paso mantenido = retrigger, dos = frase momentánea). El pad 8 sigue borrando la frase.
+- Elegido sin preguntar: al entrar, el final es el paso 16 (hasta tocar otro); el paso 1 no puede ser final (su pad sale del modo).
+- Builder `tools/build_sc34_2.py`, marca `SC34.2`, `firmware/sc34.2/` (0x621e0 B), SHA-256 `bb86322d…7c6d`, CRC 0xd7d8a1f3. Prueba `tools/emu_sc34_2.py`: todas las de SC34.1 + las del modo frase (rutas reales, bucle en el tick).
+
+### SC35D4 = diagnóstico de **solo lectura de la SD** por la API de contenido del stock — ⏳ pendiente de probar
+- Pedido del usuario (2026-10-09): «sc35 guardado de samples en memoria» → **guardar en la SD (pack)**: escribir la captura como `.wav` en `PCM/` del pack (sustituye un sample para todo el pack).
+- **La vía segura:** la transferencia de ficheros por SysEx de Components (`0x0803A0xx`: «Data Packet», «Cache / Write Data Packet», «End Cmd Write») **no toca ningún objeto de fichero**: pide cada operación a la tarea de almacenamiento con `0x0803CA52(op, elemento, args, cb, ctx, …)` (síncrona con cb = 0: `0x08022A46`; asíncrona: `0x08022A5C`). Operaciones: 0 existe (`0x0803CB50`, bool), 1 tamaño (`0x0803CB6A`), 2 (`0x0803CB7A`, 64 bits), 6 leer (`0x0803CBF0(elemento, offset, buf, len, cb, ctx, &hechos)`), 7 escribir (`0x0803CC16`, mismos argumentos), 8 (`0x0803CC54`). La tarea abre, escribe y cierra con sus propios objetos: no hay riesgo de pisar un fichero en uso como en SC34D.
+- **Elemento** (12 B): u32 tipo, u32 índice, u8 pack (`0xFF` = el actual, `0x0803676C`). Tabla de carpetas del pack (`0x0805A4F8`, {info, carpeta, sufijo}, info = tipo | cantidad << 8): 0 `Sessions` / `_SESSION.ncs` (64), 1 `Patches` / `_PATCHBANK.cpb` (16), 2 `PCM` / `_PCM.wav` (64), 3 `meta` / `_META.ncm` (2), 4 la carpeta de efectos / su fichero `.ncg` (2). El byte del SysEx pasa a tipo con `0x08039570` (3..8 → 2, 3, 4, 6, 5, 0). **Corregido tras SC35D4: el tipo de la API no es el índice de esa tabla; PCM = tipo 4.** Duda: el constructor de rutas escribe `PCM/NN_PCM.wav`, pero los ficheros de la tarjeta se llaman `NN_nombre.wav` (`00_808.wav`): el sondeo dirá si el stock los encuentra por el prefijo.
+- **`tools/probe35s.py`** (cadena de SC35D sin su sonda del DSP, builder `tools/build_sc35d4.py`): con la vista de la fuente abierta, pads 9-16 en verde; el pad 9 + k llama, **en la tarea de la interfaz y de forma síncrona**, a existe / tamaño / leer 21 bytes en el offset 0 del elemento (2, k, `0xFF`), y manda el volcado de SC32D.1 (14 palabras: marca `$C5D004`, existe, tamaño, estado, bytes leídos, los 21 bytes, tipo << 8 | índice). **Nunca escribe.** El lector `tools/sc32d1_reader.html` enseña la cabecera (`RIFF…WAVEfmt …`) y el tamaño.
+- Marca `SC35D4`, `firmware/sc35d4/` (0x5b90c B), SHA-256 `c0705a78…41f7`, CRC 0x19353a2a. Prueba `tools/emu_sc35d4.py` (API simulada: argumentos, nada de escritura, volcado).
+- **Siguiente:** si lee bien, la escritura (op 7) de un `.wav` corto de prueba en un pack duplicado (diagnóstico) y después SC35 (guardar la captura sobre un sample del pack, con confirmación).
+
+### SC34.1 = SC34 con el búfer fuera de la memoria de samples + loop solo mientras se mantiene — ⏳ pendiente de probar
+- **Resultado de SC35D3 (2026-10-08):** las 24 direcciones, incluidas las de `$337000–$57F000` y `$E80000–$FFF000`, son **memoria real** (distintas de su espejo ± `$800000`) y **estables** tras cambiar de pack y tocar; el control `$580000` (primer sample) cambió al cambiar de pack. La SDRAM llega a `$FFFFFF` (32 MB = 16 M palabras de 16 bits).
+- **Búfer (`sampler_dsp.HIGH`):** zona alta `$E80000–$FFFFFF` (1,5 M palabras ≈ 32 s), por encima del límite de carga de samples (`$E80000`): ningún pack llega. Captura en `HIGH_BASE` = `$E80000`, ranuras de la sustitución en `HIGH_SLOT0 + k × $28800` = `$EA8800…$FC4000` (la última acaba en `$FEC800`). La zona baja `$337000–$57FFFF` (zonas 14-28 del mapa del ARM) queda de reserva. `code()` toma `BASE` / `SLOT0` / `HOLD` en el momento de la llamada (parámetros `None`), así que SC33 / SC34 no cambian.
+- **Correcciones pedidas por el usuario (2026-10-08):**
+  - **el loop solo suena mientras se mantiene el pad** (modo loop o Shift + pad): `build_sc17.use_loophold()` (`SMP_HOLD`): Shift + pad 7 / hueco = orden 2 + `SMB_LOOP` + `SMB_GATE` (sin conmutar); el hueco queda marcado como mantenido; soltar (y salir de la vista) borra `SMB_GATE | SMB_LOOP`. DSP `sampler_dsp.HOLD`: la compuerta para toda reproducción salvo el one-shot simple (`PLAY` = 1 y `MODE` = 0);
+  - **start = end** (longitud 0) **ya no para el reproductor para siempre**: con `HOLD`, `S = E` salta a `sm_park` (tras el `rts`): con la bandera de loop o un modo distinto de one-shot, la posición queda en S (`PI = S`, `PF = 0`) sin sonar y sigue cuando `S ≠ E`; un one-shot se para como antes.
+  - DSP: +13 palabras, el programa termina en `P:$3FF6` (**9 palabras libres**).
+- Builder `tools/build_sc34_1.py`, marca `SC34.1`, `firmware/sc34.1/` (0x621c8 B), SHA-256 `0d9be572…8b46`, CRC 0x6da02cb.
+- Pruebas `tools/emu_sc34_1.py` (80 comprobaciones): las de SC34 (DSP con las de SC33, ARM con las de `use_loophold`) sobre la imagen de SC34.1, `HOLD` en el intérprete y las direcciones. `emu_sc33_dsp` / `emu_sc34_dsp` / `emu_sc34` entienden `HOLD` / `SMP_HOLD` (los tests de loop mantienen la compuerta; sobre SC33 / SC34 siguen pasando).
+- **SC33 / SC34: no grabar** (pisan samples del pack hasta recargarlo).
+
+### SC35D3 = diagnóstico: **zonas candidatas para el búfer (solo lectura + espejo)** — ✅ probado (ver SC34.1)
+- Opción `probe35_dsp.V4` (`core0_code4`; núcleo 1 = `core1_code3`), builder `tools/build_sc35d3.py`, marca `SC35D3`, `firmware/sc35d3/` (0x5C0C8 B), SHA-256 `f401d4ed…9b2a`, CRC 0x1F510219.
+- 24 direcciones (`SENT4`): controles `$580000` (primer sample del pack: debe cambiar al cambiar de pack) y `$840000`; zona baja `$337000 $360000 $388000 $3B0000 $3D8000 $400000 $440000 $480000 $4C0000 $500000 $540000 $57F000`; zona alta `$E80000 $EA0000 $EC0000 $EE0000 $F00000 $F40000 $F80000 $FC0000 $FF0000 $FFF000`. Igual que SC35D2 (una por bloque, EVER / WIN, ventanas de 1024 bloques) y además, en cada visita, lee la dirección con el bit 23 cambiado (± `$800000`): NOTMIR = bits de las que alguna vez difirieron (memoria real; una dirección que siempre coincide con su espejo no existe aparte). **Nada se escribe.** Primera lectura por encima de `$8FF000`: si esa memoria no respondiera, el DSP podría bloquearse hasta apagar (volátil).
+- Volcado: `0` marca `$C1D1A9`, `1` EVER, `2` WIN, `3` NOTMIR, `4` ventanas, `5` lista más larga, `6` vueltas por bloque mínimas, `7` bloques, `8` vueltas / 256, `9` `Y:$E80000`, `10` `Y:$680000` (su espejo), `11` `X:$30000`. El lector dibuja el mapa con el estado y el espejo.
+- Prueba `tools/emu_sc35d3.py`.
+
+### Resultado de **SC35D2** en el aparato (2026-10-08): **los samples del pack se cargan desde `Y:$580000`**; el búfer de SC33 / SC34 está dentro
+- Volcado: EVER `1FFFFE`, WIN `000000`, 432 ventanas (442 623 bloques), lista más larga `$30882` (2 176 entradas: **la lista de lecturas llega a `X:$30882`**), vueltas por bloque última 1643 / mínima 1495 (con el código ligero de V3), `Y:$600000` = `BB1D00`.
+- **Mapa:** `$337000` (zona 14) estable; **`$5BE000`…`$800000` cambiaron (carga)**; `$840000`, `$880000`, `$8F0000` estables; ninguna cambia de forma continua (no son líneas de delay).
+- **Explicación en el ARM (`0x08049A1C`):** la carga del pack escribe los 64 samples **uno detrás de otro desde `Y:$580000`** (`mov.w r4, #0x580000`; por sample `0x08049A80`: trozos de 0x800 B por el host, tabla `X:$C00–$C03` + `X:$802C`), y da «Sample Memory Exceeded» si pasa de **`$E80000`**: la memoria de samples del pack es `$580000–$E7FFFF` = 9 437 184 palabras ≈ 18 MB ≈ 196 s (no las «16 zonas» supuestas antes). Con `16_PACK` (2,67 M muestras + relleno) los samples llegan a ~`$82B000`: por eso `$800000` cambió y `$840000` no.
+- **Consecuencia:** el búfer de captura de SC33 / SC34 (`$600000`, 3,46 s) y las copias de la sustitución (`$640000` + 8 × `$28800`) **están dentro de la memoria de samples**: grabar pisa samples del pack hasta recargarlo. Hay que moverlos.
+- **Candidatas:** (a) **`$E80000–$FFFFFF`** (1,5 M palabras ≈ 32 s), por encima del límite de samples, si la SDRAM de 32 MB = 16 M palabras de 16 bits llega hasta ahí y no hace espejo; (b) `$337000–$57FFFF` (zonas 14-28 del mapa del ARM `0x08035E28`, ~2,4 M palabras), si de verdad no se usan (`$337000` salió estable). Las dos sin probar por encima de `$8FF000` / entre zonas.
+- **Siguiente propuesto (SC35D3, solo lectura):** 24 direcciones en `$337000–$57F000` y `$E80000–$FFF000` + controles `$580000` / `$840000`, con un bit de «espejo» (el valor coincide con el de la dirección ± `$800000`).
+
+### SC35D2 = diagnóstico: **mapa de la memoria externa (solo lectura)** — probado (ver arriba)
+- Pedido del usuario (2026-10-08, «Construye sc35d2») tras el resultado de SC35D.1. Marca `SC35D2` (`SC35D.2` compartiría la marca `SC35D.` con SC35D.1), opción `probe35_dsp.V3` (`core1_code3` / `core0_code3`), builder `tools/build_sc35d2.py`, `firmware/sc35d2/` (0x5C08C B), SHA-256 `7ce523e7…d774`, CRC 0xAFE73B90.
+- **Segundo volcado de SC35D.1 (tras cambiar de pack y tocar 1 minuto):** los valores 6 / 7 (`E9A900` / `E16100`, byte bajo 0 = datos de 16 bits), el contador de bloques `1FEB01` (= un dato + 1) y vueltas / 256 = 2 (el contador se reinició): **la lista de lecturas del núcleo 1 (`X:$30002…`) creció más allá de `$30308` con ese pack y pisó nuestras palabras de `X:$30300…`** (y nosotros las suyas: puntos sueltos de las tablas del sinte, sin efecto audible notado). `Y:$600000` volvió a cambiar (`FA5F00` → `EE4700`): se escribe más de una vez.
+- **Memoria compartida:** el núcleo 0 borra `X:$30000–$37FFF` (32 K palabras) al arrancar (`P:$278A`); V3 pone las palabras del núcleo 1 en `X:$37F00…` (SH3) y registra la lista más larga (máximo de `X:$30000`).
+- **Núcleo 0, solo lectura:** cada bloque lee una de 24 direcciones (`SENT`: controles `$337000` y `$5BE000` en las zonas de samples 14 y 29; `$5C0000 $5E0000 $600000 $608000 $610000 $620000 $630000 $640000 $650000 $660000 $680000 $6A0000 $6C0000 $6E0000 $700000 $740000 $780000 $7C0000 $800000 $840000 $880000 $8F0000`), en rueda; la primera vuelta solo apunta el valor; un cambio respecto a la visita anterior pone su bit en EVER (desde el arranque) y en la ventana actual; cada 1024 bloques la ventana pasa a WIN (= «cambia de forma continua», p. ej. una línea de delay) y se cuenta. Variables en `X:$3B80–$3BAC` del núcleo 0 (borradas por el stock al arrancar; ninguna otra referencia en el programa). **No escribe nada fuera de sus propias palabras.**
+- Volcado: `0` marca `$C1D1A8`, `1` EVER, `2` WIN, `3` ventanas, `4` lista más larga (núcleo 1), `5` / `6` vueltas por bloque (última / mínima), `7` bloques, `8` vueltas / 256, `9` `Y:$600000` ahora, `10` lista más larga vista por el núcleo 0, `11` `X:$30000` ahora (12 visitadas y 13 ventana actual no pasan el corte). El lector traduce los bits a la lista de direcciones: estable (candidata libre) / cambió alguna vez (carga) / cambia (uso continuo).
+- Prueba `tools/emu_sc35d2.py`.
+
+### Resultado de **SC35D.1** en el aparato (2026-10-08): el núcleo 1 tiene **2 K de programa** y mucho tiempo libre; **el stock escribe en `Y:$600000`**
+- Volcado: `0 C1D1A7`, `1 007BAD`, `2 000003`, `3 0000FF`, `4 5A6400`, `5 5A6500`, `6 000A77`, `7 0003D0`, `8 00C794`, `9 7A8A00`, `10 FA5F00`, `11 000000`.
+- **RAM de programa del núcleo 1 = `P:$0000–$07FF` (2 K palabras):** se escribe en `$0400 / $0600`, no en `$0800`. El stock usa 364 palabras y SC35D.1 llega a `$31A`: para un motor quedan ~1,6 K palabras (frente a las 22 libres del núcleo 0).
+- **X / Y del núcleo 1:** X se escribe en `$0800 $1800 $2000 $2800 $2FFF` (falla `$3000`: X = 12 K, `$0000–$2FFF`); Y en `$0800 $1800 $2000`, no en `$2800 / $2FFF` (Y entre 8 K y 10 K). Qué parte usan las tablas que lee el servicio de stock: por averiguar.
+- **Memoria externa en los dos sentidos ✅:** el núcleo 1 lee el patrón que el núcleo 0 escribe en cada bloque (`5A6400`) y el núcleo 0 lee el del núcleo 1 (`5A6500`). El `$04F700` / `$047C00` de SC35D era una lectura anterior a la escritura del núcleo 0.
+- **Tiempo libre:** el bucle del núcleo 1 (stock + nuestro contador, ~25-30 instrucciones con accesos a la memoria compartida) da **como mínimo 976 vueltas por bloque de audio** (última 2679; baja cuando hay más trabajo en la lista del sinte): decenas de miles de instrucciones libres por bloque. La vuelta / 256 (`$7BAD`) da la vuelta al contador de 24 bits: solo indica que está vivo.
+- **⚠️ Centinela:** `Y:$600000` valía `7A8A00` al arrancar; el núcleo 0 escribió `$5A6600` en su primer bloque y al rato vale `FA5F00`: **algo del stock escribe en `Y:$600000` después del arranque** (probablemente al cargar los samples del pack: el usuario cargó un proyecto / cambió de pack). El mapa de zonas del ARM (`0x08035E28`: 30 zonas de `$28800` desde `$100000`, 0-2 tipos 2 / 3 / 4, 13 tipo 5, 14-29 = las 16 zonas de samples, una zona = 165 888 muestras = 3,456 s) acaba en `$5BF000`, así que es otro uso (¿búfer de carga de samples?). **El búfer de captura de SC33 / SC34 (`$600000`) y las copias de la sustitución (`$640000…`) pueden chocar con él: no usar SC33 / SC34 para grabar hasta elegir una zona que el stock no toque.**
+- **Siguiente propuesto (SC35D2, la marca `SC35D.` ya es de SC35D.1):** centinelas en muchas direcciones entre `$5BF000` y `$8FF000` (las que SC32D ya visitó), escritos una vez al arrancar y comprobados cada bloque (una palabra de bits «se relee bien» y otra «cambió después»), mirando qué pasa al cargar proyectos / cambiar de pack.
+
+### SC35D.1 = diagnóstico: **el núcleo 1, segunda vuelta** — probado (ver arriba)
+- Opción `probe35_dsp.V2` (`core1_code2` / `core0_code2`), builder `tools/build_sc35d_1.py`, marca `SC35D.1` (6 bytes `SC35D.`), `firmware/sc35d.1/` (0x5C2E4 B), SHA-256 `887a6026…6237`, CRC 0x935225DC.
+- **Bucle de stock del núcleo 1** (desensamblado): `P:$10E` mira el bit 23 de `Y:$FFFFD1` (petición del núcleo 0 de reiniciar la lista: responde por `Y:$FFFFD0` y recarga r5 = `X:$30000`); luego sirve las entradas nuevas de la lista (`do` sobre `X:(r5)`: `r0 = X:(r5)`, `x0 = X:(r0)` en su propio espacio, `X:(r5)+ = x0`) y vuelve con `jmp $10E`: un **sondeo continuo**; solo r5 / m5 pasan de una vuelta a otra (a, x0, r0 se recargan). Interrupción `$12B–$16A`: guarda todo en `Y:$0000…$0016` y llama a un `rts`. Las direcciones que lee son las que el núcleo 0 pone en la lista (las tablas del sinte en el espacio X del núcleo 1).
+- **Núcleo 1:** variables en la memoria compartida `X:$30310…$30315` (contador, marca «una vez» = `$F1F1F1`, último bloque, vueltas desde el cambio, mínimo, SR guardado); no guarda registros (no hace falta). Una vez: bits de P en `$0400 $0600 $0800 $0A00 $0C00 $0E00 $0FFF $1000`, de X / Y en `$0800 $1800 $2000 $2800 $2FFF` (escritura / relectura / restauración con las interrupciones enmascaradas), OMR, SR, primera lectura de `Y:$640000`. Cada vuelta: vueltas por bloque del núcleo 0 (última en `SH + 9`, mínima en `SH + 10`). Cada 256 vueltas: vueltas / 256, relee `Y:$640000`, escribe `$5A6500` en `Y:$650000`. Termina en `P:$31A` (antes de la primera dirección probada).
+- **Núcleo 0:** en el primer bloque lee `Y:$600000` y escribe el centinela `$5A6600`; en cada bloque escribe `$5A6400` en `Y:$640000`, lee `Y:$650000` y `Y:$600000`, cuenta bloques y copia todo a `Y:$3B10…` (marca `$C1D1A7`).
+- Volcado (pad 9): `0` marca, `1` vueltas / 256, `2` bits de P, `3` bits de X / Y, `4` núcleo 1 lee `Y:$640000`, `5` núcleo 0 lee `Y:$650000`, `6` / `7` vueltas por bloque (última / mínima), `8` bloques, `9` `Y:$600000` antes del centinela, `10` `Y:$600000` ahora, `11` OMR del núcleo 1 (12 SR y 13 primera lectura no pasan el corte de 64 mensajes). El lector los reconoce por la marca.
+- Prueba `tools/emu_sc35d_1.py` (13 comprobaciones).
+
+### Resultado de **SC35D** en el aparato (2026-10-08): **el núcleo 1 ejecuta nuestro código**, pero con poca RAM interna
+- Volcado (pad 9, lector arreglado): `0 C1D1A6`, `1 C1C1C1`, `2 000000`, `3 000001`, `4 000005`, `5 04F700`, `6 5A6500`, `7 000001`, `8 000000`, `9 05D6E8`, `10 000000`, `11 000000` (12 / 13 no llegan: corte de 64 mensajes).
+- **Lo que queda probado:**
+  - el cargador acepta un bloque del núcleo 1 más largo (364 + 356 palabras) y el núcleo 1 ejecuta `c1loop` (marca `C1C1C1` en la memoria compartida, que el núcleo 0 ve);
+  - **el núcleo 1 escribe la memoria externa y el núcleo 0 lo lee** (`Y:$650000` = `$5A6500`): mismo mapa de direcciones, se puede pasar audio entre núcleos por la memoria externa;
+  - el núcleo 0 cuenta bloques (`$5D6E8` ≈ 382 700).
+- **RAM interna del núcleo 1:** P se escribe en `$0400` y **no** en `$1000 / $2000 / $3000 / $3FFF / $4000 / $7FFF`; X / Y se escriben en `$1000` y **no** en `$3000`. **OMR del núcleo 1 = 0**: el cargador (`0x08029260`) manda el stub de 8 palabras de `0x080296E0` (OMR MS = 1, bit 22 = 1) **solo al núcleo 0** (`0x08029200(stub, 0)`, luego núcleo 0, luego núcleo 1); el núcleo 1 arranca con MS = 0, es decir con la RAM de programa pequeña por defecto (entre 1 K y 4 K palabras).
+- **Valores que no valen:** las variables del diagnóstico estaban en `X:$3F00…` del núcleo 1, que **no existe** (falla ya `X:$3000`): el contador, «primera vez», mínimos y el SR guardado no se conservaban → vueltas / 256 = 0, vueltas por bloque 1 / 0 sin sentido, SR = 0. Probable efecto secundario: la parte «una vez» corría en cada vuelta (pruebas de P con interrupciones enmascaradas, SR restaurado a 0 y a, b, x0, x1, r0 restaurados con basura); el bucle de stock solo usa r5 / M5.
+- **Segunda prueba (2026-10-08, otro arranque, pack sano):** mismo resultado y **el sonido es normal** (sinte, drums, samples), aunque la parte «una vez» quizá corría en cada vuelta. `Y:$640000` vista por el núcleo 1 = `$047C00` en dos volcados separados por ~26 000 bloques (en el arranque anterior, `$04F700`): **fija dentro de un arranque y distinta entre arranques**. Lo más probable: contenido de la SDRAM al encender (nadie escribe ahí) leído por el núcleo 1 una sola vez, antes de que el núcleo 0 escribiera su patrón; la otra posibilidad (datos del pack cargados encima) afectaría al búfer de SC33 / SC34 (`$600000`, `$640000…`) y la aclara SC35D.1 con un centinela.
+- **`Y:$640000` leída por el núcleo 1 = `$04F700`** (no el `$5A6400` que el núcleo 0 escribe una sola vez al principio): o algo de stock usa esa dirección, o la lectura llegó antes. Por aclarar.
+- **Siguiente (SC35D.1, propuesto):** variables del núcleo 1 en `X:$1000…` (comprobada); mapa fino de P (`$0600 $0800 $0A00 $0C00 $0E00 $0FFF`) y de X / Y (`$1800 $2000 $2800 $2FFF`); el núcleo 0 escribe su patrón en cada bloque y el núcleo 1 lo relee cada 256 vueltas; vueltas por bloque válidas (= tiempo libre del núcleo 1); todo en las palabras 0-11 (las que pasan el corte de 64 mensajes). Más adelante, si hace falta más P: mandar el mismo stub (MS = 1) al núcleo 1 antes de su programa (volátil; cambia el reparto X / Y, a comprobar con el servicio de stock del núcleo 1).
+
+### SC35D = diagnóstico: **el segundo núcleo del DSP** — probado (ver arriba)
+- Pedido del usuario (2026-10-08): «elabora diagnóstico DSP», para decidir dónde iría la síntesis granular (estudio más abajo).
+- **Núcleo 1 de stock** (`dsp_program(img, 1)`, bloque `0x08018110` de 364 palabras, puntero en `0x08029700 + 8`; el par de cada núcleo en la tabla es (modo 0, modo 1)): `P:$100` inicializa (X:$30000 = $30002, M5 = $FFFF); bucle `P:$10E–$12A` = espera el bit 23 de `Y:$FFFFD1` (puente entre núcleos), sirve la lista de lecturas de la memoria compartida (`X:$30002…`, final en `X:$30000`) y vuelve con `jmp $10E` (`P:$12A`, una palabra, forma corta); manejador de interrupción `$12B–$16A` (guarda / restaura y llama a un `rts` vacío).
+- **`tools/probe35_dsp.py`:** el bloque del núcleo 1 se copia al final de la imagen con 356 palabras nuestras detrás (como se hizo con el núcleo 0 en SC16) y el puntero se redirige; `P:$12A` = `jmp c1loop` (`$16C`), que vuelve con `jmp $10E`. `c1loop` guarda / restaura a, b, x0, x1, r0 (el bucle de stock usa r5 / M5):
+  - **una vez:** P-RAM `$0400 / $1000 / $2000 / $3000 / $3FFF / $4000 / $7FFF` (escritura / relectura / restauración con `ori #3,mr`), X / Y internas `$1000 / $3000`, OMR, SR, lectura de `Y:$640000` (lo deja el núcleo 0), escritura de `$5A6500` en `Y:$650000`, `X:$30000`;
+  - **cada vuelta:** contador; cuando cambia el contador de bloques del núcleo 0 (`X:$30308`), las vueltas desde el cambio anterior (última y mínima): la capacidad libre del núcleo 1 por bloque de audio;
+  - resultados en la memoria compartida `X:$30300…` (la lista de stock acaba en `$30202`), publicados cada 256 vueltas.
+- **Núcleo 0** (gancho `P:$23C`, como SC21D / SC32D): cuenta bloques, deja `$5A6400` en `Y:$640000` una vez, lee `Y:$650000` y copia las respuestas a `Y:$3B11–$3B1D`; marca `$C1D1A6` en `Y:$3B10` cuando el núcleo 1 ha respondido.
+- **ARM:** el volcado de SC32D.1 (`tools/probe32b.py` con `probe32b_dsp.MAGIC` = `$C1D1A6`): pad 9 de la vista de la fuente, 72 CC por el canal 16; el lector `tools/sc32d1_reader.html` reconoce SC35D por la marca.
+- Prueba `tools/emu_sc35d.py` (el intérprete tiene 16 K palabras de P y la rutina de llamada de `dspemu` vive en `P:$7000`: el conductor de prueba va en `$3800`).
+- Marca `SC35D`, `firmware/sc35d/` (0x5C1E4 B), SHA-256 `41ca9e01…2326`, CRC 0x1A25BC9E.
+
+### Resultado de **SC34D** en el aparato (2026-10-08): **escribe y lee, pero rompe el duplicado de packs — no usar**
+- El usuario guardó / cargó proyectos varias veces y **duplicó el pack 16** dos veces (packs 17 y 18). Comparación de la tarjeta antes / después:
+  - packs 00-16: solo cambian los guardados del usuario (`05`, `06_SESSION.ncs`, `21_SESSION.ncs` nuevo) y aparecen 57 `_SC34D.bin`; ningún fichero de stock desaparece;
+  - los `_SC34D.bin` funcionan como se diseñó (p. ej. `21`: 2 guardados; `05`: 1 guardado, 1 carga); **leer una sesión cuenta como carga y el aparato lee muchas al navegar**: un fichero por sesión vista;
+  - **los packs duplicados 17 y 18 no tienen ningún `NN_SESSION.ncs`** (sí samples, patches y nuestros `_SC34D.bin`);
+  - `06_SC34D.bin` y `20_SC34D.bin` (en los tres packs) son **copias exactas de `21_SESSION.ncs`** (160 780 B).
+- **Causa (deducida):** el duplicado de packs y el guardado encadenan aperturas / lecturas / escrituras con el mismo objeto de fichero; al reutilizarlo tras su cierre, el enganche cambia la ruta guardada en `obj + 0xD` y el estado del objeto, y las banderas son globales (no por objeto): una copia en curso acaba escribiendo en nuestro fichero y las sesiones del pack nuevo no se crean.
+- **Conclusión:** no enganchar la clase genérica de ficheros. El guardado del sample tiene que ir en la rutina concreta de guardar la sesión (por localizar: el mensaje de `0x0802FE5E` → `0x0803C946` llega a una tarea de almacenamiento), con un objeto de fichero libre en ese momento, o con un objeto propio si cabe su `FIL` de 4 KB. Recomendado al usuario: volver a SC34, borrar los packs 17 / 18 y los `_SC34D.bin`, y duplicar de nuevo.
+
+### Nota del usuario (2026-10-08): **los samples son del pack, no de la sesión** → guardar el sample sustituido en `PCM/` del pack
+- En stock los samples están en `<pack>/PCM/NN_nombre.wav`, uno por sample (64 por pack, ~5,3 MB en total en `16_PACK`), y valen para todas las sesiones del pack. Sustituir un sample en una sola sesión sin tocar el original sería lo ideal, pero **sustituirlo para todo el pack es mucho más factible**: basta con escribir el `.wav` y el propio stock lo carga al abrir el pack (sin ganchos de carga ni ficheros por sesión).
+- **Formato** (comprobado en la copia de la tarjeta): RIFF/WAVE con solo `fmt ` (PCM, 1 canal, 48 000 Hz, 16 bits, bloque 2) y `data`, cabecera de 44 B: el mismo formato que la captura (16 bits por palabra en la memoria externa).
+- **Límite:** (corregido tras SC35D2) los samples del pack se cargan seguidos desde `Y:$580000` y el límite es `$E80000` (≈ 18 MB, ≈ 196 s, mensaje `Sample Memory Exceeded 0x%X + 0x%X`): antes de escribir hay que comprobar que el total cabe.
+- **Vía de escritura propuesta:** la subida de samples de Novation Components (SysEx; cadenas `Data Packet: %d of %d`, `Cache Data Packet`, `Write Data Packet`): una ruta de stock que ya escribe `.wav` en `PCM/` desde su tarea de almacenamiento. Alimentarla con la captura evita escribir con objetos de fichero ajenos (el error de SC34D).
+- **Plan:** (1) ingeniería inversa de esa ruta y del cálculo del total del pack; (2) diagnóstico que escriba un `.wav` corto de prueba en un pack duplicado; (3) build: Shift + pad dos veces en la vista Preset de drums = sustituir en memoria (SC34) + escribir el `.wav` del pack, con confirmación clara y solo en packs de usuario.
+
+### SC34D = diagnóstico: **un fichero propio junto a cada sesión** en la tarjeta SD — ❌ probado: rompe el duplicado de packs (ver arriba)
+- Pedido del usuario (2026-10-08): «pulsar Save para guardar el proyecto guardaría también el sample (sobreescribiendo el anterior si es necesario); haz una build de diagnóstico».
+- **`tools/sidecar34.py`**: tres ranuras de la vtable de la clase de ficheros (`0x0805B150`):
+  - **escribir** (ranura 5, `c_sw`) y **leer** (4, `c_sr`): si la ruta del objeto (`obj + 0xD`) termina en `_SESSION.ncs`, marcan el bit 6 / 7 del byte 179 del bloque de Master FX (libres) y siguen al stock con los registros y la pila intactos (el quinto argumento, el puntero de «bytes hechos», va en la pila);
+  - **cerrar** (1, `c_sc`): el cierre de stock; si hay marca (se borra), el **mismo objeto** (su `FIL` de 4 KB ya existe) abre `<ruta sin _SESSION.ncs>_SC34D.bin`, lee 16 bytes (`SC34DTST`, guardados, cargas; si no es nuestro, desde 0), suma el guardado o la carga, los escribe y cierra; con las funciones de stock directas (`0x08025CB8 / 4C / 98 / 10`), sin pasar por la vtable (sin recursión).
+- Todo ocurre en la tarea de almacenamiento del stock, justo después de su cierre; los ficheros de stock no se tocan. Prueba `tools/emu_sc34d.py` (sistema de ficheros en memoria en lugar de la SD, llamadas por la vtable real).
+- Si funciona en el aparato, SC35 guardará así el sample capturado como `NN_SAMPLE.wav` (y lo cargará con la sesión), con órdenes del DSP para sacar / meter el búfer por bloques.
+- Marca `SC34D`, `firmware/sc34d/` (0x623DC B), SHA-256 `d8fa43d1…d248e`, CRC 0xCBAE0996.
+
+### SC34 = SC33 + **sample asignable**, **captura en la vista FX**, **K2 por colores** y **sustituir un drum por la captura** — ⏳ pendiente de probar
+- Pedidos del usuario (2026-10-08): el sample asignable en la fila inferior de Master FX / FX como cualquier efecto (el pad 31 sigue siendo un hueco), la captura (pad 32) también en la vista FX, el LED del modo de reproducción más claro (un color por modo), y sustituir el sample de un drum por la captura con Shift + pad dos veces en la vista de drum (confirmación), volátil.
+- **ARM (`build_sc17.use_sampler2()`, `SMP2`):**
+  - `setmap[6]` = 41 (`SMP_SET`): bloque + `S_KNOB` + 4 × 41 = los 4 bytes del hueco 6 (los knobs del sample): `c_sassign` / `c_sload` de stock copian los knobs del sample como los de cualquier efecto;
+  - asignar: en `c_s_press`, sin efecto de arriba mantenido pero con el pad 7 mantenido (bit GATE de `S_JF`), un pad de abajo = `c_sassign(hueco, 6)`;
+  - tocar un hueco del sample (`c_f_press`): `c_sload` + `c_smpress` (Shift = loop) + bit del hueco mantenido; `c_f_rel`: baja el gate; `c_f_leds`: amarillo `SMP_DIM` / `SMP_ON`;
+  - pad 32 en la vista FX: `c_f_press` / `c_f_rel` llaman a `c_smrec` / `c_smrrel`; `c_smled32` lo pinta; `c_smtick` cuenta la vista FX como «a la vista» (la grabación mantenida sigue);
+  - K2: `MODE_COL` = 0x2D / 0x17 / 0x09 (amarillo / verde (0, 255, 0) / azul (26, 71, 255)), brillo fijo 129;
+  - **petición de sustitución:** bits 23-29 de `S_SMT` (= N + 1; la hora de la pulsación del pad 32 pasa a 23 bits y las rutinas del botón conservan esos bits); `c_smtick` manda `REPN` = N y `CMD 4` cuando no hay otra orden pendiente.
+- **Vista Preset de drums (`tools/drumrep.py`):** `c_drp` (ranura 0 de la vtable `0x0805ABBC`, delante del manejador anterior): con Shift, N = pad + 32 × página (`[vista + 0x20]`, la cuenta de stock de `0x0804D934`); la pregunta pendiente en los bits 1-7 del byte `+0x51` (= N + 1; el bit 0 es el modo cromático de SC08, que se deja en paz); el mismo pad otra vez = confirmado → la petición; sin Shift borra la pregunta y sigue al stock. `c_drl` (ranura 7): el pad preguntado parpadea en blanco en su página.
+- **DSP (`sampler_dsp.V34`, 364 palabras; el programa termina en `P:$3FE9`, 22 libres):**
+  - tabla de samples de la voz de drums (`func_0020b3`): `X:$1D8D + 4 N` = (inicio absoluto en Y, longitud en muestras —se compara con el desplazamiento—, incremento base); la orden 4 pone (ranura k, LEN − 2) y deja el incremento; ranuras de `MAXLEN` desde `$640000` (8, en rueda, hasta `$800000`); la copia desde `Y:$600000` avanza 1024 palabras por bloque (`do x1`, M5 lineal);
+  - para caber: el estado se direcciona con **`x:(r2+d)` de una palabra** (`short_x`; codificación `0x020080 | r << 8 | (d & 1) << 6 | (d >> 1) << 11 | w << 4 | DDDD`, deducida de palabras de stock y comprobada con el desensamblador; el ensamblador propio solo produce la forma larga), con r2 / M2 guardados fuera de la zona que borra la primera llamada (`X:$3D1C / $3D1D`).
+- Pruebas `emu_sc34.py` (ARM; la vista de drum se abre con Drum 1 + Preset, los pads llegan a su subvista `0x20042D14`), `emu_sc34_dsp.py` (las de SC33 + la sustitución); `emu_sc33.py` ya no vale sobre SC34 (espera el LED continuo de K2).
+- Marca `SC34`, `firmware/sc34/` (0x621C0 B), SHA-256 `74ef1023…f753`, CRC 0xC20F4C5C. Reserva SC33.
+
+### Estudio (sin build, 2026-10-08): **síntesis granular** como motor alternativo al oscilador / VA-drum, a partir del sample capturado
+- Petición del usuario: «estudia la posibilidad de crear un modo alternativo a osc / VA-drum con síntesis granular a partir del sample capturado».
+- **Qué sería:** un quinto estado del pad 27 de las pistas MIDI (apagado → línea → oscilador → VA-drum → **granular**) en el que la voz de la pista, en lugar del oscilador, suma N granos leídos del búfer de captura (`Y:$600000`, hasta 3,46 s a 16 bits). Cada grano: posición de lectura (fraccionaria), incremento (= la nota tocada, como el pitch del sample), ventana (envolvente de forma Hann / triángulo de una tabla), duración y edad. Un planificador lanza un grano cada «densidad» muestras con la posición = cabezal de lectura + dispersión aleatoria (el LCG de 24 bits del VA-drum ya existe). Después pasa por el VCA / VCF / FX del modo como el oscilador.
+- **Parámetros (sin RAM nueva del ARM, reaprovechando los códigos de la página del oscilador, como hizo el VA-drum):** posición del cabezal (WAVE), velocidad de avance del cabezal / congelar (FINE), tamaño del grano (PW / SHAPE), densidad (LFOP), dispersión de posición (LFO → forma), ventana / inversión aleatoria (bits libres), afinación (TUNE). La nota MIDI da el tono (paráfonía igual que ahora: dos notas = dos alturas alternando granos).
+- **Coste de CPU:** con 4 granos por voz y bloques de 58 tramas, ≈ 4 × 58 × 12 instrucciones ≈ 2,8 k por voz y bloque, más las esperas de la memoria externa (sin medir: cada grano lee 2 palabras por muestra para interpolar). Con dos pistas ≈ 6-8 k de ~166 k por bloque (≈ 4-5 %): cabe. Se mediría con `dsp_session` antes de construir.
+- **Memoria de datos:** estado de los granos ≈ 8 palabras × 4 × 2 pistas = 64 palabras y una tabla de ventana de 256: caben en `X:$3D20–$3FFF` (~730 libres).
+- **El obstáculo: el programa del DSP.** Tras SC34 quedan **22 palabras** (termina en `P:$3FE9`) y el motor granular necesita ~200-250 (planificador, bucle de granos por muestra, ventana, mezcla). Opciones, de menos a más trabajo:
+  1. **Liberar programa:** comprimir tablas de `vcf21_dsp` (`TATK` con 64 ceros, `TF` / `TLFO` calculables: ~100-150 palabras), acortar el sampler con el direccionamiento corto `x:(r2+d)` también en el resto del código nuevo, y unir rutinas repetidas. Daría justo para un motor granular sencillo (2-4 granos, ventana triangular calculada en vez de tabla).
+  2. **Núcleo 1 del DSP:** su programa de stock son 0x16C palabras (un servicio de copia, ningún `mac`), así que tiene casi toda su RAM de programa y su CPU libres. El motor granular viviría allí y entregaría el audio al núcleo 0 por la memoria compartida (`X:$030000`). Es la vía con más margen (también para Beat Repeat / Reverser, más granos, estéreo), pero hay que aprender cómo carga el ARM el programa del núcleo 1 y cómo se sincronizan los núcleos (ICC configurado según SC21D): **un diagnóstico propio antes**.
+  3. Sustituir una función poco usada del modo por el granular (p. ej. compartir código con el VA-drum), con una opción de build.
+- **Interacción con la captura:** como lee el búfer de captura en vivo, una captura nueva cambia el material mientras suena (granular «en directo»); los drums sustituidos usan sus propias ranuras y no se ven afectados.
+- **Plan propuesto:** (a) diagnóstico del núcleo 1 (¿se puede cargar y ejecutar código propio y pasar un bloque de audio por la memoria compartida?) — decide la vía 2; (b) mientras, la vía 1 en emulación: liberar ~200 palabras y medir el coste del motor con `dsp_session`; (c) el motor + la interfaz (quinto estado del pad 27, página de knobs) en una build.
+
+### Estudio (sin build, 2026-10-08): **recursos libres tras SC33** y cómo ganar **espacio para guardar más información**
+- Petición del usuario: «estudia posibles formas de optimización de los recursos restantes, por si hicieran falta más funciones. Me interesa especialmente espacio libre para guardar más información». Y después: guardar el sample en la SD con el proyecto.
+- **Inventario tras SC33:**
+
+| Recurso | Límite | Libre | Notas |
+|---|---|---|---|
+| Programa del DSP | `P:$3FFF` (SC21D) | **72 palabras** (termina en `$3FB8`) | el recurso más escaso; tablas comprimibles (~650 palabras de tablas: `TATK` con 64 ceros, `TF` / `TLFO` calculables) → 100-150 palabras |
+| Datos internos del DSP | X / Y:$3339–$3BFF + X:$3D00–$3FFF | X:$3339–$33FF, X:$3D20–$3FFF (~730), Y:$3B00–$3BFD | |
+| **Memoria externa del DSP** | ≥ 8 M palabras (SC32D2: escribible hasta `$8FF000`, sin espejo), 16 bits por palabra | **`$628800`–`$8FFFFF` ≈ 3 M palabras ≈ 60 s de audio** | volátil; el ARM solo llega con direcciones de 16 bits (hay que pasar por órdenes al DSP) |
+| Flash de la aplicación | 0x70000 B | **~57 KB** (imagen 0x61F10) | holgada |
+| RAM del ARM (reserva bajo el heap) | 240 B en el aparato | **4 B de margen** | lo más justo del ARM; SC33 tomó bytes muertos (T0 de Vinyl, `S_JF`, el hueco 7) |
+| **Guardado por proyecto** | 65 B (XMEM de la sesión) | **~7 bits** | lleno: es lo que limita «guardar más» |
+| Guardado global (tail de ajustes) | 75 B | ~0 | lleno desde SC24 |
+
+- **Opciones para guardar más, por orden de interés:**
+  1. **Ficheros propios en la tarjeta SD, junto a la sesión** (prácticamente sin límite: valores de Master FX que hoy no se guardan, los de OSC2, del step-drummer, el sample capturado). Hallazgos en el stock:
+     - clase de fichero (`FatFs_File: Opening %s`): constructor `0x08025C98` (reserva un `FIL` de 0x1028 B), vtable `0x0805B150` = abrir `0x08025CB8(obj, ruta)` (`f_open 0x08019AE4`, modo 0x13, la ruta queda copiada en `obj + 0xD`), cerrar `0x08025D10` (`f_close 0x0801A09A`), existe `0x08025D32` (`f_stat 0x0801A440`), leer `0x08025D4C(obj, búfer, longitud, posición)` (`f_read 0x08019CC6`), escribir `0x08025D98(obj, búfer, longitud, posición)` (`f_write 0x08019E50`), con el posicionamiento por la ranura 0x18;
+     - **solo hay dos objetos**, creados al arrancar (`0x0801F0F0`): `[0x20003738]` (lo usan los dos «Volume» `[0x2000690C]` / `[+4]` = el pack actual y la lista de 31 packs) y `[0x2000373C]`; sus `FIL` (4 KB cada uno) ya existen: **usar uno de ellos no cuesta RAM**;
+     - estructura del pack: `<pack>/Sessions/…_SESSION.ncs`, `Patches/_PATCHBANK.cpb`, `PCM/_PCM.wav` (tabla de tipos `0x0805A4F8`: 0x4000 sesiones, 0x1001 patches, 0x4002 PCM); rutas con `%s/%s/%s`;
+     - **el guardado es asíncrono:** en `0x0802FE5E` el stock prepara el registro de la sesión (`0x0802F63C`) y manda un mensaje (`0x0803C946`) a una tarea de almacenamiento que es la que escribe el fichero. El fichero propio hay que escribirlo **en esa tarea, justo después de la escritura de stock** (mismo hilo que FatFs: sin carreras con el sistema de ficheros) y leerlo en la carga del mismo modo.
+     - **Reglas de seguridad:** escribir solo ficheros nuevos (nunca tocar `.ncs`, `.cpb`, `.wav` de stock), por la clase de stock y en su tarea; un fichero por sesión con el nombre de la sesión + sufijo; un diagnóstico antes (un fichero pequeño de prueba) para comprobarlo en el aparato y en un PC. Riesgo a vigilar: si Components (el gestor de packs) protesta por ficheros extra en `Sessions/` (alternativa: una carpeta propia en la raíz de la tarjeta).
+  2. **Memoria externa del DSP como almacén volátil** (~3 M palabras libres): búferes grandes (loops, más samples, historiales) a cambio de un juego de órdenes del DSP para copiar bloques entre la memoria interna (X:$3D20+, donde el ARM sí llega) y la externa.
+  3. **RAM del STM32F745 sin usar (por comprobar):** la **ITCM RAM de 16 KB en `0x00000000`** (el programa corre desde la flash; no hemos visto referencias a ella) y la **SRAM de respaldo de 4 KB en `0x40024000`** (necesita el reloj del dominio de respaldo; sin pila de botón se borra al apagar). Si están libres, el margen de RAM del ARM pasa de 4 B a varios KB. Hace falta una sonda (build de diagnóstico que lea / escriba / restaure y lo cuente por MIDI, como SC32D.1).
+  4. **Reaprovechar bits del guardado por proyecto:** los 7 huecos de Master FX usan 7 bits de cada byte; los bytes de drums tienen ~7 bits libres. Da para unos pocos valores más, no para datos grandes: la solución de fondo es la 1.
+  5. **Programa del DSP:** comprimir tablas (100-150 palabras) o ejecutar rutinas poco usadas desde la memoria externa (el DSP56300 puede ejecutar desde la memoria externa; lento, sin comprobar en este aparato).
+- **Plan para guardar el sample en la SD (siguiente build):**
+  1. Ingeniería inversa (sin build): la tarea de almacenamiento que recibe el mensaje de `0x0803C946`, su rutina de escritura de la sesión, qué objeto de fichero usa y dónde queda la ruta; lo mismo para la carga.
+  2. **SC34D (diagnóstico):** al guardar, escribe un fichero pequeño junto a la sesión (`…_XTRA.bin` con un contador) y al cargar lo lee y lo enseña (LED / MIDI). Comprobar en el aparato y con la tarjeta en un PC.
+  3. **SC34:** el sample como WAV (16 bits, mono, 48 kHz, hasta 3,46 s ≈ 330 KB) junto a la sesión; para sacarlo y meterlo, dos órdenes nuevas del DSP que copian bloques de 32 palabras entre `X:$3D20` y `Y:$600000 + n` (~25 palabras de programa: caben en las 72); el ARM lee / escribe el bloque por la interfaz de host y lo pasa a la SD en trozos pequeños (búfer en la pila). Coste estimado: medio segundo más al guardar con un sample.
+
+### SC33 = SC32 + **sample capturado en Master FX** + **grabación en tiempo real en el step-drummer** — ⏳ pendiente de probar
+- Pedidos del usuario (2026-10-08): el sample capturado (pasos 3 y 4 del plan) con el pad 6 = Vinyl, el pad 7 = disparo y el pad 32 = grabar (rojo); captura de la salida **con efectos**; el botón de grabar: mantener = graba mientras se mantiene, pulsación corta = empieza y para con la siguiente, Shift + pulsación = empieza al pulsar Play (línea de compás) y termina al final del compás; en el step-drummer, grabando, los pads que suenan graban una nota en tiempo real (paso actual + micropaso).
+- **DSP (`tools/sampler_dsp.py`, 315 palabras, el programa termina en `P:$3FB8`):**
+  - gancho: `fx_out` de Master FX (`move #>$2e10,r1` + `rts`, el final de todos los caminos de `fx_hook`) → `jmp smp_post` + `nop`, parcheado solo en el bloque reubicado (el código nuevo no existe en el bloque de stock); `smp_post` acaba con las mismas dos instrucciones: la pila es la de la cadena de Master FX;
+  - estado en `X:$3D00..$3D1F` (libre en `dsp_free_scan`; nada nuestro allí), borrado una vez (marca en `X:$3D1F`): el ARM escribe STATE (bit 0 grabar, bit 1 gate), CMD (1 start, 2 start en loop, 3 stop; el DSP lo borra), INCI / INCF (pitch 16.16 → entero : fracción de 24 bits), SF / EF (fracciones de LEN), MODE (0 one-shot, 1 gate, 2 loop);
+  - **grabación:** (L + R) / 2 de cada trama (tras toda la cadena de Master FX, antes de mezclar el sample) a `Y:$600000 + WP` con `move a,y:(r4)+` (**M4 = $FFFFFF** durante el bloque, restaurado: en el gancho de `P:$23C` M0 era `$FFFF`); por bloques, tope `MAXLEN = $28800` (3,46 s); una grabación nueva empieza en 0 y para la reproducción;
+  - **reproducción:** posición de 48 bits en `a` (dirección absoluta : fracción), incremento en `x` (`add x,a`), S / E = `$600000 + LEN × SF / EF` (`mpy y0,x0` = parte entera en a1) recalculados cada bloque; E < S = al revés (incremento negado); **sin saltos dentro de los `do`**: con loop `tcc b,a` vuelve a S al llegar a E; sin loop `tcc y1,b r6,r5` cambia la dirección de lectura por la palabra `Y:$3BFE` (= 0) desde E y al acabar el bloque la reproducción se para; gate: en modo 1, sin STATE bit 1 se para; el sample se suma a L y R a ganancia 1 (después de Master FX: no se graba a sí mismo).
+- **ARM (`build_sc17.use_sampler()`, `SMP`; requiere SP2, huecos, pad 8, `CLEAR_SP` y `KNOB_BRIGHT`):**
+  - pad 7: `S_SEL` = 6 (el sample seleccionado), comando 1 + gate; Shift = loop forzado (comando 2) / parar (3); `c_gknob` con `S_SEL` = 6 → `c_smknob`; LEDs (`c_smleds`): pad 7 amarillo 0x2E / 0x2D, pad 32 rojo 0x54 / 0x53 (parpadea armado), knobs del sample con el brillo;
+  - **knobs del sample = los 4 bytes del hueco del pad 32** (`S_SLOT + 24`; el pad 32 ya no es un hueco asignable; el bit 7 de los 4 bytes se borra: nunca «asignado»), guardados así: pitch = raw ^ 64, end = 127 − raw (bytes a 0 = valores por defecto); se guardan con el proyecto como los huecos;
+  - banderas en `S_JF` (libre con SP2): bits 0-1 grabar / gate, 2 loop forzado, 3 sucio, 4-5 comando pendiente, 6-7 último estado enviado; el tick de Master FX (`c_smtick`, desde `c_fxtick`, el tick del servicio del DSP: solo `DSP_WRITE`) manda el estado al cambiar y los parámetros + el comando una vez;
+  - **botón de grabar:** palabra `S_T0 + 16` (el T0 de Vinyl, que se escribía y no se leía; con `SMP` ya no se escribe): bits 0-29 = hora de la pulsación, bit 30 = enganchada / compás en curso, bit 31 = armada. Pulsación < 300 ms = enganchada; más = mantener. Armada: el gancho del tick del secuenciador (`c_sptick`) empieza en un tick múltiplo de 96 (16 pasos × 6) y termina en el siguiente. Salir de la vista termina solo la grabación mantenida. El pad 8 para el sample y borra la palabra (`c_clrall` ya no borra `S_JF` con `SMP`).
+  - Sin RAM nueva del ARM (el margen del heap sigue en 4 B).
+- **Step-drummer (`vcf21.use_rtrec()`, `RTREC`):** en `c_sdpad` (SD2, sin Shift), antes de la escucha, `c_sdrtrec`: si el almacén del transporte `0x20011034` tiene los parámetros 0 y 1 activos y el 2 no (la misma prueba que la puerta de grabación de stock `0x0802E56A`), escribe en el paso que suena (parámetro 1 del motor) la nota y la velocity de la escucha del pad (`c_sdnnote`, `c_sdpvel` o 100) con `c_sdnote` (una nota por paso) y el micropaso = tick del paso (parámetro 2) × 6 / ticks por paso (tabla `0x0805B8B8` con el índice `patrón + 0x382`), tope 5.
+- **Pruebas:** `emu_sc33_dsp.py` (lógica en el intérprete; con la imagen: `fx_out` y el código), `emu_sc33.py` (ARM; el cuerpo de stock del tick del secuenciador falla con el volcado al cruzar el final del patrón —también con SC32—: la prueba del compás entra por la ruta real y sustituye solo ese cuerpo), `emu_sc33_sd.py` (MIDI 1 y Synth 1); `run_tests.sh` repite las de SC23.3–SC31.
+- Marca `SC33`, `firmware/sc33/` (0x61F10 B), SHA-256 `6b4b2a83…2c8f`, CRC 0xBB1017AC. Reserva SC32.
+- Siguiente pedido: guardar el sample en la SD con el proyecto.
+
+### SC32D2 = diagnóstico: **zonas de la memoria externa, corregido** (16 bits), con volcado MIDI — ⏳ pendiente de probar
+- **Resultado en el aparato (2026-10-08, log `20261008_073336_MIDI_In.log`):** cambio de sesión, canción con drums, delay y reverb al máximo; pads 9 y 10: las dos tandas completas (42 mensajes cada una). **Las 38 áreas = `0B`** (visitada, distinto de cero, escritura bien; ni cambia ni espejo); vueltas 5030 → 5111.
+  - Toda la memoria externa se escribe (16 bits) hasta `$8FF000` como mínimo, sin espejo a − 4 M / − 8 M: la SDRAM tiene ≥ 8 M palabras.
+  - El contenido distinto de cero no indica uso: fuera del mapa de stock es basura del encendido, quieta. Ninguna zona cambia durante el uso, ni las 0-2 / 13 (los comandos 2-5 parecen rellenar tablas, no retardos vivos del núcleo 0).
+  - **Propuesta para el búfer del sample: `Y:$600000`**, fuera de la lista de zonas del ARM (`0x08035E28`, la única que reparte esta memoria, termina en `$5BF000`); una zona de `$28800` = 3,46 s a 16 bits, o más (sobra memoria). Pendiente de la decisión del usuario.
+- **Nombre:** se publicó primero como «SC32D.2», pero la marca de 6 bytes quedaba «SC32D.», igual que SC32D.1: el bootloader no lo instaló (el aparato siguió mandando el volcado de SC32D.1, cortado a los 64 mensajes). Renombrado a `SC32D2`; `verify_builds.py` comprueba ahora que no haya dos bloques de versión iguales.
+- **Resultado de SC32D.1 en el aparato (2026-10-08):** SR = `E000D4`, OMR = `400080`, **M0 = `00FFFF`**, r0 tras `move #>$128800,r0` = `128800` (24 bits bien); zona 1: encontrada `FFC500`, releída `5A5A00` tras escribir `5A5A01` (por r0, absoluta y tras ~1000 ciclos), `5A5A00` tras escribir `5A5A11` con dirección absoluta; zona 0: `5A5A00` tras escribir `5A5A00`; `Y:$000000` = `010000` (la zona 0 **no** es la RAM interna); los valores 12-13 (zona 14) no llegaron (mensajes perdidos al final del volcado).
+  - **Conclusión: la memoria externa guarda 16 bits por palabra** (los 16 altos; el byte bajo se relee 0, también en lo que ya había). SC32D falló en todas las zonas menos la 0 porque su patrón `5A5A00 + k` solo tenía el byte bajo a 0 para k = 0. Las direcciones (registro y absolutas) funcionan.
+  - **M0 = `$FFFF` en el gancho `P:$23C`:** `(r0)+n0` va en módulo 64 K; las 32 lecturas de SC32D no salían de una ventana de 64 K. El código de la captura tendrá que poner M lineal (`$FFFFFF`) y restaurarlo.
+  - Para el sample capturado basta con muestras de 16 bits (como los samples de stock).
+- **`probe32_dsp.V2`** (sin la opción el código es el de SC32D, `verify_builds` idéntico): patrón `5A5A00 + (k << 8)` (`lsl #8,a`), `M0 = $FFFFFF` durante el sondeo (guardado en `X:$3BE9`), banderas copiadas en `Y:$3B50 + k` (`STF`, borradas en la primera llamada). Programa del DSP hasta `P:$3626`.
+- **ARM:** las páginas de LEDs de SC32D (`probe32`) con `STATE_COL[1]` = 0x53 (rojo) + **`tools/probe32c.py`**: `c_dtick32c` (cabeza de la cadena, luego `c_dtick32`) copia una bandera por llamada (índice = `uptime >> 3 & 63`; 38 = vueltas, 2 bytes) al búfer de LEDs ocioso de Master FX; `c_dpad` (ranura 0, delante de `c_xpad`) manda por el canal 16 con el pad 9 las áreas 0-18 y con el pad 10 las 19-37, **42 CC por pulsación** (CC 20 = 127; por área CC 21 = k, CC 22 = banderas, 1 ms entre áreas; CC 23 / 24 = vueltas; CC 20 = 0). **Los volcados de SC32D.1 se cortaban siempre a los 64 mensajes:** la cola del envío de stock no se vacía mientras corre la tarea de la interfaz (`0x0801BE78` es una espera activa que solo cede a tareas de su prioridad o más) por `0x0803BEDA` desde la tarea de la interfaz.
+- El lector `tools/sc32d1_reader.html` reconoce los dos formatos (SC32D.1: CC 21 + CC 22..25; SC32D2: pares CC 21 / CC 22).
+- Prueba `tools/emu_sc32d_2.py` (con M0 = `$FFFF` al entrar: una palabra fuera de la ventana de 64 K se ve; patrón con el byte bajo a 0 por la comprobación de espejo; `STF`; el volcado en dos tandas de menos de 64 mensajes).
+- Marca `SC32D2`, `firmware/sc32d2/` (0x5C2A4 B), SHA-256 `8a3e353e…3db3`, CRC 0x2298D1EB.
+
+### SC32D.1 = diagnóstico: **valores en bruto** de la memoria externa del DSP, **por MIDI** — ⏳ pendiente de probar
+- **Resultado de SC32D en el aparato (2026-10-08**, canción sonando, delay y reverb al máximo): página 0 = zona 0 amarilla y el resto «blanco»; página 1 todo «blanco»; página 2 = 6 «blancos» y 10 apagados; página 3 = contador vivo (pads 11-12 fijos, el resto cambiando).
+  - **El «rojo» de SC32D y SC21D (código 0x05) es gris (121, 121, 121):** la tabla RGB de RAM `0x20003804` guarda cada color como B, G, R (0x2D = 255, 255, 25 leído al revés). El rojo es **0x53** (255, 0, 0).
+  - Lectura corregida: zona 0 = escritura bien + contenido fijo distinto de cero; zonas 1-29 y las 8 de más allá = **la escritura no se relee**; el sondeo sigue vivo y el aparato no se colgó.
+  - No cuadra: el stock carga samples en las zonas 14-29 (el despachador `P:$1C53` toma la dirección como `(palabra & $7FFFF0) << 1`, la misma que el ARM, y escribe con `move x0,y:(r5)+`), y la zona 0, un retardo, debería cambiar. Hipótesis: desde el gancho las direcciones de 24 bits no llegan a la SDRAM como en el stock (la «zona 0» sería RAM interna), un búfer de lectura / escritura de la SDRAM, o el modo de direccionamiento del momento (SR / OMR / registros M).
+- **DSP (`tools/probe32b_dsp.py`)**: una vez, `NWAIT` = 4000 llamadas después de encender, desde `P:$23C`: SR, OMR, M0, r0 tras `move #>$128800,r0`, zona 1 (encontrada / releída por r0 / releída absoluta / tras `rep #1000 nop` / escrita y releída absoluta), zona 0 releída e `Y:$000000` en ese momento, zona 14 encontrada / releída; todo restaurado, interrupciones enmascaradas; resultados en `Y:$3B11..$3B1D`, `Y:$3B10` = `$C0FFEE`.
+- **ARM (`tools/probe32b.py`)**: `c_dtick32b` (cabeza de la cadena) copia una palabra por llamada al búfer de LEDs ocioso de Master FX (estado SC14 + 104) con la vista de la fuente abierta y pinta el pad 9 (rojo 0x53 / verde 0x19); `c_dpad` (ranura 0 de la vista Preset del sinte, delante de `c_xpad`) manda con el pad 9 **72 CC por el canal 16** (CC 20 = 127; por palabra CC 21 = índice, CC 22-25 = 3 + 7 + 7 + 7 bits; CC 20 = 0) por el envío de stock `0x0803BEDA(7, mensaje)` **desde la tarea de la interfaz** (nunca desde el tick del servicio), con 2 ms de espera (`0x0801BE78`) entre palabras.
+- Lector `tools/sc32d1_reader.html` (WebMIDI en Chrome / Edge, o texto pegado de un monitor). Prueba `tools/emu_sc32d_1.py`.
+- Marca `SC32D.1`, `firmware/sc32d.1/` (0x5B9DC B), SHA-256 `ccbffb8f…06d8`, CRC 0xAEB05580.
+
+### SC32D = diagnóstico de la **memoria externa del DSP** (zonas libres para el sample capturado) — ⏳ pendiente de probar
+- Paso 1 del plan del sample capturado. Cadena de SC21D (SC20D.1 + `persist19.FIX_LOCK`, `linein3.METER`, `srcview.METER`), con `probe32_dsp` / `probe32` en lugar de `probe21_dsp` / `probe21` y sin el monitor de NRPN.
+- **DSP (`tools/probe32_dsp.py`)**, gancho `P:$23C` (`jsr pprobe` … `jmp premix`, la misma profundidad de pila que SC21D), **un área por llamada** en rueda:
+  - 38 áreas: las 30 zonas de stock (`$100000 + $28800 z`) y `$5BF000`, `$5C0000`, `$600000`, `$680000`, `$700000`, `$780000`, `$880000`, `$8FF000` (todas por debajo de `$900000`: un acceso sin memoria detrás podría dejar el bus esperando);
+  - 32 lecturas por área (paso `$1440`): suma de control (eor + rol) y OR;
+  - banderas por área en `X:$3B80 + k` (pegajosas): 1 visitada, 2 algo distinto de cero, 4 la suma cambió entre vueltas, 8 escritura / relectura bien, 16 espejo; sumas en `X:$3BB0 + k`;
+  - prueba de escritura solo en la primera visita, con `ori #3,mr`: guarda la primera palabra, escribe `$5A5A00 + k`, la relee, lee las direcciones − `$400000` / − `$800000` (si siguen ≥ `$100000`, tabla precalculada en P), restaura la palabra y el SR;
+  - código de estado en `Y:$3B20 + k` (0 sin visitar, 1 falla, 2 espejo, 3 cambia, 4 fijo, 5 libre) y empaquetado en `Y:$3B11..$3B15` (8 áreas por palabra, 3 bits); `Y:$3B16` = vueltas; `Y:$3B10` = `$C0FFEE`;
+  - sin `do` (pila), `rep` solo para borrar las tablas en la primera llamada; guarda / restaura x0, x1, y0, y1, r0, r1, r2, n0 y SR (a / b libres en `P:$23C`, como en SC21D). `X:$3B80..$3BFF` está libre en esta cadena (sin `vcf20`).
+  - Programa del DSP hasta `P:$3612`.
+- **ARM (`tools/probe32.py`):** `c_dtick32` en la cabeza de la cadena del servicio (después `c_dtick19`); con la vista de la fuente abierta, cuatro páginas de 4 s en las filas 2 / 3, cada una con medio segundo inicial de marca (pad 9 + página en blanco): zonas 0-15, zonas 16-29 + 2 de más allá, las otras 6, contador de vueltas. Como mucho tres lecturas del DSP por llamada (`0x08029344`).
+- Prueba `tools/emu_sc32d.py`: la lógica con 6 áreas en la memoria del intérprete (libre, fija, espejo, cambia; registros, palabras restauradas, nada más escrito) y el código de la imagen comparado palabra a palabra con `code()`; la pantalla por la cadena real.
+- Marca `SC32D`, `firmware/sc32d/` (0x5C154 B), SHA-256 `6169e8e6…d92b`, CRC 0x86922D93.
+
+### SC32 = SC31 + **song pointer nuevo en Master FX** (sin pad 7) — ⏳ pendiente de probar
+- Paso 2 del plan del sample capturado (decisiones del usuario del 2026-10-08, «Rediseño del usuario» en el estudio del sample).
+- **`build_sc17.use_sp2()` (`SP2`)**, requiere `JUMP_HOLD`, `SP_NORM` y el song pointer:
+  - pad 7: pulsar / soltar no hacen nada y su LED se apaga (antes el modo salto de `JUMP`);
+  - `sp2_press` (dentro de `c_sp_press`):
+    - sin Shift: el primer paso mantenido = `H1` + retrigger (`S_JT` = paso | 0x40, el mismo mecanismo de `JUMP_HOLD` en `c_sptick`); el segundo = `H2` y `S_JT` = 0 (frase, sin retrigger); con una frase fijada el paso 1 la quita;
+    - con Shift: sin `LS` → `LS` = paso; con `LS` sin `LE` → el mismo paso la quita, otro paso = el final (el más bajo es el inicio); con frase fijada → inicio nuevo (`LE` = 0); siempre olvida `H1` / `H2` / `S_JT`;
+  - `c_sp_rel`: suelta el retrigger (como `JUMP_HOLD`) y después sigue siempre el seguimiento de `H1` / `H2` (antes no se seguía con `LS` puesto);
+  - `c_speff`: primero la frase momentánea (`H1` y `H2`, normalizada), luego la fijada (`LS`, `LE` o 16); un solo paso mantenido ya no da rango;
+  - LEDs: con `LS` el pad 9 en blanco (`SP2_WHITE` = 0x01).
+- Pad 6 sigue siendo Vinyl hasta el reproductor (paso 3 / 4 del plan).
+- `tools/build_sc32.py`; prueba `tools/emu_sc32.py`; `run_tests.sh` repite sobre SC32 las pruebas de SC31. `verify_builds.py`: ALL IDENTICAL (el cambio de `build_sc17.py` es opcional).
+- Marca `SC32`, `firmware/sc32/` (0x61494 B), SHA-256 `67e23e3e…3595`, CRC 0xE550743B. Reserva SC31.
+
+### SC31 = SC30 + **el step-drummer conserva las notas** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-08): «hacer que el secuenciador step-drummer mantenga la nota en vez de sobreescribir a la tónica».
+- **`vcf21.use_keepnote()` (`KEEPNOTE`):**
+  - `c_sdconv` deja en la unidad 0 la altura de la primera nota del paso (antes `c_sdtonic`). Sigue reduciendo cada paso a una nota: el resto del step-drummer (velocity del par, `c_sdpvel`) lee la unidad 0.
+  - Nuevo `c_sdnnote(pista, paso)`: la nota del par (primera nota), si no la de la nota anterior más cercana (vuelta por los 32 pasos), si no la tónica. Es la misma búsqueda que `c_sdnvel` hace para la velocity.
+  - `c_sdnote` recibe la nota en r2. Lo llaman la página de velocity (par vacío) y Shift + paso.
+  - **Escucha:**
+    - MIDI: `pd_v` y `c_sdaoff` calculan la nota con `c_sdnnote` (el note-off la recalcula desde `SD_AUD`);
+    - sintes: `c_sdio` recibe la nota en r3.
+  - Para que el note-off encuentre la misma nota, Shift + paso y la velocity a 0 llaman antes a `c_sdaoff` (terminan la escucha).
+- `tools/build_sc31.py`; prueba `tools/emu_sc31.py`. `emu_sc26.py` y `emu_sc27.py` siguen esperando la tónica: en `run_tests.sh` se corren sobre SC26–SC30, no sobre SC31.
+- Marca `SC31`, `firmware/sc31/` (0x61428 B), SHA-256 `a9a6dcaf…0b0a`, CRC 0xCCC45D1E. Reserva SC30.
+
+### SC30 = SC29 + **Master FX entre sesiones** + **guardado del proyecto arreglado** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-08): «se pueden guardar los Master FX; si no al apagar, por lo menos entre sesiones (cambiar de sesión sigue desactivando Master FX, pero los parámetros y las asignaciones a la fila inferior se mantienen)».
+- **Fallo encontrado (SC20–SC29):**
+  - `c_pl_save` (persist19) solo copiaba RAM → XMEM con el byte de banderas del bloque de Master FX (179) **a 0**, pensado para «no hay carga pendiente».
+  - Desde SC20, `c_vtick` (vcf20) pone el bit 3 (`B_BOOT`, «inicializado en esta sesión») en el primer tick tras cada carga, y fxparams usa el bit 4: en marcha el byte nunca es 0.
+  - Resultado: ningún guardado escribía huecos, modos ni la **firma**; al cargar, la zona se leía como vacía y `c_xm_zero` borraba también los valores de drums (que sí estaban en los bytes).
+  - Comprobado en emulación con SC29: un tick de la cadena → banderas 0x08 → el guardado no copia nada.
+  - Los proyectos guardados con SC19.x sí llevan la firma, pero sus huecos nunca se actualizaron después.
+- **`persist19.SAVE_MASK`:** el guardado se salta la copia solo con RESYNC o NEW (bits 0-1).
+- **`persist19.GFX_GLOBAL`:**
+  - nuevo bit 5 del byte 179 (`F_GBOOT`, «primera carga diferida hecha desde el encendido»; el bloque se crea a 0);
+  - `c_rs` lo pone al terminar, junto con F_MSG si hay GUARD;
+  - con él puesto, `c_xm_load` se salta los huecos (los de la RAM se quedan) y carga solo los modos;
+  - los parámetros de la fila superior (`S_KNOB`, 20 B) ya eran solo RAM y no se tocan al cargar.
+  - Al guardar, los huecos actuales van al proyecto, así que al encender se cargan los del proyecto de arranque si se guardó.
+  - Drums y modos siguen por proyecto.
+- **Sin sitio para los parámetros al apagar:** la zona XMEM (65 B) y el tail de ajustes (75 B) están llenos. Habría que encontrar 20 B más.
+- Bits del byte 179: 0 RESYNC, 1 NEW, 2 MSG (GUARD), 3 `B_BOOT` (vcf20), 4 pintado (fxparams), 5 `F_GBOOT` (SC30); libres 6-7.
+- `tools/build_sc30.py`; prueba `tools/emu_sc30.py` (cadena del servicio completa desde `c_vtick`, guardado / carga / proyecto nuevo de stock; SC29 como referencia); `run_tests.sh` repite sobre SC30 las pruebas de SC29.
+- Marca `SC30`, `firmware/sc30/` (0x613A8 B), SHA-256 `c6ddb16e…1e18`, CRC 0xF3BF5DBF. Reserva SC29.
+
+### SC29 = SC28 + **motor VA-drum en las pistas MIDI** — ⏳ pendiente de probar
+- Pedido del usuario (2026-10-07: «estudia incluir 3 EG y ruido, ¿tal vez una variante del osc1+2?»; nombre acordado: **VA-drum**, «inspirado en otros sintetizadores percusivos por pasos», sin nombrar ningún aparato). Diseño acordado: cuarto estado del pad 27; sin RAM nueva, las ranuras existentes se reinterpretan (el usuario aceptó perder el LFO en ese estado); el Sync no cambia.
+- **Lo que hace.** VCA de un solo disparo (ATK, luego DEC hasta 0; el final de la puerta no hace nada: `SUSF = 0` y se salta la transición a release); dos envolventes solo-decay que se reinician con cada nota (`GNEW`): pitch (coeficiente `TDEC[SUS / 2 + 64]²`) → ENVP de los dos osciladores, filtro (`TDEC[REL / 2 + 64]²`) → ENVF; ENVA / ENVW / ENVM siguen con la envolvente del VCA. Ruido: LV (lo que leen LFOF / LFOV / LFOP / LFOW / LFOM) = un valor aleatorio por bloque; LRATE = nivel de ruido blanco sumado a la salida del oscilador (`LRATE << 15`: 127 ≈ 0,5 = el nivel del oscilador). Pad 31: la velocity fija el nivel de partida de las dos envolventes nuevas (`VEL << 16`).
+- **Por qué los otros motores no cambian.** El código del filtro y del tono lee ahora dos palabras del bloque OSC1 (`+22`, `+23`) en lugar de `ENV`; fuera de VA-drum se copian de `ENV` en cada bloque (después de calcularla), así que el resultado es idéntico: `emu_sc29_dsp.py` compara con SC28 **bit a bit** (entrada de línea, uno y dos osciladores, con cantidades de envolvente y LFO en todo). Coste: +44 instrucciones por bloque.
+- **Ruido.** Generador congruencial de 24 bits, periodo completo: `s = s × $0343FD + $269EC3`. En el DSP56300 el `mpy` fraccional da `2·s·K`: `asr a` y los 24 bits bajos (`a0`) son `s·K mod 2²⁴`. Un paso por bloque para LV y uno por muestra en el lazo de ruido (comparten la palabra de estado). Medido en emulación: varianza 0,344 (uniforme 0,333), correlación con el vecino −0,01, espectro plano de 300 Hz a 19 kHz.
+- **Estado sin RAM.** El tail está lleno (ver SC24) y no quedan bits: se usa **el nibble bajo del byte de firma** (`0xB0`…`0xBF` son todas «nuestro estado»): bit t = VA-drum de la pista t, bit 2 + t = pad 31. Contrapartida: un firmware anterior solo acepta `0xB0`; con una pista en VA-drum, al volver a SC28 se reinician los valores del modo. Alternativas descartadas: bit 7 de los valores (todas las lecturas tendrían que enmascarar), XMEM del proyecto (el guardado de `persist19` pisa el byte 64), bytes del bloque de Master FX (volátil).
+- **Transporte.** ACT = acto | ruta << 8 | dual << 9 | vadrum << 10 | vel << 11; el buzón (`z19`) guarda 4 bits en `DFLAGS`. `c_vdput` marca ACT sucio.
+- **Presupuesto.** Programa del DSP: `P:$3E7C` (+127 palabras, **387 libres**). VA-drum con ruido en las dos pistas: +626 instrucciones por bloque (0,38 %); pila 6 (sin cambios). ARM: imagen de 0x6139c B.
+- **Pruebas.** `emu_sc29_dsp.py` y `emu_sc29.py` (ver `firmware/sc29/PRUEBA.md`); `emu_sc24.py` / `emu_sc25.py` adaptadas (una pulsación más del pad 27 para llegar a apagado con la marca `SC29`).
+- **Limitaciones / ideas:** destinos de velocity uno a uno (no hay bits); decay mínimo de pitch / filtro ~20 ms (constante: el cuadrado del coeficiente); CC / NRPN para los dos bits nuevos (no hechos); colores `0x45`, `0x4D / 0x4E` sin confirmar.
+- Marca `SC29`, `firmware/sc29/` (0x6139c B), SHA-256 `d158b68664be82bb06b8b1cb1fe1693d312e6c30d0a0264b66908ade55ea800e`. Reserva SC28.
+
+### SC28 = SC27 + **NRPN para los parámetros extra de drums y para Master FX** — ⏳ pendiente de probar
+- Pedido del usuario (2026-10-07): «Implementa también CC o NRPN de 7 bits para los parámetros adicionales de drum y de los Master FX».
+- **Estudio del despachador de stock** (`0x08052854(this, canal, cc, valor)`, llamado desde la sección de CC `0x08051834` solo si el canal pasa la puerta `0x08052B24`): `0x080528EC(this, canal)` → índice del registro (0 Synth 1, 1 Synth 2, 2 drums, 3 el resto; canales en `[this + 4] + 5 / 6 / 7`); registro = `this + 5 × índice`: `+8 / +9` RPN LSB / MSB, `+0xA / +0xB` NRPN LSB / MSB, `+0xC` = 1 con un NRPN seleccionado. Entrada de datos (CC 6 / 38, `0x08052924`): índices 0 / 1 → tabla por MSB < 4; **índice 2 (drums): no hace nada**; índice 3: MSB ≤ 2 → tablas de proyecto (tipo 0x20 / 0x21), **MSB > 2: nada**. Por eso los números elegidos están libres.
+- **Números.** Drums: canal de drums, MSB 5 + drum, LSB 1..8 = los códigos del buzón de `persist19` (bipolares + 64), 9 modo de filtro (0..4), 10 / 11 los dos nibbles de los valores extendidos (punto de inicio, bitcrush), 12 tipo de distorsión. Master FX: canal 16, MSB 9, LSB = 4 × conjunto + knob (`S_KNOB`).
+- **Salida sin tocar los manejadores.** `c_ndknob` (ranura 4 de `MH_VT`) y `c_ngknob` (ranura 4 de `MIX_VT`) guardan los valores en la pila, llaman al manejador que había (`c_dk19`, `c_gknob`) y mandan lo que cambió: Clear, los valores extendidos y cualquier cambio futuro de esos manejadores quedan cubiertos. Envío por el helper de CC de las plantillas (SC05: filtro CC Tx de Setup + copia interna).
+- **Entrada.** `c_nmin` delante de `c_vmin` (la cueva de SC25); mismas condiciones (CC Rx, no la copia interna). Los CC 99 / 98 se escriben también en el registro de stock (lo mismo que hará el código de stock después). Drums: `c_nset` (bit 7 = bit de valor extendido y bits altos del byte 8 conservados; marca el código sucio con `c_mark`, lo manda el tick). Master FX: byte de `S_KNOB` + `S_DIRTY`.
+- **Pruebas.** `emu_sc28.py`; `emu_sc25.py` adaptada (la cueva de MIDI-in pasa por `c_nmin`).
+- Marca `SC28`, `firmware/sc28/` (0x61104 B), SHA-256 `3dfc7fbc06d7188c7a0e45b3c78a50c5f0b91edcdc5b456071b548afcb93d3f4`. Reserva SC27.
+
+### SC27 = SC26 + **step-drummer en Synth 1 / 2, LEDs del modo, knob blanco, páginas de knobs** — ⏳ pendiente de probar
+- Pedidos del usuario (2026-10-07, tras probar SC26 por encima): iluminar Octave ▲ / ▼ y 1-16 / 17-32 en el modo; knob en blanco cuando su paso suena; vistas adicionales de knobs (los 8 secuenciables; solo modulación: ADSR arriba, LFO abajo); corrección: «al salir del modo step-drummer no se borran las filas 3 y 4 de leds»; y lo pendiente de SC26: Synth 1 / 2 enrutando a los 8 macros.
+- **Corrección de los LEDs.** `c_sdleds` escribía los pasos / destinos en el búfer de stock de la vista y, al cerrar, nadie los borraba (el stock solo redibuja la fila de plantillas). Ahora, con la vista cerrada, escribe 0 en los pads 9-24.
+- **Sintes.** Los manejadores de macros de los cuatro tracks comparten vtable (`0x0805AC64`), así que `c_vknob` / `c_vkleds` ya pasaban por los sintes: `c_sdsyn` reconoce el de Synth 1 / 2 (`[[[CTX] + 0x40] + 0x2C] + 0x148 / 0x14C`) cuando su vista está en pantalla (`c_sdscr`: vista activa = contenedor de pistas, `[ctrl + 0x152]` = 0 / 9 y la bandera de la vista de la fuente, o 18 / 27 para MIDI). Pads: ranuras 0 / 1 / 7 de `0x0805AC9C`. Pista 2 / 3 = Synth 1 / 2 en las rutinas (`grabador = [0x2003C168 + 0xC + 4 × ((t + 2) & 3)]`, almacén del motor `[0x20038ECC + 0x30 + 4 × ((t + 2) & 3)]`). La fila de pitch escribe el carril del macro elegido (posición absoluta; base = `0x08036192(sinte, 174 + 17 × macro)`); lo reproduce el motor de stock (`c_sdmark` no hace nada para un sinte). Audición = nota interna por `c_inject` (SC06) en el canal del sinte.
+- **Un botón Synth cierra la vista** (`c_vbtn`, ids 0 / 1): la bandera «vista abierta» es global y la conversión de notas a la tónica es destructiva; así en un sinte solo se abre con el pad 30 de su vista de la fuente.
+- **Páginas.** `KNOB_CODES_D` (carriles) y `KNOB_CODES_E` (modulación); la página necesita 3 bits: `RT_TAG` bits 1-2 + bit 0 del nibble del sinte del mismo índice (`TAIL + 74`); `c_vpage` / `c_vsetpage`, `vp_row`, colores `COL_PAGE2`.
+- **Pruebas.** `emu_sc27.py`; `emu_sc24.py` adaptada (la fila de páginas tiene dos pads más); `emu_sc26.py` pasa sin cambios sobre esta imagen.
+- Marca `SC27`, `firmware/sc27/` (0x60de4 B), SHA-256 `43ea716e6e6a581a74a5bf47c358f1c7d6937d851c6693804496fb8387079e6d`. Reserva SC26.
+
+### SC26 = SC25 + **step-drummer en las pistas MIDI** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-07; SC25 probada: «funciona»): un modo de secuenciación por pares de pasos inspirado en otros sintetizadores percusivos por pasos, sobre el patrón de stock y sin RAM nueva. Decisiones: 8 knobs = 8 pares de pasos de los 16 que se muestran; dos páginas (Octave ▲ pitch, Octave ▼ velocity); se conserva el patrón y las notas pasan a la tónica 2 conservando la posición; velocity 0 = sin nota; tocar un par = escucharlo, Shift + tocar = poner / quitar; el pitch es un **desplazamiento** sobre un destino que se elige con los pads 17-24 (tono OSC 1+2, tono OSC 2, WAVE, FM, MIX, env → filtro, SHAPE, DEC); sigue activo con la vista cerrada; en Synth 1 / 2 se enrutará a las 8 macros (pendiente). El motor de síntesis asociado se llama **VA-drum** (pendiente; no se nombran aparatos de otras marcas ni en el código ni en la documentación).
+- **Formato del patrón (confirmado con el volcado y en emulación):** paso de 28 bytes: `[0]` = máscara de las unidades con nota (bits 0-5), `[1]` = probabilidad (7 = siempre), `[2..3]` = 0, y 6 unidades de 4 bytes `(nota, duración en ticks | tie << 7, micropaso 0-5, velocity)`; unidad vacía = `00 00 00 60`. Ajustes del patrón en `+0x380`: u16 último paso (15), byte `+0x382` = índice de la tabla de ticks por paso `0x0805B8B8` = (2, 3, 4, 6, 8, 12, 16, 24) (3 = 6 ticks), byte `+0x383`. Carriles: `+0x3A8 + 192 × carril`, índice `6 × paso + micropaso`, 0xFF = sin valor. Los patrones están en RAM interna (`0x20011B20` Synth 1, `0x20018060` Synth 2, `0x2002BAB8` MIDI 1, `0x20031FF8` MIDI 2; 0x6540 por pista).
+- **Posición del secuenciador:** almacén por pista `[0x20038ECC + 0x30 + 4 × id]`: parámetro 0 = patrón, **1 = paso (0..31), 2 = tick dentro del paso** (visto avanzando con la función de tick de stock `0x0802C418` en emulación; `[rec + 0x1C]` y `[rec + 0x40..0x43]` no sirven: el primero es un contador de medios ticks y los segundos solo los toca el oyente de pasos del grabador). `0x0803542C` (lectura de almacén) es una lectura pura: se puede usar desde el servicio del DSP.
+- **Implementación** (`vcf21.use_sdrum()`, `sd_routines`): ver `firmware/sc26/PRUEBA.md` y el resumen de `CLAUDE.md`. Claves: (1) **sin RAM para el desplazamiento**: `c_sdfx` lo lee del patrón en el momento de enviar el valor al buzón del DSP (paso que suena o paso audicionado); `c_sdmark` (en la envoltura de note-on, al cambiar un par, al cambiar de destino) marca sucios los códigos del destino (o pone el cursor del barrido en los volátiles); (2) el destino sucio se envía **antes** que GATE / TRIG para que la nota empiece ya afinada; (3) dos bytes de la cola libres al deducir la vista del editor de CC de su bit de pista (`0x20042AE8 + 0x68 × pista`); (4) la fila de pitch de los dos destinos de tono trabaja en 1 / 128 de semitono: total = 128 TUNE + FINE + 24 × (v − 64), repartido de nuevo en TUNE (redondeo) y FINE; (5) el error que detectó la emulación: `c_sdleds` escribía el pad 30 también con el editor de CC dibujando sus números (rompía un píxel de los dígitos 8).
+- **Riesgos para el aparato:** qué patrón da el almacén del motor con el transporte parado al cambiar de patrón en la vista Patterns (no comprobado); la liberación de pad llega por el slot 1 de la vista de plantillas (en emulación sí; en stock era un no-op); la audición manda una nota normal de la pista (también por MIDI).
+- Marca `SC26`, `firmware/sc26/` (0x60a74 B), SHA-256 `b2181971a36044d0bbbbc7ed4abceb24ff0947cb586b6ea78d20e334930cfdfd`. Reserva SC25.
+
+### SC25 = SC24 + **CC / NRPN de entrada y salida, automatización por el secuenciador y la fila de plantillas del pad 27** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-07): CC en las funciones de sinte y VCA-VCF con los números de los sintes de stock donde sean parecidos; el aparato se controla y emite MIDI según los filtros del Setup; automatización por el secuenciador (prioridad a los knobs sin Shift); aceptado el reenvío interno de SC05 (canal compartido = el CC mueve también el sinte); carril 0 = TUNE. Más la corrección del pad 27 de SC24.
+- **Hallazgos del estudio (solo lectura del listado, sin aparato):** (1) la salida de CC de las macros de MIDI pasa **siempre** por `0x080313C4(emisor, knob, valor)`: mete el valor en una cola (`0x0802E9D6`, 0x200 bytes con deduplicado) que otra rutina vacía por `0x0802EA4C` → `0x08040260` → `0x0804A356` (el CC de la plantilla); `0x08040260` solo tiene ese llamador y `0x0802E9D6` solo `0x080313C4` → lo que el secuenciador reproduce de un carril de macro tiene que pasar por ahí (no confirmado en el aparato; no hace falta un build de diagnóstico para engancharlo). (2) El emisor de MIDI 1 / MIDI 2 es `G + 0x110 / G + 0x158` con `G = [SETOBJ − 8]` (**confirmado en emulación** con el manejador de macros de stock real). (3) La tabla de automatización `0x08059080` (id → grabador, carril): ids 0-7 Synth 1 carriles 0-7 (macros), 10-17 Synth 2, 20-27 MIDI 1, 30-37 MIDI 2, 40-59 drums (5 por drum), 60-63 / 68-71 / 77-80 los carriles 8, 9, 10 de las cuatro pistas de sinte / MIDI (parámetros comunes a todas las pistas, sin confirmar cuáles). (4) La función de MIDI de entrada `0x08051720` solo llama al despachador de CC `0x08052854` si el canal pasa el filtro `0x08052B24` (canales de Synth 1 / 2, drums, 16): **los CC de una pista MIDI en su propio canal no llegan nunca al despachador** → el gancho va en la sección de CC de la propia función (`0x08051834`, tras el filtro de Rx de SC03 de `0x08051722`). (5) El despachador guarda el estado NRPN en 4 registros de 5 bytes (`this + 5 · índice`: +0xA LSB, +0xB MSB, +0xC «seleccionado»); índice 3 = todos los canales «otros» (también el 16); los NRPN de MSB ≥ 4 los ignora el sinte de stock (`cmp r3, #4; bge`), por eso `4:código` es libre. (6) Canales de las pistas: tabla `[[0x20011334 + 0xC]]` (índice = id de pista: 0 / 1 sintes, 2 / 3 MIDI, drums al final).
+- **Implementación** (`vcf21.use_tdraw()`, `use_ccio()`, `ccio_routines`, `tools/build_sc25.py`): ver `firmware/sc25/PRUEBA.md` para la tabla CC / NRPN y los carriles. Tablas en flash (`CC_TAB`: 68 bytes, `LANE_TAB`: 8 bytes, tras la tabla de colores); **ninguna RAM nueva**. `c_vstore` factoriza «escribir el valor + cursor de barrido de los volátiles + bit sucio» sin guardar ajustes ni enviar MIDI (lo usan la reproducción y la entrada). Sin cambios en la DSP (programa idéntico al de SC24: la imagen solo difiere en los dos ganchos y el bloque ARM, 8528 bytes frente a 7612).
+- **Riesgos conocidos (para el aparato):** el emisor `c_vcc_emit` se llama desde el hilo del knob / del secuenciador / del MIDI de entrada, no desde el hilo que vacía la cola de stock; el emisor central `0x0803BEDA` no parece tener estado propio, pero no está comprobado. Si el secuenciador (o un cambio de patrón) llama al emisor de macros con las posiciones guardadas de las macros (que nuestros knobs no actualizan), esos valores pisarían los nuestros al reproducir: el `PRUEBA.md` lo pone como lo primero a vigilar; arreglo previsto = filtrar por valor / mantener el almacén de macros al día. Los carriles son los de las macros de stock de la pista (un patrón con automatización de macros de stock se leerá como TUNE, REL…).
+- **Pendiente** (acordado, no hecho): motor **VA-drum** (variante del oscilador, inspirado en otros sintetizadores percusivos por pasos) (cuarto estado del pad 27; ranuras reutilizadas: ATK = VCA rápido / lento, DEC / SUS / REL = decays de VCA / VCO / VCF, LRATE / LFOF / LFOV = ruido, LSHAPE = destino de la fila de pitch, LFOP = destino de velocity; tres EG de decay y ruido en la DSP, 514 palabras libres) y el step-drummer (Synth 1-2 y MIDI, independiente del motor; carril 0 = pitch).
+- Marca `SC25`, `firmware/sc25/` (0x60150 B), SHA-256 `c5d7fdafa807f8be603bfaaf01378e19a197317996053e621e5bb9c31961780b`. Reserva SC24.
+
+### SC24 = SC23.6 + **pad 27 de tres estados, páginas en los pads 1-8, segundo oscilador, interacciones, orden de la cadena y parafonía** — ⏳ pendiente de probar
+- Diseño acordado con el usuario en la conversación (2026-10-06 / 07): pad 27 por pista = apagado → entrada de línea con VCA-VCF (naranja) → oscilador con VCA-VCF (verde) → apagado; apagado = los knobs son los macros de stock; los pads 1-8 (primera fila de la vista Preset) = selector de página con el modo encendido (1 VCA-VCF, 2 OSC1, 3 OSC2 solo con dos osciladores), siempre empieza en VCA-VCF; mientras el editor de CC está abierto son las plantillas; pad 28 = 1 / 2 osciladores; pad 29 = orden VCA → FX → VCF / VCF → VCA → FX; OSC1 página: MIX + knob lento BITSYNC (nada, Sync, xor, or, nor, and, nand); OSC2 página: FM (OSC2 modula a OSC1) y Ring; Sync = OSC1 maestro, **sync suave con inversión de fase**, la posición elige cada cuántos ciclos (1..8); parafonía: una nota = unísono, dos = una por oscilador, la tercera sustituye a la más antigua; la envolvente se reinicia con cada nota, la velocidad es la de la última.
+- **Presupuesto de RAM (lo que decide el diseño).** Tail de ajustes (75 B): lleno (flags 1 + valores 52 + RT 16 + guardado 1 + firma 1 + editor 4). Reserva del heap: 220 B + 16 B nuevos = **236 B, margen 4 B** (el heap del aparato termina en `0x20044D68`, la reserva empieza en `0x20044D6C`; `c_gst` la rechaza si el heap actual la supera: Master FX, VCA-VCF y sidechain se apagarían a la vez). Bytes encontrados sin RAM nueva: bits libres (bit 7 de `RT_NOTE` / `RT_VEL` = ruta / dos osciladores; `RT_TAG` bits 1-2 = página; `RT_CNT` bits 4-7 = cursor del barrido + «el más antiguo»), el valor muerto de FXMOD (código 14) = la nota del segundo oscilador. Los 8 valores nuevos por pista (TUNE2, FINE2, WAVE2, PW2, MIX, BITSYNC, FM, RING) van al bloque de Master FX (16 B) y **no se guardan**; las 6 modulaciones de OSC2 serían 12 B más (no caben): **comparten las de OSC1**. Alternativas descartadas: llevar los valores en la memoria del DSP (hace falta una caché en el ARM y la lectura de vuelta desde la hebra de la interfaz no está comprobada), tomar prestado el búfer de LEDs de otra vista (riesgo de regresión de Master FX).
+- **Transporte.** El barrido (`sd_sw`): cuando no hay nada sucio ni ventana de latido, un mensaje cada 2 ms por voz con uno de los 8 valores nuevos (códigos de ARM 27..34 → mailbox 32..39), por turnos; sin bits sucios para ellos (RAM). Nota del segundo oscilador: el código 14 (la byte muerta de FXMOD) con su bit sucio de siempre. ACT: `act | ruta << 8 | dual << 9` (el DSP lo separa). El primer mensaje tras el arranque (etiqueta 0) lo ignora el DSP: el latido repite ACT (en las pruebas hay que pasar las ventanas del latido).
+- **DSP.** `CODE7`, `DUAL`, `ROUTE` (`vcf21_dsp.use_dual()`): el código del oscilador de `control` y `channel` se generó parametrizado por el bloque (`r3` = OSC1, `r4` = OSC2: las SC22.3-SC23.6 salen **idénticas**); lazo `dual` por muestra (`do` de 32 tramas): fase de OSC2 → ondas → muestra guardada; fase de OSC1 (detección de vuelta: nueva < vieja) → sync suave cada N vueltas (invierte el incremento con signo de OSC2 y la bandera de dirección) → FM (fase + 8 · FM · o2) → ondas de OSC1 → mezcla → ring → bit a bit (eor / or / and / not: zonas 2..6, la posición de la zona = el peso). Programa del DSP: termina en `P:$3DFE` (514 palabras libres de `$4000`); coste con dos osciladores en las dos pistas **+8,1k instrucciones por bloque** (≈ 4,9 % de las ~166k estimadas; con un oscilador +62); pila 6. Tabla del corte del filtro: 8 pasos por octava (seguimiento 1:1 = f ≈ 85).
+- **Pruebas.** `emu_sc24_dsp.py` (buzón, ruta bit a bit contra SC23.6, oscilador doble: el mismo sonido con MIX = 0, OSC2 solo, mezcla, ring, FM, bit a bit con dos osciladores iguales, sync contra un modelo de la fase del maestro, media del seguimiento, coste), `emu_sc24.py` (pad 27, 28 / 29, fila de páginas, knobs, barrido, Clear, notas parafónicas, y el recorrido completo ARM → DSP con 244 mensajes), y las de SC23.5 / SC23.6 sobre esta imagen (adaptadas con la marca `SC24`).
+- **Limitaciones conocidas:** valores nuevos volátiles; modulaciones compartidas; las notas sustituidas no vuelven al soltar; margen de RAM 4 B. Ideas aparcadas para conversar: **step-drummer** (los 8 knobs = 8 pares de pasos del secuenciador, página arriba = pitch, abajo = velocity; depende del formato de paso del secuenciador de stock, sin estudiar).
+- Marca `SC24`, `firmware/sc24/` (0x5fdbc B), SHA-256 `9d161aea662df3a86acddc8b1bf5c0f9e23a401d2433ec2537576cfce3745ae5`. Reserva SC23.6.
+
+### SC23.6 = SC23.5 + **knobs de tipo sin vuelta, con zonas y parámetro interno** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-06, tras confirmar que el oscilador ya no falla): «los knobs de ajuste de tipo (tipo de efecto, forma de onda, tipo de filtro) son demasiado sensibles y ciclan: que hagan falta varios steps (resolución del estado del knob / número de opciones) para cambiar entre modos; dentro de cada modo, usa esos steps para ajustar un parámetro: waveform → morph, efectos → morph, tipo de filtro → note-on follow al cutoff»; después: «descarta también el ciclado; usa colores para señalizar la selección y brillo (o fusión entre colores si puedes ajustar RGB) para el parámetro interno».
+- **Interpretación.** El estado del knob es p = 0..127 sin vuelta (el tope ya existía en los demás knobs unipolares: `vk_uni`); el tipo es la **zona** `t = 7p >> 7` (7 modos de FX y de filtro: ~18 clics por modo) y la **posición dentro de la zona** `f = 7p & 127` (0..127) es el parámetro del modo. Forma de onda: sin cambios en el DSP; ya era un morph continuo (0 seno, 42 triángulo, 84 sierra, 126 cuadrada, K7 de la página B) con 42 clics entre formas, sin vuelta; solo se añade el LED.
+- **FX «morph» = FXMOD.** El parámetro propio de cada efecto (umbral de soft / hard / fold, sesgo del wavefold, frecuencia del ring mod, retardo del comb, velocidad del chorus) ya existía como FXMOD (Shift + K7); ahora lo da la posición dentro del modo del tipo y **Shift + K7 queda sin función** (el DSP ignora el código 14). Valor de partida de cada modo: f = 0 (antes FXMOD = 64: los efectos con parámetro empiezan en el extremo de su rango).
+- **Filtro «note-on follow».** `KEYK = 32` (0,25 pasos de tabla por semitono = 37 % de seguimiento) era fijo; ahora es la palabra `KEYF` = f (0..127) del bloque del oscilador (`X:OSB0 + 48 t + 19`; el bloque usa +0..+18): índice de tabla += (nota − 60) × f / 128. La tabla `TF` da **8 pasos por octava** del coeficiente: f ≈ 85 = una octava por octava; 127 = 1,5. Por defecto f = 0 (sin seguimiento; antes 37 %).
+- **DSP** (`vcf21_dsp.TYPEZONE`, `use_typezones()`): el mailbox, tras guardar el valor, para los códigos 13 / 16 calcula `7p`, guarda `t` en el slot del código y `f` en FXMOD / `KEYF`; ignora el código 14. +8 instrucciones por bloque (55 358 → 55 366 con las dos voces en la entrada de línea). El programa del DSP sigue por debajo de `$3FFF`.
+- **ARM** (`vcf21.use_typezones()`): los códigos 13 / 16 pasan por el camino de los knobs unipolares (se quita el paso por giro con vuelta `vk_shape`); `KNOB_CODES` Shift + K7 = 0; firma `0xAE` (se descarta el estado guardado). **LEDs** (`c_vtype`, llamado desde `c_vkleds` para los códigos 13 / 16 / 19): halfword = color del modo | (brillo + 2) << 8, brillo = `32 + f × 95 >> 7` (33 % … 98 %); colores en `TCOL_FX` (soft amarillo `0x2D`, hard naranja `0x2B`, fold rojo `0x45`, wavefold magenta `0x32`, ring violeta `0x49`, comb azul `0x09`, chorus verde azulado `0x4D`), `TCOL_FT` (DJ blanco `0x01`, LP 12 verde `0x17`, HP 12 azul claro `0x13`, paso banda amarillo `0x2D`, notch magenta `0x32`, LP 24 verde azulado `0x4D`, HP 24 azul `0x09`), `TCOL_WV` (seno azul claro, triángulo verde, sierra amarillo, cuadrada rojo `0x45`). **No hay RGB libre:** la tabla de colores de la placa (`0x20003804`, RAM) se indexa por código de paleta; la «fusión» entre modos habría que hacerla con entradas intermedias de la paleta.
+- Pruebas: `emu_sc23_6.py` (121 clics reales por el controlador, tope arriba y abajo, LEDs, Shift + K7, mailbox, Clear), `emu_sc23_6_dsp.py` (zona y posición para todos los valores relevantes, el código 14 ignorado, el corte sigue la nota: índice 48 → 20, 72 → 43, 84 → 55 con f = 124; coste); las de SC23.5 sobre la imagen nueva (`emu_sc23_3.py` ya con `use_typezones` según la marca).
+- Marca `SC23.6`, `firmware/sc23.6/` (0x5f130 B), SHA-256 `6c5b997379248d5d65b7231459901ade052778f6699972f7ebba62eb969dceaf`. Reserva SC23.5.
+
+### SC23.5 = SC23.4 + **cabezal del song pointer, pad 8, K8, Clear en las dos capas, notas que no siempre sonaban, botón Save** — ⏳ pendiente de probar
+- Informes del usuario sobre SC23.3 / SC23.4 (2026-10-06): (1) iluminar también el botón **Save** de la fila superior (entre Duplicate y Projects) en el paso guardar; (2) pad 8 de Master FX «en blanco fijo (ahora parpadea)», igual que el bypass de FX (pad 25) de la vista FX; (3) el song pointer debe seguir el compás de 1 a 16 linealmente («la información está bien, solo hay que encender el pad»); (4) brillo de K8 de drums: mínimo en el centro (sin efecto), creciente hacia la izquierda (bitcrush) o la derecha (distorsión); (5) el modo VCA-VCF / OSC «funciona ahora» pero las notas no siempre se disparan; (6) con Shift el botón Clear pierde su función: el clear de la capa Shift se hace a la vez que el de la capa sin Shift.
+- **LED del botón Save:** LED 57 del panel (tabla `0x08059438`: entrada 57 = fuente 5, elemento 0, justo detrás de Duplicate = 56); parpadea con el pad Save (`HAL_TICK >> 8`) en el paso guardar.
+- **Pad 8:** los códigos `0x19` / `0x46` (aspecto «FX off») no son fijos: la tarea de LEDs (`0x08033E1A(ctrl, x, ctrl-time)`) indexa una tabla de 96 pasos con un contador (`r4 = tiempo − base`, `< 0x60`): hay códigos que **laten**. Ahora el pad 8 copia la entrada 24 (pad 25 de la vista FX) en cada refresco.
+- **Cabezal:** el gancho del tick (`c_sptick`, el mismo que hace el bucle y el salto, que el usuario da por bueno) calcula `(ticks + 1) / 6 mod 16` y lo guarda con la hora; la rutina de LEDs ya no lee el almacén del motor ni el del transporte (`0x20011034`). Visible mientras el último tick sea de hace < 2 s; sello de 24 bits (no «rebota» a fresco). Blanco (`0x01`), como el paso que suena de las vistas de paso de stock. El LED se vuelve a calcular en cada sondeo: la tarea de LEDs (0x08033E1A) se llama periódicamente con un contador, no por eventos.
+- **K8 de drums** (`persist19.K8_BRIGHT`): el LED plano de K8 deja de ser el código dinámico de stock y lleva (max(distorsión macro 2, nibble de bitcrush × 8 + nibble / 2) + 2) << 8 | color del drum. **Los demás knobs bidireccionales (K1 pitch, K5 EQ, K3) siguen con el LED de stock; por aclarar cuáles quiere el usuario con el mismo criterio.**
+- **Clear en las dos capas:** VCA-VCF / OSC (`vcf21.use_clearboth`: `c_vclr1` resetea la posición de la tabla `k` y `k + 8` de la página mostrada) y drums (`persist19.CLEAR_BOTH`: con Clear pulsado y un knob sin Shift se pone a 0 el código de la capa Shift de ese knob: pitch env, ring mod amount, env shape, modo de filtro, velocidad del LFO y tipo de distorsión). Pruebas: `emu_sc23_5.py`, `emu_sc23_5_drums.py`.
+- **Notas que no siempre sonaban:** hipótesis (no demostrada en el aparato): el DSP lee el buzón de cada voz **una vez por bloque de audio** y solo ve la **última palabra escrita**; con una marca de 1 bit, un número par de escrituras entre dos lecturas **no se nota** (la marca vuelve a ser igual a la anterior) y se pierden las dos. El servicio puede ir más deprisa que los bloques y un golpe de nota son 4 mensajes (el encendido del modo, 28), así que se perdían al azar: valores del oscilador que nunca llegaban (el sonido «errático») y puertas que no abrían (con los defaults neutros un VCA sin puerta no suena). Remedios, todos con opción: `vcf21.use_ratelimit()` (como mucho **un mensaje por voz cada 2 ms**, `RATE_MS`; sello de 5 bits en `RT_TAG` bits 3-7 que sigue al reloj mientras no hay nada que enviar, para que 32 ms de calma no den la vuelta a «ahora mismo»), `vcf21.use_heartbeat()` (cada ~8 ms una de las cuatro marcas ACT / NOTE / VEL / GATE de nuevo, cada ~1 s **todos los valores** con el modo encendido; velocidad inicial 100) y `vcf21_dsp.use_gatefix()` (puerta alta + envolvente parada = disparo). **Si el fallo persiste, subir `RATE_MS` (hasta 16) o la causa es otra** (la cadencia de bloques frente a ticks no está medida). Pruebas: `emu_sc23_5.py` (huecos de ≥ 2 ms con ticks de 1 ms, encendido completo en ~150 ms, refresco, sello sin vuelta).
+- Marca `SC23.5`, `firmware/sc23.5/` (0x5f01c B), SHA-256 `aa0b95b260ee31d76d7b03dcdcc7e9e0f6470f29f32c1333737295b6cc99782e`. Reserva SC23.4.
+
+### SC23.4 = SC23.3 + **correcciones tras probar en el aparato** — ⏳ pendiente de probar
+- Informe del usuario sobre SC23.3 (2026-10-06): (1) el paso de guardar del editor de CC: tras la última página se ilumina / parpadea el pad con la etiqueta **Save** junto al pad 25 y un Octave ▼ más guarda; MIDI 1 / 2 **descartan**; (2) NRPN: los CC **99, 98 o 6 = NRPN de 7 bits (MSB, LSB, mínimo, máximo)**, **CC 38 = NRPN de 14 bits con 6 campos**; (3) Master FX: pad 8 en blanco brillante; en el modo de selección de tramo el paso anterior del compás es siempre el origen y el posterior el fin (se respeta el orden del compás, no el de pulsado); si se elige un fin cuando el song pointer ya ha pasado, salta al origen; el LED del destino del salto (pad 7) no se encendía; un pad 7 fijado se suelta al volver a tocarlo; (4) pads 25-28 de la vista Note de los drums en orden opuesto.
+- **Editor de CC v2** (`vcf21.use_edv2()`): campos = [número de CC, …]: CC = [número, inicio, fin]; NRPN 7 bits (número 99 / 98 / 6) = [número, MSB, LSB, inicio, fin]; NRPN 14 bits (número 38) = [número, MSB, LSB, inicio MSB, inicio LSB, fin MSB, fin LSB]; los RPN de Components (tipos 3 / 5) conservan sus campos sin número. Girar el campo del número cambia el tipo del registro (parámetro y rango se reinician: NRPN 7 → 0..127, NRPN 14 → 0..16383). Interpretación: el número 99 / 98 / 6 no se guarda en el registro (solo el tipo): se recuerda mientras se edita en `scratch + 81` (bit 3 de `TAIL + 72`); un registro NRPN 7 bits de Components enseña 6. **Paso guardar** = campo `nf` (tras el último): sin número, el **pad Save (índice 25, el del patch flip mientras el editor está apagado)** parpadea en verde y los dos Octave se encienden; Octave ▼ guarda y deselecciona, Octave ▲ vuelve al último campo; el pad Save guarda en cualquier momento; **todos los botones de vista (también el de la propia pista) descartan** y salen. LEDs de Octave: primer campo solo ▼, intermedios ambos, último campo solo ▲ (como se pidió; ▼ sigue funcionando para ir al paso guardar). Pruebas: `tools/emu_sc23_4_ed.py`.
+- **Master FX** (`build_sc17.use_sp_norm / use_jump_led / use_jump_unstick`, `CLR_ON / CLR_DIM`): `c_speff` ordena los dos pasos mantenidos; con el inicio fijado (Shift + paso) un toque por debajo pasa a ser el nuevo inicio y el anterior el fin; el gancho del tick salta al inicio cuando el paso (del ciclo de 16) es ≥ fin (o la vuelta si el fin es 16): cuenta nuevo = n − (paso − S + 1) × 6; el destino pendiente / repetido del salto de pad 7 se enciende (amarillo, `JMP_ON`); Shift + pad 7 fija y tocar el pad 7 fijado lo suelta; pad 8 blanco (`0x01` hay algo que borrar, `0x03` nada). **No hecho: el cabezal del song pointer «no se mueve» en el aparato (se queda en el paso 1, errático): la lectura del paso actual (`[motor + 0x90]` / `0x20011034`) no coincide con lo que hace el aparato y hace falta un diagnóstico.** Pruebas: `tools/emu_sc23_4_gfx.py`.
+- **Drums, vista Note** (`drumnote.MIRROR`): pads 25-28 = drums 4, 3, 2, 1 (el 28 junto al 29 = drum 1). Prueba `tools/emu_sc23_4_notes.py`.
+- **Sin hacer todavía:** brillo bipolar de los knobs de drums (sin efecto = sin brillo) y el Shift que se queda en los knobs (a falta de aclarar cómo se reproduce), cabezal del song pointer, y el fallo informado de que **en SC23.3 los modos VCA-VCF y OSC no tienen efecto en el sonido** (en emulación el DSP real sí hace puerta y seno; hay que localizar qué es distinto en el aparato).
+- Marca `SC23.4`, `firmware/sc23.4/` (0x5ede4 B), SHA-256 `45d838631e5b12fe24fb2a4edb15bcaaaa5fc8e73f3ab3f438646c11f1d454ea`. Reserva SC23.3.
+
+### SC23.3 = SC23.2 + **estado neutro (gate básico), Clear + knob, LEDs de Octave y de limpieza del editor, tope de envíos con «Efectos a line in»** — ⏳ pendiente de probar
+- Peticiones del usuario (2026-10-06): (1) el editor de CC enciende Octave ▼ al salir los números, ambos al pasar de página y solo ▲ en la última; (2) el oscilador suena errático: por defecto el VCA-VCF debe ser un **gate básico** (filtro abierto, sin reso, velocity → AMP con sustain máximo y ADR a 0, LFO sin modular, sin efectos) y el oscilador una onda sencilla que sigue el pitch de la nota sin modulaciones; ese estado es el que recuperan los knobs con **Clear + mover** (en rojo); (3) con el modo de Setup «Efectos a line in» el tope de los envíos de cada efecto se reduce a la mitad con paso más fino; (4) al salir del editor de CC quedan LEDs sucios en la vista Preset. Además pidió tener en cuenta que el secuenciador / pads activan LFO y gate aunque su vista no esté en pantalla (comprobado: los envoltorios de la vtable de notas no miran la vista) y que, con los knobs de OSC / VCA-VCF activos, el secuenciador automatice sus parámetros en lugar de mandar CC (**no implementado**).
+- **Estado neutro** (`vcf21.use_neutral()`): `DEFAULTS` = FILT 0, RES 0, ENVF 0, LFOF 0, ATK 0, DEC 0, SUS 127, REL 0, FXAMT 0, GAIN 0, LRATE 40, LFOV 0, FXTYPE 0, FXMOD 64, ENVA +63, FTYPE 0; oscilador TUNE 0, FINE 0, WAVE 0 (seno), SHAPE 50, sends 0. Modelo del VCA: `T = GAIN/64 + ENVA × ENV × velocity` (unidad `$100000`), así que **GAIN 0 + ENVA +63 = el sonido pasa × velocity mientras la tecla esté pulsada** y se cierra al soltar. El pad 27 ya no escribe GAIN / ENVA (antes 0 / 63 al encender el oscilador y 64 / 0 al apagarlo). Firma del estado `0xAD`: **el estado guardado de SC23.x se reinicia** al flashear. DSP: `use_gaterel()` (REL = 0 → coeficiente de liberación de ~2 ms por bloque en lugar de los 40 ms de la tabla; con REL > 0 sin cambios) y `use_sinefix()` (el seno del OSC3 era la parábola 4u(1−|u|), ~5 % de armónicos: ahora P·(0,775 + 0,225·|P|), ~0,3-1 % en la medida; los armónicos medidos son todos < −41 dB).
+- **Medidas en emulación** (`emu_sc23_3_dsp.py`, programa real del DSP): sin tecla silencio; con tecla, salida = entrada × constante (velocity 100 → 0,77; 50 → 0,38; dispersión 6e-4 por el decaimiento de 1 a 127/128), rampa de apertura sin clic, liberación monótona que cierra en ~11 ms; oscilador: seno limpio a la frecuencia exacta de la nota (A4 = 440 Hz) de la 48 a la 108, amplitud 0,49, muda sin tecla, LFO y decay sin efecto. Coste: +6900 instrucciones por bloque con los dos osciladores sonando (~4 % del presupuesto).
+- **Clear + knob** (`use_clearknob()`): `c_vclr` lee el botón Clear de `[[obj + 0x20] + 0]` bit 0 (como el manejador de stock), `c_vclear` calcula el código (Shift, página) y escribe el valor de la tabla `t_def` (marca el bit sucio y guarda), pone el contador `[obj + 0x40 + k] = 0x28` y `c_vclrled` (al final de `c_vkleds`) enseña los knobs marcados en rojo (`0x53`) mientras Clear está pulsado y borra las marcas al soltarlo. Cualquier sentido del giro vale; no borra automatización (no hay).
+- **LEDs de Octave** (`use_octleds()`): `c_vledtask` sustituye a `c_ledtask` en las dos llamadas de la tarea de LEDs (`0x08033B46`, `0x0803415A`); con el contenedor de vistas activo (`[ctrl + 0x6C] = [ctrl + 0x2C]`) mostrando la vista Preset de la pista del editor (`[ctrl + 0x152] = 9 × (pista + 2)`) y un número a la vista, el LED 51 (▼) se enciende si hay campo siguiente y el 52 (▲) si hay anterior, con el color del campo.
+- **LEDs sucios** (`use_ledclean()`): el búfer de la vista Preset es persistente y la rutina de stock (`0x0804D5CA`) solo redibuja los pads 1-8; los números ocupaban los 32 pads. `c_edclean` pone los pads 9-32 a 0 y llama a la redibujada de stock; se ejecuta al principio de `c_vleds` el cuadro siguiente al último número y en `c_edoff` si había números (bit 2 de `TAIL + 72`).
+- **Tope de los envíos** (`use_fxcap()`, `install_fxcap` tras `fxparams.install`): bits 28 / 29 de los ajustes (Setup: reverb → tira 3, delay → tira 4) → K3 / K4 de la vista FX (**MIDI 1 / MIDI 2; índices de proyecto 6 / 7** reverb y 17 / 18 delay) con tope 63 y media velocidad (acarreo de medio paso en `TAIL + 72` bits 4-7: 0 ninguno, 1 = +1, 2 = −1); se llama al manejador de stock con el delta efectivo (min(delta/2, 63 − valor)), así que LEDs, automatización y proyecto son los de stock; un valor por encima de 63 baja a 63 al primer toque, en cualquier sentido; con Clear pulsado o Shift pasa tal cual. Interpretación: «cada efecto» = ambas páginas de los envíos de las tiras que reciben un retorno.
+- **Pendiente (no hecho):** automatización por el secuenciador de los parámetros propios. Ideas: el manejador de macros de stock (`0x0804C062`) guarda el valor 0-127 de cada knob en `[obj + 0xC]`, lo manda por `[obj + 0x10]` (hilo `0x080313C4` → CC) y lo graba por `[obj + 0x14]` (grabador); la reproducción llegaría por el mismo emisor, de modo que enganchar `0x080313C4` y desviar a nuestros parámetros según la página (A = VCA-VCF, B = OSC) podría bastar; hace falta confirmarlo (la emulación no reproduce el secuenciador).
+- Marca `SC23.3`, `firmware/sc23.3/` (0x5e9b4 B), SHA-256 `7d30f1b6d0a113af374b5409cd4280d7aa335b087319c096346f9f9ba4426b37`. Reserva SC23.2.
+
+### SC23.2 = SC23.1 + **toggles de MIDI 1 / 2 aclarados (fuente, vista OSC, vista VCA-VCF)** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-06): pad 25 y 26 bien; **pad 27** cambia el principio de la cadena VCA/VCF entre entrada de línea y oscilador (encendido = OSC, apagado = line in); **pad 28** abre la vista de parámetros del OSC y **pad 29** la del VCA-VCF, ambos se encienden al seleccionarse; el modo VCA-VCF solo está activo cuando se ha tocado uno de los dos y sigue activo hasta que se apagan (pulsando el ya encendido).
+- Hecho (`vcf21.use_pads2()`, `PADS2`; SC22.4 / SC23 / SC23.1 idénticas): `vp_view` (28 → página B, 29 → página A): si el modo está encendido y esa vista ya era la elegida, apaga el modo; si no, fija la página y, si estaba apagado, enciende el modo (y apaga el patch flip, como antes). El pad 27 (`vp_osc`) ya no enciende el modo: solo cambia el bit de la fuente (con el modo apagado el ACT sigue en 0 y la fuente se aplica al encenderlo). LEDs: 28 / 29 encendidos solo con el modo encendido y su página elegida; 27 según el bit de la fuente.
+- Interpretación: 28 y 29 son vistas excluyentes (la página de knobs es una u otra); «tocados una vez los pads 28 y 29» se ha entendido como «uno de los dos».
+- Pruebas: `tools/emu_sc23_2.py` (la batería de SC23 con el flujo nuevo de pads) y `tools/emu_sc23_1_ed.py` con la imagen nueva.
+- Marca `SC23.2`, `firmware/sc23.2/` (0x5e634 B), SHA-256 `d67c888dc2160e3dcf1ca7b1912b76dd5715e4fe981aaee7b0191caf021929d7`. Reserva SC23.1.
+
+### SC23.1 = SC23 + **editor de CC: Octave cicla, el botón de la pista guarda, cualquier botón de vista descarta** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-06, rectificando la anterior): los pads Octave ▼ / ▲ sí se pueden usar; ciclan los campos **sin guardar al final**; MIDI 1 / 2 **guarda**; cualquier botón que cambie la vista (Note, Mixer…) **descarta**.
+- Hecho (`vcf21.use_cced2()`, `CCED2`; SC23 queda idéntica): `c_vbtn` consume 19 / 20 con el editor encendido (`c_edcyc`: ▼ siguiente, ▲ anterior, con vuelta; solo con un knob elegido y un registro editable); el botón de la pista (ids 2 / 3, con su vista Preset en pantalla) hace `c_edflush` (persistir + aplicar) y deselecciona; si no hay knob elegido ni cambios, sale del editor y deja pasar el botón a stock (vuelve a la vista de pista); el resto de botones de vista (ids ≤ 15), el pad 25 y los pads 1-8 llaman a `c_eddiscard`. Ya no se guarda al cambiar de campo, de knob ni al salir.
+- **Mecanismo de descarte:** los cambios se aplican en vivo (como antes) y antes del primero `c_edbak` copia los 8 registros de la plantilla (80 B) y su índice (+80) al **búfer de LEDs de Master FX** (`c_gfst() + 64`, 84 B libres mientras la vista Master FX no esté activa: `c_gleds` lo borra y repinta entero cada vez que se usa); `c_eddiscard` los devuelve a la plantilla y re-elige esta por el router (`c_edapply`). Se descartó recargar con el cargador de stock `0x080311C6` (no probado en el aparato y gira en el emulador). Alcance: todos los cambios desde el último guardado, de todos los knobs de la plantilla activa; al cambiar de plantilla con un pad se descartan antes.
+- Pruebas: `tools/emu_sc23_1_ed.py` (ciclo y vuelta de campos con CC y NRPN de 7 / 14 bits, copia de seguridad que no se pisa, un guardado por el botón, descarte con Synth / Mixer / FX / Drum / MIDI 2 / Preset / pad 25 / pad de plantilla, emisor reconstruido con el CC guardado, Record / Play no salen) y `tools/emu_sc23.py` con la imagen nueva.
+- Marca `SC23.1`, `firmware/sc23.1/` (0x5e59c B), SHA-256 `8357544cc5a3a32b7fe88cbaef1f8061d8c4f4890ce9b9d1bf68b2e54e03858d`. Reserva SC23.
+
+### SC22.4 = SC22.3 + **colores distintos y nuevo orden de los pads de la vista Preset de MIDI** — ⏳ pendiente de probar
+- Peticiones del usuario (2026-10-06): colores distintos para el modo de edición de CC, el patch flip y VCA-VCF, y **el mismo** para OSC edit y OSC on/off; orden de los toggles: «CC edit, patch flip, osc on/off, OSC edit, vca-vcf» (pads 25-29). Y, sobre el editor de CC: **los números se enseñan en los 32 pads** al pulsar Tempo / Swing (no hay display aparte).
+- Resultado: pad 25 libre (CC edit, pendiente), **26 patch flip** (SC06 `PF_PAD` = 25, lo pone el builder; colores de stock), **27 oscilador ON/OFF** y **28 OSC edit** (verde, `0x17` / `0x18`), **29 VCA-VCF** (naranja, `0x2B` / `0x2C`; el azul claro `0x13` se parecía al azul grisáceo del patch flip). Paleta: la tabla RGB (en RAM, `0x20003804`) se lee como R = byte 2, G = byte 1, B = byte 0 (confirmado por el `0x13` azul claro).
+- `vcf21.use_colors()`, `vcf21.use_layout()`, `PAD_FLIP`. Pruebas: `tools/emu_sc22_4.py`.
+- Marca `SC22.4`, `firmware/sc22.4/` (0x5e014 B). Reserva SC22.3.
+
+### Estudio: editor de CC de los macros de las pistas MIDI (2026-10-06) — solo análisis, sin build
+- **Correcciones del usuario:** las 8 plantillas MIDI se guardan **en el aparato** (ajustes globales, no en la sesión); Octave ▲ / ▼ están ocupados por la octava del teclado en esa vista → el avance CC → mínimo → máximo se haría con el **botón de la propia pista** (MIDI 1 / MIDI 2), solo hacia delante; caso especial para NRPN.
+- **Formato (confirmado en emulación):** cada plantilla = **0x78 B** (cabecera de 0x28 B + 8 registros de **10 B**, uno por knob): `[0]` tipo / habilitado (1), `[1]`, `[2]` flags (bit 1: invertir), `[3]`, **`[4..5]` parámetro (CC; NRPN / RPN hasta 14 bits)**, **`[6..7]` inicio del rango**, **`[8..9]` fin del rango** (por defecto CC 1, 2, 5, 11, 12, 13, 71, 74 con rango 0-127). Las 8 plantillas están contiguas en RAM (`0x2003D2AC + 0x78 × i` en el volcado) y la plantilla activa de cada pista es `[[sender + 0x10] + 0x2C]` (hoy ambas pistas usan la 0).
+- **Envío:** knob → manejador de macros (`0x0804C062`) → `[obj + 0x10]` → dos thunks `0x0805BFDC` → `0x080313C4(this, knob, valor)`: lee el descriptor `this + 0x1C + 4 k` (parámetro u16, canal, tipo), escala el valor 0..127 al rango `[6..9]` con `0x08037A0A` y lo manda por `0x08040260`, que emite según el tipo (0 = CC; los demás = NRPN con valor de 7 o 14 bits (CC 99 / 98 / 6 / 38) y RPN (101 / 100)). `0x08031420(this)` rehace los 8 descriptores desde la plantilla (se llama al cambiar de plantilla): hay que llamarla tras editar.
+- **Ruta estática hasta los objetos** (los dos están dentro del objeto de ajustes `G = [SETOBJ − 8]`, `SETOBJ` = `0x2003974C`): sender MIDI 1 = `G + 0x110`, MIDI 2 = `G + 0x158`; almacén de plantillas `TS = [SETOBJ − 4] − 4` (`+8` tamaño 0x78, `+0x10` base del array, `+0x14` almacén persistente, **máscara de plantillas sucias en `TS + 0x34`**, 1 bit por plantilla).
+- **Persistencia:** `0x080312E0` recorre las 8 plantillas, y para cada bit sucio llama a `0x08031320(almacén, plantilla, i)` = escritura de 0x78 B con la clave `0x1F + i` (`0x0803C920`, la misma ruta que los ajustes globales). Basta con modificar el registro, llamar a `0x08031420` y poner el bit de la plantilla en la máscara.
+- **Display (aclarado por el usuario):** al pulsar Tempo / Swing los números se dibujan **con los 32 pads** (no hay display aparte); queda localizar el dibujo de dígitos de la vista Tempo (id 0x16) para reutilizarlo. *(Texto anterior:)* el display numérico del tempo. No aparece entre las 69 entradas de LEDs (60 RGB + 9 monocromas, que se convierten en `0x0803423C`), cambiar el BPM no altera el buffer de LEDs, no hay tabla de 7 segmentos estándar en la imagen (8 / 16 bits, directa o invertida), no hay constantes de división por 10 de UI, y la pulsación del botón Tempo / Swing (id 22 → vista 0x16, `0x08045D16` / `0x080458D6`) se desboca en la emulación. Hipótesis: panel con su propio controlador (LEDs por SPI / DMA, probablemente drivers PWM) y los dígitos por otra vía.
+- **Propuesta de flujo:** entrada con un pad nuevo de la vista Preset de MIDI 1 / 2 (pad 29); tocar un knob lo selecciona y enseña su CC (girar lo cambia); el botón de la pista avanza CC → mínimo → máximo → guardar; para NRPN el primer paso se divide en MSB y LSB.
+
+### SC22.3 = SC22.2 + **oscilador v3: morph continuo entre ondas con envolvente / LFO, shape 0-100** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-06): «pwm con rango de 0 a 100; knobs para los sends de LFO a pitch y a la modulación de onda (ancho de pulso, wavefold…); los últimos dos hacen que env y LFO morpheen entre distintas formas de onda». Resultado (asignación final pedida): K1 tono (Shift: fino), K2 shape 0-100, K3 env → tono, K4 env → forma, K5 LFO → tono, K6 LFO → forma, K7 waveshape (morph continuo), K8 LFO → morph (Shift + K8 = env → morph) (`vcf21.KNOB_CODES_B`).
+- **DSP** (`vcf21_dsp.OSC3`, `use_osc3()`): WAVE (0-127) pasa de 4 pasos a una **posición continua** (0 seno, 42 triángulo, 84 sierra, 126 cuadrada; q = WAVE × 0x10410 + ENVM × ENV + LFOM × LV, saturada a 0..1, 3q = i + f → pesos 1 − f / f de las ondas vecinas); en cada muestra se calculan **las cuatro ondas** (wavefold del seno y del triángulo, pendiente de la sierra, umbral de la cuadrada, todo del mismo `m`) y se suman con sus pesos (la fase pasa a la memoria del bloque). Códigos del buzón 22-31 (`and #$1f` es el tope); el programa termina en `P:$3ADD`; coste ≈ 70 instrucciones por muestra y voz con el oscilador encendido.
+- **ARM** (`vcf21.use_osc3()`): 26 códigos por pista (`STRIDE = 26`, `O_RT = 53`, `O_SAVED = 69`, `O_SIG = 70`; 71 de los 75 bytes), los bits de pendiente de los códigos 25 / 26 en los bits 5 / 6 de AUX (los bits 0-4 de AUX son las banderas de ACT / NOTE / VEL / GATE / TRIG y los bits altos estaban libres), PW limitado a 100, WAVE sin vuelta. Firma 0xAC. `bc` en lugar de `b_cond` donde `c_vknob` / `c_vsend` superan el alcance de ±256 B (`thumb.assemble` ahora dice el salto y los operandos al fallar).
+- Pruebas: `tools/emu_sc22_3_dsp.py`, `tools/emu_sc22_3.py`.
+- Marca `SC22.3`, `firmware/sc22.3/` (0x5e018 B). Reserva SC22.2 / SC22.
+
+### SC22.2 = SC22.1 + **oscilador v2: envolvente / LFO a tono y a forma, forma por tipo de onda, pads 27 / 28 cambiados** — ⏳ pendiente de probar
+- Peticiones del usuario (2026-10-06): tono, forma de onda, parámetro de forma, envolvente / LFO al tono y a la forma; «osciladores matemáticos: seno y triángulo = wavefold, sierra = pendiente (logarítmica / recta / parabólica), cuadrada = ancho de pulso»; y «pad 27 abre los controles del oscilador, ¿cómo lo activamos / volvemos a line in? pad 19 o 28»: **pad 27 = página B de los knobs, pad 28 = fuente** (28 es de los pads 27-32 libres y está al lado; el 19 cae en la zona de stock de la vista).
+- **DSP** (`vcf21_dsp.OSC2`, `use_osc2()`): tono = registro en semitonos con 16 bits de fracción, NOTE + TUNE + FINE (±½ st) + ENVP × ENV × 24 + LFOP × LV × 6, interpolado entre los pasos de `TINC` (129 entradas); forma `m` = (PW − 64) / 64 + ENVW × ENV + LFOW × LV (saturando) → parámetro por bloque: seno / triángulo `0,125 + 0,86 max(m, 0)` (deriva / 8 del wavefold: f(p) = 1 − 2 |p − ½| con p = 4 g s envuelto a 24 bits, el desbordamiento hace el módulo), sierra `m` (r + m (r² − r), r = (u + 1) / 2), cuadrada umbral `0,94 m`. Bloque `X:$3900 + 48 t`: +0..7 TUNE, FINE, WAVE, PW, LFOP, ENVP, ENVW, LFOW; +8 fase, +9 incremento, +10 parámetro. Códigos del buzón 22-29. El programa termina en `P:$3AAF`. El centro de SHAPE es la onda limpia (≤ 2 LSB de desviación del seno / triángulo, la sierra exacta).
+- **ARM** (`vcf21.use_osc2()`): pad 27 (`PAD_PAGE = 26`) y 28 (`PAD_OSC = 27`), página B `KNOB_CODES_B = (17, 19, 22, 23, 0…, 18, 20, 21, 24, 0…)` (K1 TUNE / FINE, K2 WAVE / SHAPE, K3 ENVP / LFOP, K4 ENVW / LFOW), 24 valores por pista, máscara de cambios de 8 bits en el tercer byte (`DX_MASK`), firma 0xAB.
+- **Fallo del ensamblador:** `mpy x0,y0,b` (forma larga `0x127ad`) toma `y0` como **sin signo**: usar `mpy y0,x0,b`. SC20-SC22 solo lo usan con `y0 ≥ 0`; **SC22.1 lo usa en el vibrato (LFOP negativo da un tono mal)**, corregido en SC22.2.
+- Pruebas: `tools/emu_sc22_2_dsp.py` y `tools/emu_sc22_2.py`.
+- Marca `SC22.2`, `firmware/sc22.2/` (0x5df4c B). Reserva SC22.1 / SC22.
+
+### SC22.1 = SC22 + **oscilador como fuente del modo VCF / VCA y página de knobs del oscilador** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05, «Continúa con el oscilador, ¿hay knobs sin función shift asignada? Úsalos para pitch y waveshape»): **no queda ningún puesto libre** (K1-K8 con y sin Shift = los 16 códigos del modo), así que el pad 28 de la vista Preset de MIDI 1 / 2 cambia los knobs a una **página B** (K1 TUNE / Shift FINE, K2 WAVE / Shift PW, K3 LFOP) y el pad 27 elige el oscilador como fuente (ACT = 2). Pads 27-32 estaban libres.
+- **DSP** (`vcf21_dsp.OSC`): el oscilador sustituye las muestras del anillo de esa entrada en `vpre` (`channel`, antes del VCA; solo con `RMODE = 0` y `ACT = 2`); incremento por bloque = `TINC[clamp(NOTE + TUNE)]` × (1 + fino / 32 + vibrato / 16) (fino = FINE / 64, vibrato = LFOP / 64 × LV), nivel 0,5; formas: 0 seno (parábola 2 x (1 − |x|)), 1 triángulo, 2 sierra, 3 pulso (umbral (PW − 64) << 16); segundo bloque por voz `X:$3900 + 48 t` (TUNE, FINE, WAVE, PW, LFOP, fase, incremento), códigos del buzón 22-26 (el buzón admite hasta 26; los 17-21 son GATE, NOTE, ACT, VEL, TRIG). `vpre` manda a las voces con oscilador siempre por el anillo y `vret` las salta. El programa termina en `P:$3A35`. Con `VFF` la cadena es VCA → FX → filtro.
+- **ARM** (`vcf21.use_osc()`): valores a 24 códigos por pista (`STRIDE = 24`, códigos 17-21 = TUNE, FINE, WAVE, PW, LFOP; el código del buzón es el guardado + 5), máscara de cambios de 24 bits (`RT_DX`), cola reorganizada (`O_RT = 49`, `O_SAVED = 65`, `O_SIG = 66`; 67 de los 75 bytes), flags: bits 2 / 3 oscilador de MIDI 1 / 2, bits 4 / 5 página B; `c_vflag`, `c_vsetosc` (al encender: GAIN 0, ENVA 63; al apagar: 64 / 0), pads `vp_osc` / `vp_page`, tabla de knobs de 32 bytes (`KNOB_CODES_B`, 0 = sin función → LED apagado). Firma 0xAA.
+- **Arreglo de proceso:** el reordenado VCA → FX → filtro de SC22 se había aplicado a todas las builds de la cadena (SC21.4 ya no cabía: P:$37FE + 3 palabras); ahora es una opción (`vcf21_dsp.VFF`, solo SC22 en adelante) y `verify_builds.py` vuelve a dar ALL IDENTICAL con SC20.1…SC21.4.
+- Pruebas: `tools/emu_sc22_1_dsp.py` (formas de onda bit a bit, tono / fino / vibrato, buzón, `vret`, filtro) y `tools/emu_sc22_1.py` (pads, página B, LEDs, MIDI 2, flujo ARM → DSP, firma).
+- Marca `SC22.1`, `firmware/sc22.1/` (0x5ddc4 B). Reserva SC22.
+
+### SC22 = SC21.4 + **efectos ring mod / comb / chorus, cadena VCA → FX → filtro y envíos K3 bipolares** — ⏳ pendiente de probar
+- Peticiones del usuario (2026-10-05): «Implementa las 3» (oscilador, efectos ring mod / comb / chorus, toggle de reverb / delay por MIDI: aquí solo la segunda), «los knobs amp env y filter env y sus funciones con shift … deben ser bipolares. Por defecto no hay send, hacia la derecha positivo y hacia la izquierda negativo», «pon los efectos antes del filtro» y «¿por qué no VCA → FX → VCF?» (se hizo así).
+- **Memoria de programa:** `build_sc16.CODE_P_END` y `vcf21_dsp.PLIMIT` = `$4000` (SC21D: la RAM llega a `P:$3FFF`). El programa termina en `P:$3915`.
+- **Cadena** (`vcf21_dsp.channel`): VCA (con la saturación de GAIN > 64, que conserva `r0`) → FX → filtro (1 o 2 etapas). Las pruebas fijan el orden bit a bit (`out = SVF(FX(VCA(x)))`).
+- **FX nuevos** (`vcf21_dsp.FXMORE`): tipo 4 ring mod (oscilador «magic circle» s += k c, c −= k s con k = `TF[FXMOD >> 1]`, salida x (1 + m (s − 1)), estado en `X:$3840 + 48 t`); tipo 5 comb (y[n] = (1 − g) x + g y[n − D], g = 0,875 cantidad, D = 255 − 2 FXMOD, búfer circular de 256 palabras en `Y:$3400 + 256 t`); tipo 6 chorus (retardo 281 ± 179 muestras con LFO triangular `TLFO[FXMOD]`, rampa lineal en el bloque, interpolación lineal, mezcla = cantidad / 2, búfer de 512 en `Y:$3600 + 512 t`). Fallos encontrados con las pruebas: la base del comb la pisaba `x1` en el bucle; con `w − D` negativo `and #>$ff,a` deja `a2` = $FF y `move a,r4` satura (se suma 256 antes de enmascarar).
+- **Registros:** `r2` / `r3` / `r4` / `m2` / `m4` se guardan en `SAVX` = `X:$38C0` (32 palabras; RMODE / TCH / RBUF en +28..30). **SC21.4 tenía un fallo latente:** con SLOPES el guardado de `r2` (SAV + 10) coincidía con `RBUF`, que `vret` sobrescribe, así que con un filtro de 24 dB sobre un retorno de FX `r2` volvía mal; SC22 lo evita.
+- **Envíos bipolares** (`vcf21_dsp.BISEND`, `vcf21.BIPOLAR_MASK` con códigos 15 y 12): ENVA se escala `asl #17` con signo, T se recorta a 0 (la envolvente negativa cierra el VCA, no invierte); el tremolo usa |profundidad| y cambia el signo de LV si es negativa. 0 = sin envío (el valor por defecto), 63 ≡ el antiguo 126. Firma del estado 0xA9.
+- **Pendiente (SC22.1 / SC22.2):** variante oscilador del modo (escribir muestras de un oscilador en el anillo, tono por la nota) y toggle de las pistas MIDI para controlar reverb / delay + NRPN propios (MSB ≥ 4).
+- Pruebas: `tools/emu_sc22_dsp.py` y `tools/emu_sc22.py`.
+- Marca `SC22`, `firmware/sc22/` (0x5d844 B). Reserva SC21.4 (o SC21.2).
+
+### SC21.4 = SC21.3 + **filtros paso bajo / paso alto de 12 y 24 dB** en la lista del VCF — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): «Añade a la lista de VCF paso alto y bajo con -12 y -24 dB». Lista de tipos (Shift + K5): 0 DJ, 1 LP 12, 2 HP 12, 3 paso banda, 4 notch, 5 LP 24, 6 HP 24; con los tipos 1-6 K5 es el corte (índice (K5 + 64) >> 1 de la tabla `TF`).
+- **DSP** (`vcf21_dsp.SLOPES`): `FMODE` = el tipo (sin tabla de conversión, así los de 24 dB son los de número ≥ 5); el lazo de paso bajo / alto sirve para 1 y 5 / 2 y 6; tras guardar el estado de la primera etapa, `pe` repite el lazo sobre el bloque si `FMODE ≥ 5` y todavía no se ha hecho (r2 = 0), con `r7` apuntando al estado de la segunda etapa en `X:$3800 + 48 t + 2 c` (= `r7 - (VB0 + 35 - $3800)`, dos palabras por canal; la memoria está en el hueco libre X:$3800–$39FF y la borra `sc_init`); `r2` entra en los registros que `vpre` / `vret` guardan. +30 palabras: el programa termina en **P:$37FE** (2 palabras de margen hasta $3800).
+- **ARM** (`vcf21.FTYPE_N = 7`): el paso del tipo da la vuelta en 7 (el del FX sigue en 4) y el brillo del LED es el tipo × 21; firma del estado 0xA8.
+- Pruebas: `tools/emu_sc21_4_dsp.py` (los modos 1 / 2 con el índice de K5, los de 24 dB bit a bit con las dos etapas y ambos estados arrastrados, la segunda voz, los dos canales del retorno, r2 restaurado, y el resto de la batería de SC21.1) y `tools/emu_sc21_4.py` (ARM: vuelta de los siete tipos, LEDs).
+- Marca `SC21.4`, `firmware/sc21.4/` (0x5d4e0 B). Reserva SC21.3.
+
+### SC21.3 = SC21.2 + **los cuadros de los drums también al principio de la fila** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): «En la pantalla shift+note de los drums, duplica los cuadros drums a la izquierda, al principio de la fila». La vista Note de un drum (vtable `0x0805AD44`, modo 6, un objeto en `[contenedor + 0xAC]` compartido por los cuatro drums) pinta en la fila de abajo los cuatro cuadros de colores de los drums 1-4 en los pads 29-32 (entradas 28-31) y solo esos pads actúan (`pad >= 28` → `[view + 0x10]` slot 0 / 1 con `pad - 0x1B`). Shift + Note da la misma vista (en emulación).
+- `tools/drumnote.py`: slots 0 / 1 reenvían los pads 24-27 como 28-31; slot 7 copia las entradas 28-31 a 24-27 en cada llamada. Sin memoria nueva.
+- Pruebas: `tools/emu_sc21_3.py` (los cuatro drums, colores, pulsar y soltar de los pads 25-28 = los de 29-32 con las mismas llamadas, nada por debajo del 25, SC21.2 los ignora, los demás LEDs).
+- Marca `SC21.3`, `firmware/sc21.3/` (0x5d480 B). Reserva SC21.2.
+
+### SC21.2 = SC21.1 + **parámetros de reverb y delay con Shift + knob en la vista FX** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): tocar los parámetros de reverb / delay, por ejemplo con Shift + knob en la vista FX (confirmó que «Shift + knob no parece hacer nada ahora mismo en esta vista»); alternativa: un toggle para que el secuenciador de las pistas MIDI los controle (queda pendiente; ver abajo).
+- **Datos** (Programmer's Reference Guide v3, «Project Control», canal MIDI 16, y la tabla NRPN del firmware en `0x08057AD6…`): reverb tipo NRPN 1:18 (0-5), decay 1:19 (0-127, def. 64), damping 1:20 (0-127, def. 64); delay time 1:6 (0-127, def. 64), time sync 1:7 (0-35, def. 20), feedback 1:8 (0-127, def. 64), width 1:9 (0-127, def. 127), left-right ratio 1:10 (0-12, def. 4), slew rate 1:11 (0-127, def. 5); FX bypass 1:21 (0-1); envíos CC 88-90 / 106 / 109 / 110 (reverb), 111-116 (delay), audio 31-34. La tabla de registros del firmware (8 bytes: msb, lsb, id, 0, …, máximo) guarda el **máximo desplazado un registro** respecto de la clave (el máximo de la fila n es el del NRPN de la fila n + 1: 5 = tipo, 35 = sync, 12 = ratio, 1 = bypass), lo que hizo falta para leerla bien. Los índices de proyecto tipo `0x20`: reverb 8-10 y delay 19-24, en el orden de los NRPN.
+- **Implementación** (`tools/fxparams.py`, solo ARM): la clase de las dos subvistas de la vista FX (vtable `0x0805AF3C`, `[fx+0xC]` = delay, `[fx+0x10]` = reverb) tiene el knob en el slot 4 (`0x08050830`) y los LEDs en el slot 7 (`0x08047592`); `c_fxknob` (slot 4): con Shift y con la vista FX activa, cada knob mueve el parámetro de la tabla (reverb K1-K3, delay K1-K6; el resto se traga) por `0x08034D92(this + 4, 0x20, índice, valor)`, un paso por clic en los escalonados (máximo < 127) y el delta del giro en los demás, limitado; sin Shift o en otra vista → stock. `c_fxleds` (slot 7): stock y, con Shift, las entradas 16-23 del búfer (los knobs; el búfer de la subvista es persistente) = `color | (brillo + 2) << 8` (el gancho del conversor de `persist19.KNOB_LEVELS`), melocotón 0x6B / crema 0x2A; al soltar Shift o al volver a la vista, `0x0805095A(subvista)` repinta las dos subvistas de stock; el estado «pintado» es el bit 4 del byte 179 del bloque de Master FX.
+- **Alcance**: sin memoria nueva ni cambios del DSP; el código y la tabla son unos 600 bytes de flash.
+- **Pendiente (opción 2):** un toggle en las pistas MIDI para que el secuenciador mueva estos parámetros: habría que interceptar la salida de las plantillas MIDI (`0x0804A356`) en un modo FX y comprobar en emulación que el grabador guarda y reproduce el movimiento de los knobs de plantilla.
+- Pruebas: `tools/emu_sc21_2.py` (por la ruta real del controlador: botón FX, Octave, giros con Shift sobre los nueve parámetros: valor, un paso por clic, límites, el resto de knobs mudos, envíos intactos; sin Shift, los envíos como SC21.1; otra vista; LEDs con Shift, al soltar y tras cambiar de página con Shift pulsado).
+- Marca `SC21.2`, `firmware/sc21.2/` (0x5d44c B, CRC 0xce7dac70). Reserva SC21.1.
+
+### SC21.1 = SC21 sin tilt EQ + **feedback de los retornos de reverb / delay** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): ¿se puede experimentar con el feedback de reverb y delay? «No hay efecto en subir el envío de reverb y delay de los Tracks 3 y 4». Descartar el tilt para hacer sitio; **los sintes siguen leyendo el retorno** (no se tocó la ruta de los sintes).
+- **Causa de que no hubiera feedback (SC10, y por tanto todos los builds):** `premix` (P:$87, desde P:$23C) pone a cero las muestras de las entradas 1 / 2 del anillo cuando el Setup manda el retorno a la tira 3 / 4 (X:$3A00 bit 0 / 1); los buses de envío se construyen con esas entradas (cero), y `returns` suma el retorno ×16 directamente a la mezcla final (X:$20C / $24C), después de los buses. El retorno nunca vuelve a los envíos.
+- **Cambio** (`vcf21_dsp.FB`): (1) `pmfb` (32 palabras, sustituye a `premix` en la cola de `vpre`: `jmp pmfb`) carga en el anillo la captura del bloque anterior (Y:$3AC0 reverb → entrada 1 = pares, Y:$3A80 delay → entrada 2 = impares) en lugar de ceros; guarda y restaura r1 en X:$3BF1; r5 sale como en SC10; (2) el orden de la cadena de P:$D21 pasa a `vret → fx_cap → returns` (el operando del `jsr` de P:$D21 apunta a `vret`, y `vret` acaba en `jmp fx_cap`; antes `fx_cap → vret → returns`), de modo que la captura (`(L + R) << 3` de las salidas Y:$880 / Y:$9C0, el nivel de una línea) es la de los retornos ya procesados por el VCF / FX / VCA de la voz. `fx_cap` usa r0 / r1 / x0 / a / b, libres en P:$D21 según el diseño de SC10; la prueba del DSP ya no exige que `vret` los restaure.
+- **Tilt EQ fuera** (`vcf21_dsp.TILT = False`, `vcf21.FTYPE_N = 3`): sin los dos lazos de tilt ni su rama de control (−63 palabras); los tipos de filtro son DJ, paso banda, notch (el paso por Shift + K5 da la vuelta en 3). Firma del estado 0xA7.
+- **Presupuesto**: programa del DSP **termina en P:$37E0** (SC21: $37FF; margen hasta $3800: 32 palabras); X / Y sin cambios (X:$3BF1 nuevo); pila igual (`emu_sc21_1_dsp`: ≤ SC19.9); coste con las voces apagadas +120 instrucciones por bloque frente a SC19.9.
+- Opciones nuevas (por defecto sin cambios, SC21 idéntico): `vcf21_dsp.TILT`, `FB`; `vcf21.FTYPE_N`; `linein3.SYNTH_RET`, `FX_MODES` (no usadas por SC21.1: quitar la lectura de los sintes habría liberado ~90 palabras más si hiciera falta).
+- Pruebas: `tools/emu_sc21_1_dsp.py` (las de SC21 sin tilt, la captura tras `vret` bit a bit, la captura de los retornos sin procesar con las voces apagadas, sin captura con el flag a 0, el premix para los cuatro valores del flag, r5 / r1 tras el premix) y `tools/emu_sc21_1.py` (ARM: tipo de filtro con vuelta en 3, firma, estado de SC21 reiniciado).
+- Marca `SC21.1`, `firmware/sc21.1/` (0x5d27c B, CRC 0x45407aab). Reserva SC21.
+
+### SC21D (diagnóstico) = SC20D.1 + **sondeo de la memoria de programa del DSP y monitor de NRPN** — ✅ probado en el aparato (2026-10-05)
+- **RESULTADOS (usuario, en el aparato):**
+  - **Página amarilla** (hechos): pads 9, 10, 11, 12 y 22 encendidos → el sondeo se ejecutó; **la RAM de programa del núcleo 0 es escribible en `P:$3800`, `P:$3C00` y `P:$3FFF` y NO en `$4000`, `$5000`, `$6000`, `$7000`, `$7FFF`**; `P:$3800` no valía ni 0 ni `$FFFFFF` (contenido residual, RAM libre porque nuestro cargador no la escribe); `X:$030000` ≠ 0 (la memoria compartida tiene contenido); `ICPR1` = 0; **`ICCR1` ≠ 0** (el puente entre núcleos está configurado).
+  - **Página azul** (OMR, 16 bits bajos): solo el pad 17 = **bit 7 = MS (Master Memory Switch Mode) = 1**, resto 0 (CDP1 / CDP0 = 0, MD..MA = 0). Con MS = 1 el tamaño de la RAM de programa lo fija MSW1:MSW0 (bits 21:20, que el diagnóstico no enseña): 40 / 24 / 16 / 8 K palabras. Una RAM de programa que acaba justo en `$3FFF` es el modo **16 K palabras** (MSW1 = 1, MSW0 = 0; X 24 K, Y 16 K). Pendiente de confirmar leyendo los bits 23:16.
+  - **Monitor de NRPN**: CC 99 = 1 → verde MSB = 1, magenta CC 99 valor 1; CC 98 = 6 → verde LSB = 6, magenta CC 98 valor 6; CC 6 = 100 → magenta CC 6 valor 100 (todo por el canal 1). **El despachador `0x08052854` recibe los CC / NRPN con los mismos números que la guía de Novation**: el gancho vale para NRPN propios (MSB >= 4, libres).
+- **Consecuencias:** el límite que nos habíamos puesto en `P:$3800` no es del chip: **hay 2048 palabras más de programa (P:$3800–$3FFF)**; la fase 2 del VCF (comb, ring mod, chorus, oscilador de las pistas MIDI) cabe de sobra. Habría que subir `build_sc16.CODE_P_END` a `$4000` (el cargador del DSP no impone otro límite conocido: los builds ya cargan hasta `$37FE`). No se debe cambiar el modo de memoria (X / Y de datos ocupan hasta `$3BFF`). La memoria compartida (`X:$030000`) contiene datos y el ICC está activo: no usarlos sin investigarlos; las líneas de retardo del reverb / delay de stock están en memoria externa, es decir, hay SDRAM en el bus (la usa el stock).
+- *(Texto anterior del diagnóstico:)*
+- Petición del usuario (2026-10-05): un build para analizar el DSP (¿más espacio de programa?, ¿segundo núcleo?, ¿memoria externa?) y los NRPN, y saber si tocar eso seguiría siendo reversible. Reversibilidad: no se toca la flash interna ni las option bytes; el programa, la RAM y el estado del núcleo 1 del DSP son volátiles (se borran al apagar); lo único persistente son los ajustes y proyectos (tarjeta SD), que el diagnóstico no guarda. Los niveles de riesgo van de menos a más: solo lectura (OMR, SR, memoria compartida, ICC) → escritura + relectura + restauración de un patrón en `P:$3800…` con las interrupciones enmascaradas → EMC (memoria externa: no incluido, es el único que puede bloquear el núcleo si no hay chip en el bus; se arreglaría apagando).
+- **Hallazgo estático (NRPN, recepción):** el despachador de CC entrantes es `0x08052854(this, canal, cc, valor)` (llamado desde `0x080518A4` con `this = [obj + 0x10]`): trata el CC 6 (data entry MSB) y el 38 (LSB) → `0x08052924`, los 98 / 99 (NRPN LSB / MSB) → `0x080529D2`, los 100 / 101 (RPN) → `0x080529A4`; con el NRPN completo, el data entry baja a la tabla de parámetros. Con la emisión ya conocida (`0x0802A000` → `0x0803BF4C`), añadir NRPN propios = interceptar `0x08052924` cuando el par (MSB, LSB) no sea de stock y llamar al emisor al girar un knob nuestro. Pendiente de confirmar con el monitor en el aparato.
+- **DSP** (`tools/probe21_dsp.py`, 238 palabras, una sola ejecución con el flag X:$3BF0, gancho P:$23C → `pprobe` → `jmp premix`): lee OMR / SR / `X:$030000` / `ICPR1` (`y:$FFFFD1`) / `ICCR1` (`y:$FFFFDA`); escribe `$5A5A5A` en `P:$3800, $3C00, $3FFF, $4000, $5000, $6000, $7000, $7FFF`, lo relee y restaura la palabra (el emulador usa `P:$7000` para su propio código de arranque: esa dirección se excluye de la comprobación de restauración); resultados en `Y:$3B10..$3B18` (el último son los hechos).
+- **ARM** (`tools/probe21.py`): `c_dtick21` (cabeza de la cadena del servicio del DSP, sustituye al medidor de SC20D) pinta las filas 2 / 3 de la vista de la fuente con cuatro páginas de 4 s (hechos en amarillo, OMR en azul, último NRPN en verde, último CC en magenta); `c_nrpnlog` (gancho de 4 bytes en `0x08052854`, ejecuta las instrucciones desplazadas `push {r4, r5, r6, lr}; mov r4, r0` y el cuerpo de stock) anota [CC, valor, MSB, LSB, data, cuenta] en los primeros bytes de la cola de los ajustes.
+- Pruebas: `tools/emu_sc21d.py` (sondeo en el intérprete del DSP, restauración de registros / SR / palabras, una sola ejecución, solo se escriben `Y:$3B10..` y `X:$3BE0..`; monitor con los registros y la pila que recibe el cuerpo de stock; páginas del mostrador y la roja).
+- Marca `SC21D`, `firmware/sc21d/` (0x5bb08 B, CRC 0x843ecefd), PRUEBA con la lectura de las páginas.
+
+### SC21 = SC20.1 + **modo VCF / VCA / FX reordenado, con tipos de filtro, efectos y ganancia** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): reordenar los knobs del modo VCF / VCA según los nombres del panel (K1 OSC … K8 FX), con Shift para la segunda capa; K5 = filtro bipolar y Shift + K5 = tipo (DJ, paso banda, notch, tilt EQ, comb…); K8 = cantidad de un efecto y Shift + K8 = su tipo (suave / dura / plegado / wavefold / ring mod / chorus…); Shift + K7 = parámetro propio del efecto; LFO solo rampa inversa; key tracking al filtro y velocity al VCA siempre activos; K3 = envolvente → amp de 0 a la velocidad; Shift + K6 = Gain (punto medio ×1, a la izquierda cerrado, a la derecha hasta +18 dB con saturación; con Gain = 0 el VCA está cerrado y solo lo abren la envolvente y el LFO).
+- **Qué hay (fase 1, lo que cabe):** `tools/vcf21.py` (ARM) y `tools/vcf21_dsp.py` (DSP), copias de `vcf20*` (SC20 y SC20.1 no cambian); `tools/build_sc21.py` = cadena de SC20.1 con ellos. Los 16 valores guardados conservan sus posiciones y se reinterpretan: 1 FILT, 2 RES, 3 ENVF, 4 LFOF, 5 ATK, 6 DEC, 7 SUS, 8 REL, 9 FXAMT (antes DRIVE), 10 GAIN (antes LEVEL; 64 = ×1), 11 LRATE, 12 LFOV, 13 FXTYPE (antes LSHAPE), 14 FXMOD (antes KEY), 15 ENVA (antes VELE), 16 FTYPE (antes VMODE). El reparto de knobs es la tabla `vcf21.KNOB_CODES` (16 bytes al principio del código; `c_vknob` y `c_vkleds` la leen). Firma del estado = 0xA6 (SC20.1 usaba 0xA5): el estado de SC20 / SC20.1 se reinicia al flashear. La nota inicial es 60 (código 18 enviado en el arranque) para que el key tracking siempre activo no desplace el corte hasta la primera nota.
+- **DSP** (bloque de voz de 48 palabras, X:$3B80 + 48 t; nuevas: `FXP` = 46, `FXB` = 47):
+  - filtro: tipo 0 (DJ) como en SC20; tipos 1 / 2 / 3 = `FMODE` 3 / 4 / 5-6 (paso banda `2·banda`, notch `2·(bajo + alto)`, tilt graves `2·bajo + alto` o agudos `bajo + 2·alto` según el signo de FILT, corte fijo = índice 32); FILT -64..63 → índice (FILT + 64) >> 1 en paso banda / notch; la envolvente, el LFO y el key tracking (`KEYK` = 32 pasos por 128 unidades de nota) se suman al índice en todos los tipos; un lazo de SVF por modo (seis);
+  - LFO: solo rampa inversa (`LV = -PH`);
+  - FX: un lazo antes del VCA (`u = x·(1 + 16·cantidad)` limitado); tipo 0 suave = techo `FXP` + cúbica, 1 dura = recorte a ±`FXP`, 2 plegado = reflexión en `FXP`, 3 wavefold = bias `FXB` + reflexión en 0,5; `FXP` = 0,25 + 0,75·mod (mod 0..127); wavefold: `FXB` = (mod - 64) << 16;
+  - VCA: objetivo `T` (unidad = $100000, fondo de escala = ×8): GAIN < 64 → GAIN << 14; GAIN ≥ 64 → $100000 + 7·(GAIN - 64) << 14 (≈ ×7,9 = +18 dB); más ENVA·ENV·velocidad/8; por el trémolo; el lazo multiplica por `T` y por 8 (limitado); con GAIN > 64 un lazo extra aplica la saturación cúbica; `VCAON` = ENVA ≠ 0, LFOV ≠ 0 o GAIN ≠ 64 (si no, bypass exacto).
+- **Presupuesto**: programa del DSP 14335 palabras, **termina en P:$37FF** (SC20.1: $3788; margen hasta $3800: 1 palabra; el comb, el ring mod y el chorus necesitan la fase 2 con más espacio o con tablas comprimidas); memoria X / Y y pila sin cambios (pila 6); coste con las dos voces apagadas +118 instrucciones por bloque frente a SC19.9, con las dos encendidas (filtro + FX + VCA + LFO) ≈ +4000. ARM: sin RAM nueva.
+- Pruebas: `tools/emu_sc21_dsp.py` (bit a bit: leyes del índice, los cuatro tipos de SVF nuevos, los cuatro efectos, ganancia, envolvente → VCA, LFO, trémolo, buzón, retornos, pila y coste) y `tools/emu_sc21.py` (ARM por la ruta real: reparto de knobs con y sin Shift, rangos, pasos con vuelta, LEDs por valor, notas, mensajes por tick, firma del estado, extremo a extremo hacia el DSP); `tools/emu_sc20_1.py` también corre sobre SC21.
+- Marca `SC21`, `firmware/sc21/` (0x5d2c8 B, CRC 0x3be5c285). Reserva SC20.1.
+
+### SC20.1 = SC20 + **escala en tres filas, Pitch como sesgo en la vista cromática y Clear en los knobs de drums** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): (1) en modo escala la fila superior repite siempre el tono máximo → solo las tres filas de abajo, sin Octave en esa vista; el cromático se queda en dos tiras (cuatro filas); (2) el knob 1 (oscillator / pitch) debe sumar un sesgo continuo a la nota, con 127 como tope y 0 como mínimo; (3) los knobs nuevos de drums perdieron la función Clear.
+- **Escala en tres filas** (`build_sc08.ROWS3`): en `c_padval`, en el teclado de escala (no el cromático), la fila 3 contando desde abajo devuelve «sin uso» (0xFF): sin tono y sin LED (`c_dpad` y `c_dleds` ya trataban 0xFF como pad apagado). El Octave no hace nada en la vista Preset de drums de stock (`0x080436EC` llama al slot 9 del objeto de la pista y no cambia ni un byte; el dump emulado no explica el desplazamiento que ve el usuario, que se atribuye al tope del parámetro Pitch).
+- **Pitch como sesgo** (`build_sc12.SWAP`): `c_dknob3` decidía por Shift entre la afinación en cents (sin Shift) y el sesgo de semitonos de SC11 (con Shift); con `SWAP` es al revés. El sesgo ya lo sumaba `c_dpad2` y limitaba el resultado a 0..127. Fuera de la vista cromática K1 sigue siendo el pitch de stock.
+- **Clear** (`persist19.CLEAR`; necesita `REMAP`, `KNOB_LEVELS` y `EXTRAS`): el manejador de stock `0x0804FCC4` ya implementa Clear para sus 4 macros (con el almacén `[obj+0x1C]` bit 0 = Clear pulsado; 40 pasos a la izquierda llaman a `0x0803C68C` y ponen el LED 0x53 rojo, 40 a la derecha dan el valor por defecto y el LED 0x46 azul; contadores `[obj+0x36+sb]` / `[obj+0x3A+sb]`), pero escribía el LED en el índice del macro, no en la posición del knob remapeado, y los knobs nuestros no pasaban por él.
+  - Knobs de stock (K1, K3, K5, K8): sin cambios funcionales; `c_mhleds19` lee los contadores (0x28) y pone el LED rojo / azul en la posición correcta (`ml_clr`, posiciones 0 / 2 / 7 / 4 para los macros 0 / 1 / 2 / 3). Con Clear pulsado, el valor extendido (start point / bitcrush) se salta para que Clear llegue al stock.
+  - Knobs nuestros (K2, K4, K6, K7, las capas con Shift y el tipo de distorsión): derecha = valor por defecto inmediato (el bit 7 de la extensión y los bits superiores del modo de filtro se conservan) + bit sucio + LED azul; izquierda = LED rojo (no hay automatización grabada que borrar). Estado del LED en `[obj+0x3F]` bits 3-7 (bit 3 = hay LED, bit 4 = azul, bits 5-7 = posición; los bits 0-2 siguen siendo los sucios de los códigos 8-10 y el tick los conserva); se borra en cuanto Clear se suelta.
+- Pruebas: `tools/emu_sc20_1.py` (escala / cromático contra el modelo de SC08 con 16 escalas x 3 raíces x 32 pads, LEDs, pads de la fila superior, sesgo + límites 0..127, cents con Shift, Clear con el botón 23 por la ruta real del controlador, LEDs rojo / azul de los knobs de stock y nuestros).
+- **Pad 7 de Master FX en amarillo** (petición posterior): `build_sc17.JMP_ON / JMP_OFF = 0x2D / 0x2E` (la tabla RGB de `0x0803423C` guarda los canales como R en el byte 2, G en el 1, B en el 0: 0x2D = 255, 255, 25; 0x2E = 41, 41, 4). **Aviso de colores:** los códigos que se creían «amarillo» (0x13 / 0x14, pad 26 de VCF) son (68, 221, 255), azul claro, y así se ven en el aparato; con el orden de canales corregido, los amarillos de la paleta son 0x2D, 0x2F, 0x9B, 0xB7 (y los tenues 0x2E, 0x30). El pad 7 parpadeaba con el blanco tenue 0x03; no se explica por el código (`c_jmpled` escribe solo la entrada 6, igual que `c_clrled` la 7, que no parpadea).
+- **Cabezal del song pointer solo con el transporte en marcha** (`build_sc17.SP_PLAY`, `PLAY_STORE = 0x20011034`): el pad brillante permanente de la vista del song pointer era el cabezal de `c_sppos`, que leía `[motor + 0x28]` p0 (en emulación nunca cambia al pulsar Play) y daba «en marcha» con el secuenciador parado. Pulsar Play (id 17) escribe el elemento 0 del almacén `0x20011034` (= `[manejador de macros + 0x28]`): 1 / 0 alternando en cada pulsación (comprobado en emulación por la ruta del controlador). El harness (`emu_sc17_7.running`) escribe ambos almacenes.
+- **Estado del VCF con firma** (`vcf20.SIGNED`, byte +50 de la cola = 0xA5): el estado de SC20 se leía como «inicializado» con solo el bit 7 de los flags; una cola con basura o 0xFF dejaba ambos modos encendidos con valores arbitrarios (nivel -1, modo del VCA, etc.), que silenciaría las entradas. Sin firma se reinicia (valores por defecto, modos apagados).
+- **Cargador web (`tools/ct_uploader.html`), cuelgue al reiniciarse el aparato** (informe del usuario, 2026-10-05): ya no se toca ningún puerto desaparecido (`closePort` no llama a `clear()` / `close()` si `state === "disconnected"`), la apertura de los puertos tiene un tiempo máximo de 6 s (`openPorts`; antes una promesa que nunca se resolvía dejaba la página esperando), los eventos de cambio de estado se agrupan 400 ms y, tras un envío correcto (estado 127) o si los puertos desaparecen a mitad de la transferencia, la página suelta el `MIDIAccess` entero (`dropMidi`) y pide pulsar «Permitir acceso MIDI» cuando el aparato haya arrancado (el permiso se conserva). El cuelgue ocurre al **recargar la página** (aclaración del usuario): por eso, además, al desaparecer cualquier puerto «Circuit Tracks» estando la página en reposo se suelta el `MIDIAccess` (un `MIDIAccess` que conserva los puertos de un aparato que se fue es lo que cuelga Chrome al recargar o cerrar) y `pagehide` no espera a nada. No se ha podido reproducir sin el aparato: solo se comprobó que la página carga y define las funciones.
+- **SC20.2** (`tools/build_sc20_2.py`, `firmware/sc20.2/`): SC19.9 + estos cambios sin ningún código del VCF, para aislar el informe «las entradas de audio externas no funcionan en SC20» (ver su `PRUEBA.md`).
+- Marca `SC20.1`, `tools/build_sc20_1.py`, `firmware/sc20.1/` (0x5d13c B, CRC 0x1926a8d8). Reserva SC20.
+
+### SC20 = SC19.9 + **VCF / VCA en las entradas de audio de las pistas MIDI** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-05): «modo VCA/VCF en tracks line in: se activa por toggle pad siguiente a patch flip en vista midi1/2 preset; toma la entrada de audio seleccionada (reverb/delay o line 1/2); los knobs permiten modulación y ajuste, el secuenciador dispara el gate del envelope, además de enviar MIDI de forma normal; sidechain / volumen del mixer principal aplican después del procesado». Implementa la fase 1 del estudio «VCA con saturación + VCF bipolar» (más abajo, con sus decisiones), sin la fase de diagnóstico: SC20D.1 ya había demostrado el camino de captura y los mensajes.
+- **Qué es:** `tools/vcf20.py` (ARM) y `tools/vcf20_dsp.py` (DSP); `tools/build_sc20.py` = SC19.9 + `vcf20_dsp.install_dsp` / `patch_dsp` + `vcf20.install`; `firmware/sc20/`, 0x5cfc0 B, CRC 0xd3c8e5cc.
+- **DSP** (núcleo 0, voz = bloque de 48 palabras en X:$3B80 + 48 t, t = 0 / 1 = MIDI 1 / MIDI 2):
+  - `vpre` en **P:$23C** (la `jsr premix` de SC10 pasa a `jsr vpre`; `vpre` acaba con `jmp premix`, es decir, la misma profundidad de pila): buzón → control de cada voz activa → proceso **en el sitio** del anillo de entrada (`y:$FFD`, tramas [in1, in2], misma convención que `premix`) para las voces cuya tira no toma un retorno de FX;
+  - `vret` encadenado al final de `fx_cap` (el `jmp $9F` final de `fx_cap` pasa a `jmp vret`, y `vret` acaba en `jmp $9F`): procesa Y:$880 (retorno de reverb → MIDI 1) / Y:$9C0 (delay → MIDI 2) de las voces cuya tira los toma (X:$3A00 bit 0 / 1), L y R con estados de filtro separados. La captura de `fx_cap` (fuente de los sintes) ocurre antes: los sintes oyen la señal limpia;
+  - `vchan`: una sola copia del canal para las dos rutas (`RMODE` decide a dónde vuelve): SVF de Chamberlin LP / HP idéntico al de los drums de SC18.1 (mismas tablas `TF`, `QK` / `Q0`), drive `u = x (1 + 16 d)` + saturación `y = u + (u − u³) / 2` (solo con drive > 0), VCA con rampa lineal de ganancia por muestra (la ganancia del bloque anterior → la nueva; solo si el VCA está activo); con los valores por defecto ni el filtro ni el drive ni el VCA actúan (bypass exacto);
+  - control por bloque: envolvente ADSR (ataque con `TATK`, decaimiento hacia el sostenido y relajación con `TDEC`; ataque 0 = salto), LFO (`TLFO`; triángulo / cuadrada / sierra / sierra inversa), índice del filtro = FILT (LP a la izquierda: FILT + 64, HP a la derecha: FILT, zona muerta ±2 = bypass) + ENVF × ENV + LFOF × LFO + KEY × (nota − 60) / 128, recortado a 0..63; nivel × (velocidad) × (envolvente en modo puerta) × (trémolo);
+  - buzón: palabra `tag << 23 | código << 16 | valor16` en X:VB(t) + 0, el tag cambia con cada mensaje; códigos 1..16 = los 16 valores, 17 puerta, 18 nota, 19 activación, 20 velocidad, 21 disparo;
+  - registros: se guardan en X:$3BE0.. y se restauran (x0, x1, y0, y1, r0, r1, r6, r7, n0, m0); memoria nueva X:$3B80..$3BFF (`sc_init` la limpia); programa hasta P:$3788 (límite $3800).
+- **ARM:**
+  - pad 26 (índice 25) de la vista Preset (plantilla) de MIDI 1 / 2: gancho `b.w` del pad de SC06 en `0x0804D59E` (`c_vpad`), LED por el slot 7 de la vista (`c_vleds` llama al `c_tleds` de SC06 y pinta el pad: códigos 0x13 / 0x14, que en el aparato se ven **azules**); excluyente con el patch flip (pulsar el patch flip para encenderlo apaga el modo; encender el modo apaga el flip: bit 26 + pista del parámetro 2 de los ajustes, con `COMMIT` como SC06); error encontrado por la prueba: `c_tpad` quiere la vista en r0;
+  - knobs y LEDs: slots 4 / 7 de la clase `0x0805AC64` (los gestores de macros de las pistas 0–3): para las pistas 2 / 3 con el modo encendido los 8 knobs cambian los 16 valores (rangos: bipolar −64..63 FILT / ENVF / LFOF / KEY, unipolar 0..127, forma 0..3 con vuelta, modo del VCA 0 / 1), y los LEDs llevan el color de la pista (naranja / violeta) con el brillo de cada valor (byte alto del código del LED, el gancho del conversor de `persist19.KNOB_LEVELS`); con el modo apagado, de stock;
+  - notas: los envoltorios de la vtable de notas (`0x08059FC4` / `C8`, antes los de SC06) cuentan las notas pulsadas de la pista, guardan nota y velocidad y marcan NOTA / VEL / PUERTA / DISPARO, y llaman a SC06 con los mismos registros (el MIDI sale como siempre);
+  - cadena del servicio del DSP: `c_vtick` va delante de `c_dtick19` (`emu_sc19.py` lo sigue) y manda un mensaje por voz y tick con prioridad activación > nota > velocidad > puerta > disparo > valores sucios (el menos significativo primero); al arrancar (bit 3 del byte 179 del bloque de Master FX = «inicializado en esta sesión»; el bloque se pone a 0 al crearse) pone los valores por defecto si el registro no tiene la marca (bit 7) y lo manda todo;
+  - **estado**: 49 de los 75 bytes finales del registro de ajustes globales (`0x2003974C + 0x3D`, dentro de los 0x80 bytes que guarda `0x0802D2AC`): +0 flags (bit 0 / 1 = MIDI 1 / 2 encendida, bit 7 = inicializado), +1..16 y +17..32 los valores, +33 / +41 bloques volátiles de 8 B (notas pulsadas, nota, velocidad, aux, bits sucios, etiqueta), +49 hora del último guardado; guardado con el `0x0802D2AC` de stock desde los manejadores de knob / pad (la hebra de UI, como el listener de stock), con un mínimo de 0,7 s entre guardados al girar: lo último movido justo antes de apagar puede no guardarse; sin RAM nueva (la reserva sigue en 220 B).
+- **Pruebas** (todo pasa): `tools/emu_sc20_dsp.py` y `tools/emu_sc20.py` (incluye una prueba de punta a punta: los mensajes que manda el ARM en una sesión, reproducidos en el programa real del DSP, dejan el bloque de la voz igual que los bytes del registro), más la batería de SC19.9 sobre esta imagen. Coste medido en el DSP con ambas voces encendidas (VCF + drive + VCA + LFO): **+2 682 instrucciones por bloque (1,6 % de las ~166 000)**, con las voces apagadas +118; pila 6 (igual que SC19.9).
+- **Aún no probado en el aparato.** Puntos de riesgo: el proceso en el sitio con `m0` lineal (el mismo supuesto que `premix`); que la escritura del registro de ajustes desde la hebra de UI no bloquee (el stock lo hace desde un listener); la latencia de la puerta (un mensaje por tick del servicio); clics al mover los mandos (el coeficiente del filtro cambia por bloques sin suavizar).
+
+#### Presupuesto de recursos tras SC20 (para decidir qué más cabe)
+| Recurso | Límite | Usado (SC20) | Libre | Comentario |
+|---|---|---|---|---|
+| **Programa del DSP (P)** | $3800 (límite adoptado; la RAM de programa sería $4000, sin comprobar) | hasta $3788 | **~120 palabras** (hasta $3800) | **el recurso más escaso**. Se podría ganar sitio: las tablas suman 657 palabras (`TATK` repite 64 ceros, `TCOMB` solo sirve al comb, `TF` / `TLFO` se podrían calcular) → ~100–150 palabras; y comprobar en el aparato si P:$3800–$3FFF existe (una sonda de diagnóstico lo diría: ~2 000 palabras más) |
+| **Datos del DSP X** | $3339–$3BFF | $3400–$37FF comb, $3A00–$3B7F Master FX / drums, $3B80–$3BFF voces | **X:$3339–$33FF (199) y X:$3800–$39FF (512)** | |
+| **Datos del DSP Y** | $3339–$3BFF | $3A00–$3AFF entradas de línea / capturas | **Y:$3339–$39FF (~1 700) y Y:$3B00–$3BFF (256)** | los búferes de audio (retardos, inversores, loopers) van aquí: p. ej. un búfer de 1 024 muestras de un Beat Repeat / Reverser cabe |
+| **CPU del DSP** | ~166 000 instrucciones por bloque | ~54 200 (SC19.9) + 118 (SC20 apagado) + 2 700 (dos voces) | **~100 000+ (≈60 %)** | las dos voces cuestan 1,6 %; los drums con todo encendido ~+10 000 |
+| **Pila del DSP** | 15 niveles | 6 | ~8 | no anidar `jsr` / `do` nuevos sobre los de stock (SC13) |
+| **Flash de la aplicación** | 0x70000 B | 0x5cfc0 B | **~77888 B (~76 KB)** | bastante |
+| **RAM del ARM** | reserva de 220 B bajo el heap | 220 B | **~20 B de margen** | SC20 no usa RAM nueva; cualquier estado nuevo debe ir a los registros guardados o a bits libres |
+| **Guardado por proyecto** | 65 B reservados | 65 / 65 | **unos 7 bits** (byte 8 de los drums 2 y 3: bit 7 y el 6 del 3; los bits de la pendiente sin usar) + 2 bits en XM[64] + el byte 43 de los drums (sin comprobar) | los valores de la VCF no caben aquí (32 B): van a los ajustes globales |
+| **Guardado global (ajustes)** | 75 B finales del registro | 49 B (VCF) | **26 B** | valores del equipo; el parámetro 2 de los ajustes tiene los bits 30 / 31 sin confirmar |
+| **Buzón ARM → DSP** | un mensaje por voz / drum por tick | 2 drums… + 2 voces | — | la tasa depende del periodo del tick del servicio (sin medir); la puerta usa 4 mensajes por nota (nota, velocidad, puerta, disparo) |
+| **Interfaz** | | pad 26 de MIDI Preset; 8 knobs × 2 capas | **pads 27–32 de MIDI Preset libres; Shift + pads de varias vistas; pads libres de Setup** | |
+- **Qué cabe con esos números:** *cabe sin problema de CPU / memoria de datos*: más voces o más efectos «de bloque» (un segundo filtro en cascada para 24 dB en las voces: ~60 palabras de programa; un phaser / chorus / flanger mono con un búfer en Y: ~150 palabras de programa y 512 de Y), envolventes / LFOs extra, S&H, seguimiento del tempo del LFO. *Cabe con ajuste*: compresor / ducker por voz (~100 palabras), distorsión por tablas (más tipos que los 4 de los drums). *Limitado por el programa del DSP*: casi cualquier idea nueva de más de ~100 palabras exige antes liberar las tablas o comprobar P:$3800+; *limitado por el guardado por proyecto*: valores nuevos por proyecto (solo ~7 bits). *Limitado por el audio*: Beat Repeat / Reverser necesitan un búfer largo (Y libre ~2 000 palabras = 40 ms a 48 kHz: sirve para repeticiones muy cortas, no para compases; la memoria externa sigue por investigar).
+
+### SC19.8 / SC19.9 = **knobs de drums según las etiquetas del panel**, **tipo de distorsión** y **pendiente del filtro** — ⏳ pendientes de probar
+- Petición del usuario (2026-10-04): reasignar los knobs de drums siguiendo las etiquetas del panel (K1 Oscillator (pitch), K2 Osc mod, K3 Amp envelope, K4 Filter envelope, K5 Filter frequency, K6 Resonance, K7 Modulation, K8 FX), sin alterar los proyectos guardados ni el MIDI: «al recibir el CC pitch sigue siendo pitch, y al mover el knob 1 se envía el CC pitch; el MIDI no sigue el knob sino el valor del parámetro».
+- **SC19.8 = SC19.7 + `persist19.REMAP`** (`tools/build_sc19_8.py`; `firmware/sc19.8/`, 0x5bb80 B, CRC 0x7f933d17):
+  - **Stock:** los parámetros de stock no se tocan: `c_dk19` llama al manejador de stock (`c_dknob3`) con el índice de knob de stock del parámetro (pitch 1, decay 3, distorsión 5, EQ 7) desde el knob físico nuevo (`REMAP_PLAIN_STOCK` = K1 → 1, K3 → 3, K5 → 7, K8 → 5). El parámetro, su valor guardado y su MIDI (el MIDI sale del parámetro) son los de stock; los extendidos (start point en el decay, bitcrush en la distorsión) cuentan en K3 / K8 como antes en K4 / K6.
+  - **Nuestras funciones** (`REMAP_PLAIN`, `REMAP_SHIFT`): K2 = ring mod (Shift: cantidad), K4 = envolvente → corte (Shift: forma de la envolvente), K5 + Shift = modo de filtro, K6 = resonancia, K7 = LFO (Shift: velocidad), K1 + Shift = envolvente de tono; en la vista cromática Shift + K1 sigue siendo el sesgo de semitonos de SC11 (manejador de stock).
+  - **Guardado:** los bytes reservados van indexados por código de función (no por posición de knob), así que los proyectos guardados con SC19.4–SC19.7 cargan igual.
+  - **LEDs:** los códigos dinámicos de stock (0xE1 + 4 d + i) se reescriben en cada consulta en la posición del knob de su parámetro (el búfer del manejador es persistente: lo primero que se probó, mover los códigos leyéndolos del búfer, se corrompía en la segunda consulta); los nuestros llevan el color del drum + brillo de su valor (con Shift, el de la segunda capa).
+  - Prueba `tools/emu_sc19_8.py`: ruta real de los knobs; cada knob de stock da las mismas escrituras de parámetro (`0x08031A98`) que el knob de SC19.7 del mismo parámetro (= lo que sigue el MIDI), cada uno nuestro cambia solo el byte de su código, los extendidos, los LEDs y una segunda consulta idéntica; `emu_sc19.py` traduce las posiciones de SC19.7 a las nuevas (`E19.OLD2NEW`).
+- **SC19.9 = SC19.8 + `persist19.EXTRAS` + `drums2_dsp.XTRA` + `build_sc17.KNOB_BRIGHT` + `JUMP_HOLD`** (`tools/build_sc19_9.py`; `firmware/sc19.9/`, 0x5bee0 B, CRC 0x6f22b3c3):
+  - petición: «filtro: caída 6 / 12 / 18 / 24 dB (Shift + Reso) y tipo de distorsión (Shift + FX); si la pendiente no es viable, pre-filter drive»; la pendiente cupo (12 / 24 dB) pero el usuario la **descartó** después («Descarta pendiente del filtro»);
+  - **Tipo de distorsión** (Shift + K8: stock / suave / dura / plegada, 2 bits): un saturador después de la distorsión de stock en `dstage`, con el empuje u = x (1 + 8 d), d = el valor suavizado de la distorsión de stock (`x:(r4 + 3)`, X:$A6 + 10 voz, 0..1): 1 suave (u limitado, y = u + (u − u³) / 2), 2 dura (el limitador de la lectura del acumulador), 3 plegada (triángulo en ±1, 3 pasadas);
+  - **Pendiente del filtro: construida y descartada por el usuario.** El SVF de los modos 1–4 pasaba dos veces (la segunda con su estado en LOW2 / BAND2, intercambiado con LOW / BAND durante la pasada); medido: 12 dB por octava y el doble con 24 dB, bit a bit. Queda como opción desactivada (`persist19.EXTRAS_SLOPE`, `drums2_dsp.SLOPE_PASS`; sus pruebas corren si el manifiesto trae `extras_slope`);
+  - **Salto de paso por pad pulsado** (`build_sc17.JUMP_HOLD`, petición del usuario: «al tocar pad 7 (mantenido o con Shift): selecciona un paso; el siguiente step que se reproduzca será ese; repite el paso mientras el pad 1–16 permanece pulsado; deja de repetir al soltar»): `S_JT` = paso en los bits 0–4, bit 6 = su pad está pulsado, bit 7 = ya saltó una vez; `c_sp_press` (con el modo del pad 7 activo) escribe paso | 0x40; `c_sptick` salta al primer tick del siguiente paso y, si el bit 6 sigue puesto, deja el objetivo con el bit 7 (si no, lo borra: salto único); `c_sp_rel` (el pad del paso objetivo suelto) borra todo si ya había saltado, o solo el bit 6 si el salto aún no se hizo; la repetición ya no depende del pad 7 (SC19.7 / SC19.8 conservan la variante anterior, `JUMP_REPEAT`);
+  - **Almacenamiento:** 3 bits por drum en bits de reserva del byte 8 de los drums (`XT_BITS`; los de drum 0 en el byte 8 de los drums 1 y 2 porque el suyo lleva la firma; el byte 43 del almacén de drums sigue sin usarse: su supervivencia nunca se comprobó); un proyecto anterior lee 0 = comportamiento de antes. Viaja al DSP en los bits 8–10 de la palabra de valores extendidos (`dt_ext`: `c_dext_get | c_xt_get << 8`), que el DSP ya recibía con cada marca de código 10; `dctl` saca TYPE y SLOPE de ahí;
+  - **LEDs:** Shift + K6 enseña la pendiente (0 / 127), Shift + K8 el tipo (0 / 42 / 84 / 126);
+  - **Master FX con brillo por valor** (`build_sc17.KNOB_BRIGHT`, petición del usuario): `c_gleds` escribe en los LEDs de knob del efecto elegido `color | (valor + 2) << 8` con el valor del byte del conjunto de parámetros (`S_KNOB + 4 × SETMAP[pad] + k`), y el gancho del conversor de `persist19.KNOB_LEVELS` lo recoge; `emu_sc17.py` comprueba los LEDs con los valores por defecto;
+  - ⚠️ error corregido por las pruebas: `mpy y1,x0,b` **no es un par legal** del DSP56300 (los pares son x0,x0 / y0,y0 / x1,x0 / y1,y0 / x0,y1 / y0,x0 / x1,y0 / y1,x1) y el ensamblador lo codifica sin avisar como otra cosa (resultado sin signo): usar `mpy x0,y1,b`;
+  - pruebas: `tools/emu_sc19_9_dsp.py` (bit a bit: tipos, pendiente, `dctl`, idéntico a SC19.8 con todo a 0; coste +44 instrucciones por bloque, pila igual; un paso bajo a 2 / 4 / 8 kHz atenúa 12,4 / 24 / 36 dB con 12 dB y 24,8 / 48 / 70 dB con 24 dB) y `tools/emu_sc19_9.py` (giros, bits, mensaje del tick, guardar → borrar → cargar, LEDs);
+  - programa del núcleo 0: ver el manifiesto (límite $3800).
+
+### SC19.7 = SC19.6 + **salto instantáneo del song pointer en blanco y con repetición del paso** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-04): «en el modo instant trigger de song pointer, pon el pad de activación de color blanco. Si el pad de activación se mantiene pulsado o toggleado, después del salto repite el mismo step hasta que se suelte / togglee el pad».
+- El «modo instant trigger» es el modo de salto de SC18.1 (pad 7 de Master FX; mantenido = momentáneo, Shift + pad 7 = fijado): tocar un paso del song pointer (pads 9–24) lo pone como objetivo y `c_sptick` salta a él en el primer tick del siguiente paso.
+- **Pad 7:** `build_sc17.JMP_OFF` / `JMP_ON` = códigos 3 (74, 74, 74) / 1 (255, 255, 255) de la tabla RGB del conversor de colores (ver SC19.6) en `c_jmpled`; antes llevaba los colores del song pointer.
+- **Repetición:** el byte `S_JT` (bloque de Master FX, +178) guarda el objetivo en los bits 0–4 y el bit 7 = «repitiendo»; `S_JF` (+177: bit 0 mantenido, bit 1 fijado) no cambia. En `c_sptick`, al primer tick de cada paso:
+  - con `S_JT` activo y el bit 7 puesto, si `S_JF` es 0 se borra `S_JT` y no hay salto (la repetición termina en cuanto se suelta o se apaga: el borrado se hace en cualquier tick, no hace falta esperar al límite de paso);
+  - si no, se salta al objetivo como antes y, si `S_JF` sigue activo, `S_JT` queda como objetivo | 0x80; si no, se borra (salto único: un toque que termina antes del cambio de paso salta una vez, como en SC19.6);
+  - un paso nuevo mientras se repite (`c_sp_press` escribe `S_JT = paso`, bit 7 a 0) mueve el objetivo; el pad 8 (`c_clrall`) borra `S_JF` y `S_JT`.
+- Opciones `build_sc17.use_jump(repeat=False, white=False)`: los builds anteriores no cambian (`verify_builds`: ALL IDENTICAL). `tools/build_sc19_7.py` = SC19.6 + `use_jump(repeat=True, white=True)`; `firmware/sc19.7/`, 0x5ba98 B, CRC 0xe2408d6b.
+- Prueba `tools/emu_sc19_7.py` (ruta real): LED y pads como SC19.6 salvo el pad 7; mantenido + paso 9 → 21, 22, 23, 48..53, 48..53, 48..53 con tres llamadas al «set ticks» de stock; suelta en mitad de una pasada → sigue 51, 52, 53, 54… sin saltos; fijado repite hasta apagarlo (Shift + pad 7); paso nuevo, pad 8, toque corto, sin modo (21, 22, 23…) y marca de repetición suelta con el modo apagado. Los arneses `emu_sc17.py` / `emu_sc17_8.py` conocen la marca y el pad 7 blanco.
+- ⚠️ **Por comprobar en el aparato:** cada repetición es el «fijar posición» de stock (escribe los ticks y reinicia la posición de todas las pistas, `0x0802C008`) a cada paso: notas cortadas o colgadas al repetir, y pistas de distinta longitud (ya pendiente desde SC17.7).
+
+### SC19.4 / SC19.5 / SC19.6 = **los ajustes guardados vuelven**, **retornos de FX del Setup en el sinte** y **brillo de los knobs nuevos de drums** — ⏳ pendientes de probar
+- **Síntoma (usuario, SC19.3):** arranca, pero tras guardar → apagar → cargar «nada se ha guardado», y tampoco al cambiar entre sesiones; en vivo funcionaban los knobs de los drums, las asignaciones de Master FX y la vista de la fuente.
+SC19.3 arrancó bien, pero **nada de lo guardado volvía** (tampoco al cambiar de sesión). Había dos causas, comprobadas con el código real de stock en emulación (`tools/emu_sc19_4.py`):
+
+1. **Al cargar un proyecto, el stock no restaura los bytes reservados de los sintes** cuando el parche del proyecto es el mismo que ya está cargado (en `0x0802EEFE`, los bytes de bandera de `0x0802F172` / `0x0802F19E` deciden: mismo parche → solo 6 parámetros; parche distinto → el blob entero). 44 de los 65 bytes que guardamos viven en los blobs de los sintes, **entre ellos la firma**: sin firma, el trabajo de arranque daba la zona por vacía y la borraba. Los blobs de los drums y del proyecto sí se restauran siempre. **Arreglo (`persist19.REC_RESTORE`):** tras cada carga, los 65 bytes se copian del **registro de sesión** (`[0x2003D71C + 0x14]` + `REC_BASE[almacén]` + desplazamiento: el búfer que el stock llenó desde el fichero) a los almacenes vivos, antes de comprobar la firma.
+2. **Cambiar el parche de un sinte reescribe su blob entero** (la copia de `0x0803BBE2`, vtable de los almacenes, slot 3; por ejemplo el «recargar parche» `0x0802FC82`), con ceros en nuestras posiciones: se perdía parte del estado de los drums (que vive en esos bytes) y las asignaciones. **Arreglo (`persist19.BLOB_KEEP`):** el slot 3 de la vtable apunta a un envoltorio que guarda nuestros 22 bytes del almacén de ese sinte, deja que el stock copie y los restaura.
+- **Dato que corrige una suposición:** las sondas SC182D / SC183D solo marcaron bytes reservados de los **drums** (los 15 pads): ahí la supervivencia está probada en el aparato; los bytes de los sintes y del proyecto no se habían comprobado.
+- **SC19.4** = SC19.3 + `REC_RESTORE` + `BLOB_KEEP` (`tools/build_sc19_4.py`; `firmware/sc19.4/`, 0x5b820 B, CRC 0x61e0e406).
+- **SC19.5** = SC19.4 + **retornos de FX del Setup en la entrada del sinte** (`tools/build_sc19_5.py`, `linein3.SETUP_RET`; `firmware/sc19.5/`, 0x5b984 B, CRC 0xe82bfaa3):
+  - petición del usuario: «cuando en setup mode el modo line in lee reverb o delay, este line in también se envía a la entrada de línea / línea inversa del sinte si se selecciona»;
+  - el flag de SC10 en X:$3A00 (bit 0 = reverb → tira 3 = audio in 1, bit 1 = delay → tira 4 = audio in 2) decide: con el bit 0, las fuentes del sinte «entrada 1» / «entrada 1 invertida» (modos 1 / 3) leen la captura del retorno de reverb (`fx_cap`, Y:$3AC0, ×8 con `FX_GAIN_SHIFT = 3`), la invertida negada en el búfer del sinte (etiqueta de caché = puntero de trama + código 11 / 12); con el bit 1, los modos 2 / 4 leen la del delay (Y:$3A80);
+  - `fx_cap` corre también cuando algún flag está encendido (antes solo con un sinte en modo 5 / 6); coste con los flags apagados +9 instrucciones por bloque;
+  - **los modos 5 / 6 (retorno de delay / reverb como fuente propia) se quitan** (petición del usuario, 2026-10-04: «quita 5 y 6»): SC20D.1 había demostrado que funcionaban; el código DSP que los sirve sigue en `linein3` para los builds viejos, y la validación al cargar acepta los modos 0..4 (`persist19.N_MODES = 5`);
+  - prueba `tools/emu_sc19_5_dsp.py` (núcleo 0 completo en dsptool: cada combinación de flags y modos, el otro sinte, coste).
+- **SC19.6** = SC19.5 + **brillo de los knobs nuevos de drums** (`tools/build_sc19_6.py`, `persist19.KNOB_LEVELS`; `firmware/sc19.6/`, 0x5ba64 B, CRC 0x7a4a0f67):
+  - petición del usuario: que K1 / K3 / K5 / K7 muestren su valor con el brillo, como los originales;
+  - **cómo enciende stock los knobs** (analizado en este paso): el conversor `0x0803423C` (llamado tras la tarea de LEDs, `0x0803418C`) pasa los 69 códigos a colores RGB con la tabla de RAM `0x20003804` (palabras R | G << 8 | B << 16; sí hay tabla RGB: antes se creía que no estaba en la imagen; está en RAM y aparece en el volcado de RAM del aparato); para los LEDs 60–68 (knobs y filtro master), un código ≥ 0xC1 («dinámico») usa el byte `[tabla2 + código − 0xC1]` (`0x08059D74`: nibble bajo = almacén `[ctrl + 0x198 + 4n]`, nibble alto = elemento) → el valor del parámetro (0..127; bipolar: 2 × distancia al centro) y escala el color con `0x080475A6`: byte × (b × 0x1CC + 0x1A00) >> 16 (10 % … 100 %, mitad en el modo tenue); los códigos estáticos (< 0xC1) van sin escalar (b = 0xFF);
+  - K1 / K3 / K5 / K7 no tienen parámetro de stock (los valores son los nuestros, los bytes guardados con el proyecto), así que **el brillo viaja en el byte alto del halfword del LED**: el slot 7 del manejador de macros del drum (`c_mhleds19`, después de `leds18.c_mhleds`) escribe `color | (brillo + 2) << 8` (los códigos de stock llegan a 0x112: un byte alto de 0 o 1 es un código de stock) y `c_ledhook` (un `bl` en lugar de `ldrh r7, [r6] ; movs r4, #0xff` al principio del bucle de knobs del conversor, `0x080342B0`) lo separa: r7 = color, r4 = brillo (0xFF = sin escalar);
+  - el brillo sale de los bytes guardados: unipolar (códigos 2, 6, 8) = el valor; bipolar = 2 × distancia al centro (apagado en el medio, como los de stock); modo de filtro (código 9) = 0 / 32 / 64 / 96 / 127; con Shift pulsado se muestra la segunda capa (K1 → código 1, K3 → 8, K5 → 4, K7 → 9);
+  - **sin actualización explícita** (la tarea de LEDs consulta el slot 7 de la vista activa por *polling*, como ya anotan las notas de SC07 / SC17; no comprobado en el aparato con este build): el giro de nuestros knobs no publica ningún almacén de stock (en emulación, un giro de K2 de stock publica el almacén de parámetros y el de macros y el de K1 no publica nada), pero los LEDs de la vista activa se leen de forma continua (así se mueve la luz del paso en reproducción), así que el LED debería seguir el valor sin más; si no se refrescase al girar o al pulsar Shift hay que anotarlo en la prueba y publicar el almacén de macros (`0x080354FA` + `0x080353C0` sobre `[ctrl + 0x198 + 4 × (4 + drum)]`, como hace el K2 de stock);
+  - prueba `tools/emu_sc19_6.py` (68 comprobaciones; con el conversor de stock real: K3 = 100 queda **igual que el K2 de stock = 100**, también en el modo tenue; las vistas de Synth 1 / 2, MIDI 1 / 2, Mixer, FX y arranque convierten a los mismos colores que SC19.5).
+- **Pruebas generales:** `tools/emu_sc19_4.py` (código real de stock: mismo parche, otro parche, proyecto nuevo, registro sin firma, recarga de parche de cada sinte: SC19.3 pierde, SC19.4+ conservan); `emu_sc19.py`, `emu_sc19_1.py`, `emu_sc19_fuzz.py`, `emu_sc17.py`, `emu_sc17_5.py`, `emu_sc17_8.py`, `emu_sc17_5_dsp.py`, `emu_sc19_dsp.py` sobre las imágenes. Los arneses de SC17.x conocen ya las marcas de los builds nuevos y la vista de la fuente (antes daban fallos falsos porque trataban SC19.1+ como un build antiguo); `emu_sc19.py` usa el manifiesto de SC18.3 para su imagen de referencia.
+
+### SC19.3 = SC19.1 con el **cuelgue al encender arreglado** (y SC20D.1) — ⏳ pendiente de probar
+- **Qué pasó (2026-10-04).** El usuario flasheó SC20D: «se cuelga nada más encender, no responde a nada»; SC19.1 también. SC19.2 (experimento: el trabajo de arranque escalonado a 15 s / 30 s) **se cuelga a los 15 s**, es decir, en la etapa A (carga de ajustes, validación, apagado de Master FX). Última versión segura mientras tanto: SC17.7 (confirmada) y SC183D (diagnóstico que también arrancó).
+- **Causa.** `persist19.c_xm_load` se ejecuta dentro del tick del servicio del DSP (`SVC_HOOK` 0x080213AA, cabeza de la cadena) y marcaba el grupo Audio In con el `MARK_DIRTY` de stock `0x0803BDCC`. Esa función empieza con `bl 0x08021064(ptr + 0xC)`: un **semáforo contador** (`ldrexb` / `strexb`; mientras la cuenta es 0 cede con `0x0801BE60` y vuelve a mirar), luego marca los bits (`0x08021FDC(tipo, índice)`, sin bloqueos) y suelta con `0x08029028`. El bucle principal (`0x0801D5D4`) coge **ese mismo semáforo** justo antes de llamar al servicio (`0x08021392`) y lo suelta al volver (`0x0801D5DC…`): el tick esperaba para siempre un semáforo que él mismo tenía cogido. SC19.2 lo ejecutaba a los 15 s; SC19 / SC19.1 / SC20D, al encender, en cuanto existían los cuatro gestores de drums.
+- **Por qué la emulación no lo vio:** el semáforo no se modela como bloqueo (en la RAM del volcado la cuenta está a 1 y la toma pasa); además todas las llamadas anteriores a `MARK_DIRTY` venían de la tarea de la interfaz (pads, knobs, Setup), no del servicio.
+- **Arreglo** (`persist19.FIX_LOCK`): desde el tick, `c_xm_load` llama a `0x08021FDC(0x20, 48)` directamente (lo que `MARK_DIRTY` hace entre coger y soltar el semáforo; el servicio ya lo tiene). Un solo `bl` distinto. **Regla:** desde el tick del servicio no se llama a nada que tome ese semáforo (`MARK_DIRTY`, `0x08021064`); las escrituras al DSP (`0x080292F8`) y las lecturas (`0x08029344`) sí, como hace el stock.
+- **Builds:** `tools/build_sc19_3.py` (SC19.1 + `FIX_LOCK`; `firmware/sc19.3/`, imagen 0x5b66c B, CRC 0x8233da00) y `tools/build_sc20d_1.py` (SC20D + `FIX_LOCK`; `firmware/sc20d.1/`, 0x5b850 B, CRC 0x1d59a61). SC19, SC19.1, SC19.2 y SC20D quedan como están (se comprueban solo en `verify_builds`; marcados como rotos).
+- **Pruebas:** `tools/emu_sc19_3.py` (SC19.1: el tick toma el semáforo 1 vez durante una carga; SC19.3: 0; mismo estado tras la carga; el binario solo difiere en la marca y esa llamada); `emu_sc19.py` (146 comprobaciones; el arnés cuenta las tomas del semáforo y registra también `0x08021FDC`), `emu_sc19_1.py`, `emu_sc19_fuzz.py` y las de SC20D (`emu_sc20d.py`, `emu_sc20d_dsp.py`) sobre las imágenes nuevas: todas pasan. `run_tests.sh` apunta ahora a SC19.3 / SC20D.1. La experimentación escalonada (`persist19.GUARD`, `emu_sc19_2.py`) se conserva como herramienta de diagnóstico.
+
+### SC20D = SC19.1 + **modos 5 / 6 y medidor de captura** (diagnóstico) — ⏳ para probar con un proyecto de prueba
+- **Resultado (usuario, 2026-10-04, con SC20D.1, el mismo build con el arreglo del cuelgue): las barras suben y el sinte suena.** Los modos 5 y 6 funcionan; el problema eran los envíos. SC20D (original) se colgaba al encender (ver «SC19.3 …»).
+Decisión del usuario (2026-10-04): construir el diagnóstico propuesto en el estudio de los modos 5 / 6, con el medidor **en la vista de la fuente** y midiendo **el nivel de las capturas**.
+- **Interfaz.** En la vista de la fuente (SC19.1) la fila de abajo tiene siete pads: 25–29 = noise, entradas 1 / 2 y las dos invertidas, **30 = retorno del delay (modo 5)**, **31 = retorno del reverb (modo 6)**. Las filas 2 y 3 (pads 9–16 y 17–24) son dos barras de 8 pads: delay en melocotón (0x6B) y reverb en crema (0x2A), los colores de los Octave de la vista FX, **12 dB por pad** (umbral k = 2^(6 + 2k) sobre el valor de 24 bits, de ≈ −102 a −18 dB de la escala completa). Si la constante de control no se lee de vuelta, las dos filas se ponen **rojas** (0x05).
+- **DSP** (`tools/linein3.py`, opción `METER`; los demás builds no cambian, `verify_builds` lo confirma): `fx_cap` (el gancho de P:$D21 de SC17.5) captura **en todos los bloques** (sin la comprobación de modo) con la ganancia ×8 de SC17.7 (`FX_GAIN_SHIFT = 3`) y deja en **Y:$3B00 / Y:$3B01** la media de |L + R| (suma de |x| / 32 sobre las 32 tramas, límite de 24 bits) del delay / reverb, y en **Y:$3B02** la constante 0x5A3C69. Usa `y1` como acumulador (muerto en P:$D21: se recarga en la mezcla final). Coste: +582 instrucciones por bloque (SC19.1: 55 239).
+- **ARM** (`tools/meter20.py`): `c_dtick20` es la cabeza de la cadena del servicio del DSP (delante del `c_dtick19` de SC19). Con la vista de la fuente abierta (bit 2 del byte +20 del bloque SC14) lee las tres palabras con **la lectura de stock `0x08029344(núcleo 0, 0x8000 | dirección Y)`** (Y: bit 15 de la dirección; devuelve la palabra de 24 bits en los bits 31..8: `0x0803BAA2` transfiere 3 bytes y devuelve `rev` de los bytes recibidos; stock la llama en `0x080212F2` con 0x8122 sin usar el resultado), calcula el nivel y pinta las filas 2 / 3 de los búferes de LEDs de las dos vistas Preset de los sintes (objetos 0x20042980 / 0x20042A34, solo si su vtable es 0x0805AC9C). Con la vista cerrada no lee ni escribe nada. `c_xleds` (`srcview.METER`) borra todo en la primera pintada y después solo las filas 1 y 4.
+- **Pruebas:** `tools/emu_sc20d_dsp.py` (núcleo completo: palabras del medidor exactas al bit con cuatro juegos de patrones, constante de control, captura sin sinte en modo 5 / 6, voces que siguen tocando la captura, audio idéntico a SC19.1 en 24 bloques para los modos 0–4, accesos nuevos solo en Y:$3A80..$3ADF e Y:$3B00..$3B02) y `tools/emu_sc20d.py` (lectura DSP simulada: orden de las lecturas, niveles 0..8 en las dos vistas, umbrales justo por debajo / en cada uno, fila roja, guarda por vtable, pads 30 / 31, cierre con repintado de stock, Synth 2). Todas pasan.
+- **Lo que la emulación no puede decir:** si la lectura DSP→ARM (`0x08029344`) devuelve de verdad lo esperado en el aparato (orden de los bytes, dirección Y). Para eso está la constante: filas rojas = la lectura no vale; hay que mirar el formato. Imagen 0x5b850 B, CRC 0xfb1a56ac.
+- **Los modos 5 / 6 no se guardan** con el proyecto en SC20D (la validación de SC19 los pone a noise al cargar).
+
+### Estudio (sin build, 2026-10-04): por qué los modos 5 / 6 (retorno de delay / reverb como fuente del sinte) no se oían
+- **Resultado en el aparato (2026-10-04, SC20D.1):** «las barras suben y el sinte suena»: **los modos 5 y 6 funcionan**; el problema de SC17.x eran los envíos a delay / reverb (no había señal en las salidas). Ver «SC20D = …». La captura (`linein3`, ganancia ×8 = `FX_GAIN_SHIFT = 3`) queda como está.
+Pedido del usuario: «si la entrada de línea del Setup (retorno de reverb / delay en las tiras 3 / 4) está activa, que esa señal pase al sinte si es posible». Los modos 5 / 6 de SC17.5–SC17.7 (`tools/linein3.py`) nunca se oyeron en el aparato aunque en emulación pasan y se descartaron en SC19. Sin hardware no se puede cerrar la causa; esto es lo comprobado y lo que falta.
+- **Lo que hace el código.** P:$D21 de stock es `move #>$9c0, r6`, justo después de `func_001964` (el reverb): en ese punto Y:$9C0 = salida del delay y Y:$880 = salida del reverb (tramas `[L, R]`), antes de que la suma de retornos (P:$D21–$D31) las mezcle. SC10 sustituye P:$D21–$D22 por `jsr returns`; `linein3` redirige ese `jsr` a `fx_cap`, que (solo si algún sinte está en modo 5 / 6) copia L + R de cada salida a Y:$3A80 (delay) / Y:$3AC0 (reverb) y salta a `returns` de SC10. Las voces del bloque siguiente leen esos búferes con paso 1 en el gancho P:$9C3 (`l3_hook`).
+- **Lo comprobado.** Verificado en emulación del núcleo completo (`emu_sc17_5_dsp.py`): el búfer se llena y la voz lo lee bit a bit; las voces se calculan antes de la mezcla (`func_0019bf` → `func_00077f`), así que el desfase de un bloque es el esperado. Los modos 1–4 (misma ruta `l3_hook`, búfer del anillo de entrada) sí funcionan en el aparato: el camino ARM (pads, grupo Audio In, escritura de X:$3A01 / X:$3A02) y el gancho P:$9C3 están bien. La diferencia está solo en la captura.
+- **Hipótesis, de más a menos probable** (ninguna comprobada):
+  1. **Salida de FX vacía en el aparato.** Las salidas Y:$9C0 / Y:$880 solo llevan señal si algo envía a delay / reverb con nivel > 0 (los envíos de sintes y drums son parámetros de proyecto 0–7 / 11–18, por defecto bajos). Si el usuario probó con los envíos al mínimo, el búfer capturado está en silencio. SC17.7 subió la ganancia ×16 y tampoco se oyó, pero eso no distingue «capturo poco» de «no capturo nada».
+  2. **El efecto no se calcula cuando está «apagado».** Si el DSP se salta el delay / reverb mientras sus envíos son 0 o su mezcla está desactivada, Y:$9C0 / Y:$880 conservan basura o ceros en P:$D21.
+  3. **El gancho de P:$D22 no llega a ejecutarse con el estado real** (por ejemplo, otro cambio de programa del núcleo 0, o que SC10 no dejara el `jsr` en P:$D21 en esa combinación de builds). En emulación el parche se aplica a los dos bloques del programa (reubicado y original).
+  4. **Escala:** la señal capturada es la salida húmeda, mucho más baja que la entrada de línea (las tiras llevan ×0,0615 como máximo); con ×16 debería oírse, pero el «nivel de ruido» del sinte (matriz o knob) también la escala.
+- **Diagnóstico propuesto (no implementado): SC20D.** SC19.1 más una vista de diagnóstico (como `--diag` de SC17.3): un medidor de energía de Y:$3A80 / Y:$3AC0 (suma de |valor| del último bloque) en LEDs, el estado de X:$3A01 / X:$3A02 y un contador de ejecuciones de `fx_cap`. Con tres pruebas en el aparato (envíos de reverb de un drum al máximo y la caja sonando; el mismo caso con el modo 5 / 6 puesto; los dos sintes) se separan las hipótesis 1–3. Si el medidor sube pero no se oye, la causa es la escala o la lectura de la voz.
+- **Alternativa sin captura de FX:** el retorno de las tiras 3 / 4 (SC10) ya entra en la mezcla final, no en el anillo; para que el sinte lo use habría que escribir el retorno en el anillo antes de las voces del bloque siguiente (más intrusivo: el anillo es el del ADC) o capturarlo en el mismo punto (lo que ya hace `fx_cap`).
+
+### Estudio (sin build, 2026-10-04): **VCA con saturación + VCF bipolar** en las entradas de audio externas, con LFO y envolvente, controlados por las pistas MIDI 1 / MIDI 2
+Petición: añadir a las entradas externas un VCA con saturación y un VCF bipolar, con LFO y envolvente, que se active, se secuencie y se controle con las pistas 3 y 4 (MIDI 1 / MIDI 2 = entrada 1 / entrada 2), con un toggle junto al patch flip (excluyentes) y Shift para los controles que falten. Modelo numérico: `tools/study_extfx.py` (sin firmware).
+
+**Interpretación y decisiones de diseño**
+- **VCF bipolar** = un solo mando con el centro transparente: a la izquierda paso bajo (de 16 kHz a 40 Hz), a la derecha paso alto (de 30 Hz a 6 kHz), con una zona muerta de 4 pasos en el centro (bypass exacto). Es el «DJ» de los drums de SC18.1. Además, las profundidades de la envolvente y del LFO sobre el corte son **bipolares** (negativo = cierra el filtro). Si querías solo lo segundo, el filtro se queda como paso bajo con modulación bipolar: el cambio es de una línea.
+- **VCA con saturación:** cadena `entrada → VCF → drive + saturación suave → VCA`. El VCA se abre con la envolvente de la nota (gate de la pista MIDI) y puede llevar trémolo del LFO; la saturación está *antes* del VCA para que el nivel de la nota no cambie el timbre.
+- **Una envolvente ADSR y un LFO por entrada**, compartidos por el VCF y el VCA (cada destino con su profundidad). Gate = las notas de la pista (secuenciadas, grabadas o tocadas en vivo).
+
+**Lo que se ha comprobado en el código (no son suposiciones)**
+- **Dónde está la señal.** Las entradas 1 / 2 están en el anillo del ADC `Y:$1000–$13FF` (tramas `[in1, in2]`, `y:$FFD` = primera trama del bloque, bloques de `x:$3A` = 32 tramas a 48 kHz). El bloque de audio de stock (`func_0001ED`) hace: voces de los sintes (leen el anillo en P:$9C3 para la fuente noise / entrada) → buses de drums → **mezcla principal P:$230–$24E**, que vuelve a leer el anillo con `move y:>$ffd,r5` en P:$23C → bus de delay (`func_000cb8`) y de reverb. SC10 ya engancha **P:$23C** (`jsr premix`) y modifica el anillo **en el sitio** (anula in1 / in2 si el retorno de FX va a las tiras 3 / 4): funciona en el aparato. Procesar ahí las 32 tramas en el sitio hace que la mezcla, el delay y el reverb reciban la señal ya filtrada y con VCA, y los sintes (que leen antes) sigan viendo la entrada limpia. Los niveles, el pan y los envíos de las tiras 3 / 4 del mixer quedan *después* de nuestro proceso.
+- **Gate.** Las notas de las pistas MIDI pasan siempre por los envoltorios de la vtable de notas `0x08059FC4 / 0x08059FC8` (SC05: `c_non` / `c_noff`, `r0` = interfaz Tx, `r1` = pista 2 / 3, `r2` = nota, `r3` = velocidad), antes de mirar ningún flag Tx, y funcionan en el aparato (SC05 / SC06). Añadir ahí un aviso a nuestro estado es una extensión de código que ya existe.
+- **Mandos.** Las pistas 0–3 (sintes y MIDI) comparten la clase de gestor de macros `0x0805AC64` (slot 4 = `0x0804C063`, los 8 knobs); los objetos son `[cont + 0x148 + 4 t]` = `0x20043CC8 / D2C / D90 / DF4` (`cont` = 0x20040DB8). Los drums usan otra (`0x0805AADC`), que es la que enganchó SC18. Enganchar el slot 4 de la clase compartida y filtrar por objeto deja los sintes en stock. El camino de los knobs es `0x08033848` → vista activa → slot 4.
+- **Toggle.** La vista Preset de los tracks MIDI (vtable `0x0805AE5C`, instancias 0x20042AE8 / 0x20042B50) tiene el patch flip en el **pad 25** (índice 24, LED por el slot 7 `c_tleds`). El toggle nuevo iría en el **pad 26** (índice 25), a su derecha: al activar uno se apaga el otro. El patch flip es el parámetro 2 bits 26 / 27 de los ajustes; **28 / 29 ya son del retorno de FX de SC10**; los bits 30 / 31 no los usa nadie que sepamos (a confirmar) y habría que ampliar la máscara de guardado (0x3F07FFFF en SC10) como hizo SC07.
+- **Estado y guardado.** Los 8 knobs × 2 capas × 2 pistas = 32 parámetros de 7 bits = 32 B. El proyecto **no** tiene sitio: los bytes reservados que quedan son **1 B** en los drums y 0 en el proyecto; los 16 B libres de cada parche (offsets 0–15) son el **nombre ASCII** y no se tocan. El sitio es el **registro de ajustes globales**: 75 B finales a 0 (`obj + 0x3D … obj + 0x87` del objeto 0x2003974C, guardado por `0x0802D2AC`) que ya están en RAM (no se reserva nada más: la reserva sigue en 220 B). Consecuencia: los valores son del *equipo*, no del proyecto (como los retornos de FX del Setup). Para guardarlos por proyecto habría que reutilizar los valores de macro de las plantillas de los tracks MIDI (por investigar).
+- **Memoria y tiempo del DSP.** Libre y verificado: X/Y:$3339–$3BFF menos lo usado (drums X:$3A00–$3B7F, comb X:$3400–$37FF, entrada de línea Y:$3A00–$3AFF); caben el estado (~40 palabras por entrada), 3 tablas de 128 y ~250 palabras de programa (SC18 llega a P:$305E, tope $3800). Coste: **18 instrucciones por trama y entrada → 1152 por bloque + ~150 de control = ~1300 (+2,1 % de las ~62 000 de SC19; presupuesto ~166 000)**. Es una estimación por conteo de operaciones; la medida real saldrá de `dsp_session` al implementarlo.
+
+**Resultados del modelo (`tools/study_extfx.py`, Q23 saturado como el DSP56300)**
+- **VCF:** SVF de Chamberlin, coeficiente `f = 2 sin(π fc / fs)` (tabla de 128 entradas), amortiguación `d` (resonancia 0..127 → 1 … 0,04). Estable en las 30 esquinas probadas (fc 40 Hz … 12 kHz × resonancia): solo se satura el limitador en 9 esquinas de resonancia alta con ruido a −6 dBFS (protección blanda, sin descontrol); un escalón seguido de silencio decae a 0 LSB (sin ciclos límite). Ley bipolar medida: LP 188 Hz → −28,9 dB a 1 kHz; HP 101 Hz → −3,0 dB a 100 Hz; zona muerta ±2 pasos = bypass exacto.
+- **Saturación** `y = 1,5 x − 0,5 x³` tras un drive de ×1…×16 (desplazamiento saturante): THD 0,5 % / 2,2 % / 11 % / 29 % / 37 % para ×1 / ×2 / ×4 / ×8 / ×16 con senoide a −12 dBFS; salida acotada a ±1 FS. El drive va en pasos de 6 dB (barato) más un fino por multiplicación.
+- **Envolvente y LFO a ritmo de bloque** (0,67 ms) con rampa lineal dentro del bloque: con ataque mínimo de 1 ms el salto es ≤ 1,6 % de ganancia por trama (sin clic audible); el mínimo práctico de ataque es 1 ms.
+
+**Plan de mandos** (los 8 knobs de la pista MIDI con el modo activo; Shift = segunda capa; LEDs de knob en el color de la pista)
+
+| Knob | Sin Shift | Con Shift |
+|---|---|---|
+| K1 | **Filtro** bipolar (LP ← centro → HP) | **Drive** (saturación, ×1…×16) |
+| K2 | Resonancia | **Nivel de salida** / profundidad del VCA (0 = VCA abierto) |
+| K3 | Envolvente → filtro (bipolar) | **Frecuencia del LFO** (0,05 … 20 Hz) |
+| K4 | LFO → filtro (bipolar) | LFO → VCA (trémolo) |
+| K5 | Ataque | Forma del LFO (seno / triángulo / cuadrada / S&H) y sincronía con la nota (pasos) |
+| K6 | Decaimiento | Seguimiento de la nota → corte (bipolar) |
+| K7 | Sostenido | Velocidad → nivel de la envolvente |
+| K8 | Relajación | Modo del VCA: puerta / abierto (solo VCF y LFO) / solo LFO |
+
+**Fases** (cada una con su build y su batería de emulación; ninguna se envía sin pasarla)
+0. **Verificar en emulación** (sin build): que el procesado en P:$23C no altera la fuente de los sintes (orden de las voces), que `c_non` / `c_noff` se llaman con notas tocadas en vivo en una pista MIDI, que los bits 30 / 31 del parámetro 2 están libres y que el objeto de ajustes globales se carga al arrancar con esos 75 B.
+1. **SC20D (diagnóstico):** VCA + envolvente ADSR por gate, un solo mando fijo (sin UI): demuestra el gate y el procesado en el sitio con las entradas reales.
+2. **VCF bipolar + LFO** con tablas y suavizado del coeficiente; pruebas DSP bit a bit con `dsp_session` (como `emu_sc18_dsp.py`).
+3. **Saturación** y la capa Shift.
+4. **UI:** toggle en el pad 26 (excluyente con el patch flip), enganche de los knobs, LEDs, guardado en los ajustes globales (llamar a `0x0802D2AC` al soltar el knob).
+5. **Opcional:** guardado por proyecto (valores de macro de las plantillas), presets, sincronía con el tempo del LFO.
+
+**Fase 0, resultado parcial (2026-10-04, sin build)**
+- **Orden de las voces: confirmado** (desensamblado del núcleo 0 de stock). `func_0001ED` llama a `func_0019bf` (cuyo `jsr func_00077f` en P:$19E6 es el pase de voces, con el gancho de fuente del sinte P:$9C3 dentro) antes de las ganancias de tira (`func_001277…12ED`) y de la mezcla P:$230–$24E. Procesar el anillo de entrada en P:$23C no cambia lo que oyen los sintes con la fuente en entrada.
+- **Notas de pistas MIDI en vivo: confirmado en emulación** (`emu_sc19_1.E191` sobre SC19.1). Con MIDI 1 / MIDI 2 seleccionada, un pad de la vista de pista llama a los envoltorios de la vtable de notas `0x08059FC4` / `0x08059FC8` con `r1` = 2 / 3 (pista), `r2` = nota (79 en la prueba) y `r3` = velocidad (96, fija: ajuste «velocidad fija» de la entrada de pads); el Note Off llega con velocidad 0. Los sintes pasan con `r1` = 0 / 1 y los drums con 16. Las notas secuenciadas pasan por la misma vtable (SC05 / SC06 lo usan en el aparato).
+- **Registro de ajustes globales: confirmado.** El cargador `0x0802D060` lee el registro entero de 0x80 B en `obj + 8` (si el fichero no mide justo 0x80 B lo reinicia todo) y `0x0802D108` solo valida los campos de canales (`+8`, `+0x14`, `+0x18`, `+0x1C`, `+0x20`, `+0x24`): los 75 B finales (`obj + 0x3D … 0x87`) se cargan tal cual y se guardan con `0x0802D2AC`, que hay que llamar a mano porque el detector de cambios `0x0802D300` no los mira.
+- **Pendiente:** los bits 30 / 31 del parámetro 2 de los ajustes (nadie los usa que sepamos); si se prefiere, el toggle puede ir en esos 75 B y no hace falta ampliar la máscara de guardado. Un barrido de los 155 accesos al índice 2 de un almacén no encontró ninguna operación clara sobre los bits 30 / 31 (16 coincidencias de modismos `lsrs / lsls #0x1f`, casi todos conversiones booleanas): sin confirmar.
+
+**Riesgos y preguntas abiertas**
+- Retorno de FX en las tiras 3 / 4 (SC10): con el flag activo el anillo se anula; nuestro procesado debe saltarse esa entrada (leer `X:$EC`) y quedar antes del `premix`.
+- Silencio sin notas: en modo «puerta» la entrada queda muda cuando la pista no toca; el modo «abierto» lo evita (K8 con Shift). ¿Prefieres que el modo por defecto sea abierto?
+- Interacción con los modos de fuente del sinte: leen la entrada **antes** de nuestro proceso, así que el sinte oye la entrada limpia. ¿Lo quieres también procesada (opción)?
+- Headroom: el anillo es de escala completa y las tiras del mixer aplican ×0,0615 como máximo; la saturación debe quedar antes del nivel de la tira (sí en este diseño).
+- Valores globales y no por proyecto (ver «Estado y guardado»): ¿es aceptable para la primera versión?
+- Notas solapadas en la misma pista (legato): contador de notas pulsadas; la velocidad / nota que cuentan son las de la última.
+
+**Decisiones del usuario (2026-10-04, tras el estudio)**
+- Sin notas en la pista MIDI la entrada queda **abierta por defecto** (puerta como opción con Shift + K8).
+- Los sintes con la fuente en entrada externa oyen **la entrada limpia** (antes del VCF y del VCA).
+- «VCF bipolar» = **paso bajo a la izquierda, paso alto a la derecha, centro sin filtro**, más profundidades de envolvente y LFO bipolares.
+- Los valores de los knobs son **del equipo** en la primera versión (registro global de ajustes); por proyecto, más adelante.
+- **No** se empieza la fase 1 (un build de diagnóstico del VCA con la envolvente por gate) hasta ver el resultado de SC20D en el aparato.
+
+### SC19.1 = SC19 + **conmutador de la fuente del sinte en su propia vista** (pulsar Synth 1 / Synth 2 una segunda vez) — ⏳ pendiente de probar
+Petición del usuario: el conmutador noise / entrada de línea estaba en Shift + pads 25-29 de la vista Preset del sinte, y ese gancho debe quedar libre (elegir el patch ya elegido lo resetea). Propuesta inicial, Shift + Synth 1 / 2: **no sirve**, el stock descarta Shift + id 0–8 al entrar en `0x08033320` (máscara 0x07DBBE00: ids 9–13, 15–17, 19, 20, 22–26; 0x1B aparte; también caen Shift + 14 y Shift + 21; comprobado en emulación sobre la imagen de stock: no llega al `tbh` ni cambia estado, vista ni LEDs). Decisión del usuario: pulsar el botón del sinte dos veces y que enseñe una vista con pads iluminados / tenues, no ciclar a pulsaciones.
+- **Detección de la «segunda pulsación».** `[ctrl + 0x152]` = índice actual = 9 × pista + subvista (tabla `0x0805877C`: entrada = (subvista << 16) | (pista << 8); subvista 0 = Preset, 1 = vista de pista; 68–75 = botones de vista: 13 → 68, Mixer 14 → 69, FX 15 → 70). Synth *s* (ids 0 / 1) pulsado con `[ctrl + 0x152] == 9 s + 1` y sin Shift = segunda pulsación.
+- **Gancho** `c_bentry` (`tools/srcview.py`) sustituye los 4 primeros bytes de `0x08033320` (`push {r3, r4, r5, lr}; mov r4, r0`), ejecuta ambos más `mov r5, r1` y sigue en `0x08033326`, salvo:
+  - vista abierta y cualquier botón menos Shift (id 27): cierra (indicador a 0) y deja pasar el botón al stock;
+  - segunda pulsación: la convierte en un toque en Preset (llama a `0x08033320(ctrl, 8)` y `0x0803381A(ctrl, 8)`, como haría el stock) y pone el indicador. La suelta física del botón del sinte no hace nada: no estaba registrada en `[ctrl + 0x154 + id]`.
+- **Indicador:** bit 2 del byte +20 del bloque de estado de SC14 (SC15 usa los bits 0 / 1 de ese byte como «pads pintados»); no se guarda y arranca a 0. El byte lo escriben dos tareas del RTOS (la de los botones en `c_bentry`, la de los LEDs en `c_xleds`): toda escritura pasa por `c_rmw` (`mrs primask` / `cpsid i` / lectura-modificación-escritura / `msr primask`), para que una no pise a la otra. (Se descartó `ldrexb` / `strexb`: un monitor exclusivo que fallara colgaría el aparato.)
+- **Vista:** la vista Preset del sinte (vtable `0x0805AC9C`, instancias 0x20042980 / 0x20042A34) conserva las ranuras 0 y 7, ahora `c_xpad` / `c_xleds`. Con el indicador: LEDs de los 32 pads a 0 salvo los cinco (índices 24-28; el elegido en el color «encendido» del sinte, los otros en «tenue»), pulsaciones de pad tragadas salvo esos cinco, que ponen el modo del sinte que se ve y marcan el grupo Audio In (`MARK_DIRTY(0x20, 48)`, el gancho H9 de SC15 lo manda al DSP). Sin el indicador: las ranuras son las de stock (Shift + pads 25-29 ya no hacen nada especial). Al cerrar, un repintado del stock (`0x0804D3C2`).
+- Lo demás es SC19 (el modo elegido se guarda con el proyecto igual que antes). Imagen 0x5b66c B (+0x1a0 sobre SC19), RAM igual (220 B).
+- Pruebas: `tools/emu_sc19_1.py` (ruta real: botón `0x08033320` + soltar `0x0803381A`, pad `0x08033282`). Solo cambian marca, los 4 bytes del manejador y dos ranuras de la vista. Cierre con cada botón = mismo estado del controlador que en stock; secuencias aleatorias idénticas a SC19.
+- **Limitación del emulador (no del aparato):** dos esperas de stock cuelgan porque las tareas que las terminarían no corren: el buzón `0x080359E0` y el sondeo «ocupado» `0x08023172` (byte de estado 3 + byte de ack). Pasa, por ejemplo, con Preset después de cambiar a la pista 0 desde otra. El arnés las despeja igual a ambos lados de cada comparación.
+
+### SC19 = SC18.3 + **ajustes guardados en el proyecto** + arreglos del botón 1-16/17-32, la vista cromática y los modos del sinte — ⏳ pendiente de probar
+- Petición del usuario (2026-10-04): guardar en el proyecto los valores de todo lo configurado con nuestros parches. Decisión («opción A»): asignaciones de Master FX, drums al completo y modos de la fuente del sinte **por proyecto**; el estado encendido de Master FX y el song pointer **no se guardan** (a 0 al cargar / arrancar / proyecto nuevo); retornos de FX y entrada de línea de las pistas 3 y 4 del mixer, en el setup general (ya iban en los ajustes globales).
+- **Base** (resultados en el aparato de SC182D / SC183D): los bytes que ningún descriptor de parámetros cubre en los bloques de la sesión sobreviven a guardar → apagar → cargar, son por proyecto, siguen a «guardar como copia», no los toca el cambio de parche y **un proyecto nuevo no los pone a 0**. Ver «Estudio … cómo guardar nuestros valores en el proyecto».
+- **Zona XMEM** (`tools/persist19.py`): 65 bytes: proyecto 6 (offsets 11-15, 30), drums 15 (7-10, 18-21, 29-32, 40-42; el 43 no se usa), cada sinte 22 (18-31, 101, 103, 104, 111-115). Reparto en un índice plano: `XM[0..27]` huecos de Master FX (28 B, el formato `S_SLOT`), `XM[28..63]` drums (9 B por drum), `XM[64]` modos (bits 0-2 Synth 1, bits 3-5 Synth 2). Drum d: byte c−1 (c = 1..8 = códigos PE, RMF, LFO, LSPD, EC, RES, ENVS, RMA) = valor en 7 bits (complemento a dos en los bipolares 1, 3, 4, 5, 7) + bit 7 = bit c−1 de los valores extendidos (K4 start point nibble bajo, K6 bitcrush nibble alto); byte 8 = modo de filtro (bits 0-2; drum 0: bits 3-7 = **firma 21**). Sin firma, la zona se lee como vacía y se limpia (proyectos de stock, de la sonda o de otro firmware).
+- **Drums, estado = los bytes** (`c_dk19`, slot 4 de los manejadores de macros): el giro cambia el byte (límites −64..63, 0..127, filtro 0..4 con vuelta) y marca el bit sucio en los bytes de relleno del manejador (+0x3E bits 0-6 códigos 1-7 y bit 7 = etiqueta del buzón, +0x3F bits 0-2 códigos 8, 9 y extendidos). K4 / K6 extendidos como en SC18 (cuenta a la izquierda de 0, a la derecha primero se descuentan).
+- **DSP** (`drums2_dsp.ABS = True`): el buzón de cada drum recibe el valor **absoluto** (`etiqueta << 23 | código << 16 | valor16`); el código 9 (modo de filtro) guarda el valor 0..4 (fuera de rango = 0). Mismo resto del DSP que SC18.3; 61695 instrucciones por bloque con 4 drums y controles apagados (igual que SC18.3).
+- **Ganchos:** `0x0802F5B8` (final de la «aplicación» de la sesión de stock `0x0802EEFE`: carga, proyecto nuevo y arranque) → `c_pl_load` pone RESYNC (byte 179 del bloque de Master FX, bit 0); `0x0802F5FA` (cola de los valores por defecto del proyecto nuevo `0x0802F5BC`) → `c_pl_new` pone NEW (bit 1); la llamada `bl 0x0802F63C` del guardado de stock (`0x0802FE5E`) → `c_pl_save`: copia ranuras y modos de la RAM a la zona (y la firma) justo antes del guardado, salvo que haya un RESYNC pendiente. El trabajo diferido (`c_rs`) lo hace el servicio del DSP (`c_dtick19`, primero en la cadena como en SC18) cuando existen los cuatro manejadores de drums: NEW → zona a 0; sin firma → zona a 0; zona → RAM (ranuras, modos validados: efecto asignado > 5 → sin asignar, modo > 4 → 0, y `0x0803BDCC(0x20, 48)` para reenviar el grupo Audio In); todos los bits sucios (se reenvía todo, un mensaje por drum y por tick); manos a 0 y `c_clrall` (efectos de Master FX, efectos de SC14 y song pointer apagados).
+- **Arreglos** (avisos del usuario sobre SC18.2 / SC18.3):
+  - **ids de botón confirmados en emulación** (pulsando cada botón con la tarea de LEDs): **16 = Record (LED 48), 17 = Play (LED 49), 21 = 1-16/17-32 (LED 53, fuente 8, entre Octave ▲ y Tempo/Swing)**. SC17.6–SC18.3 pusieron la resonancia y el LED verde en Record. En SC19 `fxkeys.PAGE_BTN` mueve la resonancia al id 21 (gancho en `0x080336F8`, caso 21: `ldr r0,[r4,#0x24]; movs r1,#0x15`) y `leds18.LED_PAIR = 53`; Record y Play, de stock.
+  - **Vista cromática de drums:** el slot 7 de la vista Preset de drums vuelve a `c_dleds` de SC08 (se quita el oscurecimiento de las filas 1-2 de SC18.1).
+  - **Modos de la fuente del sinte:** `linein3.N_MODES = 5` (modos 0-4); los pads 30 / 31 de Shift + Preset vuelven a stock; el DSP de captura de retornos queda inerte (+7 instrucciones por bloque).
+  - El conmutador sigue en Shift + pads 25-29 de la vista Preset del sinte (provisional): el usuario quiere otro gancho (esa pulsación debe quedar libre: elegir el patch ya elegido lo resetea) y aún no lo ha elegido.
+- Pruebas: `tools/emu_sc19.py` (146 comprobaciones: ganchos y bytes, XMEM sin descriptores, knobs → bytes y bits sucios, mensajes absolutos por tick, carga / firma / valores no válidos / proyecto nuevo / espera de manejadores, guardado y registro, ciclo completo, LEDs de la vista FX y vista cromática); `emu_sc19_dsp.py`; `emu_sc17_5.py` reconoce `page_btn` y el número de modos; `run_tests.sh` apunta a SC19 (SC18.x se prueba contra SC18.3).
+- `.syx` `424cc793…6205`; imagen de 0x5B4CC bytes; CRC 0xA8E698A2.
+
+### SC183D = SC18.3 + **sonda de persistencia v2** (diagnóstico) — ⏳ para probar con proyectos de prueba
+- **Almacenamiento (dato del usuario, confirmado por cadenas del firmware):** los proyectos son ficheros de una **tarjeta SD con FAT** (`FatFs_File: Opening %s` en 0x08025CDC, `SD:Write Fail`, `Mount Fail`, SDIO; «Novation MSD» = el aparato se ofrece al ordenador como disco USB). El firmware solo usa 1 GB de la tarjeta (de 16 GB): 16 proyectos (15 en la SD + 1 en la memoria interna). El registro de sesión analizado ocupa unos 156 KB; los «64 MB por proyecto» son un reparto medio del espacio, no el tamaño del registro. Hay funciones para abrir / cerrar ficheros (`0x08025CDC`, `0x08025D1C`), crear directorios (`Creating Dir`) y mover packs (`mv Pack %s to: %s`), pero **no se ha usado ninguna**: guardar en un fichero propio por fuera del proyecto exigiría enganchar también copiar / mover / borrar proyectos y escribir en el FAT desde código nuestro. Con 62 B por guardar y 66 B reservados no hace falta.
+- **Resultados de SC182D (usuario, 2026-10-04)** — lectura:
+  - tras cargar un proyecto vacío y Shift + pad 8: pads 9–23 encendidos, knobs 3 y 8 (contadores: 4 «proyecto nuevo» y 8 cargas desde el arranque); un segundo Shift + pad 8 (borra las marcas) deja encendido solo el **pad 24**, que está encendido siempre: en `probe19` se enciende cuando el contador de cargas es ≠ 0 y al arrancar ya se cuenta una carga (corrección del usuario: había escrito pad 16 por error);
+  - guardar, reiniciar: pads 9–23 encendidos y knob 5 (una carga al arrancar y ningún «proyecto nuevo»): **al arrancar el gancho de carga salta una vez**;
+  - cargar otro proyecto (no vacío): pads 9–23 siguen encendidos, knob 6 (una carga más); guardar como copia en un slot nuevo: igual;
+  - proyecto nuevo vacío: mismos pads, knobs 1, 5, 6 (un «proyecto nuevo» y una carga más); cambiar parches de sinte y de drum: sin cambios;
+  - el pad 24 no cambia de aspecto.
+  - **Ambiguo**: con una marca fija por pad no se distingue si el byte viene de la tarjeta SD o se ha quedado en la RAM (por ejemplo, si «reiniciar» no corta la corriente), y que «proyecto nuevo» y «cargar otro proyecto» no borren los bytes contradice la emulación (que sí los borra con el código de stock sobre el volcado). Los parches no los borran (por ahora). También queda por aclarar que, tras borrar las marcas con el segundo Shift + pad 8, guardar y reiniciar, volvieron a salir encendidos los pads 9–23 (¿RAM que se conserva, un guardado anterior, otra ranura?). Ya no queda nada «sin explicar» sobre el pad 16: era el pad 24.
+- **SC183D** (`tools/probe20.py`, ARM; builder `build_sc183d.py`; prueba `emu_sc183d.py`; `firmware/sc183d/PRUEBA.md`): mismos 15 bytes, pero cada escritura pone un **número de generación** (1–255) en lugar de una marca fija; se puede ver el almacén vivo o el **registro de sesión** (`[0x2003D71C + 0x14]` + desplazamiento del bloque); los knobs muestran en binario el valor de un byte elegido; los contadores incluyen los guardados (gancho en el `bl` al guardado de stock, `0x0802FE5E`). 4 bytes extra en el bloque de Master FX (generación, byte elegido, origen, contadores): reserva 224 B, margen de unos 16 B.
+- **Resultados parciales de SC183D (usuario, 2026-10-04; pasos 1–4 del `PRUEBA.md`)** — colores: 0x45 naranja (byte elegido y contadores), 0x20 menta (= generación actual), 0x19 verde brillante parpadeante (otro valor ≠ 0), 0x26 tenue:
+  - tras encender y cargar A: naranja el pad 9 (byte 0 elegido) y los pads 27 y 29 (cargas: bits 0 y 2 = **5 cargas** desde el encendido: el arranque cuenta 1, así que cargar un proyecto parece disparar el gancho varias veces);
+  - Shift + pad 8: pads menta menos el pad 16 (byte 43 de los drums: pregunta abierta, ver abajo);
+  - guardar: se enciende el pad 30 (un guardado: el gancho del `bl` de guardado funciona); Shift + pad 8 de nuevo no cambia nada (generación siguiente);
+  - Shift + pad 24 (origen = registro de sesión): los pads pasan a verde parpadeante (valor ≠ generación actual) y los knobs muestran 1 en cada byte: **el guardado de stock copió los almacenes al registro con la generación 1**, como en la emulación;
+  - Shift + pad 24 otra vez (almacén vivo): los knobs 1 y 2 = 3 (la generación viva es 3).
+  - **Paso 5 (desenchufado del todo, volver a cargar A): los pads de la sonda salen parpadeando (valor ≠ 0 con la generación viva a 0) y solo queda naranja el pad 27 (1 carga del arranque): los bytes reservados SOBREVIVEN a guardar → apagar → cargar.** Un segundo guardado y reinicio mantiene «la cuenta binaria» (los valores); lo que no se conserva es el byte elegido (vive en el bloque de RAM).
+  - Con SC182D ya se había visto que cambiar el parche del sinte 1 / 2 o de un drum no toca los bytes reservados (no hace falta proteger la copia de bloques).
+  - **Prueba de dos proyectos (A guardado con la generación 21, B vacío → 22 guardado):** al cargar B vacío los knobs salen apagados; al volver a A salen 21 (1, 3, 5); tras escribir 23 en A **sin guardar**, cargar B da 22 y volver a A da 21: **cargar un proyecto en marcha restaura sus propios bytes (por proyecto) y los cambios sin guardar se descartan, como en stock.** Guardar a un slot nuevo conserva el valor y suma un guardado. Cada proyecto cargado suma 1 al contador de cargas (arranque 1, B 2, A 3).
+  - El contador de generación vive en la RAM del bloque de Master FX y no se reinicia al cambiar de proyecto (solo al apagar): los números de una prueba no son 1, 2, 3… sino la última generación + 1.
+  - Pendiente: proyecto nuevo (qué valen los bytes) y el byte 43 de los drums (pad 16).
+- `.syx` `d85302f9…329f`; imagen de 0x5B41C bytes; CRC 0xB35C90DD.
+
+### SC182D = SC18.2 + **sonda de persistencia** (diagnóstico) — ⏳ para probar con un proyecto de prueba
+- Petición del usuario (2026-10-04): hacer el firmware de pruebas para decidir cómo guardar drums, asignaciones de Master FX, etc. Decisiones previas: asignaciones de Master FX por proyecto; estado encendido y song pointer no se guardan (a 0 al cargar / arrancar); retornos de FX y entrada de línea de los Tracks 3 y 4 del mixer en el setup general (ya van en los ajustes globales, SC10); asignación noise / entrada de línea del sinte en el parche / proyecto.
+- **Experimento previo en emulación** (código de stock, sin parche; objeto de sesión real 0x2003D71C con su búfer real en RAM 0x2001183C):
+  - la **función de guardado 0x0802F63C** vuelca los cuatro blobs con sus bytes reservados en el búfer (iguales a los almacenes);
+  - la **función de carga 0x0802EEFE(obj, flag)** (con flag 0 y 1) vuelve a copiar los blobs del búfer a los almacenes con el slot 3: **los 15 bytes reservados que se probaron vuelven a su sitio**;
+  - **`0x0802F5BC` no es la carga sino «proyecto nuevo»**: reinicia el búfer a valores por defecto (`0x0802AD82`), carga los drums y el proyecto por defecto y llama a `0x08029A00(ctx, 0x10000, 1)`. No toca los parches de sinte.
+  - Pendiente de comprobar en el aparato: que el registro de sesión se escribe entero en la flash y qué hace un cambio de parche con los bytes reservados.
+- **La sonda** (`tools/probe19.py`, solo ARM; builder `build_sc182d.py`; prueba `emu_sc182d.py`): ver `firmware/sc182d/PRUEBA.md`.
+  - Shift + pad 8 de Master FX escribe (o borra) 15 marcas en los bytes reservados: drums offsets 7 / 10 + 11d (0xA1.. / 0xB1..), Synth 1 y 2 offsets 18 y 115 (0xC1..0xC4), proyecto offsets 11, 15, 30 (0xD1..0xD3). Antes de cada escritura comprueba la vtable (0x0805BBAC) y el tamaño del almacén.
+  - Filas 2–3 de Master FX = una luz por sonda (marca presente / 0 / otro valor / bloque no válido); pad 24 = algún gancho de carga ha saltado; LEDs de knobs = contadores binarios de «proyecto nuevo» (`0x0802F5FA`) y «carga» (`0x0802EEFE`, `0x0802F5B8`) desde el arranque, en el byte 179 del bloque de Master FX.
+  - Ganchos: slots 0 / 7 de la vista Mixer (encadenados con los de SC18.2), `0x0802F5B8` (`pop.w` final de la carga) y `0x0802F5FA` (`b.w` final de proyecto nuevo).
+- `.syx` `80780517…2c7e`; imagen de 0x5B324 bytes; CRC 0x466D2269.
+
+### SC18.3 = SC18.2 con los **colores de Octave** elegidos — ⏳ pendiente de probar
+- El usuario (2026-10-04): melocotón = el color del pad 1 y crema = el del pad 17 (de la vista FX). Duplicate y 1-16/17-32: cualquier color que no sea blanco, así que se quedan como en SC18.2.
+- Vista FX de stock al entrar, leída en emulación:
+  - pads 1–16 = 0x6B (el seleccionado, 0x6A);
+  - pads 17–24 = 0x2A (el seleccionado, 0x29);
+  - pad 25 = 0x01.
+- `tools/build_sc18_3.py`: `leds18.PEACH` = 0x6B, `leds18.CREAM` = 0x2A antes de construir (SC18.2 sigue igual).
+- `emu_sc18_2.py` lee los colores del manifiesto (`report.leds18.fx_leds`) y en SC18.3 comprueba Octave ▲ / ▼ = código del pad 1 / pad 17.
+- `.syx` `4b0fe7b9…36bf`; imagen de 0x5AE58 bytes; CRC 0xD6B29407.
+
+### SC18.2 = SC18.1 + **LEDs de la vista FX** y de los **knobs nuevos de drums** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-04):
+  - vista FX: Octave ▲/▼ en melocotón / crema (delay / reverb), Duplicate (reset) en azul claro, 1-16/17-32 en verde claro;
+  - encender los knobs nuevos en los modos de sample / drum.
+- **Mapa de LEDs del panel** (tabla `0x08059438` = (fuente, elemento) por LED; comprobado en emulación pulsando cada botón con la tarea `0x08034196`):
+  - 48 / 49 = **Record / Play** (ids 16 / 17) y **53 = 1-16/17-32** (id 21): así quedó confirmado al construir SC19; SC18.2 se equivocó y encendió el LED 48 (fuente 3 = sub-vista de track, elemento 0; 0x53 encendido, 0x02 en reposo) creyendo que era el de 1-16/17-32;
+  - 51 / 52 = Octave ▼ / ▲ (vista activa, elementos 32/33);
+  - 55 = Clear (id 23), 56 = Duplicate (id 24) (fuente 4 = objeto Clear/Duplicate `ctrl+0x20`, elementos 0/1; 0x02 en reposo, 0x53 / 0x17 pulsados);
+  - 60–67 = knobs;
+  - 68 = filtro master (el reset lo cambia).
+- **Colores:**
+  - los LEDs son códigos de Novation (0–0x94 estáticos; 0xC1–0x108 = códigos dinámicos de los knobs: 0xC1 + 8t sintes/MIDI, 0xE1 + 4d drums, 0xF1/0xF9 envíos de FX, 0x101 Mixer);
+  - la tabla RGB no está en la imagen (búsqueda de tablas de 3/4 bytes y halfwords sin resultado coherente con los rojos conocidos: canal 16 = 0x54, OFF = 0x19), probablemente se resuelve en la placa del panel;
+  - colores provisionales tomados de los tracks: melocotón 0x45 (Drum 1), crema 0x49 (Drum 3), azul claro 0x09 (MIDI 1), verde claro 0x20 (Synth 2); constantes en `tools/leds18.py`.
+- **Vista FX:**
+  - las dos llamadas a la tarea de LEDs (0x08033B46 en el listener del store `[ctrl+0x7c]`, 0x0803415A en el refresco) van a `c_ledtask`;
+  - `c_ledtask` llama a la tarea y, con `[ctrl+0x6C]` = `[ctrl+0x44]` (vista FX), escribe los LEDs 52, 51, 56 y 48 del búfer de salida.
+- **Knobs de drums:**
+  - el contenedor de vistas de track (0x20040DB8, vtable 0x0805A62C, slot 7 `0x08043C42`) copia los LEDs de knobs (elementos 34–41) del objeto de knobs del track seleccionado (`0x08043A20`: `[cont+0x148+4t]`, track = store `[cont+0x188]`);
+  - en drums es el gestor de macros (vtable 0x0805AADC), cuyo slot 7 genérico (`0x08047592`) devuelve `[[obj+4]]`; stock: K1/K3/K5/K7 = 0 y K2/K4/K6/K8 = 0xE1 + 4d + i;
+  - `c_mhleds` (slot 7) identifica el drum con `c_mh` de SC18 y pone el color brillante del drum (paleta 5–8: 0x45, 0x2D, 0x49, 0x4D) en K1/K3/K5/K7;
+  - vale para todas las vistas del drum, porque el contenedor es la vista activa.
+- `tools/build_sc18_2.py` (SC18.1 + `leds18.install`); prueba `emu_sc18_2.py`, que ejecuta la cola del listener en 0x08033B3E con un marco falso para pasar por la llamada parcheada; `emu_sc17.py` y `emu_sc17_8.py` reconocen SC18.2.
+- `.syx` `02e3c541…2230`; imagen de 0x5AE58 bytes; CRC 0xDB669C22.
+
+### SC18.1 = SC18 con **knobs de drums rehechos** + **Master FX pad 7 «saltar»** + **pad 8 quita el song pointer** — ⏳ pendiente de probar
+- Peticiones del usuario (2026-10-04, antes de probar SC18 en el aparato):
+  - vista cromática: las filas 1–2 no hacen nada → apagarlas;
+  - K1 = envolvente (attack/decay) y Shift + K1 = cantidad;
+  - K3: fuera stutter/gater → ring mod (frecuencia; Shift = cantidad);
+  - Shift + K7 = modo de filtro (EQ tilt, DJ, comb y lo que haya);
+  - Master FX pad 8 también quita el song pointer;
+  - pad 7 = botón de salto (momentáneo; Shift + pad 7 = fijo): tocar un paso coloca el pointer ahí en el siguiente paso.
+- No respondió a las preguntas sobre el resto. Valores por defecto elegidos: solo apagar las filas, envolvente de modulación (tono + filtro), modos extra paso banda y notch (salen gratis del SVF).
+- **DSP** (`tools/drums2_dsp.py`; `drums_dsp.py` queda para SC18):
+  - bloque de 64 palabras por drum (X:$3A80 + 64d .. $3B7F); códigos del buzón 1–9 = desplazamiento 2 + código: PE, RMF, LFO, LSPD, EC, RES, ENVS, RMA, FSEL;
+  - FSEL avanza ±1 por mensaje (signo del delta) con vuelta 0..4: 0 DJ, 1 paso banda, 2 notch, 3 comb, 4 EQ tilt;
+  - envolvente AD:
+    - TATK / TDEC (128 entradas) según ENVS;
+    - izquierda: ataque lineal |v|/64 · 250 ms (caída de 40 ms);
+    - derecha: caída exponencial τ = 40 ms · 2^(v/12);
+    - disparo con ataque → ENV = 0 y fase de ataque;
+  - ring mod:
+    - oscilador «magic circle» (s += f·c; c −= f·s; f = TF[RMF/2]), reiniciado en cada golpe (c = 0,9);
+    - salida x + cantidad·(x·c − x);
+  - SVF: LP / HP / paso banda (2·band) / notch (2·(low + high)); índice paso banda / notch = v/2 + EC·env;
+  - comb:
+    - y = (1 − fb)·x + fb·buf[n − D], buffer módulo 256 en X:$3400 + 256d;
+    - D = TCOMB[v + 2·EC·env] (6–255 muestras);
+    - fb = RES/128 · 0,95; m4/m5 guardados y restaurados;
+  - EQ tilt: modos 0–3 guardan X:$A7+10d en GSV y lo ponen a 0 solo si hay disparo pendiente o voz activa; `dstage` lo restaura (FSAV). El parche de P:$2129 de SC18 ya no se usa.
+  - `sc_init` borra X:$3400..$3B7F (`build_sc16.CLR_FROM` = $3400 solo en SC18.1).
+  - Programa hasta P:$3313.
+- **ARM:**
+  - `drums18.V2`: mapa `MAP2` (K1 → 7, K3 → 2; Shift: K1 → 1, K3 → 8, K5 → 4, K7 → 9, K8 → 6), buzón en DB + 64d;
+  - `c_dleds18` en el slot 7 de la vista Preset de drums (0x0805ABBC): llama a `c_dleds` de SC08 y, en modo cromático, pone a 0 las entradas 0–15.
+- **Master FX** (`build_sc17`):
+  - `use_jump()`: pad 7 (índice 6) en `c_s_press` (sin Shift: bit 0 de JF; con Shift: alterna el bit 1), soltar en `c_s_rel` (borra el bit 0), LED `c_jmpled`;
+  - con JF ≠ 0, `c_sp_press` guarda el paso como destino JT;
+  - `c_sptick`, en el primer tick de un paso con JT: nuevo tick = n − (paso de n)·6 + (JT − 1)·6 (mismo ciclo de 16; si sale 0, `SP_BIG`), luego JT = 0;
+  - estado en los bytes 177 (JF) y 178 (JT) del bloque de 180 B, que estaban libres;
+  - `CLEAR_SP`: `c_clrall` también pone a 0 LS, LE, H1, H2, JF y JT; `c_clrled` enciende el pad 8 también con LS o H1.
+- Emulación: la ruta del tick de stock en los pasos 13–16 lee datos de patrón que el volcado no trae; la prueba de salto al paso 16 comprueba solo la llamada a `0x0802BFE0` (tick 89).
+- Pruebas: `emu_sc18_1_dsp.py`, `emu_sc18_1.py`, `emu_sc18.py` (mapa según la marca); `emu_sc17.py`, `emu_sc17_8.py`, `emu_sc17_core.py` y `emu_sc17_5_dsp.py` reconocen SC18.1.
+- `.syx` `45e0278b…a4ad`; imagen de 0x5ADD8 bytes; CRC 0xD327AA6D.
+
+### SC18 = SC17.8 + **grabación cromática por paso** + **knobs nuevos de los drums** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-04): en modo cromático, si se graba y se deja grabando un compás, todos los tonos acaban siendo el último. Pidió también implementar el diseño de knobs de drums (ver «Estudio … knobs de los drums»), todo junto.
+- **Grabador de automatización** (reproducido en emulación con el grabador real; `E8` lo tenía como stub en `emu_sc05.py`):
+  - puerta `0x0802E62C(gate, id, valor)`: tabla 0x08059080 [id] = (grabador, carril); drums: id 40 + 5d → grabador 4 + d, carril 0 (Pitch). Grabador = `[gate + 0xC + 4 · índice]` (gate = 0x2003C168 en el volcado).
+  - grabadores de drums: vtable 0x0805A578 (sinte / MIDI: 0x0805A5B4), byte +4 = drum 1..4.
+  - `0x0803FC20(rec, carril, valor)`: marca el carril en la máscara «tocado» (store `[rec+0x2C]` p0) y deja el valor en `[rec+0x28][carril]`.
+  - oyente de pasos `0x0803FE24(rec, store, …)` con el store de pasos `[rec+0x30]`: para cada carril tocado escribe el valor pendiente (`0x080400A4` microsubpasos, `0x08040188` paso) y lo pone a 0xFF. Con el pendiente ya consumido escribe **0xFF = sin automatización** en cada paso siguiente.
+  - la máscara solo se borra cuando cambia el estado de grabación (`0x0804007A`, rama del store `[rec+0x18]`). → En la vuelta siguiente se borran los tonos anteriores y suena el valor base (el último tono).
+- **Corrección** (`tools/drums18.py`, `c_rstep`, gancho 0x0803FF02 `ldr r2,[r5,#0x28]; mov r1,r6`): si el pendiente es 0xFF, el carril es 0, el grabador es de drum y la vista Preset de ese drum está en modo cromático (+0x51 bit 0) → salta a 0x0803FF1E sin escribir. Los knobs y los drums no cromáticos siguen como en stock.
+- **Knobs de drums, ARM** (`drums18.knobs_code`):
+  - manejador de macros por drum `[cont + 0x148 + 4·(4 + d)]`, vtable 0x0805AADC, slot 4 (antes `c_dknob3` de SC12) → `c_dk18`:
+    - K1 / K3 / K5 / K7 → códigos 1 / 2 / 3 / 5; Shift + K5 → 4; Shift + K8 → 6;
+    - K4 / K6 por debajo de 0 → valor extendido 0..15 (nibble bajo / alto de +0x31);
+    - el resto → `c_dknob3`.
+  - estado en los 3 bytes de relleno: +0x31 extendidos, +0x3E (bit 7 etiqueta, bit 6 «extendidos cambiados», bits 3..0 código pendiente), +0x3F delta pendiente (con signo, ±100). Gancho del constructor 0x0804FC6A (`bl 0x0801A7E4`, r7 = this) → `c_mhinit` los pone a 0.
+  - `c_dtick` primero en la cadena del servicio del DSP (`SVC_HOOK` 0x080213AA → `c_dtick` → `c_fxtick` de SC17 → …): por drum, alterna la etiqueta y escribe el buzón `X:$3A80 + 32d = etiqueta << 23 | código << 16 | delta`, y los extendidos en `+2`. Un mensaje por drum y tick: un código nuevo sustituye a uno distinto sin enviar.
+  - El DSP nunca escribe el buzón (aplica cuando la etiqueta cambia): sin carreras con las escrituras SHI.
+- **Knobs de drums, DSP** (`tools/drums_dsp.py`, bloques X:$3A80 + 32d, `sc_init` borra X:$3A00..$3AFF: todos los valores por defecto son 0):
+  - P:$20A4 `jsr func_0020b3` → `jsr dctl` (sin jsr ni do dentro; termina en `jmp $20B3`):
+    - buzón: códigos 1–6, límites −64..63 o 0..127;
+    - envolvente ×0,99336 por bloque (τ 100 ms);
+    - LFO: fase += TLFO[velocidad + 64] (0,1–20 Hz), triángulo;
+    - tono: incremento = BASE · 2^(semitonos/12), con semitonos = PE·24/64·env + (LFO < 0: −LFO·2/64·tri), por la tabla TEXP en P con interpolación;
+    - filtro: g = X:$A7+10d = (v − 64)/64 del EQ; LP con índice v, HP con índice v − 64, + EC·env; tabla TF (30 Hz – 7 kHz, f = 2 sin(πfc/fs)); amortiguamiento 2·(0,707 − RES/128·0,662);
+    - ganancia de trémolo;
+    - bitcrush: tabla TCR → N muestras y máscara.
+  - P:$20E0 (`move a,x:(r3+2)` + `clr a`, en el disparo) → `jsr dtrig`:
+    - BASE = incremento;
+    - envolvente 1, LFO a fase 0,5 (tri = 0);
+    - hold = (128 − K3)² · 6 muestras;
+    - tono ya modulado;
+    - posición = longitud · s / 64 (índice = longitud · s / 16).
+  - P:$218E (el `jsr` de SC16) → `jsr dstage`: sobre X:$2C02 (32 muestras mono), cuatro pasadas con `do` solo si están activas:
+    - gate: al acabar el hold, rampa de 1/64 por muestra; con la ganancia a 0 termina la voz con x:(r3+6/7) = 0;
+    - bitcrush;
+    - SVF de Chamberlin a media escala, como el Auto-Filter de SC17, con dos `mac` de amortiguamiento;
+    - trémolo con rampa en el bloque.
+    - Después restaura r5 y `jmp $2A67` (el mixhook de SC16).
+  - P:$2129 `move x:(r2+4),a` → `clr a`: el EQ tilt de stock queda plano; su valor (K8) mueve el filtro DJ.
+  - Programa hasta P:$305E (`build_sc18` sube `build_sc16.CODE_P_END` a $3800 solo para SC18; con MS = 1 el núcleo tiene ≥ 16K palabras de P).
+  - Las tablas viven en P (`move p:(r0),x0`): no ocupan X/Y.
+  - Error encontrado en las pruebas: el bit de etiqueta (23) hacía negativo el acumulador al extraer código y delta (a2 = $FF). Corregido pasando por y0/y1.
+- Coste (núcleo completo, 4 drums sonando):
+  - +500 instrucciones por bloque con todo apagado;
+  - +3800 con todo encendido (~4,5 % a ~250 MHz);
+  - pila 6 (igual que SC17.8);
+  - memoria nueva solo X:$3A80–$3AFF.
+- Pruebas: `tools/emu_sc18.py` (ARM) y `tools/emu_sc18_dsp.py` (DSP: exactas al bit por etapa + núcleo completo con tabla de samples de prueba, porque el volcado no trae los samples). `emu_sc17*.py` reconocen la marca SC18.
+- `.syx` `e6b3d3dc…4186`; imagen de 0x5A4B8 bytes; CRC 0xA7F356F9.
+
+### SC17.8 = SC17.7 − vista de modos en Shift + Scale + **pad 8 «apagar todo»** + **toque para desactivar** — ⏳ pendiente de probar
+- Resultado de SC17.7 en el aparato (2026-10-04, el usuario): **el song pointer funciona perfecto**; la vista Shift + Scales **no se muestra** → se recupera la vista anterior (Shift + pads 25–31 en la vista Preset del sinte). Posible causa (sin confirmar): el caso 26 con Shift solo abre la vista 7 con el transporte parado y puede haber más condiciones; no se investigó.
+- Petición nueva: en Master FX, el pad 8 (índice 7, última de la fila 1) desactiva todos los Master FX activados con Shift; tocar cualquier pad activado una vez lo desactiva.
+- **Modos:** `build_sc17_8.py` no añade `modeview.py` ni toca las vtables de la vista 7 / Preset: son los de SC15 (`c_spad` / `c_sleds`, `0x0805AC9C` slots 0 / 7). `FX_GAIN_SHIFT = 3` y el song pointer se mantienen.
+- **`build_sc17.use_clearpad()`** (sin RAM nueva, la reserva sigue en 220 B):
+  - Las retenciones son bits: `S_LATCH` del bloque de Master FX (+6: fila 1 y huecos asignados, que retienen el bit del efecto) y `S_LATCH` del estado de SC14 (+5: los 7 efectos originales de la fila inferior). Bloque de Master FX = estado de SC14 + `GFX_OFF` (40).
+  - **Toque para desactivar:** `c_gpress` (fila 1), `c_f_press` (huecos asignados, rama `fp2_hold`; efectos de SC14, rama nueva `fp2_u` antes de `c_fxpress`): sin Shift, si el bit está retenido se borra y no se marca «mantenido». Para SC14 se llama a `c_gpick_t` (tipo 0 = Gater si el pad es < 4, 1 = Auto-Filter) que recalcula el efecto activo y la base de tiempos. `c_f_press` es también el manejador de la vista FX → ahí también.
+  - **Pad 8:** `c_s_press` (`sp2_top`, antes de la comparación con `N_FX`): pad 7 → `c_clrall(bloque)`: pone a 0 los dos bytes de retención y llama a `c_gpick_t` para los dos tipos. El servicio DSP siguiente (`c_fxtick`, `c_gtick`) apaga `FX_ON` y restaura la ganancia / el filtro máster de stock. No toca `S_HELD`, `S_SLOTH`, las asignaciones ni el song pointer.
+  - **LED** (`c_clrled`, desde `c_s_leds`): entrada 7 = `CLR_ON` (0x19, el color del «OFF» de stock) si hay algo retenido, si no `CLR_DIM` (0x46). Color provisional.
+- Pruebas: `tools/emu_sc17_8.py` (vistas de modos, pad 8, toque para desactivar en fila 1 / SC14 / huecos / vista FX); `emu_sc17_7.py` salta la parte de modos en Shift + Scales si el manifiesto no trae `modeview`; `emu_sc17.py` (LED del pad 8). `run_tests.sh` apunta ya a SC17.8.
+- `.syx` `869848d4…2e3b`; imagen de 0x598B8 bytes; CRC 0xCDF7A4EB.
+
+### Estudio (sin build, 2026-10-04): knobs de los drums — viabilidad de «compactar» funciones
+- **Manejador de macros** (`0x0804FCC4`, objeto por drum de 0x40 B creado en 0x08043186 / 0x080431E4 / 0x08043244 / 0x080432A6; vptr 0x0805AAD4 → slot 4 = 0x0805AAEC): solo atiende los knobs con índice **impar** (`knob & 1`), o sea los knobs 2/4/6/8 (1-based) = macros 0..3 = Pitch / Decay / Distortion / EQ. **Los knobs 1/3/5/7 son un `return`**: libres. El valor (0–127, byte) va al store `[obj+0xC]` idx macro y se envía por el listener `[obj+0x10]` con id `[obj+0x30] + macro`. El objeto tiene 3 bytes de relleno (+0x31, +0x3E, +0x3F) que el constructor no inicializa.
+- **Escrituras ARM→DSP por drum** (`0x080287DE`…, parámetros 0–6, `0x08036192(0x10, 7·d + i)`): 0 → X:$A3+10d (sample), 2 → X:$A4+10d (pitch), 3 → X:$A5+10d (decay, `0x080287A0`; 127 → 0), y las direcciones con el bit 15 son **espacio Y**: 1 → Y:$FD+d (nivel), 6 → Y:$101+d (pan), 4 → **Y:$105+d (distorsión)**, 5 → **Y:$109+d (EQ)**. El DSP (`P:$1B10–$1B28`) suaviza esos objetivos hacia X:$A9.. (ganancias), X:$A7+10d (EQ) y X:$A6+10d (distorsión).
+- **Lo que hace el knob 8 de stock es un EQ, no un filtro:** `P:$2123–$2140` es un LP de un polo (k = 0,075, ≈ 570 Hz) con salida `in·(1+g) − 2·g·lp`, `g` = (v − 64) / 64 con rampa por bloque → inclinación tilt (izquierda graves, derecha agudos; 64 = plano). La distorsión (`func_000aac` con b = 0, `P:$211A`) es un waveshaper por tabla (`x:(r5+n5)`, `y:$1C`) con normalización.
+- **Cadena de la voz** (`P:$20B3`): disparo → posición (`x:(r3+4/5)`, que en el disparo se pone a 0 con el `clr a` de `P:$20E1`) → interpolación (índice = posición·4, fracción en a0) → X:$2C46 → distorsión → EQ → X:$2C02 (mono) → ganancias L/R / envíos (`P:$2145–$218D`, Y:$1BB5) → `mixhook` P:$218E (SC16) → buses X:$2E70 / $2EB0 / $2EF0.
+- **Conclusión:** viable sin RAM de ARM nueva si el estado vive en el DSP. Rango extendido (los valores de stock siguen igual hasta 0; más a la izquierda cuenta un contador propio) para no romper patches de stock; el EQ se sustituye por un filtro DJ porque ya es bipolar. Detalle de la propuesta en el chat.
+- **Elección del usuario (2026-10-04)** para los knobs libres: **K1 = Pitch envelope** (bipolar, 64 = apagado), **K3 = Hold / Gate**, **K5 = LFO amount** (el usuario no definió el destino; supuesto: bipolar, derecha = trémolo, izquierda = vibrato), **K7 = Env → cutoff** (bipolar). K4 izquierda = start point (gancho en `P:$20E1`), K6 izquierda = bitcrush, K8 = filtro DJ (sustituye al EQ). **Confirmado por el usuario:** **Shift + K5 = velocidad del LFO** y **Shift + K8 = resonancia del filtro** (ambos con acumulador en el DSP; con Shift el manejador no debe pasar el giro al valor de stock).
+- **Diseño previsto (no implementado aún):** estado en el DSP con incrementos desde el ARM (buzón X, sin RAM de ARM); el rango extendido de K4 / K6 (1–63) necesita 12 bits por drum en los bytes de relleno del objeto de macros (+0x31, +0x3E, +0x3F; hay que ponerlos a 0 en un gancho del constructor `0x0804FC6A`); etapa por drum en `mixhook` P:$218E (Hold → bitcrush → filtro SVF Chamberlin → trémolo) y modulación del incremento `x:(r3+2)` por bloque (pitch env, vibrato); disparo propio detectado con el gancho de `P:$20E1` (2 palabras `clr a` + `move x:(r3+2),x0` → `jsr`).
+
+### SC17.7 = SC17.6 + **song pointer** + **retornos de delay/reverb más fuertes** + **modos en Shift + Scale** — ⏳ pendiente de probar
+- Resultado de SC17.6 en el aparato (2026-10-04, el usuario): todo funciona salvo los modos 5/6 (retorno de delay y de reverb como fuente del sinte), que **no se aprecian**. Petición: mover la vista de modos a Shift + Scale (en lugar de Shift + Preset) y un song pointer en las filas 2 y 3 de Master FX.
+- **Retornos más fuertes** (`linein3.FX_GAIN_SHIFT = 3`): los retornos Y:$9C0 / Y:$880 están en el dominio del mezclador (ganancia de tira 0,0615 ≈ −24 dB), muy por debajo de la entrada de línea (que entra cruda y ×2). `fx_cap` añade `asl #3` a L + R (= ×16 de la media; la saturación es la de `move a,y:`). SC17.5 y SC17.6 siguen idénticos (opción por defecto 0).
+- **Modos en Shift + Scales** (`tools/modeview.py`):
+  - Shift + Scales (caso 26 con Shift: solo si el store de transporte `[ctrl+0x18]` p0 = 0, o sea, **solo con el transporte parado**) abre la vista id 7 = objeto `ctrl+0x34` (0x20044128, vtable 0x0805A6A4). Sus LEDs de stock: un bloque de 15 pads en las columnas 3–6; su manejador de pads (slot 0 = 0x08044006) fija `[+0x18]` idx 0 = pad y llama al sumidero `[+0x20]`; las columnas 1–2 y 7–8 están libres.
+  - Modos 0–6 en los índices de pad 0, 1, 8, 9, 16, 17, 24; sinte = pista seleccionada (`0x0805011E([ctrl+0x2C])` = 0–7, sinte si ≤ 1); el modo va a SC14 + 18 + sinte y se reenvía el grupo Audio In (`0x0803BDCC(0x20, 48)`), como SC15. Los demás pads → `0x08044006`.
+  - La vista Preset del sinte (SC15) vuelve a sus manejadores de stock (vtable 0x0805AC9C: slots 0 / 7 = `0x0804D242` / `0x08047592`).
+- **Song pointer** (`build_sc17.songptr_code`, opción `use_songptr()`):
+  - **Motor del secuenciador** = objeto 0x20038ECC (`[[X+0x2C]+4]`, `X = [[[ctx]+0x10]]`; vtable 0x080598D4: 0 start `0x802BC98`, 1 continue, 2 stop, 3 **setSongPosition** `0x802BEE8`, 4 song select). El despachador MIDI `0x08051720` ya llama a esos slots con los mensajes de sistema (F2 = SPP, FA / FB / FC).
+  - Posición global = **tick** en el store `[E+0x90]` idx 0 (24 PPQN, 6 ticks por paso). Función de tick `0x0802C418(E)` (llamada desde un listener de stores): suma 1 al store, procesa los eventos del tick (`0x0802C6E2`) y la lógica de cadena de patrones. Fijar posición = `0x0802BFE0(E, ticks)`: escribe el store, resincroniza los 8 tracks (`0x0802C008`) y marca la bandera; la usan el Start y el SPP.
+  - **Gancho** en los 4 primeros bytes de `0x0802C418` (`push.w {r4-r8, lr}`): `c_sptick` ejecuta ese `push.w`, y si hay rango, el tick que va a ejecutarse (n = ticks + 1) es múltiplo de 6 y su paso (n/6 mod 16) es el del paso final + 1, llama a `0x0802BFE0(E, n − (E − S + 1)·6 − 1)`; el tick de stock suma 1 y cae en el inicio. Si el nuevo tick fuera 0 se le suma `SP_BIG` (6 · 1441440: múltiplo de 6 · mcm(1..16) · 2, conserva la fase de patrones de 1–16 y 32 pasos) porque el tick −1 desalinearía la resincronización.
+  - **Estado** en 4 bytes que sobraban (la reserva no crece): SC14+21 LS (inicio fijo), +22 LE (final fijo), +23 H1 y GFX+31 H2 (primer / segundo paso mantenidos). Rango efectivo (S, E) = (LS, LE o 16) si LS; si no, (H1, H2 o 16) si H1; E < S se ignora; (1, 16) no hace nada.
+  - **UI** en la vista Master FX (índices de pad 8–23 = pasos 1–16): Shift + paso conmuta / mueve LS; con LS, un paso sin Shift ≥ LS coloca LE; sin LS, mantener = H1 / H2. LEDs: pasos tenues, inicio, final, cabeza (según `[E+0x28]` idx 0 = en marcha y los ticks); `c_sp_leds` pisa las entradas 8–23 del búfer de Master FX (el marcador del efecto seleccionado de la fila 2 desaparece).
+  - **Límite de la emulación**: el volcado de RAM no trae los datos de patrones (SDRAM), así que `0x0802C008` (resincronizar los tracks) se registra pero no se ejecuta; el tick de stock sí corre. En el aparato la ruta es la del SPP de stock.
+- Pruebas: `tools/emu_sc17_7.py` (modos por Shift + Scales, máquina de estados del song pointer, LEDs, el tick con los 5 casos de rango y el caso del tick 0); `emu_sc17.py` (LEDs de las filas 2–3), `emu_sc17_5_dsp.py` (captura << 3), `emu_sc17_5.py` (sin la prueba de modos de la vista Preset: `modeview` en el manifiesto), `emu_sc17_6.py`, `emu_sc17_core.py`.
+- `.syx` `58f69984…52e7`; imagen de 0x599A4 bytes; CRC 0x7BCF20DB.
+
+### SC17.6 = SC17.5 + **fila inferior de FX en la vista Master FX** + **huecos asignables** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-04): la línea inferior de FX (reverb y delay off + los 7 Master FX originales) también en la vista Master FX; pulsar un FX de arriba y uno de abajo a la vez sustituye los parámetros y el modo del efecto inferior por los del superior.
+- Interpretación (a confirmar con el aparato): el pad de abajo pasa a ser el efecto de arriba, con su **modo** (el pad: Auto-Filter LP ≠ HP) y una **copia de sus 4 parámetros**; pulsarlo carga la copia en el efecto y lo activa. No se guarda.
+- Todo en `tools/build_sc17.py` con `use_slots()` (después de `use_full_leds()`), sin cambiar los builds anteriores. Builder: `tools/build_sc17_6.py` (= SC17.5 con `use_slots()`).
+- **Teclas de la vista FX (2026-10-04):** el reset pasa del botón 16 al botón **Duplicate** (id 24; el usuario descartó Clear porque «está ocupado») y el botón 16 («1-16 / 17-32») pasa a subir la **resonancia del filtro master** (tipo 0x21, índice 1) de 32 en 32 hasta 127; en 127 vuelve a 0. `fxkeys.CLEAR_RESET = True` (SC17.5 sigue con el reset en el 16).
+  - **Duplicate = id 24, Clear = id 23**: los casos 23 y 24 comparten el manejador de stock `0x08033612` (objeto `ctrl+0x20`, vtable 0x0805A91C: los modificadores Clear / Duplicate; bit 0 / bit 1 del store `0x20039844`). El bit 0 es el que miran las páginas de knobs (`0x08050830`) para «mantener + girar 40 clics = valor por defecto», y el id 23 con Shift hace la llamada especial `0x64` (borrado): por eso se toma 23 = Clear y 24 = Duplicate (sin confirmar en el aparato). Ninguna vista FX lee el bit 1, así que Duplicate está libre ahí.
+  - Gancho de 4 bytes en 0x08033612 (`ldr r0,[r4,#0x20]` + `mov r1,r5`): si la vista activa es la FX, el id es 24 y no hay Shift → `c_reset`; **siempre** ejecuta después las dos instrucciones desplazadas y sigue en 0x08033616 (la función de stock se conserva; `c_dup`). Clear (23) queda intacto.
+  - `c_res`: lee `0x08036192(0x21, 1)`, suma 32 (máx. 127; si ya es ≥ 127 → 0) y lo fija por `0x08034D92` (X:$D0 recibe valor << 16). El botón 16 se traga el stock (conmutar la página de pasos) solo en la vista FX.
+- **Fila inferior en Master FX:** los slots 0 / 1 / 7 de la vista Mixer en modo Master FX (`c_s_press` / `c_s_rel` / `c_s_leds`) pasan los pads 24–31 (índices; pads 25–32) a los manejadores de la vista FX (`c_f_press` / `c_f_rel` con la vista FX como `this`: el pad 24 llega al manejador de stock `0x080456C0` = «reverb y delay off», los 25–31 a los efectos SC14) y copian de los LEDs de la vista FX las entradas 24–31. Fuera del modo Master FX, todo es el Mixer de siempre.
+- **Huecos:** bloque de Master FX de 148 a 180 bytes (`S_SLOT` = 148: 7 × 4 bytes; `S_SLOTH` = 176: máscara de huecos mantenidos). Hueco `j` (pad 25 + j): parámetro `i` en los bits 0–6 del byte `i`; el efecto (pad de arriba 0–5) en el bit 7 de los bytes 0–2; bit 7 del byte 3 = asignado. `c_stype` / `c_sassign` / `c_sload` codifican, copian los 4 parámetros de la tabla de parámetros del efecto (`SETMAP`) y los restauran.
+- **Asignar** (`c_s_press`): pad de arriba pulsado con algún pad de abajo mantenido (SC14 `S_HELD` | `S_SLOTH`), o al revés con algún pad de arriba mantenido (`S_HELD`); sin Shift. El gesto solo asigna. Si el pad de abajo ya había arrancado su efecto SC14, la liberación lo suelta (el manejador de liberación llama siempre a `c_fxrel`).
+- **Hueco asignado:** `c_f_press` carga la copia (`S_DIRTY` = 1), selecciona el efecto (`S_SEL`), y fija el bit en `S_SLOTH` (mantener) o conmuta `S_LATCH` (Shift). `c_fxtick` suma `c_slotbits` (efectos de los huecos mantenidos) a los pads mantenidos y fijos; `c_slotbits` los suelta si no está abierta ninguna de las dos vistas. LEDs en la vista FX: `c_f_leds` (color del efecto, brillante si está activo).
+- **Memoria:** reserva 220 bytes (antes 196; 8 bytes de la reserva anterior no se usaban). Con los 240 libres medidos con SC17D quedan unos **20 bytes** de margen (con SC17.5 eran 44).
+- Pruebas: `tools/emu_sc17_6.py` (ARM, rutas reales del controlador); `emu_sc17.py` con el LED de la fila inferior; `emu_sc17_5.py`, `emu_sc17_core.py`, `emu_sc17_5_dsp.py` con la imagen nueva.
+- `.syx` `78f6a9ac…7c19`; imagen de 0x595C0 bytes; CRC 0x269EE907.
+
+### SC17.5 = SC17.4 + **delay / reverb como fuente del sinte** + **teclas de la vista FX** — ⏳ pendiente de probar
+- Petición del usuario (2026-10-03): delay y reverb como entrada externa del sinte (pads 30 y 31); en la vista FX, Octave ▲ = knobs en envíos de delay, Octave ▼ = envíos de reverb, botón «1-16 / 17-32» = todos los efectos y el filtro master a cero.
+- **Flujo de un bloque del DSP** (núcleo 0, trazado con `WATCH` en `dsp_session`; bloque = x:$3a = 32 tramas estéreo): voces de sinte (P:$79B, salida X:$2C40…) → suma en Y:$840 / Y:$880 (P:$10A6) → mezcla principal Y:$800 (P:$240) → **bus de delay** Y:$9C0 (P:$CC4) → proceso del delay in situ (`func_001157`, P:$11A2) → bus de reverb Y:$840 (P:$CFB) → **reverb** `func_001964`: entrada Y:$840, salida Y:$880 → retornos P:$D21 (SC10 `returns`: escala por X:$20C / X:$24C si están los bits y suma Y:$880 = (Y:$9C0 + Y:$880) >> x:$18B). Las voces del bloque siguiente empiezan antes de que se reescriban esos búferes, pero Y:$880 ya lleva la suma: por eso la captura va **antes** de `returns`.
+- **DSP** (`tools/linein3.py`, superconjunto de `linein2`; la entrada de línea v2 sigue idéntica):
+  - P:$D22 (operando del `jsr int_00009f` de SC10) → `fx_cap`: si X:$3A01 o X:$3A02 ≥ 5, copia L + R (con la saturación de `move a,y:`) de Y:$9C0 y Y:$880 a **Y:$3A80** (delay) y **Y:$3AC0** (reverb); luego `jmp $9F`. Sin modos 5/6 gasta 7 instrucciones por bloque; con captura +271 (de ~55 000).
+  - P:$9C3 → `l3_hook` = `l2_hook` con una rama: modo ≥ 5 → r2 = Y:$3A80 / $3AC0, n2 = 1, sin caché (los búferes se refrescan cada bloque).
+  - Retardo de un bloque (~0,7 ms). Memoria nueva: solo Y:$3A80–$3ADF (X/Y:$3339–$3BFF libre). Código P:$2C54–$2D06; el programa llega a P:$2D07 (límite $3000).
+  - En emulación el delay y la reverb no suenan (sus líneas de retardo están en memoria externa): `emu_sc17_5_dsp.py` sustituye la llamada a la reverb (P:$D1F `jsr func_001964`) por un relleno de patrones en Y:$9C0 / Y:$880.
+- **UI de los modos:** `build_sc15.N_MODES = 7` → Shift + pads 25–31 en la vista Preset (pad 30 = modo 5 delay, pad 31 = modo 6 reverb). El estado y H9 son los de siempre (el modo se escribe tal cual en X:$3A01 / X:$3A02).
+- **Vista FX** (objeto `ctrl+0x44`, vtable 0x0805A6E0):
+  - dos subvistas de la misma clase (vtable 0x0805AF3C): `[+0xC]` = envíos de **delay**, `[+0x10]` = envíos de **reverb**; los 8 knobs = envío de Synth 1, Synth 2, Drums 1–4, Audio 1 y 2;
+  - el knob (slot 4, `0x08050830`): valor del knob en el store `[sub+0x14]` (0–127), y llamada al sumidero `[sub+0x18]` (índice de proyecto = knob + `[sub+0x4c]`);
+  - la página activa es `[fx+0x20]` p0 (1 = delay, si no reverb); el firmware la cambia al tocar un pad de preset (listener `0x0804577C`). **SC17.5 la escribe desde Octave ▲ / ▼**: `0x080354FA(store, 0)` + `strb` + `0x080353C0(store)`.
+- **Botones** (manejador `0x08033320`, `tbh` en 0x080333C4): **19 = ▼, 20 = ▲** (en el modo Sidechain, 19 llama a `PG_DOWN`, 20 a `PG_UP`); 16 y 17 los atiende el objeto `ctrl+0x4c` (vtable 0x0805A9FC), que además rellena los LEDs 32/33 del panel; **16** conmuta el bit 12 del store `[+0x1c]` (página de pasos) → lo tomo por el botón «1-16 / 17-32» (**sin confirmar en el aparato**). Ganchos de 4 bytes (`b.w`) en el comienzo de los casos: 0x08033620 (19), 0x08033660 (20), 0x080336D0 (16/17); sin la vista FX ejecutan las dos instrucciones desplazadas (`ldr r0,[r4,#0x6c]` + `ldr r1,[r4,#X]`) y vuelven a 0x08033624 / 0x08033664 / 0x080336D4.
+- **Reset** (`tools/fxkeys.py`, `c_reset`):
+  - parámetros de proyecto por `0x08034D92(this+4, tipo, índice, valor)`, el listener que usa el MIDI (`0x08052854` → `[[A]]+4`, con `A = [[ctx+0x10]]`; `ctx = [0x200069E4]`): tipo 0x20 índices 0–7 (reverb) y 11–18 (delay) = 0; tipo 0x21 índice 0 (filtro master) = 64; la resonancia (índice 1) no se toca (petición del usuario). Almacén, UI y marcas de suciedad (`0x0803BDCC`) como con un CC;
+  - el vaciado al DSP lo hace `0x080213B0` (un grupo sucio por llamada; la prueba lo llama 8 veces): X:$E3 $E4 $AB $B5 $BF $C9 $E5 $E6 (reverb) y X:$E7 $E8 $AC $B6 $C0 $CA $E9 $EA (delay) = 0 y X:$CF = $400000 (X:$D0 no se escribe);
+  - los stores de valores de las dos páginas (`[sub+0x14]`) se actualizan solos por los listeners (el siguiente giro de knob empieza en 0);
+  - estado propio a cero: SC14 `S_HELD/S_LATCH/S_GAT/S_AF` (`c_gst` + 4..7) y Master FX `S_HELD/S_LATCH` (`c_gfst` + 5/6); el Gater y el Auto-Filter restauran solos los valores de stock en el siguiente tick.
+- Pruebas: `tools/emu_sc17_5_dsp.py` y `tools/emu_sc17_5.py` (ARM por la ruta real del controlador; compara con SC17.4 los botones en las demás vistas; incluye las pruebas de modos de `emu_sc15`). `emu_sc17_core.py` admite la memoria nueva de SC17.5 (Y:$3A80–$3ADF y +270 instrucciones con captura activa en ese test).
+- Windows sin WSL (esta máquina: virtualización desactivada en la BIOS): WinLibs (g++, cmake, ninja) + `ext/dsp56300` con dos parches locales que no se versionan (`SetThreadName` solo con MSVC; `mmuhelper.cpp` sin la API de placeholders) y `dsptool` enlazado con `-static`; ver `docs/LOCAL.md`. Los 24 builds anteriores salen idénticos.
+- `.syx` `fbb1818d…8002`; imagen de 0x59120 bytes; CRC 0xAF0F59B9.
+
+### Entrada de línea (SC15 / v2): observaciones en el aparato (2026-10-03)
+- **Fase de los pads:** en la práctica los **pads 26 y 27 llevan la señal invertida** y los **pads 28 y 29 la señal sin invertir**, al revés de lo que dice el código (26/27 = In 1/In 2 con ×2; 28/29 = In 1/In 2 con ×(−2)). Es lo que se oye/mide en el aparato; la emulación solo comprueba el signo respecto al búfer de entrada del DSP, así que la inversión puede venir de la ruta analógica/ESAI, no del parche. Pendiente: confirmar con una señal de referencia (p. ej. sumar Synth 1 pad 26 + Synth 2 pad 29 sobre la misma entrada: si se cancelan, la observación es correcta) y, si se confirma, intercambiar los signos en una versión nueva (opción en `linein2.py`, sin tocar los builds publicados).
+- **Limitación:** este modo solo toma las entradas 1 y 2 (tiras 3/4 del mezclador). **Falta poder tomar el retorno de delay y de reverb como entrada externa** → hecho en SC17.5 (modos 5 y 6, pads 30 y 31).
+
+### SC17.4 = SC17.3 + **LEDs de los knobs** en Master FX — ⏳ pendiente de probar
+- Hardware (2026-10-03): SC17.3 funciona entero. Fallo: en Master FX el knob 5 se ve magenta.
+- **Tarea de LEDs** `0x08034196(ctrl, out)`:
+  - 0x45 LEDs; cada uno = (fuente, elemento), según la tabla `0x08059438`;
+  - fuentes: 0 = vista activa [ctrl+0x6C], 1 = [ctrl+0x58], 2 = [ctrl+0x54], 3 = sub-vista de pista (`0x0803435A`), 4 = [+0x20], 5 = [+0x3C], 6 = [+0x10], 7 = [+0x60], 8 = [+0x24];
+  - de la vista activa se leen los elementos 0–31 (pads → LEDs 0–31), 32/33 (→ LEDs 51/52) y **34–41 (→ LEDs 60–67 = los 8 knobs)**;
+  - si [ctrl+0x6C] = 0, copia 0x45 entradas de [ctrl+0x68] y el LED 0x44 de [ctrl+0x60].
+- Corrección: `build_sc17.use_full_leds()` → `LED_N = 42`, bloque de 148 B (`s14.ST` −20 → 0x20044D94).
+  - Entradas 32/33 copiadas del búfer de stock del Mixer (`0x08046C04`, que se llama para refrescarlo).
+  - Knobs 1–4 (Digitise: 1–2) con el color brillante del efecto seleccionado; el resto a 0.
+  - Accesos con `ldrh.w`/`strh.w` (desplazamiento > 62).
+- Reserva total 196 B; libres en el aparato 240 B (fila 2 de SC17D = 15).
+- `tools/build_sc17_4.py` (`--diag` → SC174D). `emu_sc17.py` comprueba además la tarea de LEDs completa. `.syx` `61a0ac62…88eb`; imagen de 0x58FB8 bytes; CRC 0x27EBB953.
+
+### SC17.3 = SC17.1 con Master FX en el **botón Mixer real (14)** — ✅ funciona en hardware (knob 5 magenta → SC17.4)
+- Resultado de SC17D en el aparato (igual en los 3 pasos):
+  - fila 2 = 15 (240 B libres, como en el volcado);
+  - pad 17 y pad 24 encendidos (bloque y reserva bien);
+  - pads 18–23 apagados: **`c_mixbtn` nunca se ejecutó**, ni con Mixer ni con Shift + Mixer.
+- **Corrección del mapa:**
+  - botón 13 = vista de primer nivel id 1 (objeto 0x200441A8, vtable 0x0805A5F0: knob no-op; Shift → `0x08045D5A`). **No es Mixer.**
+  - **Mixer = botón 14** → id 2 → objeto 0x200447D4, vtable 0x0805A668:
+    - 0 pulsar `0x08046626` (pads 0–7 = silencio de pista);
+    - 1 soltar `0x080466B4`;
+    - 4 knob `0x080466C4` (niveles);
+    - 7 LEDs `0x08046C04` (copia 0x20 B del sub-objeto +0xC al búfer `[[v+4]]` y lo devuelve).
+  - Ids de vista en los casos del switch: 13 → 1, 14 → 2, 15 → 3 (FX, 0x200443B4), 18 → 4, 26 → 6 (literales 0x08033708–0x0803371C). Tabla id → objeto: `[0x0805877C + 4·(0x43 + id)]` & 0xFF = índice en ctrl + 0x94.
+  - Shift + 14 no llega al `tbh`: la máscara de Shift 0x07DBBE00 no tiene el bit 14.
+- **Lección:** identificar la vista por su comportamiento (pads, knobs) y no por un supuesto sobre el número de botón. Las pruebas de emulación llamaban a los handlers con el mismo supuesto, así que no podían detectarlo.
+- `build_sc17.use_mixer14()`: gancho en 0x08033506 (caso 14: `movs r2,#0xe; adr r0,#0x1fc; b 0x080335FA`). En el Mixer ([ctrl+0x6C] con vtable 0x0805A668) conmuta S_MODE y vuelve. Si no, S_MODE = 0 y sigue el camino de stock (r2 = 14, r0 = 0x08033708, b.w 0x080335FA). Los envoltorios van en la vtable 0x0805A668.
+- `tools/build_sc17_3.py` (`--diag` → SC173D). Pruebas:
+  - `emu_sc17.py`: incluye pads por la ruta real del controlador (`0x08033282` / `0x080332FE`);
+  - `emu_sc17d.py`, `emu_sc17_core.py`, `emu_sc15.py`.
+- `.syx` `f4b20c2f…5145`; imagen de 0x58EE0 bytes; CRC 0x06BD0351.
+
+### SC17D = SC17.2 + **diagnóstico en LEDs** — ✅ probado: la memoria está bien; el gancho no se ejecutaba
+- Hardware (2026-10-03): con SC17.2, Shift + Mixer solo da el Mixer normal (ni LEDs ni pads de Master FX).
+- Hipótesis principal: la reserva en el tope del heap. SC17 baja `s14.ST` a 0x20044DA8 (176 B bajo el límite 0x20044E58). En el volcado, el heap actual es 0x20044D68 (240 B libres, 64 B de margen). Si en el aparato el heap pasa de 0x20044DA8 antes de la primera llamada a `c_gst`, todo lo que depende de SC14–SC17 queda desactivado, incluido Master FX. El asignador (`0x0801D7D8`) es un bump con `bkpt` si se pasa del límite.
+- Si `c_gfst` = 0, el gancho de Shift + Mixer va al camino de stock (sin cambio de vista). Desde el Mixer eso no se distingue de "nada".
+- Panel (vista Preset de sinte + Shift, envoltorio `c_dleds` delante de `c_sleds`): fila 2 = (0x20044E58 − [0x20002B48]) / 16 en binario; pads 17–24 = bloque ok, modo, bits fijos (byte 31 del bloque: Shift+Mixer, Mixer, `c_gpress`, `c_gleds`, `c_gact` verdadero), límite del heap = ST.
+- `build_sc17.DIAG`; `tools/build_sc17d.py`; prueba `tools/emu_sc17d.py`. SC17, SC17.1 y SC17.2 siguen idénticos.
+
+### SC17.2 = SC17.1 con **Master FX en Shift + Mixer** — ❌ Shift + Mixer solo abre el Mixer normal
+- Hardware (2026-10-03): en SC17 y SC17.1 la segunda pulsación de Mixer no hace nada (sin parpadeo; el pad 1 sigue silenciando el Synth 1). Todo lo demás de SC17.1 funciona. En emulación el gancho sí conmutaba; **causa sin identificar**. Revisado y descartado: el objeto del Mixer es 0x200441A8 con vtable 0x0805A5F0 (tabla ctrl+0x94, índice 1); el botón 13 llega por `0x08033320` → `tbh` → 0x0803354C; la vista activa es [ctrl+0x6C].
+- El usuario propuso Shift + Mixer. Nueva entrada sin conmutar (`build_sc17.ENTRY = "shift"`):
+  - Mixer: modo Master FX = 0 y camino de stock;
+  - Shift + Mixer: modo = 1, luego `pop {r3,r4,r5,lr}` y `b.w 0x0803390C(ctrl, [0x08033714] = id de Mixer, 13)`, igual que el caso de stock.
+- `0x0803390C` (selección de vista) puede llegar a `sleep(ms)` (`0x0801BE78`, vaciado de stores en `0x08020D28`): en emulación el reloj no avanza y se queda colgado. `emu_sc17.py` ahora salta `sleep`; el modo se escribe antes del cambio de vista.
+- `tools/build_sc17_2.py`; pruebas: `emu_sc17.py` (marca SC17.2 → modo shift), `emu_sc17_core.py`, `emu_sc15.py` (5 modos, ganancia 2, `ST` = `sc14_state` del manifiesto). `.syx` `41ceb8a6…dea5`; imagen de 0x58EEC bytes; CRC 0x2FF60902.
+
+### SC16.1 / SC17.1 = SC16 / SC17 + **entrada de línea v2** — ⏳ pendientes de probar
+- Petición del usuario tras probar SC16 (todo bien): nivel algo bajo y modos con la entrada en fase invertida.
+- `tools/linein2.py`: modos 0 Noise, 1 In 1, 2 In 2, 3 In 1 invertida, 4 In 2 invertida (Shift + pads 25–29); ganancia ×2 con saturación, ×(−2) en los invertidos.
+- DSP: P:$9C3 → `l2_hook` (en el programa ampliado, añadido envolviendo `build_sc16.dsp_code`).
+  - Una vez por bloque y sinte se rellena el búfer Y:$3A00 / Y:$3A40; etiqueta de caché X:$3A03–$3A06 (y:$FFD y modo); r4/m4 guardados en X:$3A07/$3A08.
+  - Registros libres en P:$9C3: a, b, x0, x1, y0, y1, r2, n2; r0, r1, r3, r5 y r7 ya están cargados para el bucle de mezcla.
+- ARM: `build_sc15.N_MODES = 5` (por defecto 3: SC15, SC16 y SC17 no cambian).
+- Builders `build_sc16_1.py`, `build_sc17_1.py`. Pruebas: `emu_sc15.py` con `N_MODES = 5`, `GAIN = 2`.
+
+### SC17 = SC16 + **vista Master FX** (Mixer → Mixer) — ❌ la vista no se abre en el aparato (ver SC17.2)
+- **Decisiones del usuario (2026-10-03):** entrar pulsando Mixer estando en Mixer (Shift + Mixer intacto, su función de stock está sin identificar); knobs con frecuencia y cualidades de cada efecto; primero los efectos sin muestreo de audio.
+- **UI de Mixer:**
+  - botón 13 = Mixer (vista de primer nivel 1, objeto 0x200441A8, vtable 0x0805A5F0: 0 pulsar 0x080446E6, 1 soltar 0x080448E8, 4 knob = no-op 0x080475A0, 7 LEDs genérico);
+  - Shift + Mixer en stock conmuta el store 0x20039DE0 (objeto 0x2004475C, `0x08045D5A`), referenciado por ~34 vistas de track; función sin identificar;
+  - el botón 14 (vista 2) no tiene función con Shift.
+- **Controlador:**
+  - **vista activa = [ctrl + 0x6C]** (la usan los knobs: `0x08033848` → slot 4); [ctrl + 0x208] no es fiable;
+  - pulsar botón = vtable[2] `0x08033320`, soltar = vtable[3] `0x0803381A`;
+  - tabla de vistas de primer nivel en ctrl + 0x94 + 4·i.
+- **LEDs de Mixer:** se pintan pad a pad (`0x0804AA40(buf, pad, índice de paleta)`). No hay repintado completo, por eso Master FX usa un búfer propio.
+- **DSP:**
+  - `tools/masterfx_dsp.py`, hook P:$274 (`move #>$2e10,r1` → `jsr fx_hook`); X:$2E10 = bloque master estéreo intercalado tras el filtro master y el escalado <<2, antes de `func_0021c4`;
+  - mapa X:$3A40–$3A70 en el módulo; `sc_init` borra X:$3A00–$3A7F;
+  - pruebas exactas al bit en `emu_masterfx_dsp.py`; cadena completa: 5957 instrucciones por bloque;
+  - ensamblador de dsp56kEmu: en `mac`/`mpy` usar los pares del manual (`y0,x0`, `y1,y0`, `x1,y0`, `x0,y1`…); `jcc` largos emitidos como palabras.
+- **ARM:**
+  - `c_mixbtn` (0x0803354C); envoltorios `c_gpress`/`c_grel`/`c_gknob`/`c_gleds`;
+  - `c_fxtick` en el gancho de servicio (después b.w `c_gtick` de SC14);
+  - tablas de 128 entradas generadas en Python;
+  - estado en `c_gst() + 40` (128 B): s14.ST = 0x20044DA8 (SC14 24 B + SC16 16 B + SC17 128 B).
+- Pruebas: `emu_masterfx_dsp.py`, `emu_sc17.py` (28), `emu_sc17_core.py`. `.syx` `90f3684c…5d92`; imagen de 0x58D48 bytes; CRC 0xA1E08308.
+- Pendiente: Beat Repeat y Reverser (necesitan búfer de audio: memoria externa del DSP o ~2K palabras libres en X/Y:$3339–$3BFF).
+
+### SC16 = SC15 + **sidechain en los drums** (SC13 rehecho) — ✅ funciona en hardware (2026-10-03; SC15 incluido)
+- Misma interfaz y misma lógica que SC13 (ver abajo). Cambios:
+  - Bloques DSP en **X:$3A10 + 9·k**. El init (`sc_init`, P:$10B) borra X:$3A00–$3A33 con un `do` (SC10, SC15, drums).
+  - **Código DSP tras el programa de stock (P:$2A5E–$2ACD)**: el bloque bootstrap del núcleo 0 se copia al final de la imagen con más palabras (`relocate_dsp`) y se redirige el puntero 0x08029700[0]. El bloque antiguo se queda en su sitio, parcheado, pero sin uso. Primera vez que se amplía el programa del DSP.
+    - Tabla de carga: 0x08029700 = [núcleo 0 modo 0, núcleo 0 modo 1, núcleo 1 modo 0, núcleo 1 modo 1]. Antes se carga un stub de 8 palabras (0x080296E0) que pone OMR MS = 1, bit 22 = 1, bit 21 = 0 y salta a $FFFFFE (bootstrap). En la familia Symphony (tabla del DSP56720), MS = 1 da de 16K a 36K de RAM de programa; no se ha podido abrir el manual del DSP56724 (nxp.com bloqueado).
+    - Formato del bloque: palabra 0 = n.º de palabras (el ARM lee los bytes 1–2), palabra 1 = dirección de carga (0); `0x08029200` lo envía en trozos de 0xAA palabras.
+  - P:$21AB (1 palabra) → `jmp $FD` (salto corto) → trampolín `jmp idle` en P:$FD–$FE.
+  - `getblk` y `advance` en línea dentro de `mixhook` e `idle`. Pila en la ruta de drums: 9 niveles, contados a mano (un `do` = 2 niveles).
+  - Estado ARM: la reserva de SC14 baja a **0x20044E28** (`s14.ST − 16`); estado de SC14 en E28–E3F (SC15 en +18..+20) y de SC16 en E40–E4F (magic 0x5C16D5C1). Todas las funciones comprueban `c_gst() ≠ 0` y, si falla, se comportan como stock.
+- Pruebas: `emu_sc16_dsp.py` (27), `emu_sc16.py` (40), `emu_sc16_core.py` (núcleo completo: init real con el programa reubicado, tabla de voces intacta, accesos nuevos solo en X:$3A00–$3A33 e Y:$2028–$204C, coste +305 instrucciones por bloque por drum atenuado).
+- `.syx` `1c145040…3be5`; imagen de 0x56314 bytes; CRC 0xC011E7BA.
+- Emulador: el intérprete de dsp56kEmu ejecuta el cuerpo de un `do` en un solo paso (el contador de pasos, el histograma, SPMAX y el PC de WATCH no ven el interior de los bucles). Para medir el coste se usa `getInstructionCounter()` (`ins=` en la línea RAN); `getCycles()` vale 0 en modo intérprete.
+
+### SC15 = SC14.2 + **entrada de línea en lugar del noise del sinte** — ✅ funciona en hardware (probado con SC16); nivel algo bajo → v2
+- **Decisiones del usuario:** selección con Shift + pads en la vista Preset del sinte; no se guarda.
+- **Mezclador de voz del DSP** (dentro de `func_00077f`, desde las dos pasadas de voces):
+  - P:$9AC: rampas por muestra de los 6 niveles del mezclador → X:$1400 + 6k + i (i = 5: noise); niveles actuales en el bloque de render de la voz (voz 0: X:$5A5–$5AA), pendientes en Y (voz 0: Y:$5A5–$5AA, calculadas en P:$470 desde y:(voz + $D…$12)).
+  - P:$9C6: bucle por muestra: osciladores en Y:$A01… (vienen del núcleo 1), noise = `y:(r2)+n2` con r2 = Y:$F7D + x:(r0+$19) (desfase por voz), n2 = 4; salida en X:$2C46 → filtro.
+  - Tabla de ruido Y:$F7F… regenerada cada bloque en P:$19FD (amplitud ≈ 0,86).
+  - **X:$CC = sinte de la voz** (palabra 7 del slot, copiada en P:$77F/$283); X:$CB = desplazamiento del sinte ($172·s), que en la pasada de render queda desfasado; X:$2C = contador de slot.
+- **Anillo de entrada:** Y:$1000–$13FF (módulo $3FF), tramas [in1, in2]; y:$FFD = primera trama del bloque actual (64 palabras alineadas, sin vuelta dentro del bloque); se avanza en P:$279–$27B. La salida (`func_0021c4`) se escribe en el mismo anillo, después de las voces.
+- **Parche:** P:$9C3/$9C4 → `jmp li_hook` (P:$E3); modo X:$3A01/$3A02: 0 = stock, 1/2 → r2 = y:$FFD + modo − 1, n2 = 2; vuelve a P:$9C5. P:$10B → `jsr li_init` (P:$D9): borra X:$3A00–$3A02.
+- **ARM:** vista Preset de sinte (vtable 0x0805AC9C; instancias 0x20042980 / 0x20042A34; byte de track +0x24 = 0x68/0x69; pulsar `0x0804D242`, repintado completo `0x0804D3C2`): slot 0 → `c_spad` (Shift + pads 25–27), slot 7 → `c_sleds`. Modos en el bloque de SC14 (+18/+19; +20 = bits de pintado), vía `c_gst`. H9 → `c_h9b` (escribe los modos y sigue con `c_h9` de SC10). Cambio de modo → `0x0803BDCC(0x20, 48)`.
+- Pruebas: `emu_sc15.py` (ARM + DSP de núcleo completo). `.syx` `3612b83e…5065`; imagen de 0x4DFC8 bytes; CRC 0x958C60AD.
+- Mezclador de sinte por CC: CC 56 → X:$3C9 (noise), CC 54 → X:$3C6.
+
+### SC13 = SC12 + **sidechain en los drums** — ❌ DESCARTADO: bucle de reinicio en el aparato (pantalla roja tenue, reinicio continuo; recuperado con el bootloader + SC12)
+- **Causa casi segura (2026-10-03):** X:$EB–$110 es la tabla de voces del DSP; SC13 la borraba y ponía el flag en X:$EB (dirección de la rutina de la voz 0). Ver «Tabla de voces del DSP».
+- Sospechosos anteriores, de más a menos probable:
+  1. **RAM 0x2004E000 (el más probable tras SC14):** el volcado `ram_dump_firmware_0x08037988` se tomó en un breakpoint, quizá antes de terminar el arranque. La pila de `main` (MSP), antes de arrancar el RTOS, podría bajar hasta ahí.
+  2. **Vectores P:$54–$7F del DSP.** En el DSP56724 puede haber interrupciones activas fuera de IPRP: semáforos o mailbox entre núcleos, ESAI_1, timers. Con NOPs no pasa nada; con código, se cuelga.
+  3. **Profundidad de la pila del DSP** (10 + ISR).
+  4. **`rep` en el init** del DSP.
+- **Lecciones:**
+  - no usar P:$00–$7F del DSP;
+  - no usar RAM "libre" deducida de un solo volcado;
+  - con cambios de arranque, probar primero una build mínima.
+- **Vista Sidechain** (Shift + FX = botón 15 con Shift, modo 7; objeto 0x20042BB8, vtable 0x0805AC2C):
+  - `[+0x0C..+0x18]` = filas preset (Synth 1, Synth 2, MIDI 1, MIDI 2; clase 0x0805AFAC, store por fila en 0x2003CFAC + 0x3C·k, p0 = preset 0–7);
+  - `[+0x1C]` = selector de disparador (pads 4–7);
+  - `[+0x20]` = store de página 0/1 (el listener, slot 8, fija el elegido = página·2);
+  - pads: slot 0 `0x0804D6FE`: filas 16–23 / 24–31 → fila `(página·2)` / `(+1)`;
+  - LEDs: slot 7 `0x0804D77A`; se consultan por *polling* desde la tarea de LEDs (`0x0804758C`).
+- **Paginador ▲▼:**
+  - objeto `[cont+0x144]` = 0x20043CB0, vtable 0x0805AA64, store `[+0xC]`;
+  - el contenedor llama a down `0x0804FB66` / up `0x0804FB86` (b.w en 0x08043664 / 0x08043702);
+  - LEDs: buffer `[[obj+4]]` = [down, up], paleta 0x25A = encendido, 0x25C = apagado;
+  - slot 8 = pintar; listener del store en 0x0805AA98 (this + 8).
+- **Botones:** 12 = FX, 15 con Shift = Sidechain, 19 = ▼, 20 = ▲.
+- **Presets de stock** (attack, hold, decay, depth): OFF (0,50,70,0); 1 (5,50,80,80); 2 (5,70,70,100); 3 (5,85,70,115); 4 (5,90,75,123); 5 (5,90,85,127); 6 (5,95,95,127); 7 (5,102,95,127).
+  - Conversión ARM: attack `0x08028764`, hold/decay `0x08028778`, depth << 24, source << 8.
+  - Paleta: track t brillante = t+1, tenue = t+9 (drums: 5–8 / 0xD–0x10); OFF activo 0x19 / inactivo 0x46; pad de disparador no elegido 0x13.
+- **Disparo:** `0x08051B54(drum, vel)` escribe X:$9F+d = vel y X:$99+d = 0xF (bits 0–3 = los 4 sidechains de stock). Los consume `func_001277…12aa` con `bclr #k,x:($99+src)`.
+- **Envolvente de stock** `func_0012bb`:
+  - entradas: r0 = bloque X [src, attack, hold, decay, depth]; r4 = estado Y [fase 2/1/0, contador de hold, env, salida anterior]; r5 = salida Y (32 tramas, ganancia = y:$10 − env·depth); a = fase (2 = disparo);
+  - y:$10 = $7FFFFF; x:$39 = log2(tramas); x:$3a = tramas.
+- **Voces de drums:** `func_00208a` (do #4 → `func_0020b3`):
+  - la voz va a X:$2C46, después al filtro `func_000aac`, después a X:$2C02 mono;
+  - ganancias Y:$1BB5 (6 por trama: main L/R, reverb L/R, delay L/R);
+  - mezcla en P:$218E–$21AA hacia X:$2E70 / $2EB0 / $2EF0;
+  - una voz en silencio sale directamente por `jeq $21AB`.
+- **Scratch del DSP:** Y:$2028–$20A7 (buffers de envolvente de los sintes y audio) queda libre después de P:$208 en cada bloque.
+- **Pila del DSP:** el bucle principal empieza con SP = 0 (sin DO). Ruta SC13 más profunda = 10 niveles. ISR de ESAI + SHI anidadas = +4 → 14 de 15.
+- **Memoria de programa:** el DSP56724 con P ≥ 16K implica X/Y ≥ 16K. Vectores P:$54–$7F (timers, HDI08, ESAI_1) apagados (IPRP = 9).
+- **SC13:**
+  - DSP:
+    - flag de SC10 → X:$EB;
+    - X:$EC + 9k = [disparo, atk, hold, dec, depth, 4 de estado];
+    - init de SC10 (P:$80) = `clr a; move #$eb,r0; rep #37; move a,x:(r0)+; move #>$2028,r0; rts`;
+    - P:$54 `getblk` / `advance` (copia de estado X↔Y:$2048 + `func_0012bb` → Y:$2028);
+    - P:$D9 `mixhook` (P:$218E: avanza, multiplica X:$2C02, bit 1 = avanzado) e `idle` (P:$21AB `jmp`: avanza si no se avanzó).
+  - ARM:
+    - estado en 0x2004E000 = magic, preset[4], src[4], dpage, chosen;
+    - `c_scgrp` en el slot 5 de la tabla de grupos 0x0805B3B0;
+    - `c_trig` en 0x08051B7C;
+    - `c_scpad` / `c_scleds` (vtable de la vista);
+    - `c_pgdn` / `c_pgup` / `c_pgpaint` / `c_pglst`;
+    - `c_scentry` en 0x0804352A;
+    - marcar el grupo con `0x0803BDCC(0x20, 26)` (bit 0x20 = grupo 5).
+  - Herramientas: `dsptool dis` (desensamblador dsp56kEmu); `emu_sc13_dsp.py`, `emu_sc13.py`; `emu_sc10_dsp.py` acepta `SC10_FLAGS`.
+- `.syx` `817ad7e7…b7b7`; imagen de 0x4DE90 bytes; CRC 0x911D6025.
+
+### SC14 = SC12 + **Master FX: Gater + Auto-Filter** en la vista FX — ✅ funciona en hardware (2026-10-03)
+- **Vista FX** (botón 15 sin Shift; objeto 0x200443B4, vtable 0x0805A6E0):
+  - slot 0 `0x080456C0`: pads 0–15 = delay, 16–23 = reverb, 24 = función de stock, **25–31 libres**;
+  - slot 1 = soltar (stock `bx lr`);
+  - slot 7 = LEDs `0x08045722`.
+- **Botones / modos del contenedor** (`[cont+0x18C]`):
+
+  | Botón | Sin Shift | Con Shift |
+  |---|---|---|
+  | 8 | modo 0 (Preset) | |
+  | 9 | modo 6 | |
+  | 10 | modo 2 | |
+  | 11 | modo 3 | modo 8 |
+  | 12 | modo 4 | modo 5 |
+  | 15 | FX (modo 1) | Sidechain (modo 7) |
+  | 19 / 20 | ▼ / ▲ | |
+
+- **Master** (parámetros de proyecto, tipo 0x21; grupo `0x08028F40` / `0x08028F62`):
+  - idx 0 = posición del filtro master (X:$CF, ×2^16; 64 = centro);
+  - idx 1 = resonancia (X:$D0);
+  - idx 2–6 = compresor master (Y:$10D–$110);
+  - idx 7 = ganancia de salida (X:$DE; 127);
+  - idx 9 → Y:$111.
+  - DSP: filtro master DJ en `func_0013ad` (P:$D55), con suavizado lento propio. Compresor y ganancia en `func_0021c4` (P:$276): la ganancia va en rampa por r6/n6, con n6 = (objetivo − actual) >> 11 → **SC14 lo cambia a >> 6** (P:$21D9 = $0C1C0C).
+- **SC14:**
+  - `c_gtick` en el servicio del DSP: LFO a partir de uwTick y el tempo; escribe X:$DE (cuadrada, empieza abierta) y X:$CF (triangular de 64 a 8 en LP o de 64 a 120 en HP), solo cuando cambian; al terminar restaura los valores de stock;
+  - `c_fxpress` / `c_fxrel` / `c_fxleds`: pads 25–31; Shift = latch;
+  - estado en 0x20044E38: magic, held, latch, gat, af, t0g, t0f, último valor de ganancia y de posición.
+- Pruebas: `emu_sc14.py` (25), `emu_sc14_dsp.py`.
+- `.syx` `4b7281a4…48ab`; imagen de 0x4DEB0 bytes; CRC 0x022C55A5. SC13 se ha quitado del cargador.
+
+## Tabla de voces del DSP y corrección sobre X:$EB (2026-10-03)
+- **X:$EB–$15A = tabla de slots de voz** del núcleo 0: 14 entradas de 8 palabras `[rutina, r0, r4, r5, r7, y1, r6, ?]`. La rellena el propio init del DSP (P:$2890, `move #$eb,r1`); el ARM no la escribe. Se accede **solo de forma indirecta** (`move #$eb,r3` + `x:(r3)+`), por eso no aparecía al buscar referencias absolutas.
+  - `func_00198d` (P:$198D, desde el bloque en P:$1FC) recorre los slots de $EB a $15B y hace `jsr (r1)` con los registros del slot. `func_0019bf` hace una segunda pasada con la máscara X:$2F30.
+  - Slots 0–11: voces de sinte (rutina $281; r0 = $1960 + 12·v = estado por voz). Slot 12: rutina $202B (drums). Slot 13: $1A2B.
+  - Valores tras el init: slot 0 = `000281 001960 00011f 000131 00057a 00059f 000000 000000`.
+- **Consecuencias para los parches:**
+  - **SC10–SC14** escriben X:$EC (flags de retorno de FX) desde el manejador del grupo Audio In (H9) → el r0 de la voz 0 del Synth 1 pasa de $1960 a 0–3. Verificado en emulación (`tools/dsp_session.py`): tras un Note On, Y:$1960 y las direcciones de wavetable que se piden al núcleo 1 (X:$30002…) cambian respecto a stock. Efecto audible sin confirmar (posible fase/afinación rara o glitch en la primera voz del Synth 1, y lectura/escritura de X:$0–$B).
+  - **SC13 (bucle de reinicio): causa casi segura.** Puso el flag en X:$EB (= dirección de salto de la voz 0) y su init borraba X:$EB–$10F (`rep #37`) → los slots 0–4 se quedan con rutina 0 → `jsr $0` → reset del DSP dentro del bloque.
+  - Antes de reutilizar memoria X/Y del DSP: comprobar accesos **indirectos** (punteros cargados con `move #$xxx,rN`), no solo absolutos.
+- **Arreglado en SC14.2:** el flag pasa a X:$3A00 (ver «SC14.2»).
+
+## Emulación del núcleo 0 completo (2026-10-03)
+- `tools/shi_capture.py`: captura el flujo SHI ARM→DSP enganchando la transferencia SPI (`0x08037960`) y el pin de comando (`0x08029190` / `0x080291A2`); lo decodifica en escrituras X/Y según el ISR SHI (P:$156).
+- `tools/dsp_session.py`: sesión completa sobre `dsptool`:
+  1. init del DSP (desde P:$107; se salta la espera de periférico en P:$102) hasta la espera de tablas (P:$25F3);
+  2. tablas del ARM (`0x08029492`: X:$C00–$FFF, $1600–$1940, $2000–$23FF y el flag X:$FFF);
+  3. volcado completo de parámetros (todos los grupos sucios → tarea `0x080213B0`) y mensajes MIDI;
+  4. N bloques de audio con `jsr $1ED`.
+  - Solo en emulación se anulan las esperas entre núcleos: P:$76A, $76F (semáforo y:$FFFFD0/D1) y $77D (contador y:$FFFFD4).
+- **Límite actual:** los osciladores del sinte leen las wavetables a través del **núcleo 1**: el núcleo 0 escribe una lista de direcciones en la memoria compartida X:$30000+ y el núcleo 1 copia los datos (desde memoria externa). Sin emular el núcleo 1 y su memoria externa no sale audio del sinte. Las rutas de parámetros y el estado por voz sí se pueden comparar.
+- `dsptool`: nuevos comandos `dis file.bin [base]` (desensamblador) y, en los scripts `run`, `HIST file` (ejecuciones por PC), `TRACE file` (bits de acceso X/Y de los bloques) y `WATCHFILE f` + `WATCH X|Y addr [n]` (PC de cada acceso). `TRACE`/`WATCH` necesitan `tools/dsptool/dsp56kEmu-memtrace.patch` aplicado a dsp56300. Nota: dentro de un bucle `do`, el PC registrado es el de la instrucción `do`.
+
+## Noise del sinte → entrada de línea: avance (2026-10-03)
+- Ruta del parámetro: CC 56 (Synth 1) → tipo 0, índice 27 → grupo 13 (bit 4 de la halfword en 0x200067FC+0x18; vaciado por `0x0802148C`) → **X:$3C9** (valor·0x8000; 127 → $3F8000). Grupo 13 = mezclador: X:$3C4–$3C9 = niveles (osc 1, osc 2, …, noise). Synth 2: +$172.
+- DSP: `func_0019f3` → `func_001b7b` suaviza X:$3C4–$3C9 → **X:$2E1–$2E6** (noise = X:$2E6, bloque de parámetros del sinte en X:$2D5 + X:$CB).
+- Por voz (rutina $281 → P:$693…): `x:(r0)+` recorre el bloque desde $2D5; en P:$6B6–$6D3 suma cada nivel del mezclador con la modulación de la voz en y:(y:$3 + 13…18) → **nivel de noise por voz en y:(voz + $12)** (P:$6CF).
+- Hecho en SC15 (ver «SC15»).
+
+## Herramientas
+- `tools/ct_fw.py` (Python puro): decode/encode/CRC.
+- Builders: `build_shared_channels.py` (SC02), `build_sc03.py`, `build_sc04.py`, `build_sc05.py`, `build_sc06.py` (con `--v2` → SC07), `build_sc08.py`, `build_sc09.py`.
+- Emuladores: `emu_shared_channels.py`, `emu_sc03.py`, `emu_sc04.py`, `emu_sc05.py`, `emu_sc06.py`, `emu_sc08.py`, `emu_sc09.py`; los cuatro últimos usan el volcado en marcha.
+- Trazas dinámicas en Unicorn (`ct/trace/*.py` del contenedor): seguir llamadas y escrituras desde el despachador, simulando como hechos el envío al DSP y el MIDI externo.
+- En el contenedor cloud, Capstone 5.0.6 y Unicorn 2.1.4 se compilan desde GitHub (PyPI y apt están bloqueados). No hay Keystone: los parches se codifican con `tools/thumb.py` y se verifican desensamblando con Capstone.
+- **Entorno local:** ver `docs/LOCAL.md` (`tools/setup_local.sh`, `tools/run_tests.sh`, `tools/verify_builds.py`; `dsptool` en `ext/bin` o `$DSPTOOL`, buscado por `tools/dsptool_path.py`; `dsptool dis` admite stdin para `build_sc13.py`).
+- **Entorno cloud (2026-10-03):** PyPI sí funciona (`pip install capstone unicorn py7zr`). Volcados: `git clone https://github.com/userx14/circuittracksreverseengineering` y enlazarlo como `ctre/`. Listado ARM: `python tools/gen_listing.py`. `dsptool`: clonar `dsp56300/dsp56300` (+ submódulo `source/asmjit`), `cmake --build build --target dsp56kEmu`, y enlazar `tools/dsptool/dsptool.cpp` con `libdsp56kEmu.a libdsp56kBase.a libasmjit.a libvtuneSdk.a -lpthread -ldl -lrt`; ruta en la variable `DSPTOOL`.
+
+## Evaluación preliminar de funciones grandes (2026-10-03)
+- **Núcleo 1 del DSP prácticamente libre:** su programa (0x16C palabras) no tiene ninguna instrucción mac/mpy. Es solo un servicio de copia indirecta (lista de punteros en X:$30000 → copia `x:(x:(r5))` → `x:(r5)+`), probablemente para recoger datos de memoria compartida o externa para el núcleo 0. El núcleo 0 concentra todo el procesado (809 mac/mpy). → Hay potencia de cálculo de sobra si se consigue pasar audio entre núcleos sin romper ese servicio.
+- Ranking de viabilidad (de más a menos):
+  1. Vista Preset de drums cromática (solo ARM; mono por pista). → hecho (SC08–SC12).
+  2. Retorno de FX por las tiras 3/4 + sidechain (DSP). → retorno hecho (SC10); sidechain de drums descartado de momento (SC13).
+  3. Master FX parciales: Gater y Auto-Filter modulando desde el ARM (SC14); Digitise, Phaser y Vinyl requieren código DSP; Beat Repeat y Reverser requieren búfer de audio.
+  4. Macros de sample de Circuit Rhythm en los drums: requiere reescribir la voz de drums del DSP, cambiar el formato de sesión y crear pistas de automatización.
+- Confirmado en las guías: las tiras 3/4 del mixer = **entradas de audio 1/2** (mono, nivel de línea; pasan por mixer, sidechain y FX). Parámetros de drums en stock: patch select, level, pitch (CC 14, −64…63), decay, distortion, EQ (tilt) y pan.
+- **Sustituir el noise del sinte por la entrada de línea:** viable si el noise se genera dentro del bucle de voz del núcleo 0. Hay candidatos de generador XOR/desplazamiento en 0x0403–0x0454, 0x0486/0x04A7 y 0x0AD8–0x0B5D (sin confirmar). La entrada ya está en memoria del DSP (ESAI RX → tiras 3/4). Plan: localizar el noise (emulando con el nivel de noise del sinte, CC 56, a 0 o al máximo), leer la muestra de entrada del bloque en su lugar y activarlo con un toggle.
+
+## Circuit Rhythm 2.0.1 (build 5706) como donante — primera inspección (2026-10-03)
+- Archivo: `rythm/circuitrhythm-firmware-5706.syx` en la carpeta del usuario (Components id 169), SHA-256 `11d604a6…afaf`. `ct_fw.py` lo decodifica sin cambios: producto 0x63, protocolo 0x731, imagen de 0x5A570 bytes, CRC 0x9EEE802C.
+- **Misma plataforma:**
+  - SP inicial 0x20050000 y app en 0x08010000;
+  - bloque de versión en 0x1C8 con el mismo esquema (`DR1.1.5143.5706` frente a `GB1.1.5143.4486`; base de código común 1.1.5143);
+  - programas DSP en formato bootstrap con la misma tabla (`0x08031660`: [núcleo 0 principal, núcleo 0 alternativo, núcleo 1 principal, núcleo 1 alternativo]).
+- Los programas DSP alternativos (modo 1) son **idénticos byte a byte** a los del Tracks.
+- Reparto de trabajo del DSP:
+
+  | | Núcleo 0 principal | Núcleo 1 principal |
+  |---|---|---|
+  | Tracks | 0x2A5E palabras, 809 mac/mpy | 0x16C palabras, **0** mac/mpy (servicio de copia) |
+  | Rhythm | 0x0801A838: 0x1FED palabras, 580 mac/mpy (SHI + ESAI, igual que el núcleo 0 del Tracks) | 0x080101F0: **0x376B palabras, ~2950 mac/mpy** |
+
+- **Conclusión:** en el Rhythm el segundo núcleo hace el procesado pesado (candidatos: voces de sample con filtros, Master FX); en el Tracks ese núcleo está libre. Es el sitio natural para portar funciones del Rhythm.
+- Pendiente:
+  - identificar en el núcleo 1 del Rhythm las rutinas de Master FX y de los filtros de sample;
+  - entender la interfaz entre núcleos (memoria compartida: el núcleo 1 del Rhythm usa mucho Y:$371xx; el núcleo 0 del Tracks usa X:$30000);
+  - averiguar de qué depende el servicio de copia del núcleo 1 del Tracks.
+- Desensamblados en el contenedor: `ct/rhythm/dsp/blkA–D.asm`.
+
+## Siguientes pasos
+0. **Probar SC15 y SC16 en hardware** (`firmware/sc15/PRUEBA.md`, `firmware/sc16/PRUEBA.md`).
+0b. Probar SC17 (`firmware/sc17/PRUEBA.md`); ajustar curvas de knobs según el oído del usuario; después Beat Repeat / Reverser.
+1. ~~Probar SC14 en hardware~~ → ✅ funciona.
+2. Confirmar la hipótesis de SC13 (pila MSP en 0x2004E000) con un volcado de RAM tomado tras el arranque completo, antes de reintentar el sidechain de drums con el estado bajo el límite del heap (como SC14).
+3. Noise → line in (siguiente en el orden acordado).
+4. Rhythm como donante: rutinas de Master FX / filtros del núcleo 1 e interfaz entre núcleos.
+5. Los emuladores necesitan los volcados del repo userx14 en `ctre/Firmware-Analysis/` (`dumpCT_flash_0x08000000.bin`, `dumpCT_ram_0x20000000.bin`, `ram_dump_firmware_0x08037988.bin`) y algunos el listado `re/app.asm`; no están en este repo. Subirlos (el repo es privado) o clonar userx14 en `ctre/` antes de ejecutar las pruebas.

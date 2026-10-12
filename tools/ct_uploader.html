@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuit Tracks Uploader</title>
+<style>
+  :root { --bg:#111317; --panel:#1a1d23; --line:#2b2f38; --ink:#e8e9ec; --dim:#9aa0ab; --ok:#7ee787; --warn:#ffb86b; --bad:#ff7b72; --acc:#79c0ff; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:24px 16px 64px; background:var(--bg); color:var(--ink); font:15px/1.55 system-ui,"Segoe UI",sans-serif; }
+  main { max-width:760px; margin:0 auto; }
+  h1 { font-size:1.4rem; margin:0 0 4px; }
+  .sub { color:var(--dim); margin:0 0 20px; }
+  section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:12px; }
+  h2 { font-size:.8rem; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); margin:0 0 10px; }
+  button { font:inherit; font-weight:600; background:var(--acc); color:#0b0d10; border:0; border-radius:7px; padding:8px 14px; cursor:pointer; }
+  button:disabled { background:#363b45; color:#7c838f; cursor:not-allowed; }
+  select, input[type=file] { font:inherit; color:var(--ink); background:#0f1114; border:1px solid var(--line); border-radius:7px; padding:6px; width:100%; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .mono { font-family:ui-monospace,Consolas,monospace; font-size:.82rem; word-break:break-all; }
+  .ok { color:var(--ok); } .bad { color:var(--bad); } .warn { color:var(--warn); }
+  #log { height:260px; overflow:auto; background:#0b0d10; border:1px solid var(--line); border-radius:7px; padding:8px; white-space:pre-wrap; }
+  progress { width:100%; height:14px; }
+  ol { margin:0; padding-left:20px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Circuit Tracks Uploader</h1>
+  <p class="sub">Envía al Circuit Tracks solo firmwares verificados por SHA-256, con el mismo protocolo que Novation Components.</p>
+
+  <section>
+    <h2>Antes de empezar</h2>
+    <ol>
+      <li>Cierra Novation Components y cualquier DAW o programa MIDI (en Windows, el puerto solo puede abrirlo una aplicación).</li>
+      <li>Conecta el Circuit Tracks directamente por USB y enciéndelo de forma normal. Si está en modo bootloader (Scales + Preset + Note), también vale.</li>
+      <li>No desconectes la alimentación ni el USB durante la transferencia.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>1 · MIDI</h2>
+    <div class="row"><button id="btnMidi">Permitir acceso MIDI</button><span id="midiState" class="warn">sin acceso</span></div>
+    <p>Salida hacia el Tracks</p><select id="outSel"></select>
+    <p>Entrada desde el Tracks</p><select id="inSel"></select>
+    <div class="row" style="margin-top:10px"><button id="btnId" disabled>Identificar el dispositivo</button><span id="idState"></span></div>
+  </section>
+
+  <section>
+    <h2>2 · Firmware</h2>
+    <input type="file" id="file" accept=".syx">
+    <div id="fileInfo" class="mono" style="margin-top:8px"></div>
+  </section>
+
+  <section>
+    <h2>3 · Envío</h2>
+    <div class="row"><button id="btnSend" disabled>Enviar firmware</button><button id="btnAbort" disabled>Cancelar</button></div>
+    <p id="phase" class="warn"></p>
+    <progress id="prog" value="0" max="100"></progress>
+  </section>
+
+  <section>
+    <h2>Registro</h2>
+    <div id="log" class="mono"></div>
+  </section>
+</main>
+<script>
+"use strict";
+// Only these exact files may be sent.
+const KNOWN = {
+  "bd2d294bafa88fdec7ae1f5fcaaa13158323969c5a40f83405a72e4ad329a0bd": "STOCK Circuit Tracks 1.2.1 (build 4486) — oficial de Novation",
+  "0f663591bd2d8093546ce834a8b2b6df4db34e2c3eb628dab9aa850ef966a8e8": "4486 + Shared MIDI channels SC02",
+  "b003164d9dcc0951c20edc6c42b169fb7ef1bd760bcc9d0e30299c76d4d861f1": "4486 + SC03: canales compartidos + toggles Ch16 Rx/Tx",
+  "4c41ced05a2e7be50d71ad0721174ff2aa5cb7213c81865930d45f4de543e257": "4486 + SC04: canales compartidos + toggle Ch16 en el pad 16",
+  "5f32507d036c1a13b95af47e0e084119176379d6f23c4d16b6e4b58179914521": "4486 + SC05: SC04 + loopback MIDI interno sin cable (prueba)",
+  "1f0a6caea221b791d9894a4fa20779abd6cb62e5a23ff73332cbb725fea189c8": "4486 + SC06: SC05 + patch flip en MIDI 1/2 (prueba)",
+  "68f845d31baf2701ff2a091f00d7bf33ba390c67211ed46d3861dd5db11dd666": "4486 + SC07: SC06 + LED del patch flip al entrar + guardado (prueba)",
+  "5797ab523ccd9fae48f31714059062a94800474724e9e1cae078bc9cbbf8175c": "4486 + SC08: SC07 + vista Preset cromática de drums (prueba)",
+  "9a99783b1e2a9de3968cfe6ade395b7f4bc771c1bb4d3c5589e26e615f4afeb6": "4486 + SC09: SC08 + Pitch de drums en semitonos (prueba)",
+  "d96468ecbb9bedab4afa5ff3732e29edc26c3938103b1a032c626123c21b84b2": "4486 + SC10: SC09 + retorno de FX por las tiras 3/4 (prueba, DSP)",
+  "476063e4e9993641228de11cded9008fe2311b54c62b211b577e479de8a5414c": "4486 + SC11: SC10 + knob Pitch como afinación en el modo cromático (prueba)",
+  "0c4993a91b7f32f49d087301bee15d38a3de7aeff400651b59052f1834bac93b": "4486 + SC12: SC11 + afinación fina en cents de los drums (prueba)",
+  "4b7281a4a9e4326cdb18b3462ff28b5b26a3c738beef915c0651fc8e7df448ab": "4486 + SC14: SC12 + Master FX (Gater / Auto-Filter) en la vista FX (prueba)",
+  "3da5085d9db7492b697239a66cfa2a40b0859cbd1ac925610ee42c3c7413b86a": "4486 + SC14.2: SC14 con el flag de retorno de FX fuera de la tabla de voces del DSP (prueba)",
+  "3612b83e37109436af9aff0252eeee0d819db12c3cb954c865e8974824f35065": "4486 + SC15: SC14.2 + entrada de línea en lugar del noise del sinte (prueba, DSP)",
+  "1c145040bba47475022421e842d37256dcef8f69a5e48ecd4b4157dad6ac3be5": "4486 + SC16: SC15 + sidechain en los drums (SC13 rehecho; prueba, DSP)",
+  "90f3684cab43247972c8f1876700d5a28abd5a3c75d13574c4a51eefe6a55d92": "4486 + SC17: SC16 + vista Master FX (Mixer -> Mixer; prueba, DSP)",
+  "98cff79287d9569546f805244458712987e84a5c55623834995acd25c897b16f": "4486 + SC16.1: SC16 + entrada de línea x2 y modos en fase invertida (prueba)",
+  "d62ea204fa0b2ebb1e22d26ef500e730526f37ae477f184f3cb827b5e9982b0c": "4486 + SC17.1: SC17 + entrada de línea x2 y modos en fase invertida (prueba)",
+  "41ceb8a62c4d8f07fe24af4028760b00ae88e5cd3c148fea1af5b9c7ede1dea5": "4486 + SC17.2: SC17.1 con Master FX en Shift + Mixer (prueba)",
+  "3a82a33347fd67d7ab18a698a07c763d4eea6bc6bf519a80c22ae7ab59959705": "4486 + SC17D: SC17.2 + diagnóstico en LEDs (Preset + Shift)",
+  "f4b20c2f9f9292c4bc84f7208528606532731d1b31c561a09e9f2d086d375145": "4486 + SC17.3: Master FX en Mixer -> Mixer (botón Mixer real) + entrada de línea v2 (prueba)",
+  "364bbfca5f4e5b832495aacacd724f853ff4649cc4d9a98243efa4797c1c2560": "4486 + SC173D: SC17.3 + diagnóstico en LEDs (Preset + Shift)",
+  "61a0ac62170399a3aa0537cda6cd75dce2b4d0510007c6f395a3222f66a788eb": "4486 + SC17.4: SC17.3 + LEDs de knobs en Master FX (prueba)",
+  "58f699842f445a8ab8a1e74de02ca480c7290db9e5a238eb3222761973af52e7": "4486 + SC17.7: SC17.6 + song pointer (Master FX, filas 2-3) + delay/reverb mas fuertes + modos en Shift+Scale (prueba)",
+  "869848d461260786e713f526e30cc9256a5bcfe883312c55c03b49114ea22e3b": "4486 + SC17.8: SC17.7 sin modos en Shift+Scale (vuelven a Shift+Preset) + pad 8 apaga lo retenido en Master FX + tocar un FX retenido lo desactiva (prueba)",
+  "e6b3d3dc5defbfe97425be4d860bd4f552abed76257dfd19f0d7fea8043b4186": "4486 + SC18: SC17.8 + knobs nuevos de drums + grabación cromática por paso (prueba)",
+  "45e0278bef804688b473557d114337dd0b8db34894f21ef8d4a829a1498fa4ad": "4486 + SC18.1: knobs de drums rehechos + pad 7 saltar + pad 8 quita song pointer (prueba)",
+  "02e3c5411011110b8b5a9fcd53d340a36d1c732436aea5190a65f0ebeb4f2230": "4486 + SC18.2: SC18.1 + LEDs de la vista FX y de los knobs nuevos de drums (prueba)",
+  "8078051785482baea66d9b2bb92f559b655d2fe4402332beb7e3ec3c80d02c7e": "4486 + SC182D: SC18.2 + sonda de persistencia (DIAGNOSTICO, usar con un proyecto de prueba)",
+  "d85302f9f87ebeaa23dd7986b2c08fe5944faa7b5dbd56150fdd976a8505329f": "4486 + SC183D: SC18.3 + sonda de persistencia v2 (DIAGNOSTICO, usar con proyectos de prueba)",
+  "424cc79344e331075ffb9818f380e7b8e271518e8d83fdb25361e68f8aff6205": "4486 + SC19: SC18.3 + ajustes de drums, asignaciones de Master FX y modos del sinte guardados en el proyecto + arreglos (prueba)",
+  "5db8bbd72f02c207b080db57823cd28e878c07d4a796492978513086a4206b15": "4486 + SC20D: SC19.1 + modos 5/6 + medidor de captura de delay y reverb (DIAGNOSTICO, usar con un proyecto de prueba)",
+  "b2e0f44ced25f14674d6eb8ea409de0538932fc375d2b7159b680c8a500f4c98": "4486 + SC19.2: SC19.1 con el trabajo de arranque escalonado (EXPERIMENTO para el cuelgue al encender, usar con un proyecto de prueba)",
+  "8b4a90b88a7050021511d2381f93c09382d043f9b919d0c5fcd4e56ab5356c57": "4486 + SC19.4: SC19.3 + los ajustes guardados vuelven (prueba)",
+  "a097637abe77fd9676e75372f355e85121eff6fa4c74fa2818a520abb8b5f2df": "4486 + SC19.5: SC19.4 + retornos de FX del Setup en la entrada del sinte (prueba)",
+  "fff8606e64f8443b7d16b61d55e16a0f4b47c4f8da2a481c9d3b63cccba83841": "4486 + SC19.6: SC19.5 + brillo de los knobs nuevos de drums (prueba)",
+  "f89a2f9efb5d77a5e2dcc9e4ae688555f5f390b797d844c71b2f7690c825fe01": "4486 + SC19.7: SC19.6 + salto del song pointer en blanco y con repetición (prueba)",
+  "8182c8a456cf3bb0534da9018885ec370fd63b99ef3dfeb7b8bb6278f1f888eb": "4486 + SC19.8: SC19.7 + knobs de drums según las etiquetas del panel (prueba)",
+  "f3f0009c3f12de8cfba4ce7b82fa946c2f75e43f9bf5ab9bf909a8a6f42151ac": "4486 + SC19.9: SC19.8 + tipo de distorsión y pendiente del filtro por drum (prueba)",
+  "ca2e993b4588ee2b64932d825b7095f4d62339161170853f543a8e929cdd545c": "4486 + SC20: SC19.9 + VCF / VCA en las entradas de audio de las pistas MIDI (prueba)",
+  "f2b9dd6540ff9a51ab4a302d05002c3debe627e1391721513c751a54250f8ef9": "4486 + SC19.3: SC19.1 con el cuelgue al encender arreglado (prueba)",
+  "62a692f244a67a8133379af94a17f27c2b1e5d0aa9d0bee4e4c9fb0de9f1e15e": "4486 + SC20.1: SC20 + escala en tres filas, Pitch como sesgo en la vista cromatica, Clear en los knobs de drums, pad 7 amarillo y estado del VCF validado (prueba)",
+  "f73a02e76fc7b3c6931534d7fdcd8806e08adbdd6a800a53f5e9e39c674c9cdc": "4486 + SC21D: SC20D.1 con un sondeo del DSP y un monitor de NRPN (DIAGNOSTICO, usar con un proyecto de prueba)",
+  "9091bd1f9cfcc24d556add67894738e156b37fba509162fa48a5a1cf58af43ec": "4486 + SC21.3: SC21.2 + los cuadros de los drums tambien al principio de la fila en la vista Note de los drums (prueba)",
+  "cbd4115afc763bc3d7834b3c5b9d67f7957f810e75bcdc5db4f088e88014a0c7": "4486 + SC21.4: SC21.3 + filtros paso bajo y paso alto de 12 y 24 dB en la lista del VCF (prueba)",
+  "a6d0f25669d578a19bf73d318dd66fa69495eb8ae596b7ae5f76d4f400586fa8": "4486 + SC22: SC21.4 + efectos ring mod / comb / chorus, cadena VCA > FX > filtro, envios bipolares y programa del DSP hasta P:$3FFF (prueba)",
+  "2e451d553d599933c4c569c021777d89295f24d6e3494db65c89db2d8b6d77dd": "4486 + SC22.1: SC22 + oscilador como fuente del modo VCF / VCA (pad 27) y pagina de knobs del oscilador (pad 28) (prueba)",
+  "ae1e2ecfe1311845e2f18b9b88ce87f2cbef16113759938c915fabe8e44af457": "4486 + SC22.2: SC22.1 + oscilador v2 (envolvente / LFO a tono y a forma, wavefold / pendiente / ancho de pulso), pad 27 = controles, pad 28 = fuente (prueba)",
+  "181f5ec1089c00eead017e277abe646c8c6f5cbe615d32bb1ceb46663f12b462": "4486 + SC22.3: SC22.2 + oscilador v3 (onda = morph continuo seno-triangulo-sierra-cuadrada con envolvente / LFO, forma 0-100) (prueba)",
+  "cc7d7655d246fca9d6baf6ef090f19bf06ed4d7f79211b8cafe75f527e92a5db": "4486 + SC22.4: SC22.3 + colores distintos y nuevo orden de los pads de la vista Preset de MIDI (prueba)",
+  "7061be260ae7445a142f7333c266d1d59d49f78312fdb555ceb95468ebe3b788": "4486 + SC23: SC22.4 + editor de CC de los macros MIDI en el propio aparato (pad 25 de la vista Preset) (prueba)",
+  "8357544cc5a3a32b7fe88cbaef1f8061d8c4f4890ce9b9d1bf68b2e54e03858d": "4486 + SC23.1: SC23 + editor de CC con Octave ▼/▲ para ciclar, botón de la pista para guardar y cualquier botón de vista para descartar (prueba)",
+  "d67c888dc2160e3dcf1ca7b1912b76dd5715e4fe981aaee7b0191caf021929d7": "4486 + SC23.2: SC23.1 + pads de MIDI: 27 solo fuente, 28 vista OSC, 29 vista VCA-VCF (prueba)",
+  "7d30f1b6d0a113af374b5409cd4280d7aa335b087319c096346f9f9ba4426b37": "4486 + SC23.3: SC23.2 + estado neutro (gate basico), Clear + knob, LEDs de Octave del editor de CC, tope de envios con efectos a line in (prueba)",
+  "45d838631e5b12fe24fb2a4edb15bcaaaa5fc8e73f3ab3f438646c11f1d454ea": "4486 + SC23.4: SC23.3 + editor de CC v2 (tipo por numero de CC, paso guardar, pad Save), Master FX (rangos, salto pasado el final, LED del salto, pad 7), pads de drums en espejo (prueba)",
+  "aa0b95b260ee31d76d7b03dcdcc7e9e0f6470f29f32c1333737295b6cc99782e": "4486 + SC23.5: SC23.4 + cabezal del song pointer desde el tick, pad 8 = bypass, K8 de drums bipolar, Clear en las dos capas, limite de ritmo + latido + refresco de los mensajes del DSP, LED del boton Save (prueba)",
+  "6c5b997379248d5d65b7231459901ade052778f6699972f7ebba62eb969dceaf": "4486 + SC23.6: SC23.5 + knobs de tipo (FX, filtro, forma de onda) sin vuelta, con zonas anchas, color por modo y brillo por parametro interno (morph, key follow)",
+  "9d161aea662df3a86acddc8b1bf5c0f9e23a401d2433ec2537576cfce3745ae5": "4486 + SC24: SC23.6 + pad 27 de tres estados, paginas en los pads 1-8, segundo oscilador (mezcla, FM, ring, sync suave, bit a bit), orden de la cadena por pista y parafonia",
+  "c5d7fdafa807f8be603bfaaf01378e19a197317996053e621e5bb9c31961780b": "4486 + SC25: SC24 + CC / NRPN de entrada y salida de los valores del modo VCA-VCF / OSC, automatizacion de 8 valores por los carriles de macros del secuenciador y la fila de plantillas al apagar el modo (pad 27)",
+  "b2181971a36044d0bbbbc7ed4abceb24ff0947cb586b6ea78d20e334930cfdfd": "4486 + SC26: SC25 + step-drummer en las pistas MIDI (pad 30: 8 pares de pasos en los knobs, pitch por carril como desplazamiento sobre un destino, velocity por par)",
+  "43ea716e6e6a581a74a5bf47c358f1c7d6937d851c6693804496fb8387079e6d": "4486 + SC27: SC26 + step-drummer en Synth 1 / 2 (macros), LEDs de Octave y 1-16/17-32, knob del paso en blanco, filas apagadas al cerrar, dos paginas de knobs mas",
+  "3dfc7fbc06d7188c7a0e45b3c78a50c5f0b91edcdc5b456071b548afcb93d3f4": "4486 + SC28: SC27 + NRPN de entrada y salida para los parametros extra de drums (MSB 5-8) y Master FX (MSB 9, canal 16)",
+  "d158b68664be82bb06b8b1cb1fe1693d312e6c30d0a0264b66908ade55ea800e": "4486 + SC29: SC28 + motor VA-drum en las pistas MIDI (cuarto estado del pad 27: tres envolventes de decay, ruido, pad 31 velocity a envolventes)",
+  "c6ddb16e7b460df6726e03081b77bfcfc2467eba60dc76009794d1be73141e18": "4486 + SC30: SC29 + Master FX entre sesiones + guardado del proyecto arreglado (prueba)",
+  "a9a6dcaf71bc7745600a2b6d831a354bb29d90f19ce0dc22b69f8fd47e8e0b0a": "4486 + SC31: SC30 + el step-drummer conserva las notas (prueba)",
+  "67e23e3e418594ec3fe01cdbea853ba9a8a3dac578fefe1530b5171e7b2e3595": "4486 + SC32: SC31 + song pointer nuevo en Master FX (retrigger, frases, sin pad 7) (prueba)",
+  "6b4b2a836792a79dd1dc3f2e1559188e3dd989a36f6fc1831db474203ec12c8f": "4486 + SC33: SC32 + sample capturado en Master FX (pad 32 graba, pad 7 suena) y grabacion en tiempo real del step-drummer (prueba)",
+  "74ef1023691b37cbede33787e53750787cd92491e2445ecf865b1b7d7e47f753": "4486 + SC34: SC33 + sample asignable a la fila inferior, captura en la vista FX, K2 por colores y sustituir un drum por la captura (prueba)",
+  "d8fa43d1cf65d94e3d791f8e9f6419d8841fa511058fda0d3c55663a859d248e": "4486 + SC34D: DIAGNOSTICO (NO USAR: rompe el duplicado de packs), SC34 + fichero propio junto a cada sesion en la SD",
+  "41ca9e01f29947040e4dab2c10b23e7b86c7323117be04d93c8a1748fbe12326": "4486 + SC35D: DIAGNOSTICO del segundo nucleo del DSP (volcado MIDI con el pad 9)",
+  "887a6026ddf443b58172ac337c3791abbf492ae97beee3d8201c073a381c6237": "4486 + SC35D.1: DIAGNOSTICO del segundo nucleo del DSP, v2 (volcado MIDI con el pad 9)",
+  "7ce523e79f56f6189c8716960cfe1bce32e8bed062a779212ea76628c20cd774": "4486 + SC35D2: DIAGNOSTICO, mapa de la memoria externa del DSP (solo lectura, volcado MIDI con el pad 9)",
+  "f401d4ed95c365800471157991c694a8da68cdc317fb251279a993e88eda9b2a": "4486 + SC35D3: DIAGNOSTICO, zonas candidatas de la memoria externa del DSP (solo lectura, volcado MIDI con el pad 9)",
+  "c0705a7827e036bd68ef0a46decfcb9d1f6364c4d950de77f84bcf45dc8041f7": "4486 + SC35D4: DIAGNOSTICO de solo lectura de la SD por la API del stock (samples 0-7 del pack, volcado MIDI)",
+  "0d9c322edb5d99962beb42dd69d98c4bf5e94827ac5d95c46f03eb6a573124e6": "4486 + SC35D5: DIAGNOSTICO de solo lectura de la SD, samples PCM 0-7 del pack (tipo 4)",
+  "058093a9f8f0a91363547029deabde89aee11ecd68ab1f3bd0527634ba566f86": "4486 + SC35D6: DIAGNOSTICO, reescribe sin cambios los 21 primeros bytes de un sample del pack (Shift + pad) y lo relee",
+  "aba1091c85775f6e7e00974f984f77eca4094a4dce35d09985484634796606b0": "4486 + SC35D7: DIAGNOSTICO, pads 17-24 reescriben sin cambios los 21 primeros bytes de los samples 0-7 y los releen",
+  "867834b651cb8bd39f34550c8f53971ae3158eca2cc897ee6f2da914cf9ecc50": "4486 + SC35D8: DIAGNOSTICO remoto por SysEx USB (tools/ctremote.py), mas los pads de SC35D7",
+  "aa3425b6fecebf49c1c129b1883d10b936c5a0f97a85da690766201134f8eb15": "4486 + SC35D9: DIAGNOSTICO remoto por SysEx USB + borrar un elemento del pack (tipos 2-6)",
+  "12dce7c82f3c47e68c879107f6d7c47895ecc7a8813b51dce0730fdfc36cd3e1": "4486 + SC342D: DIAGNOSTICO = SC34.2 + diagnostico remoto (SD y memoria del DSP por SysEx USB)",
+  "9a2d4eed83bf5b4babc1aea7f96f414355ae42c25bf48a9f014ddaa0a0b96e3d": "4486 + SC35DA: DIAGNOSTICO = SC342D + borrar un pack entero (no el actual) por SysEx USB",
+  "3eae83c6562aa5e12b2d04d822c97df384b1b126e91eabf68335e5aa2a25fb94": "4486 + SC35: SC34.2 + samples del pack en la SD (guardar la captura con Save, intercambiar dos samples, borrar un pack)",
+  "d45b6feaa0cfe3bee2272918d0e2eab0b0f1ee189610543f2f08c33d67377e9b": "4486 + SC35DB: DIAGNOSTICO, bloques de audio del nucleo 1 al 0 del DSP con carga granular (para el sinte granular), remoto",
+  "0a429c329fb38176223fbf785d692c168c65000576f9e68b46044c0751104a07": "4486 + SC36: sinte granular de MIDI 1/2, Glitch en el pad 31 de Master FX / FX y secuenciador de efectos (nucleo 1 del DSP)",
+  "f4cfad46d7cffda4791eb4d2c1988c01ad44ba144f32cd9bf37d4e18b4ac2ba0": "4486 + SC36.1: SC36 sin diagnostico USB + Glitch asignable a la fila inferior y secuenciador de efectos con los huecos de la fila inferior (un valor por giro, colores)",
+  "f8d646fbb1788a855dfad14894054446e1f156199ae3496e26c951eb7b3d2bf3": "4486 + SC361S: SC36.1 sin escrituras propias en la SD (sin packio ni diagnostico remoto) - version mas segura",
+  "b99b505115c4db3e9a81d7dd1db32722ccc7827f7e7c7cf39af1182a5547de4b": "4486 + SC36.2: SC36.1 con el knob del secuenciador de efectos arreglado (posicion fina, ~16 pasos por hueco de la fila inferior, color del efecto)",
+  "1c2b28785ed4c4ec21dab8cbd16659bdc8da6ff5a0ea374209198c9c56331414": "4486 + SC362S: SC36.2 sin escrituras propias en la SD - version mas segura",
+  "5a13f8be9827d02a8e4dc07123721f23192222a8f4f97bdf0f4c5e132495a87d": "4486 + RC0: primera version candidata (= SC36.2)",
+  "7b20bf336faff2dc0c4133047ddcb702663877605d3a54af36ab758efe5f56d8": "4486 + SC37.3: intercambios de samples sin clic (los ficheros se mueven tal cual)",
+  "26ff69b59a325bfb9b250d7a5d7adeb1f8f65b5cabba24c95802b3fd6d0dec59": "4486 + SC37.4: Duplicate en Preset de sinte / drums, copia entre packs, Glitch doble sin copiar knobs, envolvente sin clic, colores de Vinyl y retornos",
+  "dea625dda36e48ed494839063671996f60d92a889072a52eb72f3fdcd2f68244": "4486 + RC0.1 (= SC37.4): segunda version candidata",
+  "0f1711639a4c640612acdddaedc9c504effe0ed5d67c0b9bb2f6c33169c9178b": "4486 + RC0.1S: RC0.1 sin nada propio que escriba en la SD (RC0S + lo de SC37.4 fuera de la SD)",
+  "2d835b3efee2ec7988bf31831003ea7733f08ce49f3007b93cdca207e2c8eb54": "4486 + SC37.5: sobrecarga simulada en el Glitch (K4 arriba) y LED de Clear al borrar packs",
+  "d09f88383067ce40667a6333fa057f4fcd291299733def5f0a02de50248ee73a": "4486 + RC0.2 (= SC37.5): tercera version candidata",
+  "2710e58f48e796f4737a095b2891c2074fae2d52f7d94075862cc3575d453ccf": "4486 + RC0.2S: RC0.1S + la sobrecarga del Glitch (nada propio escribe en la SD)",
+  "c761dc64417bba4c0740be470d7cc694e4f4b3eaf1632dce5666c84c579b6984": "4486 + SC37.6: Clear + pad sustituye por la captura (Shift + pad vuelve a ser de stock); proteccion de la memoria de importacion y de la vista de la fuente",
+  "976432efddbe146c17922e20a38a76c8c118a48c525d8b12e8efc65f30613f88": "4486 + SC37.7: la copia entre packs va al sitio del sample sustituido si cabe; la memoria de importacion se reinicia cuando nada la usa",
+  "217de3d35c9a3686d305e088483eab3ed0ce443af144a5d5563cea6c48ef3e1b": "4486 + SC37.8: vista de packs: los packs parpadean y vuelven a su color al borrar, Clear blanco fijo",
+  "1960b2d484060b1a56c604d73a711bb91309fb3c23df4f37231296c2b80306b5": "4486 + SC37.9: azul de Clear + knob en drums como el original; Clear + knob en Master FX vuelve al valor por defecto",
+  "569c35175d8e6b9450c30708ed9950f914697c23f79c4300882a2d435c714c51": "4486 + SC38: Mixer, Shift + knob derecha = nivel 100, izquierda = 0",
+  "1482268404c5e8f6736ca5095304ade854267c11db2bf0ccdc5cd686c59cfb12": "4486 + RC0.3 (= SC38): cuarta versión candidata",
+  "1e9a53d15f666b9cc0a12df427e93f10f09463bb45546d00640a731e37c3a524": "4486 + RC0.3S: versión más segura de RC0.3 (nada del mod escribe en la SD)",
+  "6bd58380dd9823ed2d26e785692975d0fa6f404d7f06bbfbddad0149ed9a0278": "4486 + SC38.1: stretch del granular (Shift + K6 tercer modo; K3 = pasos)",
+  "9d6ecebdda41e871472d6997eedafa66e7d8afab250f583df78d70b7cd5dd741": "4486 + SC38.2: captura armada desde Play (un compás exacto)",
+  "767901bc21ea94463405777bbfb1a434688d8c377eb9bd73f612fd02bb27c85e": "4486 + SC38.3: MIDI Thru con modos Merge y Filter (Advanced Setup, Duplicate)",
+  "77b087fc1185649830d526d5f04c17babb517b8721d83c5be9a07f4609fcca0a": "4486 + SC38.4: captura armada desde Play, Duplicate a huecos vacíos entre packs, Clear fijo en la vista de packs",
+  "492c2d1235f98af64099748bd6a3d810948f80f53098d6093d6566dc8d24eeaf": "4486 + SC38.5: Shift + pad 7 = loop enganchado; huecos de patch con el Initial Patch",
+  "2292ba05159362df2f38cbb8489c332241dd8fba42cef65d04431325ed44a659": "4486 + SC38.6: SC38.5 con los huecos de patch intermedios vacíos (0xFF, como el stock)",
+  "01a705a96d58547f287711910dc8f590c3cd23f41877a79c805eaa9593bb2b7d": "4486 + SC38.7: Clear + pad 27 en MIDI 1 / 2 = todos los valores del motor a los iniciales",
+  "6acec1a0ae8393464f6b0be8c4bed325aaa8d3e3c921439048a40b33071e0410": "4486 + SC38.8: patches de sinte coloreados por modo de voz (mono azul oscuro, glide morado) + Advanced Setup sin los pads 22 / 23",
+  "0b5018a85ffaacdf40c19db02981ace229a3c86b9622ba456976f4e7840c378e": "4486 + SC38.9: Synth 1 + Synth 2 a la vez = teclado partido (pads 1-16 Synth 1, 17-32 Synth 2)",
+  "d3cc136c4ade4dbff7a40807d5a789d4b3b8adc3c3c4d15e3b5ff13d3cc94b50": "4486 + PATCHD (diagnóstico): SC38.9 + rdiag para probar el relleno de los patches",
+  "49f17a79534cb1c0836188563ec4a4b793eff31ab5191fa1257015525c50ec73": "4486 + SEQWD: DIAGNÓSTICO (SC38.9 + rdiag + punto de observación DWT: qué código lee un paso del patrón)",
+  "acdc68af7dbe3cd152354682e7141a644c328955a8d202c48ab6329f7daec7c9": "4486 + SC39: random-mutate por paso (fila 4 de la vista de probabilidad) + patches de glide en color fijo",
+  "694b0a09d2abc8d11dd944db42944f9a5651afa05503052a0403dcd35bd157a2": "4486 + BETA1: segunda beta (= SC39): BETA0 + patches por modo de voz, teclado partido, random-mutate",
+  "4c5bbb73b58839550a5cdfaaa35c6888613de55dc49ad1099601fff182e93520": "4486 + SC39.1: patches del sinte propio (MIDI 1 / 2), Clear + pad de página, selector de fuente del granular",
+  "464900cb8f452f5715a505b040048e9e4dc00f8f933a6a13eb9e8553d40b2fb3": "4486 + BETA2: tercera beta (= SC39.1): BETA1 + patches del sinte propio, Clear + página, selector de fuente del granular",
+  "38a1f4e38a2851103435f5226fcda665632da4fd419212782e0fe3cbe7d51e69": "4486 + RC0.5: sexta versión candidata = RC0.4 + el sample capturado delante de los efectos de Master FX",
+  "fb3c2e4a866e64ad77a22ee9f61ec62981399ef8fb2af7c6f59b3f0a6f6529e3": "4486 + RC0.5S: versión más segura de RC0.5 (nada del mod escribe en la SD)",
+  "9626ab9a90b7268e285f52a192855bb65a98eec2e95a44a439613e88d03c1c1e": "4486 + SC39.4: SC39.3 + guardar el patch del sinte en el banco (Clear + pad, confirmar) y el mismo gesto para el sinte propio",
+  "373bcdf89013ac246192f06351e1e7945ecbfa45fbc83c211112c5d414404326": "4486 + SC39.3: SC39.2 + editor de los destinos de los macro knobs del sinte (vista de la fuente, pad 32)",
+  "7e5eb057b751cd3ad56137e6d5636e01d873ca8990477a5952b230cf61b17ef7": "4486 + SC39.2: SC39.1 + el sample capturado delante de los efectos de Master FX",
+  "9ebd6be8bc1621f81b6ba3774d5cd44adaba5058b8529708f83b9642da2f660c": "4486 + BETA4: quinta beta (= SC39.4): BETA3 + guardar el patch del sinte, destinos de los macro knobs",
+  "10763abec30bdc16a361aba83d73e43968d8bc0cdcb1ac62f430c522d87c1a3c": "4486 + BETA3: cuarta beta (= SC39.2): BETA2 + el arreglo de RC0.5",
+  "3d1f116dbad45289264e1504fbc0abce4080a1cd0eccecf88a380991fbcd2276": "4486 + RC0.4: quinta versión candidata (RC0.3 + arreglos)",
+  "99880f7df5cfbf9884deb46e772a03d891bcd44f867a1e334ecf43a026132928": "4486 + RC0.4S: versión más segura de RC0.4 (nada del mod escribe en la SD)",
+  "add68b146f2b530c3618a5ec6fa0e87a82d01431ff94041f98fc500908f7ea6c": "4486 + BETA0: RC0.4 + funciones nuevas en prueba (= SC38.7)",
+  "4394d74b882c0fd2ae31522fcfc4a94106e9d5601324118d523e100d82c66d43": "4486 + SC37.2: arreglo del intercambio de samples / patches entre packs y del borrado de packs (Clear, pack, Clear)",
+  "b65f1a2ca15e89818bc125756a50295d46c1529562b07551c25edd5b79f9cd24": "4486 + SC37.1: SC37 + intercambio de patches de sinte entre packs (Duplicate + pad en la vista Preset del sinte), amarillo para lo copiado de otro pack",
+  "e6dd8c70d334b19545d71d6c28e1f79eb4cb1b7f13e145564237f996b2e20c77": "4486 + SC37: RC0 + intercambio de samples entre packs (Duplicate + pad, cargar otro pack, Duplicate + pad)",
+  "741510801850523190b854b904fed88d3ae05abdf01c2cfd33865eb28afa7a7a": "4486 + RC0S: version mas segura de RC0 (= SC362S, sin escrituras propias en la SD)",
+  "0d9be5722308df55ce073928a9ac62d2b602b07d9841c533cc756a765f488b46": "4486 + SC34.1: SC34 con el bufer del sample en Y:$E80000 y el loop solo mientras se mantiene el pad",
+  "bb86322df4bbf5019b64bd7859ac89df81d0cd7fe11d075f65f4fe12ca437c6d": "4486 + SC34.2: SC34.1 + modo frase del song pointer (Shift + paso)",
+  "6169e8e6ac669c7a658ca014ba72695d1e4337b9890cb411f9a8c32112ead92b": "4486 + SC32D: DIAGNOSTICO de la memoria externa del DSP (zonas libres)",
+  "ccbffb8f3bf7e93392d163571594155d59df64ae70bd72e13941d4e71f7706d8": "4486 + SC32D.1: DIAGNOSTICO, valores en bruto de la memoria externa del DSP por MIDI (pad 9)",
+  "8a3e353e698e270bdb28da059b66af78927f07503a6d80c0d950f864eedc3db3": "4486 + SC32D2: DIAGNOSTICO, zonas libres de la memoria externa del DSP (16 bits) con volcado MIDI (pads 9 / 10)",
+  "5f92744c4283a7a4679fd5bcd017ed1afa3212d0164dd21b54e7f252eb0ec2de": "4486 + SC21.2: SC21.1 + parametros de reverb y delay con Shift + knob en la vista FX (prueba)",
+  "c1f81539627e12d35b869fa42512edce17b1fdf2057d4db54c2868f7dfe94b85": "4486 + SC21.1: SC21 sin tilt EQ y con feedback de los retornos de reverb / delay (prueba)",
+  "83d993e0dbba49296710e938ff2d30a395013512a020a234b63cc4387a0de2ba": "4486 + SC21: SC20.1 con el modo VCF / VCA / FX reordenado, tipos de filtro, efectos y ganancia (prueba)",
+  "a70565a1a8c4decf90d0dc0834068270df0b185d4a0c9c0a7baf510b17df3f33": "4486 + SC20.2: SC19.9 + los cambios de SC20.1 SIN el modo VCF / VCA (para localizar el fallo de las entradas externas; prueba)",
+  "12cf470031a2bf07aa24bd4dfac31dee49bfac318f3c3a6457d6a40ab613ff27": "4486 + SC20D.1: SC20D con el cuelgue al encender arreglado (DIAGNOSTICO, usar con un proyecto de prueba)",
+  "ea6696572ee3b299bc761bccb563ae64625884aa703176e928b4b35b9a5749b9": "4486 + SC19.1: SC19 + conmutador de la fuente del sinte en su propia vista (pulsar Synth 1 / 2 dos veces) (prueba)",
+  "4b0fe7b9e5954ba0e0887e9595a038c2911150a15cafd06e171d6d3fe67136bf": "4486 + SC18.3: SC18.2 con Octave en los colores de los pads 1 / 17 de la vista FX (prueba)",
+  "78f6a9ac340fd106eb4133efcc0bc5de9f7738c5b74a6a0bd8fe59142c497c19": "4486 + SC17.6: SC17.5 + fila inferior de FX en la vista Master FX + huecos asignables (prueba)",
+  "fbb1818de5a71937cc1db30c50ca544500292131f686eaa400c20c1099a28002": "4486 + SC17.5: SC17.4 + delay/reverb como fuente del sinte (pads 30/31) + teclas de la vista FX (prueba)",
+};
+const NOV = [0xF0, 0x00, 0x20, 0x29, 0x00];
+const $ = id => document.getElementById(id);
+const log = (m, cls) => { const d = document.createElement("div"); if (cls) d.className = cls;
+  d.textContent = new Date().toLocaleTimeString() + "  " + m; $("log").appendChild(d); $("log").scrollTop = 1e9; };
+const hex = a => Array.from(a, b => b.toString(16).padStart(2, "0")).join(" ");
+
+let midi = null, packets = null, fileOk = false, xfer = null, idPending = null;
+
+// Chrome can hang while closing or reloading the tab if MIDI ports are still open (above all after the
+// Circuit Tracks reboots and its ports vanish). Ports are opened only while they are in use, closed right
+// after, and everything is released before the page goes away.
+function closePort(p) {
+  if (!p) return;
+  try { if (p.type === "input") p.onmidimessage = null; } catch (e) {}
+  if (p.state === "disconnected") return;               // the device is gone (it is rebooting): calling clear() / close() on its ports can hang Chrome
+  try { if (p.type === "output" && p.clear) p.clear(); } catch (e) {}
+  try { if (p.connection !== "closed") Promise.resolve(p.close()).catch(() => {}); } catch (e) {}
+}
+// open both ports, but never wait for ever: a port that vanishes while it is being opened leaves the promise pending
+function openPorts(inp, out, ms = 6000) {
+  return Promise.race([Promise.all([inp.open(), out.open()]),
+    new Promise((_, rej) => setTimeout(() => rej(new Error("el puerto no responde (¿se está reiniciando el aparato?)")), ms))]);
+}
+// After an update (or when the ports vanish mid-transfer) the Circuit Tracks reboots: the page lets go of the MIDIAccess altogether, so nothing
+// of it is alive while the USB device disappears and comes back; "Permitir acceso MIDI" connects again (no new prompt, the permission is kept).
+function dropMidi(msg) {
+  releaseAll();
+  midi = null;
+  for (const id of ["outSel", "inSel"]) $(id).innerHTML = "";
+  $("btnId").disabled = true;
+  $("midiState").textContent = msg; $("midiState").className = "warn";
+  $("btnMidi").disabled = false; updateSend();
+}
+function releaseAll() {
+  if (idPending) { clearTimeout(idPending.t); idPending.inp.removeEventListener("midimessage", idPending.h); idPending = null; }
+  if (xfer) { clearTimeout(xfer.timer); xfer.inp.removeEventListener("midimessage", onMsg); xfer = null; }
+  if (!midi) return;
+  midi.onstatechange = null;
+  for (const p of midi.inputs.values()) closePort(p);
+  for (const p of midi.outputs.values()) closePort(p);
+}
+window.addEventListener("pagehide", () => { try { releaseAll(); } catch (e) {} midi = null; });
+window.addEventListener("beforeunload", e => {
+  if (xfer) { e.preventDefault(); e.returnValue = ""; return; }   // ask before leaving mid-transfer
+  releaseAll();
+});
+
+// ---------- CRC-32/MPEG-2 and 7-bit block decoding (independent re-check of the file)
+const CRC_T = (() => { const t = new Uint32Array(256); for (let i = 0; i < 256; i++) { let c = i << 24;
+  for (let k = 0; k < 8; k++) c = (c & 0x80000000) ? ((c << 1) ^ 0x04C11DB7) : (c << 1); t[i] = c >>> 0; } return t; })();
+function crc32mpeg(u8) { let c = 0xFFFFFFFF; for (const b of u8) c = ((c << 8) ^ CRC_T[((c >>> 24) ^ b) & 0xFF]) >>> 0; return c >>> 0; }
+function nib(arr) { let v = 0; for (const b of arr) { if (b > 15) throw Error("nibble"); v = v * 16 + b; } return v; }
+function unpackBlock(p) { if (p.length !== 37) throw Error("bloque de longitud " + p.length);
+  let bits = 0n; for (const b of p) { if (b & 0x80) throw Error("byte no MIDI"); bits = (bits << 7n) | BigInt(b); }
+  bits >>= 3n; const out = new Uint8Array(32); for (let i = 31; i >= 0; i--) { out[i] = Number(bits & 0xFFn); bits >>= 8n; } return out; }
+
+function parseSyx(buf) {
+  const u = new Uint8Array(buf), msgs = [];
+  for (let i = 0; i < u.length;) {
+    const s = u.indexOf(0xF0, i); if (s < 0) break; const e = u.indexOf(0xF7, s); if (e < 0) throw Error("SysEx sin terminar");
+    const m = u.slice(s, e + 1); for (let k = 0; k < 5; k++) if (m[k] !== NOV[k]) throw Error("cabecera no Novation");
+    msgs.push(m); i = e + 1;
+  }
+  const cmd = msgs.map(m => m[5]);
+  if (cmd[0] !== 0x71 || cmd[1] !== 0x7C || cmd[cmd.length - 1] !== 0x73 || cmd.slice(2, -1).some(c => c !== 0x72)) throw Error("orden de mensajes inesperado");
+  const init = msgs[0].slice(6, -1); if (init[0] !== 0x01 || init[1] !== 0x64) throw Error("no es un firmware de Circuit Tracks (producto " + hex(init.slice(0, 2)) + ")");
+  const hdr = msgs[1].slice(6, -1); const size = nib(hdr.slice(7, 15)), crc = nib(hdr.slice(15, 23));
+  const blocks = [unpackBlock(msgs[msgs.length - 1].slice(6, -1))];
+  for (const m of msgs.slice(2, -1)) blocks.push(unpackBlock(m.slice(6, -1)));
+  const img = new Uint8Array(blocks.length * 32); blocks.forEach((b, i) => img.set(b, i * 32));
+  if (size > img.length || size > 0x70000) throw Error("tamaño inválido");
+  const c = crc32mpeg(img.subarray(0, size)); if (c !== crc) throw Error("CRC no coincide");
+  return { msgs, size, crc };
+}
+
+async function sha256(buf) { const h = await crypto.subtle.digest("SHA-256", buf); return hex(new Uint8Array(h)).replace(/ /g, ""); }
+
+// ---------- MIDI
+$("btnMidi").onclick = async () => {
+  if (midi) releaseAll();
+  try { midi = await navigator.requestMIDIAccess({ sysex: true }); }
+  catch (e) { $("midiState").textContent = "acceso denegado: " + e.message; $("midiState").className = "bad"; return; }
+  $("midiState").textContent = "acceso concedido"; $("midiState").className = "ok";
+  log(`MIDI: acceso concedido, ${midi.inputs.size} entradas y ${midi.outputs.size} salidas: ` + [...midi.inputs.values(), ...midi.outputs.values()].map(p => `«${p.name}»`).join(", "));
+  midi.onstatechange = onState; fillPorts(); $("btnId").disabled = false; updateSend();
+};
+let portsTimer = null;
+function onState(ev) {
+  const p = ev.port;
+  log(`MIDI: ${p.type} «${p.name}» ${p.state} / ${p.connection}`);          // diagnostic: every port that appears / disappears
+  if (p.state === "disconnected") {
+    if (xfer && (p === xfer.out || p === xfer.inp)) { finish("el puerto del Circuit Tracks ha desaparecido (¿se ha reiniciado o desconectado?)", "warn"); dropMidi("el aparato se está reiniciando: espera a que arranque y pulsa «Permitir acceso MIDI»"); return; }
+    if (idPending && (p === idPending.out || p === idPending.inp)) idDone("dispositivo desconectado", "bad");
+    closePort(p);
+    // A MIDIAccess that still holds the ports of a device that went away (reboot, unplug) is what makes Chrome hang when the page is reloaded or closed:
+    // when a Circuit Tracks port disappears, let go of everything; "Permitir acceso MIDI" connects again.
+    if (/circuit tracks/i.test(p.name || "")) { dropMidi("el Circuit Tracks se ha desconectado o reiniciado: cuando esté listo, pulsa «Permitir acceso MIDI»"); return; }
+  }
+  clearTimeout(portsTimer); portsTimer = setTimeout(() => { if (midi) fillPorts(); }, 400);   // USB re-enumeration fires a burst of events
+}
+function score(name) { if (!/circuit tracks/i.test(name)) return -1; if (/midi ?[23]|midiin2|midiout2|midiin3|midiout3|din|daw/i.test(name)) return 0; return 2; }
+function fillPorts() {
+  if (!midi) return;
+  for (const [sel, map] of [[$("outSel"), midi.outputs], [$("inSel"), midi.inputs]]) {
+    const prev = sel.value; sel.innerHTML = "";
+    const ports = [...map.values()].sort((a, b) => score(b.name) - score(a.name));
+    for (const p of ports) { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name + (score(p.name) === 2 ? "  ← recomendado" : ""); sel.appendChild(o); }
+    if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  }
+  updateSend();
+}
+const outPort = () => midi && midi.outputs.get($("outSel").value);
+const inPort = () => midi && midi.inputs.get($("inSel").value);
+
+function idDone(msg, cls) {
+  if (!idPending) return; const { t, inp, out, h } = idPending; idPending = null;
+  clearTimeout(t); inp.removeEventListener("midimessage", h); closePort(inp); closePort(out);
+  if (msg) { $("idState").textContent = msg; $("idState").className = cls; }
+}
+$("btnId").onclick = () => {
+  const out = outPort(), inp = inPort(); if (!out || !inp || idPending || xfer) return;
+  $("idState").textContent = "esperando respuesta…"; $("idState").className = "";
+  function h(ev) { const d = ev.data;
+    if (d.length === 17 && d[0] === 0xF0 && d[1] === 0x7E && d[3] === 0x06 && d[4] === 0x02) {
+      const mode = d[9] === 1 ? "firmware" : d[9] === 17 ? "bootloader" : "modo " + d[9];
+      const build = d[14] * 128 + d[15];
+      const isTracks = d[5] === 0x00 && d[6] === 0x20 && d[7] === 0x29;
+      log("Identidad: " + hex(d));
+      idDone(`${isTracks ? "Novation" : "¿?"} · pid ${hex(d.slice(8, 10))} · ${mode} · build ${build}`, isTracks ? "ok" : "warn");
+    } }
+  idPending = { inp, out, h, t: setTimeout(() => idDone("sin respuesta", "bad"), 2000) };
+  inp.addEventListener("midimessage", h);
+  openPorts(inp, out).then(() => { if (idPending && idPending.h === h) out.send([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]); })
+    .catch(e => idDone("no se pudo abrir el puerto: " + e.message, "bad"));
+};
+
+// ---------- file
+$("file").onchange = async () => {
+  fileOk = false; packets = null; updateSend();
+  const f = $("file").files[0]; if (!f) return;
+  const buf = await f.arrayBuffer(); const h = await sha256(buf);
+  let html = `${f.name} · ${buf.byteLength} bytes<br>SHA-256 ${h}<br>`;
+  if (!KNOWN[h]) { $("fileInfo").innerHTML = html + `<span class="bad">Archivo desconocido: no se enviará.</span>`; return; }
+  try { const p = parseSyx(buf); packets = p.msgs;
+    html += `<span class="ok">✔ ${KNOWN[h]}</span><br>imagen ${p.size} bytes · CRC ${p.crc.toString(16)} verificado · ${packets.length} mensajes`;
+    fileOk = true;
+  } catch (e) { html += `<span class="bad">Archivo inválido: ${e.message}</span>`; }
+  $("fileInfo").innerHTML = html; updateSend();
+};
+function updateSend() { $("btnSend").disabled = !(fileOk && outPort() && inPort() && !xfer && !idPending); }
+
+// ---------- transfer (pull protocol, as Components does)
+const STATUS = { 0: "inicio de actualización", 1: "esperando confirmación: PULSA PLAY en el Circuit Tracks", 16: "cancelado en el dispositivo",
+  17: "se agotó el tiempo de confirmación", 124: "FALLO (composición no viable)", 125: "recibido (composición no viable)", 126: "FALLO (CRC)", 127: "ÉXITO" };
+
+$("btnSend").onclick = () => {
+  const name = $("outSel").selectedOptions[0].textContent;
+  if (!confirm(`Se enviará:\n${$("file").files[0].name}\n\nal puerto: ${name}\n\nNo desconectes el Circuit Tracks hasta que termine. ¿Continuar?`)) return;
+  start();
+};
+$("btnAbort").onclick = () => finish("cancelado por el usuario (el dispositivo descartará la actualización incompleta)", "warn");
+
+function start() {
+  const out = outPort(), inp = inPort(); if (!out || !inp || xfer) return;
+  if (idPending) idDone("", "");
+  xfer = { out, inp, next: 0, last: -1, timer: null, done: false };
+  $("btnSend").disabled = true; $("btnAbort").disabled = false; $("file").disabled = true;
+  inp.addEventListener("midimessage", onMsg);
+  const me = xfer;
+  openPorts(inp, out).then(() => {
+    if (xfer !== me) return;
+    log(`Inicio: ${packets.length} mensajes → ${out.name}`);
+    sendNext(); // INIT
+    if (packets[xfer.next] && packets[xfer.next][5] === 0x7C) sendNext(); // HEADER right after INIT
+    arm(25000);
+  }).catch(e => finish("no se pudo abrir el puerto: " + e.message, "bad"));
+}
+function arm(ms) { clearTimeout(xfer.timer); xfer.timer = setTimeout(() => finish("tiempo de espera agotado; no se envió nada más", "bad"), ms); }
+function sendNext() {
+  const p = packets[xfer.next++]; xfer.out.send(p);
+  $("prog").value = Math.round(100 * xfer.next / packets.length);
+  if (xfer.next <= 2 || xfer.next === packets.length) log(`→ ${hex(p.slice(0, 8))}… (${p.length} bytes)`);
+  if (xfer.next === packets.length) { $("phase").textContent = "Transferido; esperando el informe del dispositivo…"; arm(30000); }
+}
+function onMsg(ev) {
+  const d = ev.data; if (!xfer || d[0] !== 0xF0) return;
+  for (let k = 0; k < 5; k++) if (d[k] !== NOV[k]) return;
+  if (d[5] === 0x72) {
+    let n = null;
+    if (d.length === 10) n = d[6] + (d[7] << 7) + (d[8] << 14);
+    else if (d.length === 15) { const s = d.slice(6, 14); n = s[7] + (s[6] << 4) + (s[5] << 8); }
+    if (n === null) return;
+    if ((n > xfer.last || n === 0) && xfer.next < packets.length) { xfer.last = n; $("phase").textContent = "Transfiriendo…"; sendNext(); if (xfer.next < packets.length) arm(10000); }
+  } else if (d[5] === 0x73 && d.length === 10) {
+    const c = d[6]; log(`← estado ${c}: ${STATUS[c] || "?"}`, c === 127 ? "ok" : (c >= 124 || c === 16 || c === 17) ? "bad" : "");
+    if (c === 1) { $("phase").textContent = "PULSA PLAY en el Circuit Tracks para confirmar"; arm(25000); }
+    else if (c === 0) arm(25000);
+    else if (c === 127) { finish("Actualización recibida correctamente. El Circuit Tracks se reiniciará e instalará el firmware: espera a que arranque.", "ok"); dropMidi("el aparato se reinicia: cuando haya arrancado, pulsa «Permitir acceso MIDI»"); }
+    else if (c === 125) arm(30000);
+    else if (c === 16 || c === 17 || c === 124 || c === 126) finish("El dispositivo rechazó la actualización; el firmware actual no se modifica.", "bad");
+  }
+}
+function finish(msg, cls) {
+  if (!xfer) return; const { inp, out } = xfer;
+  clearTimeout(xfer.timer); inp.removeEventListener("midimessage", onMsg); xfer = null;
+  closePort(inp); closePort(out);                     // the device reboots after a successful update
+  $("phase").textContent = msg; $("phase").className = cls; log(msg, cls);
+  $("btnAbort").disabled = true; $("file").disabled = false; updateSend();
+}
+$("outSel").onchange = $("inSel").onchange = updateSend;
+if (!navigator.requestMIDIAccess) { $("midiState").textContent = "este navegador no soporta Web MIDI: usa Chrome o Edge"; $("midiState").className = "bad"; }
+</script>
+</body>
+</html>

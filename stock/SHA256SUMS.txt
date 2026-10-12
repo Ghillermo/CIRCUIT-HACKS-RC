@@ -1,0 +1,2 @@
+b897e0f01c403974eafae32074876234f2da7ef834796a485993acf01423f8da  circuittracks-firmware-4486-STOCK.bin
+bd2d294bafa88fdec7ae1f5fcaaa13158323969c5a40f83405a72e4ad329a0bd  circuittracks-firmware-4486-STOCK.syx

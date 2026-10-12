@@ -1,0 +1,56 @@
+diff --git a/source/dsp56kBase/mmuhelper.cpp b/source/dsp56kBase/mmuhelper.cpp
+index 6a456c95..13e6ba04 100644
+--- a/source/dsp56kBase/mmuhelper.cpp
++++ b/source/dsp56kBase/mmuhelper.cpp
+@@ -52,15 +52,27 @@ namespace dsp56k
+ 	// ---- Placeholder API (Windows 10 1803+) ----
+ 	// Loaded at runtime to maintain Win7/8 compatibility.
+ 	// Eliminates the race condition in the legacy VirtualAlloc/VirtualFree/MapViewOfFileEx path.
++	#ifndef MEM_RESERVE_PLACEHOLDER
++#define MEM_RESERVE_PLACEHOLDER 0x00040000
++#endif
++#ifndef MEM_REPLACE_PLACEHOLDER
++#define MEM_REPLACE_PLACEHOLDER 0x00004000
++#endif
++#ifndef MEM_PRESERVE_PLACEHOLDER
++#define MEM_PRESERVE_PLACEHOLDER 0x00000002
++#endif
++#ifndef MEM_COALESCE_PLACEHOLDERS
++#define MEM_COALESCE_PLACEHOLDERS 0x00000001
++#endif
+ 	namespace
+ 	{
+ 		struct PlaceholderApi
+ 		{
+-			decltype(&VirtualAlloc2) virtualAlloc2 = nullptr;
+-			decltype(&MapViewOfFile3) mapViewOfFile3 = nullptr;
+-			decltype(&UnmapViewOfFile2) unmapViewOfFile2 = nullptr;
++			PVOID (WINAPI* virtualAlloc2)(HANDLE, PVOID, SIZE_T, ULONG, ULONG, void*, ULONG) = nullptr;
++			PVOID (WINAPI* mapViewOfFile3)(HANDLE, HANDLE, PVOID, ULONG64, SIZE_T, ULONG, ULONG, void*, ULONG) = nullptr;
++			BOOL (WINAPI* unmapViewOfFile2)(HANDLE, PVOID, ULONG) = nullptr;
+ 
+-			bool isSupported() const { return virtualAlloc2 != nullptr && mapViewOfFile3 != nullptr && unmapViewOfFile2 != nullptr; }
++			bool isSupported() const { return false && virtualAlloc2 != nullptr && mapViewOfFile3 != nullptr && unmapViewOfFile2 != nullptr; }
+ 
+ 			static PlaceholderApi& instance()
+ 			{
+diff --git a/source/dsp56kBase/threadtools.cpp b/source/dsp56kBase/threadtools.cpp
+index da83b38b..4f34d521 100644
+--- a/source/dsp56kBase/threadtools.cpp
++++ b/source/dsp56kBase/threadtools.cpp
+@@ -49,6 +49,7 @@ namespace dsp56k
+ 		info.dwThreadID = dwThreadID;
+ 		info.dwFlags = 0;
+ 
++#ifdef _MSC_VER
+ 		__try  // NOLINT(clang-diagnostic-language-extension-token)
+ 		{
+ 			RaiseException( MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), reinterpret_cast<ULONG_PTR*>(&info) );
+@@ -56,6 +57,7 @@ namespace dsp56k
+ 		__except(EXCEPTION_EXECUTE_HANDLER)
+ 		{
+ 		}
++#endif
+ 	}
+ 
+ 	// SetThreadDescription is Win10 1607+. Load it dynamically so we stay compatible with Win7.

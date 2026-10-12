@@ -1,0 +1,13 @@
+re/
+__pycache__/
+ctre
+ext/
+build/
+
+# RC: no Novation firmware in the repository (tools/patch_official.py builds it from yours)
+stock/*.bin
+stock/*.syx
+firmware/*/*.bin
+firmware/*/*.syx
+rythm/
+*.wav

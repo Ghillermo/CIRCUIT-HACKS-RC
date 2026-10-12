@@ -1,0 +1,181 @@
+"""Rebuild every patch from the stock image and compare the .syx SHA-256 with firmware/<dir>/manifest.json.
+
+    python tools/verify_builds.py            # all
+    python tools/verify_builds.py sc17.4     # only these firmware/ folders
+
+Needs re/app.asm (python tools/gen_listing.py).  Each builder runs in its own process (they patch
+module globals of the earlier builders at import time).
+"""
+from __future__ import annotations
+import json, subprocess, sys, tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+STOCK = ROOT / "stock/circuittracks-firmware-4486-STOCK.bin"
+# firmware folder -> builder script + extra args
+BUILDS = [
+    ("shared-channels", "build_shared_channels.py", []), ("sc03", "build_sc03.py", []), ("sc04", "build_sc04.py", []),
+    ("sc05", "build_sc05.py", []), ("sc06", "build_sc06.py", []), ("sc07", "build_sc06.py", ["--v2"]),
+    ("sc08", "build_sc08.py", []), ("sc09", "build_sc09.py", []), ("sc10", "build_sc10.py", []),
+    ("sc11", "build_sc11.py", []), ("sc12", "build_sc12.py", []), ("sc13", "build_sc13.py", []),
+    ("sc14", "build_sc14.py", []), ("sc14.2", "build_sc14_2.py", []), ("sc15", "build_sc15.py", []),
+    ("sc16", "build_sc16.py", []), ("sc16.1", "build_sc16_1.py", []), ("sc17", "build_sc17.py", []),
+    ("sc17.1", "build_sc17_1.py", []), ("sc17.2", "build_sc17_2.py", []), ("sc17d", "build_sc17d.py", []),
+    ("sc17.3", "build_sc17_3.py", []), ("sc173d", "build_sc17_3.py", ["--diag"]), ("sc17.4", "build_sc17_4.py", []),
+    ("sc17.5", "build_sc17_5.py", []), ("sc17.6", "build_sc17_6.py", []), ("sc17.7", "build_sc17_7.py", []),
+    ("sc17.8", "build_sc17_8.py", []), ("sc18", "build_sc18.py", []), ("sc18.1", "build_sc18_1.py", []),
+    ("sc18.2", "build_sc18_2.py", []),
+    ("sc18.3", "build_sc18_3.py", []),
+    ("sc182d", "build_sc182d.py", []),
+    ("sc183d", "build_sc183d.py", []),
+    ("sc19", "build_sc19.py", []),
+    ("sc19.1", "build_sc19_1.py", []),
+    ("sc19.2", "build_sc19_2.py", []),
+    ("sc20d", "build_sc20d.py", []),
+    ("sc19.3", "build_sc19_3.py", []),
+    ("sc19.4", "build_sc19_4.py", []),
+    ("sc19.5", "build_sc19_5.py", []),
+    ("sc19.6", "build_sc19_6.py", []),
+    ("sc19.7", "build_sc19_7.py", []),
+    ("sc19.8", "build_sc19_8.py", []),
+    ("sc19.9", "build_sc19_9.py", []),
+    ("sc20", "build_sc20.py", []),
+    ("sc20d.1", "build_sc20d_1.py", []),
+    ("sc20.1", "build_sc20_1.py", []),
+    ("sc20.2", "build_sc20_2.py", []),
+    ("sc21", "build_sc21.py", []),
+    ("sc21.1", "build_sc21_1.py", []),
+    ("sc21.2", "build_sc21_2.py", []),
+    ("sc21.3", "build_sc21_3.py", []),
+    ("sc21.4", "build_sc21_4.py", []),
+    ("sc22", "build_sc22.py", []),
+    ("sc22.1", "build_sc22_1.py", []),
+    ("sc22.2", "build_sc22_2.py", []),
+    ("sc22.3", "build_sc22_3.py", []),
+    ("sc22.4", "build_sc22_4.py", []),
+    ("sc23", "build_sc23.py", []),
+    ("sc23.1", "build_sc23_1.py", []),
+    ("sc23.2", "build_sc23_2.py", []),
+    ("sc23.3", "build_sc23_3.py", []),
+    ("sc23.4", "build_sc23_4.py", []),
+    ("sc23.5", "build_sc23_5.py", []),
+    ("sc23.6", "build_sc23_6.py", []),
+    ("sc24", "build_sc24.py", []),
+    ("sc25", "build_sc25.py", []),
+    ("sc26", "build_sc26.py", []),
+    ("sc27", "build_sc27.py", []),
+    ("sc28", "build_sc28.py", []),
+    ("sc29", "build_sc29.py", []), ("sc30", "build_sc30.py", []), ("sc31", "build_sc31.py", []),
+    ("sc32", "build_sc32.py", []),
+    ("sc33", "build_sc33.py", []),
+    ("sc34", "build_sc34.py", []),
+    ("sc34d", "build_sc34d.py", []),
+    ("sc34.1", "build_sc34_1.py", []),
+    ("sc34.2", "build_sc34_2.py", []),
+    ("sc35d", "build_sc35d.py", []),
+    ("sc35d.1", "build_sc35d_1.py", []),
+    ("sc35d2", "build_sc35d2.py", []),
+    ("sc35d3", "build_sc35d3.py", []),
+    ("sc35d4", "build_sc35d4.py", []),
+    ("sc35d5", "build_sc35d5.py", []),
+    ("sc35d6", "build_sc35d6.py", []),
+    ("sc35d7", "build_sc35d7.py", []),
+    ("sc35d8", "build_sc35d8.py", []),
+    ("sc35d9", "build_sc35d9.py", []),
+    ("sc342d", "build_sc342d.py", []),
+    ("sc35da", "build_sc35da.py", []),
+    ("sc35", "build_sc35.py", []),
+    ("sc35db", "build_sc35db.py", []),
+    ("sc36", "build_sc36.py", []),
+    ("sc36.1", "build_sc36_1.py", []),
+    ("sc361s", "build_sc361s.py", []),
+    ("sc36.2", "build_sc36_2.py", []),
+    ("sc362s", "build_sc362s.py", []),
+    ("rc0", "build_rc0.py", []),
+    ("rc0s", "build_rc0s.py", []),
+    ("sc37", "build_sc37.py", []),
+    ("sc37.1", "build_sc37_1.py", []),
+    ("sc37.2", "build_sc37_2.py", []),
+    ("sc37.3", "build_sc37_3.py", []),
+    ("sc37.4", "build_sc37_4.py", []),
+    ("rc0.1", "build_rc0_1.py", []),
+    ("rc0.1s", "build_rc0_1s.py", []),
+    ("sc37.5", "build_sc37_5.py", []),
+    ("rc0.2", "build_rc0_2.py", []),
+    ("rc0.2s", "build_rc0_2s.py", []),
+    ("sc37.6", "build_sc37_6.py", []),
+    ("sc37.7", "build_sc37_7.py", []),
+    ("sc37.8", "build_sc37_8.py", []),
+    ("sc37.9", "build_sc37_9.py", []),
+    ("sc38", "build_sc38.py", []),
+    ("rc0.3", "build_rc0_3.py", []),
+    ("rc0.3s", "build_rc0_3s.py", []),
+    ("sc38.1", "build_sc38_1.py", []),
+    ("sc38.2", "build_sc38_2.py", []),
+    ("sc38.3", "build_sc38_3.py", []),
+    ("sc38.4", "build_sc38_4.py", []),
+    ("sc38.5", "build_sc38_5.py", []),
+    ("sc38.6", "build_sc38_6.py", []),
+    ("sc38.7", "build_sc38_7.py", []),
+    ("sc38.8", "build_sc38_8.py", []),
+    ("sc38.9", "build_sc38_9.py", []),
+    ("sc39", "build_sc39.py", []),
+    ("sc39.1", "build_sc39_1.py", []),
+    ("sc39.2", "build_sc39_2.py", []),
+    ("sc39.3", "build_sc39_3.py", []),
+    ("sc39.4", "build_sc39_4.py", []),
+    ("patchdiag", "build_patchdiag.py", []),
+    ("seqwatch", "build_seqwatch.py", []),
+    ("rc0.4", "build_rc0_4.py", []),
+    ("rc0.4s", "build_rc0_4s.py", []),
+    ("rc0.5", "build_rc0_5.py", []),
+    ("rc0.5s", "build_rc0_5s.py", []),
+    ("beta0", "build_beta0.py", []),
+    ("beta1", "build_beta1.py", []),
+    ("beta2", "build_beta2.py", []),
+    ("beta3", "build_beta3.py", []),
+    ("beta4", "build_beta4.py", []),
+    ("sc21d", "build_sc21d.py", []),
+    ("sc32d", "build_sc32d.py", []),
+    ("sc32d.1", "build_sc32d_1.py", []),
+    ("sc32d2", "build_sc32d_2.py", []),
+]
+
+
+def main(only):
+    bad = 0
+    # the builds must come out of the DSP assembler cache alone (tools/dsp_asm_cache.json): that is how patch_official.py builds them for whoever has no
+    # dsptool (RC0.2 was published with lines missing from it, 2026-10-10).  New DSP code: run once with DSP_ASM_CACHE_UPDATE=1 (dsptool assembles, the cache grows).
+    import os
+    env = dict(os.environ)
+    if env.get("DSP_ASM_CACHE_UPDATE") != "1": env["DSPTOOL"] = str(ROOT / "ext" / "bin" / "no-dsptool-here")
+    with tempfile.TemporaryDirectory() as tmp:
+        for folder, script, extra in BUILDS:
+            if only and folder not in only: continue
+            man = ROOT / "firmware" / folder / "manifest.json"
+            if not man.exists(): print(f"skip {folder}: no manifest"); continue
+            want = json.loads(man.read_text())["syx_sha256"]
+            out = Path(tmp) / folder
+            r = subprocess.run([sys.executable, str(ROOT / "tools" / script), str(STOCK), *extra, "-o", str(out)],
+                               cwd=ROOT, capture_output=True, text=True, env=env)
+            syx = sorted(out.glob("*.syx")) if out.exists() else []
+            if r.returncode or not syx:
+                hint = " (a DSP line missing from tools/dsp_asm_cache.json? DSP_ASM_CACHE_UPDATE=1 python tools/verify_builds.py)" if "dsptool" in r.stderr else ""
+                print(f"FAIL {folder}: builder error{hint}\n{r.stderr[-800:]}"); bad += 1; continue
+            import hashlib
+            got = hashlib.sha256(syx[0].read_bytes()).hexdigest()
+            ok = got == want; bad += 0 if ok else 1
+            print(("ok   " if ok else "DIFF ") + f"{folder:16s} {got[:16]}…" + ("" if ok else f" (manifest {want[:16]}…)"))
+    # the bootloader installs only when the version block (0x1C8, 0x26 bytes: the 6-byte marker is its tail) changes: two published builds must never share it
+    # (SC32D.1 / SC32D.2 both had the marker "SC32D." and the second was silently not installed, 2026-10-08; it became SC32D2)
+    seen = {}
+    for b in sorted((ROOT / "firmware").glob("*/*.bin")):
+        blk = b.read_bytes()[0x1C8:0x1C8 + 0x26]
+        if blk in seen: print(f"SAME VERSION BLOCK: {seen[blk]} and {b.parent.name} (marker {blk[-6:]!r})"); bad += 1
+        else: seen[blk] = b.parent.name
+    print("RESULT:", "ALL IDENTICAL" if bad == 0 else f"{bad} differ")
+    return bad
+
+
+if __name__ == "__main__":
+    sys.exit(1 if main(set(sys.argv[1:])) else 0)

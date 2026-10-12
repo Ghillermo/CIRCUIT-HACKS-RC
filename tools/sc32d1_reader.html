@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lector SC32D / SC35D</title>
+<style>
+  :root { --bg: #fff; --fg: #1d1d1f; --muted: #666; --line: #ddd; --ok: #0a7d28; --bad: #b3261e; --warn: #9a6700; --code: #f5f5f7; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161618; --fg: #ececec; --muted: #999; --line: #333; --ok: #4cc26a; --bad: #ff6b60; --warn: #e3b341; --code: #222226; } }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; margin: 0 auto; max-width: 860px; padding: 16px; }
+  h1 { font-size: 1.3em; } h2 { font-size: 1.05em; margin-top: 1.4em; }
+  button, input[type=file] { font: inherit; margin: 4px 6px 4px 0; } button { padding: 6px 14px; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 90px; font: 13px ui-monospace, monospace; background: var(--code); color: var(--fg); border: 1px solid var(--line); }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 14px; }
+  td, th { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; vertical-align: top; }
+  td.n, th.n { font-family: ui-monospace, monospace; white-space: nowrap; }
+  #st, .muted { color: var(--muted); } .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  pre { background: var(--code); padding: 8px; overflow-x: auto; font-size: 13px; }
+  .wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>Lector de los volcados de diagnóstico (SC32D.1, SC32D2, SC35D, SC35D.1, SC35D2, SC35D3, SC35D4, SC35D5, SC35D6)</h1>
+<p>En el aparato: pulsa <b>Synth 1</b> dos veces (vista de la fuente) y luego el <b>pad 9</b> (SC32D2: pad 9 y después pad 10). El volcado sale por CC en el canal 16 (USB).</p>
+<p class="muted">El aparato corta cada pulsación a 64 mensajes: en SC32D.1 / SC35D / SC35D.1 / SC35D2 / SC35D3 no llegan los dos últimos valores (12 y 13) ni el mensaje de cierre. La página traduce lo que llega igualmente.</p>
+
+<h2>1. Escuchar en directo (Chrome / Edge)</h2>
+<p class="muted">En Windows un puerto MIDI solo lo puede tener abierto un programa: cierra el monitor MIDI, Components o el DAW antes de pulsar.</p>
+<button id="go">Permitir MIDI y escuchar</button> <button id="clr">Borrar lo recibido</button>
+<div id="st">sin conectar</div>
+
+<h2>2. O abre el .log del monitor MIDI, o pega su texto</h2>
+<input type="file" id="file" accept=".log,.txt,text/plain">
+<textarea id="txt" placeholder="Una línea por mensaje: BF 14 7F  /  191 20 127 ..."></textarea>
+<button id="dec">Traducir el texto</button>
+
+<div id="out"></div>
+<h2>Texto para copiar y mandar</h2>
+<pre id="copy">(aún nada)</pre>
+
+<script>
+const NAMES = ["MAGIC (C0FFEE = el sondeo corrió)", "SR en el gancho", "OMR", "M0", "r0 tras cargar $128800", "zona 1: palabra encontrada",
+  "zona 1: releída por r0 (escrita 5A5A01)", "zona 1: releída con dirección absoluta", "zona 1: releída tras ~1000 ciclos",
+  "zona 1: escrita 5A5A11 y releída con dirección absoluta", "zona 0: releída (escrita 5A5A00)", "Y:$000000 interna en ese momento",
+  "zona 14: palabra encontrada", "zona 14: releída (escrita 5A5A0E)"];
+const EXPECT = {0: 0xC0FFEE, 4: 0x128800, 6: 0x5A5A01, 7: 0x5A5A01, 8: 0x5A5A01, 9: 0x5A5A11, 10: 0x5A5A00, 13: 0x5A5A0E};
+// SC35D (DSP core 1): word 0 = C1D1A6
+const NAMES35 = ["MAGIC (C1D1A6 = el núcleo 1 respondió)", "núcleo 1: marca (C1C1C1)", "núcleo 1: vueltas / 256 (sube = vivo)",
+  "núcleo 1: RAM de programa (bits: $0400 $1000 $2000 $3000 $3FFF $4000 $7FFF)", "núcleo 1: X / Y internas (bits: X$1000 X$3000 Y$1000 Y$3000)",
+  "núcleo 1 lee Y:$640000 (debe ser 5A6400)", "núcleo 0 lee Y:$650000 (debe ser 5A6500)", "núcleo 1: vueltas por bloque de audio (última)",
+  "núcleo 1: vueltas por bloque (mínimo)", "núcleo 0: bloques contados", "núcleo 1: OMR", "núcleo 1: SR",
+  "núcleo 1 lee X:$30000 (stock 030202)", "núcleo 0 lee X:$30000"];
+const EXPECT35 = {0: 0xC1D1A6, 1: 0xC1C1C1, 5: 0x5A6400, 6: 0x5A6500};
+// SC35D.1 (DSP core 1, v2): word 0 = C1D1A7
+const NAMES351 = ["MAGIC (C1D1A7 = el núcleo 1 respondió)", "núcleo 1: vueltas / 256 (sube = vivo)",
+  "núcleo 1: RAM de programa (bits: $0400 $0600 $0800 $0A00 $0C00 $0E00 $0FFF $1000)", "núcleo 1: X / Y internas (bits: X$0800 X$1800 X$2000 X$2800 X$2FFF, Y igual)",
+  "núcleo 1 lee Y:$640000 ahora (debe ser 5A6400)", "núcleo 0 lee Y:$650000 (debe ser 5A6500)", "núcleo 1: vueltas por bloque de audio (última)",
+  "núcleo 1: vueltas por bloque (mínimo)", "núcleo 0: bloques contados", "Y:$600000 al arrancar (antes del centinela)", "Y:$600000 ahora (centinela 5A6600; si cambia, el stock escribe ahí)",
+  "núcleo 1: OMR", "núcleo 1: SR", "núcleo 1: primera lectura de Y:$640000"];
+const EXPECT351 = {0: 0xC1D1A7, 4: 0x5A6400, 5: 0x5A6500, 10: 0x5A6600};
+// SC35D2 (read-only map of the external DSP memory): word 0 = C1D1A8
+const NAMES352 = ["MAGIC (C1D1A8 = el núcleo 1 respondió)", "direcciones que han cambiado desde el arranque (bits)", "direcciones que cambiaron en la última ventana de 1024 bloques (bits)",
+  "ventanas completas", "núcleo 1: lista de lecturas más larga (X:$30000 máximo)", "núcleo 1: vueltas por bloque (última)", "núcleo 1: vueltas por bloque (mínimo)",
+  "núcleo 0: bloques contados", "núcleo 1: vueltas / 256 (sube = vivo)", "Y:$600000 ahora", "núcleo 0: lista más larga vista", "X:$30000 ahora",
+  "direcciones ya visitadas (bits)", "cambios en la ventana actual (bits)"];
+const EXPECT352 = {0: 0xC1D1A8};
+const SENT352 = ["$337000", "$5BE000", "$5C0000", "$5E0000", "$600000", "$608000", "$610000", "$620000", "$630000", "$640000", "$650000", "$660000", "$680000", "$6A0000", "$6C0000", "$6E0000", "$700000", "$740000", "$780000", "$7C0000", "$800000", "$840000", "$880000", "$8F0000"];
+const SENTNOTE = {0: "control: zona de samples 14", 1: "control: zona de samples 29"};
+// SC35D3 (two candidate areas + mirror test): word 0 = C1D1A9
+const NAMES353 = ["MAGIC (C1D1A9 = el núcleo 1 respondió)", "direcciones que han cambiado desde el arranque (bits)", "direcciones que cambiaron en la última ventana (bits)",
+  "direcciones que alguna vez difirieron de su espejo ± $800000 (bits: memoria real)", "ventanas completas", "núcleo 1: lista de lecturas más larga",
+  "núcleo 1: vueltas por bloque (mínimo)", "núcleo 0: bloques contados", "núcleo 1: vueltas / 256 (sube = vivo)", "Y:$E80000 ahora", "Y:$680000 ahora (su espejo)",
+  "X:$30000 ahora", "direcciones ya visitadas (bits)", "cambios en la ventana actual (bits)"];
+const EXPECT353 = {0: 0xC1D1A9};
+const SENT353 = ["$580000", "$840000", "$337000", "$360000", "$388000", "$3B0000", "$3D8000", "$400000", "$440000", "$480000", "$4C0000", "$500000", "$540000", "$57F000", "$E80000", "$EA0000", "$EC0000", "$EE0000", "$F00000", "$F40000", "$F80000", "$FC0000", "$FF0000", "$FFF000"];
+const SENTNOTE3 = {0: "control: primer sample del pack (debe cambiar al cambiar de pack)", 1: "control: estable en SC35D2"};
+// SC35D4 (read-only SD probe through the stock content API): word 0 = C5D004
+const NAMES354 = ["MAGIC (C5D004 = sondeo de la SD)", "existe (op 0: 1 = sí)", "tamaño en bytes (bits 0-23, op 1)", "tamaño (bits 24-31)", "estado de la lectura (op 6: 0 = bien)",
+  "bytes leídos", "bytes 0-2 del fichero", "bytes 3-5", "bytes 6-8", "bytes 9-11", "bytes 12-14", "bytes 15-17", "bytes 18-20", "tipo << 8 | índice"];
+const EXPECT354 = {0: 0xC5D004, 1: 1, 4: 0, 5: 21};
+// SC35D6 (Shift + pad: the same bytes written back): word 0 = C5D006
+const NAMES356 = ["MAGIC (C5D006 = escritura de prueba)", "existe (1 = sí)", "tamaño ANTES de escribir", "estado de la ESCRITURA (0 = bien)", "tamaño DESPUÉS de escribir (debe ser igual)",
+  "relectura: estado << 8 | bytes (debe ser 000015)", "bytes 0-2 releídos", "bytes 3-5", "bytes 6-8", "bytes 9-11", "bytes 12-14", "bytes 15-17", "bytes 18-20", "tipo << 8 | 80 | índice"];
+const EXPECT356 = {0: 0xC5D006, 1: 1, 3: 0, 5: 0x15};
+const LOST = new Set([12, 13]);          // beyond the 64-message cut of one press
+const NL = String.fromCharCode(10);
+const hex = v => v.toString(16).toUpperCase().padStart(6, "0");
+const isStart = m => m[0] === 0xBF && m[1] === 20 && m[2] === 127;
+
+// SC32D.1 / SC35D: start, then per word CC 21 = index, CC 22..25 = 4 x 7 bits, CC 20 = 0 = end (usually cut off)
+function decodeWords(list) {
+  let s = -1;
+  for (let i = list.length - 1; i >= 0; i--) if (isStart(list[i])) { s = i; break; }
+  if (s < 0) return null;
+  const words = {}; let cur = null;
+  for (let i = s + 1; i < list.length; i++) {
+    const [st, cc, v] = list[i]; if (st !== 0xBF) continue;
+    if (cc === 20) break;
+    if (cc === 21) { cur = { i: v, p: [] }; continue; }
+    if (cur && cc >= 22 && cc <= 25) { cur.p[cc - 22] = v; if (cc === 25 && cur.p.length === 4) { words[cur.i] = (cur.p[0] << 21) | (cur.p[1] << 14) | (cur.p[2] << 7) | cur.p[3]; cur = null; } }
+  }
+  return words;
+}
+const ZONES = [...Array(30).keys()].map(z => "zona " + z + " ($" + (0x100000 + z * 0x28800).toString(16).toUpperCase() + ")")
+  .concat(["$5BF000", "$5C0000", "$600000", "$680000", "$700000", "$780000", "$880000", "$8FF000"]);
+const STATE = f => !(f & 1) ? ["sin visitar", ""] : !(f & 8) ? ["la escritura no se relee", "bad"] : (f & 16) ? ["espejo", "bad"] : (f & 4) ? ["cambia (en uso)", ""] : (f & 2) ? ["contenido fijo", ""] : ["LIBRE", "ok"];
+// SC32D2: start, then CC 21 = area, CC 22 = flags (pairs), CC 23 / 24 = sweep count; pad 9 = areas 0..18, pad 10 = 19..37
+function decodeZones(list) {
+  const fl = {}; let found = false, sweeps = 0;
+  for (let s = 0; s < list.length; s++) {
+    if (!isStart(list[s])) continue;
+    if (!list[s + 3] || list[s + 1][1] !== 21 || list[s + 2][1] !== 22 || list[s + 3][1] !== 21) continue;   // SC32D.1 has CC 23 there
+    found = true; let k = null; const sw = [0, 0];
+    for (let i = s + 1; i < list.length; i++) {
+      const [st, cc, v] = list[i]; if (st !== 0xBF) continue;
+      if (cc === 20) break;
+      if (cc === 21) k = v; else if (cc === 22 && k !== null) { fl[k] = v; k = null; } else if (cc === 23) sw[0] = v; else if (cc === 24) sw[1] = v;
+    }
+    sweeps = sw[0] | (sw[1] << 7);
+  }
+  return found ? { fl, sweeps } : null;
+}
+function showZones(r) {
+  let h = `<p>Vueltas completas: <b>${r.sweeps}</b></p><div class="wrap"><table><tr><th>#</th><th>Zona</th><th class="n">Banderas</th><th>Estado</th></tr>`; const t = [];
+  for (let k = 0; k < ZONES.length; k++) {
+    const f = r.fl[k]; const [txt, cls] = f === undefined ? ["falta (¿pulsaste el pad 10?)", "bad"] : STATE(f);
+    h += `<tr><td>${k}</td><td>${ZONES[k]}</td><td class="n">${f === undefined ? "—" : f.toString(2).padStart(5, "0")}</td><td class="${cls}">${txt}</td></tr>`;
+    t.push(`${k} ${f === undefined ? "--" : f.toString(2).padStart(5, "0")}  ${ZONES[k]}: ${txt}`);
+  }
+  document.getElementById("out").innerHTML = h + "</table></div><p>Banderas (de derecha a izquierda): visitada, algo distinto de cero, cambia, escritura bien, espejo.</p>";
+  document.getElementById("copy").textContent = `SC32D2 (vueltas ${r.sweeps})` + NL + t.join(NL);
+}
+function showWords(words) {
+  const out = document.getElementById("out"), copy = document.getElementById("copy");
+  if (!words || !Object.keys(words).length) { out.innerHTML = '<p class="bad">No encuentro un volcado (empieza con CC 20 = 127 en el canal 16, «BF 14 7F»).</p>'; return; }
+  const is35 = words[0] === 0xC1D1A6, is351 = words[0] === 0xC1D1A7, is352 = words[0] === 0xC1D1A8, is353 = words[0] === 0xC1D1A9, is354 = words[0] === 0xC5D004, is356 = words[0] === 0xC5D006;
+  const NM = is356 ? NAMES356 : is354 ? NAMES354 : is353 ? NAMES353 : is352 ? NAMES352 : is351 ? NAMES351 : is35 ? NAMES35 : NAMES;
+  const EX = is356 ? EXPECT356 : is354 ? EXPECT354 : is353 ? EXPECT353 : is352 ? EXPECT352 : is351 ? EXPECT351 : is35 ? EXPECT35 : EXPECT;
+  const TITLE = is356 ? "SC35D6/7" : is354 ? "SC35D4/5" : is353 ? "SC35D3" : is352 ? "SC35D2" : is351 ? "SC35D.1" : is35 ? "SC35D" : "SC32D.1";
+  let h = `<p>Formato: <b>${TITLE}</b></p><div class="wrap"><table><tr><th>#</th><th>Qué</th><th class="n">Valor</th><th class="n">Bits 23..0</th><th></th></tr>`; const t = [];
+  for (let i = 0; i < NM.length; i++) {
+    const w = words[i]; const has = w !== undefined; const e = EX[i];
+    const mark = !has ? (LOST.has(i) ? '<span class="warn">no llega (corte de 64 mensajes)</span>' : '<span class="bad">falta</span>')
+      : e === undefined ? '' : (w === e ? '<span class="ok">= esperado</span>' : '<span class="bad">≠ ' + hex(e) + '</span>');
+    h += `<tr><td>${i}</td><td>${NM[i]}</td><td class="n">${has ? hex(w) : "—"}</td><td class="n">${has ? w.toString(2).padStart(24, "0").replace(/(\d{4})(?=\d)/g, "$1 ") : ""}</td><td>${mark}</td></tr>`;
+    t.push(`${i} ${has ? hex(w) : "------"}  ${NM[i]}`);
+  }
+  h += "</table></div>";
+  if (is352 && words[1] !== undefined && words[2] !== undefined) {
+    h += '<h2>Mapa de la memoria externa (solo lectura)</h2><div class="wrap"><table><tr><th>bit</th><th>Dirección</th><th>Estado</th></tr>';
+    t.push("", "Mapa:");
+    SENT352.forEach((ad, k) => {
+      const ever = (words[1] >> k) & 1, win = (words[2] >> k) & 1, seen = words[12] === undefined ? 1 : (words[12] >> k) & 1;
+      const [txt, cls] = !seen ? ["sin visitar", "bad"] : win ? ["CAMBIA (en uso continuo)", "bad"] : ever ? ["cambió alguna vez (carga)", "warn"] : ["estable (candidata libre)", "ok"];
+      const note = SENTNOTE[k] ? " — " + SENTNOTE[k] : "";
+      h += `<tr><td>${k}</td><td class="n">${ad}</td><td class="${cls}">${txt}${note}</td></tr>`;
+      t.push(`${k} ${ad}: ${txt}${note}`);
+    });
+    h += "</table></div>";
+  }
+  if (is356 && words[2] !== undefined && words[4] !== undefined) {
+    const same = words[2] === words[4];
+    h += `<p class="${same ? "ok" : "bad"}">Tamaño antes ${words[2]} / después ${words[4]}: ${same ? "igual (la escritura no recorta el fichero)" : "DISTINTO"}</p>`;
+    t.push("", `Tamaño antes ${words[2]} / después ${words[4]}: ${same ? "igual" : "DISTINTO"}`);
+  }
+  if (is354 || is356) {
+    const by = [];
+    for (let w = 6; w <= 12; w++) if (words[w] !== undefined) by.push((words[w] >> 16) & 255, (words[w] >> 8) & 255, words[w] & 255);
+    const txt = by.map(b => b >= 32 && b < 127 ? String.fromCharCode(b) : ".").join("");
+    const size = is356 ? (words[4] || 0) : (words[2] || 0) + ((words[3] || 0) * 16777216);
+    const le = (i) => by[i] | (by[i + 1] << 8) | (by[i + 2] << 16) | (by[i + 3] << 24);
+    const info = by.length >= 21 ? `RIFF de ${le(4) + 8} bytes, fmt de ${le(16)} bytes, formato ${by[20]}` : "";
+    h += `<h2>Cabecera leída</h2><p class="n">${txt}</p><p>Tamaño: <b>${size}</b> bytes. ${info}</p>`;
+    t.push("", "Cabecera: " + txt, "Tamaño: " + size + " bytes. " + info);
+  }
+  if (is353 && words[1] !== undefined && words[2] !== undefined && words[3] !== undefined) {
+    h += '<h2>Mapa de las zonas candidatas (solo lectura)</h2><div class="wrap"><table><tr><th>bit</th><th>Dirección</th><th>Estado</th><th>Espejo ± $800000</th></tr>';
+    t.push("", "Mapa:");
+    SENT353.forEach((ad, k) => {
+      const ever = (words[1] >> k) & 1, win = (words[2] >> k) & 1, real = (words[3] >> k) & 1;
+      const [txt, cls] = win ? ["CAMBIA (en uso continuo)", "bad"] : ever ? ["cambió alguna vez (carga)", "warn"] : ["estable", "ok"];
+      const [mtxt, mcls] = real ? ["distinta: memoria real", "ok"] : ["IGUAL: posible espejo", "bad"];
+      const note = SENTNOTE3[k] ? " — " + SENTNOTE3[k] : "";
+      h += `<tr><td>${k}</td><td class="n">${ad}</td><td class="${cls}">${txt}${note}</td><td class="${mcls}">${mtxt}</td></tr>`;
+      t.push(`${k} ${ad}: ${txt}; espejo: ${mtxt}${note}`);
+    });
+    h += "</table></div>";
+  }
+  out.innerHTML = h; copy.textContent = TITLE + NL + t.join(NL);
+}
+function showAny(list) { const z = decodeZones(list); if (z) showZones(z); else showWords(decodeWords(list)); }
+
+// text: one message per line, hex ("BF 14 7F", "0xBF 0x14 0x7F") or decimal ("191 20 127"); timestamps and other columns are skipped
+function parseText(text) {
+  const list = [];
+  for (const line of text.split(/\r?\n/)) {
+    const toks = line.trim().split(/[\s,;:|]+/).filter(Boolean);
+    for (let i = 0; i + 2 < toks.length; i++) {
+      const a = toks[i].replace(/^0x/i, "");
+      let base = 0;
+      if (/^bf$/i.test(a)) base = 16; else if (a === "191") base = 10;
+      if (!base) continue;
+      const b = parseInt(toks[i + 1].replace(/^0x/i, ""), base), c = parseInt(toks[i + 2].replace(/^0x/i, ""), base);
+      if (b >= 0 && b < 128 && c >= 0 && c < 128) { list.push([0xBF, b, c]); break; }
+    }
+  }
+  return list;
+}
+
+// live
+let msgs = [], timer = 0, acc = null;
+const st = document.getElementById("st");
+function portStatus() {
+  if (!acc) return;
+  const ins = [...acc.inputs.values()];
+  const bf = msgs.length, starts = msgs.filter(isStart).length;
+  st.innerHTML = (ins.length ? ins.map(p => `${p.name}: <span class="${p.connection === "open" ? "ok" : "bad"}">${p.connection === "open" ? "abierto" : p.connection === "pending" ? "en espera (¿lo usa otro programa?)" : "cerrado"}</span>`).join("<br>")
+    : '<span class="bad">no hay entradas MIDI (¿está conectado por USB?)</span>') + `<br>Recibidos: ${bf} mensajes del canal 16, ${starts} volcado(s).` + (bf ? "" : " Pulsa el pad 9.");
+}
+function onMsg(ev) {
+  const d = ev.data;
+  if (d.length < 3 || d[0] !== 0xBF) return;
+  msgs.push([d[0], d[1], d[2]]);
+  clearTimeout(timer); timer = setTimeout(() => { showAny(msgs); portStatus(); }, 200);
+}
+async function hook(p) {
+  p.onmidimessage = onMsg;
+  try { await p.open(); } catch (err) { /* reported by portStatus */ }
+}
+document.getElementById("go").onclick = async () => {
+  if (!navigator.requestMIDIAccess) { st.innerHTML = '<span class="bad">Este navegador no tiene WebMIDI: usa Chrome o Edge, o abre el .log abajo.</span>'; return; }
+  try {
+    acc = await navigator.requestMIDIAccess({ sysex: false });
+  } catch (err) { st.innerHTML = `<span class="bad">Permiso de MIDI denegado o no disponible (${err.name || err}).</span> Mira el icono del candado / de permisos en la barra de direcciones, o abre el .log abajo.`; return; }
+  for (const p of acc.inputs.values()) await hook(p);
+  acc.onstatechange = ev => { if (ev.port.type === "input" && ev.port.state === "connected" && !ev.port.onmidimessage) hook(ev.port); portStatus(); };
+  portStatus();
+};
+document.getElementById("clr").onclick = () => { msgs = []; document.getElementById("out").innerHTML = ""; document.getElementById("copy").textContent = "(aún nada)"; portStatus(); };
+document.getElementById("dec").onclick = () => showAny(parseText(document.getElementById("txt").value));
+document.getElementById("file").onchange = async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const text = await f.text(); document.getElementById("txt").value = text; showAny(parseText(text));
+};
+</script>
+</body>
+</html>

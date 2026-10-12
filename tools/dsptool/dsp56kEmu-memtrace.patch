@@ -1,0 +1,53 @@
+diff --git a/source/dsp56kEmu/memory.cpp b/source/dsp56kEmu/memory.cpp
+index fbf4d36..b932407 100644
+--- a/source/dsp56kEmu/memory.cpp
++++ b/source/dsp56kEmu/memory.cpp
+@@ -17,6 +17,10 @@ namespace dsp56k
+ 	// _____________________________________________________________________________
+ 	// Memory
+ 	//
++	uint8_t* g_memTrace[MemArea_COUNT] = {nullptr, nullptr, nullptr};
++	uint8_t* g_memWatch[MemArea_COUNT] = {nullptr, nullptr, nullptr};
++	void (*g_memWatchCb)(EMemArea, TWord, bool, TWord) = nullptr;
++
+ 	Memory::Memory(const IMemoryValidator& _memoryMap, TWord _memSize/* = 0xc00000*/, TWord* _externalBuffer/* = nullptr*/)
+ 		: m_memoryMap(_memoryMap)
+ 		, m_size({_memSize, _memSize, _memSize})
+@@ -151,7 +155,11 @@ namespace dsp56k
+ 		}
+ */
+ 		if (_offset < size(_area))		// Fix the amazing "write to wrong address" bug
++		{
+ 			m_mem[_area][_offset] = _value & 0x00ffffff;
++			if (g_memTrace[_area]) g_memTrace[_area][_offset] |= 2;
++			if (g_memWatch[_area] && g_memWatch[_area][_offset] && g_memWatchCb) g_memWatchCb(_area, _offset, true, _value);
++		}
+ 
+ 		return true;
+ 	}
+@@ -184,6 +192,8 @@ namespace dsp56k
+ 		}
+ 
+ 		const auto res = m_mem[_area][_offset];
++		if (g_memTrace[_area]) g_memTrace[_area][_offset] |= 1;
++		if (g_memWatch[_area] && g_memWatch[_area][_offset] && g_memWatchCb) g_memWatchCb(_area, _offset, false, res);
+ 
+ #ifdef _DEBUG
+ 		if( res == g_initPattern)
+diff --git a/source/dsp56kEmu/memory.h b/source/dsp56kEmu/memory.h
+index ddaa078..6820648 100644
+--- a/source/dsp56kEmu/memory.h
++++ b/source/dsp56kEmu/memory.h
+@@ -30,6 +30,12 @@ namespace dsp56k
+ 
+ 	class Jitmem;
+ 
++	// access trace (dsptool): bit0 = read, bit1 = write; nullptr = off
++	extern uint8_t* g_memTrace[MemArea_COUNT];
++	// watch (dsptool): called on every access to an address whose g_memWatch byte is set
++	extern uint8_t* g_memWatch[MemArea_COUNT];
++	extern void (*g_memWatchCb)(EMemArea, TWord, bool, TWord);
++
+ 	class IMemoryValidator
+ 	{
+ 	public:
