@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.5 RC0.5S BETA4 RC0.4 RC0.4S BETA3; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.5 RC0.5S BETA5 RC0.4 RC0.4S BETA4; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"RC0.5": ("RC0.5 — la versión completa: RC0.4 + el sample capturado p
                   "RC0.5 — full version: RC0.4 + the captured sample goes through the Master FX effects (the capture no longer records them)"),
         "RC0.5S": ("RC0.5S — versión más segura (= RC0.4S + el arreglo de RC0.5): nada del mod escribe ficheros en la SD",
                    "RC0.5S — safer build (= RC0.4S + the RC0.5 fix): nothing of the mod writes files to the SD card"),
+        "BETA5": ("BETA5 — beta, sin probar en el aparato (= SC39.6): BETA4 + copiar proyectos a otro hueco o a otro pack, knobs de tipo en colores",
+                  "BETA5 — beta, not tested on the device (= SC39.6): BETA4 + copying projects to another slot or another pack, type knobs as colours"),
         "BETA4": ("BETA4 — beta, sin probar en el aparato (= SC39.4): BETA3 + guardar el patch del sinte en el pack, destinos de los macro knobs, gestos nuevos de los patches del sinte propio",
                   "BETA4 — beta, not tested on the device (= SC39.4): BETA3 + saving the synth’s patch into the pack, macro knob destinations, new gestures for the own-synth patches"),
         "BETA3": ("BETA3 — beta, sin probar en el aparato (= SC39.2): RC0.5 + lo de BETA2 (patches del sinte propio de MIDI 1 / 2, Clear + pad de página, selector de fuente del granular, random-mutate, teclado partido…)",
@@ -440,4 +442,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.5", "RC0.5S", "BETA4", "RC0.4", "RC0.4S", "BETA3"])
+    main(sys.argv[1:] or ["RC0.5", "RC0.5S", "BETA5", "RC0.4", "RC0.4S", "BETA4"])

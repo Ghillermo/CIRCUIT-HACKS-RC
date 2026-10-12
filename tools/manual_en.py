@@ -20,7 +20,7 @@ UI = dict(
     other='<p class="lang"><a href="index.html">Versión en español</a></p>',
     footer="CIRCUIT-HACKS {v} · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.",
     features="Features ({v})",
-    features_manual="Manual: [illustrated colour](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [short](docs/MANUAL.en.md). New features and fixes of every version: [`CHANGELOG.md`](CHANGELOG.md#changelog). What is marked **BETA4 only** is in the beta BETA4, not in RC0.5.",
+    features_manual="Manual: [illustrated colour](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [short](docs/MANUAL.en.md). New features and fixes of every version: [`CHANGELOG.md`](CHANGELOG.md#changelog). What is marked **BETA5 only** is in the beta BETA5, not in RC0.5.",
 )
 
 LABEL = {
@@ -63,14 +63,15 @@ sec("atajos", "Shortcut map",
 | 14 | **Scales + Preset + Note** at power-on | Bootloader recovery mode (E2) |
 | 15 | Mixer: **Shift + knob** | Track level to 100 (right) / 0 (left) (A11) |
 | 16 | Master FX: **Shift + pad 7** | Sample in a latched loop until pad 7 is pressed again (C5) |
-| 17 | MIDI 1 / 2 Preset: **Clear + a page pad (1-5)** | The values of that knob page back to their initial values (C1, **BETA4 only**) |
-| 18 | Advanced Setup: **Duplicate** | MIDI Thru: Thru → Out 2 → Merge → Filter (B5, **BETA4 only**) |
-| 19 | **Synth 1 + Synth 2** together | Split keyboard: Synth 1 on top, Synth 2 below (A12, **BETA4 only**) |
-| 20 | **Shift + Pattern Settings**, a step, **row 4** | Random-mutate of the step: random octave / scale changes (C8, **BETA4 only**) |
-| 21 | MIDI 1 / 2 Preset: **pads 9-24**, **Clear + pad** twice, **Duplicate + A + B**, **Octave ▼ / ▲** | Patches of the own synth: load, save, exchange, page (A14, **BETA4 only**) |
-| 22 | MIDI 1 / 2: **Clear + the track button** | The track engine back to its initial values (A14, **BETA4 only**) |
-| 23 | Synth 1 / 2 Preset: **Clear + pad** twice | Saves the synth’s patch into that slot of the pack (A15, **BETA4 only**) |
-| 24 | Synth source view: **pad 32** | Editor of the macro knob destinations (A16, **BETA4 only**) |
+| 17 | MIDI 1 / 2 Preset: **Clear + a page pad (1-5)** | The values of that knob page back to their initial values (C1, **BETA5 only**) |
+| 18 | Advanced Setup: **Duplicate** | MIDI Thru: Thru → Out 2 → Merge → Filter (B5, **BETA5 only**) |
+| 19 | **Synth 1 + Synth 2** together | Split keyboard: Synth 1 on top, Synth 2 below (A12, **BETA5 only**) |
+| 20 | **Shift + Pattern Settings**, a step, **row 4** | Random-mutate of the step: random octave / scale changes (C8, **BETA5 only**) |
+| 21 | MIDI 1 / 2 Preset: **pads 9-24**, **Clear + pad** twice, **Duplicate + A + B**, **Octave ▼ / ▲** | Patches of the own synth: load, save, exchange, page (A14, **BETA5 only**) |
+| 22 | MIDI 1 / 2: **Clear + the track button** | The track engine back to its initial values (A14, **BETA5 only**) |
+| 23 | Synth 1 / 2 Preset: **Clear + pad** twice | Saves the synth’s patch into that slot of the pack (A15, **BETA5 only**) |
+| 24 | Synth source view: **pad 32** | Editor of the macro knob destinations (A16, **BETA5 only**) |
+| 25 | Projects: **Duplicate + pad A**, **Duplicate + pad B** | Copies project A into slot B, in another pack too (A17, **BETA5 only**) |
 """, ["Shortcut map: the numbers refer to the table."])
 
 sec("master-fx-acceso", "Master FX on the Mixer button",
@@ -223,7 +224,7 @@ sec("mixer-shift", "Mixer: Shift + knob = level to 100 / 0",
 """, ["Mixer: Shift + knob right = level 100, left = 0."])
 
 sec("teclado-partido", "Split keyboard Synth 1 + Synth 2",
-    ["**BETA4 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2."],
+    ["**BETA5 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2."],
     """
 - Each half is its synth’s keyboard: its scale, octave and velocity (the same keys as the lower half of its Note view), in its colours.
 - The knobs and Octave belong to the synth you pressed first.
@@ -232,7 +233,7 @@ sec("teclado-partido", "Split keyboard Synth 1 + Synth 2",
 """, ["Split keyboard: rows 1-2 = Synth 1, rows 3-4 = Synth 2."])
 
 sec("colores-patch", "Synth patches by voice mode",
-    ["**BETA4 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**."],
+    ["**BETA5 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**."],
     """
 - Mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour, as on the original. The chosen patch is drawn lighter.
 - The modes are read from the card when the pack, the page or the patch changes, and every 4 s.
@@ -240,7 +241,7 @@ sec("colores-patch", "Synth patches by voice mode",
 """, ["Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour."])
 
 sec("patches-midi", "Patches of the own synth (MIDI 1 / 2)",
-    ["**BETA4 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack)."],
+    ["**BETA5 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack)."],
     """
 - A patch holds the whole track engine: the engine chosen (line, oscillator, VA-drum, granular, FX sequencer), two oscillators, the chain order, every value of every page and the step-drummer setting (enabled and destination). The steps of the step-drummer and of the FX sequencer belong to the pattern: they travel with the project.
 - The 64 slots belong to the pack and are shared by MIDI 1 and MIDI 2: a patch saved from one track can be loaded into the other.
@@ -258,7 +259,7 @@ sec("patches-midi", "Patches of the own synth (MIDI 1 / 2)",
 """, ["Preset view of MIDI 1: rows 2-3 = patches of the own synth."])
 
 sec("guardar-patch", "Saving the synth’s patch into the pack",
-    ["**BETA4 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot."],
+    ["**BETA5 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot."],
     """
 - The original device cannot save patches (only Components can). What is saved is the patch in use with every change: the knobs, what came in over MIDI and the macro destinations (A16).
 - **Clear + pad** = a question, nothing is written. **Clear + the same pad** within ~5 s = saved: it replaces the patch that was there and the slot becomes the chosen one. Clear + another pad moves the question; a touch without Clear, or the time, drops it.
@@ -270,7 +271,7 @@ sec("guardar-patch", "Saving the synth’s patch into the pack",
 """, ["Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves."])
 
 sec("destinos-macro", "Macro knob destinations",
-    ["**BETA4 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number."],
+    ["**BETA5 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number."],
     """
 Each of the 8 macro knobs of a patch has 4 slots, and each slot a destination, a stretch of the knob’s travel (start and end) and a depth. On the original they can only be edited with Components.
 
@@ -291,6 +292,17 @@ Each of the 8 macro knobs of a patch has 4 slots, and each slot a destination, a
 - **Destination:** the knob first walks the 31 parameters that have a CC, by CC number (5, 20, 21 … 91, 93), then the 39 that only have an NRPN (envelopes 2 and 3, LFOs, chorus, depths of the modulation matrix). The numbers are those of Novation’s *Programmer’s Reference Guide*: e.g. 74 = filter cutoff, 71 = resonance.
 - The changes are heard at once and live in the project’s patch. To keep them in the pack, save the patch (A15).
 """, ["Source view with the macro editor: pad 32 lit, the picked knob white."])
+
+sec("copiar-proyectos", "Copying projects to another slot or another pack",
+    ["**BETA5 only.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one."],
+    """
+- **Duplicate + pad A** (a slot with a project) = the source. Duplicate + A again forgets it.
+- **Duplicate + pad B** = the copy. An empty B is written at once and turns yellow; a B that holds a project blinks white and **Duplicate + B** must be repeated within ~5 s to replace it. The slot of the loaded project is never written.
+- **To another pack:** pick the source, load the other pack, open Projects and Duplicate + pad B. The source serves several copies; it is lost at power-off or when Master FX is opened.
+- What is copied is the project as saved on the card (save first if you changed it). While it copies (a few moments) the device does not respond.
+- A project stores patch and sample numbers, not the sounds: in another pack it plays with that pack’s patches and samples.
+- Not in the safer build (it writes to the SD card).
+""", ["Projects view: Duplicate + A = the source (yellow, blinking), Duplicate + B = the copy."])
 
 # ===== B. Exposed controls
 sec("knobs-drums", "Drum knobs as printed on the panel",
@@ -338,7 +350,7 @@ sec("automatizacion", "Automation of the MIDI engine",
 
 sec("setup", "Setup and device MIDI",
     ["Channel 16 Rx / Tx (pad 16), shared channels, **internal loopback** without a cable and **reverb / delay returns through strips 3 / 4** (pads 22 / 23, cream / peach like the reverb and delay of the FX view).",
-     "**BETA4 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to)."],
+     "**BETA5 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to)."],
     """
 | Where | Function |
 |---|---|
@@ -346,12 +358,12 @@ sec("setup", "Setup and device MIDI",
 | Setup, pad 22 | The reverb return goes through mixer strip 3 |
 | Setup, pad 23 | The delay return goes through strip 4 |
 | Setup, channels | MIDI 1 / 2 may use a channel already used by another track |
-| Advanced Setup, Duplicate | MIDI Thru: Thru → Out 2 → **Merge** → **Filter** (**BETA4 only**) |
+| Advanced Setup, Duplicate | MIDI Thru: Thru → Out 2 → **Merge** → **Filter** (**BETA5 only**) |
 
 - **Internal loopback:** if a MIDI track shares its channel with a synth or the drums, what it sends reaches them internally.
 - Pads 22 / 23 light cream (reverb) and peach (delay), the colours of the FX view; dim = off.
 
-### MIDI Thru: Merge and Filter (BETA4 only)
+### MIDI Thru: Merge and Filter (BETA5 only)
 The original only lets the Thru jack be **Thru** (a hardware copy of DIN In, Duplicate dim red) or **Out 2** (a second MIDI output, green). Duplicate in the Advanced Setup view now steps through four modes:
 
 | Mode | Duplicate LED | Out of the Thru jack |
@@ -375,7 +387,7 @@ sec("patch-flip", "Patch flip on MIDI 1 / 2",
 # ===== C. New control modes
 sec("motor-midi", "Engine of the MIDI tracks (pad 27)",
     ["Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → **line** → **oscillator** → **VA-drum** → **granular** → **FX sequencer**.",
-     "Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **BETA4 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14)."],
+     "Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **BETA5 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14)."],
     """
 Each MIDI track gets its own “synth”: the track’s **audio input** (line 1 for MIDI 1, line 2 for MIDI 2) or an **internal engine** goes through VCA, effect and filter, with envelope and LFO, before mixer strip 3 / 4. The notes of the track trigger it. The track still sends its MIDI.
 
@@ -398,7 +410,7 @@ Each MIDI track gets its own “synth”: the track’s **audio input** (line 1 
 | 25 | CC editor (A10) |
 | 26 | Patch flip (B6) |
 | 27 | Engine |
-| 1-5 | Knob page. **Clear + the pad** (BETA4 only): the values of that page (with and without Shift) go back to their initial values; the engine stays |
+| 1-5 | Knob page. **Clear + the pad** (BETA5 only): the values of that page (with and without Shift) go back to their initial values; the engine stays |
 | 28 | One / two oscillators (only with the oscillators or VA-drum; dark with the other engines) |
 | 29 | Chain order: VCA → FX → filter / filter → VCA → FX |
 | 30 | Step-drummer (C2) |
@@ -551,7 +563,7 @@ sec("fila-inferior", "Assignable bottom row (Master FX / FX)",
 """)
 
 sec("random-mutate", "Random-mutate per step",
-    ["**BETA4 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play."],
+    ["**BETA5 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play."],
     """
 1. On Synth 1 / 2 or MIDI 1 / 2, press **Shift + Pattern Settings**: the original’s probability view. Row 3 is still the chance of the step playing.
 2. Hold a step that has notes and touch a pad of **row 4** (peach):
@@ -623,7 +635,7 @@ sec("va-drum", "VA-drum engine",
 
 sec("granular", "Granular synth",
     ["Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window; on the second DSP core.",
-     "K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, BETA4 only), LFO → size, source."],
+     "K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, BETA5 only), LFO → size, source."],
     """
 **Magenta** state of pad 27; **pad 2** of the page row = granular page.
 
@@ -634,13 +646,13 @@ sec("granular", "Granular synth",
 | K3 | Scan: centre = frozen, right moves forward, left backwards | Probability of a reversed grain |
 | K4 | Grain size, 5-500 ms | Pitch spray (±12 st) |
 | K5 | Density, 1-16 overlapping grains | Window: rectangular → triangular → percussive |
-| K6 | Length of the scan zone | Note mode: pitch / slicer / stretch (stretch in BETA4 only) |
+| K6 | Length of the scan zone | Note mode: pitch / slicer / stretch (stretch in BETA5 only) |
 | K7 | LFO → position | LFO → size |
-| K8 | Envelope → position | **Source**: pack sample 1-64, to the left the capture. **BETA4 only:** a long travel over five zones: the capture (red) and the sample Drum 1 (orange), 2 (yellow), 3 (violet) and 4 (teal) has now; it stays fixed even if the drum changes its sample; dim white = no drum has that sample any more |
+| K8 | Envelope → position | **Source**: pack sample 1-64, to the left the capture. **BETA5 only:** a long travel over five zones: the capture (red) and the sample Drum 1 (orange), 2 (yellow), 3 (violet) and 4 (teal) has now; it stays fixed even if the drum changes its sample; dim white = no drum has that sample any more |
 
 - **Pitch mode:** the note changes the pitch of the grains; with two notes they are shared between both.
 - **Slicer mode:** the note picks one of 16 slices of the sample.
-- **Stretch mode (BETA4 only):** the stretch from K2 to the end of the sample lasts **K3** steps (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 or 64; K3’s LED shows it) at any tempo, without changing the pitch, and starts again in step with the start of the transport; the notes change the pitch as in pitch mode. With the transport stopped it stands still. K7 / K8 do little in this mode.
+- **Stretch mode (BETA5 only):** the stretch from K2 to the end of the sample lasts **K3** steps (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 or 64; K3’s LED shows it) at any tempo, without changing the pitch, and starts again in step with the start of the transport; the notes change the pitch as in pitch mode. With the transport stopped it stands still. K7 / K8 do little in this mode.
 - It goes through the VCA-VCF of page 1. It shares its saved values with the oscillator page.
 """, ["Granular page (pad 2, magenta engine)."])
 
@@ -686,14 +698,14 @@ sec("guardado", "What is saved and where",
 sec("instalar", "Installing and going back",
     ["`tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on."],
     """
-0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC0.5, RC0.5S, BETA4 (or the earlier RC0.4 / RC0.4S, BETA2) or “Official”.
+0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC0.5, RC0.5S, BETA5 (or the earlier RC0.4 / RC0.4S, BETA2) or “Official”.
 1. Open `tools/ct_uploader.html` in Chrome and connect the Circuit Tracks over USB.
 2. Pick the `.syx` from `firmware/<version>/`: the uploader checks its SHA-256.
 3. Send. Novation’s bootloader is not modified.
 - **Going back:** send another version or the official firmware. If the device does not start: hold **Scales + Preset + Note** at power-on (bootloader recovery mode).
 - The RC branch does not publish `.syx` files: they are generated with `tools/patch_official.py` from the official firmware.
 - **RC0.5** (sixth release candidate) = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
-- **BETA4** (beta) = SC39.4: RC0.5 + what this manual marks **BETA4 only** (granular stretch, MIDI Thru Merge / Filter, Clear + page pad, patches by voice mode, split keyboard, random-mutate, patches of the own synth, granular source selector, saving the synth’s patch, macro knob destinations). Only random-mutate and the split keyboard are tested on the device: use it with a backup of the SD card.
+- **BETA5** (beta) = SC39.6: RC0.5 + what this manual marks **BETA5 only** (granular stretch, MIDI Thru Merge / Filter, Clear + page pad, patches by voice mode, split keyboard, random-mutate, patches of the own synth, granular source selector, saving the synth’s patch, macro knob destinations, copying projects, type knobs as colours). Only random-mutate and the split keyboard are tested on the device: use it with a backup of the SD card.
 - **Safer build:** RC0.5S = RC0.5 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.5 add outside the SD card). **Back up the SD card before installing** any version.
 - New features and fixes of every version: `CHANGELOG.md`.
 """)
@@ -703,7 +715,7 @@ sec("herramientas", "Development and diagnostic tools",
     """
 - `tools/build_scNN.py`: every version is built from the official firmware; `verify_builds.py` checks they all give the same SHA-256.
 - `tools/emu_*.py`: emulation tests (Unicorn for the ARM, dsp56300 for the DSP).
-- `tools/ctremote.py` + `rdiag`: the PC reads memory, card items and the device’s capture over SysEx. Only in the diagnostic builds and in SC35 / SC36: **SC36.1, SC36.2, the RCs (RC0 … RC0.5 and their safer builds) and BETA4 do not include it**, to leave the USB protocol alone.
+- `tools/ctremote.py` + `rdiag`: the PC reads memory, card items and the device’s capture over SysEx. Only in the diagnostic builds and in SC35 / SC36: **SC36.1, SC36.2, the RCs (RC0 … RC0.5 and their safer builds) and BETA5 do not include it**, to leave the USB protocol alone.
 - `docs/NOTAS.md`: technical map of everything found (in Spanish).
 """)
 

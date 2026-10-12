@@ -137,8 +137,14 @@ def main(img, man, prev, prev_man):
         assert int(ps["prev"]["pad"], 16) == HP and int(ps["prev"]["leds"], 16) == HL
         HP, HL = int(ps["labels"]["c_pspad"], 16), int(ps["labels"]["c_psleds"], 16)
         if "btn" in ps["prev"]: assert int(ps["prev"]["btn"], 16) == HB; HB = int(ps["labels"]["c_psbtn"], 16)
-    check(w(MC.SP_VT) == HP | 1 and w(MC.SP_VT + 28) == HL | 1 and w(MC.AC64_VT + 16) == L["c_mcknob"] | 1 and w(MC.AC64_VT + 28) == L["c_mckleds"] | 1
-          and bytes(img[MC.BTN_ENTRY - B:MC.BTN_ENTRY - B + 4]) == b_w(MC.BTN_ENTRY, HB) and all(bytes(img[c - B:c - B + 4]) == bl(c, L["c_mcledtask"]) for c in PK.LED_CALLS),
+    HT = L["c_mcledtask"]
+    HK = L["c_mckleds"]
+    tl_ = man["report"].get("typeleds")                                           # SC39.5: the type colours chain in front of the knob LEDs
+    if tl_ is not None: assert int(tl_["prev"]["gleds"], 16) == HK; HK = int(tl_["labels"]["c_tgleds"], 16)
+    sc_ = man["report"].get("sesscopy")                                           # SC39.6: the project copy chains in front of the LED task hook
+    if sc_ is not None: assert int(sc_["prev"]["ledtask"], 16) == HT; HT = int(sc_["labels"]["c_scledtask"], 16)
+    check(w(MC.SP_VT) == HP | 1 and w(MC.SP_VT + 28) == HL | 1 and w(MC.AC64_VT + 16) == L["c_mcknob"] | 1 and w(MC.AC64_VT + 28) == HK | 1
+          and bytes(img[MC.BTN_ENTRY - B:MC.BTN_ENTRY - B + 4]) == b_w(MC.BTN_ENTRY, HB) and all(bytes(img[c - B:c - B + 4]) == bl(c, HT) for c in PK.LED_CALLS),
           f"the hooks: the synth Preset view's slots 0 / 7, the macro handlers' slots 4 / 7, the button chain's head, the LED task calls (in front of {', '.join(f'{k} {v:#x}' for k, v in P.items())})")
     cc = [d for d in MC.ORDER if MC.DEST[d][1] == "CC"]
     check(len(MC.ORDER) == 70 and sorted(MC.ORDER) == list(range(70)) and len(cc) == 31 and MC.ORDER[:31] == cc and [MC.DEST[d][2] for d in cc] == sorted(MC.DEST[d][2] for d in cc)

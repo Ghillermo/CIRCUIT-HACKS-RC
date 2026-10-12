@@ -20,7 +20,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version RC0.5
 - Nothing needs compiling: the DSP assembly comes from the cache `tools/dsp_asm_cache.json`.
 - Send the `.syx` with `tools/ct_uploader.html`.
 
-**Back up the SD card before installing.** If you do not want the mod to write anything to the SD card on its own, use `--version RC0.5S`. The beta (new features not yet tested): `--version BETA4`.
+**Back up the SD card before installing.** If you do not want the mod to write anything to the SD card on its own, use `--version RC0.5S`. The beta (new features not yet tested): `--version BETA5`.
 
 ## 1. Requirements
 | For | You need |

@@ -4,6 +4,20 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## BETA5 — 2026-10-12
+
+Versión beta (= SC39.6): BETA4 + más funciones nuevas aún sin probar en el aparato. Sin versión «S». Acompaña a RC0.5 / RC0.5S, que no cambian. En el manual van marcadas **solo BETA5** (también las de las betas anteriores).
+
+### Novedades
+- **Copiar proyectos a otro hueco o a otro pack** (A17). En la vista Projects, Duplicate + pad A elige el proyecto y Duplicate + pad B lo copia; sobre un hueco ocupado pregunta antes.
+- **Knobs de tipo en colores.** Con Shift, el modo de filtro de drums (K5), el tipo de distorsión de drums (K8) y el modo de nota del granular (K6) enseñan el tipo elegido como un color, no como un brillo.
+
+### Arreglos
+- El blanco tenue del pad 8 de Master FX (sin nada que apagar) y de los huecos sin asignar pulsaba despacio: ahora es fijo.
+
+### Cambios
+- La vista de efectos del master se llama **Master FX** en toda la documentación.
+
 ## BETA4 — 2026-10-12
 
 Versión beta (= SC39.4): BETA3 + más funciones nuevas aún sin probar en el aparato. Sin versión «S». Acompaña a RC0.5 / RC0.5S, que no cambian. En el manual van marcadas **solo BETA4** (también las de las betas anteriores).
@@ -124,6 +138,20 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## BETA5 — 2026-10-12
+
+Beta (= SC39.6): BETA4 + more new features not yet tested on the device. No “S” build. It goes with RC0.5 / RC0.5S, which do not change. The manual marks them **BETA5 only** (the earlier betas’ too).
+
+### New
+- **Copying projects to another slot or another pack** (A17). In the Projects view, Duplicate + pad A picks the project and Duplicate + pad B copies it; onto a slot in use it asks first.
+- **Type knobs as colours.** With Shift, the drums’ filter mode (K5), the drums’ distortion type (K8) and the granular note mode (K6) show the chosen type as a colour, not as a brightness.
+
+### Fixed
+- The dim white of pad 8 of Master FX (nothing to switch off) and of the unassigned slots pulsed slowly: it is steady now.
+
+### Changed
+- The master effects view is called **Master FX** throughout the documentation.
 
 ## BETA4 — 2026-10-12
 

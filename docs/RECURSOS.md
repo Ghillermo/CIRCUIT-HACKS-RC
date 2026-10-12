@@ -26,10 +26,14 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 ### Flash
 - La imagen oficial ocupa `0x08010000–0x0805CDDB` (0x4CDDC B). El bootloader acepta imágenes de hasta 0x70000 B y ninguna carga de literal del stock apunta más allá del final: **143 908 B libres** que el original no usa.
+- SC39.6 (0x682f0 B): 32016 B de flash libres; la copia de proyectos ocupa 744 B y 8 B del búfer de LEDs ocioso de Master FX (`c_gst() + 132`). **Escribe en la SD** (el fichero entero del proyecto, 160 780 B, en 40 trozos de 4 KB).
+- SC39.5 (0x68008 B): 32760 B de flash libres; los LEDs de tipo ocupan 224 B, sin RAM.
 - SC39.4 (0x67f28 B): 32984 B de flash libres; el guardado de patches ocupa 1456 B y 8 B del búfer de LEDs ocioso de Master FX (`c_gst() + 124`); sin RAM nueva, sin DSP. **Escribe en la SD** (340 B del patch de sinte en su hueco del banco; 64 B por patch en los intercambios del sinte propio).
 - SC39.3 (0x67978 B): 34440 B de flash libres; el editor de destinos de macro ocupa 1328 B (280 de tablas) y 4 B del búfer de LEDs ocioso de Master FX (`c_gst() + 120`); sin RAM nueva, sin DSP, sin SD.
 - RC0.5 / SC39.2: el núcleo 0 del DSP termina en `P:$3FED` (**19 palabras libres**; `$3FE7` en RC0.5S): el sample delante de los efectos costó una palabra.
 - SC39.1 / BETA2 (0x67444 B): 35772 B de flash libres; los patches del sinte propio no usan RAM nueva (18 B del búfer de LEDs ocioso de Master FX) y viven en el relleno de los patches de sinte del pack (42 de 172 B por registro).
+- SC39.6 (0x682f0 B): 32016 B of flash free; the project copy takes 744 B and 8 B of the Master FX block's idle LED buffer (`c_gst() + 132`). **It writes to the SD** (the whole project file, 160 780 B, in 40 pieces of 4 KB).
+- SC39.5 (0x68008 B): 32760 B of flash free; the type LEDs take 224 B, no RAM.
 - SC39.4 (0x67f28 B): 32984 B of flash free; the patch save takes 1456 B and 8 B of the Master FX block's idle LED buffer (`c_gst() + 124`); no new RAM, no DSP. **It writes to the SD** (the 340 B of the synth patch into its slot of the bank; 64 B per patch in the own-synth exchanges).
 - SC39.3 (0x67978 B): 34440 B of flash free; the macro destination editor takes 1328 B (280 of tables) and 4 B of the Master FX block's idle LED buffer (`c_gst() + 120`); no new RAM, no DSP, no SD.
 - RC0.5 / SC39.2: DSP core 0 ends at `P:$3FED` (**19 words free**; `$3FE7` in RC0.5S): the sample in front of the effects cost one word.

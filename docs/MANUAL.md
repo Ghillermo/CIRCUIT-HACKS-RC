@@ -24,6 +24,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A14 Patches del sinte propio (MIDI 1 / 2)](#a14-patches-midi)
 - [A15 Guardar el patch del sinte en el pack](#a15-guardar-patch)
 - [A16 Destinos de los macro knobs](#a16-destinos-macro)
+- [A17 Copiar proyectos a otro hueco o a otro pack](#a17-copiar-proyectos)
 
 **B. Controles expuestos**
 
@@ -113,23 +114,27 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="a12-teclado-partido"></a>
 ### A12. Teclado partido Synth 1 + Synth 2
-- **Solo BETA4.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
+- **Solo BETA5.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
 
 <a id="a13-colores-patch"></a>
 ### A13. Patches de sinte por modo de voz
-- **Solo BETA4.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
+- **Solo BETA5.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
 
 <a id="a14-patches-midi"></a>
 ### A14. Patches del sinte propio (MIDI 1 / 2)
-- **Solo BETA4.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
+- **Solo BETA5.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
 
 <a id="a15-guardar-patch"></a>
 ### A15. Guardar el patch del sinte en el pack
-- **Solo BETA4.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
+- **Solo BETA5.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
 
 <a id="a16-destinos-macro"></a>
 ### A16. Destinos de los macro knobs
-- **Solo BETA4.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
+- **Solo BETA5.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
+
+<a id="a17-copiar-proyectos"></a>
+### A17. Copiar proyectos a otro hueco o a otro pack
+- **Solo BETA5.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
 
 ## B. Controles expuestos
 
@@ -152,7 +157,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="b5-setup"></a>
 ### B5. Setup y MIDI del aparato
 - Canal 16 Rx / Tx (pad 16), canales compartidos, **loopback interno** sin cable y **retornos de reverb / delay por las tiras 3 / 4** (pads 22 / 23, en crema / melocotón como la reverb y el delay de la vista FX).
-- **Solo BETA4:** MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, **Merge** (DIN In + el MIDI del aparato) y **Filter** (DIN In sin los canales en escucha).
+- **Solo BETA5:** MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, **Merge** (DIN In + el MIDI del aparato) y **Filter** (DIN In sin los canales en escucha).
 
 <a id="b6-patch-flip"></a>
 ### B6. Patch flip en MIDI 1 / 2
@@ -163,7 +168,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="c1-motor-midi"></a>
 ### C1. Motor de las pistas MIDI (pad 27)
 - El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → **línea** → **oscilador** → **VA-drum** → **granular** → **secuenciador de efectos**.
-- Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). **Solo BETA4:** Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).
+- Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). **Solo BETA5:** Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).
 
 <a id="c2-step-drummer"></a>
 ### C2. Step-drummer
@@ -196,7 +201,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="c8-random-mutate"></a>
 ### C8. Random-mutate por paso
-- **Solo BETA4.** En la vista de probabilidad (**Shift + Pattern Settings**) la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.
+- **Solo BETA5.** En la vista de probabilidad (**Shift + Pattern Settings**) la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.
 
 ## D. DSP
 
@@ -219,7 +224,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="d5-granular"></a>
 ### D5. Sinte granular
 - Hasta **16 granos por pista** desde cualquier sample del pack o la captura, con interpolación y ventana; en el segundo núcleo del DSP.
-- K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, solo BETA4), LFO → tamaño, fuente.
+- K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, solo BETA5), LFO → tamaño, fuente.
 
 <a id="d6-glitch-dsp"></a>
 ### D6. Motor del Glitch

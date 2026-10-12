@@ -91,8 +91,11 @@ FB2=firmware/beta2
 F392=firmware/sc39.2
 F393=firmware/sc39.3
 F394=firmware/sc39.4
+F395=firmware/sc39.5
+F396=firmware/sc39.6
 FB3=firmware/beta3
 FB4=firmware/beta4
+FB5=firmware/beta5
 FRC05=firmware/rc0.5
 FRC05S=firmware/rc0.5s
 FB1=firmware/beta1
@@ -484,6 +487,11 @@ run python3 tools/emu_sc39_1.py "$F393/circuittracks-4486-SC39.3.bin" "$F393/man
 run python3 tools/emu_sc39_4.py "$F394/circuittracks-4486-SC39.4.bin" "$F394/manifest.json" "$F393/circuittracks-4486-SC39.3.bin" "$F393/manifest.json"
 run python3 tools/emu_sc39_3.py "$F394/circuittracks-4486-SC39.4.bin" "$F394/manifest.json" "$F392/circuittracks-4486-SC39.2.bin" "$F392/manifest.json"
 run python3 tools/emu_sc39_4.py "$FB4/circuittracks-4486-BETA4.bin" "$FB4/manifest.json" "$FB3/circuittracks-4486-BETA3.bin" "$FB3/manifest.json"
+run python3 tools/emu_sc39_5.py "$F395/circuittracks-4486-SC39.5.bin" "$F395/manifest.json" "$F394/circuittracks-4486-SC39.4.bin" "$F394/manifest.json"
+run python3 tools/emu_sc39_4.py "$F395/circuittracks-4486-SC39.5.bin" "$F395/manifest.json" "$F393/circuittracks-4486-SC39.3.bin" "$F393/manifest.json"
+run python3 tools/emu_sc39_6.py "$F396/circuittracks-4486-SC39.6.bin" "$F396/manifest.json" "$F395/circuittracks-4486-SC39.5.bin" "$F395/manifest.json"
+run python3 tools/emu_sc39_6.py "$FB5/circuittracks-4486-BETA5.bin" "$FB5/manifest.json" "$FB4/circuittracks-4486-BETA4.bin" "$FB4/manifest.json"
+run python3 tools/emu_sc39_5.py "$F396/circuittracks-4486-SC39.6.bin" "$F396/manifest.json" "$F394/circuittracks-4486-SC39.4.bin" "$F394/manifest.json"
 run python3 tools/emu_seqwatch.py "$FSEQW/circuittracks-4486-SEQWD.bin" "$FSEQW/manifest.json"
 run python3 tools/emu_sc35d8.py "$FSEQW/circuittracks-4486-SEQWD.bin" "$FSEQW/manifest.json" --dspx
 run python3 tools/emu_sc35.py "$FRC04/circuittracks-4486-RC0.4.bin" "$FRC04/manifest.json"

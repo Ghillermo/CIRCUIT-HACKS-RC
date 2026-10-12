@@ -24,6 +24,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A14 Patches of the own synth (MIDI 1 / 2)](#a14-patches-midi)
 - [A15 Saving the synth’s patch into the pack](#a15-guardar-patch)
 - [A16 Macro knob destinations](#a16-destinos-macro)
+- [A17 Copying projects to another slot or another pack](#a17-copiar-proyectos)
 
 **B. Exposed controls**
 
@@ -113,23 +114,27 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="a12-teclado-partido"></a>
 ### A12. Split keyboard Synth 1 + Synth 2
-- **BETA4 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
+- **BETA5 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
 
 <a id="a13-colores-patch"></a>
 ### A13. Synth patches by voice mode
-- **BETA4 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
+- **BETA5 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
 
 <a id="a14-patches-midi"></a>
 ### A14. Patches of the own synth (MIDI 1 / 2)
-- **BETA4 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
+- **BETA5 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
 
 <a id="a15-guardar-patch"></a>
 ### A15. Saving the synth’s patch into the pack
-- **BETA4 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
+- **BETA5 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
 
 <a id="a16-destinos-macro"></a>
 ### A16. Macro knob destinations
-- **BETA4 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
+- **BETA5 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
+
+<a id="a17-copiar-proyectos"></a>
+### A17. Copying projects to another slot or another pack
+- **BETA5 only.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
 
 ## B. Exposed controls
 
@@ -152,7 +157,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="b5-setup"></a>
 ### B5. Setup and device MIDI
 - Channel 16 Rx / Tx (pad 16), shared channels, **internal loopback** without a cable and **reverb / delay returns through strips 3 / 4** (pads 22 / 23, cream / peach like the reverb and delay of the FX view).
-- **BETA4 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
+- **BETA5 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
 
 <a id="b6-patch-flip"></a>
 ### B6. Patch flip on MIDI 1 / 2
@@ -163,7 +168,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="c1-motor-midi"></a>
 ### C1. Engine of the MIDI tracks (pad 27)
 - Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → **line** → **oscillator** → **VA-drum** → **granular** → **FX sequencer**.
-- Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **BETA4 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
+- Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **BETA5 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
 
 <a id="c2-step-drummer"></a>
 ### C2. Step-drummer
@@ -196,7 +201,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="c8-random-mutate"></a>
 ### C8. Random-mutate per step
-- **BETA4 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
+- **BETA5 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
 
 ## D. DSP
 
@@ -219,7 +224,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="d5-granular"></a>
 ### D5. Granular synth
 - Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window; on the second DSP core.
-- K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, BETA4 only), LFO → size, source.
+- K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, BETA5 only), LFO → size, source.
 
 <a id="d6-glitch-dsp"></a>
 ### D6. Glitch engine
