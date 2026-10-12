@@ -43,6 +43,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#a14-patches-midi">A14 Patches del sinte propio (MIDI 1 / 2)</a></li>
 <li><a href="#a15-guardar-patch">A15 Guardar el patch del sinte en el pack</a></li>
 <li><a href="#a16-destinos-macro">A16 Destinos de los macro knobs</a></li>
+<li><a href="#a17-copiar-proyectos">A17 Copiar proyectos a otro hueco o a otro pack</a></li>
 </ol>
 <h3>B. Controles expuestos</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Knobs de los drums según el panel</a></li>
@@ -281,14 +282,15 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>14</td><td><strong>Scales + Preset + Note</strong> al encender</td><td>Modo de recuperación del bootloader (E2)</td></tr>
 <tr><td>15</td><td>Mixer: <strong>Shift + knob</strong></td><td>Nivel de la pista a 100 (derecha) / 0 (izquierda) (A11)</td></tr>
 <tr><td>16</td><td>Master FX: <strong>Shift + pad 7</strong></td><td>Sample en bucle enganchado hasta volver a pulsar el 7 (C5)</td></tr>
-<tr><td>17</td><td>Preset de MIDI 1 / 2: <strong>Clear + pad de página (1-5)</strong></td><td>Los valores de esa página de knobs a los iniciales (C1, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B5, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> a la vez</td><td>Teclado partido: arriba Synth 1, abajo Synth 2 (A12, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, un paso, <strong>fila 4</strong></td><td>Random-mutate del paso: octava / escala al azar (C8, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>21</td><td>Preset de MIDI 1 / 2: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> dos veces, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches del sinte propio: cargar, guardar, intercambiar, página (A14, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + el botón de la pista</strong></td><td>El motor de la pista a sus valores iniciales (A14, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>23</td><td>Preset de Synth 1 / 2: <strong>Clear + pad</strong> dos veces</td><td>Guarda el patch del sinte en ese hueco del pack (A15, <strong>solo BETA4</strong>)</td></tr>
-<tr><td>24</td><td>Vista de la fuente del sinte: <strong>pad 32</strong></td><td>Editor de los destinos de los macro knobs (A16, <strong>solo BETA4</strong>)</td></tr>
+<tr><td>17</td><td>Preset de MIDI 1 / 2: <strong>Clear + pad de página (1-5)</strong></td><td>Los valores de esa página de knobs a los iniciales (C1, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B5, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> a la vez</td><td>Teclado partido: arriba Synth 1, abajo Synth 2 (A12, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, un paso, <strong>fila 4</strong></td><td>Random-mutate del paso: octava / escala al azar (C8, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>21</td><td>Preset de MIDI 1 / 2: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> dos veces, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches del sinte propio: cargar, guardar, intercambiar, página (A14, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + el botón de la pista</strong></td><td>El motor de la pista a sus valores iniciales (A14, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>23</td><td>Preset de Synth 1 / 2: <strong>Clear + pad</strong> dos veces</td><td>Guarda el patch del sinte en ese hueco del pack (A15, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>24</td><td>Vista de la fuente del sinte: <strong>pad 32</strong></td><td>Editor de los destinos de los macro knobs (A16, <strong>solo BETA5</strong>)</td></tr>
+<tr><td>25</td><td>Projects: <strong>Duplicate + pad A</strong>, <strong>Duplicate + pad B</strong></td><td>Copia el proyecto A al hueco B, también en otro pack (A17, <strong>solo BETA5</strong>)</td></tr>
 </tbody></table>
 </section>
 <section class="feat" id="a2-master-fx-acceso"><h3><span class="code">A2</span>Master FX en el botón Mixer</h3>
@@ -1351,7 +1353,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a12-teclado-partido"><h3><span class="code">A12</span>Teclado partido Synth 1 + Synth 2</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> Mantén <strong>Synth 1</strong> y pulsa <strong>Synth 2</strong> (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> Mantén <strong>Synth 1</strong> y pulsa <strong>Synth 2</strong> (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1499,7 +1501,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a13-colores-patch"><h3><span class="code">A13</span>Patches de sinte por modo de voz</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: <strong>mono azul oscuro</strong>, <strong>glide lavanda</strong>, <strong>poly como siempre</strong>.</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: <strong>mono azul oscuro</strong>, <strong>glide lavanda</strong>, <strong>poly como siempre</strong>.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1650,7 +1652,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a14-patches-midi"><h3><span class="code">A14</span>Patches del sinte propio (MIDI 1 / 2)</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), <strong>Clear + pad</strong> dos veces = guardar, <strong>Duplicate + A + B</strong> = intercambiar; <strong>Octave ▼ / ▲</strong> = 4 páginas (64 huecos por pack).</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), <strong>Clear + pad</strong> dos veces = guardar, <strong>Duplicate + A + B</strong> = intercambiar; <strong>Octave ▼ / ▲</strong> = 4 páginas (64 huecos por pack).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1809,7 +1811,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a15-guardar-patch"><h3><span class="code">A15</span>Guardar el patch del sinte en el pack</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> En la vista Preset de Synth 1 / 2: <strong>Clear + pad</strong> pregunta (parpadea en blanco) y <strong>Clear + el mismo pad otra vez</strong> guarda en ese hueco el patch tal como suena.</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista Preset de Synth 1 / 2: <strong>Clear + pad</strong> pregunta (parpadea en blanco) y <strong>Clear + el mismo pad otra vez</strong> guarda en ese hueco el patch tal como suena.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1961,7 +1963,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a16-destinos-macro"><h3><span class="code">A16</span>Destinos de los macro knobs</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> En la vista de la fuente del sinte (A6) el <strong>pad 32</strong> abre el editor: un knob elige su macro, <strong>Octave ▼ / ▲</strong> pasa de campo y los pads dibujan el número.</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista de la fuente del sinte (A6) el <strong>pad 32</strong> abre el editor: un knob elige su macro, <strong>Octave ▼ / ▲</strong> pasa de campo y los pads dibujan el número.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de la fuente con el editor de macros: pad 32 encendido, el knob elegido en blanco.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2123,6 +2125,159 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Destino:</strong> el knob recorre primero los 31 parámetros que tienen CC, por número de CC (5, 20, 21 … 91, 93), y después los 39 que solo tienen NRPN (envolventes 2 y 3, LFO, chorus, profundidades de la matriz de modulación). Los números son los de la <em>Programmer’s Reference Guide</em> de Novation: p. ej. 74 = corte del filtro, 71 = resonancia.</li>
 <li>Los cambios se oyen al momento y van en el patch del proyecto. Para dejarlos en el pack, guarda el patch (A15).</li>
+</ul>
+</section>
+<section class="feat" id="a17-copiar-proyectos"><h3><span class="code">A17</span>Copiar proyectos a otro hueco o a otro pack</h3>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista Projects: <strong>Duplicate + pad A</strong> elige el proyecto (parpadea en amarillo) y <strong>Duplicate + pad B</strong> lo copia a ese hueco, del mismo pack o de otro.</p></div>
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.">
+<rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
+<text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
+<text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Projects</text>
+<rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
+<rect x="100" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="130.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Oct ▼</text>
+<rect x="166" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="196.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Oct ▲</text>
+<rect x="232" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="262.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">1-16 / 17-32</text>
+<rect x="298" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="328.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Clear</text>
+<rect x="364" y="140" width="60" height="18" rx="4" fill="#ffffff" stroke="#111"/>
+<text x="394.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Duplicate</text>
+<rect x="430" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="460.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Save</text>
+<rect x="496" y="140" width="60" height="18" rx="4" fill="#ffffff" stroke="#111"/>
+<text x="526.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Projects</text>
+<rect x="562" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="592.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Shift</text>
+<rect x="22" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="49.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Preset</text>
+<rect x="84" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="111.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 1</text>
+<rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="235.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">MIDI 1</text>
+<rect x="270" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="297.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">MIDI 2</text>
+<rect x="332" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="359.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Drum 1</text>
+<rect x="394" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="421.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Drum 2</text>
+<rect x="456" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="483.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Drum 3</text>
+<rect x="518" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="545.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Drum 4</text>
+<rect x="580" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="607.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Patterns</text>
+<rect x="22" y="224" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="49.0" y="246.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Note</text>
+<rect x="580" y="224" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="607.0" y="246.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Mixer</text>
+<rect x="22" y="286" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="49.0" y="308.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Velocity</text>
+<rect x="580" y="286" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="607.0" y="308.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">FX</text>
+<rect x="22" y="348" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="49.0" y="370.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Gate</text>
+<rect x="580" y="348" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="607.0" y="370.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Record</text>
+<rect x="22" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="49.0" y="427.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Pattern</text>
+<text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
+<rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="88" y="266" font-size="8" fill="#7d838a">1</text>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="150" y="266" font-size="8" fill="#7d838a">2</text>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="212" y="266" font-size="8" fill="#7d838a">3</text>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">cargado</text>
+<text x="274" y="266" font-size="8" fill="#7d838a">4</text>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">A</text>
+<text x="336" y="266" font-size="8" fill="#7d838a">5</text>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="398" y="266" font-size="8" fill="#7d838a">6</text>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">B</text>
+<text x="460" y="266" font-size="8" fill="#7d838a">7</text>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="522" y="266" font-size="8" fill="#7d838a">8</text>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="88" y="328" font-size="8" fill="#7d838a">9</text>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="150" y="328" font-size="8" fill="#7d838a">10</text>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="212" y="328" font-size="8" fill="#7d838a">11</text>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="274" y="328" font-size="8" fill="#7d838a">12</text>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="336" y="328" font-size="8" fill="#7d838a">13</text>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="398" y="328" font-size="8" fill="#7d838a">14</text>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="460" y="328" font-size="8" fill="#7d838a">15</text>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="522" y="328" font-size="8" fill="#7d838a">16</text>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="88" y="390" font-size="8" fill="#7d838a">17</text>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="150" y="390" font-size="8" fill="#7d838a">18</text>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="212" y="390" font-size="8" fill="#7d838a">19</text>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="274" y="390" font-size="8" fill="#7d838a">20</text>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="336" y="390" font-size="8" fill="#7d838a">21</text>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="398" y="390" font-size="8" fill="#7d838a">22</text>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="460" y="390" font-size="8" fill="#7d838a">23</text>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="522" y="390" font-size="8" fill="#7d838a">24</text>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="88" y="452" font-size="8" fill="#7d838a">25</text>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="150" y="452" font-size="8" fill="#7d838a">26</text>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="212" y="452" font-size="8" fill="#7d838a">27</text>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="274" y="452" font-size="8" fill="#7d838a">28</text>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="336" y="452" font-size="8" fill="#7d838a">29</text>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="398" y="452" font-size="8" fill="#7d838a">30</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="460" y="452" font-size="8" fill="#7d838a">31</text>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="522" y="452" font-size="8" fill="#7d838a">32</text>
+</svg><figcaption>Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.</figcaption></figure>
+<ul>
+<li><strong>Duplicate + pad A</strong> (un hueco con proyecto) = la fuente. Duplicate + A otra vez la olvida.</li>
+<li><strong>Duplicate + pad B</strong> = copia. Si B está vacío se escribe al momento y queda en amarillo; si tiene un proyecto parpadea en blanco y hay que repetir <strong>Duplicate + B</strong> antes de ~5 s para sustituirlo. El hueco del proyecto cargado nunca se escribe.</li>
+<li><strong>A otro pack:</strong> elige la fuente, carga el otro pack, entra en Projects y Duplicate + pad B. La fuente sirve para varias copias; se pierde al apagar o al abrir Master FX.</li>
+<li>Se copia el proyecto guardado en la tarjeta (guarda antes si has hecho cambios). Mientras copia (unos instantes) el aparato no responde.</li>
+<li>Un proyecto guarda números de patch y de sample, no los sonidos: en otro pack sonará con los patches y samples de ese pack.</li>
+<li>No está en la versión más segura (escribe en la SD).</li>
 </ul>
 </section>
 <h2 class="group">B. Controles expuestos</h2>
@@ -2316,7 +2471,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="b5-setup"><h3><span class="code">B5</span>Setup y MIDI del aparato</h3>
-<div class="summary"><p>Canal 16 Rx / Tx (pad 16), canales compartidos, <strong>loopback interno</strong> sin cable y <strong>retornos de reverb / delay por las tiras 3 / 4</strong> (pads 22 / 23, en crema / melocotón como la reverb y el delay de la vista FX).</p><p><strong>Solo BETA4:</strong> MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, <strong>Merge</strong> (DIN In + el MIDI del aparato) y <strong>Filter</strong> (DIN In sin los canales en escucha).</p></div>
+<div class="summary"><p>Canal 16 Rx / Tx (pad 16), canales compartidos, <strong>loopback interno</strong> sin cable y <strong>retornos de reverb / delay por las tiras 3 / 4</strong> (pads 22 / 23, en crema / melocotón como la reverb y el delay de la vista FX).</p><p><strong>Solo BETA5:</strong> MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, <strong>Merge</strong> (DIN In + el MIDI del aparato) y <strong>Filter</strong> (DIN In sin los canales en escucha).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Setup: pad 22 = retorno de reverb por la tira 3 (crema), pad 23 = retorno de delay por la tira 4 (melocotón).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2466,13 +2621,13 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>Setup, pad 22</td><td>El retorno de reverb pasa por la tira 3 del mixer</td></tr>
 <tr><td>Setup, pad 23</td><td>El retorno de delay pasa por la tira 4</td></tr>
 <tr><td>Setup, canales</td><td>MIDI 1 / 2 pueden usar un canal que ya tenga otra pista</td></tr>
-<tr><td>Advanced Setup, Duplicate</td><td>MIDI Thru: Thru → Out 2 → <strong>Merge</strong> → <strong>Filter</strong> (<strong>solo BETA4</strong>)</td></tr>
+<tr><td>Advanced Setup, Duplicate</td><td>MIDI Thru: Thru → Out 2 → <strong>Merge</strong> → <strong>Filter</strong> (<strong>solo BETA5</strong>)</td></tr>
 </tbody></table>
 <ul>
 <li><strong>Loopback interno:</strong> si una pista MIDI comparte canal con un sinte o los drums, lo que envía les llega por dentro.</li>
 <li>Los pads 22 / 23 se iluminan en crema (reverb) y melocotón (delay), los colores de la vista FX; tenues = apagados.</li>
 </ul>
-<h4>MIDI Thru: Merge y Filter (solo BETA4)</h4>
+<h4>MIDI Thru: Merge y Filter (solo BETA5)</h4>
 <p>El original solo deja elegir el jack Thru como <strong>Thru</strong> (copia del DIN In por hardware, Duplicate rojo tenue) o <strong>Out 2</strong> (segunda salida MIDI, verde). Duplicate en la vista Advanced Setup ahora pasa por cuatro modos:</p>
 <table><thead><tr><th>Modo</th><th>LED de Duplicate</th><th>Sale por el jack Thru</th></tr></thead><tbody>
 <tr><td>Thru</td><td>rojo tenue</td><td>El DIN In, por hardware</td></tr>
@@ -2494,7 +2649,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </section>
 <h2 class="group">C. Nuevos modos de control</h2>
 <section class="feat" id="c1-motor-midi"><h3><span class="code">C1</span>Motor de las pistas MIDI (pad 27)</h3>
-<div class="summary"><p>El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → <strong>línea</strong> → <strong>oscilador</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>secuenciador de efectos</strong>.</p><p>Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). <strong>Solo BETA4:</strong> Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).</p></div>
+<div class="summary"><p>El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → <strong>línea</strong> → <strong>oscilador</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>secuenciador de efectos</strong>.</p><p>Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). <strong>Solo BETA5:</strong> Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de MIDI 1 con el oscilador (pad 27 verde): fila de páginas y pads del motor; el pad 28 solo se ve con oscilador o VA-drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -2672,7 +2827,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>25</td><td>Editor de CC (A10)</td></tr>
 <tr><td>26</td><td>Patch flip (B6)</td></tr>
 <tr><td>27</td><td>Motor</td></tr>
-<tr><td>1-5</td><td>Página de knobs. <strong>Clear + el pad</strong> (solo BETA4): los valores de esa página (con y sin Shift) vuelven a los iniciales; el motor no cambia</td></tr>
+<tr><td>1-5</td><td>Página de knobs. <strong>Clear + el pad</strong> (solo BETA5): los valores de esa página (con y sin Shift) vuelven a los iniciales; el motor no cambia</td></tr>
 <tr><td>28</td><td>Uno / dos osciladores (solo con los osciladores o VA-drum; apagado en los demás motores)</td></tr>
 <tr><td>29</td><td>Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX</td></tr>
 <tr><td>30</td><td>Step-drummer (C2)</td></tr>
@@ -3565,7 +3720,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="c8-random-mutate"><h3><span class="code">C8</span>Random-mutate por paso</h3>
-<div class="summary"><p><strong>Solo BETA4.</strong> En la vista de probabilidad (<strong>Shift + Pattern Settings</strong>) la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.</p></div>
+<div class="summary"><p><strong>Solo BETA5.</strong> En la vista de probabilidad (<strong>Shift + Pattern Settings</strong>) la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de probabilidad: fila 3 = probabilidad del paso (original), fila 4 = random-mutate.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -3789,7 +3944,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="d5-granular"><h3><span class="code">D5</span>Sinte granular</h3>
-<div class="summary"><p>Hasta <strong>16 granos por pista</strong> desde cualquier sample del pack o la captura, con interpolación y ventana; en el segundo núcleo del DSP.</p><p>K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, solo BETA4), LFO → tamaño, fuente.</p></div>
+<div class="summary"><p>Hasta <strong>16 granos por pista</strong> desde cualquier sample del pack o la captura, con interpolación y ventana; en el segundo núcleo del DSP.</p><p>K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, solo BETA5), LFO → tamaño, fuente.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Página del granular (pad 2, motor magenta).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -3946,14 +4101,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K3</td><td>Scan: centro = congelado, derecha avanza, izquierda retrocede</td><td>Probabilidad de grano al revés</td></tr>
 <tr><td>K4</td><td>Tamaño del grano, 5-500 ms</td><td>Dispersión del tono (±12 st)</td></tr>
 <tr><td>K5</td><td>Densidad, 1-16 granos solapados</td><td>Ventana: rectangular → triangular → percusiva</td></tr>
-<tr><td>K6</td><td>Longitud de la zona del scan</td><td>Modo de nota: tono / slicer / stretch (stretch solo en BETA4)</td></tr>
+<tr><td>K6</td><td>Longitud de la zona del scan</td><td>Modo de nota: tono / slicer / stretch (stretch solo en BETA5)</td></tr>
 <tr><td>K7</td><td>LFO → posición</td><td>LFO → tamaño</td></tr>
-<tr><td>K8</td><td>Envolvente → posición</td><td><strong>Fuente</strong>: sample 1-64 del pack, a la izquierda la captura. <strong>Solo BETA4:</strong> recorrido largo por cinco zonas: la captura (rojo) y el sample que tiene ahora Drum 1 (naranja), 2 (amarillo), 3 (violeta) y 4 (verde azulado); queda fijado aunque el drum cambie de sample; blanco tenue = ningún drum tiene ya ese sample</td></tr>
+<tr><td>K8</td><td>Envolvente → posición</td><td><strong>Fuente</strong>: sample 1-64 del pack, a la izquierda la captura. <strong>Solo BETA5:</strong> recorrido largo por cinco zonas: la captura (rojo) y el sample que tiene ahora Drum 1 (naranja), 2 (amarillo), 3 (violeta) y 4 (verde azulado); queda fijado aunque el drum cambie de sample; blanco tenue = ningún drum tiene ya ese sample</td></tr>
 </tbody></table>
 <ul>
 <li><strong>Modo tono:</strong> la nota cambia la altura de los granos; con dos notas se reparten entre las dos.</li>
 <li><strong>Modo slicer:</strong> la nota elige una de 16 porciones del sample.</li>
-<li><strong>Modo stretch (solo BETA4):</strong> el tramo de K2 al final del sample dura <strong>K3</strong> pasos (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 o 64; el LED de K3 lo enseña) a cualquier tempo, sin cambiar el tono, y vuelve a empezar alineado con el inicio del transporte; las notas cambian el tono como en el modo tono. Con el transporte parado se queda quieto. K7 / K8 casi no actúan en este modo.</li>
+<li><strong>Modo stretch (solo BETA5):</strong> el tramo de K2 al final del sample dura <strong>K3</strong> pasos (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 o 64; el LED de K3 lo enseña) a cualquier tempo, sin cambiar el tono, y vuelve a empezar alineado con el inicio del transporte; las notas cambian el tono como en el modo tono. Con el transporte parado se queda quieto. K7 / K8 casi no actúan en este modo.</li>
 <li>Pasa por el VCA-VCF de la página 1. Comparte los valores guardados con la página del oscilador.</li>
 </ul>
 </section>
@@ -3997,7 +4152,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="e2-instalar"><h3><span class="code">E2</span>Instalar y volver atrás</h3>
 <div class="summary"><p><code>tools/ct_uploader.html</code> envía el <code>.syx</code> por Web MIDI; solo acepta firmwares verificados. Recuperación: Scales + Preset + Note al encender.</p></div>
 <ol>
-<li>0. <strong>Sin compilar:</strong> <code>tools/rc_uploader.html</code> parchea el firmware oficial ([descarga de Novation](https://components.novationmusic.com/api/v2/firmwares/168/file)) en el navegador y lo envía. Elige RC0.5, RC0.5S, BETA4 (o las anteriores RC0.4 / RC0.4S, BETA2) u «Oficial».</li>
+<li>0. <strong>Sin compilar:</strong> <code>tools/rc_uploader.html</code> parchea el firmware oficial ([descarga de Novation](https://components.novationmusic.com/api/v2/firmwares/168/file)) en el navegador y lo envía. Elige RC0.5, RC0.5S, BETA5 (o las anteriores RC0.4 / RC0.4S, BETA2) u «Oficial».</li>
 <li>1. Abre <code>tools/ct_uploader.html</code> en Chrome y conecta el Circuit Tracks por USB.</li>
 <li>2. Elige el <code>.syx</code> de <code>firmware/&lt;versión&gt;/</code>: el uploader comprueba su SHA-256.</li>
 <li>3. Envía. El bootloader de Novation no se modifica.</li>
@@ -4006,7 +4161,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Volver atrás:</strong> envía otra versión o el firmware oficial. Si el aparato no arranca: mantén <strong>Scales + Preset + Note</strong> al encender (modo de recuperación del bootloader).</li>
 <li>En la rama RC los <code>.syx</code> no se publican: se generan con <code>tools/patch_official.py</code> a partir del firmware oficial.</li>
 <li><strong>RC0.5</strong> (sexta versión candidata) = RC0.4 + el sample capturado delante de los efectos de Master FX; RC0.4 = RC0.3 + los arreglos de SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
-<li><strong>BETA4</strong> (versión beta) = SC39.4: RC0.5 + lo marcado <strong>solo BETA4</strong> en este manual (stretch del granular, MIDI Thru Merge / Filter, Clear + pad de página, patches por modo de voz, teclado partido, random-mutate, patches del sinte propio, selector de fuente del granular, guardar el patch del sinte, destinos de los macro knobs). Solo el random-mutate y el teclado partido están probados en el aparato: úsala con una copia de la SD.</li>
+<li><strong>BETA5</strong> (versión beta) = SC39.6: RC0.5 + lo marcado <strong>solo BETA5</strong> en este manual (stretch del granular, MIDI Thru Merge / Filter, Clear + pad de página, patches por modo de voz, teclado partido, random-mutate, patches del sinte propio, selector de fuente del granular, guardar el patch del sinte, destinos de los macro knobs, copiar proyectos, knobs de tipo en colores). Solo el random-mutate y el teclado partido están probados en el aparato: úsala con una copia de la SD.</li>
 <li><strong>Versión más segura:</strong> RC0.5S = RC0.5 sin funciones que escriban en la SD (sin A8 ni el diagnóstico remoto; = RC0S + lo nuevo de RC0.1-RC0.5 fuera de la SD). <strong>Haz una copia de la SD antes de instalar</strong> cualquier versión.</li>
 <li>Novedades y arreglos de cada versión: <code>CHANGELOG.md</code>.</li>
 </ul>
@@ -4016,7 +4171,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><code>tools/build_scNN.py</code>: cada versión se construye desde el firmware oficial; <code>verify_builds.py</code> comprueba que todas dan el mismo SHA-256.</li>
 <li><code>tools/emu_*.py</code>: pruebas en emulación (Unicorn para el ARM, dsp56300 para el DSP).</li>
-<li><code>tools/ctremote.py</code> + <code>rdiag</code>: el PC lee memoria, elementos de la tarjeta y la captura del aparato por SysEx. Solo en las builds de diagnóstico y en SC35 / SC36: <strong>SC36.1, SC36.2, las RC (RC0 … RC0.5 y sus versiones más seguras) y BETA4 no lo llevan</strong>, para no tocar el protocolo USB.</li>
+<li><code>tools/ctremote.py</code> + <code>rdiag</code>: el PC lee memoria, elementos de la tarjeta y la captura del aparato por SysEx. Solo en las builds de diagnóstico y en SC35 / SC36: <strong>SC36.1, SC36.2, las RC (RC0 … RC0.5 y sus versiones más seguras) y BETA5 no lo llevan</strong>, para no tocar el protocolo USB.</li>
 <li><code>docs/NOTAS.md</code>: mapa técnico de todo lo descubierto.</li>
 </ul>
 </section>
