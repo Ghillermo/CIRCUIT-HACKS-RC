@@ -1,4 +1,4 @@
-# Manual resumido — CIRCUIT-HACKS (RC0.5)
+# Manual resumido — CIRCUIT-HACKS (RC0.6)
 
 Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no aparece aquí funciona como en el aparato original. Versión ilustrada en color: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). English version: [`docs/MANUAL.en.md`](MANUAL.en.md).
 

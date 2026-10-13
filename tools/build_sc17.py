@@ -325,6 +325,18 @@ def use_latch7():
     LATCH7 = True
 
 
+T0FIX = False                             # RC0.6 (see use_t0fix)
+
+
+def use_t0fix():
+    """RC0.6 (the user: «arregla el lfo»): in c_fxtick the loop that stores the start time of every effect set that has just come on used the
+    labels ft_t0..ft_t4, and ft_t0 is also the label of the end of that section: when the Gater (set 0) was not among the new ones the whole loop was jumped,
+    so the LFO of the Auto-Filter and of the Phaser only started from the moment of the press when the Gater came on in the same tick; otherwise it went on
+    from an older start (a phase that seemed random).  The loop's labels are its own now: every set starts its LFO when it comes on."""
+    global T0FIX
+    T0FIX = True
+
+
 def use_gclear():
     """SC37.9 (the user, 2026-10-11: «en master fx, clear+knob no funciona»): with Clear held, a knob of the selected effect turned right goes back to its
     default (the DEFAULTS of the effects, GL_DEF for the Glitch, SMP_DEF for the sample; as the stock does on the drum knobs), turned left does nothing (Master FX
@@ -803,11 +815,11 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     zjmp(7, "ft_t0")
     a.emit(bl, c_now); a.emit(mov_reg, 1, 0)
     for s in range(5):
-        if SPCACHE and s == 2: a.label(f"ft_t{s}"); continue                    # that word is the playhead cache
-        if SMP and s == 4: a.label(f"ft_t{s}"); continue                        # that word is the sample's record state
-        a.emit(lsrs_imm, 0, 7, s + 1); a.emit(b_cond, f"ft_t{s}", "cc")
+        if SPCACHE and s == 2: a.label((f"ft_u{s}" if T0FIX else f"ft_t{s}")); continue                    # that word is the playhead cache
+        if SMP and s == 4: a.label((f"ft_u{s}" if T0FIX else f"ft_t{s}")); continue                        # that word is the sample's record state
+        a.emit(lsrs_imm, 0, 7, s + 1); a.emit(b_cond, (f"ft_u{s}" if T0FIX else f"ft_t{s}"), "cc")
         a.emit(str_imm, 1, 4, S_T0 + 4 * s)
-        a.label(f"ft_t{s}")
+        a.label((f"ft_u{s}" if T0FIX else f"ft_t{s}"))
     a.label("ft_t0")
     # FX_ON
     a.emit(ldrb_imm, 0, 4, S_FXON); a.emit(cmp_reg, 0, 5); bc("ft_on", "eq")

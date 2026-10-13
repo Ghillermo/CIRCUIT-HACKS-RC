@@ -592,10 +592,10 @@ sec("efectos-grid", "Master FX effects",
 | Pad | Effect | K1-K4 |
 |---|---|---|
 | 1 | Gater | division, depth, width, smoothing |
-| 2 / 3 | Auto-Filter low / high pass | speed, resonance, depth, centre |
-| 4 | Digitise | bit reduction, sample-rate reduction, mix |
+| 2 / 3 | Auto-Filter low / high pass | speed, depth, resonance, centre frequency |
+| 4 | Digitise | sample-rate reduction, bit reduction (K3 and K4 do nothing) |
 | 5 | Phaser | speed, depth, feedback, mix |
-| 6 | Vinyl | threshold, hiss, tone |
+| 6 | Vinyl | crackle, hiss, tone (low pass), wear (high pass) |
 
 - Hold = active; Shift = latched. The brightness of the knob LEDs shows the value.
 """)
@@ -704,9 +704,9 @@ sec("instalar", "Installing and going back",
 3. Send. Novation’s bootloader is not modified.
 - **Going back:** send another version or the official firmware. If the device does not start: hold **Scales + Preset + Note** at power-on (bootloader recovery mode).
 - The RC branch does not publish `.syx` files: they are generated with `tools/patch_official.py` from the official firmware.
-- **RC0.5** (sixth release candidate) = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
+- **RC0.6** (seventh release candidate) = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
 - **BETA5** (beta) = SC39.6: RC0.5 + what this manual marks **BETA5 only** (granular stretch, MIDI Thru Merge / Filter, Clear + page pad, patches by voice mode, split keyboard, random-mutate, patches of the own synth, granular source selector, saving the synth’s patch, macro knob destinations, copying projects, type knobs as colours). Only random-mutate and the split keyboard are tested on the device: use it with a backup of the SD card.
-- **Safer build:** RC0.5S = RC0.5 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.5 add outside the SD card). **Back up the SD card before installing** any version.
+- **Safer build:** RC0.6S = RC0.6 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.6 add outside the SD card). **Back up the SD card before installing** any version.
 - New features and fixes of every version: `CHANGELOG.md`.
 """)
 

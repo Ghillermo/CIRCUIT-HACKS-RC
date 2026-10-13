@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC0.6 / RC0.6S — 2026-10-14
+
+RC0.6 = RC0.5 + dos arreglos. RC0.6S = RC0.5S + los mismos (**S**). La beta sigue siendo **BETA5**, que no cambia (lleva el segundo arreglo; el primero, aún no).
+
+### Arreglos
+- **El LFO del Auto-Filter y del Phaser arranca al activar el efecto** (C5, **S**). El barrido solo empezaba desde la pulsación cuando el Gater se activaba en el mismo instante; si no, seguía desde un arranque anterior y cada pulsación empezaba en un punto distinto.
+- **Blanco tenue fijo en Clear** (**S**). El pad 8 de Master FX sin efectos fijados, y Clear en la vista de packs, usaban un código de color que el aparato hace pulsar.
+
+### Manual
+- La tabla de knobs de Master FX corregida según el código: Auto-Filter = velocidad, profundidad, resonancia, frecuencia central; Digitise = muestreo y bits (K3 y K4 no hacen nada); Vinyl = crackle, siseo, tono, desgaste.
+
 ## BETA5 — 2026-10-12
 
 Versión beta (= SC39.6): BETA4 + más funciones nuevas aún sin probar en el aparato. Sin versión «S». Acompaña a RC0.5 / RC0.5S, que no cambian. En el manual van marcadas **solo BETA5** (también las de las betas anteriores).
@@ -138,6 +149,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC0.6 / RC0.6S — 2026-10-14
+
+RC0.6 = RC0.5 + two fixes. RC0.6S = RC0.5S + the same (**S**). The beta is still **BETA5**, unchanged (it has the second fix; the first one, not yet).
+
+### Fixed
+- **The LFO of the Auto-Filter and of the Phaser starts when the effect comes on** (C5, **S**). The sweep only started from the press when the Gater came on at the same instant; otherwise it went on from an older start and every press began at a different point.
+- **A steady dim white on Clear** (**S**). Pad 8 of Master FX with no effect latched, and Clear in the packs view, used a colour code that the device pulses.
+
+### Manual
+- The Master FX knob table corrected from the code: Auto-Filter = rate, depth, resonance, centre frequency; Digitise = sample rate and bits (K3 and K4 do nothing); Vinyl = crackle, hiss, tone, wear.
 
 ## BETA5 — 2026-10-12
 

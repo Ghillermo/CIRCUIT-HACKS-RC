@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.5 RC0.5S BETA5 RC0.4 RC0.4S BETA4; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.6 RC0.6S BETA5 RC0.5 RC0.5S BETA4; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,11 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"RC0.5": ("RC0.5 — la versión completa: RC0.4 + el sample capturado pasa por los efectos de Master FX (la captura ya no los graba)",
+DESC = {"RC0.6": ("RC0.6 — la versión completa: RC0.5 + dos arreglos (el LFO del Auto-Filter y del Phaser arranca al activar el efecto; el blanco tenue de Clear ya no pulsa)",
+                  "RC0.6 — full version: RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses)"),
+        "RC0.6S": ("RC0.6S — versión más segura (= RC0.5S + los arreglos de RC0.6): nada del mod escribe ficheros en la SD",
+                   "RC0.6S — safer build (= RC0.5S + the RC0.6 fixes): nothing of the mod writes files to the SD card"),
+        "RC0.5": ("RC0.5 — la versión completa: RC0.4 + el sample capturado pasa por los efectos de Master FX (la captura ya no los graba)",
                   "RC0.5 — full version: RC0.4 + the captured sample goes through the Master FX effects (the capture no longer records them)"),
         "RC0.5S": ("RC0.5S — versión más segura (= RC0.4S + el arreglo de RC0.5): nada del mod escribe ficheros en la SD",
                    "RC0.5S — safer build (= RC0.4S + the RC0.5 fix): nothing of the mod writes files to the SD card"),
@@ -442,4 +446,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.5", "RC0.5S", "BETA5", "RC0.4", "RC0.4S", "BETA4"])
+    main(sys.argv[1:] or ["RC0.6", "RC0.6S", "BETA5", "RC0.5", "RC0.5S", "BETA4"])

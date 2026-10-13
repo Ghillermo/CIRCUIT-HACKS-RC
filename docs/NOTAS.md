@@ -154,6 +154,13 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 - **Pruebas:** `emu_sc39_6.py` (botón Duplicate real: la vista lo admite ahora; fichero copiado byte a byte en 40 trozos; pregunta, caducidad, proyecto cargado, olvidar; otro pack cargado: copia del pack 31 al 7 y la tarea de almacenamiento de vuelta en el 7; SC39.5: Duplicate + pad = pad normal). `emu_sc39_5.py`, `emu_sc39_4.py`, `emu_sc39_3.py` sobre SC39.6.
 - **Sin comprobar (aparato):** que el stock cargue el proyecto copiado y lo muestre en su color al volver a entrar / reiniciar (su lista de huecos en uso está en RAM: hasta entonces solo lo enciende nuestro amarillo); cuánto tarda la copia (40 lecturas + 40 escrituras seguidas en la tarea de la interfaz: el aparato no atiende mientras); un proyecto copiado a otro pack lleva los números de patch y sample de su pack de origen.
 
+### RC0.6 / RC0.6S = RC0.5 / RC0.5S + dos arreglos (publicadas 2026-10-14) — ⏳ pendientes de probar
+- **Pedido del usuario (2026-10-14):** «fixes a RC, nuevas características a Beta, mantén escritura personalizada en SD fuera de las versiones S»; «publica solo RC0.6 y S, documenta».
+- **Arreglos** (lo único de después de RC0.5 que es un arreglo y no una función nueva): `build_sc17.use_t0fix()` (SC40: el bucle de horas de inicio de `c_fxtick` usaba la etiqueta `ft_t0`, que es también la del final: el LFO del Auto-Filter y del Phaser solo arrancaba cuando el Gater se activaba a la vez) y `build_sc17.CLR_DIM` / `packio.CLR_DIM` = `0x02` (SC39.5: `0x03` es un color animado).
+- `build_rc0_6.py` / `build_rc0_6s.py`. La imagen difiere de RC0.5 en 4 bytes (3 en la S): la marca (`0x080101EC`), el salto de `c_fxtick`, y el blanco tenue (uno en `build_sc17`, otro en `packio`). El DSP no cambia. RC0.6 `.syx` `f8b8f764…4df9`, CRC 0x74e86342; RC0.6S `59e3cca7…4dc9`, CRC 0x06c7e0ad.
+- **Pruebas:** `emu_rc0_6.py` (sobre el arnés publicado, sin depender de las pruebas de las builds privadas) y `emu_sc38_5.py`, en las dos.
+- **Publicación:** el árbol público sale de la última fuente publicada (`67893da`, BETA5) más solo esto, para no sacar las builds privadas SC39.7-SC40.5: rama `pub-rc0.6`.
+
 ### SC39.5 = SC39.4 + **knobs de tipo en colores** (`tools/typeleds.py`) + blanco tenue fijo — ⏳ pendiente de probar, sin publicar
 - **Pedido del usuario (2026-10-12):** «actualiza el indicador [del modo de filtro de drums], haciéndolo multicolor. Lo mismo para todos los knobs de "selección múltiple / tipo"»; y la revisión de los colores animados («OK»).
 - **Ya eran de colores:** tipo de efecto, tipo de filtro, forma de onda y BITSYNC del motor MIDI (`vcf21.c_vtype`), el modo del sample capturado (K2, `MODE_COL`) y la fuente del granular (`GRS_COL`).

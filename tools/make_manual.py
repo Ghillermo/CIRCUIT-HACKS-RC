@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "RC0.5"
+VERSION = "RC0.6"
 
 # ---------------------------------------------------------------------------------------------------- colours (approximations of the pad colours)
 C = dict(red="#ff3b30", orange="#ff8a00", yellow="#ffd23f", green="#3ddc5a", teal="#00c2a8", blue="#2f7bff", purple="#8e5cff", magenta="#e040fb",
@@ -702,10 +702,10 @@ sec("efectos-grid", "D", "Efectos de Master FX",
 | Pad | Efecto | K1-K4 |
 |---|---|---|
 | 1 | Gater | división, profundidad, ancho, suavizado |
-| 2 / 3 | Auto-Filter paso bajo / alto | velocidad, resonancia, profundidad, centro |
-| 4 | Digitise | reducción de bits, de muestreo, mezcla |
+| 2 / 3 | Auto-Filter paso bajo / alto | velocidad, profundidad, resonancia, frecuencia central |
+| 4 | Digitise | reducción de muestreo, reducción de bits (K3 y K4 no hacen nada) |
 | 5 | Phaser | velocidad, profundidad, realimentación, mezcla |
-| 6 | Vinyl | umbral, siseo, tono |
+| 6 | Vinyl | crackle, siseo, tono (paso bajo), desgaste (paso alto) |
 
 - Mantener = activo; Shift = fijado. El brillo de los LED de los knobs enseña el valor.
 """)
@@ -815,9 +815,9 @@ sec("instalar", "E", "Instalar y volver atrás",
 3. Envía. El bootloader de Novation no se modifica.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si el aparato no arranca: mantén **Scales + Preset + Note** al encender (modo de recuperación del bootloader).
 - En la rama RC los `.syx` no se publican: se generan con `tools/patch_official.py` a partir del firmware oficial.
-- **RC0.5** (sexta versión candidata) = RC0.4 + el sample capturado delante de los efectos de Master FX; RC0.4 = RC0.3 + los arreglos de SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
+- **RC0.6** (séptima versión candidata) = RC0.5 + dos arreglos (el LFO del Auto-Filter y del Phaser arranca al activar el efecto; el blanco tenue de Clear ya no pulsa); RC0.5 = RC0.4 + el sample capturado delante de los efectos de Master FX; RC0.4 = RC0.3 + los arreglos de SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
 - **BETA5** (versión beta) = SC39.6: RC0.5 + lo marcado **solo BETA5** en este manual (stretch del granular, MIDI Thru Merge / Filter, Clear + pad de página, patches por modo de voz, teclado partido, random-mutate, patches del sinte propio, selector de fuente del granular, guardar el patch del sinte, destinos de los macro knobs, copiar proyectos, knobs de tipo en colores). Solo el random-mutate y el teclado partido están probados en el aparato: úsala con una copia de la SD.
-- **Versión más segura:** RC0.5S = RC0.5 sin funciones que escriban en la SD (sin A8 ni el diagnóstico remoto; = RC0S + lo nuevo de RC0.1-RC0.5 fuera de la SD). **Haz una copia de la SD antes de instalar** cualquier versión.
+- **Versión más segura:** RC0.6S = RC0.6 sin funciones que escriban en la SD (sin A8 ni el diagnóstico remoto; = RC0S + lo nuevo de RC0.1-RC0.6 fuera de la SD). **Haz una copia de la SD antes de instalar** cualquier versión.
 - Novedades y arreglos de cada versión: `CHANGELOG.md`.
 """)
 
