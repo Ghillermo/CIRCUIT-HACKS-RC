@@ -223,6 +223,8 @@ const NOV = [0xF0, 0x00, 0x20, 0x29, 0x00];
 const $ = id => document.getElementById(id);
 const log = (m, cls) => { const d = document.createElement("div"); if (cls) d.className = cls;
   d.textContent = new Date().toLocaleTimeString() + "  " + m; $("log").appendChild(d); $("log").scrollTop = 1e9; };
+// Text that goes into innerHTML is escaped: a file name like "<img onerror=…>.syx" must not run script on a page with SysEx access.
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const hex = a => Array.from(a, b => b.toString(16).padStart(2, "0")).join(" ");
 
 let midi = null, packets = null, fileOk = false, xfer = null, idPending = null;
@@ -360,12 +362,12 @@ $("file").onchange = async () => {
   fileOk = false; packets = null; updateSend();
   const f = $("file").files[0]; if (!f) return;
   const buf = await f.arrayBuffer(); const h = await sha256(buf);
-  let html = `${f.name} · ${buf.byteLength} bytes<br>SHA-256 ${h}<br>`;
+  let html = `${esc(f.name)} · ${buf.byteLength} bytes<br>SHA-256 ${h}<br>`;
   if (!KNOWN[h]) { $("fileInfo").innerHTML = html + `<span class="bad">Archivo desconocido: no se enviará.</span>`; return; }
   try { const p = parseSyx(buf); packets = p.msgs;
     html += `<span class="ok">✔ ${KNOWN[h]}</span><br>imagen ${p.size} bytes · CRC ${p.crc.toString(16)} verificado · ${packets.length} mensajes`;
     fileOk = true;
-  } catch (e) { html += `<span class="bad">Archivo inválido: ${e.message}</span>`; }
+  } catch (e) { html += `<span class="bad">Archivo inválido: ${esc(e.message)}</span>`; }
   $("fileInfo").innerHTML = html; updateSend();
 };
 function updateSend() { $("btnSend").disabled = !(fileOk && outPort() && inPort() && !xfer && !idPending); }
