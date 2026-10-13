@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>User manual of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC0.5</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>User manual of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC0.6</p><div class="bar"></div></header><main>
 <p class="lang"><a href="index.html">Versión en español</a></p>
 <p><strong>Conventions.</strong> Pads 1-32 from top left to bottom right (row 1 = 1-8 … row 4 = 25-32). Knobs K1-K4 on top and K5-K8 at the bottom. “Shift + X” = hold Shift while using X. The colours of the diagrams are approximate; a dim pad is drawn translucent. Anything not described here works as on the original device (see Novation’s official user guide).</p>
 <nav class="toc"><h2>Feature index</h2>
@@ -3902,10 +3902,10 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <div class="summary"><p>Gater, Auto-Filter LP / HP, Digitise, Phaser and Vinyl on the master output, with 4 parameters each.</p></div>
 <table><thead><tr><th>Pad</th><th>Effect</th><th>K1-K4</th></tr></thead><tbody>
 <tr><td>1</td><td>Gater</td><td>division, depth, width, smoothing</td></tr>
-<tr><td>2 / 3</td><td>Auto-Filter low / high pass</td><td>speed, resonance, depth, centre</td></tr>
-<tr><td>4</td><td>Digitise</td><td>bit reduction, sample-rate reduction, mix</td></tr>
+<tr><td>2 / 3</td><td>Auto-Filter low / high pass</td><td>speed, depth, resonance, centre frequency</td></tr>
+<tr><td>4</td><td>Digitise</td><td>sample-rate reduction, bit reduction (K3 and K4 do nothing)</td></tr>
 <tr><td>5</td><td>Phaser</td><td>speed, depth, feedback, mix</td></tr>
-<tr><td>6</td><td>Vinyl</td><td>threshold, hiss, tone</td></tr>
+<tr><td>6</td><td>Vinyl</td><td>crackle, hiss, tone (low pass), wear (high pass)</td></tr>
 </tbody></table>
 <ul>
 <li>Hold = active; Shift = latched. The brightness of the knob LEDs shows the value.</li>
@@ -4160,9 +4160,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Going back:</strong> send another version or the official firmware. If the device does not start: hold <strong>Scales + Preset + Note</strong> at power-on (bootloader recovery mode).</li>
 <li>The RC branch does not publish <code>.syx</code> files: they are generated with <code>tools/patch_official.py</code> from the official firmware.</li>
-<li><strong>RC0.5</strong> (sixth release candidate) = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
+<li><strong>RC0.6</strong> (seventh release candidate) = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
 <li><strong>BETA5</strong> (beta) = SC39.6: RC0.5 + what this manual marks <strong>BETA5 only</strong> (granular stretch, MIDI Thru Merge / Filter, Clear + page pad, patches by voice mode, split keyboard, random-mutate, patches of the own synth, granular source selector, saving the synth’s patch, macro knob destinations, copying projects, type knobs as colours). Only random-mutate and the split keyboard are tested on the device: use it with a backup of the SD card.</li>
-<li><strong>Safer build:</strong> RC0.5S = RC0.5 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.5 add outside the SD card). <strong>Back up the SD card before installing</strong> any version.</li>
+<li><strong>Safer build:</strong> RC0.6S = RC0.6 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.6 add outside the SD card). <strong>Back up the SD card before installing</strong> any version.</li>
 <li>New features and fixes of every version: <code>CHANGELOG.md</code>.</li>
 </ul>
 </section>
@@ -4196,4 +4196,4 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Master FX — channel 16, NRPN MSB 9</h4>
 <p>LSB = 4 × set + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl 16-19.</p>
 </section>
-<footer>CIRCUIT-HACKS RC0.5 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC0.6 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
