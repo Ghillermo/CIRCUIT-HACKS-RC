@@ -13,6 +13,9 @@ Patches/, or its Patches folder).
     patchtool.py dump PACK DIR                  every slot in use as DIR/NN_name.ctm
     patchtool.py clear PACK:N                   the slot empty
     patchtool.py slist PACK / sname PACK:N "NAME" / sdump PACK:N FILE.bin     the stock synth patches (0..127): list, rename, dump
+    patchtool.py fxdiag PACK                    the marks the SC40D diagnostic leaves after project saves (records 64..127)
+    patchtool.py patdiag PACK                   the marks the SC403D diagnostic leaves in the settings of every pattern
+    patchtool.py sessdiag PACK                  the marks the SC402D diagnostic leaves in the last 1000 bytes of the projects
 
 Every write into a pack copies the bank to *.bak first (once) and never touches the 340 bytes of the synth patch of the record.  A slot whose
 record (or bank file) does not exist yet is created with empty synth patches (0xFF, what the device itself leaves between patches).
@@ -196,7 +199,7 @@ def sname_of(p): return p[:16].decode("latin-1").rstrip(" \0")
 
 def main():
     ap = argparse.ArgumentParser(description="Patches del sinte propio de MIDI 1 / 2: biblioteca de ficheros y huecos de un pack", epilog="python tools/patchtool.py -h; la cabecera del fichero explica cada orden")
-    ap.add_argument("cmd", choices=["list", "show", "set", "name", "new", "copy", "dump", "clear", "slist", "sname", "sdump"]); ap.add_argument("args", nargs="*")
+    ap.add_argument("cmd", choices=["list", "show", "set", "name", "new", "copy", "dump", "clear", "slist", "sname", "sdump", "fxdiag", "sessdiag", "patdiag"]); ap.add_argument("args", nargs="*")
     a = ap.parse_args(); A = a.args
     try: sys.stdout.reconfigure(encoding="utf-8")
     except Exception: pass
@@ -241,6 +244,44 @@ def main():
         pad = read_slot(w.pack, w.n)
         if state(pad) == "empty": sys.exit(f"{w.text}: ya está vacío")
         write_slot(w.pack, w.n, b"\xFF" * min(len(pad), REC - PSZ)); print(f"{w.text}: vaciado")
+    elif a.cmd == "fxdiag":                                                           # the marks of the SC40D diagnostic (tools/fxdiag.py): records 64..127
+        need(1, "fxdiag PACK"); pack = Path(A[0]); k = 0
+        for n in range(64):
+            f = bank_file(pack, (64 + n) // PER)
+            pad = record(f.read_bytes(), (64 + n) % PER)[1] if f else b""
+            if pad[:4] != b"FXD1": continue
+            ok = len(pad) >= 16 and bytes(x ^ 0xFF for x in pad[:8]) == pad[8:16] and pad[7] == 0xA5
+            print(f" proyecto {n + 1:2d} (registro {64 + n}): {'marca bien' if ok else 'marca DAÑADA'}, guardados vistos {pad[4]}, proyecto {pad[5] + 1}, pack {pad[6] + 1}"); k += 1
+        print(k, "marcas del diagnóstico SC40D")
+    elif a.cmd == "sessdiag":                                                         # the marks of the SC402D diagnostic (tools/taildiag.py): the last 1000 bytes of every project
+        need(1, "sessdiag PACK"); pack = Path(A[0]); d = pack / "Sessions" if (pack / "Sessions").is_dir() else pack; k = 0
+        for f in sorted(d.glob("*.ncs")):
+            data = f.read_bytes()
+            if len(data) != 0x2740C: print(f" {f.name}: {len(data)} bytes (se esperaban 160780)"); continue
+            t = data[0x27024:]; used = sum(1 for c in t if c)
+            if t[:4] == b"TAIL": txt = f"marca TAIL, guardados vistos {t[4]}, marca final {'bien' if t[-4:] == b'END!' else 'FALTA'}"; k += 1
+            else: txt = "sin marca" + ("" if not used else f"; ¡{used} bytes distintos de cero en la cola!")
+            print(f" {f.name}: {txt}")
+        print(k, "proyectos con la marca del diagnóstico SC402D")
+    elif a.cmd == "patdiag":                                                          # the marks of the SC403D diagnostic (tools/patdiag.py): bytes 4..39 of the settings of every pattern
+        need(1, "patdiag PACK"); pack = Path(A[0]); d = pack / "Sessions" if (pack / "Sessions").is_dir() else pack
+        import patdiag as PD
+        names = ["Synth 1", "Synth 2", "MIDI 1", "MIDI 2", "Drum 1", "Drum 2", "Drum 3", "Drum 4"]
+        want = lambda i: bytes([PD.ID | i, PD.TAG]) + bytes(range(PD.FIRST + 2, PD.SET_LEN))
+        for f in sorted(d.glob("*.ncs")):
+            data = f.read_bytes()
+            if len(data) != 0x2740C: print(f" {f.name}: {len(data)} bytes (se esperaban 160780)"); continue
+            st = [data[PD.settings_offset(i) + PD.FIRST:PD.settings_offset(i) + PD.SET_LEN] for i in range(PD.N_PAT)]
+            if not any(any(x) for x in st): print(f" {f.name}: sin marcas"); continue
+            own = sum(1 for i in range(PD.N_PAT) if st[i] == want(i)); print(f" {f.name}: {own} de {PD.N_PAT} patrones con su marca intacta")
+            for i in range(PD.N_PAT):
+                if st[i] == want(i): continue
+                who = f"{names[i // 8]} patrón {i % 8 + 1}"
+                if not any(st[i]): print(f"   {who}: a cero (borrado)"); continue
+                src = st[i][0] & 0x3F
+                if st[i] == want(src): print(f"   {who}: lleva la marca de {names[src // 8]} patrón {src % 8 + 1} (copiado)"); continue
+                bad = [PD.FIRST + k for k in range(len(st[i])) if st[i][k] != want(i)[k]]
+                print(f"   {who}: bytes cambiados {bad}: {st[i].hex(' ')}")
     # ---- the stock synth patches: list, rename, dump (Components does the rest)
     elif a.cmd == "slist":
         need(1, "slist PACK"); bk = banks(Path(A[0]))

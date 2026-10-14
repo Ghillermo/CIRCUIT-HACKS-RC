@@ -57,6 +57,8 @@ SAVE_MASK = False                     # SC30: the save skips the XMEM copy only 
                                       # the VCF tick keeps bit 3 ("initialised this session") set: no save wrote the slots, the modes or the signature any more
 GFX_GLOBAL = False                    # SC30: the Master FX slot assignments are loaded from the project only once after power-up; a later project load / new project keeps the RAM
                                       # ones (the effects and the song pointer are still switched off).  The top-row parameters were already RAM only.  The save still copies them
+GFX_SESSION = False                   # SC40.9 (not with GFX_GLOBAL): the slot assignments are loaded from every project that carries our signature; a project
+                                      # without it (and a new project) keeps the RAM ones
 F_GBOOT = 0x20                        # FLAGS bit (GFX_GLOBAL): the first deferred load since power-up is done (the block is zero when it is created)
 BLOB_KEEP = False                     # SC19.4: the whole-blob copy into a synth store (vtable slot 3, 0x0803BBE2: a patch change, the stock "reload patch" 0x0802FC82, an apply
                                       # with another patch) keeps our 22 bytes of that store (the library patches have zeros there)
@@ -494,6 +496,9 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.label("c_xm_load")
     a.emit(push_list, [4, 5, 6, 7], lr=True)
     a.emit(mov_reg, 4, 0); a.emit(movs_imm, 5, 0)
+    if GFX_SESSION:                                                                  # nothing of ours in this project: keep the RAM ones
+        a.emit(movs_imm, 0, XM_SIG); a.emit(bl, "c_xp"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "xl_modes", "eq")
+        a.emit(ldrb_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 3); a.emit(cmp_imm, 0, SIG); a.emit(b_cond, "xl_modes", "ne")
     if GFX_GLOBAL:                                                                   # slots already loaded since power-up: keep the RAM ones
         a.emit(ldrb_w, 0, 4, FLAGS); a.emit(movs_imm, 1, F_GBOOT); a.emit(tst_reg, 0, 1); a.emit(b_cond, "xl_modes", "ne")
     a.label("xl_s")
@@ -512,7 +517,7 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.emit(movs_imm, 1, 0x7F); a.emit(ands_reg, 0, 1); a.emit(strb_imm, 0, 6, 3)
     a.label("xl_vn")
     a.emit(adds_imm8, 5, 1); a.emit(cmp_imm, 5, 7); a.emit(b_cond, "xl_v", "lo")
-    if GFX_GLOBAL: a.label("xl_modes")
+    if GFX_GLOBAL or GFX_SESSION: a.label("xl_modes")
     a.emit(movs_imm, 0, XM_MODES); a.emit(bl, "c_xp"); a.emit(movs_imm, 5, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "xl_m", "eq"); a.emit(ldrb_imm, 5, 0, 0)
     a.label("xl_m")
     a.emit(mov_reg, 6, 4); a.emit(subs_imm8, 6, GFX_OFF)                             # r6 = SC14 state

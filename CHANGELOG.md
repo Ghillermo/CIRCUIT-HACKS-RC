@@ -4,6 +4,28 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC0.7 / RC0.7S y Beta 1.0 — 2026-10-14
+
+RC0.7 = RC0.6 + dos arreglos. RC0.7S = RC0.6S + los mismos (**S**). **Beta 1.0** (marca `B1.0` en el aparato; = SC40.9) sustituye a BETA5: lleva los arreglos y todo lo nuevo desde entonces. En el manual, lo de la beta va marcado **solo Beta 1.0**.
+
+### Arreglos (RC0.7, RC0.7S y Beta 1.0)
+- **El step-drummer, el secuenciador de efectos y el stretch del granular siguen el patrón de su propia pista** (**S**). Leían el patrón, el paso y los ticks de otra pista; no se notaba mientras todas tenían la misma longitud. La captura armada con el transporte en marcha vuelve a esperar al siguiente compás.
+- **Knob selector del secuenciador de efectos, tres veces más lento** (**S**): un hueco cada ~48 pasos de giro.
+- Manual: el secuenciador de efectos dispara los huecos de la fila inferior de Master FX; **un hueco sin efecto asignado no hace nada**.
+
+### Novedades de la Beta 1.0 (desde BETA5)
+- **Cadenas de patrones** con un **modo cadena** de todo el proyecto (Shift + Octave ▲ / ▼ en Patterns) que cada escena recuerda; escenas encadenadas en otro color, pistas que parpadean, **repeticiones de escena** (Shift + pads 9-16 del Mixer).
+- **Nudge** y **órdenes de reproducción fractal y deconstruido** (pads 26-28 de Pattern Settings), en todas las pistas.
+- **Frecuencia** del paso (cada n vueltas) y **dinámicas** aleatorias (velocity, posición, duración) en la vista de probabilidad.
+- **Master FX:** gesto mecánico en el pad 31 y Glitch en el pad 6; Digitise K3 = envío momentáneo al delay, K4 = envolvente; **los 20 knobs, los huecos y el compresor se guardan con cada proyecto**.
+- **Knobs en la vista Sidechain:** K1-K4 = ataque, hold, decay y profundidad; K7 / K8 = ataque y release del compresor master.
+- **Patches del sinte propio de MIDI 1 / 2 de un pack a otro** (Duplicate + A, otro pack, Duplicate + B).
+- **Record en la vista Setup** = grabar también en el sinte lo que le manda una pista MIDI por el canal compartido.
+- El LFO del Auto-Filter y del Phaser arranca al activar el efecto (ya en RC0.6).
+
+### Probado en el aparato (2026-10-14)
+Frecuencia y dinámicas, cadenas de patrones y escenas, Nudge y órdenes (pistas de notas), gesto mecánico, Glitch en el pad 6, Digitise K3 / K4, knobs de tipo en color, knobs del sidechain, guardar el patch del sinte, patches del sinte propio (también entre packs) y copiar proyectos. Sin probar: lo añadido en la Beta 1.0 sobre eso (modo cadena global, drums, Master FX por sesión, compresor en Sidechain, Record en Setup) y los dos arreglos.
+
 ## RC0.6 / RC0.6S — 2026-10-14
 
 RC0.6 = RC0.5 + dos arreglos. RC0.6S = RC0.5S + los mismos (**S**). La beta sigue siendo **BETA5**, que no cambia (lleva el segundo arreglo; el primero, aún no).
@@ -149,6 +171,28 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC0.7 / RC0.7S and Beta 1.0 — 2026-10-14
+
+RC0.7 = RC0.6 + two fixes. RC0.7S = RC0.6S + the same ones (**S**). **Beta 1.0** (marker `B1.0` on the device; = SC40.9) replaces BETA5: it carries the fixes and everything new since then. In the manual, what only the beta has is marked **Beta 1.0 only**.
+
+### Fixes (RC0.7, RC0.7S and Beta 1.0)
+- **The step-drummer, the FX sequencer and the granular stretch follow the pattern of their own track** (**S**). They read the pattern, the step and the ticks of another track; it went unnoticed while every track had the same length. The armed capture with the transport running waits for the next bar again.
+- **Selector knob of the FX sequencer three times slower** (**S**): one slot every ~48 steps of the turn.
+- Manual: the FX sequencer fires the slots of the Master FX bottom row; **a slot with no effect assigned does nothing**.
+
+### New in Beta 1.0 (since BETA5)
+- **Pattern chains** with a project-wide **chain mode** (Shift + Octave ▲ / ▼ in Patterns) that every scene remembers; chained scenes in another colour, blinking tracks, **scene repeats** (Shift + pads 9-16 of the Mixer).
+- **Nudge** and the **fractal and deconstructed play orders** (pads 26-28 of Pattern Settings), on every track.
+- Step **frequency** (every n plays) and random **dynamics** (velocity, position, length) in the probability view.
+- **Master FX:** mechanical gesture on pad 31 and Glitch on pad 6; Digitise K3 = momentary send to the delay, K4 = envelope; **the 20 knobs, the slots and the compressor are saved with every project**.
+- **Knobs in the Sidechain view:** K1-K4 = attack, hold, decay and depth; K7 / K8 = attack and release of the master compressor.
+- **Own-synth patches of MIDI 1 / 2 from one pack to another** (Duplicate + A, another pack, Duplicate + B).
+- **Record in the Setup view** = also record into the synth what a MIDI track sends it over the shared channel.
+- The LFO of the Auto-Filter and of the Phaser starts when the effect comes on (already in RC0.6).
+
+### Tested on the device (2026-10-14)
+Frequency and dynamics, pattern chains and scenes, Nudge and the orders (note tracks), mechanical gesture, Glitch on pad 6, Digitise K3 / K4, type knobs as colours, side-chain knobs, saving the synth patch, own-synth patches (between packs too) and copying projects. Untested: what Beta 1.0 adds on top (project-wide chain mode, drums, Master FX per session, compressor in the Sidechain view, Record in Setup) and the two fixes.
 
 ## RC0.6 / RC0.6S — 2026-10-14
 

@@ -143,6 +143,8 @@ def main(img, man, prev, prev_man):
     if tl_ is not None: assert int(tl_["prev"]["gleds"], 16) == HK; HK = int(tl_["labels"]["c_tgleds"], 16)
     sc_ = man["report"].get("sesscopy")                                           # SC39.6: the project copy chains in front of the LED task hook
     if sc_ is not None: assert int(sc_["prev"]["ledtask"], 16) == HT; HT = int(sc_["labels"]["c_scledtask"], 16)
+    th_ = man["report"].get("throw")                                              # SC39.8: the delay throw is the head of the button chain
+    if th_ is not None: HB = int(th_["labels"]["c_thbtn"], 16)
     check(w(MC.SP_VT) == HP | 1 and w(MC.SP_VT + 28) == HL | 1 and w(MC.AC64_VT + 16) == L["c_mcknob"] | 1 and w(MC.AC64_VT + 28) == HK | 1
           and bytes(img[MC.BTN_ENTRY - B:MC.BTN_ENTRY - B + 4]) == b_w(MC.BTN_ENTRY, HB) and all(bytes(img[c - B:c - B + 4]) == bl(c, HT) for c in PK.LED_CALLS),
           f"the hooks: the synth Preset view's slots 0 / 7, the macro handlers' slots 4 / 7, the button chain's head, the LED task calls (in front of {', '.join(f'{k} {v:#x}' for k, v in P.items())})")

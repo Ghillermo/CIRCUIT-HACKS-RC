@@ -254,6 +254,73 @@ def use_sp3():
     SP3 = True
 
 
+MECH = False                              # SC39.7 (see use_mech)
+MECH_T0, MECH_TK = 20, 2                  # the gesture lasts MECH_T0 + K x K >> MECH_TK ms (K = 0..127: 20 ms .. 4 s)
+MECH_TEAR = (127, 50, -90, -127)          # the tear scratch: the speed of each quarter of a movement
+
+
+def use_mech():
+    """SC39.7 (the user, 2026-10-12: «replantea el efecto Vinyl: en su lugar … "manipulación mecánica" tipo tape stop, scratch, jog spin, rattle … cuando se toca se
+    produce un stop … y al soltar, otro efecto contrario» … «usa el motor de Glitch, ocupando el atajo de Vinyl (Vinyl se descarta). La transición entre tipos será
+    medianamente continua … Considera varios tipos de scratch (baby, tear…)»): pad 6 (and whatever switches the Vinyl effect on: its latch, a bottom slot, the FX
+    sequencer) no longer sets the Vinyl bit of the DSP; while it is on, the DSP service tick drives the Glitch engine (core 1: a tape head on the recent master)
+    with an envelope of its speed and repeat size, and when it goes off, with the same envelope backwards, then the Glitch engine is let go.
+      K1 = how fast the hand moves (the movements per gesture of the scratches: 1..8), K2 = the kind, K3 = the time of the stop, K4 = the time of the start.
+      K2 walks five kinds, every position in between a mix of its two neighbours: tape stop (the speed falls to 0) -> baby scratch (back and forth, dying)
+      -> tear scratch (the same in steps) -> back spin (thrown backwards, dying) -> rattle (the repeat closes on itself, then stops).
+    x = the place in the gesture 0..127, y = 127 - x; the speed v = -127..127 (127 = normal) goes to the Glitch as K1 = 64 + (63 v + 64 >> 7), the repeat as K2.
+    State: bit 7 of the Glitch's K4 byte = the gesture runs (the Glitch's own tick waits); X:VN_T of the DSP (a Vinyl parameter, free now) = phase << 22 | start time."""
+    global MECH
+    assert GLITCH and GL3
+    MECH = True
+
+
+DIGI4 = False                             # SC39.9 (see use_digi4)
+MECH_COL = (0x01, 0x2D, 0x2B, 0x45)       # the K2 LED of the mechanical gesture: tape -> baby white, baby -> tear yellow, tear -> spin orange, spin -> rattle red
+MECH_MINB = 24                            # ... from this brightness at the start of a stretch up to 127 at its end
+
+
+def use_digi4():
+    """SC39.9 (the user, 2026-10-12: «en digitiser no se encienden knob 3 y 4, asigna a 4 una envolvente bipolar A/D a digitiser level. En el nuevo modo vinyl
+    (manipulación mecánica) separa los modos con colores, aunque sean continuos (cada segmento de un color, con brillo ascendente)»).
+      * Digitise shows its four knob LEDs (K3 = the delay throw of tools/throw.py; K4 dark in the middle, brighter either way).
+      * K4 of Digitise = an envelope of the amount of the effect from the moment it is switched on: right of the middle = a decay (it starts whole and fades to
+        clean), left = an attack (it starts clean and grows to whole); the further from the middle, the longer (20 ms + d x d, d = 1..64: up to ~4 s); the middle =
+        none.  The amount scales the indices of K1 (sample rate) and K2 (bits) into their tables (index 0 = clean); the tick writes X:DG_N / DG_MASK while Digitise
+        is on.  The start time lives in X:VN_ST of the DSP (a Vinyl state word, free since SC39.7), read only while Digitise is on with K4 off the middle.
+      * the K2 LED of the mechanical gesture: one colour per stretch between two kinds (MECH_COL), brighter along the stretch."""
+    global DIGI4
+    assert MECH and KNOB_BRIGHT and SPCACHE
+    DIGI4 = True
+
+
+MSWAP = False                             # SC39.9 (see use_mechswap)
+MECH_DEF = (40, 0, 60, 30)                # the mechanical gesture's knobs when they live in the Glitch's bytes (MSWAP): 3 movements, tape stop, ~0.9 s stop, ~0.25 s start
+
+
+def use_mechswap():
+    """SC39.9 (the user, 2026-10-12: «intercambia la posición de vinyl con glitch»): the Glitch is pad 6 of the top row (an effect like the others: held, latched
+    with Shift, assignable to a bottom slot, bit 5 of the FX sequencer) and the mechanical gesture is pad 31 (held; pad 31 + a bottom pad assigns it; bit 6 of the
+    FX sequencer).  Nothing moves in the views' code: the two engines swap where they read from.  The Glitch plays while effect 5 is on and takes its K1..K4 from
+    the knob set of pad 6 (sent when it comes on and when a knob of the view changes); the gesture runs while pad 31 is held and takes its knobs from the four
+    bytes of pad 31 (bits 0-6: their bit 7 keeps meaning held / to send / sent / a gesture runs)."""
+    global MSWAP
+    assert MECH
+    MSWAP = True
+
+
+T0FIX = False                             # SC40 (see use_t0fix)
+
+
+def use_t0fix():
+    """SC40 (found in SC39.9; the user: «arregla el lfo»): in c_fxtick the loop that stores the start time of every effect set that has just come on used the
+    labels ft_t0..ft_t4, and ft_t0 is also the label of the end of that section: when the Gater (set 0) was not among the new ones the whole loop was jumped,
+    so the LFO of the Auto-Filter and of the Phaser only started from the moment of the press when the Gater came on in the same tick; otherwise it went on
+    from an older start (a phase that seemed random).  The loop's labels are its own now: every set starts its LFO when it comes on."""
+    global T0FIX
+    T0FIX = True
+
+
 def use_glitch():
     """SC36 (the user, 2026-10-09): pad 31 of the Master FX view and of the FX view = the Glitch (DSP core 1, tools/granular_dsp.py): held = the master output replaced by a tape
     head reading the recent master (K1 speed: top = 1, middle = stopped, bottom = backwards; K2 repeat size, 127 = continuous; K3 delay; K4 chaos).  Pad 31 is no longer an
@@ -301,6 +368,13 @@ def use_armplay():
     ARMPLAY = True
 
 
+def use_engfix():
+    """SC40.9: SEQ_ENGINE was the engine's interface (the engine + 0xC): its «ticks store» (+ 0x90) was the chain store, whose first word is 0
+    while Synth 1 plays its pattern 1 alone, so the armed capture (ARMPLAY) started at once when it was armed while playing.  See vcf21.use_engfix."""
+    global SEQ_ENGINE
+    SEQ_ENGINE = 0x20038EC0
+
+
 def use_armplay2():
     """SC38.4 (SC38.2 on the device, 2026-10-11: «desde parado > empieza a grabar en el segundo compás, debería hacerlo en el primero»): the stock
     starts the transport in the Play handler with 0x0802BD3C bl SET_TICKS(engine, 0) (seen in emulation: a Play press from a stop calls it, a stop
@@ -323,18 +397,6 @@ def use_latch7():
     global LATCH7
     assert SMP_HOLD and SMP2
     LATCH7 = True
-
-
-T0FIX = False                             # RC0.6 (see use_t0fix)
-
-
-def use_t0fix():
-    """RC0.6 (the user: «arregla el lfo»): in c_fxtick the loop that stores the start time of every effect set that has just come on used the
-    labels ft_t0..ft_t4, and ft_t0 is also the label of the end of that section: when the Gater (set 0) was not among the new ones the whole loop was jumped,
-    so the LFO of the Auto-Filter and of the Phaser only started from the moment of the press when the Gater came on in the same tick; otherwise it went on
-    from an older start (a phase that seemed random).  The loop's labels are its own now: every set starts its LFO when it comes on."""
-    global T0FIX
-    T0FIX = True
 
 
 def use_gclear():
@@ -497,6 +559,8 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.label("gf_d"); a.emit(ldrb_reg, 0, 1, 3); a.emit(adds_imm8, 3, S_KNOB)
     a.emit(raw, h(0x54E0))                                                     # strb r0,[r4,r3]
     a.emit(subs_imm8, 3, S_KNOB - 1); a.emit(cmp_imm, 3, 20); bc("gf_d", "lo")
+    if MSWAP:                                                                  # the gesture's knobs (pad 31's bytes) start at their defaults
+        for k_, v_ in enumerate(MECH_DEF): a.emit(movs_imm, 0, v_); a.emit(strb_w, 0, 4, S_SLOT + 4 * GL_SLOT + k_)
     a.emit(movs_imm, 0, 1); a.emit(strb_imm, 0, 4, S_DIRTY)
     a.emit(movs_imm, 0, 0xFF); a.emit(strb_imm, 0, 4, S_FXON)
     a.emit(movs_imm, 0, 0); a.emit(raw, h(0x43C0))                             # mvns r0,r0 -> 0xFFFFFFFF
@@ -613,7 +677,11 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         if GLITCH:
             a.emit(cmp_imm, 2, GL_SEL); a.emit(b_cond, "gc_ng", "ne")
             a.emit(adds_reg, 0, 4, 5); a.emit(ldrb_w, 0, 0, S_SLOT + 4 * GL_SLOT); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 25)
-            a.emit(movs_imm, 1, GL_DEF[2]); a.emit(cmp_imm, 5, 2); a.emit(b_cond, "gc_x", "hs"); a.emit(movs_imm, 1, GL_DEF[0]); a.emit(b, "gc_x")
+            if MSWAP:
+                for k_, v_ in enumerate(MECH_DEF): a.emit(movs_imm, 1, v_); a.emit(cmp_imm, 5, k_); a.emit(b_cond, "gc_x", "eq")
+                a.emit(b, "gc_x")
+            else:
+                a.emit(movs_imm, 1, GL_DEF[2]); a.emit(cmp_imm, 5, 2); a.emit(b_cond, "gc_x", "hs"); a.emit(movs_imm, 1, GL_DEF[0]); a.emit(b, "gc_x")
             a.label("gc_ng")
         if SMP:
             a.emit(cmp_imm, 2, SMP_SEL); a.emit(b_cond, "gc_ns", "ne")
@@ -713,11 +781,25 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         for k in range(8): a.emit(raw, strh_w(0, 6, 2 * (34 + k)))
         a.emit(cmp_imm, 1, N_FX); bc("gl_ret", "hs")
         for i, (on, dim) in enumerate(pal_codes):
-            nk = 2 if SETMAP[i] == 2 else 4                                    # Digitise has 2 parameters
+            nk = 2 if SETMAP[i] == 2 and not DIGI4 else 4                      # Digitise has 2 parameters (4 with DIGI4)
             a.emit(cmp_imm, 1, i); a.emit(b_cond, f"gk_n{i}", "ne")
             a.emit(movw, 0, on)
             for k in range(nk):
-                if KNOB_BRIGHT:                                                # colour | (value + 2) << 8: the converter hook of persist19.KNOB_LEVELS splits it
+                if DIGI4 and SETMAP[i] == 2 and k == 3:                        # Digitise K4, bipolar: |K4 - 64| x 2 as the brightness
+                    a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(subs_imm8, 2, 64); a.emit(b_cond, f"gk_b{i}", "ge"); a.emit(raw, h(0x4252))   # rsbs r2, r2, #0
+                    a.label(f"gk_b{i}"); a.emit(lsls_imm, 2, 2, 1); a.emit(cmp_imm, 2, 127); a.emit(b_cond, f"gk_c{i}", "ls"); a.emit(movs_imm, 2, 127)
+                    a.label(f"gk_c{i}"); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0); a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
+                elif DIGI4 and not MSWAP and SETMAP[i] == 4 and k == 1:        # the kind of the mechanical gesture: the colour of the stretch, brighter along it
+                    a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(movs_imm, 3, 0x7F); a.emit(ands_reg, 2, 3); a.emit(lsls_imm, 2, 2, 2)
+                    a.emit(lsrs_imm, 3, 2, 7)                                   # r3 = the stretch 0..3
+                    for q, col in enumerate(MECH_COL):
+                        a.emit(cmp_imm, 3, q); a.emit(b_cond, f"gk_m{i}_{q}", "ne"); a.emit(movs_imm, 3, col); a.emit(b, f"gk_me{i}"); a.label(f"gk_m{i}_{q}")
+                    a.emit(movs_imm, 3, MECH_COL[-1])
+                    a.label(f"gk_me{i}")
+                    a.emit(push_list, [0]); a.emit(movs_imm, 0, 127); a.emit(ands_reg, 2, 0); a.emit(movs_imm, 0, 127 - MECH_MINB); a.emit(muls, 2, 0)
+                    a.emit(lsrs_imm, 2, 2, 7); a.emit(adds_imm8, 2, MECH_MINB + 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 3); a.emit(pop_list, [0])
+                    a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
+                elif KNOB_BRIGHT:                                              # colour | (value + 2) << 8: the converter hook of persist19.KNOB_LEVELS splits it
                     a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0)
                     a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
                 else:
@@ -791,6 +873,24 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.label("ct_lo"); a.emit(cmp_imm, 0, 127); bc("ct_hi", "le"); a.emit(movs_imm, 0, 127)
     a.label("ct_hi"); a.emit(raw, h(0x4770))
 
+    if DIGI4:
+        # ---- c_digenv (r4 = the block; Digitise is on): K4 off the middle = the amount of the effect follows an attack (left) or a decay (right) from its start
+        a.label("c_digenv")
+        a.emit(push_list, [5, 6, 7], lr=True)
+        knob(5, 4, 2, 3); a.emit(subs_imm8, 5, 64); bc("dv_x", "eq")                # r5 = d
+        a.emit(mov_reg, 6, 5); a.emit(cmp_imm, 6, 0); a.emit(b_cond, "dv_m", "ge"); a.emit(raw, h(0x4276))     # rsbs r6, r6, #0
+        a.label("dv_m"); a.emit(muls, 6, 6); a.emit(adds_imm8, 6, 20)             # r6 = the time: 20 + d x d ms
+        a.emit(movs_imm, 0, 0); a.emit(movw, 1, G.VN_ST); a.emit(bl, 0x08029344); a.emit(lsrs_imm, 0, 0, 8); a.emit(mov_reg, 7, 0)
+        a.emit(bl, c_now); a.emit(subs_reg, 0, 0, 7); a.emit(lsls_imm, 0, 0, 8); a.emit(lsrs_imm, 0, 0, 8)
+        a.emit(movw, 1, 0x7FFF); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "dv_c", "ls"); a.emit(mov_reg, 0, 1)
+        a.label("dv_c"); a.emit(movs_imm, 1, 127); a.emit(muls, 0, 1); a.emit(raw, udiv(0, 0, 6)); a.emit(cmp_imm, 0, 127); a.emit(b_cond, "dv_k", "ls"); a.emit(movs_imm, 0, 127)
+        a.label("dv_k"); a.emit(mov_reg, 7, 0)                                      # r7 = x 0..127
+        a.emit(cmp_imm, 5, 0); a.emit(b_cond, "dv_e", "lt"); a.emit(movs_imm, 0, 127); a.emit(subs_reg, 7, 0, 7)   # right: the decay; left: the attack
+        a.label("dv_e")
+        knob(1, 4, 2, 0); a.emit(muls, 1, 7); a.emit(lsrs_imm, 1, 1, 7); ldtab(0, "DGN", 1); a.emit(movw, 1, G.DG_N); a.emit(bl, "c_dw")
+        knob(1, 4, 2, 1); a.emit(muls, 1, 7); a.emit(lsrs_imm, 1, 1, 7); ldtab(0, "DGM", 1); a.emit(movw, 1, G.DG_MASK); a.emit(bl, "c_dw")
+        a.label("dv_x"); a.emit(pop_list, [5, 6, 7], pc=True)
+
     # ---- c_fxtick: DSP service tick (then SC14's c_gtick)
     a.label("c_fxtick")
     a.emit(push_list, [4, 5, 6, 7], lr=True)
@@ -802,6 +902,13 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.emit(ldrb_imm, 7, 4, S_HELD); a.emit(ldrb_imm, 0, 4, S_LATCH); a.emit(orrs_reg, 7, 0)
     if SLOTS: a.emit(bl, "c_slotbits"); a.emit(orrs_reg, 7, 0)                # + effects driven by held FX slots
     if GLITCH: a.emit(bl, "c_fsqfx" if GL2 else "c_fxsq"); a.emit(movs_imm, 1, 0x3F); a.emit(ands_reg, 0, 1); a.emit(orrs_reg, 7, 0)   # + the FX step sequencer of the MIDI tracks (vcf21)
+    if MECH:                                                                   # the Vinyl pad is the mechanical gesture: its bit drives the Glitch engine, not the DSP effect
+        if MSWAP:                                                               # the gesture = pad 31 held, or the sequencer's bit 6
+            a.emit(bl, "c_fsqfx"); a.emit(lsrs_imm, 1, 0, 6); a.emit(movs_imm, 0, 1); a.emit(ands_reg, 1, 0)
+            a.emit(ldrb_w, 0, 4, S_SLOT + 4 * GL_SLOT); a.emit(lsrs_imm, 0, 0, 7); a.emit(orrs_reg, 1, 0)
+        else:
+            a.emit(lsrs_imm, 1, 7, N_FX - 1); a.emit(movs_imm, 0, 1); a.emit(ands_reg, 1, 0)
+        a.emit(movs_imm, 0, 1 << (N_FX - 1)); a.emit(bics_reg, 7, 0); a.emit(bl, "c_mechtick")
     a.emit(movs_imm, 5, 0); a.emit(movs_imm, 6, 0)
     for i in range(N_FX):
         a.emit(lsrs_imm, 0, 7, i + 1); a.emit(b_cond, f"ft_n{i}", "cc")
@@ -814,6 +921,12 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.emit(mov_reg, 0, 7); a.emit(mov_reg, 7, 6); a.emit(bics_reg, 7, 0)       # r7 = new bits
     zjmp(7, "ft_t0")
     a.emit(bl, c_now); a.emit(mov_reg, 1, 0)
+    if DIGI4:                                                                   # Digitise switched on: its envelope starts (the time in the DSP), its parameters go again
+        # (here, not in the loop below: its label of set 0, "ft_t0", is also the end's, so the loop only runs when the Gater comes on with the others)
+        a.emit(lsrs_imm, 0, 7, 3); a.emit(b_cond, "ft_dg0", "cc")
+        a.emit(push_list, [1]); a.emit(lsls_imm, 0, 1, 8); a.emit(lsrs_imm, 0, 0, 8); a.emit(movw, 1, G.VN_ST); a.emit(bl, "c_dw")
+        a.emit(movs_imm, 0, 1); a.emit(strb_imm, 0, 4, S_DIRTY); a.emit(pop_list, [1])
+        a.label("ft_dg0")
     for s in range(5):
         if SPCACHE and s == 2: a.label((f"ft_u{s}" if T0FIX else f"ft_t{s}")); continue                    # that word is the playhead cache
         if SMP and s == 4: a.label((f"ft_u{s}" if T0FIX else f"ft_t{s}")); continue                        # that word is the sample's record state
@@ -829,15 +942,18 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     # static parameters (all sets) when dirty
     a.emit(ldrb_imm, 0, 4, S_DIRTY); a.emit(cmp_imm, 0, 0); bc("ft_st", "eq")
     a.emit(movs_imm, 0, 0); a.emit(strb_imm, 0, 4, S_DIRTY)
+    if MSWAP: a.emit(ldrb_w, 0, 4, S_SLOT + 4 * GL_SLOT + 1); a.emit(movs_imm, 1, 0x80); a.emit(orrs_reg, 0, 1); a.emit(strb_w, 0, 4, S_SLOT + 4 * GL_SLOT + 1)
     statics = [(0, 3, "GK", G.G_K), (1, 2, "AFQ", G.AF_Q), (2, 0, "DGN", G.DG_N), (2, 1, "DGM", G.DG_MASK),
                (3, 2, "PHFB", G.PH_FB), (3, 3, "MIX", G.PH_MIX), (4, 0, "VTH", G.VN_T), (4, 1, "VHISS", G.VN_HISS),
                (4, 2, "VLPK", G.VN_LPK), (4, 3, "VHPK", G.VN_HPK)]
     for s, k, tab, addr in statics:
+        if MECH and s == 4: continue                                           # (the Vinyl parameters are not sent: X:VN_T holds the gesture's state)
         knob(1, 4, s, k); ldtab(0, tab, 1); a.emit(movw, 1, addr); a.emit(bl, "c_dw")
-    a.emit(movw, 0, VN_CRAMP & 0xFFFF); a.emit(movt, 0, VN_CRAMP >> 16); a.emit(movw, 1, G.VN_CR); a.emit(bl, "c_dw")
+    if not MECH: a.emit(movw, 0, VN_CRAMP & 0xFFFF); a.emit(movt, 0, VN_CRAMP >> 16); a.emit(movw, 1, G.VN_CR); a.emit(bl, "c_dw")
     a.emit(raw, h(0x2000)); a.emit(raw, h(0x43C0))                             # r0 = 0xFFFFFFFF: force LFO rewrites
     for off in (S_CG, S_CF, S_CA): a.emit(raw, str_w(0, 4, off))
     a.label("ft_st")
+    if DIGI4: a.emit(lsrs_imm, 0, 6, 3); bc("ft_dg", "cc"); a.emit(bl, "c_digenv"); a.label("ft_dg")
     # Gater: period = beat*4/div ; open while phase*128 < duty*period ; G = open ? 1 : GOFF[depth]
     a.emit(lsrs_imm, 0, 6, 1); bc("ft_g", "cc")
     a.emit(bl, c_beat); a.emit(lsls_imm, 5, 0, 2)                              # r5 = bar ms
@@ -879,7 +995,95 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         sampler_code(a, L, tabaddr, bc, zjmp)
     if GLITCH:
         glitch_code(a, dict(L, setmap_addr=setmap_addr, pal_codes=pal_codes), bc, zjmp)
+    if MECH:
+        mech_code(a, L, bc, zjmp)
     return a.assemble()
+
+
+def mech_code(a, L, bc, zjmp):
+    """SC39.7 (use_mech): c_mechtick(r1 = the gesture's pad is on; r4 = the Master FX block), from the DSP service tick: DSP reads / writes only, no lock taken."""
+    import granular_dsp as GD
+    KG = S_SLOT + 4 * GL_SLOT
+    DSP_READ = 0x08029344
+    E = a.emit
+    udiv = s14.udiv
+    def asr7(r): E(raw, h(0x1000 | 7 << 6 | r << 3 | r))                              # asrs r, r, #7
+    def neg(rd, rm): E(raw, h(0x4240 | rm << 3 | rd))                                 # rsbs rd, rm, #0
+    def vk(rd, k): E(ldrb_w, rd, 4, (KG if MSWAP else S_KNOB + 16) + k); E(movs_imm, 3, 0x7F); E(ands_reg, rd, 3)      # the gesture's knob k (clobbers r3)
+    def now22(): E(bl, L["c_now"]); E(lsls_imm, 0, 0, 10); E(lsrs_imm, 0, 0, 10)      # r0 = the time, 22 bits
+
+    # ---- mk_shape(r0 = kind 0..4; r5 = y, r6 = p) -> r0 = the speed -127..127; clobbers r1-r3
+    a.label("mk_shape")
+    E(cmp_imm, 0, 0); E(b_cond, "ms_1", "ne"); E(mov_reg, 0, 5); E(raw, h(0x4770))                  # tape stop: y
+    a.label("ms_1"); E(cmp_imm, 0, 1); E(b_cond, "ms_2", "ne")
+    E(lsls_imm, 0, 6, 1); E(subs_imm8, 0, 127); E(b_cond, "ms_1p", "ge"); neg(0, 0)                 # baby scratch: the triangle |2p - 127| x 2 - 127, dying with y
+    a.label("ms_1p"); E(lsls_imm, 0, 0, 1); E(subs_imm8, 0, 127); E(muls, 0, 5); asr7(0); E(raw, h(0x4770))
+    a.label("ms_2"); E(cmp_imm, 0, 2); E(b_cond, "ms_3", "ne")
+    E(lsrs_imm, 1, 6, 5)                                                                             # tear scratch: four steps per movement
+    for q, val in enumerate(MECH_TEAR):
+        E(cmp_imm, 1, q); E(b_cond, f"ms_t{q}", "ne")
+        E(movs_imm, 0, abs(val))
+        if val < 0: neg(0, 0)
+        E(b, "ms_tm"); a.label(f"ms_t{q}")
+    E(movs_imm, 0, 0)
+    a.label("ms_tm"); E(muls, 0, 5); asr7(0); E(raw, h(0x4770))
+    a.label("ms_3"); E(cmp_imm, 0, 3); E(b_cond, "ms_4", "ne")
+    E(mov_reg, 0, 5); E(muls, 0, 5); asr7(0); neg(0, 0); E(raw, h(0x4770))                           # back spin: -y x y
+    a.label("ms_4"); E(movs_imm, 0, 0); E(cmp_imm, 5, 0); E(b_cond, "ms_x", "eq"); E(movs_imm, 0, 127)   # rattle: the tape runs until the end
+    a.label("ms_x"); E(raw, h(0x4770))
+
+    a.label("c_mechtick")
+    E(push_list, [5, 6, 7], lr=True)
+    E(mov_reg, 5, 1)
+    E(ldrb_w, 6, 4, KG + 3); E(lsrs_imm, 6, 6, 7)                                     # r6 = a gesture runs
+    E(cmp_imm, 5, 0); E(b_cond, "mk_off", "eq")
+    E(cmp_imm, 6, 0); E(b_cond, "mk_p1", "eq")                                        # on, nothing running: the stop starts
+    E(movs_imm, 0, 0); E(movw, 1, G.VN_T); E(bl, DSP_READ); E(lsrs_imm, 0, 0, 8); E(mov_reg, 7, 0)
+    E(lsrs_imm, 0, 7, 22); E(cmp_imm, 0, 1); bc("mk_run", "eq")
+    a.label("mk_p1"); E(movs_imm, 6, 1); E(b, "mk_new")
+    a.label("mk_off")
+    E(cmp_imm, 6, 0); bc("mk_x", "eq")
+    E(movs_imm, 0, 0); E(movw, 1, G.VN_T); E(bl, DSP_READ); E(lsrs_imm, 0, 0, 8); E(mov_reg, 7, 0)
+    E(lsrs_imm, 0, 7, 22); E(cmp_imm, 0, 1); bc("mk_run", "ne")
+    E(movs_imm, 6, 2)                                                                 # let go: the start begins
+    a.label("mk_new")                                                                 # r6 = the new phase: its time; the Glitch's delay and chaos off
+    E(ldrb_w, 0, 4, KG + 3); E(movs_imm, 1, 0x80); E(orrs_reg, 0, 1); E(strb_w, 0, 4, KG + 3)
+    now22(); E(lsls_imm, 1, 6, 22); E(orrs_reg, 0, 1); E(mov_reg, 7, 0); E(movw, 1, G.VN_T); E(bl, "c_dw")
+    E(movs_imm, 0, 0); E(movw, 1, GD.GARM + 3); E(bl, "c_dw"); E(movs_imm, 0, 0); E(movw, 1, GD.GARM + 4); E(bl, "c_dw")
+    a.label("mk_run")                                                                 # r7 = phase << 22 | t0
+    E(lsrs_imm, 6, 7, 22)                                                             # r6 = the phase (1 the stop, 2 the start)
+    now22(); E(subs_reg, 0, 0, 7); E(lsls_imm, 0, 0, 10); E(lsrs_imm, 0, 0, 10); E(mov_reg, 7, 0)       # r7 = the time gone
+    vk(1, 2); E(cmp_imm, 6, 1); E(b_cond, "mk_k", "eq"); vk(1, 3)
+    a.label("mk_k"); E(mov_reg, 0, 1); E(muls, 0, 1); E(lsrs_imm, 0, 0, MECH_TK); E(adds_imm8, 0, MECH_T0)   # r0 = the time of the gesture
+    E(movw, 1, 0x7FFF); E(cmp_reg, 7, 1); E(b_cond, "mk_c", "ls"); E(mov_reg, 7, 1)
+    a.label("mk_c"); E(movs_imm, 1, 127); E(muls, 7, 1); E(raw, udiv(7, 7, 0)); E(cmp_imm, 7, 127); E(b_cond, "mk_xk", "ls"); E(movs_imm, 7, 127)
+    a.label("mk_xk")                                                                  # r7 = x 0..127
+    E(cmp_imm, 6, 2); E(b_cond, "mk_sh", "ne")
+    E(cmp_imm, 7, 127); E(b_cond, "mk_inv", "lo")
+    E(ldrb_w, 0, 4, KG + 3); E(movs_imm, 1, 0x80); E(bics_reg, 0, 1); E(strb_w, 0, 4, KG + 3)       # the start is over: the Glitch's own state goes again
+    E(ldrb_w, 0, 4, KG + 1); E(movs_imm, 1, 0x80); E(orrs_reg, 0, 1); E(strb_w, 0, 4, KG + 1)
+    E(b, "mk_x")
+    a.label("mk_inv"); E(movs_imm, 0, 127); E(subs_reg, 7, 0, 7)                      # the start = the stop backwards
+    a.label("mk_sh")
+    E(movs_imm, 0, 127); E(subs_reg, 5, 0, 7)                                         # r5 = y
+    vk(0, 0); E(lsrs_imm, 0, 0, 4); E(adds_imm8, 0, 1); E(mov_reg, 6, 7); E(muls, 6, 0); E(movs_imm, 0, 127); E(ands_reg, 6, 0)   # r6 = p: the place in a movement
+    vk(7, 1); E(lsls_imm, 7, 7, 2)                                                    # r7 = K2 x 4: the kind (bits 7-8) and the mix (bits 0-6)
+    E(lsrs_imm, 0, 7, 7); E(bl, "mk_shape"); E(push_list, [0])
+    E(lsrs_imm, 0, 7, 7); E(adds_imm8, 0, 1); E(bl, "mk_shape")
+    E(movs_imm, 1, 127); E(ands_reg, 1, 7); E(muls, 0, 1)                             # b x w
+    E(pop_list, [2]); E(movs_imm, 3, 128); E(subs_reg, 3, 3, 1); E(muls, 2, 3); E(adds_reg, 0, 0, 2); asr7(0)   # v = (a (128 - w) + b w) >> 7
+    E(movs_imm, 1, 63); E(muls, 0, 1); E(adds_imm8, 0, 64); asr7(0); E(adds_imm8, 0, 64)      # 127 -> 127 (normal), 0 -> 64 (stopped), -127 -> 1
+    E(cmp_imm, 0, 1); E(b_cond, "mk_v1", "ge"); E(movs_imm, 0, 1)
+    a.label("mk_v1"); E(cmp_imm, 0, 127); E(b_cond, "mk_v2", "le"); E(movs_imm, 0, 127)
+    a.label("mk_v2"); E(movw, 1, GD.GARM + 1); E(bl, "c_dw")
+    E(movs_imm, 0, 127)                                                               # the repeat: continuous, closing towards the rattle
+    E(lsrs_imm, 1, 7, 7); E(cmp_imm, 1, 3); E(b_cond, "mk_r", "lo")
+    E(mov_reg, 0, 5); E(muls, 0, 5); asr7(0); E(subs_imm8, 0, 127)                    # (y x y >> 7) - 127 <= 0
+    E(movs_imm, 1, 127); E(ands_reg, 1, 7); E(muls, 0, 1); asr7(0); E(adds_imm8, 0, 127)
+    E(cmp_imm, 0, 1); E(b_cond, "mk_r", "ge"); E(movs_imm, 0, 1)
+    a.label("mk_r"); E(movw, 1, GD.GARM + 2); E(bl, "c_dw")
+    E(movw, 0, GD.GMAGIC & 0xFFFF); E(movt, 0, GD.GMAGIC >> 16); E(movw, 1, GD.GARM); E(bl, "c_dw")
+    a.label("mk_x"); E(pop_list, [5, 6, 7], pc=True)
 
 
 def glitch_code(a, L, bc, zjmp):
@@ -987,14 +1191,20 @@ def glitch_code(a, L, bc, zjmp):
 
     a.label("c_gltick")                                                        # from c_fxtick (the DSP service tick: DSP writes only)
     a.emit(push_list, [5, 6], lr=True)
+    if MECH: a.emit(ldrb_w, 0, 4, KG + 3); a.emit(lsrs_imm, 0, 0, 7); bc("glt_x", "ne")           # a mechanical gesture has the engine
     a.emit(bl, "c_gact"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "glt_v", "ne")                   # neither view showing: released
     a.emit(movw, 0, CTX & 0xFFFF); a.emit(movt, 0, CTX >> 16); a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0x40)
     a.emit(ldr_imm, 1, 0, CTRL_VIEW); a.emit(ldr_imm, 2, 0, 0x44); a.emit(cmp_reg, 1, 2); a.emit(b_cond, "glt_v", "eq")
     a.emit(ldrb_w, 0, 4, KG); a.emit(lsrs_imm, 0, 0, 7); a.emit(b_cond, "glt_v", "eq")
     setbit(KG, False); setbit(KG + 1, True)
     a.label("glt_v")                                                           # on = held | the sequencer's bit 6; a change of it (vs bit 7 of KG + 2 = sent on) = to send
-    a.emit(bl, "c_fsqfx" if GL2 else "c_fxsq"); a.emit(lsrs_imm, 5, 0, 6); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 5, 1)
-    a.emit(ldrb_w, 0, 4, KG); a.emit(lsrs_imm, 0, 0, 7); a.emit(orrs_reg, 5, 0)                    # r5 = on
+    if MSWAP:                                                                  # the Glitch = effect 5 of the top row: held, latched, a slot, the sequencer
+        a.emit(ldrb_imm, 5, 4, S_HELD); a.emit(ldrb_imm, 0, 4, S_LATCH); a.emit(orrs_reg, 5, 0)
+        a.emit(bl, "c_slotbits"); a.emit(orrs_reg, 5, 0); a.emit(bl, "c_fsqfx"); a.emit(orrs_reg, 5, 0)
+        a.emit(lsrs_imm, 5, 5, N_FX - 1); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 5, 1)
+    else:
+        a.emit(bl, "c_fsqfx" if GL2 else "c_fxsq"); a.emit(lsrs_imm, 5, 0, 6); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 5, 1)
+        a.emit(ldrb_w, 0, 4, KG); a.emit(lsrs_imm, 0, 0, 7); a.emit(orrs_reg, 5, 0)                    # r5 = on
     a.emit(ldrb_w, 0, 4, KG + 2); a.emit(lsrs_imm, 0, 0, 7); a.emit(cmp_reg, 0, 5); a.emit(b_cond, "glt_s", "eq")
     setbit(KG + 1, True)
     a.label("glt_s")
@@ -1003,7 +1213,7 @@ def glitch_code(a, L, bc, zjmp):
     a.emit(ldrb_w, 0, 4, KG + 2); a.emit(movs_imm, 1, 0x80); a.emit(bics_reg, 0, 1); a.emit(lsls_imm, 1, 5, 7); a.emit(orrs_reg, 0, 1); a.emit(strb_w, 0, 4, KG + 2)
     a.emit(cmp_imm, 5, 0); bc("glt_off", "eq")
     for k in range(4):
-        a.emit(ldrb_w, 0, 4, KG + k); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 25); a.emit(movw, 1, GD.GARM + 1 + k); a.emit(bl, "c_dw")
+        a.emit(ldrb_w, 0, 4, (S_KNOB + 16 if MSWAP else KG) + k); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 25); a.emit(movw, 1, GD.GARM + 1 + k); a.emit(bl, "c_dw")
     a.emit(movw, 0, GD.GMAGIC & 0xFFFF); a.emit(movt, 0, GD.GMAGIC >> 16); a.emit(movw, 1, GD.GARM); a.emit(bl, "c_dw")
     a.emit(b, "glt_x")
     a.label("glt_off")
@@ -1011,7 +1221,7 @@ def glitch_code(a, L, bc, zjmp):
     a.label("glt_x"); a.emit(pop_list, [5, 6], pc=True)
 
     a.label("c_gl31")                                                          # r0 = an LED buffer, r4 = the block: pad 31 = the Glitch (bright while held)
-    a.emit(ldrb_w, 1, 4, KG + 2); a.emit(movs_imm, 2, GL_DIM); a.emit(lsrs_imm, 1, 1, 7); a.emit(b_cond, "g31_s", "eq"); a.emit(movs_imm, 2, GL_ON)   # lit while it plays
+    a.emit(ldrb_w, 1, 4, KG + (3 if MSWAP else 2)); a.emit(movs_imm, 2, GL_DIM); a.emit(lsrs_imm, 1, 1, 7); a.emit(b_cond, "g31_s", "eq"); a.emit(movs_imm, 2, GL_ON)   # lit while it plays (MSWAP: while a gesture runs)
     a.label("g31_s"); a.emit(strh_imm, 2, 0, 2 * GL_PAD); a.emit(raw, h(0x4770))
 
     a.label("c_glleds")                                                        # r0 = the LED buffer of the Master FX view: pad 31, and the knobs while the Glitch is selected
@@ -1019,7 +1229,16 @@ def glitch_code(a, L, bc, zjmp):
     a.emit(mov_reg, 5, 0); a.emit(bl, "c_gl31")
     a.emit(ldrb_imm, 0, 4, S_SEL); a.emit(cmp_imm, 0, GL_SEL); bc("gll_x", "ne")
     for k in range(8):
-        if k < 4:
+        if k == 1 and MSWAP and DIGI4:                                         # the kind of the gesture: the colour of its stretch, brighter along it
+            a.emit(ldrb_w, 0, 4, KG + k); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 23)   # K2 x 4
+            a.emit(lsrs_imm, 1, 0, 7)
+            for q, col in enumerate(MECH_COL):
+                a.emit(cmp_imm, 1, q); a.emit(b_cond, f"gll_m{q}", "ne"); a.emit(movs_imm, 1, col); a.emit(b, "gll_me"); a.label(f"gll_m{q}")
+            a.emit(movs_imm, 1, MECH_COL[-1])
+            a.label("gll_me")
+            a.emit(movs_imm, 2, 127); a.emit(ands_reg, 0, 2); a.emit(movs_imm, 2, 127 - MECH_MINB); a.emit(muls, 0, 2); a.emit(lsrs_imm, 0, 0, 7)
+            a.emit(adds_imm8, 0, MECH_MINB + 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 1)
+        elif k < 4:
             a.emit(ldrb_w, 0, 4, KG + k); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 25)
             a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(movs_imm, 1, GL_ON); a.emit(orrs_reg, 0, 1)
         else:

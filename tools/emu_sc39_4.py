@@ -180,7 +180,7 @@ def main(img, man, prev, prev_man):
     P = {k: int(v, 16) for k, v in man["report"]["psave"]["prev"].items()}
     w = lambda a: struct.unpack_from("<I", img, a - B)[0]
     check(w(PS.SP_VT) == L["c_pspad"] | 1 and w(PS.SP_VT + 28) == L["c_psleds"] | 1 and w(PS.TMPL_VT) == L["c_psxpad"] | 1 and w(PS.TMPL_VT + 4) == L["c_psxrel"] | 1 and w(PS.TMPL_VT + 28) == L["c_psxleds"] | 1
-          and bytes(img[PS.BTN_ENTRY - B:PS.BTN_ENTRY - B + 4]) == b_w(PS.BTN_ENTRY, L["c_psbtn"]),
+          and bytes(img[PS.BTN_ENTRY - B:PS.BTN_ENTRY - B + 4]) == b_w(PS.BTN_ENTRY, int(man["report"]["throw"]["labels"]["c_thbtn"], 16) if "throw" in man["report"] else L["c_psbtn"]),
           f"the hooks: slots 0 / 7 of the synth Preset view, 0 / 1 / 7 of the template view, the head of the button chain (in front of {', '.join(f'{k} {v:#x}' for k, v in P.items())})")
     o = synth_run(img, man, True)
     W, OFF_ = PS.COL_ASK, 0

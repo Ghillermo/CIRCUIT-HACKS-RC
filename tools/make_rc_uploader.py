@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.6 RC0.6S BETA5 RC0.5 RC0.5S BETA4; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.7 RC0.7S B1.0 RC0.6 RC0.6S BETA5; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,13 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"RC0.6": ("RC0.6 — la versión completa: RC0.5 + dos arreglos (el LFO del Auto-Filter y del Phaser arranca al activar el efecto; el blanco tenue de Clear ya no pulsa)",
+DESC = {"RC0.7": ("RC0.7 — la versión completa: RC0.6 + dos arreglos (el step-drummer y el secuenciador de efectos siguen el patrón de su propia pista; knob selector del secuenciador de efectos más lento)",
+                  "RC0.7 — full version: RC0.6 + two fixes (the step-drummer and the FX sequencer follow the pattern of their own track; slower selector knob of the FX sequencer)"),
+        "RC0.7S": ("RC0.7S — versión más segura (= RC0.6S + los arreglos de RC0.7): nada del mod escribe ficheros en la SD",
+                   "RC0.7S — safer build (= RC0.6S + the RC0.7 fixes): nothing of the mod writes files to the SD card"),
+        "B1.0": ("Beta 1.0 — beta (= SC40.9): RC0.7 + cadenas de patrones y escenas, Nudge y órdenes fractal / deconstruido, frecuencia y dinámicas por paso, gesto mecánico, Master FX por sesión, knobs de sidechain y compresor, patches propios entre packs y lo de las betas anteriores",
+                 "Beta 1.0 — beta (= SC40.9): RC0.7 + pattern chains and scenes, Nudge and the fractal / deconstructed orders, step frequency and dynamics, mechanical gesture, Master FX per session, side-chain and compressor knobs, own-synth patches between packs and what the earlier betas had"),
+        "RC0.6": ("RC0.6 — la versión completa: RC0.5 + dos arreglos (el LFO del Auto-Filter y del Phaser arranca al activar el efecto; el blanco tenue de Clear ya no pulsa)",
                   "RC0.6 — full version: RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses)"),
         "RC0.6S": ("RC0.6S — versión más segura (= RC0.5S + los arreglos de RC0.6): nada del mod escribe ficheros en la SD",
                    "RC0.6S — safer build (= RC0.5S + the RC0.6 fixes): nothing of the mod writes files to the SD card"),
@@ -446,4 +452,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.6", "RC0.6S", "BETA5", "RC0.5", "RC0.5S", "BETA4"])
+    main(sys.argv[1:] or ["RC0.7", "RC0.7S", "B1.0", "RC0.6", "RC0.6S", "BETA5"])

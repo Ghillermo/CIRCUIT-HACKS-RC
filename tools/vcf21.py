@@ -124,6 +124,7 @@ ST_TICKS = 6                                      # SC38.1: sequencer ticks per 
 FXSEQ3 = False                                    # SC36.2 (see use_fxseq3)
 FSQ_U = 16                                        # SC36.2: knob units per FX sequencer value (the lane holds 0..6 * FSQ_U; value = (p + FSQ_U / 2) / FSQ_U)
 FSQ_MAX = 6 * FSQ_U
+FSQ_DIV = 1                                       # SC40.9 (see use_fxseq4): knob events per unit of the FX sequencer's position
 # the granular page: (code, min, max, flags) per knob K1..K8, Shift + K1..K8; flags bit 0 = one step per turn; bits 1-3 = the LED: 0 bipolar, 1 the value,
 # 2 the value + 64 (stored -64..63, shown 0..127), 3 (the value - min) x 2, 4 on / off
 GR_TAB = ((17, -24, 24, 0), (19, 0, 126, 1 << 1), (21, -64, 63, 0), (18, -64, 63, 2 << 1), (20, 0, 100, 1 << 1), (23, -64, 63, 2 << 1), (24, -64, 63, 0), (22, -64, 63, 0),
@@ -455,6 +456,26 @@ def use_fxseq3():
     global FXSEQ3
     assert FXSEQ2
     FXSEQ3 = True
+
+
+def use_engfix():
+    """SC40.9 (the user, 2026-10-14, on the unit: «la pista [del secuenciador de efectos] se corta con la longitud de Synth 1, en vez de durar lo
+    que dura la pista de MIDI 1»): ENGINE was the engine's interface (0x20038ECC = the engine + 0xC), so «the playing store of track t»
+    (+ 0x30 + 4 t) was the one of track t + 3 and «the ticks» (+ 0x90) the chain store.  The step-drummer, the FX sequencer and the stretch read
+    the pattern, the step and the ticks of another track: unseen while every track had the same length.  Now the engine itself, 0x20038EC0
+    (found for SC40.4, tools/stepmod.py)."""
+    global ENGINE
+    ENGINE = 0x20038EC0
+
+
+def use_fxseq4(div=3):
+    """SC40.9 (the user, 2026-10-14: «hacer el knob selector más lento»): the selector knob of the FX sequencer moves its position one unit every
+    `div` knob events (16 x div events per value); what is left over waits in a signed nibble, bits 4-7 of the editor byte + 72 (the carry bits of
+    the half-speed sends of the FX view: both are only what is left of a turn, so sharing them costs at most a couple of events).  The values
+    stored in the patterns do not change."""
+    global FSQ_DIV
+    assert FXSEQ3 and 2 <= div <= 8
+    FSQ_DIV = div
 
 
 def use_pages5():
@@ -1972,7 +1993,20 @@ def sd_routines(a, L, tail, bc, t_sd):
     if FXSEQ3:                                                                    # the FX sequencer: the position 0..FSQ_MAX of the pair (an empty pair = 0) + delta
         E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kn_nf", "eq")
         E(ldrb_imm, 0, 7, 0); E(cmp_imm, 0, FSQ_MAX); E(b_cond, "kn_f0", "ls"); E(movs_imm, 0, 0)
-        a.label("kn_f0"); E(adds_reg, 0, 0, 6); clamp(0, 0, FSQ_MAX, 1, "kn_fc"); E(b, "kn_st")
+        a.label("kn_f0")
+        if FSQ_DIV > 1:                                                           # (r6 = the events of this call) -> r6 = the units, the rest kept
+            E(push_list, [0])
+            tail(2); E(ldrb_w, 3, 2, O_ED + 1); E(lsrs_imm, 1, 3, 4); E(lsls_imm, 1, 1, 28); E(raw, h(0x1000 | 28 << 6 | 1 << 3 | 1))     # asrs r1, r1, #28: the signed rest
+            E(adds_reg, 1, 1, 6)
+            E(movs_imm, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "kn_fq", "ge"); E(raw, h(0x4240 | 1 << 3 | 1)); E(movs_imm, 0, 1)             # negs r1, r1
+            a.label("kn_fq")
+            E(movs_imm, 2, FSQ_DIV); E(raw, udiv_w(6, 1, 2)); E(raw, mls_w(1, 6, 2, 1))                                                    # r6 = |acc| / div, r1 = the rest
+            E(cmp_imm, 0, 0); E(b_cond, "kn_fr", "eq"); E(raw, h(0x4240 | 6 << 3 | 6)); E(raw, h(0x4240 | 1 << 3 | 1))
+            a.label("kn_fr")
+            tail(2); E(ldrb_w, 3, 2, O_ED + 1); E(movs_imm, 0, 0x0F); E(ands_reg, 3, 0); E(lsls_imm, 1, 1, 28); E(lsrs_imm, 1, 1, 24); E(orrs_reg, 3, 1)
+            E(strb_w, 3, 2, O_ED + 1)
+            E(pop_list, [0])
+        E(adds_reg, 0, 0, 6); clamp(0, 0, FSQ_MAX, 1, "kn_fc"); E(b, "kn_st")
         a.label("kn_nf")
     elif FXSEQ2:                                                                  # the FX sequencer: one value per turn, 0..6
         E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_fsq"); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "kn_nf", "eq")
