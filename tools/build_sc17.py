@@ -368,6 +368,30 @@ def use_armplay():
     ARMPLAY = True
 
 
+LEDBUF = False                            # SC41.1 (see use_ledbuf)
+LEDBUF_OFF = 0x27024 + 192                # the session record's tail + 192 (tools/patchain.py: 0..127 its parts, tools/fxsess.py: 128..154)
+FSQRAND = False                           # SC41.1 (see use_fxseqrand)
+
+
+def use_ledbuf():
+    """SC41.1 (the user, 2026-10-14: «al entrar en Master FX view, el sinte propio deja de funcionar … deja de sonar Synth 2 … pasa cuando hay muchas
+    cosas sonando»): while the Master FX view is on the screen its LED buffer (84 B: the block + 64..147 = c_gst() + 104..187) is drawn every frame, and
+    that buffer was taken as idle memory by later modules: the pattern chains' «made for this project» mark (c_gst() + 143: the running part of
+    the chains and of the fractal order was cleared again and again), the step frequency counters (+ 140..184), the state of the Sidechain knobs,
+    of the own-synth patches, of the patch save, of the project copy, of the macro editor and the granular source.  The buffer now lives in the
+    loaded project's record (its tail + 192, 84 B nobody else uses; saved with the project, redrawn every frame); without a record, the old place."""
+    global LEDBUF
+    LEDBUF = True
+
+
+def use_fxseqrand():
+    """SC41.1 (the user, 2026-10-14: «en el secuenciador de efectos master, añade una opción random: activa un efecto de la lista al azar»): value 7 of
+    the FX sequencer (vcf21.use_fxseqrand) = one of the bottom-row slots that plays something, drawn for every occurrence of the step (the seed comes
+    with the sequencer's bits: c_fsqbits puts it in bits 8-15 and bit 6)."""
+    global FSQRAND
+    FSQRAND = True
+
+
 def use_engfix():
     """SC40.9: SEQ_ENGINE was the engine's interface (the engine + 0xC): its «ticks store» (+ 0x90) was the chain store, whose first word is 0
     while Synth 1 plays its pattern 1 alone, so the armed capture (ARMPLAY) started at once when it was armed while playing.  See vcf21.use_engfix."""
@@ -757,7 +781,12 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.emit(bl, "c_gact"); zjmp(0, "gl_stock"); a.emit(mov_reg, 4, 0)
     if LED_N > 32:                                   # stock buffer: keep its entries 32/33, knob LEDs from Master FX
         a.emit(mov_reg, 0, 5); a.emit(bl, MIX_LEDS); a.emit(mov_reg, 7, 0)    # r7 = stock buffer (refreshed)
+    if LEDBUF:                                                                 # r6 = the buffer: in the project's record (see use_ledbuf)
+        a.emit(movw, 6, 0xD71C); a.emit(movt, 6, 0x2003); a.emit(ldr_imm, 6, 6, 0x14); a.emit(cmp_imm, 6, 0); a.emit(b_cond, "gl_ob", "eq")
+        a.emit(movw, 0, LEDBUF_OFF & 0xFFFF); a.emit(movt, 0, LEDBUF_OFF >> 16); a.emit(adds_reg, 6, 6, 0); a.emit(b, "gl_bk")
+        a.label("gl_ob")
     a.emit(mov_reg, 6, 4); a.emit(adds_imm8, 6, S_LED)                        # r6 = buffer
+    if LEDBUF: a.label("gl_bk")
     a.emit(movs_imm, 0, 0); a.emit(movs_imm, 1, 0)
     a.label("gl_clr"); a.emit(raw, h(0x5270))                                  # strh r0,[r6,r1]
     a.emit(adds_imm8, 1, 2); a.emit(cmp_imm, 1, 64); bc("gl_clr", "lo")
@@ -1099,7 +1128,29 @@ def glitch_code(a, L, bc, zjmp):
     if GL2:
         a.label("c_fsqfx")                                                     # r4 = the block -> r0 = effect bits (0-5) | the Glitch (bit 6) of the slots the FX sequencer wants
         a.emit(push_list, [5, 6, 7], lr=True)
-        a.emit(bl, "c_fxsq"); a.emit(mov_reg, 5, 0); a.emit(movs_imm, 6, 0); a.emit(movs_imm, 7, 0)    # r5 = slots, r6 = result, r7 = slot j
+        a.emit(bl, "c_fxsq"); a.emit(mov_reg, 5, 0)
+        if FSQRAND:                                                            # bit 6 = random: one of the slots that play something, by the seed in bits 8-15
+            a.emit(movs_imm, 0, 0x40); a.emit(tst_reg, 5, 0); bc("fr_x", "eq"); a.emit(bics_reg, 5, 0)
+            a.emit(movs_imm, 6, 0); a.emit(movs_imm, 7, 0)
+            a.label("fr_l")
+            a.emit(cmp_imm, 7, GL_SLOT); bc("fr_y", "eq")
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, GL_SEL); bc("fr_y", "eq"); a.emit(cmp_imm, 0, N_FX); bc("fr_n", "hs")
+            a.label("fr_y"); a.emit(movs_imm, 0, 1); a.emit(lsls_reg, 0, 7); a.emit(orrs_reg, 6, 0)
+            a.label("fr_n"); a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 6); bc("fr_l", "lo")
+            a.emit(movs_imm, 1, 0); a.emit(movs_imm, 7, 0)                     # r1 = how many
+            a.label("fr_c"); a.emit(lsrs_reg, 0, 6, 7) if False else None
+            a.emit(mov_reg, 0, 6); a.emit(lsrs_reg, 0, 7); a.emit(lsls_imm, 0, 0, 31); a.emit(b_cond, "fr_c0", "eq"); a.emit(adds_imm8, 1, 1)
+            a.label("fr_c0"); a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 6); a.emit(b_cond, "fr_c", "lo")
+            a.emit(cmp_imm, 1, 0); bc("fr_x", "eq")
+            a.emit(lsrs_imm, 2, 5, 8); a.emit(movs_imm, 0, 0xFF); a.emit(ands_reg, 2, 0); a.emit(muls, 2, 1); a.emit(lsrs_imm, 2, 2, 8)   # r2 = which of them
+            a.emit(movs_imm, 7, 0)
+            a.label("fr_p")
+            a.emit(mov_reg, 0, 6); a.emit(lsrs_reg, 0, 7); a.emit(lsls_imm, 0, 0, 31); a.emit(b_cond, "fr_q", "eq")
+            a.emit(cmp_imm, 2, 0); a.emit(b_cond, "fr_s", "eq"); a.emit(subs_imm8, 2, 1)
+            a.label("fr_q"); a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 6); a.emit(b_cond, "fr_p", "lo"); a.emit(b, "fr_x")
+            a.label("fr_s"); a.emit(movs_imm, 0, 1); a.emit(lsls_reg, 0, 7); a.emit(orrs_reg, 5, 0)
+            a.label("fr_x")
+        a.emit(movs_imm, 6, 0); a.emit(movs_imm, 7, 0)                         # r5 = slots, r6 = result, r7 = slot j
         a.label("fq_l")
         a.emit(movs_imm, 0, 1); a.emit(lsls_reg, 0, 7); a.emit(tst_reg, 5, 0); bc("fq_n", "eq")
         a.emit(cmp_imm, 7, GL_SLOT); bc("fq_g", "eq")                          # pad 31 itself: the Glitch

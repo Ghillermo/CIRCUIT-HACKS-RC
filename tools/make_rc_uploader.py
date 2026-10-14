@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.7 RC0.7S B1.0 RC0.6 RC0.6S BETA5; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.8 RC0.8S B1.1 RC0.7 RC0.7S B1.0; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,13 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"RC0.7": ("RC0.7 — la versión completa: RC0.6 + dos arreglos (el step-drummer y el secuenciador de efectos siguen el patrón de su propia pista; knob selector del secuenciador de efectos más lento)",
+DESC = {"RC0.8": ("RC0.8 — la versión completa: RC0.7 + un arreglo (los knobs de pitch del step-drummer conservan su valor)",
+                  "RC0.8 — full version: RC0.7 + one fix (the pitch knobs of the step-drummer keep their value)"),
+        "RC0.8S": ("RC0.8S — versión más segura (= RC0.7S + el arreglo de RC0.8): nada del mod escribe ficheros en la SD",
+                   "RC0.8S — safer build (= RC0.7S + the RC0.8 fix): nothing of the mod writes files to the SD card"),
+        "B1.1": ("Beta 1.1 — beta (= SC41.1): Beta 1.0 + los arreglos de RC0.8, la vista Master FX ya no pisa el estado de otras funciones, valor random del secuenciador de efectos",
+                 "Beta 1.1 — beta (= SC41.1): Beta 1.0 + the RC0.8 fix, the Master FX view no longer overwrites the state of other features, random value of the FX sequencer"),
+        "RC0.7": ("RC0.7 — la versión completa: RC0.6 + dos arreglos (el step-drummer y el secuenciador de efectos siguen el patrón de su propia pista; knob selector del secuenciador de efectos más lento)",
                   "RC0.7 — full version: RC0.6 + two fixes (the step-drummer and the FX sequencer follow the pattern of their own track; slower selector knob of the FX sequencer)"),
         "RC0.7S": ("RC0.7S — versión más segura (= RC0.6S + los arreglos de RC0.7): nada del mod escribe ficheros en la SD",
                    "RC0.7S — safer build (= RC0.6S + the RC0.7 fixes): nothing of the mod writes files to the SD card"),
@@ -452,4 +458,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.7", "RC0.7S", "B1.0", "RC0.6", "RC0.6S", "BETA5"])
+    main(sys.argv[1:] or ["RC0.8", "RC0.8S", "B1.1", "RC0.7", "RC0.7S", "B1.0"])

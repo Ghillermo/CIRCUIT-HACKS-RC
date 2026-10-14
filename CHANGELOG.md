@@ -4,6 +4,19 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC0.8 / RC0.8S y Beta 1.1 — 2026-10-14
+
+RC0.8 = RC0.7 + un arreglo. RC0.8S = RC0.7S + el mismo (**S**). **Beta 1.1** (marca `B1.1` en el aparato; = SC41.1) sustituye a Beta 1.0.
+
+### Arreglos (RC0.8, RC0.8S y Beta 1.1)
+- **Los knobs de pitch del step-drummer conservan su valor** (**S**). Desde RC0 cada giro escribía en el par de pasos solo su incremento: el knob no avanzaba, su LED se quedaba casi apagado y el tono saltaba al mínimo.
+
+### Arreglos (solo Beta 1.1)
+- **La vista Master FX ya no pisa el estado de otras funciones.** Con la vista en pantalla y muchas cosas sonando, Synth 2 dejaba de sonar, las cadenas de patrones y el orden fractal se reiniciaban y la frecuencia por paso contaba mal.
+
+### Novedades (solo Beta 1.1)
+- **Secuenciador de efectos: valor random** (LED blanco, al final del recorrido del knob): en cada paso con nota suena uno de la lista al azar (los huecos con efecto asignado y el gesto mecánico del pad 31).
+
 ## RC0.7 / RC0.7S y Beta 1.0 — 2026-10-14
 
 RC0.7 = RC0.6 + dos arreglos. RC0.7S = RC0.6S + los mismos (**S**). **Beta 1.0** (marca `B1.0` en el aparato; = SC40.9) sustituye a BETA5: lleva los arreglos y todo lo nuevo desde entonces. En el manual, lo de la beta va marcado **solo Beta 1.0**.
@@ -171,6 +184,19 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC0.8 / RC0.8S and Beta 1.1 — 2026-10-14
+
+RC0.8 = RC0.7 + one fix. RC0.8S = RC0.7S + the same one (**S**). **Beta 1.1** (marker `B1.1` on the device; = SC41.1) replaces Beta 1.0.
+
+### Fixes (RC0.8, RC0.8S and Beta 1.1)
+- **The pitch knobs of the step-drummer keep their value** (**S**). Since RC0 every turn wrote only its own delta into the pair of steps: the knob did not move, its LED stayed almost dark and the pitch jumped to the bottom.
+
+### Fixes (Beta 1.1 only)
+- **The Master FX view no longer overwrites the state of other features.** With the view on the screen and much playing, Synth 2 went silent, the pattern chains and the fractal order restarted and the step frequency miscounted.
+
+### New (Beta 1.1 only)
+- **FX sequencer: random value** (white LED, at the end of the knob’s travel): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).
 
 ## RC0.7 / RC0.7S and Beta 1.0 — 2026-10-14
 

@@ -124,6 +124,7 @@ ST_TICKS = 6                                      # SC38.1: sequencer ticks per 
 FXSEQ3 = False                                    # SC36.2 (see use_fxseq3)
 FSQ_U = 16                                        # SC36.2: knob units per FX sequencer value (the lane holds 0..6 * FSQ_U; value = (p + FSQ_U / 2) / FSQ_U)
 FSQ_MAX = 6 * FSQ_U
+SDKFIX = False                                    # SC41 (see use_sdknobfix)
 FSQ_DIV = 1                                       # SC40.9 (see use_fxseq4): knob events per unit of the FX sequencer's position
 # the granular page: (code, min, max, flags) per knob K1..K8, Shift + K1..K8; flags bit 0 = one step per turn; bits 1-3 = the LED: 0 bipolar, 1 the value,
 # 2 the value + 64 (stored -64..63, shown 0..127), 3 (the value - min) x 2, 4 on / off
@@ -466,6 +467,30 @@ def use_engfix():
     (found for SC40.4, tools/stepmod.py)."""
     global ENGINE
     ENGINE = 0x20038EC0
+
+
+FSQRAND = False                                   # SC41.1 (see use_fxseqrand)
+
+
+def use_fxseqrand():
+    """SC41.1 (the user, 2026-10-14: «en el secuenciador de efectos master, añade una opción random: activa un efecto de la lista al azar»): a seventh
+    value of the selector knob (the position 0..7 x FSQ_U, its LED white) = random: c_fsqbits sets bit 6 and a seed in bits 8-15 = the hash of the
+    tick at which the step started (the engine's global tick minus the tick inside the step), so the choice holds for the whole step and changes
+    from one pass to the next; build_sc17's c_fsqfx picks one of the slots that play something (build_sc17.use_fxseqrand).  Needs use_engfix."""
+    global FSQRAND, FSQ_MAX
+    assert FXSEQ3 and ENGINE == 0x20038EC0
+    FSQRAND = True
+    FSQ_MAX = 7 * FSQ_U
+
+
+def use_sdknobfix():
+    """SC41 (the user, 2026-10-14, on the unit, in the step-drummer view: «los knobs no se mueven (no muestran brillo ni cambio en el sonido)»): since
+    SC36.2 (use_fxseq3) the pitch knob of a pair lost its value: the test «is this track the FX sequencer?» left its answer in r0, where the pair's
+    value had just been loaded, so out of the FX sequencer every knob event wrote 0 + the event's delta (0..5) instead of the value + the delta.
+    The value is kept across the test, as SC36.1 (use_fxseq2) did.  The velocity page and the FX sequencer were not affected."""
+    global SDKFIX
+    assert FXSEQ3
+    SDKFIX = True
 
 
 def use_fxseq4(div=3):
@@ -1512,6 +1537,12 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
             a.emit(cmp_imm, 0, 0); bc("fb_n", "eq"); a.emit(cmp_imm, 0, 127); bc("fb_n", "hi")                              # 0 / no value: none
             a.emit(subs_imm8, 0, 1); a.emit(movs_imm, 1, 7); a.emit(muls, 0, 1); a.emit(lsrs_imm, 0, 0, 7)                   # zone 0..6
         a.emit(movs_imm, 1, 1); a.emit(lsls_reg, 1, 0); a.emit(orrs_reg, 7, 1)
+        if FSQRAND:                                                               # value 7 = random: a seed for the whole step (bits 8-15)
+            a.emit(cmp_imm, 0, 6); bc("fb_n", "ne")
+            a.emit(mov_reg, 0, 4); a.emit(movs_imm, 1, 2); a.emit(bl, "c_sdeng"); a.emit(ldr_imm, 5, 0, 0)          # r5 = the tick inside the step
+            a.emit(movw, 0, (ENGINE + 0x90) & 0xFFFF); a.emit(movt, 0, (ENGINE + 0x90) >> 16); a.emit(ldr_imm, 0, 0, 0)
+            a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldr_imm, 0, 0, 0); a.emit(subs_reg, 0, 0, 5)       # the tick the step started at
+            a.emit(movw, 1, 0x79B1); a.emit(movt, 1, 0x9E37); a.emit(muls, 0, 1); a.emit(lsrs_imm, 0, 0, 24); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 7, 0)
         a.label("fb_n")
         a.emit(adds_imm8, 4, 1); a.emit(cmp_imm, 4, 2); bc("fb_t", "lo")
         a.label("fb_x"); a.emit(mov_reg, 0, 7); a.emit(pop_list, [4, 5, 6, 7], pc=True)
@@ -1991,7 +2022,8 @@ def sd_routines(a, L, tail, bc, t_sd):
         E(ldrb_imm, 0, 7, 0); E(cmp_imm, 0, 127); E(b_cond, "kn_a", "ls"); E(movs_imm, 0, 64)
     a.label("kn_a")
     if FXSEQ3:                                                                    # the FX sequencer: the position 0..FSQ_MAX of the pair (an empty pair = 0) + delta
-        E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kn_nf", "eq")
+        if SDKFIX: E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_fsq"); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "kn_nf", "eq")
+        else: E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kn_nf", "eq")
         E(ldrb_imm, 0, 7, 0); E(cmp_imm, 0, FSQ_MAX); E(b_cond, "kn_f0", "ls"); E(movs_imm, 0, 0)
         a.label("kn_f0")
         if FSQ_DIV > 1:                                                           # (r6 = the events of this call) -> r6 = the units, the rest kept
@@ -2292,7 +2324,11 @@ def sd_routines(a, L, tail, bc, t_sd):
             E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kl_nf", "eq")
             E(movs_imm, 0, 0); E(cmp_imm, 7, FSQ_MAX); E(b_cond, "kl_s", "hi"); E(adds_imm8, 7, FSQ_U // 2); E(lsrs_imm, 7, 7, FSQ_U.bit_length() - 1)
             E(cmp_imm, 7, 0); E(b_cond, "kl_s", "eq")
-            E(subs_imm8, 7, 1); E(mov_reg, 0, 7); E(bl, L["c_slotcol"]); E(movs_imm, 7, 127); E(b, "kl_w")
+            E(subs_imm8, 7, 1)
+            if FSQRAND: E(movs_imm, 0, 0x01); E(cmp_imm, 7, 6); E(b_cond, "kl_rw", "eq")                       # random: white
+            E(mov_reg, 0, 7); E(bl, L["c_slotcol"])
+            if FSQRAND: a.label("kl_rw")
+            E(movs_imm, 7, 127); E(b, "kl_w")
             a.label("kl_nf")
         E(cmp_imm, 7, 127); E(b_cond, "kl_p", "ls"); E(mov_reg, 0, 4); E(bl, "c_sdbase"); E(mov_reg, 7, 0)
         a.label("kl_p")
