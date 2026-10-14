@@ -215,7 +215,7 @@ def main(img, man, prev, prev_man):
     LM = {k: int(v, 16) for k, v in man["report"]["mutate39"]["labels"].items()}
     w = lambda a: struct.unpack_from("<I", img, a - B)[0]
     from thumb import bl as tbl, nop
-    ledhead = next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("fxsess", "c_fsledtask"), ("playmode", "c_pmledtask"), ("xpatch", "c_xqledtask"), ("patchain", "c_pcledtask")) if m_ in man["report"]), L["c_rfledtask"])      # (a later build: the chain goes on)
+    ledhead = next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("rodisk", "c_roledtask"), ("fxsess", "c_fsledtask"), ("playmode", "c_pmledtask"), ("xpatch", "c_xqledtask"), ("patchain", "c_pcledtask")) if m_ in man["report"]), L["c_rfledtask"])      # (a later build: the chain goes on)
     check(bytes(img[SM.MASK_HOOK - B:SM.MASK_BACK - B]) == tbl(SM.MASK_HOOK, L["c_rfmask"]) + nop() * 5 and bytes(prev[SM.MASK_HOOK - B:SM.MASK_BACK - B]) == SM.MASK_OLD
           and bytes(img[MU.NOTE_LOAD - B:MU.NOTE_LOAD - B + 4]) == tbl(MU.NOTE_LOAD, L["c_rfnote"]),
           "the mask builder's tests at 0x08040D8A = bl c_rfmask + nops (the previous build: the stock's); the player's loads = bl c_rfnote")

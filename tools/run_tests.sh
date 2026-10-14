@@ -510,6 +510,9 @@ run python3 tools/emu_sc39_9.py "$F40/circuittracks-4486-SC40.bin" "$F40/manifes
 run python3 tools/emu_sc40d.py firmware/sc40d/circuittracks-4486-SC40D.bin firmware/sc40d/manifest.json
 run python3 tools/emu_sc40_1.py firmware/sc40.1/circuittracks-4486-SC40.1.bin firmware/sc40.1/manifest.json "$F40/circuittracks-4486-SC40.bin" "$F40/manifest.json"
 run python3 tools/emu_sc40_2.py firmware/sc40.2/circuittracks-4486-SC40.2.bin firmware/sc40.2/manifest.json firmware/sc40.1/circuittracks-4486-SC40.1.bin firmware/sc40.1/manifest.json
+run python3 tools/emu_rodisk.py firmware/sc41.3/circuittracks-4486-SC41.3.bin firmware/sc41.3/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_rodisk.py firmware/rc0.9/circuittracks-4486-RC0.9.bin firmware/rc0.9/manifest.json firmware/rc0.8/circuittracks-4486-RC0.8.bin firmware/rc0.8/manifest.json
+run python3 tools/emu_rodisk.py firmware/b1.3/circuittracks-4486-B1.3.bin firmware/b1.3/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
 run python3 tools/emu_sc41_2.py firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json firmware/sc41.1/circuittracks-4486-SC41.1.bin firmware/sc41.1/manifest.json
 run python3 tools/emu_sc40_9.py firmware/b1.2/circuittracks-4486-B1.2.bin firmware/b1.2/manifest.json firmware/sc40.8/circuittracks-4486-SC40.8.bin firmware/sc40.8/manifest.json
 run python3 tools/emu_sc41_1.py firmware/b1.2/circuittracks-4486-B1.2.bin firmware/b1.2/manifest.json firmware/sc41/circuittracks-4486-SC41.bin firmware/sc41/manifest.json

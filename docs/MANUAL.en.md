@@ -1,4 +1,4 @@
-# Short manual — CIRCUIT-HACKS (RC0.8)
+# Short manual — CIRCUIT-HACKS (RC0.9)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Illustrated colour version: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 
@@ -67,9 +67,10 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 **E. Miscellaneous**
 
 - [E1 What is saved and where](#e1-guardado)
-- [E2 Installing and going back](#e2-instalar)
-- [E3 Development and diagnostic tools](#e3-herramientas)
-- [E4 MIDI tables](#e4-tablas-midi)
+- [E2 The internal memory pack: read only](#e2-pack-interno)
+- [E3 Installing and going back](#e3-instalar)
+- [E4 Development and diagnostic tools](#e4-herramientas)
+- [E5 MIDI tables](#e5-tablas-midi)
 
 ## A. Shortcuts and usability
 
@@ -121,31 +122,31 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="a12-teclado-partido"></a>
 ### A12. Split keyboard Synth 1 + Synth 2
-- **Beta 1.2 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
+- **Beta 1.3 only.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
 
 <a id="a13-colores-patch"></a>
 ### A13. Synth patches by voice mode
-- **Beta 1.2 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
+- **Beta 1.3 only.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
 
 <a id="a14-patches-midi"></a>
 ### A14. Patches of the own synth (MIDI 1 / 2)
-- **Beta 1.2 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
+- **Beta 1.3 only.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
 
 <a id="a15-guardar-patch"></a>
 ### A15. Saving the synth’s patch into the pack
-- **Beta 1.2 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
+- **Beta 1.3 only.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
 
 <a id="a16-destinos-macro"></a>
 ### A16. Macro knob destinations
-- **Beta 1.2 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
+- **Beta 1.3 only.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
 
 <a id="a17-copiar-proyectos"></a>
 ### A17. Copying projects to another slot or another pack
-- **Beta 1.2 only.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
+- **Beta 1.3 only.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
 
 <a id="a18-patches-entre-packs"></a>
 ### A18. Own-synth patches to another pack
-- **Beta 1.2 only.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
+- **Beta 1.3 only.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
 
 ## B. Exposed controls
 
@@ -159,11 +160,11 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="b3-sidechain-comp"></a>
 ### B3. Side-chain and master compressor on the knobs
-- **Beta 1.2 only.** In the Sidechain view (**Shift + FX**): **K1-K4** = attack, hold, decay and depth of the side-chain of the chosen track; **K7 / K8** = attack and release of the master compressor.
+- **Beta 1.3 only.** In the Sidechain view (**Shift + FX**): **K1-K4** = attack, hold, decay and depth of the side-chain of the chosen track; **K7 / K8** = attack and release of the master compressor.
 
 <a id="b4-grabar-interno"></a>
 ### B4. Recording the internal MIDI routes
-- **Beta 1.2 only.** In the Setup view, **Record** decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: **yellow = yes**, dark = no (the default).
+- **Beta 1.3 only.** In the Setup view, **Record** decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: **yellow = yes**, dark = no (the default).
 
 <a id="b5-midi-io"></a>
 ### B5. MIDI for everything new
@@ -176,7 +177,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="b7-setup"></a>
 ### B7. Setup and device MIDI
 - Channel 16 Rx / Tx (pad 16), shared channels, **internal loopback** without a cable and **reverb / delay returns through strips 3 / 4** (pads 22 / 23, cream / peach like the reverb and delay of the FX view).
-- **Beta 1.2 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
+- **Beta 1.3 only:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
 
 <a id="b8-patch-flip"></a>
 ### B8. Patch flip on MIDI 1 / 2
@@ -187,7 +188,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="c1-motor-midi"></a>
 ### C1. Engine of the MIDI tracks (pad 27)
 - Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → **line** → **oscillator** → **VA-drum** → **granular** → **FX sequencer**.
-- Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **Beta 1.2 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
+- Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **Beta 1.3 only:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
 
 <a id="c2-step-drummer"></a>
 ### C2. Step-drummer
@@ -197,7 +198,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="c3-fx-seq"></a>
 ### C3. FX sequencer
 - **Blue** state of pad 27: the step-drummer of the track picks, for each pair of steps, **a slot of the Master FX bottom row** (0 = none); it plays on the steps with a note.
-- The knob moves slowly (**one slot every ~48 steps of the turn**) and lights in the **colour of the chosen effect**. **A slot with no effect assigned does nothing:** assign the effects to the Master FX bottom row first (see “Assignable bottom row”). **Beta 1.2 only:** at the end of the travel there is the **random** value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).
+- The knob moves slowly (**one slot every ~48 steps of the turn**) and lights in the **colour of the chosen effect**. **A slot with no effect assigned does nothing:** assign the effects to the Master FX bottom row first (see “Assignable bottom row”). **Beta 1.3 only:** at the end of the travel there is the **random** value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).
 
 <a id="c4-song-pointer"></a>
 ### C4. Song pointer (Master FX)
@@ -220,23 +221,23 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="c8-random-mutate"></a>
 ### C8. Random-mutate per step
-- **Beta 1.2 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
+- **Beta 1.3 only.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
 
 <a id="c9-frecuencia-dinamicas"></a>
 ### C9. Step frequency and dynamics
-- **Beta 1.2 only.** In the probability view of the note tracks: **row 4 = every how many plays of the pattern the step sounds** (1-8). With **pad 25 of Pattern Settings**: row 3 = random **dynamics** (velocity, position and length), row 4 = random-mutate.
+- **Beta 1.3 only.** In the probability view of the note tracks: **row 4 = every how many plays of the pattern the step sounds** (1-8). With **pad 25 of Pattern Settings**: row 3 = random **dynamics** (velocity, position and length), row 4 = random-mutate.
 
 <a id="c10-cadenas"></a>
 ### C10. Pattern chains and scenes
-- **Beta 1.2 only.** Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. **Shift + Octave ▲ / ▼** in the Patterns view switches the **chain mode** of the whole project on / off; every scene remembers the mode it was saved in.
+- **Beta 1.3 only.** Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. **Shift + Octave ▲ / ▼** in the Patterns view switches the **chain mode** of the whole project on / off; every scene remembers the mode it was saved in.
 
 <a id="c11-nudge-ordenes"></a>
 ### C11. Nudge and play orders
-- **Beta 1.2 only.** In the Pattern Settings view: **pad 26 = Nudge** (the pattern rotated so that the chosen first step becomes step 1), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
+- **Beta 1.3 only.** In the Pattern Settings view: **pad 26 = Nudge** (the pattern rotated so that the chosen first step becomes step 1), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
 
 <a id="c12-master-fx-beta"></a>
 ### C12. Master FX in the beta: mechanical gesture, Glitch, Digitise and saving per session
-- **Beta 1.2 only.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
+- **Beta 1.3 only.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP
 
@@ -259,7 +260,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="d5-granular"></a>
 ### D5. Granular synth
 - Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window; on the second DSP core.
-- K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, Beta 1.2 only), LFO → size, source.
+- K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, Beta 1.3 only), LFO → size, source.
 
 <a id="d6-glitch-dsp"></a>
 ### D6. Glitch engine
@@ -279,14 +280,18 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 ### E1. What is saved and where
 - Project: drums, Master FX slots, synth source, reverb / delay parameters. Device: MIDI track engine. Volatile: OSC 2, latched effects.
 
-<a id="e2-instalar"></a>
-### E2. Installing and going back
+<a id="e2-pack-interno"></a>
+### E2. The internal memory pack: read only
+- Nothing of the mod writes or deletes in the pack of the Circuit’s internal memory (the first one of the Packs view). You can read it and copy from it to a pack of the card, not the other way round.
+
+<a id="e3-instalar"></a>
+### E3. Installing and going back
 - `tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.
 
-<a id="e3-herramientas"></a>
-### E3. Development and diagnostic tools
+<a id="e4-herramientas"></a>
+### E4. Development and diagnostic tools
 - Reproducible builders, ARM / DSP emulators with tests through the real routes, `verify_builds.py`, remote diagnostics over USB (`ctremote.py`).
 
-<a id="e4-tablas-midi"></a>
-### E4. MIDI tables
+<a id="e5-tablas-midi"></a>
+### E5. MIDI tables
 - MIDI engine: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 4:x; drums NRPN 5-8:1-12; Master FX NRPN 9:0-19 (channel 16).

@@ -93,7 +93,7 @@ def main(img, man, prev, prev_man):
     check(at(PM.END_HOOK, 4) == tbl(PM.END_HOOK, L["c_pmend"]) and at(PM.STEP_HOOK, 4) == tbl(PM.STEP_HOOK, L["c_pmstep"]) and at(PM.START_HOOK, 4) == tbl(PM.START_HOOK, L["c_pmstart"])
           and bytes(prev[PM.END_HOOK - B:PM.END_HOOK - B + 4]) == PM.DIR_OLD and bytes(prev[PM.STEP_HOOK - B:PM.STEP_HOOK - B + 4]) == PM.DIR_OLD,
           "the engine's three reads of the direction -> c_pmend, c_pmstep, c_pmstart (the previous build: the stock's)")
-    check(w(PM.PS_VT) == L["c_pmpspad"] | 1 and w(PM.PS_VT + 28) == L["c_pmpsbuf"] | 1 and all(at(c, 4) == tbl(c, int(man["report"]["fxsess"]["labels"]["c_fsledtask"], 16) if "fxsess" in man["report"] else L["c_pmledtask"]) for c in PK.LED_CALLS)
+    check(w(PM.PS_VT) == L["c_pmpspad"] | 1 and w(PM.PS_VT + 28) == L["c_pmpsbuf"] | 1 and all(at(c, 4) == tbl(c, int(man["report"]["rodisk"]["labels"]["c_roledtask"], 16) if "rodisk" in man["report"] else int(man["report"]["fxsess"]["labels"]["c_fsledtask"], 16) if "fxsess" in man["report"] else L["c_pmledtask"]) for c in PK.LED_CALLS)
           and PM.ORDER[:16] == [0, 5, 10, 15, 1, 6, 11, 12, 2, 7, 8, 13, 3, 4, 9, 14] and sorted(PM.ORDER) == list(range(32)),
           "the Pattern Settings view's slots 0 / 7, the LED task calls; the deconstructed order = 1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15, then the same + 16")
     e = E8(img, man, LP); p = E8(prev, prev_man, {k: int(v, 16) for k, v in prev_man["report"]["patchain"]["labels"].items()})

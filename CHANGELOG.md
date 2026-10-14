@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC0.9 / RC0.9S y Beta 1.3 — 2026-10-14
+
+RC0.9 = RC0.8 + una protección. RC0.9S = RC0.8S con el nombre nuevo (no escribe nada por su cuenta: no la necesita). **Beta 1.3** (marca `B1.3`; = SC41.3) = Beta 1.2 + la misma protección.
+
+### Novedades (RC0.9 y Beta 1.3)
+- **El pack de la memoria interna es de solo lectura para el mod.** Nada del mod escribe ni borra en él (guardar el sample capturado, copiar o intercambiar samples y patches hacia él, guardar patches del sinte o del sinte propio, copiar proyectos, borrar el pack): se niega y el LED de Save se enciende en rojo un momento. Se puede leer de él y copiar desde él a un pack de la tarjeta. Los guardados del propio aparato no cambian.
+
 ## Beta 1.2 — 2026-10-14
 
 **Beta 1.2** (marca `B1.2`; = SC41.2) = Beta 1.1 + un arreglo encontrado al revisar. Las RC siguen en RC0.8 / RC0.8S.
@@ -191,6 +198,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC0.9 / RC0.9S and Beta 1.3 — 2026-10-14
+
+RC0.9 = RC0.8 + one safeguard. RC0.9S = RC0.8S under the new name (it writes nothing of its own: it does not need it). **Beta 1.3** (marker `B1.3`; = SC41.3) = Beta 1.2 + the same safeguard.
+
+### New (RC0.9 and Beta 1.3)
+- **The internal memory pack is read only for the mod.** Nothing of the mod writes or deletes in it (saving the captured sample, copying or exchanging samples and patches into it, saving synth or own-synth patches, copying projects, deleting the pack): it is refused and the Save LED lights red for a moment. You can read it and copy from it to a pack of the card. The device’s own saves are unchanged.
 
 ## Beta 1.2 — 2026-10-14
 

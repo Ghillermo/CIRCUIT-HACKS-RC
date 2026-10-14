@@ -151,7 +151,7 @@ def main(img, man, prev, prev_man):
           and bytes(prev[PC.NEXT_HOOK - B:PC.NEXT_HOOK - B + 28]) == PC.NEXT_OLD and bytes(prev[PC.SCN_FN - B:PC.SCN_FN - B + 6]) == PC.SCN_OLD,
           "the sequencer: the choice of the next pattern, the end-of-chain test, the next scene and its committing call (the previous build: the stock's)")
     check(at(PC.SC_SAVE, 4) == tbl(PC.SC_SAVE, L["c_pcssave"]) and at(PC.SC_COPY, 4) == tbl(PC.SC_COPY, L["c_pcscopy"]) and at(PC.P19.LOAD_END, 4) == b_w(PC.P19.LOAD_END, L["c_pcload"])
-          and w(PC.PV_VT) == L["c_pcpad"] | 1 and at(PC.BTN_ENTRY, 4) == b_w(PC.BTN_ENTRY, L["c_pcbtn"]) and all(at(c, 4) == tbl(c, next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("playmode", "c_pmledtask"), ("xpatch", "c_xqledtask")) if m_ in man["report"]), L["c_pcledtask"])) for c in PK.LED_CALLS),
+          and w(PC.PV_VT) == L["c_pcpad"] | 1 and at(PC.BTN_ENTRY, 4) == b_w(PC.BTN_ENTRY, L["c_pcbtn"]) and all(at(c, 4) == tbl(c, next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("rodisk", "c_roledtask"), ("playmode", "c_pmledtask"), ("xpatch", "c_xqledtask")) if m_ in man["report"]), L["c_pcledtask"])) for c in PK.LED_CALLS),
           "the scene save / copy, the end of the load, the Patterns view's pad slot, the head of the button chain, the two LED task calls")
     check(not {PC.COL_RULE, PC.COL_OFF, PC.COL_A, PC.COL_B, PC.COL_C} & __import__("emu_sc39").ANIMATED, "the colours are steady codes")
 

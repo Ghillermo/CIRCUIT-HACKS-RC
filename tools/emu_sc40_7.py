@@ -78,7 +78,7 @@ def main(img, man, prev, prev_man):
     w = lambda a: struct.unpack_from("<I", img, a - B)[0]
     t0 = int(man["report"]["stepmod"]["arm_start"], 16) - B
     keep = SM.DYN; SM.DYN = SM.DYN2; tab2 = SM.dyn_table(); SM.DYN = keep
-    check(w(MP.TMPL_VT) == L["c_xqpad"] | 1 and all(bytes(img[c - B:c - B + 4]) == tbl(c, next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("fxsess", "c_fsledtask"), ("playmode", "c_pmledtask")) if m_ in man["report"]), L["c_xqledtask"])) for c in PK.LED_CALLS) and bytes(img[t0:t0 + 32]) == tab2,
+    check(w(MP.TMPL_VT) == L["c_xqpad"] | 1 and all(bytes(img[c - B:c - B + 4]) == tbl(c, next((int(man["report"][m_]["labels"][n_], 16) for m_, n_ in (("rodisk", "c_roledtask"), ("fxsess", "c_fsledtask"), ("playmode", "c_pmledtask")) if m_ in man["report"]), L["c_xqledtask"])) for c in PK.LED_CALLS) and bytes(img[t0:t0 + 32]) == tab2,
           "the template view's pad slot = c_xqpad, the two LED task calls; the dynamics table = the one of 2026-10-14")
     n = run(img, man, True)
     clip = XP.XMAGIC << 16 | 31 << 8 | 0
