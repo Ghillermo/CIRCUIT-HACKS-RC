@@ -16,6 +16,7 @@ from unicorn.arm_const import UC_ARM_REG_R0
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import emu_sc36 as T36  # noqa: E402  (configures vcf21 as SC36)
 import vcf21_dsp as VD  # noqa: E402
+from emu_sc17_7 import engine_of  # noqa: E402
 
 V, E20 = T36.V, T36.E20
 HAL = 0x2000081C
@@ -41,7 +42,7 @@ def run(img, man, stretch):
         got = collect([(x[1], x[2]) for x in e.dw if len(x) == 3], {})
         return collect(sum((e.vtick() for _ in range(6)), []), got)
     def ticks(t):
-        st = e.r32(V.ENGINE + 0x90)
+        st = e.r32(engine_of(img, man, V.ENGINE) + 0x90)
         for b in (e.r32(st + 0xC), e.r32(st + 0x10)): e.w32(b, t)
         return e.r32(r0(V.PARAM_GET, st, 0))
     e.btn(2); e.track(2); e.btn(8)

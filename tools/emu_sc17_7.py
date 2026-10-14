@@ -18,6 +18,20 @@ B.use_songptr()
 VIEW7 = 0x20044128                                      # the stock Shift + Scales view
 SP_PRESS, VIEW7_PRESS, MARK_DIRTY = 0x0804D242, 0x08044006, 0x0803BDCC
 ENGINE = 0x20038ECC
+
+
+def engine_of(img, man, default=ENGINE):
+    """The engine address the build's own code uses (vcf21.use_engfix: 0x20038EC0, before it the interface 0x20038ECC): the movw / movt of c_sdeng."""
+    lab = man.get("report", {}).get("vcf20", {}).get("labels", {}).get("c_sdeng")
+    if not lab: return default
+    off = int(lab, 16) - 0x08010000
+    for k in range(0, 24, 2):
+        h1, h2 = int.from_bytes(img[off + k:off + k + 2], "little"), int.from_bytes(img[off + k + 2:off + k + 4], "little")
+        if h1 & 0xFBF0 == 0xF240:
+            h3, h4 = int.from_bytes(img[off + k + 4:off + k + 6], "little"), int.from_bytes(img[off + k + 6:off + k + 8], "little")
+            imm = lambda a_, b_: (a_ & 0xF) << 12 | (a_ >> 10 & 1) << 11 | (b_ >> 12 & 7) << 8 | (b_ & 0xFF)
+            return imm(h3, h4) << 16 | imm(h1, h2)
+    return default
 TICK_FN, SET_TICKS = 0x0802C418, 0x0802BFE0
 
 

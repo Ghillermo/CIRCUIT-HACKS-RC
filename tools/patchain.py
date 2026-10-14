@@ -81,11 +81,20 @@ LED_DOWN = 51
 PLAY_STORE = 0x20011034                                       # the transport (mutate39.PLAY_STORE): parameter 0 = running
 V2 = False
 V3 = False                                                    # SC40.9: one chain mode for the whole project (see use_v3)
+RULECHK = False                                               # SC41.2: c_pcrule refuses a track or a pattern out of 0..7 (see use_rulecheck)
 
 
 def use_v2():
     global V2
     V2 = True
+
+
+def use_rulecheck():
+    """SC41.2 (a review of SC41.1 in emulation: the stock's tick, given a wrong engine, handed the end-of-pattern hook a drum pattern 0x84, and
+    c_pcrule turned it into an address past the end of the RAM, 0x2005F494: a bus fault on the unit): c_pcrule answers 0 («no rule») for a track or
+    a pattern outside 0..7.  Its callers already treat 0 as «the stock's»: the chains, the play orders, the Patterns view's LEDs."""
+    global RULECHK
+    RULECHK = True
 
 
 def use_v3():
@@ -207,6 +216,7 @@ def arm_code(base, L, prev):
 
     # ---- c_pcrule (r0 = track, r1 = pattern) -> r0 = the address of the pattern's rule (n, B + 1, C + 1), 0 without a record; clobbers r1-r3
     a.label("c_pcrule")
+    if RULECHK: E(cmp_imm, 0, 8); E(b_cond, "ru_0", "hs"); E(cmp_imm, 1, 8); E(b_cond, "ru_0", "hs")
     E(lsls_imm, 0, 0, 3); E(adds_reg, 0, 0, 1)
     E(cmp_imm, 0, 32); E(b_cond, "ru_n", "lo")
     E(subs_imm8, 0, 32); imm32(1, PAT_DRUM); imm32(2, REC_DRUM + SET_DRUM); E(b, "ru_j")

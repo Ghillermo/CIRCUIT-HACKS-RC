@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.2 — 2026-10-14
+
+**Beta 1.2** (marca `B1.2`; = SC41.2) = Beta 1.1 + un arreglo encontrado al revisar. Las RC siguen en RC0.8 / RC0.8S.
+
+### Arreglos (solo Beta 1.2)
+- **Una regla de cadena pedida para una pista o un patrón fuera de rango ya no lee fuera de la memoria.** Con un estado inesperado del secuenciador, las cadenas y los órdenes fractal / deconstruido podían leer una dirección inexistente y bloquear el aparato; ahora ese patrón suena como en el original.
+
 ## RC0.8 / RC0.8S y Beta 1.1 — 2026-10-14
 
 RC0.8 = RC0.7 + un arreglo. RC0.8S = RC0.7S + el mismo (**S**). **Beta 1.1** (marca `B1.1` en el aparato; = SC41.1) sustituye a Beta 1.0.
@@ -184,6 +191,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.2 — 2026-10-14
+
+**Beta 1.2** (marker `B1.2`; = SC41.2) = Beta 1.1 + one fix found in a review. The RCs stay RC0.8 / RC0.8S.
+
+### Fixes (Beta 1.2 only)
+- **A chain rule asked for a track or a pattern out of range no longer reads outside the memory.** With an unexpected sequencer state, the chains and the fractal / deconstructed orders could read an address that does not exist and freeze the device; now that pattern plays as on the original.
 
 ## RC0.8 / RC0.8S and Beta 1.1 — 2026-10-14
 

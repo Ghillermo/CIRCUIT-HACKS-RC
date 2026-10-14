@@ -18,7 +18,7 @@ import emu_sc36 as T36  # noqa: E402  (configures build_sc17 as SC36)
 import build_sc17 as B  # noqa: E402
 import sampler_dsp as SD  # noqa: E402
 from emu_sc17_6 import TICK  # noqa: E402
-from emu_sc17_7 import ENGINE  # noqa: E402
+from emu_sc17_7 import ENGINE, engine_of  # noqa: E402
 
 
 def run(img, man):
@@ -32,7 +32,9 @@ def run(img, man):
         ms[0] += 1; x.w32(TICK, ms[0]); x.dw.clear(); x.call(x.L["c_fxtick"], maxins=2_000_000); return list(x.dw)
     def play(on):
         x.call(B.PARAM_GET, B.PLAY_STORE, 0); x.uc.mem_write(x.uc.reg_read(UC_ARM_REG_R0), bytes([1 if on else 0]))
-    tst = x.r32(ENGINE + 0x90); tb = (x.r32(tst + 0xC), x.r32(tst + 0x10))
+    ENG_ = engine_of(img, man)                                                    # (the engine this build uses)
+    tst = x.r32(ENG_ + 0x90); tb = (x.r32(tst + 0xC), x.r32(tst + 0x10))
+    x.set_ticks = lambda t: [x.w32(bb, t & 0xFFFFFFFF) for bb in tb]                # (the ticks store of that engine)
     def body(uc, a, s, d):                                                        # the stock tick body: the ticks store + 1, back to the caller
         t = max(x.r32(tb[0]), x.r32(tb[1])) + 1
         for bb in tb: x.w32(bb, t)
@@ -40,7 +42,7 @@ def run(img, man):
         uc.reg_write(UC_ARM_REG_SP, sp + 24); uc.reg_write(UC_ARM_REG_PC, lr | 1)
     x.uc.hook_add(UC_HOOK_CODE, body, begin=B.TICK_BACK, end=B.TICK_BACK)
     def ticks(n):                                                                 # n sequencer ticks, a Master FX tick after each one
-        for _ in range(n): x.call(B.TICK_FN, ENGINE, maxins=5_000_000); ftick()
+        for _ in range(n): x.call(B.TICK_FN, ENG_, maxins=5_000_000); ftick()
     # armed while stopped
     play(False); x.set_ticks(0)
     x.pad(B.SMP_REC, shift=True); x.rel(B.SMP_REC); ftick()
