@@ -86,7 +86,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Pads 1-32</strong> from top-left to bottom-right: row 1 = 1-8, row 2 = 9-16, row 3 = 17-24, row 4 = 25-32.</li>
 <li><strong>Knobs K1-K4</strong> on top, <strong>K5-K8</strong> below. «<strong>Shift + X</strong>» = hold Shift while using X; the same with Clear and Duplicate.</li>
 <li>Anything not described here works as on the original device (Novation&#x27;s official manual).</li>
-<li><em>(Beta 1.17 only)</em> = only in the beta version; the rest is also in the release candidates (RC). The «S» versions write nothing of their own to the card: they lack what is marked «writes to the card».</li>
+<li><em>(Beta 1.18 only)</em> = only in the beta version; the rest is also in the release candidates (RC). The «S» versions write nothing of their own to the card: they lack what is marked «writes to the card».</li>
 <li>The <strong>feature list</strong> (the previous manual) sums up every feature in one line, by topic.</li>
 </ul>
 </section>
@@ -276,14 +276,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Shortcut map: the numbers refer to the table.</figcaption></figure>
 <table><thead><tr><th>Gesture</th><th>Where</th><th>What it does</th></tr></thead><tbody>
 <tr><td><strong>Clear + knob to the right</strong></td><td>drums, MIDI track engine, Master FX</td><td>The knob goes back to its default (both layers, with and without Shift). <strong>Lavender</strong> LED = done, as on the original.</td></tr>
-<tr><td><strong>Clear + knob to the left</strong></td><td>drums (stock knobs), MIDI track engine <em>(Beta 1.17 only)</em></td><td>Deletes that knob&#x27;s automation in the playing pattern, as on the original (<strong>red</strong> LED). On the MIDI engine, that of the knob&#x27;s two lanes (with and without Shift) that have automation.</td></tr>
+<tr><td><strong>Clear + knob to the left</strong></td><td>drums (stock knobs), MIDI track engine <em>(Beta 1.18 only)</em></td><td>Deletes that knob&#x27;s automation in the playing pattern, as on the original (<strong>red</strong> LED). On the MIDI engine, that of the knob&#x27;s two lanes (with and without Shift) that have automation.</td></tr>
 <tr><td><strong>Shift</strong></td><td>all</td><td>While Shift is held, the shortcuts available light <strong>yellow</strong>; the chosen option, another colour.</td></tr>
 <tr><td><strong>Save</strong></td><td>all</td><td>Saves the project as always; it also writes into the pack the samples replaced by captures (drum Preset), if they fit in the sample memory <em>(writes to the card)</em>.</td></tr>
 <tr><td><strong>Press the track button again</strong></td><td>Synth 1 / 2</td><td>Opens the synth&#x27;s source view (chapter 2).</td></tr>
-<tr><td><strong>Synth 1 + Synth 2 together</strong></td><td>all</td><td>Split keyboard <em>(Beta 1.17 only)</em>.</td></tr>
-<tr><td><strong>Shift + Clear</strong></td><td>all</td><td>Metronome in four states <em>(Beta 1.17 only)</em>: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click&#x27;s volume is the stock&#x27;s: <strong>Tempo/Swing</strong> and <strong>K5</strong>.</td></tr>
-<tr><td><strong>Play</strong> with Record armed and the count-in</td><td>stopped</td><td>One bar of count-in (4 clicks at the project&#x27;s tempo, Record blinks red), then recording starts <em>(Beta 1.17 only)</em>. Play during the count cancels it. The count-in is saved with the project.</td></tr>
-<tr><td><strong>Shift + Scales</strong></td><td>all</td><td>Custom scale editor <em>(Beta 1.17 only)</em> (chapter 2, Scales view).</td></tr>
+<tr><td><strong>Synth 1 + Synth 2 together</strong></td><td>all</td><td>Split keyboard <em>(Beta 1.18 only)</em>.</td></tr>
+<tr><td><strong>Shift + Clear</strong></td><td>all</td><td>Metronome in four states <em>(Beta 1.18 only)</em>: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click&#x27;s volume is the stock&#x27;s: <strong>Tempo/Swing</strong> and <strong>K5</strong>.</td></tr>
+<tr><td><strong>Play</strong> with Record armed and the count-in</td><td>stopped</td><td>One bar of count-in (4 clicks at the project&#x27;s tempo, Record blinks red), then recording starts <em>(Beta 1.18 only)</em>. Play during the count cancels it. The count-in is saved with the project.</td></tr>
+<tr><td><strong>Shift + Scales</strong></td><td>all</td><td>Custom scale editor <em>(Beta 1.18 only)</em> (chapter 2, Scales view).</td></tr>
 <tr><td><strong>Mixer twice</strong></td><td>all</td><td>Master FX (chapter 6).</td></tr>
 <tr><td><strong>Scales + Preset + Note</strong> at power-up</td><td>—</td><td>Novation&#x27;s bootloader recovery mode: lets you install any firmware again.</td></tr>
 </tbody></table>
@@ -443,9 +443,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>Track buttons + pads 1-15</td><td>Each track&#x27;s channel; MIDI 1 / 2 may use a channel another track has (what they send reaches it internally: <strong>internal loopback</strong>). Synth 1 / 2 can also be picked when you entered from their view.</td></tr>
 <tr><td><strong>Pad 16</strong></td><td>Channel 16 (project and FX): receiving and sending what is not a Program Change.</td></tr>
 <tr><td><strong>Pad 22 / 23</strong></td><td>The reverb return goes through mixer strip 3 / the delay return through strip 4 (cream / peach).</td></tr>
-<tr><td><strong>Pad 29 (PGM Rx)</strong> <em>(Beta 1.17 only)</em></td><td>First touch: pads 1-16 show the <strong>listen channel</strong> of the project&#x27;s Program Changes (white); a pad picks it; again = on / off.</td></tr>
-<tr><td><strong>Pad 30 (PGM Tx)</strong> <em>(Beta 1.17 only)</em></td><td>The same with the <strong>output channel</strong>. Both are 16 by default. What arrives on the listen channel is sent again on the output one.</td></tr>
-<tr><td><strong>Record</strong> <em>(Beta 1.17 only)</em></td><td>Yellow = what a MIDI track sends to a synth over the shared channel is also recorded into that synth (scale or octave changes in real time). Off by default; off again after a restart.</td></tr>
+<tr><td><strong>Pad 29 (PGM Rx)</strong> <em>(Beta 1.18 only)</em></td><td>First touch: pads 1-16 show the <strong>listen channel</strong> of the project&#x27;s Program Changes (white); a pad picks it; again = on / off.</td></tr>
+<tr><td><strong>Pad 30 (PGM Tx)</strong> <em>(Beta 1.18 only)</em></td><td>The same with the <strong>output channel</strong>. Both are 16 by default. What arrives on the listen channel is sent again on the output one.</td></tr>
+<tr><td><strong>Record</strong> <em>(Beta 1.18 only)</em></td><td>Yellow = what a MIDI track sends to a synth over the shared channel is also recorded into that synth (scale or octave changes in real time). Off by default; off again after a restart.</td></tr>
 </tbody></table>
 <ul>
 <li>Patch flip always goes out on its MIDI track&#x27;s channel.</li>
@@ -454,7 +454,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="advanced-setup"><h3><span class="code">1.2</span>Advanced Setup view</h3>
 <div class="summary"><p><strong>How to get there:</strong> Open it as on the original. Besides its stock settings (master compressor, etc.):</p></div>
 <ul>
-<li><strong>Duplicate</strong> = mode of the MIDI Thru jack <em>(Beta 1.17 only)</em>: Thru (dim red, DIN In by hardware) → Out 2 (green) → <strong>Merge</strong> (yellow: DIN In + the device&#x27;s MIDI) → <strong>Filter</strong> (blue: DIN In without the channels the device listens to). No SysEx in Merge / Filter. Saved in the settings.</li>
+<li><strong>Duplicate</strong> = mode of the MIDI Thru jack <em>(Beta 1.18 only)</em>: Thru (dim red, DIN In by hardware) → Out 2 (green) → <strong>Merge</strong> (yellow: DIN In + the device&#x27;s MIDI) → <strong>Filter</strong> (blue: DIN In without the channels the device listens to). No SysEx in Merge / Filter. Saved in the settings.</li>
 <li>Pads 22 / 23 do not light here (they do nothing there).</li>
 <li>The master compressor&#x27;s attack / release are set in the Sidechain view, K7 / K8.</li>
 </ul>
@@ -603,7 +603,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Split keyboard: rows 1-2 = Synth 1, rows 3-4 = Synth 2.</figcaption></figure>
 <ul>
 <li><strong>Pressing the same button again</strong> (with its view on screen) opens the synth&#x27;s <strong>source view</strong> (next section).</li>
-<li><strong>Synth 1 + Synth 2 together</strong> (hold one, press the other) opens the <strong>split keyboard</strong> <em>(Beta 1.17 only)</em>:</li>
+<li><strong>Synth 1 + Synth 2 together</strong> (hold one, press the other) opens the <strong>split keyboard</strong> <em>(Beta 1.18 only)</em>:</li>
 <li>the top two rows play Synth 1 and the bottom two Synth 2, each with its scale, octave, velocity and colours;</li>
 <li>the knobs and Octave are those of the synth you pressed first;</li>
 <li>any track or view button closes it (held notes are released); Play, Record, Octave and Shift do not.</li>
@@ -613,7 +613,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="escalas"><h3><span class="code">2.2</span>Scales view and custom scale</h3>
 <div class="summary"><p><strong>How to get there:</strong> Press <strong>Scales</strong> as always (root and stock scale); <strong>Shift + Scales</strong> for the custom scale.</p></div>
 <ul>
-<li><strong>Shift + Scales</strong> opens the Scales view with the <strong>custom scale editor</strong> <em>(Beta 1.17 only)</em>; with Shift held the Scales button shows yellow. Scales again, Shift + Scales or another view close it.</li>
+<li><strong>Shift + Scales</strong> opens the Scales view with the <strong>custom scale editor</strong> <em>(Beta 1.18 only)</em>; with Shift held the Scales button shows yellow. Scales again, Shift + Scales or another view close it.</li>
 <li><strong>The editor&#x27;s keyboard</strong> is two octaves of a piano from the <strong>root</strong> (the Scales view&#x27;s, picked as always out of the editor): row 4 = the white keys of the first octave (root, +2, +4, +5, +7, +9, +11, +12), row 3 = its black keys; rows 2 / 1 = the second octave (+12 … +24).</li>
 <li><strong>Pressing a key</strong> adds or removes it (up to <strong>7</strong>). The highest one pressed is the <strong>period</strong>: the root of the next iteration (not necessarily the octave); the others are the scale&#x27;s notes. Colours: root white, notes green, period orange, free keys dim.</li>
 <li><strong>On the note tracks</strong> (Synth 1 / 2, MIDI 1 / 2) every row of pads is <strong>one iteration</strong>: its notes and the period note at the end, like the octaves of a stock scale. With <strong>4 notes or fewer</strong>, <strong>two iterations a row</strong> (one in each half). Octave ▼ / ▲ move one row.</li>
@@ -927,7 +927,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>The patch needs some noise level (CC 56) for the source to be heard. The source is saved with the project.</li>
 <li>If Setup routes the reverb / delay returns through strips 3 / 4, that signal is what reaches the synth.</li>
 </ul>
-<h4>Pad 32: editor of the macro knob destinations <em>(Beta 1.17 only)</em></h4>
+<h4>Pad 32: editor of the macro knob destinations <em>(Beta 1.18 only)</em></h4>
 <p>Every macro knob has 4 slots; every slot, a destination, a span of the travel (start and end) and a depth.</p>
 <ol>
 <li>1. <strong>Pad 32</strong> (teal) = editor on; the knobs no longer move the macros.</li>
@@ -939,7 +939,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>The destination walks first the 31 parameters with a CC (by number), then the 39 that only have an NRPN. Changes sound at once; to keep them in the pack, save the patch (Preset view).</li>
 </ul>
 <h4>Pad 30: the synth&#x27;s step-drummer</h4>
-<p>The step-drummer view is the MIDI tracks&#x27; one (chapter 3): pads 1-16 steps, 17-24 = <strong>macro 1-8</strong> as destination, K1-K8 = the 8 step pairs. Each pair&#x27;s value is the macro&#x27;s position, written as automation; an empty pair starts at 0 <em>(Beta 1.17 only)</em> (it started at the macro&#x27;s present position).</p>
+<p>The step-drummer view is the MIDI tracks&#x27; one (chapter 3): pads 1-16 steps, 17-24 = <strong>macro 1-8</strong> as destination, K1-K8 = the 8 step pairs. Each pair&#x27;s value is the macro&#x27;s position, written as automation; an empty pair starts at 0 <em>(Beta 1.18 only)</em> (it started at the macro&#x27;s present position).</p>
 </section>
 <section class="feat" id="synth-preset"><h3><span class="code">2.4</span>Synth 1 / 2 Preset view</h3>
 <div class="summary"><p><strong>How to get there:</strong> Press <strong>Preset</strong> with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack&#x27;s 128 patches).</p></div>
@@ -1227,8 +1227,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves.</figcaption></figure>
 <table><thead><tr><th>Gesture</th><th>What it does</th></tr></thead><tbody>
-<tr><td>Patch colours <em>(Beta 1.17 only)</em></td><td><strong>Dark blue</strong> = mono, <strong>lavender</strong> = mono with glide, track colour = poly; the chosen one, lighter.</td></tr>
-<tr><td><strong>Clear + pad</strong>, <strong>Clear + the same pad</strong> within ~5 s <em>(Beta 1.17 only)</em></td><td><strong>Saves</strong> the patch as it sounds (knobs, received MIDI, macro destinations) into that slot. The first touch asks (blinks white); another pad moves the question <em>(writes to the card)</em>.</td></tr>
+<tr><td>Patch colours <em>(Beta 1.18 only)</em></td><td><strong>Dark blue</strong> = mono, <strong>lavender</strong> = mono with glide, track colour = poly; the chosen one, lighter.</td></tr>
+<tr><td><strong>Clear + pad</strong>, <strong>Clear + the same pad</strong> within ~5 s <em>(Beta 1.18 only)</em></td><td><strong>Saves</strong> the patch as it sounds (knobs, received MIDI, macro destinations) into that slot. The first touch asks (blinks white); another pad moves the question <em>(writes to the card)</em>.</td></tr>
 <tr><td><strong>Duplicate + pad A + pad B</strong> (same pack)</td><td>Swaps the two patches.</td></tr>
 <tr><td><strong>Duplicate + pad A</strong>, load another pack, <strong>Duplicate + pad B</strong></td><td>Copies patch A over B in the other pack (A&#x27;s pack does not change); B may be empty <em>(writes to the card)</em>.</td></tr>
 </tbody></table>
@@ -1544,23 +1544,23 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Preset view of MIDI 1: rows 2-3 = patches of the own synth.</figcaption></figure>
 <h4>Pads</h4>
 <table><thead><tr><th>Pad</th><th>Function</th></tr></thead><tbody>
-<tr><td>1-5</td><td>Engine knob page: 1 VCA-VCF, 2 OSC 1 (granular in that engine), 3 OSC 2, 4 sequenceable, 5 modulation. <strong>Clear + the pad</strong> <em>(Beta 1.17 only)</em>: that page&#x27;s values (with and without Shift) back to their defaults.</td></tr>
-<tr><td>9-24</td><td><strong>Own-synth patches</strong> <em>(Beta 1.17 only)</em>: see below.</td></tr>
+<tr><td>1-5</td><td>Engine knob page: 1 VCA-VCF, 2 OSC 1 (granular in that engine), 3 OSC 2, 4 sequenceable, 5 modulation. <strong>Clear + the pad</strong> <em>(Beta 1.18 only)</em>: that page&#x27;s values (with and without Shift) back to their defaults.</td></tr>
+<tr><td>9-24</td><td><strong>Own-synth patches</strong> <em>(Beta 1.18 only)</em>: see below.</td></tr>
 <tr><td>25</td><td><strong>CC editor</strong> of the MIDI macros (next sections).</td></tr>
 <tr><td>26</td><td><strong>Patch flip</strong>: every note of the track goes out as a Program Change (on the track&#x27;s channel; if that is a synth&#x27;s or the drums&#x27; channel, also internally). Exclusive with the engine.</td></tr>
 <tr><td>27</td><td>Track <strong>engine</strong>: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → blue (FX sequencer).</td></tr>
 <tr><td>28</td><td>One / two oscillators (oscillator and VA-drum).</td></tr>
-<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page&#x27;s colour <em>(Beta 1.17 only)</em>).</td></tr>
+<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page&#x27;s colour <em>(Beta 1.18 only)</em>).</td></tr>
 <tr><td>30</td><td>Opens the <strong>step-drummer</strong>; <strong>Shift + pad 30</strong> turns it off.</td></tr>
 <tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes.</td></tr>
 </tbody></table>
-<h4>Own-synth patches (pads 9-24) <em>(Beta 1.17 only)</em></h4>
+<h4>Own-synth patches (pads 9-24) <em>(Beta 1.18 only)</em></h4>
 <ul>
 <li>16 slots per page; <strong>Octave ▼ / ▲</strong> = 4 pages (64 slots per pack, shared by MIDI 1 and MIDI 2).</li>
 <li><strong>Touch</strong> = load (the tonic sounds while you hold the pad). <strong>Clear + pad</strong> twice = save. <strong>Duplicate + A + B</strong> = swap; <strong>Duplicate + A</strong>, another pack, <strong>Duplicate + B</strong> = copy to another pack (Duplicate yellow while one is waiting).</li>
 <li>Colours: dim peach = has a patch, bright = the last used, violet = empty.</li>
 <li>A patch stores the whole engine: chosen engine, oscillators, order, every value and the step-drummer setting <em>(writes to the card)</em>.</li>
-<li><strong>Clear + the track button</strong> <em>(Beta 1.17 only)</em> puts every engine value back to its default (the chosen engine stays).</li>
+<li><strong>Clear + the track button</strong> <em>(Beta 1.18 only)</em> puts every engine value back to its default (the chosen engine stays).</li>
 </ul>
 <h4>The engines (pad 27)</h4>
 <ul>
@@ -1752,9 +1752,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K3</td><td>Scan (centre frozen)</td><td>Reverse grain probability</td></tr>
 <tr><td>K4</td><td>Grain size 5-500 ms</td><td>Pitch spread</td></tr>
 <tr><td>K5</td><td>Density 1-16 grains</td><td>Window</td></tr>
-<tr><td>K6</td><td>Scan zone</td><td>Note mode: pitch / slicer / stretch <em>(Beta 1.17 only)</em></td></tr>
+<tr><td>K6</td><td>Scan zone</td><td>Note mode: pitch / slicer / stretch <em>(Beta 1.18 only)</em></td></tr>
 <tr><td>K7</td><td>LFO → position</td><td>LFO → size</td></tr>
-<tr><td>K8</td><td>Envelope → position</td><td>Source: the capture or a drum&#x27;s sample <em>(Beta 1.17 only)</em></td></tr>
+<tr><td>K8</td><td>Envelope → position</td><td>Source: the capture or a drum&#x27;s sample <em>(Beta 1.18 only)</em></td></tr>
 </tbody></table>
 <h4>Pages 3-5</h4>
 <ul>
@@ -2088,19 +2088,19 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>FX sequencer: each knob = the Master FX bottom-row slot of its pair of steps.</figcaption></figure>
 <table><thead><tr><th>Control</th><th>Function</th></tr></thead><tbody>
 <tr><td>Pads 1-16</td><td>The 16 steps of the half shown: bright = has a note, white = playing. Touch = listen; <strong>Shift + touch</strong> = set / clear the note.</td></tr>
-<tr><td>Pads 17-24</td><td>Pitch page: destination of the pitch row (MIDI: pitch, OSC 2, WAVE, FM, MIX, env → filter, SHAPE, decay) / macro 1-8 (synths). Velocity page: <strong>page 2&#x27;s destination</strong> <em>(Beta 1.17 only)</em> (the same pad again = none).</td></tr>
-<tr><td>Pad 32</td><td><strong>Pitch-vel toggle</strong> <em>(Beta 1.17 only)</em> (bright green = on): on top of their destinations, the pitch page transposes the notes and the velocity page sets the velocity.</td></tr>
+<tr><td>Pads 17-24</td><td>Pitch page: destination of the pitch row (MIDI: pitch, OSC 2, WAVE, FM, MIX, env → filter, SHAPE, decay) / macro 1-8 (synths). Velocity page: <strong>page 2&#x27;s destination</strong> <em>(Beta 1.18 only)</em> (the same pad again = none).</td></tr>
+<tr><td>Pad 32</td><td><strong>Pitch-vel toggle</strong> <em>(Beta 1.18 only)</em> (bright green = on): on top of their destinations, the pitch page transposes the notes and the velocity page sets the velocity.</td></tr>
 <tr><td>K1-K8</td><td>The 8 step pairs (the playing one, white).</td></tr>
 <tr><td>Octave ▲ / ▼</td><td>Pitch / velocity page.</td></tr>
 <tr><td>1-16 / 17-32</td><td>The other half of the pattern.</td></tr>
 </tbody></table>
 <ul>
 <li>The pair&#x27;s value (64 = no change) offsets the destination. Every step keeps the pitch of its first note.</li>
-<li><em>(Beta 1.17 only)</em> <strong>Velocity page with a destination:</strong> the knobs write their value into the pair (MIDI: from 64; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL&#x27;s automation lane: with the step-drummer on, REL is neither played nor recorded.</li>
-<li><em>(Beta 1.17 only)</em> <strong>Pitch-vel toggle:</strong> every note of the track moves up / down <strong>one degree of the project&#x27;s scale</strong> (stock or custom) <strong>every 8 knob steps</strong>: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page&#x27;s pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.</li>
-<li><em>(Beta 1.17 only)</em> On MIDI, pad 30 shows <strong>dim</strong> with the step-drummer off and <strong>bright</strong> when it is on (it was dark / dim).</li>
+<li><em>(Beta 1.18 only)</em> <strong>Velocity page with a destination:</strong> the knobs write their value into the pair (MIDI: from 64; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL&#x27;s automation lane: with the step-drummer on, REL is neither played nor recorded.</li>
+<li><em>(Beta 1.18 only)</em> <strong>Pitch-vel toggle:</strong> every note of the track moves up / down <strong>one degree of the project&#x27;s scale</strong> (stock or custom) <strong>every 8 knob steps</strong>: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page&#x27;s pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.</li>
+<li><em>(Beta 1.18 only)</em> On MIDI, pad 30 shows <strong>dim</strong> with the step-drummer off and <strong>bright</strong> when it is on (it was dark / dim).</li>
 <li>With <strong>Record</strong>, touching a step records it on the playing step (real time).</li>
-<li>With the engine on <strong>FX sequencer</strong> (blue), each knob picks a slot of Master FX&#x27;s bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end <strong>random</strong> <em>(Beta 1.17 only)</em> (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.</li>
+<li>With the engine on <strong>FX sequencer</strong> (blue), each knob picks a slot of Master FX&#x27;s bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end <strong>random</strong> <em>(Beta 1.18 only)</em> (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.</li>
 </ul>
 </section>
 <h2 class="group">4. Pattern Settings</h2>
@@ -2109,16 +2109,16 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Pad</th><th>Function</th></tr></thead><tbody>
 <tr><td>1-16</td><td>First / last step (stock).</td></tr>
 <tr><td>17-24</td><td>Sync rate (stock).</td></tr>
-<tr><td>25</td><td>Note tracks: opens the probability view in <strong>mode 2</strong> (dynamics and random-mutate). <strong>Clear + pad 25</strong>: clears the dynamics and the random-mutate of every step of the pattern; the frequency stays <em>(Beta 1.17 only)</em>.</td></tr>
+<tr><td>25</td><td>Note tracks: opens the probability view in <strong>mode 2</strong> (dynamics and random-mutate). <strong>Clear + pad 25</strong>: clears the dynamics and the random-mutate of every step of the pattern; the frequency stays <em>(Beta 1.18 only)</em>.</td></tr>
 <tr><td>26</td><td><strong>Nudge</strong> (orange): the chosen first step becomes step 1; what was in front goes to the end (steps and automation, over 16 or 32).</td></tr>
 <tr><td>27</td><td><strong>Fractal</strong> order: 1 · 1 2 · 1 2 3 · … up to the last step.</td></tr>
 <tr><td>28</td><td><strong>Deconstructed</strong> order: the grid&#x27;s diagonals (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15).</td></tr>
 <tr><td>29-32</td><td>Stock direction; exclusive with 27 / 28.</td></tr>
 </tbody></table>
 <ul>
-<li>Nudge and orders also on the drums. The order is saved with the pattern; Clear on the pattern removes it. <em>(Beta 1.17 only)</em></li>
+<li>Nudge and orders also on the drums. The order is saved with the pattern; Clear on the pattern removes it. <em>(Beta 1.18 only)</em></li>
 </ul>
-<h4>Arpeggiator (note tracks) <em>(Beta 1.17 only)</em></h4>
+<h4>Arpeggiator (note tracks) <em>(Beta 1.18 only)</em></h4>
 <p>While <strong>Shift</strong> is held, the arpeggiator&#x27;s pads keep their Pattern Settings colours and the chosen ones show green:</p>
 <table><thead><tr><th>Gesture</th><th>Function</th></tr></thead><tbody>
 <tr><td><strong>Shift + pad 25</strong></td><td>The arpeggiator of the pattern the track plays: on / off. Without Shift, pad 25 shows green while it is on (and still opens mode 2).</td></tr>
@@ -2130,15 +2130,17 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Input:</strong> the first note sounds as always; holding another one with it starts the arpeggio of the held notes, one an arpeggio step (with the transport stopped, at the project&#x27;s tempo), until all are let go; each note lasts an arpeggio step. <strong>With Record the chord is recorded</strong>, not the single notes: the sequence plays the arpeggio afterwards.</li>
 <li>Saved with the project, per track and pattern.</li>
 </ul>
+<h4>The drums&#x27; arpeggiator <em>(Beta 1.18 only)</em></h4>
+<p>The same gestures (<strong>Shift + pad 25 / 27-32 / 17-24</strong>) in a drum&#x27;s Pattern Settings turn its arpeggiator on for the pattern it plays, with its order and resolution. In the <strong>drum&#x27;s Preset view</strong> the first sample held is the usual one; <strong>holding another one with it starts the arpeggio of the samples held</strong>: the drum jumps from sample to sample (in the chosen order, over the samples sorted by number), with its pad&#x27;s velocity. Playing, it follows the drum&#x27;s grid; stopped, the project&#x27;s tempo. It goes on while any is held; when all are let go, the drum goes back to its chosen sample. Not recorded.</p>
 </section>
 <section class="feat" id="micropasos"><h3><span class="code">4.2</span>Micro Step view (note tracks)</h3>
 <div class="summary"><p><strong>How to get there:</strong> Press <strong>Gate twice</strong> with a note track selected (Synth 1 / 2, MIDI 1 / 2).</p></div>
 <ul>
 <li>Pads 17-22: the 6 micro steps of the chosen step; <strong>pad 24 = Tie</strong> (ties the chosen notes to the next step); pads 25-30: the step&#x27;s notes (which ones the micro step and the Tie apply to), as always.</li>
 <li><strong>Gate once</strong> is the Gate view (pads 17-32 = the length): there pads 31 / 32 are the stock&#x27;s.</li>
-<li><strong>Pad 32 = gate by holding</strong> <em>(Beta 1.17 only)</em> for the track (green = on, dim = off; saved with the project): when <strong>entering notes by hand</strong> (a step held + a note pad, or a note held + a step pad), <strong>how long you hold the pad is the note&#x27;s gate</strong>, at the project&#x27;s tempo and the track&#x27;s sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock&#x27;s gate.</li>
-<li><strong>Pad 31 = fixed length</strong> <em>(Beta 1.17 only)</em> for the track (orange = on): with both off, it opens the <strong>selector</strong> (pads 17-32 = 1 … 16 steps, like the Gate view) and <strong>picking a length turns it on</strong> (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate.</li>
-<li><strong>The two toggles</strong> <em>(Beta 1.17 only)</em>: with one on, <strong>pressing it again turns it off</strong> (nothing opens); <strong>pressing the other one</strong> turns the first off and the new one on (pad 31 by opening its selector).</li>
+<li><strong>Pad 32 = gate by holding</strong> <em>(Beta 1.18 only)</em> for the track (green = on, dim = off; saved with the project): when <strong>entering notes by hand</strong> (a step held + a note pad, or a note held + a step pad), <strong>how long you hold the pad is the note&#x27;s gate</strong>, at the project&#x27;s tempo and the track&#x27;s sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock&#x27;s gate.</li>
+<li><strong>Pad 31 = fixed length</strong> <em>(Beta 1.18 only)</em> for the track (orange = on): with both off, it opens the <strong>selector</strong> (pads 17-32 = 1 … 16 steps, like the Gate view) and <strong>picking a length turns it on</strong> (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate.</li>
+<li><strong>The two toggles</strong> <em>(Beta 1.18 only)</em>: with one on, <strong>pressing it again turns it off</strong> (nothing opens); <strong>pressing the other one</strong> turns the first off and the new one on (pad 31 by opening its selector).</li>
 <li>The arpeggiator uses those gates too: each note of the chord lasts its own.</li>
 </ul>
 </section>
@@ -2300,9 +2302,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Probability view: row 3 = the step’s probability (original), row 4 = random-mutate.</figcaption></figure>
 <table><thead><tr><th>Mode</th><th>Row 3</th><th>Row 4</th></tr></thead><tbody>
-<tr><td>Stock (Shift + Pattern Settings)</td><td>Step probability</td><td><strong>Random-mutate</strong> <em>(Beta 1.17 only)</em></td></tr>
-<tr><td>Mode 1 (Pattern Settings twice)</td><td>Step probability</td><td><strong>Frequency</strong>: the step plays on the last of every n passes (1-8), yellow <em>(Beta 1.17 only)</em></td></tr>
-<tr><td>Mode 2 (pad 25)</td><td>Random <strong>dynamics</strong> <em>(Beta 1.17 only)</em></td><td>Random-mutate <em>(Beta 1.17 only)</em></td></tr>
+<tr><td>Stock (Shift + Pattern Settings)</td><td>Step probability</td><td><strong>Random-mutate</strong> <em>(Beta 1.18 only)</em></td></tr>
+<tr><td>Mode 1 (Pattern Settings twice)</td><td>Step probability</td><td><strong>Frequency</strong>: the step plays on the last of every n passes (1-8), yellow <em>(Beta 1.18 only)</em></td></tr>
+<tr><td>Mode 2 (pad 25)</td><td>Random <strong>dynamics</strong> <em>(Beta 1.18 only)</em></td><td>Random-mutate <em>(Beta 1.18 only)</em></td></tr>
 </tbody></table>
 <h4>Random-mutate (row 4)</h4>
 <table><thead><tr><th>Pad</th><th>25</th><th>26</th><th>27</th><th>28</th><th>29</th><th>30</th><th>31</th><th>32</th></tr></thead><tbody>
@@ -2474,7 +2476,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K1 Oscillator</td><td>Pitch (exact semitones)</td><td>Pitch envelope amount</td></tr>
 <tr><td>K2 Osc mod</td><td>Ring mod frequency</td><td>Ring mod amount</td></tr>
-<tr><td>K3 Amp envelope</td><td><strong>Left: decay</strong> (the stock one). Past its maximum, <strong>right: attack</strong> (fade-in, up to 1 s). Neutral in the middle. <em>(Beta 1.17 only)</em></td><td><strong>Left: sample start</strong>; <strong>right: cut</strong> from the end (up to 120/128 each). Middle = the whole sample. <em>(Beta 1.17 only)</em></td></tr>
+<tr><td>K3 Amp envelope</td><td><strong>Left: decay</strong> (the stock one). Past its maximum, <strong>right: attack</strong> (fade-in, up to 1 s). Neutral in the middle. <em>(Beta 1.18 only)</em></td><td><strong>Left: sample start</strong>; <strong>right: cut</strong> from the end (up to 120/128 each). Middle = the whole sample. <em>(Beta 1.18 only)</em></td></tr>
 <tr><td>K4 Filter envelope</td><td>Envelope → cutoff</td><td>Envelope shape</td></tr>
 <tr><td>K5 Filter frequency</td><td>Filter / EQ (by default the stock tilt EQ)</td><td><strong>Filter mode</strong>: stock tilt EQ, band-pass, notch, comb, DJ</td></tr>
 <tr><td>K6 Resonance</td><td>Resonance</td><td>—</td></tr>
@@ -2635,6 +2637,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Clear + pad</strong>, <strong>Clear + the same pad</strong></td><td><strong>Replaces</strong> that sample with Master FX&#x27;s capture. Volatile until you save: then it is written into the pack if it fits in the sample memory.</td></tr>
 <tr><td><strong>Duplicate + pad A + pad B</strong> (same pack)</td><td>Swaps the two samples (files and table); sounds at once.</td></tr>
 <tr><td><strong>Preset again</strong> {B}</td><td>The drum&#x27;s chromatic / scale view on / off (the same as Shift + Preset).</td></tr>
+<tr><td><strong>Several pads held</strong> {B}</td><td>With the drum&#x27;s arpeggiator on (Pattern Settings, Shift + pad 25): the arpeggio of the samples held (Pattern Settings chapter).</td></tr>
 <tr><td><strong>Duplicate + pad A</strong>, load another pack, <strong>Duplicate + pad B</strong></td><td>Copies sample A over B (B may be empty). It goes into B&#x27;s place if it fits; otherwise into the free import memory. It never overwrites a sample that plays.</td></tr>
 <tr><td><strong>Shift + Preset</strong></td><td>Chromatic / scale view (next section).</td></tr>
 </tbody></table>
@@ -3151,22 +3154,22 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Pad</th><th>Function</th><th>K1-K4 when pressed</th></tr></thead><tbody>
 <tr><td>1</td><td>Gater</td><td>division, depth, width, smoothing</td></tr>
 <tr><td>2 / 3</td><td>Auto-Filter low / high pass</td><td>speed, depth, resonance, centre</td></tr>
-<tr><td>4</td><td>Digitise</td><td>sample rate, bits; <strong>K3 = momentary delay throw</strong> while you hold the pad, <strong>K4 = envelope of the amount</strong> <em>(Beta 1.17 only)</em></td></tr>
+<tr><td>4</td><td>Digitise</td><td>sample rate, bits; <strong>K3 = momentary delay throw</strong> while you hold the pad, <strong>K4 = envelope of the amount</strong> <em>(Beta 1.18 only)</em></td></tr>
 <tr><td>5</td><td>Phaser</td><td>speed, depth, feedback, mix</td></tr>
-<tr><td>6</td><td>Vinyl (RC) / <strong>Glitch</strong> <em>(Beta 1.17 only)</em></td><td>Glitch: speed, repeat, delay, chaos / overload</td></tr>
+<tr><td>6</td><td>Vinyl (RC) / <strong>Glitch</strong> <em>(Beta 1.18 only)</em></td><td>Glitch: speed, repeat, delay, chaos / overload</td></tr>
 <tr><td>7</td><td><strong>Captured sample</strong>: play</td><td>pitch, mode (one-shot / gate / loop), start, end</td></tr>
 <tr><td>8</td><td>Release everything latched (effects, song pointer, sample) and bypass</td><td>—</td></tr>
 <tr><td>9-24</td><td><strong>Song pointer</strong>: steps 1-16</td><td>—</td></tr>
 <tr><td>25</td><td>(stock)</td><td>—</td></tr>
 <tr><td>26-30</td><td><strong>Assignable slots</strong></td><td>the assigned effect&#x27;s</td></tr>
-<tr><td>31</td><td><strong>Glitch</strong> (RC) / <strong>mechanical gesture</strong> <em>(Beta 1.17 only)</em></td><td>gesture: moves, kind, stop time, start time</td></tr>
+<tr><td>31</td><td><strong>Glitch</strong> (RC) / <strong>mechanical gesture</strong> <em>(Beta 1.18 only)</em></td><td>gesture: moves, kind, stop time, start time</td></tr>
 <tr><td>32</td><td><strong>Record</strong> the capture</td><td>—</td></tr>
 </tbody></table>
 <h4>Effects (pads 1-6)</h4>
 <ul>
 <li><strong>Hold</strong> = on; <strong>Shift + pad</strong> = latched; touching it again releases it. The knob LEDs show the value with their brightness.</li>
 <li><strong>Clear + knob to the right</strong> = default; while Clear is held the knobs at their default show lavender (Master FX has no automation: no red).</li>
-<li><strong>Per session</strong> <em>(Beta 1.17 only)</em>: the effects&#x27; 20 knobs, the slot assignments and the compressor are saved with each project.</li>
+<li><strong>Per session</strong> <em>(Beta 1.18 only)</em>: the effects&#x27; 20 knobs, the slot assignments and the compressor are saved with each project.</li>
 </ul>
 <h4>Song pointer (pads 9-24)</h4>
 <ul>
@@ -3187,7 +3190,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Glitch and mechanical gesture</h4>
 <ul>
 <li><strong>Glitch:</strong> the output becomes a tape head over the recent audio: K1 speed (top normal, middle stopped, bottom backwards), K2 repeat, K3 delay (up to 2.6 s), K4 chaos (lower half) or overload (upper half).</li>
-<li><strong>Mechanical gesture</strong> <em>(Beta 1.17 only)</em>: pressing it slows the audio to a stop; releasing restarts it. K1 moves (1-8), K2 continuous kind in colours (tape stop → baby scratch → tear → back spin → rattle), K3 stop time, K4 start time. It uses the Glitch&#x27;s engine: while it plays, the Glitch waits.</li>
+<li><strong>Mechanical gesture</strong> <em>(Beta 1.18 only)</em>: pressing it slows the audio to a stop; releasing restarts it. K1 moves (1-8), K2 continuous kind in colours (tape stop → baby scratch → tear → back spin → rattle), K3 stop time, K4 start time. It uses the Glitch&#x27;s engine: while it plays, the Glitch waits.</li>
 </ul>
 </section>
 <h2 class="group">7. FX</h2>
@@ -3357,15 +3360,15 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="sidechain"><h3><span class="code">8.1</span>Sidechain view</h3>
 <div class="summary"><p><strong>How to get there:</strong> <strong>Shift + FX</strong>. Each track&#x27;s sidechain presets as always, plus the knobs:</p></div>
 <table><thead><tr><th>Control</th><th>What it does</th></tr></thead><tbody>
-<tr><td><strong>K1-K4</strong> <em>(Beta 1.17 only)</em></td><td>Attack, hold, decay and depth of the sidechain of the track of the last preset touched (Synth 1 if none); LEDs in the track&#x27;s colour.</td></tr>
-<tr><td><strong>K7 / K8</strong> <em>(Beta 1.17 only)</em></td><td>Attack / release of the master compressor (switched on in Advanced Setup), white. Saved with the project.</td></tr>
+<tr><td><strong>K1-K4</strong> <em>(Beta 1.18 only)</em></td><td>Attack, hold, decay and depth of the sidechain of the track of the last preset touched (Synth 1 if none); LEDs in the track&#x27;s colour.</td></tr>
+<tr><td><strong>K7 / K8</strong> <em>(Beta 1.18 only)</em></td><td>Attack / release of the master compressor (switched on in Advanced Setup), white. Saved with the project.</td></tr>
 <tr><td><strong>Octave ▼</strong> with the drums</td><td><strong>Sidechain between drums</strong>: ducking pages per drum (rows 3-4) and which drum triggers (row 1, pads 5-8).</td></tr>
-<tr><td><strong>K1-K4</strong> on a drum page <em>(Beta 1.17 only)</em></td><td>Attack, hold, decay and depth of the sidechain of the drum of the last preset touched (starting from its preset&#x27;s; touching a preset brings them back to it); LEDs in the drum&#x27;s colour. Saved with the project.</td></tr>
+<tr><td><strong>K1-K4</strong> on a drum page <em>(Beta 1.18 only)</em></td><td>Attack, hold, decay and depth of the sidechain of the drum of the last preset touched (starting from its preset&#x27;s; touching a preset brings them back to it); LEDs in the drum&#x27;s colour. Saved with the project.</td></tr>
 </tbody></table>
 </section>
 <h2 class="group">9. Scenes and patterns</h2>
 <section class="feat" id="patterns"><h3><span class="code">9.1</span>Patterns view and pattern chains</h3>
-<div class="summary"><p><strong>How to get there:</strong> The <strong>Patterns</strong> button. Columns = tracks, rows = patterns. With the <strong>chain mode</strong> <em>(Beta 1.17 only)</em>, each pattern can carry a rule «play n times, jump to B; next time, to C».</p></div>
+<div class="summary"><p><strong>How to get there:</strong> The <strong>Patterns</strong> button. Columns = tracks, rows = patterns. With the <strong>chain mode</strong> <em>(Beta 1.18 only)</em>, each pattern can carry a rule «play n times, jump to B; next time, to C».</p></div>
 <table><thead><tr><th>Gesture</th><th>What it does</th></tr></thead><tbody>
 <tr><td><strong>Shift + Octave ▲</strong></td><td>Turns the whole project&#x27;s chain mode on (Octave ▲ green). With Shift, the useful Octave lights yellow.</td></tr>
 <tr><td><strong>Shift + Octave ▼</strong></td><td>Turns it off (the rules stay saved but are not applied).</td></tr>
@@ -3529,9 +3532,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Mixer: Shift + knob right = level 100, left = 0.</figcaption></figure>
 <table><thead><tr><th>Gesture</th><th>What it does</th></tr></thead><tbody>
 <tr><td><strong>Shift + knob to the right / left</strong></td><td>That track&#x27;s level to 100 / to 0 (levels page; on the pan page, Shift + knob is the stock one). Goes out over MIDI and is recorded like a turn.</td></tr>
-<tr><td><strong>Scene pads</strong></td><td>As always; a scene saved in <strong>chain mode</strong> shows <strong>peach</strong> and loading it brings the mode back; a normal one turns it off. <em>(Beta 1.17 only)</em></td></tr>
-<tr><td><strong>Shift + pads 9-16</strong></td><td><strong>Repeats</strong> of the current scene (1-8; with Shift the row is yellow, the chosen one green). <em>(Beta 1.17 only)</em></td></tr>
-<tr><td>Blinking tracks</td><td>They are following a chain rule. <em>(Beta 1.17 only)</em></td></tr>
+<tr><td><strong>Scene pads</strong></td><td>As always; a scene saved in <strong>chain mode</strong> shows <strong>peach</strong> and loading it brings the mode back; a normal one turns it off. <em>(Beta 1.18 only)</em></td></tr>
+<tr><td><strong>Shift + pads 9-16</strong></td><td><strong>Repeats</strong> of the current scene (1-8; with Shift the row is yellow, the chosen one green). <em>(Beta 1.18 only)</em></td></tr>
+<tr><td>Blinking tracks</td><td>They are following a chain rule. <em>(Beta 1.18 only)</em></td></tr>
 <tr><td><strong>Mixer</strong> again</td><td>Master FX.</td></tr>
 </tbody></table>
 <ul>
@@ -3685,7 +3688,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Projects view: Duplicate + A = the source (yellow, blinking), Duplicate + B = the copy.</figcaption></figure>
 <ul>
 <li><strong>Duplicate + pad A</strong> (a project) = the source (yellow, blinks); Duplicate + A again forgets it.</li>
-<li><strong>Duplicate + pad B</strong> = copy. B empty: written at once; B in use: it blinks white and Duplicate + B must be repeated within ~5 s. Never the loaded project. <em>(Beta 1.17 only)</em></li>
+<li><strong>Duplicate + pad B</strong> = copy. B empty: written at once; B in use: it blinks white and Duplicate + B must be repeated within ~5 s. Never the loaded project. <em>(Beta 1.18 only)</em></li>
 <li><strong>To another pack:</strong> pick the source, load the other pack, go back to Projects and Duplicate + B.</li>
 <li>The project saved on the card is copied; while copying the device does not respond for a moment. In another pack it plays with that pack&#x27;s patches and samples <em>(writes to the card)</em>.</li>
 </ul>
