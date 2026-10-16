@@ -172,6 +172,7 @@ GL2 = False                               # SC36.1 (see use_glitch2)
 GL3 = False                               # SC37.4 (see use_glitch3)
 VINYL_COL = None                          # SC37.4: (bright, dim) LED codes of Vinyl instead of the palette's (see use_vinyl_peach)
 GCLEAR = False                            # SC37.9: Clear + knob in Master FX (see use_gclear)
+GCLEAR2 = False                           # SC42.4: only the lavender (the default); no red: Master FX has no automation (see use_gclear2)
 ARMPLAY = False                           # SC38.2: an armed capture starts at Play (see use_armplay)
 ARMPLAY2 = False                          # SC38.4: ... from the stock's own start of the transport (see use_armplay2)
 LATCH7 = False                            # SC38.5: Shift + pad 7 = a latched loop again (see use_latch7)
@@ -429,6 +430,15 @@ def use_gclear():
     has no automation to delete).  While Clear is held the knob LEDs of the selected effect are blue at their default, red elsewhere (c_gclrled)."""
     global GCLEAR
     GCLEAR = True
+
+
+def use_gclear2():
+    """SC42.4 (the user, 2026-10-16: «clearing a knob successfully must show lavender … red for automation clear»): with Clear held, the knobs of the
+    selected effect at their default show the stock's 0x07; the others keep their colour (red is the colour of an automation cleared, and Master FX has
+    none)."""
+    global GCLEAR2
+    assert GCLEAR
+    GCLEAR2 = True
 
 
 def use_sampler():
@@ -733,7 +743,8 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         a.emit(movs_imm, 7, 0)
         a.label("gl3_l")
         a.emit(mov_reg, 0, 7); a.emit(bl, "c_gcur"); a.emit(mov_reg, 2, 0); a.emit(adds_imm8, 2, 1); a.emit(b_cond, "gl3_n", "eq")
-        a.emit(movs_imm, 2, GCLR_RED); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "gl3_p", "ne"); a.emit(movs_imm, 2, GCLR_BLUE)
+        if GCLEAR2: a.emit(cmp_reg, 0, 1); a.emit(b_cond, "gl3_n", "ne"); a.emit(movs_imm, 2, GCLR_BLUE)
+        else: a.emit(movs_imm, 2, GCLR_RED); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "gl3_p", "ne"); a.emit(movs_imm, 2, GCLR_BLUE)
         a.label("gl3_p")
         a.emit(lsls_imm, 1, 7, 1); a.emit(adds_imm8, 1, 2 * 34); a.emit(raw, h(0x5200 | 1 << 6 | 6 << 3 | 2))    # strh r2,[r6,r1]
         a.label("gl3_n")

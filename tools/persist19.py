@@ -93,6 +93,41 @@ CLEAR = False                        # SC20.1 (needs REMAP): Clear + a knob of o
 CLR_RED, CLR_BLUE = 0x53, 0x46        # the stock LED codes of the Clear feedback (halfwords at 0x08056464 + 0x26A / + 0x1A)
 
 
+FSEL_STOCK0 = False                   # R0901 / SC41.4 (see use_fselstock)
+SPLIT3 = False                        # SC41.7 (see use_k3split)
+K3_TAIL, K3_OFF = 0x27024, 160        # the block in the session record's tail: + 160 "DRX1", + 164 sum, + 165 + 3 d = attack, start, cut of drum d (tail + 160..176 free)
+K3_SIG = 0x31585244                   # "DRX1"
+K3_LIM = 120                          # start / cut at most 120 / 128 of the sample
+K3_ATK_MAX = 1.0                      # s: the attack at 127 (time ~ (A / 127)^2)
+K3_COL_WHITE = 0x01                   # the K3 LED: the attack (and, with Shift, the cut) in white; the start in the drum's colour
+
+
+def use_k3split():
+    """SC41.7 (the user, 2026-10-15: K3 «izquierda: decay, derecha: ataque, centro neutro»; Shift + K3 «izquierda: inicio, derecha: corte»; before, the start point
+    lived left of decay 0 on K3, so it only played with the shortest decay).  Needs drums2_dsp.use_k3split().
+      * K3 (amp envelope): the stock decay as always; turned right past its maximum (127, the whole sample) = an amp attack 1..127 (~(A / 127)^2 s, up to 1 s);
+        turned left the attack goes back to 0 first.  Neutral = decay 127, attack 0.
+      * Shift + K3: left = the start point moves into the sample (S / 128, up to 120), right = a cut from the end (E / 128, up to 120); one goes back to 0 before the
+        other moves.  Neutral = the whole sample.  (Before: Shift + K3 = the stock decay again.)
+      * Clear + K3 right: attack, start and cut to 0 too (the stock puts the decay to its default).
+      * Stored per project in the session record's tail (+ 160: "DRX1", a sum, 3 bytes per drum), which the stock saves and loads; a project without it (a stock one,
+        an older one) = 0 = neutral, with its old start point (the XMEM nibble, 0..15 = s / 64) taken over as S = 2 s.  A new project: 0.
+      * The DSP service tick writes AINC (= C / A^2 limited to 1), STARTF = S << 16 and ENDC = E << 16 into the drum's block with the extended values.
+      * LED of K3: the attack in white (its value as brightness) while there is one, else the stock decay; with Shift the start in the drum's colour, the cut in white."""
+    global SPLIT3
+    SPLIT3 = True
+
+
+def use_fselstock():
+    """R0901 / SC41.4 (the user, 2026-10-14: «los usuarios reportan que el sonido de los samples no es igual que el de Circuit stock … asegurarse de
+    que el filtro seleccionado por defecto es el mismo que el de stock»): the drums' filter mode is a stored value 0..4 that defaulted to 0 = the DJ
+    filter, which also flattens the stock tilt EQ, so K5 did not do what it does on a stock Circuit.  The value sent to the DSP now swaps 0 and 4:
+    stored 0 (every new project, every project that never touched it) = the stock tilt EQ, as the original; 1 band-pass, 2 notch, 3 comb as before;
+    4 = the DJ filter.  The DSP and its numbering do not change."""
+    global FSEL_STOCK0
+    FSEL_STOCK0 = True
+
+
 def use_blue7():
     """SC37.9 (SC37.8 on the device, 2026-10-11: «en drums, clear+derecha funciona pero no se enciende led azul»): the stock reads its Clear colours from a
     palette in RAM, where + 0x1A is 0x07 (a bright blue); 0x46, the flash palette's entry, is a dim red-orange (RGB words are B, G, R).  The stock itself
@@ -347,6 +382,8 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
                 a.emit(cmp_imm, 5, knob); a.emit(b_cond, f"dk_sx{knob}", "ne"); a.emit(movs_imm, 1, which); a.emit(b, "dk_xt"); a.label(f"dk_sx{knob}")
         for knob, s in sorted(REMAP_SHIFT_STOCK.items()):
             if EXTRAS and knob in xt_map(): continue
+            if SPLIT3 and knob == 2:                                                # Shift + K3: start / cut
+                a.emit(cmp_imm, 5, 2); a.emit(b_cond, "dk_sk2", "ne"); a.emit(b, "dk_k3s"); a.label("dk_sk2"); continue
             a.emit(cmp_imm, 5, knob); a.emit(b_cond, f"dk_sk{knob}", "ne"); a.emit(movs_imm, 5, s); a.emit(b, "dk_old"); a.label(f"dk_sk{knob}")
         a.emit(b, "dk_done")                                                        # Shift + K6 without EXTRAS: nothing
     else:
@@ -373,6 +410,18 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
         a.label("dk_chk")
     a.emit(cmp_imm, 5, 3); a.emit(b_cond, "dk_x", "eq"); a.emit(cmp_imm, 5, 5); a.emit(b_cond, "dk_old", "ne")
     a.label("dk_x")
+    if SPLIT3:                                                                      # K3: decay (stock) / attack
+        a.emit(cmp_imm, 5, 3); bc("dk_xo", "ne")
+        if CLEAR:
+            a.emit(mov_reg, 0, 4); a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); bc("dk_k3n", "eq")
+            a.emit(cmp_imm, 6, 0); bc("dk_old", "le")                               # Clear + left: the stock's (automation)
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_k3zero"); a.emit(b, "dk_old")      # Clear + right: ours to 0, the stock's decay default
+            a.label("dk_k3n")
+        a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 6); a.emit(mov_reg, 2, 7); a.emit(bl, "c_k3turn")
+        a.emit(cmp_imm, 0, 0); bc("dk_old", "eq"); a.emit(b, "dk_done")
+        a.label("dk_k3s")
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(bl, "c_k3sturn"); a.emit(b, "dk_done")
+        a.label("dk_xo")
     if CLEAR:
         a.emit(mov_reg, 0, 4); a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); bc("dk_old", "ne")
     a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6); a.emit(mov_reg, 3, 7)
@@ -580,6 +629,8 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.label("rs_v")
     a.emit(bl, "c_xm_validate")
     a.emit(mov_reg, 0, 4); a.emit(bl, "c_xm_load")
+    if SPLIT3:
+        a.emit(mov_reg, 0, 5); a.emit(bl, "c_k3load")
     if not GUARD:
         a.emit(movs_imm, 6, 0)
         a.label("rs_d")                                                              # every drum parameter dirty
@@ -628,7 +679,12 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.emit(raw, strb_w(5, 4, O_FLAGS)); a.emit(raw, strb_w(6, 4, O_DELTA))
     a.emit(adds_imm8, 1, 1); a.emit(mov_reg, 4, 1)                                   # r4 = code
     a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 4); a.emit(bl, "c_dget"); a.emit(adds_imm3, 1, 0, 1); bc("dt_n", "eq")
-    a.emit(cmp_imm, 4, 9); a.emit(b_cond, "dt_v", "ne"); a.emit(movs_imm, 1, 7); a.emit(ands_reg, 0, 1); a.emit(b, "dt_m")
+    if FSEL_STOCK0:                                                                  # stored 0 <-> mode 4 (the stock EQ), 4 <-> 0 (DJ)
+        a.emit(cmp_imm, 4, 9); a.emit(b_cond, "dt_v", "ne"); a.emit(movs_imm, 1, 7); a.emit(ands_reg, 0, 1)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dt_f0", "ne"); a.emit(movs_imm, 0, 4); a.emit(b, "dt_m")
+        a.label("dt_f0"); a.emit(cmp_imm, 0, 4); a.emit(b_cond, "dt_m", "ne"); a.emit(movs_imm, 0, 0); a.emit(b, "dt_m")
+    else:
+        a.emit(cmp_imm, 4, 9); a.emit(b_cond, "dt_v", "ne"); a.emit(movs_imm, 1, 7); a.emit(ands_reg, 0, 1); a.emit(b, "dt_m")
     a.label("dt_v")
     a.emit(lsls_imm, 0, 0, 25)
     for c in UNIPOLAR:
@@ -650,6 +706,8 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.emit(lsls_imm, 1, 0, 8)
     a.emit(lsls_imm, 2, 7, SH); a.emit(movw, 0, (DB + EXT) & 0xFFFF); a.emit(adds_reg, 2, 2, 0)
     a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
+    if SPLIT3:
+        a.emit(mov_reg, 0, 7); a.emit(bl, "c_k3w")
     a.label("dt_n")
     a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 4); bc("dt_l", "lo")
     a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["svc_next"])
@@ -685,7 +743,139 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
         extras_code(a, tab)
     if KNOB_LEVELS:
         knob_levels_code(a, L)
+    if SPLIT3:
+        k3_code(a, DB, SH, L)
     return a.assemble()
+
+
+def k3_code(a, DB, SH, L):
+    """SC41.7 (use_k3split): the block of attack / start / cut in the record's tail, K3 / Shift + K3, the load, the DSP words."""
+    import drums2_dsp as DD
+    from build_sc14 import udiv
+    from thumb import str_imm
+    E = a.emit
+    def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
+    def off3(rd, rdrum, rwhich):                       # rd = 5 + 3 drum + which (rd != rdrum, rwhich)
+        E(lsls_imm, rd, rdrum, 1); E(adds_reg, rd, rd, rdrum); E(adds_reg, rd, rd, rwhich); E(adds_imm8, rd, 5)
+    C = round(DD.NFR * 2 ** 23 * 127 ** 2 / (DD.FS * K3_ATK_MAX))
+
+    # ---- c_k3blk() -> r0 = the block in the record's tail, or 0
+    a.label("c_k3blk")
+    imm32(0, SESSION_OBJ); E(ldr_imm, 0, 0, 0x14); E(cmp_imm, 0, 0); E(b_cond, "kb_x", "eq")
+    imm32(1, K3_TAIL + K3_OFF); E(adds_reg, 0, 0, 1)
+    a.label("kb_x"); E(raw, h(0x4770))
+
+    # ---- c_k3sum(r0 = block) -> r0 = (sum of the 12 bytes) ^ 0x5A, 8 bits; clobbers r1-r3
+    a.label("c_k3sum")
+    E(movs_imm, 1, 0); E(movs_imm, 2, 5)
+    a.label("ks_l"); E(ldrb_reg, 3, 0, 2); E(adds_reg, 1, 1, 3); E(adds_imm8, 2, 1); E(cmp_imm, 2, 17); E(b_cond, "ks_l", "lo")
+    E(movs_imm, 0, 0x5A); E(eors_reg, 0, 1); E(movs_imm, 1, 0xFF); E(ands_reg, 0, 1); E(raw, h(0x4770))
+
+    # ---- c_k3ok(r0 = block) -> r0 = 1 when it carries the signature and its sum; clobbers r1-r3
+    a.label("c_k3ok")
+    E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+    E(ldr_imm, 1, 4, 0); imm32(2, K3_SIG); E(cmp_reg, 1, 2); E(b_cond, "ko_n", "ne")
+    E(mov_reg, 0, 4); E(bl, "c_k3sum"); E(ldrb_imm, 1, 4, 4); E(cmp_reg, 0, 1); E(b_cond, "ko_n", "ne")
+    E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
+    a.label("ko_n"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+
+    # ---- c_k3init(r0 = block, r1 = 1: the old start point taken over): signature, zeros, sum; clobbers r0-r3
+    a.label("c_k3init")
+    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 1)
+    imm32(0, K3_SIG); E(str_imm, 0, 4, 0)
+    E(movs_imm, 6, 0)
+    a.label("ki_l")
+    E(movs_imm, 7, 0)
+    E(cmp_imm, 5, 0); E(b_cond, "ki_z", "eq")
+    E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, "c_dnib_get"); E(lsls_imm, 7, 0, 1)            # S = 2 x the nibble (s / 64 = 2 s / 128)
+    a.label("ki_z")
+    E(lsls_imm, 1, 6, 1); E(adds_reg, 1, 1, 6); E(adds_imm8, 1, 5); E(movs_imm, 0, 0)
+    E(strb_reg, 0, 4, 1); E(adds_imm8, 1, 1); E(strb_reg, 7, 4, 1); E(adds_imm8, 1, 1); E(strb_reg, 0, 4, 1)
+    E(adds_imm8, 6, 1); E(cmp_imm, 6, 4); E(b_cond, "ki_l", "lo")
+    E(mov_reg, 0, 4); E(bl, "c_k3sum"); E(strb_imm, 0, 4, 4)
+    E(pop_list, [4, 5, 6, 7], pc=True)
+
+    # ---- c_k3get(r0 = drum, r1 = 0 attack / 1 start / 2 cut) -> r0 = the value (0 without a valid block); clobbers r1-r3
+    a.label("c_k3get")
+    E(push_list, [4, 5, 6], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 1)
+    E(bl, "c_k3blk"); E(cmp_imm, 0, 0); E(b_cond, "kg_z", "eq"); E(mov_reg, 6, 0)
+    E(bl, "c_k3ok"); E(cmp_imm, 0, 0); E(b_cond, "kg_z", "eq")
+    off3(0, 4, 5); E(ldrb_reg, 0, 6, 0); E(pop_list, [4, 5, 6], pc=True)
+    a.label("kg_z"); E(movs_imm, 0, 0); E(pop_list, [4, 5, 6], pc=True)
+
+    # ---- c_k3put(r0 = drum, r1 = which, r2 = value): into the block (made valid first), its sum, the drum's extended values dirty; clobbers r0-r3
+    a.label("c_k3put")
+    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 7, 2)
+    E(bl, "c_k3blk"); E(cmp_imm, 0, 0); E(b_cond, "kp_x", "eq"); E(mov_reg, 6, 0)
+    E(bl, "c_k3ok"); E(cmp_imm, 0, 0); E(b_cond, "kp_ok", "ne")
+    E(mov_reg, 0, 6); E(movs_imm, 1, 1); E(bl, "c_k3init")
+    a.label("kp_ok")
+    off3(0, 4, 5); E(strb_reg, 7, 6, 0)
+    E(mov_reg, 0, 6); E(bl, "c_k3sum"); E(strb_imm, 0, 6, 4)
+    E(mov_reg, 0, 4); E(bl, L["c_mh"]); E(cmp_imm, 0, 0); E(b_cond, "kp_x", "eq"); E(movs_imm, 1, 10); E(bl, "c_mark")
+    a.label("kp_x"); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    # ---- c_k3zero(r0 = drum): attack, start and cut to 0
+    a.label("c_k3zero")
+    E(push_list, [4, 5], lr=True); E(mov_reg, 4, 0); E(movs_imm, 5, 0)
+    a.label("kz_l"); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(movs_imm, 2, 0); E(bl, "c_k3put"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 3); E(b_cond, "kz_l", "lo")
+    E(pop_list, [4, 5], pc=True)
+
+    # ---- c_k3load(r0 = the flags): after a load / a new project: a new project = zeros; a project without a valid block = zeros + its old start point
+    a.label("c_k3load")
+    E(push_list, [4, 5], lr=True); E(mov_reg, 4, 0)
+    E(bl, "c_k3blk"); E(cmp_imm, 0, 0); E(b_cond, "kl_x", "eq"); E(mov_reg, 5, 0)
+    E(movs_imm, 1, F_NEW); E(tst_reg, 4, 1); E(b_cond, "kl_ld", "eq")
+    E(mov_reg, 0, 5); E(movs_imm, 1, 0); E(bl, "c_k3init"); E(b, "kl_x")
+    a.label("kl_ld"); E(mov_reg, 0, 5); E(bl, "c_k3ok"); E(cmp_imm, 0, 0); E(b_cond, "kl_x", "ne")
+    E(mov_reg, 0, 5); E(movs_imm, 1, 1); E(bl, "c_k3init")
+    a.label("kl_x"); E(pop_list, [4, 5], pc=True)
+
+    # ---- c_k3turn(r0 = handler, r1 = delta, r2 = drum) -> r0 = 1 handled (the attack) / 0 the stock decay
+    a.label("c_k3turn")
+    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
+    E(cmp_imm, 5, 0); E(b_cond, "kt_1", "eq")
+    E(ldr_imm, 0, 4, 0xC); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 7, 0, 0)             # r7 = the stock decay
+    E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, "c_k3get")                                          # r0 = the attack
+    E(cmp_imm, 5, 0); E(b_cond, "kt_l", "lt")
+    E(cmp_imm, 7, 127); E(b_cond, "kt_0", "lo")                                                    # right: the decay up to its maximum first
+    E(adds_reg, 0, 0, 5); E(cmp_imm, 0, 127); E(b_cond, "kt_p", "le"); E(movs_imm, 0, 127); E(b, "kt_p")
+    a.label("kt_l")
+    E(cmp_imm, 0, 0); E(b_cond, "kt_0", "eq")                                                      # left: the attack back to 0 first
+    E(adds_reg, 0, 0, 5); E(cmp_imm, 0, 0); E(b_cond, "kt_p", "ge"); E(movs_imm, 0, 0)
+    a.label("kt_p"); E(mov_reg, 2, 0); E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, "c_k3put")
+    a.label("kt_1"); E(movs_imm, 0, 1); E(pop_list, [4, 5, 6, 7], pc=True)
+    a.label("kt_0"); E(movs_imm, 0, 0); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    # ---- c_k3sturn(r0 = delta, r1 = drum): Shift + K3: left = the start moves in (the cut back to 0 first), right = the cut (the start back to 0 first)
+    a.label("c_k3sturn")
+    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 1)
+    E(cmp_imm, 4, 0); E(b_cond, "kq_x", "eq")
+    E(mov_reg, 0, 5); E(movs_imm, 1, 1); E(bl, "c_k3get"); E(mov_reg, 6, 0)                       # r6 = start
+    E(mov_reg, 0, 5); E(movs_imm, 1, 2); E(bl, "c_k3get"); E(mov_reg, 7, 0)                       # r7 = cut
+    E(cmp_imm, 4, 0); E(b_cond, "kq_l", "lt")
+    E(cmp_imm, 6, 0); E(b_cond, "kq_c", "eq")
+    E(subs_reg, 6, 6, 4); E(b_cond, "kq_s", "ge"); E(movs_imm, 6, 0); E(b, "kq_s")
+    a.label("kq_c"); E(adds_reg, 7, 7, 4); E(cmp_imm, 7, K3_LIM); E(b_cond, "kq_e", "le"); E(movs_imm, 7, K3_LIM); E(b, "kq_e")
+    a.label("kq_l")
+    E(cmp_imm, 7, 0); E(b_cond, "kq_st", "eq")
+    E(adds_reg, 7, 7, 4); E(b_cond, "kq_e", "ge"); E(movs_imm, 7, 0); E(b, "kq_e")
+    a.label("kq_st"); E(subs_reg, 6, 6, 4); E(cmp_imm, 6, K3_LIM); E(b_cond, "kq_s", "le"); E(movs_imm, 6, K3_LIM)
+    a.label("kq_s"); E(mov_reg, 2, 6); E(mov_reg, 0, 5); E(movs_imm, 1, 1); E(bl, "c_k3put"); E(b, "kq_x")
+    a.label("kq_e"); E(mov_reg, 2, 7); E(mov_reg, 0, 5); E(movs_imm, 1, 2); E(bl, "c_k3put")
+    a.label("kq_x"); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    # ---- c_k3w(r0 = drum): AINC, STARTF, ENDC into the drum's DSP block (from the DSP service tick: DSP writes only)
+    a.label("c_k3w")
+    E(push_list, [4, 5], lr=True); E(mov_reg, 4, 0)
+    E(lsls_imm, 5, 4, SH); E(movw, 0, DB & 0xFFFF); E(adds_reg, 5, 5, 0)                          # r5 = the block
+    E(mov_reg, 0, 4); E(movs_imm, 1, 0); E(bl, "c_k3get"); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kw_a", "eq")
+    E(mov_reg, 1, 0); E(muls, 1, 0); imm32(0, C); E(raw, udiv(1, 0, 1))                             # C / A^2
+    imm32(0, 0x7FFFFF); E(cmp_reg, 1, 0); E(b_cond, "kw_a", "ls"); E(mov_reg, 1, 0)
+    a.label("kw_a"); E(lsls_imm, 1, 1, 8); E(mov_reg, 2, 5); E(adds_imm8, 2, DD.AINC); E(movs_imm, 0, 0); E(bl, DSP_WRITE)
+    for which, word in ((1, DD.STARTF), (2, DD.ENDC)):
+        E(mov_reg, 0, 4); E(movs_imm, 1, which); E(bl, "c_k3get"); E(lsls_imm, 1, 0, 24); E(mov_reg, 2, 5); E(adds_imm8, 2, word); E(movs_imm, 0, 0); E(bl, DSP_WRITE)
+    E(pop_list, [4, 5], pc=True)
 
 
 def xt_map(): return REMAP_XT if EXTRAS_SLOPE else {k: v for k, v in REMAP_XT.items() if v == 0}
@@ -812,6 +1002,17 @@ def knob_levels_code(a, L):
                 a.emit(cmp_imm, 7, 0); a.emit(b_cond, skip, "eq"); a.emit(movs_imm, 1, shift)
             a.emit(bl, "c_lvl"); a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 4); a.emit(strh_imm, 0, 5, 2 * pos)
             a.label(skip)
+        if SPLIT3:
+            # K3 (position 2): the attack in white while there is one (else the stock decay); with Shift the start in the drum's colour, the cut in white.  r4 = the drum colour, r6 = the drum, r7 = Shift
+            a.emit(cmp_imm, 7, 0); a.emit(b_cond, "k3l_s", "ne")
+            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_k3get"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "k3l_x", "eq")
+            a.emit(movs_imm, 1, K3_COL_WHITE); a.emit(b, "k3l_w")
+            a.label("k3l_s")
+            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_k3get"); a.emit(mov_reg, 1, 4); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "k3l_w", "ne")
+            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 2); a.emit(bl, "c_k3get"); a.emit(movs_imm, 1, K3_COL_WHITE)
+            a.label("k3l_w")
+            a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 1); a.emit(strh_imm, 0, 5, 4)
+            a.label("k3l_x")
         if K8_BRIGHT:
             # K8 without Shift: stock distortion (macro 2 of the drum, 0..127) to the right, bitcrush (nibble 4..7 of the extended values, 0..15) to the left; centre = no effect = dimmest.  r4 = the drum colour here.
             a.emit(cmp_imm, 7, 0); a.emit(b_cond, "k8_skip", "ne")

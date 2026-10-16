@@ -286,6 +286,22 @@ def use_heartbeat():
     HEARTBEAT = True
 
 
+CLRAUTO = False                                   # SC42.4 (use_clrauto): Clear + knob right = default (lavender), left = the knob's automation cleared (red)
+CLR_LAV = 0x07                                    # the stock's colour of a knob put back to its default (persist19.use_blue7)
+EDITOR0, EDITOR_SZ, LANE_CLEAR = 0x20039E50, 0x3A0, 0x0803D3B8   # the note tracks' pattern editors (Synth 1, 2, MIDI 1, 2); (editor, lane): the lane to 0xFF
+
+
+def use_clrauto():
+    """SC42.4 (the user, 2026-10-16: «clearing a knob successfully must show lavender to stay consistent with the stock interface. Red for automation clear»;
+    «automation clear is not currently working on synths» = the own synth of MIDI 1 / 2): with Clear held, a knob of the engine turned right goes back to
+    its default (both layers, as before) and shows the stock's colour 0x07; turned left, the automation of its lanes (the plain and the Shift layer's
+    codes found in LANE_TAB) is cleared in the pattern the track plays (the stock's own 0x0803D3B8 on the track's pattern editor, as Clear + a knob of
+    Synth 1 / 2 does after 40 clicks: the lane's 192 bytes to 0xFF, or only the held step's) and shows red."""
+    global CLRAUTO
+    assert CLEARK and CLEARBOTH and DUALUI
+    CLRAUTO = True
+
+
 def use_clearboth():
     """SC23.5: with Shift the Clear button has no function (the stock ignores it), so Clear + a knob (no Shift) puts back both the plain and the Shift value of that knob."""
     global CLEARBOTH
@@ -1118,6 +1134,31 @@ def edv2_routines(a, L, t_ft, tail, bc):
     a.emit(pop_list, [4], pc=True)
 
 
+
+def clrauto_routine(a, base, bc):
+    """SC42.4: c_vclrauto, emitted at the end (out of the way of the short branches of the clear routines)."""
+    if CLRAUTO:
+        # ---- c_vclrauto(r0 = macro handler, r1 = knob 0..7, r2 = track 0 / 1): the lanes of the knob's two codes cleared; the knob marked red
+        a.label("c_vclrauto")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 6, 1); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 7, 2)
+        a.emit(mov_reg, 0, 7); a.emit(bl, "c_vpage"); a.emit(lsls_imm, 0, 0, 4); a.emit(adds_reg, 5, 5, 0)                   # r5 = page x 16 + knob
+        a.emit(movs_imm, 0, 0x2A); a.emit(adds_reg, 1, 4, 6); a.emit(raw, strb_w(0, 1, 0x40))                              # the mark: red
+        for layer in (0, 8):
+            a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(adds_reg, 3, 3, 5)
+            a.emit(ldrb_imm, 0, 3, layer); a.emit(cmp_imm, 0, 0); bc(f"va_n{layer}", "eq")                                  # r0 = the code
+            a.emit(movs_imm, 1, 0)
+            for k_, code in enumerate(LANE_TAB):
+                a.emit(cmp_imm, 0, code); a.emit(b_cond, f"va_f{layer}_{k_}", "ne"); a.emit(movs_imm, 1, k_ + 1); a.label(f"va_f{layer}_{k_}")
+            a.emit(cmp_imm, 1, 0); bc(f"va_n{layer}", "eq")
+            a.emit(subs_imm8, 1, 1)                                                                                       # r1 = the lane
+            a.emit(movw, 0, EDITOR_SZ); a.emit(mov_reg, 2, 7); a.emit(adds_imm8, 2, 2); a.emit(muls, 0, 2)
+            a.emit(movw, 2, EDITOR0 & 0xFFFF); a.emit(movt, 2, EDITOR0 >> 16); a.emit(adds_reg, 0, 0, 2)
+            a.emit(bl, LANE_CLEAR)
+            a.label(f"va_n{layer}")
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+
+
 def clear_routines(a, L, base, t_def, tail, mulstride, bc):
     """SC23.3: Clear + a knob.  The stock macro handler tests the Clear button at [[obj + 0x20] + 0] bit 0 and keeps a counter per knob at obj + 0x40 + k (0x28 = cleared: its LED is red); here the mode puts the
     value of the knob back to its default and marks the counter; the LED routine shows the marked knobs red while Clear is held and drops the marks when it is released."""
@@ -1210,8 +1251,13 @@ def clear_routines(a, L, base, t_def, tail, mulstride, bc):
     a.emit(mov_reg, 5, 1); a.emit(bl, "c_vobj"); a.emit(mov_reg, 4, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cl_x", "eq")
     a.emit(bl, "c_vclr"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cl_rel", "eq")
     for k in range(8):
-        a.emit(raw, ldrb_w(1, 4, 0x40 + k)); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, f"cl_n{k}", "ne")
-        a.emit(movs_imm, 0, CLR_RED); a.emit(strh_imm, 0, 5, 2 * k)
+        if CLRAUTO:
+            a.emit(raw, ldrb_w(1, 4, 0x40 + k)); a.emit(movs_imm, 0, CLR_LAV); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, f"cl_w{k}", "eq")
+            a.emit(movs_imm, 0, CLR_RED); a.emit(cmp_imm, 1, 0x2A); a.emit(b_cond, f"cl_n{k}", "ne")
+            a.label(f"cl_w{k}"); a.emit(strh_imm, 0, 5, 2 * k)
+        else:
+            a.emit(raw, ldrb_w(1, 4, 0x40 + k)); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, f"cl_n{k}", "ne")
+            a.emit(movs_imm, 0, CLR_RED); a.emit(strh_imm, 0, 5, 2 * k)
         a.label(f"cl_n{k}")
     a.emit(b, "cl_x")
     a.label("cl_rel")
@@ -1448,7 +1494,7 @@ def grsrc_routines(a, L, t_gr):
     # ---- c_vclrcode(r0 = track, r1 = code): that value back to its default (the tail of c_vclr1)
     a.label("c_vclrcode")
     E(push_list, [4, 5], lr=True)
-    E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(b, "c1_code")
+    E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(b_w if CLRAUTO else b, "c1_code")                                  # (SC42.4: further away)
     # ---- c_grclear(r0 = track, r1 = knob 0..7): Clear + a knob on the granular page: the two values of the knob (plain, Shift) of GR_TAB back to
     #      their defaults; the source (Shift + K8) = the capture
     a.label("c_grclear")
@@ -2776,6 +2822,11 @@ def arm_code(base, L):
             a.emit(movs_imm, 0, 0x28); a.emit(adds_reg, 1, 4, 5); a.emit(raw, strb_w(0, 1, 0x40))                     # the mark of the cleared knob
             a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_grclear"); a.emit(pop_list, [4, 5, 6, 7], pc=True)
             a.label("vk_cv")
+        if CLRAUTO:                                                               # turned left: the automation
+            a.emit(cmp_imm, 6, 0); a.emit(b_cond, "vk_cr", "ge")
+            a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 7); a.emit(bl, "c_vclrauto")
+            a.emit(pop_list, [4, 5, 6, 7], pc=True)
+            a.label("vk_cr")
         a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 7); a.emit(bl, "c_vclear")
         a.emit(pop_list, [4, 5, 6, 7], pc=True)
         a.label("vk_nc")
@@ -3529,6 +3580,7 @@ def arm_code(base, L):
     if CCED: cced_routines(a, L, t_ed, tail, bc)
     if EDV2: edv2_routines(a, L, t_ft, tail, bc)
     if CLEARK: clear_routines(a, L, base, t_def, tail, mulstride, bc)
+    if CLRAUTO: clrauto_routine(a, base, bc)
     if DUALUI: dualui_routines(a, L, tail, mulstride, bc)
     if GRAN: gran_routines(a, tail, bc, t_gr, t_st)
     if GRSRC: grsrc_routines(a, L, t_gr)

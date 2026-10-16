@@ -133,6 +133,8 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 1, 4, 2); E(cmp_reg, 1, 5); E(b_cond, "mf_r", "ne")
     E(ldrb_imm, 1, 4, 7); E(ldrb_imm, 2, 4, 3); E(cmp_reg, 1, 2); E(b_cond, "mf_r", "ne")
     tick(0); E(ldrh_imm, 1, 4, 12); E(subs_reg, 0, 0, 1); E(lsls_imm, 0, 0, 16); E(lsrs_imm, 0, 0, 16); E(cmp_imm, 0, LIFE); bc("mf_x", "lo")
+    if PK.PLAYHOLD:                                                                  # older, but playing: kept (no card access; packio.use_playhold)
+        imm32(0, PK.TRANSPORT); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("mf_x", "ne")
     a.label("mf_r")
     E(strb_imm, 5, 4, 2); E(movs_imm, 0, 0); E(strh_imm, 0, 4, 4)
     E(movs_imm, 0, 5); E(bl, PK.BUF_LOCK)

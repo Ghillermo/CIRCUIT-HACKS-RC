@@ -5,6 +5,7 @@ The stock unit has no MIDI for them (they are ours); the stock NRPN handler igno
     drums (the drums channel)        NRPN MSB 5 + d (d = 0..3 = Drum 1..4), LSB = the code:
         1 pitch envelope, 2 ring mod frequency, 3 LFO amount, 4 LFO speed, 5 env -> cutoff, 6 resonance, 7 envelope shape, 8 ring mod amount   (0..127; the bipolar ones 64 = centre)
         9 filter mode (0..4), 10 start point (0..15), 11 bitcrush (0..15), 12 distortion type (0..3)
+        SC41.7 (use_k3split): 10 start point (0..120 of 128), 13 cut (0..120), 14 amp attack (0..127)
     Master FX (channel 16)             NRPN MSB 9, LSB = 4 x set + knob (set 0..4: gate, filter (both filter pads), digitise, phaser, vinyl; knob 0..3), value 0..127
 
 Out: two wrappers in front of the knob handlers (slot 4 of the drum macro handlers, slot 4 of the Mixer / Master FX view) compare the values before and after the stock + SC19 code and send what changed
@@ -28,6 +29,14 @@ GFX_MSB = 9
 GFX_CH = 15                           # channel 16
 N_GFX = 20                            # 5 sets x 4 knobs
 L_START, L_CRUSH, L_DTYPE = 10, 11, 12
+K3SPLIT = False                       # SC41.7 (use_k3split): LSB 10 = the start (0..120 of 128), 13 = the cut, 14 = the amp attack (persist19.use_k3split)
+L_CUT, L_ATK = 13, 14
+K3_LSB = ((0, L_ATK), (1, L_START), (2, L_CUT))      # (which of persist19's c_k3get / c_k3put, LSB)
+
+
+def use_k3split():
+    global K3SPLIT
+    K3SPLIT = True
 REC_IDX = 0x080528EC                  # stock (this, channel) -> the index of the NRPN record: 0 / 1 the synths, 2 the drums, 3 the rest
 INV = P.INV
 
@@ -80,6 +89,9 @@ def arm_code(base, L):
     E(adds_imm8, 5, 1); E(cmp_imm, 5, 9); E(b_cond, "nd_s", "ls")
     E(mov_reg, 0, 7); E(bl, L["c_xt_get"]); E(mov_reg, 1, 13); E(strb_imm, 0, 1, 4 + 9)
     E(mov_reg, 0, 7); E(bl, L["c_dext_get"]); E(mov_reg, 1, 13); E(strb_imm, 0, 1, 4 + 10)
+    if K3SPLIT:                                                                   # [11..13] attack, start, cut
+        for which, _ in K3_LSB:
+            E(mov_reg, 0, 7); E(movs_imm, 1, which); E(bl, L["c_k3get"]); E(mov_reg, 1, 13); E(strb_imm, 0, 1, 4 + 11 + which)
     E(raw, h(0xBC20))                                                             # pop {r5}
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(bl, L["prev_dk"])
     E(movs_imm, 5, 1)
@@ -100,9 +112,10 @@ def arm_code(base, L):
     E(adds_imm8, 5, 1); E(cmp_imm, 5, 9); E(b_cond, "nd_c", "ls")
     E(mov_reg, 0, 7); E(bl, L["c_dext_get"]); E(mov_reg, 6, 0)                    # the extended values: the two nibbles
     E(mov_reg, 1, 13); E(ldrb_imm, 5, 1, 10); E(eors_reg, 5, 6)
-    E(lsls_imm, 0, 5, 28); E(b_cond, "nd_x1", "eq")
-    E(mov_reg, 0, 7); E(movs_imm, 1, L_START); E(movs_imm, 2, 15); E(ands_reg, 2, 6); E(bl, "c_ndq")
-    a.label("nd_x1")
+    if not K3SPLIT:                                                               # (with K3SPLIT the start is not the nibble any more)
+        E(lsls_imm, 0, 5, 28); E(b_cond, "nd_x1", "eq")
+        E(mov_reg, 0, 7); E(movs_imm, 1, L_START); E(movs_imm, 2, 15); E(ands_reg, 2, 6); E(bl, "c_ndq")
+        a.label("nd_x1")
     E(lsrs_imm, 0, 5, 4); E(b_cond, "nd_x2", "eq")
     E(mov_reg, 0, 7); E(movs_imm, 1, L_CRUSH); E(lsrs_imm, 2, 6, 4); E(bl, "c_ndq")
     a.label("nd_x2")
@@ -110,6 +123,12 @@ def arm_code(base, L):
     E(mov_reg, 2, 13); E(ldrb_imm, 2, 2, 9); E(ands_reg, 2, 1); E(cmp_reg, 2, 6); E(b_cond, "nd_x3", "eq")
     E(mov_reg, 0, 7); E(movs_imm, 1, L_DTYPE); E(mov_reg, 2, 6); E(bl, "c_ndq")
     a.label("nd_x3")
+    if K3SPLIT:
+        for which, lsb in K3_LSB:
+            E(mov_reg, 0, 7); E(movs_imm, 1, which); E(bl, L["c_k3get"]); E(mov_reg, 6, 0)
+            E(mov_reg, 1, 13); E(ldrb_imm, 1, 1, 11 + which); E(cmp_reg, 1, 6); E(b_cond, f"nd_k{which}", "eq")
+            E(mov_reg, 0, 7); E(movs_imm, 1, lsb); E(mov_reg, 2, 6); E(bl, "c_ndq")
+            a.label(f"nd_k{which}")
     E(raw, h(0xB004))                                                             # add sp, #16
     E(pop_list, [4, 5, 6, 7], pc=True)
 
@@ -139,7 +158,11 @@ def arm_code(base, L):
     a.label("c_nset")
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
-    E(cmp_imm, 5, 0); bc("ns_x", "eq"); E(cmp_imm, 5, L_DTYPE); bc("ns_x", "hi")
+    E(cmp_imm, 5, 0); bc("ns_x", "eq")
+    if K3SPLIT:                                                                   # 10 start, 13 cut (0..120), 14 attack (0..127)
+        for which, lsb in K3_LSB:
+            E(movs_imm, 1, which); E(cmp_imm, 5, lsb); E(b_cond, "ns_k3", "eq")
+    E(cmp_imm, 5, L_DTYPE); bc("ns_x", "hi")
     E(cmp_imm, 5, 9); bc("ns_ext", "hi")
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, L["c_dget"]); E(mov_reg, 7, 0); E(adds_imm8, 0, 1); bc("ns_x", "eq")     # (the store is not there)
     E(cmp_imm, 5, 9); E(b_cond, "ns_mode", "eq")
@@ -168,6 +191,11 @@ def arm_code(base, L):
     a.label("ns_t3")
     E(mov_reg, 0, 4); E(bl, L["c_xt_get"]); E(movs_imm, 1, 4); E(ands_reg, 1, 0); E(orrs_reg, 1, 6); E(mov_reg, 0, 4); E(bl, L["c_xt_set"])
     E(movs_imm, 5, 10)
+    if K3SPLIT:
+        a.label("ns_k3")                                                          # r1 = which; r6 = the value
+        E(cmp_imm, 1, 0); E(b_cond, "ns_kv", "eq"); E(cmp_imm, 6, 120); E(b_cond, "ns_kv", "ls"); E(movs_imm, 6, 120)
+        a.label("ns_kv")
+        E(mov_reg, 0, 4); E(mov_reg, 2, 6); E(bl, L["c_k3put"]); E(b, "ns_x")
     a.label("ns_mark")                                                            # r5 = the code to send to the DSP again
     E(mov_reg, 0, 4); E(bl, L["c_mh"]); E(cmp_imm, 0, 0); E(b_cond, "ns_x", "eq")
     E(mov_reg, 1, 5); E(bl, L["c_mark"])
@@ -220,6 +248,8 @@ def install(img, report, base_addr):
     p19 = {k: int(v, 16) for k, v in report["persist19"]["labels"].items()}
     v20 = {k: int(v, 16) for k, v in report["vcf20"]["labels"].items()}
     L = {k: p19[k] for k in ("c_dget", "c_dput", "c_dext_get", "c_dnib_set", "c_xt_get", "c_xt_set", "c_mark")}
+    if K3SPLIT:
+        L.update(c_k3get=p19["c_k3get"], c_k3put=p19["c_k3put"])
     L["c_mh"] = int(report["sc18"]["labels"]["c_mh"], 16); L["c_gfst"] = int(report["sc17"]["labels"]["c_gfst"], 16)
     L["prev_dk"] = w(P.MH_SLOT4) & ~1; L["prev_gk"] = w(B17.MIX_VT + 16) & ~1; L["c_vmin"] = v20["c_vmin"]
     assert L["prev_dk"] == p19["c_dk19"] and L["prev_gk"] == int(report["sc17"]["labels"]["c_gknob"], 16), (hex(L["prev_dk"]), hex(L["prev_gk"]))

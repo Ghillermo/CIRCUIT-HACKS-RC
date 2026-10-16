@@ -23,6 +23,12 @@ import macroed as MC  # noqa: E402
 MH_SLOT7 = P19.MH_SLOT7               # the drum macro handlers' LED slot
 AC64_SLOT7 = MC.AC64_VT + 28          # the note tracks' macro handlers' LED slot
 COL_FMODE = (0x01, 0x2D, 0x32, 0x4D, 0x17)
+
+
+def use_fselstock():
+    """With persist19.use_fselstock: the colours follow the stored value, whose 0 is now the stock EQ (green) and 4 the DJ filter (white)."""
+    global COL_FMODE
+    COL_FMODE = (0x17, 0x2D, 0x32, 0x4D, 0x01)
 COL_DTYPE = (0x01, 0x2D, 0x2B, 0x45)
 COL_NMODE = (0x01, 0x2D, 0x4D)
 POS_FMODE, POS_DTYPE, POS_NMODE = 4, 7, 5     # K5, K8 (drums), K6 (granular)

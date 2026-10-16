@@ -35,6 +35,20 @@ SLOPE_PASS = False                            # with XTRA: EXT bit 10 = filter s
 COMPACT = False                               # SC36: TATK stored as its first 65 words (the rest is 0) and TDEC as its last 64 (the first 65 are equal): the
                                               # envelope index is clamped instead (ENVS <= 0 for TATK, ENVS >= 0 for TDEC); label TDEC = old TDEC + 64 (vcf21 compensates)
 ABS = False                                   # SC19: mailbox messages carry the ABSOLUTE value (the ARM keeps the state in the project); default: deltas (SC18.1)
+K3SPLIT = False                               # SC41.7 (use_k3split): the amp attack, the start point and the cut, written by the ARM into four new words
+AINC, AENV, STARTF, ENDC = 46, 47, 48, 49     # (block words past the 46 above; sc_init clears them: 0 = none)
+
+
+def use_k3split():
+    """SC41.7 (the user, 2026-10-15: K3 «izquierda: decay, derecha: ataque, centro neutro»; Shift + K3 «izquierda: inicio, derecha: corte»).  The ARM computes
+    and writes (the DSP service tick) per drum: AINC = the amp attack's increment per block (0 = no attack), STARTF = the start as a fraction of the sample's
+    length (S / 128), ENDC = the cut as a fraction (E / 128).  The DSP:
+      * dtrig: length = L - L x ENDC, position = L x STARTF (both 0: L and 0, exactly the stock's); with AINC != 0: AENV, TG, TGN = 0 (the hit starts silent);
+      * dctl: with AINC != 0, AENV += AINC (limited to 1) and the block's target gain TGN = the tremolo's x AENV;
+      * dstage: the gain ramp TG -> TGN runs whenever TGN != 1 (before: whenever the LFO amount > 0; the tremolo's TGN is 1 without LFO).
+    The start point of EXT (bits 0-3) is not read any more (the ARM moves it into STARTF)."""
+    global K3SPLIT
+    K3SPLIT = True
 FS, NFR = D1.FS, D1.NFR
 ATK_MAX, DEC_BASE, DEC_OCT = 0.25, 0.040, 12  # s; decay doubles every 12 steps right of centre
 RING_C0 = 0.9                                 # carrier amplitude after a hit (magic-circle oscillator)
@@ -65,6 +79,13 @@ FBK = q24(COMB_FB * 128 / 127)               # FB = RES / 128 * FBK
 
 
 def X(off): return "x:(r6+$%x)" % off
+
+
+def sx(reg, off, write=False, rn=6):
+    """the one-word `move x:(rn+off),reg` / `move reg,x:(rn+off)` (0 <= off < 64; the stock's form, see sampler_dsp.short_x)"""
+    import sampler_dsp as SD
+    assert 0 <= off < 64 and reg in SD.DDDD
+    return [0x020080 | (off >> 6) << 16 | (off >> 1 & 0x1F) << 11 | rn << 8 | (off & 1) << 6 | (0 if write else 1) << 4 | SD.DDDD[reg]]
 
 
 def code(base):
@@ -201,7 +222,13 @@ def code(base):
     e("asl #17,a,a", "move a,x1")
     e("move %s,a" % X(TRI), "asr a", "add #>$400000,a", "move a,y0", "mpy x1,y0,b")
     e("move #>$7fffff,a", "sub b,a", "move a,x0")
-    L("dc_tg"); e("move x0,%s" % X(TGN))
+    L("dc_tg")
+    if K3SPLIT:                                                                  # amp attack: AENV += AINC (limited), TGN = gain x AENV
+        a.emit(sx("a", AINC)); e("tst a"); a.emit(J("eq"), "dc_tgs")
+        a.emit(sx("b", AENV)); e("add a,b"); a.emit(sx("b", AENV, True))
+        a.emit(sx("y0", AENV)); e("mpy y0,x0,b", "move b,x0")
+        L("dc_tgs")
+    e("move x0,%s" % X(TGN))
     if XTRA:
         e("move %s,a" % X(EXT), "lsr #8,a", "and #>3,a", "move a1,%s" % X(TYPE))
         if SLOPE_PASS: e("move %s,a" % X(EXT), "lsr #10,a", "and #>1,a", "move a1,%s" % X(SLOPE))
@@ -221,12 +248,21 @@ def code(base):
     L("dt_a"); e("move #>0,x0", "move x0,%s" % X(ENV), "move #>1,x0", "move x0,%s" % X(EPH))
     L("dt_e")
     e("move #>$400000,x0", "move x0,%s" % X(PH), "move #>0,x0", "move x0,%s" % X(TRI), "move x0,%s" % X(CRC))
+    if K3SPLIT:                                                                  # an amp attack: the hit starts silent (x0 = 0 here)
+        a.emit(sx("b", AINC)); e("tst b"); a.emit(J("eq"), "dt_na")
+        a.emit(sx("x0", AENV, True)); a.emit(sx("x0", TG, True)); a.emit(sx("x0", TGN, True))
+        L("dt_na")
     e("move x0,%s" % X(RS), "move #>$%x,x0" % q24(RING_C0), "move x0,%s" % X(RC))
     pmod("t")
-    e("move %s,b" % X(EXT), "and #>$f,b", "tst b"); a.emit(J("eq"), "dt_z")
-    e("asl #17,b,b", "move b,y0", "move x:(r3+$1),x0", "mpy y0,x0,a")
-    a.emit(D.RTS)
-    L("dt_z"); e("clr a"); a.emit(D.RTS)
+    if K3SPLIT:                                                                  # length L - L x ENDC, position L x STARTF
+        a.emit(sx("x0", 1, rn=3)); a.emit(sx("y0", ENDC)); e("mpy y0,x0,a", "tfr x0,b", "sub a,b"); a.emit(sx("b", 1, True, rn=3))
+        a.emit(sx("y0", STARTF)); e("mpy y0,x0,a")
+        a.emit(D.RTS)
+    else:
+        e("move %s,b" % X(EXT), "and #>$f,b", "tst b"); a.emit(J("eq"), "dt_z")
+        e("asl #17,b,b", "move b,y0", "move x:(r3+$1),x0", "mpy y0,x0,a")
+        a.emit(D.RTS)
+        L("dt_z"); e("clr a"); a.emit(D.RTS)
 
     # ================================================================ dstage (jsr from P:$218E; X:$2C02 = 32 mono samples)
     L("dstage")
@@ -344,7 +380,10 @@ def code(base):
     e("move %s,m4" % X(SM4), "move %s,m5" % X(SM5))
     L("fl_x")
     # ---- tremolo
-    e("move %s,a" % X(LFO), "tst a"); a.emit(J("le"), "tr_x")
+    if K3SPLIT:
+        a.emit(sx("a", TGN)); e("cmp #>$7fffff,a"); a.emit(J("eq"), "tr_x")
+    else:
+        e("move %s,a" % X(LFO), "tst a"); a.emit(J("le"), "tr_x")
     e("move %s,b" % X(TG), "move %s,a" % X(TGN), "sub b,a", "asr #5,a,a", "move a,x1", "move #>$2c02,r0")
     a.emit(D.do_x, 0x3A, "tr_e")
     e("add x1,b", "move b,y0", "move x:(r0),x0", "mpy y0,x0,a")

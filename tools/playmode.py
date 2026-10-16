@@ -47,6 +47,16 @@ DIAG = [r * 4 + (r + d) % 4 for d in range(4) for r in range(4)]
 ORDER = DIAG + [16 + s for s in DIAG]
 INV = dict(eq="ne", ne="eq", lo="hs", hs="lo", hi="ls", ls="hi")
 DRUMS = False                                                 # SC40.9: the three pads on the drum tracks too (see use_drums)
+CLRMOD = False                                                # SC41.7 (see use_clrmod)
+PAD_MODE2, MGR_HELD = 24, 0x20                                # pad 25 (stepmod's mode 2); the held buttons = p0 of [[ctrl + 0x20] + 0xC], bit 0 Clear
+
+
+def use_clrmod():
+    """SC41.7 (the user, 2026-10-15: «en vista normal pattern settings, clear + pad 25 borra los random-mutate y dynamics»): Clear held + pad 25 of the
+    Pattern Settings view on a note track = every step of the pattern the track plays loses its random-mutate level (byte 2) and its dynamics (bits 4-6
+    of byte 3); the frequency (bits 0-2) stays.  Without Clear pad 25 opens mode 2 as before.  c_pmclrpad in front of c_pmpspad in slot 0."""
+    global CLRMOD
+    CLRMOD = True
 D_SET_OFF, D_AUTO_OFF, D_LANES, D_ARRAYS = 0x80, 0xA8, 8, 4   # a drum pattern: four arrays of 32 bytes (velocity, probability, sample, micro steps), the settings, 8 lanes
 
 
@@ -294,6 +304,27 @@ def arm_code(base, L, prev):
     E(adds_imm8, 0, S_K); E(movs_imm, 1, 0)
     for k in range(8): E(strb_imm, 1, 0, k)
     a.label("pl_x"); E(pop_list, [4], pc=True)
+    if CLRMOD:
+        # ---- c_pmclr (r0 = track, r1 = pattern): the 32 steps' random-mutate and dynamics to 0
+        a.label("c_pmclr")
+        E(push_list, [4], lr=True)
+        E(bl, L["c_pcrule"]); E(cmp_imm, 0, 0); E(b_cond, "cl_x", "eq")
+        E(subs_imm8, 0, 4); imm32(1, SET_OFF); E(subs_reg, 4, 0, 1); E(movs_imm, 2, 32)
+        a.label("cl_l")
+        E(movs_imm, 1, 0); E(strb_imm, 1, 4, 2); E(ldrb_imm, 1, 4, 3); E(movs_imm, 3, 0x70); E(raw, h(0x4399)); E(strb_imm, 1, 4, 3)   # bics r1, r3
+        E(adds_imm8, 4, STEP_SZ); E(subs_imm8, 2, 1); E(b_cond, "cl_l", "ne")
+        a.label("cl_x"); E(pop_list, [4], pc=True)
+        # ---- c_pmclrpad (the Pattern Settings view's pad press): Clear held + pad 25 on a note track = c_pmclr on the pattern it plays
+        a.label("c_pmclrpad")
+        E(cmp_imm, 1, PAD_MODE2); E(b_cond, "cp_f", "ne")
+        E(push_list, [0, 1, 2, 4], lr=True)
+        imm32(0, SM.MGR); E(ldr_imm, 0, 0, MGR_HELD); E(ldr_imm, 0, 0, 0xC); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+        E(lsls_imm, 0, 0, 31); E(b_cond, "cp_c", "eq")
+        E(bl, L["c_rfnt"]); E(b_cond, "cp_c", "hs")
+        E(bl, "c_pmtp"); E(bl, "c_pmclr")
+        E(pop_list, [0, 1, 2, 4], pc=True)
+        a.label("cp_c"); E(raw, h(0xE8BD) + h(0x4017))                                  # pop.w {r0, r1, r2, r4, lr}
+        a.label("cp_f"); E(b_w, "c_pmpspad")
     return a.assemble()
 
 
@@ -317,7 +348,7 @@ def install(img, report, base_addr):
     put(END_HOOK, bl(END_HOOK, labels["c_pmend"]), DIR_OLD)
     put(STEP_HOOK, bl(STEP_HOOK, labels["c_pmstep"]), DIR_OLD)
     put(START_HOOK, bl(START_HOOK, labels["c_pmstart"]), bl(START_HOOK, DIR_GET))
-    struct.pack_into("<I", img, PS_VT - BASE, labels["c_pmpspad"] | 1)
+    struct.pack_into("<I", img, PS_VT - BASE, labels["c_pmclrpad" if CLRMOD else "c_pmpspad"] | 1)
     struct.pack_into("<I", img, PS_VT + 28 - BASE, labels["c_pmpsbuf"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl(c, prev["ledtask"]), hex(c)

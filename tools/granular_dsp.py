@@ -495,6 +495,14 @@ def patch_core1(img, **kw):
 CPT_LIST = ((OSBX, SHA, 0xC0), (VBX, SHB, 0x60), (CAP_LEN, SHLEN, 1), (0x2E10, MIN, 64), (GARM, GIN, 5))   # + a quarter of the sample table per block
 
 
+DIAGCNT, DIAG_Y = False, 0x3B0F                 # SC419D (stutdiag): core 0 also copies CNT to Y:$3B0F, inside the 16-bit range of the ARM's DSP read
+
+
+def use_diagcnt():
+    global DIAGCNT
+    DIAGCNT = True
+
+
 def core0_tail(a, e):
     """The end of the Master FX chain on core 0 (sampler_dsp.TAIL, before its registers come back; m4 is linear there): the copies of CPT_LIST,
     the Glitch replacing the master with GOUT[RDOFS] while the ARM holds the magic in GARM, CNT + 1, RDOFS for the next block.
@@ -518,7 +526,9 @@ def core0_tail(a, e):
     e("move x:(r0)+,x0")
     L("gr_gc"); e("move x0,x:(r4)+")
     L("gr_ng")
-    e("move x:>$%x,a" % CNT, "add #>1,a", "move a1,x:>$%x" % CNT, "add #>1,a", "and #>1,a", "asl #6,a,a", "move a1,x:>$%x" % RDOFS)
+    e("move x:>$%x,a" % CNT, "add #>1,a", "move a1,x:>$%x" % CNT)
+    if DIAGCNT: e("move a1,y:>$%x" % DIAG_Y)                                                   # (SC419D) the counter where the ARM can read it
+    e("add #>1,a", "and #>1,a", "asl #6,a,a", "move a1,x:>$%x" % RDOFS)
 
 
 def core0_table(a):

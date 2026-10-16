@@ -188,6 +188,8 @@ EMPTY = False                                    # SC38.4: a copy between packs 
 INITGAP = False                                  # SC38.5: the empty patch slots before B filled with the stock's Initial Patch (see 17.)
 FFGAP = False                                    # SC38.6: ... left empty as the stock does (0xFF from the bank's end to B; see 18.)
 PMODE = False                                    # SC38.8: patch pads coloured by voice mode in the synth Preset view (see 19.)
+PLAYHOLD = False                                 # SC42.1: the ~4 s rereads of c_pmode (and mpatch) wait for the transport stopped (see use_playhold)
+TRANSPORT = 0x20011034                           # the transport store: p0 = playing
 PM_MAGIC, PM_LIFE = 0xA5C3, 16                   # the cache's tag word; it is read again after PM_LIFE x 256 ms (~4 s)
 PM_CACHE = 40 + 64                               # c_gst() + GFX_OFF + S_SCR: the Master FX block's idle LED buffer (vcf21.S_SCR)
 PM_MONO = (0x0E, 0x09)                           # dark blue / blue (the selected patch)
@@ -278,6 +280,15 @@ def use_pmode():
     global PMODE
     assert PATCHX and SRCGUARD
     PMODE = True
+
+
+def use_playhold():
+    """SC42.1 (the stutter of the delay, Beta only; the user, 2026-10-16): in emulation the Beta reads the card synchronously every ~4 s while playing in
+    the Preset views (c_pmode: the 4 banks of the page in the synth Preset view; mpatch: 2 banks in the Preset view of MIDI 1 / 2), the RC never.  With
+    this the periodic reread waits for the transport stopped; the rereads on a change (pack, page, patch) stay."""
+    global PLAYHOLD
+    assert PMODE
+    PLAYHOLD = True
 
 
 def use_pmode2():
@@ -1450,6 +1461,8 @@ def patch_code(a, L, prev, imm32, bc):
         a.emit(ldrb_imm, 0, 6, 14); a.emit(ldr_imm, 1, 7, 32); a.emit(cmp_reg, 0, 1); bc("pm_ref", "ne")
         imm32(0, HAL_TICK); a.emit(ldr_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 8); a.emit(ldrh_imm, 1, 6, 12)
         a.emit(subs_reg, 0, 0, 1); a.emit(lsls_imm, 0, 0, 16); a.emit(lsrs_imm, 0, 0, 16); a.emit(cmp_imm, 0, PM_LIFE); bc("pm_paint", "lo")
+        if PLAYHOLD:                                                                                   # older, but playing: kept (no card access)
+            imm32(0, TRANSPORT); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0); a.emit(cmp_imm, 0, 0); bc("pm_paint", "ne")
         # -- read the page's four banks again: size, then the bank (<= 4 KB) into the shared buffer; byte PM_VOICE of each record
         a.label("pm_ref")
         a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 6, 4); a.emit(str_imm, 0, 6, 8)                   # the modes: unknown (stock colours)

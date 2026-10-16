@@ -4,6 +4,30 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.16 — 2026-10-16
+
+**Beta 1.16** (marca `B1.16`; = SC42.6) sustituye a Beta 1.3: lleva todo lo nuevo desde entonces (Beta 1.4-1.15 no se publicaron). Las RC siguen en RC0.9 / RC0.9S. En el manual, lo de la beta va marcado **solo Beta 1.16**.
+
+### Novedades (solo Beta 1.16)
+- **Arpegiador por patrón** (C, Pattern Settings): **Shift + pad 25** lo enciende, **Shift + pads 27-32** = orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), **Shift + pads 17-24** = su resolución, distinta del tempo de la pista. Arpegia los acordes de la secuencia y las notas mantenidas en vivo.
+- **Escala propia** (**Shift + Scales**): hasta 7 notas y un periodo en un piano de dos octavas desde la tónica; se guarda con el proyecto.
+- **Metrónomo con cuenta atrás** (**Shift + Clear**): sin metrónomo (rojo), metrónomo (verde), solo cuenta atrás (magenta), las dos (cian); con la cuenta atrás, Record + Play = un compás antes de grabar.
+- **Vista Micro Step** (Gate dos veces): **pad 32** = la duración de una nota introducida a mano es lo que se mantiene el pad; **pad 31** = longitud fija con selector.
+- **Rollers de micropasos** en las filas 1-3 de la vista Note ampliada de los drums; con Record se graban.
+- **Step-drummer:** destino propio de la página velocity (pads 17-24) y **toggle pitch-vel** (pad 32): la página pitch transpone las notas en grados de la escala y la página velocity cambia la velocity, además de sus destinos.
+- **K3 de los drums partido:** izquierda = decay de stock, derecha (pasado 127) = ataque; **Shift + K3**: izquierda = inicio del sample, derecha = corte.
+- **Sidechain de los drums con los knobs:** en las páginas de drums de la vista Sidechain, K1-K4 = ataque, hold, decay y profundidad del drum del último preset tocado.
+- **Canales de Program Change** del proyecto en Setup (pads 29 / 30): escucha y salida, 16 por defecto; lo recibido se reenvía por el de salida.
+- **Clear + pad 25** en Pattern Settings borra las dinámicas y el random-mutate del patrón; **Clear + knob** del sinte propio: derecha = valor por defecto (lavanda), izquierda = borrar su automatización (rojo).
+- **Preset otra vez** en la vista Preset de un drum = vista cromática encendida / apagada.
+
+### Arreglos (solo Beta 1.16)
+- **El stutter del delay** al mover los knobs o cambiar de modo del motor de MIDI 1 / 2: el mod guardaba los ajustes del aparato en la tarjeta en cada cambio y releía la tarjeta cada pocos segundos en las vistas Preset; ahora el guardado espera al transporte parado y la relectura también.
+- **Samples de drums como en el Circuit de stock** en proyectos nuevos o sin tocar (el modo de filtro guardado 0 es el EQ de stock).
+- **Setup abierto desde la vista de Synth 1 / 2**: ese sinte ya se puede elegir.
+- **El patch flip** sale solo por el canal de su pista MIDI.
+- **Random-mutate con la escala propia** cuenta los grados desde la tónica.
+
 ## RC0.9 / RC0.9S y Beta 1.3 — 2026-10-14
 
 RC0.9 = RC0.8 + una protección. RC0.9S = RC0.8S con el nombre nuevo (no escribe nada por su cuenta: no la necesita). **Beta 1.3** (marca `B1.3`; = SC41.3) = Beta 1.2 + la misma protección.
@@ -198,6 +222,30 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.16 — 2026-10-16
+
+**Beta 1.16** (marker `B1.16`; = SC42.6) replaces Beta 1.3: it carries everything new since then (Beta 1.4-1.15 were not published). The RCs stay RC0.9 / RC0.9S. In the manual, the beta's features are marked **Beta 1.16 only**.
+
+### New (Beta 1.16 only)
+- **Per-pattern arpeggiator** (C, Pattern Settings): **Shift + pad 25** turns it on, **Shift + pads 27-32** = order (fractal, deconstructed, up, down, ping-pong, random), **Shift + pads 17-24** = its own resolution, independent of the track's tempo. It arpeggiates the sequence's chords and notes held live.
+- **Custom scale** (**Shift + Scales**): up to 7 notes and a period on a two-octave piano from the root; saved with the project.
+- **Metronome with count-in** (**Shift + Clear**): no metronome (red), metronome (green), count-in only (magenta), both (cyan); with the count-in, Record + Play = one bar before recording.
+- **Micro Step view** (Gate twice): **pad 32** = a note entered by hand lasts as long as its pad is held; **pad 31** = fixed length with a selector.
+- **Micro-step rollers** on rows 1-3 of the drums' expanded Note view; recorded with Record.
+- **Step-drummer:** the velocity page gets its own destination (pads 17-24) and a **pitch-vel toggle** (pad 32): the pitch page transposes the notes in degrees of the scale and the velocity page sets the velocity, on top of their destinations.
+- **Split drum K3:** left = stock decay, right (past 127) = attack; **Shift + K3**: left = sample start, right = cut.
+- **Drum sidechain on the knobs:** on the Sidechain view's drum pages, K1-K4 = attack, hold, decay and depth of the drum whose preset was touched last.
+- **Program Change channels** of the project in Setup (pads 29 / 30): listen and send, 16 by default; what comes in is forwarded on the send channel.
+- **Clear + pad 25** in Pattern Settings clears the pattern's dynamics and random-mutate; **Clear + knob** of the own synth: right = default value (lavender), left = clear its automation (red).
+- **Preset again** in a drum's Preset view = chromatic view on / off.
+
+### Fixes (Beta 1.16 only)
+- **The delay stutter** when moving the MIDI 1 / 2 engine's knobs or modes: the mod saved the device settings to the card on every change and re-read the card every few seconds in the Preset views; now the save waits for the transport to stop, and so does the re-read.
+- **Drum samples sound like a stock Circuit** in new or untouched projects (the saved filter mode 0 is the stock EQ).
+- **Setup opened from the Synth 1 / 2 view**: that synth can be selected again.
+- **The patch flip** goes out only on its MIDI track's channel.
+- **Random-mutate with the custom scale** counts the degrees from the root.
 
 ## RC0.9 / RC0.9S and Beta 1.3 — 2026-10-14
 
