@@ -100,7 +100,7 @@ Every macro knob has 4 slots; every slot, a destination, a span of the travel (s
 - The destination walks first the 31 parameters with a CC (by number), then the 39 that only have an NRPN. Changes sound at once; to keep them in the pack, save the patch (Preset view).
 
 ### Pad 30: the synth's step-drummer
-The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-24 = **macro 1-8** as destination, K1-K8 = the 8 step pairs. Each pair's value is the macro's position, written as automation.
+The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-24 = **macro 1-8** as destination, K1-K8 = the 8 step pairs. Each pair's value is the macro's position, written as automation; an empty pair starts at 0 {B} (it started at the macro's present position).
 """),
 "synth-preset": ("Synth 1 / 2 Preset view",
     "Press **Preset** with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack's 128 patches).", f"""
@@ -125,7 +125,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | 26 | **Patch flip**: every note of the track goes out as a Program Change (on the track's channel; if that is a synth's or the drums' channel, also internally). Exclusive with the engine. |
 | 27 | Track **engine**: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → blue (FX sequencer). |
 | 28 | One / two oscillators (oscillator and VA-drum). |
-| 29 | Chain order: VCA → FX → filter / filter → VCA → FX. |
+| 29 | Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page's colour {B}). |
 | 30 | Opens the **step-drummer**; **Shift + pad 30** turns it off. |
 | 31 | VA-drum only: velocity scales the pitch and filter envelopes. |
 
@@ -213,8 +213,8 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | 1-16 / 17-32 | The other half of the pattern. |
 
 - The pair's value (64 = no change) offsets the destination. Every step keeps the pitch of its first note.
-- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from 64; synths: from the macro's position), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
-- {B} **Pitch-vel toggle:** every note of the track moves up / down (pair value − 64) **degrees of the project's scale** (stock or custom), within 0-127; auditioning a step too. The velocity follows the velocity page.
+- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from 64; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
+- {B} **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
 - {B} On MIDI, pad 30 shows **dim** with the step-drummer off and **bright** when it is on (it was dark / dim).
 - With **Record**, touching a step records it on the playing step (real time).
 - With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** {B} (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.
@@ -251,7 +251,8 @@ While **Shift** is held, the arpeggiator's pads keep their Pattern Settings colo
 - Pads 17-22: the 6 micro steps of the chosen step; **pad 24 = Tie** (ties the chosen notes to the next step); pads 25-30: the step's notes (which ones the micro step and the Tie apply to), as always.
 - **Gate once** is the Gate view (pads 17-32 = the length): there pads 31 / 32 are the stock's.
 - **Pad 32 = gate by holding** {B} for the track (green = on, dim = off; saved with the project): when **entering notes by hand** (a step held + a note pad, or a note held + a step pad), **how long you hold the pad is the note's gate**, at the project's tempo and the track's sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock's gate.
-- **Pad 31 = fixed length** {B} for the track (orange = on): off, pressing it turns it on and opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view; picking one closes it); on, a short press opens the selector again and **holding it ~1 s turns it off**. With it, every note entered by hand (not one recorded live) gets that gate. Pads 32 and 31 exclude each other: turning one on turns the other off.
+- **Pad 31 = fixed length** {B} for the track (orange = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate.
+- **The two toggles** {B}: with one on, **pressing it again turns it off** (nothing opens); **pressing the other one** turns the first off and the new one on (pad 31 by opening its selector).
 - The arpeggiator uses those gates too: each note of the chord lasts its own.
 """),
 "probabilidad": ("Probability view (note tracks)",
@@ -314,7 +315,7 @@ While **Shift** is held, the arpeggiator's pads keep their Pattern Settings colo
 - **K1** = pitch offset in semitones; **Shift + K1** = fine tuning in cents.
 - While recording, each pitch is recorded on its own step only.
 - **The drums' Note view:** pads 25-28 repeat the boxes of drums 4 … 1.
-- **Micro-step rollers** {B} on rows 1-3 of the drums' Note view: each column is the drum of its box below (columns 1-4 = drums 4-1, columns 5-8 = drums 1-4), dim in its colour. A drum's left column is its micro steps 1-3 (rows 1-3) and the right one 4-6: drum 1 = pads 4, 12, 20 and 5, 13, 21. **While held** (one or several, of one or several drums), with the transport running, the drum plays on **every step** at those micro steps (with the step's velocity, or 100 on an empty step); they light up while held. **With Record** their hits are recorded into the pattern too (the micro step, and velocity 100 on an empty step).
+- **Micro-step rollers** {B} on rows 1-3 of the drums' Note view: each column is the drum of its box below (columns 1-4 = drums 4-1, columns 5-8 = drums 1-4), dim in its colour. A drum's left column is its micro steps 1-3 (rows 1-3) and the right one 4-6: drum 1 = pads 4, 12, 20 and 5, 13, 21. **While held** (one or several, of one or several drums), the drum plays on **every step** at those micro steps (with the step's velocity, or 100 on an empty step); they light up while held. **With the transport stopped** {B} too: at the project's tempo, starting when the first one is pressed (velocity 100). **With Record** their hits are recorded into the pattern too (the micro step, and velocity 100 on an empty step).
 """),
 "master-fx": ("Master FX",
     "**Mixer**, then **Mixer** again. Effects on the master output, the song pointer, the captured sample and the row of assignable effects. Any other view button leaves.", f"""

@@ -61,6 +61,18 @@ def use_v2():
     V2 = True
 
 
+V3 = False                                                                              # SC42.7 (use_v3)
+
+
+def use_v3():
+    """SC42.7 (the user, 2026-10-16): «con toggles apagados: pad 31: activa vista de longitud personalizada, elegir una longitud activa la longitud
+    personalizada; pad 32: activa longitud por tiempo mantenido.  Con un toggle activado: tocar el mismo toggle lo desactiva (sin abrir nuevas
+    vistas); tocar el otro toggle desactiva el anterior y activa el nuevo».  Pad 31: fixed length on = off (no selector); else the selector (the
+    gate by holding off); a length chosen = the fixed length on.  Pad 32: as before (on = the fixed length off).  No long press any more."""
+    global V3
+    V3 = True
+
+
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -147,8 +159,17 @@ def arm_code(base, prev):
     E(ldrb_imm, 0, 6, 6); E(subs_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "mp_n", "ne")
     E(cmp_imm, 5, 16); E(b_cond, "mp_c", "hs")                                                          # the selector: pad k = k + 1 steps
     E(adds_imm8, 5, 1); E(movs_imm, 0, 0x80); E(raw, h(0x4328)); E(adds_reg, 1, 6, 4); E(strb_imm, 0, 1, 2)   # orrs r0, r5
-    E(movs_imm, 0, 0); E(strb_imm, 0, 6, 6); E(b, "mp_c")
+    E(movs_imm, 0, 0); E(strb_imm, 0, 6, 6)
+    if V3: E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq"); E(mov_reg, 0, 4); E(bl, "c_sgtog")   # the gate by holding off
+    E(b, "mp_c")
     a.label("mp_n"); E(cmp_imm, 5, PAD_FIX); E(b_cond, "mp_t", "ne")
+    if V3:                                                                                              # on: off; else the selector (the gate by holding off)
+        E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(lsls_imm, 2, 0, 24); E(b_cond, "mp_v", "pl")
+        E(movs_imm, 2, 0x7F); E(raw, h(0x4010)); E(strb_imm, 0, 1, 2); E(b, "mp_c")                        # ands r0, r2
+        a.label("mp_v")
+        E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6)
+        E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq"); E(mov_reg, 0, 4); E(bl, "c_sgtog")
+        E(b, "mp_c")
     E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(lsls_imm, 2, 0, 24); E(b_cond, "mp_on", "mi")
     E(movs_imm, 2, 0x1F); E(raw, h(0x4010)); E(cmp_imm, 0, 0); E(b_cond, "mp_l", "ne"); E(movs_imm, 0, 1)   # ands r0, r2: off -> on, the last length
     a.label("mp_l"); E(movs_imm, 2, 0x80); E(raw, h(0x4310)); E(strb_imm, 0, 1, 2)                       # orrs r0, r2
@@ -165,6 +186,7 @@ def arm_code(base, prev):
 
     # ---- c_sgmrel (the Micro Step view's slot 1: view, pad): pad 31 let go after a press while on: short = the selector, long = off
     a.label("c_sgmrel")
+    if V3: E(b_w, MS_REL)                                                                              # (no long press)
     E(push_list, [0, 1, 4, 5, 6], lr=True)
     E(cmp_imm, 1, PAD_FIX); E(b_cond, "mr_s", "ne")
     E(bl, "c_sgmtrk"); E(mov_reg, 4, 0); E(cmp_imm, 0, 3); E(b_cond, "mr_s", "hi")

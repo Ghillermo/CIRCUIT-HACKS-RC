@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.16"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.17"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -109,7 +109,7 @@ Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido
 - El destino recorre primero los 31 parámetros con CC (por número) y luego los 39 que solo tienen NRPN. Los cambios suenan al momento; para dejarlos en el pack, guarda el patch (vista Preset).
 
 ### Pad 30: step-drummer del sinte
-La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III): pads 1-16 pasos, 17-24 = **macro 1-8** como destino, K1-K8 = los 8 pares de pasos. El valor de cada par es la posición del macro, escrita como automatización.
+La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III): pads 1-16 pasos, 17-24 = **macro 1-8** como destino, K1-K8 = los 8 pares de pasos. El valor de cada par es la posición del macro, escrita como automatización; un par vacío empieza en 0 {B} (antes, en la posición actual del macro).
 """, [("fuente-sinte", 0), ("destinos-macro", 0)])
 
 view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
@@ -139,7 +139,7 @@ view("midi-preset", "III", "Vista Preset de MIDI 1 / 2",
 | 26 | **Patch flip**: cada nota de la pista sale como Program Change (por el canal de la pista; si ese canal es el de un sinte o los drums, también por dentro). Excluyente con el motor. |
 | 27 | **Motor** de la pista: apagado → amarillo (entrada de línea) → verde (oscilador) → rojo (VA-drum) → magenta (granular) → azul (secuenciador de efectos). |
 | 28 | Uno / dos osciladores (oscilador y VA-drum). |
-| 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX. |
+| 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX (en el color de la página VCA-VCF {B}). |
 | 30 | Abre el **step-drummer**; **Shift + pad 30** lo desactiva. |
 | 31 | Solo en VA-drum: la velocity escala las envolventes de pitch y filtro. |
 
@@ -233,8 +233,8 @@ view("step-drummer", "III", "Vista del step-drummer",
 | 1-16 / 17-32 | La otra mitad del patrón. |
 
 - El valor del par (64 = sin cambio) desplaza el destino. Cada paso conserva la altura de su primera nota.
-- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde 64; sintes: desde la posición del macro), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
-- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja (valor del par − 64) **grados de la escala** del proyecto (la de stock o la propia), entre 0 y 127; también al escuchar un paso. La velocity sigue a la página velocity.
+- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde 64; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
+- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el centro (−8 … +8 grados), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
 - {B} En MIDI el pad 30 se ve **tenue** con el step-drummer desactivado y **brillante** activado (antes, apagado / tenue).
 - Con **Record**, tocar un paso lo graba en el paso que suena (tiempo real).
 - Con el motor en **secuenciador de efectos** (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final **random** {B} (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.
@@ -282,7 +282,7 @@ view("drum-cromatica", "IV", "Vista cromática y de escala de los drums",
 - **K1** = sesgo de tono en semitonos; **Shift + K1** = afinación fina en cents.
 - Grabando, cada tono se graba solo en su paso.
 - **Vista Note de los drums:** los pads 25-28 repiten los cuadros de los drums 4 … 1.
-- **Rollers de micropasos** {B} en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), con el transporte en marcha, el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
+- **Rollers de micropasos** {B} en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con el transporte parado** {B} también: al tempo del proyecto, empezando al pulsar el primero (velocity 100). **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
 """)
 
 # ===================================================================================================== V
@@ -321,7 +321,8 @@ view("micropasos", "V", "Vista Micro Step (pistas de notas)",
 - Pads 17-22: los 6 micropasos del paso elegido; **pad 24 = Tie** (enlaza las notas elegidas con el paso siguiente); pads 25-30: las notas del paso (a cuál se aplican el micropaso y el Tie), como siempre.
 - **Gate una vez** es la vista Gate (pads 17-32 = la duración): ahí los pads 31 / 32 son los de stock.
 - **Pad 32 = gate por pulsación** {B} de la pista (verde = encendido, tenue = apagado; se guarda con el proyecto): al **introducir notas a mano** (un paso mantenido + un pad de nota, o una nota mantenida + un pad de paso), **el tiempo que mantienes el pad es el gate** de esa nota, al tempo del proyecto y al sync rate de la pista (de 1 micropaso a 16 pasos). Termina al soltar el primero de los dos pads. Apagado: el gate de stock.
-- **Pad 31 = longitud fija** {B} de la pista (naranja = encendida): apagada, pulsarla la enciende y abre el **selector** (pads 17-32 = 1 … 16 pasos, como la vista Gate; elegir uno lo cierra); encendida, una pulsación corta vuelve a abrir el selector y **mantenerla ~1 s la apaga**. Con ella, toda nota introducida a mano (no la grabada en vivo) lleva ese gate. El pad 32 y el 31 se excluyen: encender uno apaga el otro.
+- **Pad 31 = longitud fija** {B} de la pista (naranja = encendida): con los dos apagados, abre el **selector** (pads 17-32 = 1 … 16 pasos, como la vista Gate) y **elegir una longitud la enciende** (y cierra el selector). Con ella, toda nota introducida a mano (no la grabada en vivo) lleva ese gate.
+- **Los dos toggles** {B}: con uno encendido, **pulsarlo otra vez lo apaga** (sin abrir nada); **pulsar el otro** apaga el primero y enciende el nuevo (el pad 31, abriendo su selector).
 - Esos gates los usa también el arpegiador: cada nota del acorde dura el suyo.
 """)
 

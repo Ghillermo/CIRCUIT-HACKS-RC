@@ -51,6 +51,19 @@ def use_v2():
     V2 = True
 
 
+FREE = False                                               # SC42.7 (use_free)
+O_FREE = 564                                               # (FREE) the clock: + 0 the next micro step's time (1/16 ms), + 4 its number 0..5, + 5 0xA7 = running
+TICKS_TAB, TEMPO = 0x0805B8B8, 0x20011404
+
+
+def use_free():
+    """SC42.7 (the user, 2026-10-16: «modo roll (en drums): ahora funciona, hacer que funcione sin estar play pulsado»): with the transport stopped,
+    the LED task plays the held rollers at the project's tempo and Drum 1's sync rate, on a clock that starts with the first roller held (micro step 1
+    at once); velocity 100, not recorded.  RAM in the record's tail + 564..569 (free in the builds without stutdiag).  Needs use_v2."""
+    global FREE
+    FREE = True
+
+
 DRUM_COL = (0x45, 0x2D, 0x49, 0x4D)                        # drums 1-4 (the bottom row's colours); + 1 = the dim one of the same family
 
 
@@ -154,14 +167,62 @@ def arm_code(base, prev):
     E(bl, prev["ledtask"])
     if V2:                                                                                             # the view drawn in the last 200 ms: kept
         E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "rt_x", "eq"); E(ldr_imm, 1, 0, O_STAMP - O_MASK)
-        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(subs_reg, 0, 0, 1); imm32(1, SEEN_MS); E(cmp_reg, 0, 1); E(b_cond, "rt_x", "ls")
+        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(subs_reg, 0, 0, 1); imm32(1, SEEN_MS); E(cmp_reg, 0, 1); E(b_cond, "rt_k" if FREE else "rt_x", "ls")
     else:
         imm32(0, MGR); E(ldr_imm, 1, 0, 0x6C); imm32(2, CONT); E(cmp_reg, 1, 2); E(b_cond, "rt_z", "ne")
         E(raw, h(0xF890) + h(1 << 12 | 0x152))                                                          # ldrb.w r1, [r0, #0x152]
         for v in (42, 51, 60, 69): E(cmp_imm, 1, v); E(b_cond, "rt_x", "eq")
     a.label("rt_z")
     E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "rt_x", "eq"); E(movs_imm, 1, 0); E(raw, h(0x6001))         # str r1, [r0]: the four masks
+    if FREE: E(b, "rt_x"); a.label("rt_k"); E(bl, "c_rlfree")
     a.label("rt_x"); E(pop_list, [3, 4], pc=True)
+    if FREE:
+        zc = [0]
+        INV = {"eq": "ne", "ne": "eq", "mi": "pl", "pl": "mi", "hs": "lo", "lo": "hs"}
+        def bc(target, cond):
+            zc[0] += 1; n = f"_f{zc[0]}"; E(b_cond, n, INV[cond]); E(b, target); a.label(n)
+        # ---- c_rlhit(r0 = drum): a hit through its player's interface (off first if it sounds), velocity 100
+        a.label("c_rlhit")
+        E(push_list, [4, 5], lr=True)
+        E(movs_imm, 1, DP_SZ); E(muls, 0, 1); imm32(1, DP0); E(adds_reg, 4, 0, 1)
+        E(raw, ldrbw(0, 4, 0x59)); E(cmp_imm, 0, 0); E(b_cond, "rh_on", "eq")
+        E(ldr_imm, 0, 4, 0x4C); E(raw, ldrbw(1, 4, 0x58)); E(movs_imm, 2, 0); E(ldr_imm, 3, 0, 0); E(ldr_imm, 3, 3, 4); E(raw, h(0x4798))   # blx r3
+        a.label("rh_on")
+        E(ldr_imm, 0, 4, 0x4C); E(raw, ldrbw(1, 4, 0x58)); E(movs_imm, 2, VEL_EMPTY); E(movs_imm, 3, 0); E(ldr_imm, 5, 0, 0); E(ldr_imm, 5, 5, 0); E(raw, h(0x47A8))   # blx r5
+        E(movs_imm, 0, 1); E(raw, strbw(0, 4, 0x59))
+        E(pop_list, [4, 5], pc=True)
+        # ---- c_rlfree(): the transport stopped and a roller held: the micro steps due on our clock
+        a.label("c_rlfree")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(bl, "c_rlm"); E(cmp_imm, 0, 0); bc("rf_x", "eq"); E(mov_reg, 4, 0)                                 # r4 = the masks
+        E(movw, 1, O_MASK - O_FREE); E(subs_reg, 5, 4, 1)                                                   # r5 = the clock
+        E(ldr_imm, 0, 4, 0); E(cmp_imm, 0, 0); bc("rf_z", "eq")                                             # no roller held
+        imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("rf_z", "ne")   # playing: the sequencer's
+        imm32(0, HAL_TICK); E(ldr_imm, 6, 0, 0); E(lsls_imm, 6, 6, 4)                                      # r6 = now, 1/16 ms
+        E(ldrb_imm, 0, 5, 5); E(cmp_imm, 0, 0xA7); E(b_cond, "rf_r", "eq")
+        E(movs_imm, 0, 0xA7); E(strb_imm, 0, 5, 5); E(str_imm, 6, 5, 0); E(movs_imm, 0, 0); E(strb_imm, 0, 5, 4)   # the clock starts: micro step 1 now
+        a.label("rf_r")
+        imm32(0, DP0); E(ldr_imm, 0, 0, 0x10); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 7); E(b_cond, "rf_t", "ls"); E(movs_imm, 0, 3)
+        a.label("rf_t"); E(lsls_imm, 0, 0, 2); imm32(1, TICKS_TAB); E(adds_reg, 0, 0, 1); E(ldr_imm, 7, 0, 0)    # r7 = the ticks a step
+        imm32(0, TEMPO); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "rf_b", "hs"); E(movs_imm, 1, 120)
+        a.label("rf_b")
+        E(movs_imm, 0, 6); E(muls, 1, 0); imm32(0, 40000); E(muls, 0, 7); E(raw, udiv(7, 0, 1))            # r7 = a micro step in 1/16 ms: 40000 tps / (6 BPM)
+        E(movs_imm, 0, 6); E(push_list, [0])                                                                 # at most 6 a call
+        a.label("rf_l")
+        E(ldr_imm, 0, 5, 0); E(subs_reg, 0, 6, 0); bc("rf_e", "mi")                                          # not due yet
+        E(ldrb_imm, 1, 5, 4)
+        for d in range(4):
+            E(ldrb_imm, 0, 4, d); E(raw, h(0x40C8)); E(lsls_imm, 0, 0, 31); E(b_cond, f"rf_n{d}", "pl")        # lsrs r0, r1
+            E(push_list, [1]); E(movs_imm, 0, d); E(bl, "c_rlhit"); E(pop_list, [1])
+            a.label(f"rf_n{d}")
+        E(adds_imm8, 1, 1); E(cmp_imm, 1, 6); E(b_cond, "rf_k", "lo"); E(movs_imm, 1, 0)
+        a.label("rf_k"); E(strb_imm, 1, 5, 4)
+        E(ldr_imm, 0, 5, 0); E(adds_reg, 0, 0, 7); E(str_imm, 0, 5, 0)
+        E(ldr_sp, 0, 0); E(subs_imm8, 0, 1); E(str_sp, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "rf_l", "ne")
+        E(ldr_imm, 0, 5, 0); E(subs_reg, 0, 6, 0); E(b_cond, "rf_e", "mi"); E(str_imm, 6, 5, 0)            # still behind: from now
+        a.label("rf_e"); E(pop_list, [0]); E(b, "rf_x")
+        a.label("rf_z"); E(movs_imm, 0, 0); E(strb_imm, 0, 5, 5)                                            # stopped: the next roller starts the clock again
+        a.label("rf_x"); E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 
 

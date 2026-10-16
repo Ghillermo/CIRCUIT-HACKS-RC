@@ -291,6 +291,13 @@ CLR_LAV = 0x07                                    # the stock's colour of a knob
 EDITOR0, EDITOR_SZ, LANE_CLEAR = 0x20039E50, 0x3A0, 0x0803D3B8   # the note tracks' pattern editors (Synth 1, 2, MIDI 1, 2); (editor, lane): the lane to 0xFF
 
 
+def use_routecol():
+    """SC42.7 (the user, 2026-10-16: «cambiar color del pad 29 a amarillo (color del filtro)»): pad 29 of the MIDI Preset view (the chain order) in
+    the colours of the VCA / VCF page pad."""
+    global COL_ROUTE
+    COL_ROUTE = COL_PAGE[0]
+
+
 def use_clrauto():
     """SC42.4 (the user, 2026-10-16: «clearing a knob successfully must show lavender to stay consistent with the stock interface. Red for automation clear»;
     «automation clear is not currently working on synths» = the own synth of MIDI 1 / 2): with Clear held, a knob of the engine turned right goes back to

@@ -45,6 +45,20 @@ HEADS = dict(c_sdknob="f0b50446", c_sdpad="f0b50446", c_sdfx="f4b50446", c_sdmar
              c_vapply="f0b50446", c_vcc_rec="f0b50446")
 
 
+V2 = False                                     # SC42.7 (use_v2)
+DEG_UNITS = 8                                  # (V2) knob units per degree of the transposition
+
+
+def use_v2():
+    """SC42.7 (the user, 2026-10-16: «en step-drummer: poner los knobs por defecto a cero (ahora mismo están al máximo). el modo pitch/vel no parece
+    funcionar correctamente»): on Synth 1 / 2 an empty pair started from the macro's position (127 on a patch with macro 1 at the top: all the knobs
+    lit at the top, and with the toggle +63 degrees): it starts from 0 now (both pages); the transposition is one degree every 8 knob units (MIDI:
+    (value - 64) / 8, -8..+8; synths, from 0: value / 8, 0..+16), as the pitch destination's octave over the knob; with the toggle on, page 1's pitch
+    destinations (the pitch of both oscillators / of OSC2) no longer move the own synth too (the note already moves: the two together left the scale)."""
+    global V2
+    V2 = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -129,6 +143,7 @@ def arm_code(base, L, prev):
     a.label("c_pvbase2")
     E(cmp_imm, 0, 2); E(b_cond, "bs_s", "hs"); E(movs_imm, 0, 64); E(raw, RET)
     a.label("bs_s")
+    if V2: E(movs_imm, 0, 0); E(raw, RET)                                             # (V2) a synth's empty pair: 0
     E(raw, h(0xB500)); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174); E(subs_imm8, 0, 2); E(bl, V.GETTER)
     E(cmp_imm, 0, 127); E(b_cond, "bs_x", "ls"); E(movs_imm, 0, 127)
     a.label("bs_x"); E(raw, h(0xBD00))
@@ -203,6 +218,11 @@ def arm_code(base, L, prev):
         nx = f"fx_n{pg}"
         if pg == 1:
             E(mov_reg, 0, 4); E(bl, L["c_sdnib"]); E(lsrs_imm, 0, 0, 1)
+            if V2:                                                                    # the toggle on: page 1's pitch destinations are the note's
+                E(cmp_imm, 0, 1); E(b_cond, "fx_pd", "hi")
+                E(mov_reg, 0, 4); E(bl, "c_pvon"); E(cmp_imm, 0, 0); bc(nx, "ne")
+                E(mov_reg, 0, 4); E(bl, L["c_sdnib"]); E(lsrs_imm, 0, 0, 1)
+                a.label("fx_pd")
         else:
             E(mov_reg, 0, 4); E(bl, "c_pvd2"); E(cmp_imm, 0, 0xFF); bc(nx, "eq")
         E(mov_reg, 1, 6); E(bl, "c_pvmatch"); E(cmp_imm, 0, 0); bc(nx, "eq")
@@ -386,7 +406,16 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(bl, L["c_sden"]); E(cmp_imm, 0, 0); E(b_cond, "pk_z", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_sdpat"]); E(mov_reg, 1, 5); E(bl, L["c_sdlna"]); E(mov_reg, 6, 0)
     E(mov_reg, 0, 4); E(bl, L["c_sdlofs"]); E(adds_reg, 0, 0, 6); E(ldrb_imm, 0, 0, 0)
-    E(cmp_imm, 0, 127); E(b_cond, "pk_z", "hi"); E(subs_imm8, 0, 64); E(pop_list, [4, 5, 6], pc=True)
+    if V2:                                                                            # one degree every 8 units, rounded: MIDI from 64, a synth from 0
+        E(cmp_imm, 0, 127); E(b_cond, "pk_z", "hi")
+        E(cmp_imm, 4, 2); E(b_cond, "pk_s", "hs"); E(subs_imm8, 0, 64)
+        a.label("pk_s")
+        E(cmp_imm, 0, 0); E(b_cond, "pk_n", "lt")
+        E(adds_imm8, 0, DEG_UNITS // 2); E(raw, V.asrs_imm(0, 0, 3)); E(pop_list, [4, 5, 6], pc=True)
+        a.label("pk_n")
+        E(raw, h(0x4240)); E(adds_imm8, 0, DEG_UNITS // 2); E(lsrs_imm, 0, 0, 3); E(raw, h(0x4240)); E(pop_list, [4, 5, 6], pc=True)   # negs r0, r0
+    else:
+        E(cmp_imm, 0, 127); E(b_cond, "pk_z", "hi"); E(subs_imm8, 0, 64); E(pop_list, [4, 5, 6], pc=True)
     a.label("pk_z"); E(movs_imm, 0, 0); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_pvnote (the player's note load, after stepmod's c_rfnote): r0 = the player, r4 = the unit - 4, r7 = the unit -> r5 = the note, moved in the scale
@@ -434,6 +463,11 @@ def arm_code(base, L, prev):
         a.label(nm + "_r"); E(raw, popw([0, 1, 2], lr=True))
         a.label(nm + "_g"); E(raw, bytes.fromhex(HEADS[key])); E(b_w, L[key] + 4)
 
+    if V2:
+        # ---- c_pvbase (c_sdbase's first 4 bytes): a synth's empty pair starts from 0, a MIDI track's as before
+        a.label("c_pvbase")
+        E(cmp_imm, 0, 2); E(b_cond, "pb_m", "lo"); E(movs_imm, 0, 0); E(raw, RET)
+        a.label("pb_m"); E(b_w, L["c_sdbase"] + 4)
     return a.assemble()
 
 
@@ -444,7 +478,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     vl = report["vcf20"]["labels"]
     L = {k: int(vl[k], 16) for k in ("c_sdscr", "c_sdflag", "c_sden", "c_sdnib", "c_sdpat", "c_sdlna", "c_sdlofs", "c_sdhalf", "c_sdconv", "c_sdpos",
-                                       "c_sdoff", "c_vmark", "c_sdcur", "c_vvaddr", "c_von", "c_edact", "c_fsq", *HEADS)}
+                                       "c_sdoff", "c_vmark", "c_sdcur", "c_vvaddr", "c_von", "c_edact", "c_fsq", "c_sdbase", *HEADS)}
     L.update(c_gfst=int(report["sc17"]["labels"]["c_gfst"], 16), c_csget=int(report["cscale"]["labels"]["c_csget"], 16),
              c_artrk=int(report["arp"]["labels"]["c_artrk"], 16))
     from fxdiag import bl_target
@@ -464,6 +498,9 @@ def install(img, report, base_addr):
                     ("c_sdio", "c_pvio"), ("c_vapply", "c_pvap"), ("c_vcc_rec", "c_pvrec")):
         img[L[k] - BASE:L[k] - BASE + 4] = bw_enc(L[k], labels[ours])
     img[MU.NOTE_LOAD - BASE:MU.NOTE_LOAD - BASE + 4] = bl(MU.NOTE_LOAD, labels["c_pvnote"])
+    if V2:
+        a_ = L["c_sdbase"]; assert bytes(img[a_ - BASE:a_ - BASE + 2]).hex() == "0228" and img[a_ - BASE + 3] == 0xD2, "c_sdbase"
+        img[a_ - BASE:a_ - BASE + 4] = bw_enc(a_, labels["c_pvbase"])
     struct.pack_into("<I", img, TMPL_VT - BASE, labels["c_pvpt"] | 1)
     struct.pack_into("<I", img, TMPL_VT + 28 - BASE, labels["c_pvlt"] | 1)
     struct.pack_into("<I", img, SYN_VT - BASE, labels["c_pvps"] | 1)

@@ -4,6 +4,16 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.17 — 2026-10-16
+
+**Beta 1.17** (marca `B1.17`; = SC42.7) = Beta 1.16 + lo pedido tras probarla. Las RC siguen en RC0.9 / RC0.9S.
+
+### Cambios (solo Beta 1.17)
+- **Step-drummer:** en Synth 1 / 2 un par vacío empieza en 0 (empezaba en la posición del macro: con el macro arriba, todos los knobs al máximo). La transposición del toggle pitch-vel es de un grado cada 8 pasos del knob (MIDI −8 … +8 desde el centro, sintes 0 … +16) y, con el toggle, los destinos de tono de la página pitch ya no mueven además el sinte propio (la nota salía de la escala).
+- **Vista Micro Step, pads 31 / 32:** con los dos apagados, el pad 31 abre el selector y elegir una longitud enciende la longitud fija; el pad 32 enciende el gate por pulsación. Con uno encendido, pulsarlo otra vez lo apaga y pulsar el otro cambia de uno a otro. Ya no hay pulsación larga.
+- **Rollers de los drums con el transporte parado:** suenan al tempo del proyecto mientras se mantienen.
+- **Pad 29 de MIDI 1 / 2** (orden de la cadena) en el color de la página VCA-VCF.
+
 ## Beta 1.16 — 2026-10-16
 
 **Beta 1.16** (marca `B1.16`; = SC42.6) sustituye a Beta 1.3: lleva todo lo nuevo desde entonces (Beta 1.4-1.15 no se publicaron). Las RC siguen en RC0.9 / RC0.9S. En el manual, lo de la beta va marcado **solo Beta 1.16**.
@@ -222,6 +232,16 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.17 — 2026-10-16
+
+**Beta 1.17** (marker `B1.17`; = SC42.7) = Beta 1.16 + what was asked after testing it. The RCs stay RC0.9 / RC0.9S.
+
+### Changed (Beta 1.17 only)
+- **Step-drummer:** on Synth 1 / 2 an empty pair starts at 0 (it started at the macro's position: with the macro at the top, every knob at maximum). The pitch-vel toggle's transposition is one degree every 8 knob steps (MIDI −8 … +8 from the centre, synths 0 … +16) and, with the toggle, the pitch page's pitch destinations no longer move the own synth too (the note left the scale).
+- **Micro Step view, pads 31 / 32:** with both off, pad 31 opens the selector and picking a length turns the fixed length on; pad 32 turns the gate by holding on. With one on, pressing it again turns it off and pressing the other one switches. No long press any more.
+- **Drum rollers with the transport stopped:** they play at the project's tempo while held.
+- **Pad 29 of MIDI 1 / 2** (the chain order) in the VCA-VCF page's colour.
 
 ## Beta 1.16 — 2026-10-16
 
