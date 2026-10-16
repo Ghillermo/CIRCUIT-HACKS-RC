@@ -16,8 +16,8 @@ import make_manual as M  # noqa: E402
 
 ROOT = M.ROOT
 LINK = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
-CREDIT = {"es": 'Basada en la guía de la comunidad de <a href="https://www.reddit.com/user/luxurysoft1337/">u/luxurysoft1337</a>',
-          "en": 'After the community guide by <a href="https://www.reddit.com/user/luxurysoft1337/">u/luxurysoft1337</a>'}
+CREDIT = {"es": 'Primer borrador: <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>',
+          "en": 'First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>'}
 PRINT_CSS = """
 header.cover a { color:#ffb38a; }
 @media print {

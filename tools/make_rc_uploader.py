@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.22 RC0.8 RC0.8S B1.21; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.23 RC0.8 RC0.8S B1.22; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria
                   "RC0.9 — full version: RC0.8 + the internal memory pack, read only for the mod"),
         "RC0.9S": ("RC0.9S — versión más segura (= RC0.8S): nada del mod escribe ficheros en la SD ni en la memoria interna",
                    "RC0.9S — safer build (= RC0.8S): nothing of the mod writes files to the SD card or to the internal memory"),
+        "B1.23": ("Beta 1.23 — beta (= SC43.3): Beta 1.22 + step-drummer de MIDI: cada knob desde el punto sin modulación de su destino, con el LED según la cantidad",
+                  "Beta 1.23 — beta (= SC43.3): Beta 1.22 + MIDI step-drummer: each knob from its destination's point of no modulation, the LED showing the amount"),
         "B1.22": ("Beta 1.22 — beta (= SC43.2): Beta 1.21 + arreglo: con el arpegiador, los acordes se graban enteros en todo el patrón",
                   "Beta 1.22 — beta (= SC43.2): Beta 1.21 + fix: with the arpeggiator, chords are recorded whole across the pattern"),
         "B1.21": ("Beta 1.21 — beta (= SC43.1): Beta 1.20 + arreglo: los golpes de los rollers y del arpegio de drums con el transporte parado ya no dejan sus cuadros en blanco ni la nota MIDI colgada",
@@ -482,4 +484,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.22", "RC0.8", "RC0.8S", "B1.21"])
+    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.23", "RC0.8", "RC0.8S", "B1.22"])

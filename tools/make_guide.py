@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.22"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.23"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -232,9 +232,10 @@ view("step-drummer", "III", "Vista del step-drummer",
 | Octave ▲ / ▼ | Página pitch / velocity. |
 | 1-16 / 17-32 | La otra mitad del patrón. |
 
-- El valor del par (64 = sin cambio) desplaza el destino. Cada paso conserva la altura de su primera nota.
-- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde 64; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
-- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el centro (−8 … +8 grados), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
+- El valor del par desplaza el destino (desde el centro: 64 = sin cambio). {B} **En MIDI el punto sin modulación depende del destino:** el centro (64) para los bipolares (tono de los dos osciladores, tono del OSC 2, envolvente → filtro) y **0 para los unipolares** (WAVE, FM, MIX, SHAPE, decay: solo suman). Un par vacío empieza ahí y **el LED del knob muestra la cantidad**: tenue = sin modulación, más brillante cuanto más se aleja, hacia arriba o hacia abajo.
+- Cada paso conserva la altura de su primera nota.
+- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde el punto sin modulación de su destino, como la página pitch; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
+- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el punto sin modulación del destino de la página pitch (centro: −8 … +8 grados; destino unipolar: 0 … +16), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
 - {B} En MIDI el pad 30 se ve **tenue** con el step-drummer desactivado y **brillante** activado (antes, apagado / tenue).
 - Con **Record**, tocar un paso lo graba en el paso que suena (tiempo real).
 - Con el motor en **secuenciador de efectos** (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final **random** {B} (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.
@@ -322,7 +323,8 @@ Los mismos gestos (**Shift + pad 25 / 27-32 / 17-24**) en el Pattern Settings de
 view("micropasos", "V", "Vista Micro Step (pistas de notas)",
      "Pulsa **Gate dos veces** con una pista de notas elegida (Synth 1 / 2, MIDI 1 / 2).",
      f"""
-- Pads 17-22: los 6 micropasos del paso elegido; **pad 24 = Tie** (enlaza las notas elegidas con el paso siguiente); pads 25-30: las notas del paso (a cuál se aplican el micropaso y el Tie), como siempre.
+- **Lo de stock:** pads 17-22 = los 6 micropasos del paso elegido; **pad 24 = Tie** (un toggle: enlaza las notas elegidas con el paso siguiente); pads 25-30 = las notas del paso: tocar una la elige (a ella se aplican el micropaso y el Tie) y la hace sonar.
+- **Un micropaso por nota (de stock):** cada nota guarda una sola posición, así que tocar otro micropaso mueve la nota elegida; no se pueden encender dos a la vez. Para varias en el mismo paso, pon varias notas. En los drums sí se encienden varios micropasos (repeticiones).
 - **Gate una vez** es la vista Gate (pads 17-32 = la duración): ahí los pads 31 / 32 son los de stock.
 - **Pad 32 = gate por pulsación** {B} de la pista (verde = encendido, tenue = apagado; se guarda con el proyecto): al **introducir notas a mano** (un paso mantenido + un pad de nota, o una nota mantenida + un pad de paso), **el tiempo que mantienes el pad es el gate** de esa nota, al tempo del proyecto y al sync rate de la pista (de 1 micropaso a 16 pasos). Termina al soltar el primero de los dos pads. Apagado: el gate de stock.
 - **Pad 31 = longitud fija** {B} de la pista (naranja = encendida): con los dos apagados, abre el **selector** (pads 17-32 = 1 … 16 pasos, como la vista Gate) y **elegir una longitud la enciende** (y cierra el selector). Con ella, toda nota introducida a mano (no la grabada en vivo) lleva ese gate.
@@ -543,12 +545,137 @@ view("instalar", "VIII", "Instalar y volver atrás",
 """)
 
 
+# ---------------------------------------------------------------------------------------------------- what each view offers, in user terms
+# (the user, 2026-10-16: «Make the sections manual (the one with chapters per view) extended, with concise user-level descriptions of the features»)
+ABOUT = dict(
+    botones=f"""
+- **Volver un knob a su valor o borrar lo grabado** — Clear + knob, sin buscar el valor a mano ni borrar el patrón entero.
+- **Metrónomo y cuenta atrás** {B} — un compás de clics antes de grabar, para entrar a tiempo.
+- **Teclado partido** {B} — los dos sintes a la vez, uno con cada mano.
+- **Escala propia** {B} — escalas que el aparato no trae, también con periodos que no son la octava.
+- **Atajos en amarillo** — con Shift pulsado, la vista enseña lo que ofrece.
+""",
+    **{"synth-nota": f"""
+- **Vista de la fuente** — el sinte puede procesar una entrada de audio en lugar de su ruido.
+- **Teclado partido** {B} — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity.
+"""},
+    escalas=f"""
+- **Escala propia** {B} — hasta 7 notas sobre la tónica y un periodo libre (por ejemplo, una escala que se repite cada 7 semitonos). La usan los pads de las pistas de notas, el cuantizado y el random-mutate; se guarda con el proyecto.
+""",
+    **{"synth-fuente": f"""
+- **Fuente del ruido** — cambia el ruido del patch por la entrada de audio 1 o 2 (normal o invertida): el filtro, las envolventes y los efectos del sinte procesan tu señal externa al ritmo de las notas.
+- **Destinos de los macros** {B} — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
+- **Step-drummer del sinte** — secuencia los macros por pares de pasos: cada knob fija la posición de un macro en dos pasos del patrón.
+""",
+       "synth-preset": f"""
+- **El modo de voz a la vista** {B} — los patches mono, mono con glide y poly se distinguen por el color.
+- **Guardar el patch** {B} — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).
+- **Intercambiar y copiar** — reordena los patches del pack o lleva uno a otro pack.
+""",
+       "midi-preset": f"""
+- **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, VA-drum o granular) y siguen mandando MIDI.
+- **Secuenciador de efectos** — un motor que no suena: dispara efectos de Master FX en los pasos que elijas.
+- **Patches del sinte propio** {B} — 64 sonidos por pack para esos motores, a un toque.
+- **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
+- **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
+""",
+       "midi-knobs": """
+- **VCA-VCF** — volumen y filtro con su envolvente y su LFO; con Shift, el tipo de filtro y el tipo de efecto.
+- **Osciladores** — una forma de onda continua de seno a cuadrada y un segundo oscilador con FM, ring y sync.
+- **Granular** — convierte un sample en texturas: granos que lo leen en otra posición, velocidad o dirección para congelarlo, estirarlo o trocearlo.
+- **Página 4** — los 8 parámetros que se graban como automatización.
+""",
+       "midi-cc": """
+- **Controlar otro aparato** — elige el número de CC (o NRPN) y el recorrido de cada knob de la plantilla, y guárdalo en ella.
+""",
+       "step-drummer": f"""
+- **Parámetros por pares de pasos** — los 8 knobs son 8 pares de pasos del patrón: cada uno mueve un destino (tono, forma, FM, filtro…) solo en esos pasos, para melodías, acentos o cambios de timbre sin automatizar a mano.
+- **El LED dice cuánto** {B} — tenue sin modulación, más brillante cuanto más se aleja.
+- **Segunda página con destino propio** {B} — la página de velocity mueve otro destino a la vez.
+- **Toggle pitch-vel** {B} — la página 1 transpone las notas por grados de la escala y la 2 marca su velocity: una melodía a partir de un solo patrón de notas.
+- **En tiempo real** — con Record, tocar un paso lo graba.
+- **Secuenciador de efectos** — con ese motor, cada par elige qué hueco de Master FX suena.
+""",
+       "drum-pista": """
+- **Moldear cada drum** — tono exacto, ring mod, ataque y decay, inicio y corte del sample, filtro con varios modos, LFO y distorsión de varios tipos: de un sample salen muchos sonidos.
+- **Todo neutro = el original** — con los knobs nuevos en su punto neutro, el sample suena como en el Circuit original.
+""",
+       "drum-preset": f"""
+- **La captura como drum** — graba lo que suena (Master FX) y úsalo como sample de un drum; al guardar el proyecto queda en el pack.
+- **Intercambiar y copiar samples** — reordena los samples o trae uno de otro pack.
+- **Arpegio de samples** {B} — al mantener varios samples, el drum salta de uno a otro.
+""",
+       "drum-cromatica": f"""
+- **Un drum como teclado** — el sample transpuesto en la escala del proyecto.
+- **Rollers** {B} — repite el drum en los micropasos que mantengas: redobles y ratchets en directo, también parado, y grabados con Record.
+"""},
+    **{"pattern-settings": f"""
+- **Nudge** — rota el patrón para que empiece en otro paso.
+- **Órdenes fractal y deconstruido** — recorren el patrón de otra forma sin cambiar sus notas.
+- **Arpegiador** {B} — los acordes del patrón (y los que tocas) suenan nota a nota, con su orden y su resolución; en los drums, saltando de sample.
+- **Dinámicas y random-mutate** (pad 25) — variaciones para que el patrón no suene siempre igual.
+"""},
+    micropasos=f"""
+- **Micropasos y Tie (de stock)** — coloca cada nota fuera de la rejilla y enlázala con el paso siguiente.
+- **Gate por pulsación** {B} — al introducir notas a mano, lo que mantienes es lo que dura la nota.
+- **Longitud fija** {B} — todas las notas que introduces a mano con la misma duración.
+""",
+    probabilidad=f"""
+- **Probabilidad (de stock)** — que un paso suene solo a veces.
+- **Frecuencia** {B} — que un paso suene una de cada n vueltas: variaciones que vuelven cada 2, 4 u 8 vueltas.
+- **Dinámicas** {B} — pequeñas variaciones de velocity y de posición: un patrón más humano.
+- **Random-mutate** {B} — notas que saltan de octava o a otra nota de la escala; en los drums, a otro sample.
+""",
+    patterns=f"""
+- **Cadenas de patrones** {B} — un patrón suena n veces y salta a otro, y la vez siguiente a un tercero: estructuras A A A B sin encadenar a mano.
+""",
+    mixer=f"""
+- **Nivel a 100 o a 0** — Shift + knob deja una pista a su nivel nominal o en silencio de un gesto.
+- **Escenas con cadenas y repeticiones** {B} — una escena puede repetirse n veces y recordar el modo cadena.
+""",
+    **{"master-fx": f"""
+- **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico {B}: mientras mantienes o fijados.
+- **Song pointer** — repite o hace bucle de partes del patrón en directo.
+- **Captura** — graba hasta 3,5 s de lo que suena para tocarlo, ponerlo en un hueco o usarlo como drum.
+- **Huecos** — un efecto con sus ajustes a un toque; el secuenciador de efectos los dispara.
+- **Por proyecto** {B} — cada proyecto recuerda sus ajustes de Master FX.
+""",
+       "vista-fx": """
+- **La reverb y el delay desde el aparato** — tipo, decay, tiempo, feedback…, guardados con el proyecto.
+- **Reset rápido** — Duplicate deja los envíos y los efectos a cero.
+- **Resonancia del filtro master** — en 1-16 / 17-32.
+"""},
+    sidechain=f"""
+- **El sidechain con knobs** {B} — ataque, hold, decay y profundidad del ducking de cada pista, más allá de los presets.
+- **Compresor master** {B} — su ataque y su release.
+- **Sidechain entre drums** — que un drum baje el volumen de otro (el bombo al bajo, por ejemplo).
+""",
+    projects=f"""
+- **Copiar proyectos** {B} — duplica un proyecto en otro hueco o en otro pack.
+""",
+    packs="""
+- **Borrar packs** — libera huecos de pack desde el aparato.
+- **Memoria interna protegida** — el mod nunca escribe en el pack interno.
+""",
+    setup=f"""
+- **Canales compartidos (loopback interno)** — una pista MIDI toca un sinte o los drums del propio aparato.
+- **Retornos por las tiras 3 / 4** — la reverb y el delay como canales del mixer.
+- **Canales de Program Change** {B} — escucha y manda cambios de programa por canales propios.
+- **Grabar los ruteos internos** {B} — lo que la pista MIDI toca en un sinte se graba también en él.
+""",
+    **{"advanced-setup": f"""
+- **MIDI Thru, Merge y Filter** {B} — el jack Thru puede mezclar el MIDI de entrada con el del aparato o filtrarlo.
+"""},
+)
+
+
 for _v in V: _v["part"] = PART_OF[_v["id"]]
 assert {v["id"] for v in V} == set(PART_OF)
+assert set(ABOUT) <= set(PART_OF)
 
 
 # ---------------------------------------------------------------------------------------------------- output
-UI = dict(es=dict(title="Guía por vistas — CIRCUIT-HACKS ({v})", cover="Guía de uso por vistas", how="Cómo se llega:", toc="Vistas",
+UI = dict(es=dict(title="Guía por vistas — CIRCUIT-HACKS ({v})", cover="Guía de uso por vistas", how="Cómo se llega:", about="En esta vista", toc="Vistas",
                   intro="Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía recorre las vistas del aparato y explica todo lo que se puede hacer en cada una. "
                         "La [lista de características](MANUAL.md) resume cada función por temas.",
                   other='<p class="lang"><a href="guide.html">English version</a> · <a href="index.html">Lista de características</a> · <a href="midi.html">Referencia MIDI</a></p>',
@@ -564,13 +691,13 @@ def figures(lang):
 
 def data(lang):
     if lang == "es":
-        return V, PARTS, UI["es"]
+        return [dict(v, about=ABOUT.get(v["id"], "").strip("\n")) for v in V], PARTS, UI["es"]
     import guide_en as EN
     out = []
     for v in V:
         title, how, detail = EN.VIEWS[v["id"]]
-        out.append(dict(v, title=title, how=how, detail=detail.strip("\n")))
-    assert set(EN.VIEWS) == {v["id"] for v in V}
+        out.append(dict(v, title=title, how=how, detail=detail.strip("\n"), about=EN.ABOUT.get(v["id"], "").strip("\n")))
+    assert set(EN.VIEWS) == {v["id"] for v in V} and set(EN.ABOUT) == set(ABOUT)
     return out, EN.PARTS, EN.UI
 
 
@@ -599,7 +726,9 @@ def write(lang):
         out.append(f"## {p}. {pname}"); out.append("")
         for code, v in num:
             if v["part"] != p: continue
-            out += [f'<a id="{v["id"]}"></a>', f"### {code} {v['title']}", "", f"*{U['how']}* {v['how']}", "", v["detail"], ""]
+            out += [f'<a id="{v["id"]}"></a>', f"### {code} {v['title']}", "", f"*{U['how']}* {v['how']}", ""]
+            if v["about"]: out += [f"**{U['about']}**", "", v["about"], ""]
+            out += [v["detail"], ""]
     (ROOT / U["md"]).write_text("\n".join(out), encoding="utf-8", newline="")
     # html
     parts_h = [f'<!doctype html><html lang="{U["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(U["title"].format(v=M.VERSION))}</title>',
@@ -617,7 +746,8 @@ def write(lang):
         for code, v in num:
             if v["part"] != p: continue
             parts_h.append(f'<section class="feat" id="{v["id"]}"><h3><span class="code">{code}</span>{html.escape(v["title"])}</h3>')
-            parts_h.append(f'<div class="summary"><p><strong>{html.escape(U["how"])}</strong> {M.inline(v["how"])}</p></div>')
+            about = f'<p class="about-h"><strong>{html.escape(U["about"])}</strong></p>{M.md2html(v["about"])}' if v["about"] else ""
+            parts_h.append(f'<div class="summary"><p><strong>{html.escape(U["how"])}</strong> {M.inline(v["how"])}</p>{about}</div>')
             for sid, k in v["figs"]:
                 f = figs[sid][k]
                 parts_h.append(f"<figure>{M.svg(f)}<figcaption>{html.escape(f['caption'])}</figcaption></figure>")

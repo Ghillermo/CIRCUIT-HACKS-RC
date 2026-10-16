@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.23 — 2026-10-16
+
+**Beta 1.23** (marca `B1.23`; = SC43.3) = Beta 1.22 + un cambio en el step-drummer. Las RC siguen en RC0.9 / RC0.9S.
+
+### Cambios (solo Beta 1.23)
+- **Step-drummer de MIDI 1 / 2:** el punto sin modulación de cada knob depende de su destino: el centro (64) para los bipolares (tono de los dos osciladores, tono del OSC 2, envolvente → filtro) y 0 para los unipolares (WAVE, FM, MIX, SHAPE, decay, que solo suman). Un par vacío empieza ahí, y el LED del knob enseña la cantidad: tenue = sin modulación, más brillante cuanto más se aleja (hacia arriba o hacia abajo). Antes todos empezaban en 64 y el LED enseñaba el valor (a media luz sin modulación). Lo mismo en la página 2 con destino y en el toggle pitch-vel (la transposición cuenta desde ese punto).
+
 ## Beta 1.22 — 2026-10-16
 
 **Beta 1.22** (marca `B1.22`; = SC43.2) = Beta 1.21 + un arreglo. Las RC siguen en RC0.9 / RC0.9S.
@@ -271,6 +278,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.23 — 2026-10-16
+
+**Beta 1.23** (marker `B1.23`; = SC43.3) = Beta 1.22 + a change to the step-drummer. The RCs stay RC0.9 / RC0.9S.
+
+### Changes (Beta 1.23 only)
+- **MIDI 1 / 2 step-drummer:** each knob's point of no modulation follows its destination: the centre (64) for the bipolar ones (pitch of both oscillators, OSC 2 pitch, envelope → filter) and 0 for the unipolar ones (WAVE, FM, MIX, SHAPE, decay, which only add). An empty pair starts there, and the knob LED shows the amount: dim = no modulation, brighter the further it goes (up or down). Before, every pair started at 64 and the LED showed the value (half lit with no modulation). The same on page 2 with a destination and for the pitch-vel toggle (the transposition counts from that point).
 
 ## Beta 1.22 — 2026-10-16
 

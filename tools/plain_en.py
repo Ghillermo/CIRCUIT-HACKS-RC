@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.22 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.23 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.22"
+BETA = "Beta 1.23"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -12,7 +12,7 @@ UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A 
           footer="CIRCUIT-HACKS — firmware mod for the Novation Circuit Tracks (1.2.1, build 4486). Not affiliated with Novation.",
           html="plain.html", md="docs/PLAIN.en.md", pdf="plain.pdf")
 
-INTRO = f"""This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **u/luxurysoft1337** (Reddit), written for RC0.9 and Beta 1.3. This edition is rewritten for **RC0.9** and **{BETA}**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
+INTRO = f"""First draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, written for RC0.9 and Beta 1.3. This edition is rewritten for **RC0.9** and **{BETA}**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
 
 Nothing here has been tested on a real unit unless the [CHANGELOG](https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md) says so. The mod is not affiliated with Novation."""
 
@@ -242,8 +242,8 @@ A layer over the pattern: the pattern decides which steps play; the knobs give e
 - **Pads 1-16** = the steps (bright = a note, white = playing); touch = listen, **Shift + touch** = add or remove a note. With Record, the steps you play are recorded in real time.
 - **Opening it:** synth = pad 30 of the source view; MIDI track = pad 30 of its Preset view with an engine on (**Shift + pad 30** turns it off). {B}: on MIDI pad 30 shows dim when off and bright when on.
 - **Pitch page, synths:** pads 17-24 pick one of the patch's 8 macros; each pair's value is that macro's position, written as automation. {B}: an empty pair starts at 0.
-- **Pitch page, MIDI track:** pads 17-24 pick a destination of the engine (pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, envelope → filter, SHAPE, decay); 64 = no change, other values shift it for those two steps.
-- {B} **Velocity page with its own destination:** on the velocity page, pads 17-24 pick a destination for page 2 (the same pad again = none); the knobs then write that destination (MIDI from 64, synths from 0). On MIDI page 2 uses the REL automation lane, so REL is not played or recorded while the step-drummer is on.
+- **Pitch page, MIDI track:** pads 17-24 pick a destination of the engine (pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, envelope → filter, SHAPE, decay) and the value shifts it for those two steps. {B}: the point of no modulation is the centre for the bipolar destinations (both pitches, envelope → filter) and 0 for the unipolar ones (WAVE, FM, MIX, SHAPE, decay); an empty pair starts there and the knob LED shows the amount (dim = none, brighter = more, up or down). In RC0.9 always from the centre (64).
+- {B} **Velocity page with its own destination:** on the velocity page, pads 17-24 pick a destination for page 2 (the same pad again = none); the knobs then write that destination (MIDI from the destination's point of no modulation, synths from 0). On MIDI page 2 uses the REL automation lane, so REL is not played or recorded while the step-drummer is on.
 - {B} **Pitch-vel toggle (pad 32 of the view, green):** on top of their destinations, the pitch page moves the **notes** one degree of the project's scale every 8 knob steps (MIDI −8 … +8 from the centre, synths 0 … +16) and the velocity page also sets the notes' velocity. With the toggle, pitch destinations of the pitch page no longer detune the own synth (the note moves instead).
 
 ### {BETA} extras
@@ -344,7 +344,7 @@ Choose a step that has notes (pads 1-16) and touch a pad of row 3 or 4.
 - **Drums** {B}: the same view for a drum (Pattern Settings twice = mode 1, pad 25 = mode 2). Frequency and dynamics as above (a drum can only be delayed inside its step); pads 25-28 = **random-mutate of the sample**: none · 25 % ±1 (the next sample in its row of 8) · 25 % ±8 (the same column in another row) · 12 % of each.
 
 ### Micro Step view {B}
-Press **Gate** twice (Gate once is the stock Gate view). Pads 17-22 = the 6 micro steps of the chosen step, pad 24 = Tie, pads 25-30 = its notes, as on the stock unit. Added:
+Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: pads 17-22 = the 6 micro steps of the chosen step, **pad 24 = Tie** (a toggle: ties the chosen notes to the next step), pads 25-30 = the step's notes (touching one chooses it and plays it). **Each note has a single micro step:** touching another moves it there; for several in the step, enter several notes (drums can light several: repeats). Added:
 - **Pad 32 = gate by holding** (green): when entering notes by hand, the time you hold the pad is the note's length.
 - **Pad 31 = fixed length** (orange): with both off it opens a selector (pads 17-32 = 1-16 steps); picking a length turns it on, and every note entered by hand gets it.
 - With one on, pressing it again turns it off; pressing the other one switches.

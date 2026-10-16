@@ -59,6 +59,22 @@ def use_v2():
     V2 = True
 
 
+V3 = False                                     # SC43.3 (use_v3)
+BIP_CODES = (17, 27, 3)                        # (V3) the bipolar destinations: the pitch of both oscillators, of OSC 2, envelope -> filter
+
+
+def use_v3():
+    """SC43.3 (the user, 2026-10-16, on a MIDI track of a fresh project: «los knobs de step drummer siguen estando al máximo por defecto … Set centre
+    for bipolar parameters and 0 for unipolar, both with dimmer = no modulation, brighter = positive or negative modulation»): on MIDI 1 / 2 the
+    point of no modulation follows the destination of the page (pads 17-24): 64 for the bipolar ones (BIP_CODES, as vcf21.BIPOLAR_MASK), 0 for the
+    unipolar ones (WAVE, FM, MIX, SHAPE, decay: their offset only adds); an empty pair starts there, the offset is value - that point (both pages),
+    the pitch-vel transposition counts from it, and the knob LEDs show the amount: brightness |value - point| (x 2 for the bipolar ones), dim at no
+    modulation.  Synth 1 / 2 (absolute macro positions from 0) and the FX sequencer as before."""
+    global V3
+    assert V2
+    V3 = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -85,9 +101,20 @@ def arm_code(base, L, prev):
         a.label(tag + "l")
 
     RET = h(0x4770)
-    tab = bytes(V.SD_DEST) + bytes(V.SD_DCOL)
+    tab = bytes(V.SD_DEST) + bytes(V.SD_DCOL) + (bytes(64 if c in BIP_CODES else 0 for c in V.SD_DEST) if V3 else b"")
     for i in range(0, len(tab), 2): E(raw, tab[i:i + 2])
-    t_dest, t_col = base, base + 8
+    t_dest, t_col, t_bip = base, base + 8, base + 16
+
+    if V3:
+        # ---- c_pvbip(r0 = a destination 0..7) -> r0 = its point of no modulation (64 bipolar, 0 unipolar); clobbers r1
+        a.label("c_pvbip")
+        imm32(1, t_bip); E(ldrb_reg, 0, 1, 0); E(raw, h(0x4770))
+        # ---- c_pvamt(r0 = a value, r1 = its point) -> r0 = the brightness of the amount: |value - point|, x 2 when the point is 64, at most 127
+        a.label("c_pvamt")
+        E(subs_reg, 0, 0, 1); E(b_cond, "am_p", "pl"); E(raw, h(0x4240))                         # negs r0, r0
+        a.label("am_p"); E(cmp_imm, 1, 0); E(b_cond, "am_k", "eq"); E(lsls_imm, 0, 0, 1)
+        a.label("am_k"); E(cmp_imm, 0, 127); E(b_cond, "am_x", "ls"); E(movs_imm, 0, 127)
+        a.label("am_x"); E(raw, h(0x4770))
 
     # ---- c_pvblk() -> r0 = our block, or 0; clobbers r1
     a.label("c_pvblk")
@@ -141,7 +168,8 @@ def arm_code(base, L, prev):
     E(cmp_imm, 0, 2); E(b_cond, "lf_s", "hs"); E(movs_imm, 0, 192); E(raw, RET)
     a.label("lf_s"); E(movs_imm, 0, 192); E(muls, 0, 1); E(raw, RET)
     a.label("c_pvbase2")
-    E(cmp_imm, 0, 2); E(b_cond, "bs_s", "hs"); E(movs_imm, 0, 64); E(raw, RET)
+    if V3: E(cmp_imm, 0, 2); E(b_cond, "bs_s", "hs"); E(mov_reg, 0, 1); E(b, "c_pvbip")          # (V3) MIDI: the destination's point
+    else: E(cmp_imm, 0, 2); E(b_cond, "bs_s", "hs"); E(movs_imm, 0, 64); E(raw, RET)
     a.label("bs_s")
     if V2: E(movs_imm, 0, 0); E(raw, RET)                                             # (V2) a synth's empty pair: 0
     E(raw, h(0xB500)); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174); E(subs_imm8, 0, 2); E(bl, V.GETTER)
@@ -170,7 +198,11 @@ def arm_code(base, L, prev):
     a.label("c_pvoff2")
     E(push_list, [4], lr=True)
     E(mov_reg, 4, 0); E(bl, L["c_sdpos"]); E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_pvlane2"); E(cmp_imm, 0, 0); E(b_cond, "of_z", "eq")
-    E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 127); E(b_cond, "of_z", "hi"); E(subs_imm8, 0, 64); E(pop_list, [4], pc=True)
+    E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 127); E(b_cond, "of_z", "hi")
+    if V3:                                                                            # (V3) value - the destination's point
+        E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_pvd2"); E(bl, "c_pvbip"); E(mov_reg, 1, 0); E(pop_list, [0]); E(subs_reg, 0, 0, 1)
+        E(pop_list, [4], pc=True)
+    else: E(subs_imm8, 0, 64); E(pop_list, [4], pc=True)
     a.label("of_z"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
 
     # ---- c_pvmark2(r0 = track): page 2's destination goes to the DSP again (MIDI, the step-drummer on); clobbers r0-r3
@@ -227,7 +259,7 @@ def arm_code(base, L, prev):
             E(mov_reg, 0, 4); E(bl, "c_pvd2"); E(cmp_imm, 0, 0xFF); bc(nx, "eq")
         E(mov_reg, 1, 6); E(bl, "c_pvmatch"); E(cmp_imm, 0, 0); bc(nx, "eq")
         E(mov_reg, 1, 9); E(orrs_reg, 1, 0); E(mov_reg, 9, 1)
-        E(push_list, [0]); E(mov_reg, 0, 4); E(bl, L["c_sdoff"] if pg == 1 else "c_pvoff2"); E(pop_list, [1])
+        E(push_list, [0]); E(mov_reg, 0, 4); E(bl, ("c_pvoff1" if V3 else L["c_sdoff"]) if pg == 1 else "c_pvoff2"); E(pop_list, [1])
         E(cmp_imm, 1, 1); E(b_cond, f"fx_s{pg}", "ne"); E(adds_reg, 7, 7, 0); E(b, nx)
         a.label(f"fx_s{pg}"); E(mov_reg, 1, 8); E(adds_reg, 1, 1, 0); E(mov_reg, 8, 1)
         a.label(nx)
@@ -307,7 +339,7 @@ def arm_code(base, L, prev):
     E(push_list, [0, 1, 4, 5, 6, 7], lr=True)
     E(bl, "c_pvkl_t")
     E(ldr_sp, 4, 0); E(ldr_sp, 5, 4)
-    E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("kl_x", "eq")
+    E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("kl_p1" if V3 else "kl_x", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
     E(mov_reg, 0, 4); E(bl, "c_pvon"); E(cmp_imm, 0, 0); bc("kl_x", "ne")
     E(movs_imm, 6, 0)
@@ -316,10 +348,28 @@ def arm_code(base, L, prev):
     E(lsls_imm, 0, 6, 1); E(bl, L["c_sdhalf"]); E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_pvval2")
     E(cmp_imm, 0, 0xFF); E(b_cond, "kl_c", "ne"); E(movs_imm, 0, 0); E(b, "kl_w")
     a.label("kl_c")
-    E(mov_reg, 7, 0); E(mov_reg, 0, 4); E(bl, "c_pvd2"); imm32(3, t_col); E(ldrb_reg, 0, 3, 0)
+    E(mov_reg, 7, 0); E(mov_reg, 0, 4); E(bl, "c_pvd2")
+    if V3:                                                                            # (V3) MIDI: the amount from the destination's point
+        E(cmp_imm, 4, 2); E(b_cond, "kl_cs", "hs")
+        E(push_list, [0]); E(bl, "c_pvbip"); E(mov_reg, 1, 0); E(mov_reg, 0, 7); E(bl, "c_pvamt"); E(mov_reg, 7, 0); E(pop_list, [0])
+        a.label("kl_cs")
+    imm32(3, t_col); E(ldrb_reg, 0, 3, 0)
     E(adds_imm8, 7, 2); E(lsls_imm, 7, 7, 8); E(orrs_reg, 0, 7)
     a.label("kl_w"); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1)
     a.label("kl_n"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "kl_l", "lo")
+    if V3:                                                                            # (V3) page 1 of a MIDI track: the brightness = the amount from the point
+        E(b, "kl_x")
+        a.label("kl_p1")
+        E(cmp_imm, 4, 2); bc("kl_x", "hs")
+        E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
+        E(mov_reg, 0, 4); E(bl, L["c_sdbase"]); E(mov_reg, 7, 0)
+        E(movs_imm, 6, 0)
+        a.label("k1_l")
+        E(lsls_imm, 0, 6, 1); E(ldrh_reg, 1, 5, 0); E(movw, 2, HEAD_LED); E(cmp_reg, 1, 2); E(b_cond, "k1_n", "eq")
+        E(push_list, [1]); E(lsrs_imm, 0, 1, 8); E(subs_imm8, 0, 2); E(mov_reg, 1, 7); E(bl, "c_pvamt"); E(pop_list, [1])
+        E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(movs_imm, 2, 0xFF); E(ands_reg, 1, 2); E(orrs_reg, 0, 1)
+        E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1)
+        a.label("k1_n"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "k1_l", "lo")
     a.label("kl_x"); E(raw, h(0xB002)); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- the pads of the two views (slot 0: view, pad, velocity): pad 32 with the step-drummer view on the screen = the toggle
@@ -408,7 +458,9 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(bl, L["c_sdlofs"]); E(adds_reg, 0, 0, 6); E(ldrb_imm, 0, 0, 0)
     if V2:                                                                            # one degree every 8 units, rounded: MIDI from 64, a synth from 0
         E(cmp_imm, 0, 127); E(b_cond, "pk_z", "hi")
-        E(cmp_imm, 4, 2); E(b_cond, "pk_s", "hs"); E(subs_imm8, 0, 64)
+        E(cmp_imm, 4, 2); E(b_cond, "pk_s", "hs")
+        if V3: E(push_list, [0]); E(mov_reg, 0, 4); E(bl, L["c_sdbase"]); E(mov_reg, 1, 0); E(pop_list, [0]); E(subs_reg, 0, 0, 1)   # (V3) from the point
+        else: E(subs_imm8, 0, 64)
         a.label("pk_s")
         E(cmp_imm, 0, 0); E(b_cond, "pk_n", "lt")
         E(adds_imm8, 0, DEG_UNITS // 2); E(raw, V.asrs_imm(0, 0, 3)); E(pop_list, [4, 5, 6], pc=True)
@@ -467,7 +519,21 @@ def arm_code(base, L, prev):
         # ---- c_pvbase (c_sdbase's first 4 bytes): a synth's empty pair starts from 0, a MIDI track's as before
         a.label("c_pvbase")
         E(cmp_imm, 0, 2); E(b_cond, "pb_m", "lo"); E(movs_imm, 0, 0); E(raw, RET)
-        a.label("pb_m"); E(b_w, L["c_sdbase"] + 4)
+        a.label("pb_m")
+        if V3:                                                                        # (V3) MIDI: the FX sequencer 0, else the destination's point
+            E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+            E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); E(b_cond, "pb_z", "ne")
+            E(mov_reg, 0, 4); E(bl, L["c_sdnib"]); E(lsrs_imm, 0, 0, 1); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(bl, "c_pvbip"); E(pop_list, [4], pc=True)
+            a.label("pb_z"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+            # ---- c_pvoff1(r0 = a MIDI track) -> r0 = the offset of page 1 at the step that counts: value - the point (none = 0); clobbers r1-r3
+            a.label("c_pvoff1")
+            E(push_list, [4, 5], lr=True)
+            E(mov_reg, 4, 0); E(bl, L["c_sdpos"]); E(mov_reg, 5, 0)
+            E(mov_reg, 0, 4); E(bl, L["c_sdpat"]); E(mov_reg, 1, 5); E(bl, L["c_sdlna"]); E(ldrb_imm, 0, 0, 0)
+            E(cmp_imm, 0, 127); E(b_cond, "o1_z", "hi")
+            E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_pvbase"); E(mov_reg, 1, 0); E(pop_list, [0]); E(subs_reg, 0, 0, 1); E(pop_list, [4, 5], pc=True)
+            a.label("o1_z"); E(movs_imm, 0, 0); E(pop_list, [4, 5], pc=True)
+        else: E(b_w, L["c_sdbase"] + 4)
     return a.assemble()
 
 

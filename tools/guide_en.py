@@ -4,7 +4,7 @@ from make_guide import BETA
 B = f"*({BETA} only)*"
 PARTS = [("0", "Introduction"), ("1", "Setup"), ("2", "Stock synths (Synth 1 / 2)"), ("3", "MIDI tracks (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Scenes and patterns"), ("10", "Projects and packs"), ("A", "Appendix")]
-UI = dict(title="Guide by views — CIRCUIT-HACKS ({v})", cover="Guide by views", how="How to get there:", toc="Views",
+UI = dict(title="Guide by views — CIRCUIT-HACKS ({v})", cover="Guide by views", how="How to get there:", about="In this view", toc="Views",
           intro="Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This guide walks through the device's views and explains everything each one can do. "
                 "The [feature list](MANUAL.en.md) sums up every feature by topic.",
           other='<p class="lang"><a href="guia.html">Versión en español</a> · <a href="en.html">Feature list</a> · <a href="midi-en.html">MIDI reference</a></p>',
@@ -212,9 +212,10 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | Octave ▲ / ▼ | Pitch / velocity page. |
 | 1-16 / 17-32 | The other half of the pattern. |
 
-- The pair's value (64 = no change) offsets the destination. Every step keeps the pitch of its first note.
-- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from 64; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
-- {B} **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
+- The pair's value offsets the destination (from the centre: 64 = no change). {B} **On MIDI the point of no modulation follows the destination:** the centre (64) for the bipolar ones (pitch of both oscillators, OSC 2 pitch, envelope → filter) and **0 for the unipolar ones** (WAVE, FM, MIX, SHAPE, decay: they only add). An empty pair starts there and **the knob LED shows the amount**: dim = no modulation, brighter the further it goes, up or down.
+- Every step keeps the pitch of its first note.
+- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from the point of no modulation of its destination, as on the pitch page; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
+- {B} **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the point of no modulation of the pitch page's destination (centre: −8 … +8 degrees; unipolar destination: 0 … +16), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
 - {B} On MIDI, pad 30 shows **dim** with the step-drummer off and **bright** when it is on (it was dark / dim).
 - With **Record**, touching a step records it on the playing step (real time).
 - With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** {B} (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.
@@ -251,7 +252,8 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 """),
 "micropasos": ("Micro Step view (note tracks)",
     "Press **Gate twice** with a note track selected (Synth 1 / 2, MIDI 1 / 2).", f"""
-- Pads 17-22: the 6 micro steps of the chosen step; **pad 24 = Tie** (ties the chosen notes to the next step); pads 25-30: the step's notes (which ones the micro step and the Tie apply to), as always.
+- **The stock part:** pads 17-22 = the 6 micro steps of the chosen step; **pad 24 = Tie** (a toggle: ties the chosen notes to the next step); pads 25-30 = the step's notes: touching one chooses it (the micro step and the Tie apply to it) and plays it.
+- **One micro step per note (stock):** each note stores a single position, so touching another micro step moves the chosen note; two cannot be lit at once. For several in the same step, enter several notes. Drums can light several micro steps (repeats).
 - **Gate once** is the Gate view (pads 17-32 = the length): there pads 31 / 32 are the stock's.
 - **Pad 32 = gate by holding** {B} for the track (green = on, dim = off; saved with the project): when **entering notes by hand** (a step held + a note pad, or a note held + a step pad), **how long you hold the pad is the note's gate**, at the project's tempo and the track's sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock's gate.
 - **Pad 31 = fixed length** {B} for the track (orange = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate.
@@ -461,4 +463,127 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
 """),
+}
+
+
+# what each view offers, in user terms (make_guide.ABOUT in English)
+ABOUT = {
+    "botones": f"""
+- **Put a knob back or delete what was recorded** — Clear + knob, without hunting for the value or clearing the whole pattern.
+- **Metronome and count-in** {B} — a bar of clicks before recording, to come in on time.
+- **Split keyboard** {B} — both synths at once, one per hand.
+- **Custom scale** {B} — scales the unit does not have, even with periods other than the octave.
+- **Shortcuts in yellow** — while Shift is held, the view shows what it offers.
+""",
+    "synth-nota": f"""
+- **Source view** — the synth can process an audio input instead of its noise.
+- **Split keyboard** {B} — one synth on top and the other below, each with its scale, octave and velocity.
+""",
+    "escalas": f"""
+- **Custom scale** {B} — up to 7 notes over the root and a free period (for example, a scale that repeats every 7 semitones). The note tracks' pads, the quantising and random-mutate use it; saved with the project.
+""",
+    "synth-fuente": f"""
+- **Noise source** — replaces the patch's noise with audio input 1 or 2 (normal or inverted): the synth's filter, envelopes and effects process your outside signal in time with the notes.
+- **Macro destinations** {B} — decide what each macro knob moves (up to 4 destinations a macro, with their range and depth) without Components.
+- **The synth's step-drummer** — sequences the macros by pairs of steps: each knob sets a macro's position on two steps of the pattern.
+""",
+    "synth-preset": f"""
+- **The voice mode at a glance** {B} — mono, mono with glide and poly patches told apart by colour.
+- **Save the patch** {B} — stores the sound as you left it into the pack (the original only saves patches from Components).
+- **Swap and copy** — reorder the pack's patches or take one to another pack.
+""",
+    "midi-preset": f"""
+- **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, VA-drum or granular) and still send MIDI.
+- **FX sequencer** — an engine with no sound: it triggers Master FX effects on the steps you choose.
+- **Own-synth patches** {B} — 64 sounds a pack for those engines, one touch away.
+- **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
+- **CC editor** — changes which CC each knob of the template sends, without Components.
+""",
+    "midi-knobs": """
+- **VCA-VCF** — level and filter with their envelope and LFO; with Shift, the filter type and the effect type.
+- **Oscillators** — a waveform that morphs from sine to square, and a second oscillator with FM, ring and sync.
+- **Granular** — turns a sample into textures: grains that read it at another place, speed or direction, to freeze, stretch or slice it.
+- **Page 4** — the 8 parameters that can be recorded as automation.
+""",
+    "midi-cc": """
+- **Control other gear** — pick the CC (or NRPN) number and the range of each knob of the template, and save it there.
+""",
+    "step-drummer": f"""
+- **Parameters by pairs of steps** — the 8 knobs are 8 pairs of steps of the pattern: each one moves a destination (pitch, shape, FM, filter…) on those steps only, for melodies, accents or timbre changes without drawing automation.
+- **The LED tells how much** {B} — dim with no modulation, brighter the further it goes.
+- **A second page with its own destination** {B} — the velocity page moves another destination at the same time.
+- **Pitch-vel toggle** {B} — page 1 transposes the notes in degrees of the scale and page 2 sets their velocity: a melody from a single pattern of notes.
+- **In real time** — with Record, touching a step records it.
+- **FX sequencer** — with that engine, each pair picks which Master FX slot sounds.
+""",
+    "drum-pista": """
+- **Shape each drum** — exact pitch, ring mod, attack and decay, sample start and cut, a filter with several modes, LFO and several kinds of distortion: many sounds from one sample.
+- **All neutral = the original** — with the new knobs at their neutral point, the sample sounds as on the original Circuit.
+""",
+    "drum-preset": f"""
+- **The capture as a drum** — record what is playing (Master FX) and use it as a drum's sample; saving the project puts it in the pack.
+- **Swap and copy samples** — reorder the samples or bring one from another pack.
+- **Sample arpeggio** {B} — holding several samples makes the drum jump from one to the next.
+""",
+    "drum-cromatica": f"""
+- **A drum as a keyboard** — the sample transposed in the project's scale.
+- **Rollers** {B} — repeat the drum on the micro steps you hold: rolls and ratchets live, stopped too, and recorded with Record.
+""",
+    "pattern-settings": f"""
+- **Nudge** — rotates the pattern so that it starts on another step.
+- **Fractal and deconstructed orders** — walk through the pattern another way without changing its notes.
+- **Arpeggiator** {B} — the pattern's chords (and the ones you play) sound note by note, in their order and resolution; on the drums, jumping from sample to sample.
+- **Dynamics and random-mutate** (pad 25) — variations so that the pattern does not always sound the same.
+""",
+    "micropasos": f"""
+- **Micro steps and Tie (stock)** — place each note off the grid and tie it to the next step.
+- **Gate by holding** {B} — when entering notes by hand, how long you hold is how long the note lasts.
+- **Fixed length** {B} — every note you enter by hand gets the same length.
+""",
+    "probabilidad": f"""
+- **Probability (stock)** — a step that only plays sometimes.
+- **Frequency** {B} — a step that plays once every n passes: variations that come back every 2, 4 or 8 passes.
+- **Dynamics** {B} — small changes of velocity and position: a more human pattern.
+- **Random-mutate** {B} — notes that jump an octave or to another note of the scale; on the drums, to another sample.
+""",
+    "patterns": f"""
+- **Pattern chains** {B} — a pattern plays n times and jumps to another, and the next time to a third: A A A B structures without chaining by hand.
+""",
+    "mixer": f"""
+- **Level to 100 or 0** — Shift + knob puts a track at its nominal level or silent in one move.
+- **Scenes with chains and repeats** {B} — a scene can repeat n times and remember chain mode.
+""",
+    "master-fx": f"""
+- **Live effects on the whole master** — Gater, Auto-Filter, Digitise, Phaser, Glitch and the mechanical gesture {B}: while held or latched.
+- **Song pointer** — repeats or loops parts of the pattern live.
+- **Capture** — records up to 3.5 s of what is playing, to play it, put it in a slot or use it as a drum.
+- **Slots** — an effect with its settings one touch away; the FX sequencer triggers them.
+- **Per project** {B} — each project remembers its Master FX settings.
+""",
+    "vista-fx": """
+- **The reverb and delay from the unit** — type, decay, time, feedback…, saved with the project.
+- **Quick reset** — Duplicate puts the sends and the effects back to zero.
+- **Master filter resonance** — on 1-16 / 17-32.
+""",
+    "sidechain": f"""
+- **Sidechain with knobs** {B} — attack, hold, decay and depth of each track's ducking, beyond the presets.
+- **Master compressor** {B} — its attack and release.
+- **Sidechain between drums** — one drum ducks another (the kick ducking the bass, for example).
+""",
+    "projects": f"""
+- **Copy projects** {B} — duplicates a project into another slot or another pack.
+""",
+    "packs": """
+- **Delete packs** — frees pack slots from the unit.
+- **Protected internal memory** — the mod never writes to the internal pack.
+""",
+    "setup": f"""
+- **Shared channels (internal loopback)** — a MIDI track plays a synth or the drums of the unit itself.
+- **Returns through strips 3 / 4** — the reverb and the delay as mixer channels.
+- **Program Change channels** {B} — listens to and sends program changes on channels of their own.
+- **Record the internal routings** {B} — what the MIDI track plays on a synth is recorded into it too.
+""",
+    "advanced-setup": f"""
+- **MIDI Thru, Merge and Filter** {B} — the Thru jack can merge the incoming MIDI with the unit's own, or filter it.
+""",
 }

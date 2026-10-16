@@ -1,10 +1,10 @@
 """La guía en palabras sencillas, en español (la escribe tools/make_plain.py).  Estructura y estilo llano de la guía de la comunidad «Circuit Tracks mod
 manual, in plain English» de u/luxurysoft1337 (Reddit, 15 de octubre de 2026, escrita para RC0.9 / Beta 1.3); reescrita, corregida y completada hasta
-Beta 1.22 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
+Beta 1.23 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.22"
+BETA = "Beta 1.23"
 B = f"*(solo {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
@@ -12,7 +12,7 @@ UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencil
           footer="CIRCUIT-HACKS — mod del firmware del Novation Circuit Tracks (1.2.1, build 4486). Sin relación con Novation.",
           html="sencilla.html", md="docs/SENCILLA.md", pdf="sencilla.pdf")
 
-INTRO = f"""Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **u/luxurysoft1337** (Reddit), escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC0.9** y **{BETA}**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](guia.html) y la [lista de características](index.html).
+INTRO = f"""Primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC0.9** y **{BETA}**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](guia.html) y la [lista de características](index.html).
 
 Nada de esto está probado en un aparato real salvo que lo diga el [CHANGELOG](https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md). El mod no tiene relación con Novation."""
 
@@ -242,8 +242,8 @@ Una capa sobre el patrón: el patrón decide qué pasos suenan; los knobs dan a 
 - **Pads 1-16** = los pasos (brillante = una nota, blanco = el que suena); tocar = escuchar, **Shift + tocar** = poner o quitar una nota. Con Record, los pasos que tocas se graban en tiempo real.
 - **Abrirlo:** sinte = pad 30 de la vista de la fuente; pista MIDI = pad 30 de su vista Preset con un motor encendido (**Shift + pad 30** lo apaga). {B}: en MIDI el pad 30 se ve tenue apagado y brillante encendido.
 - **Página de tono, sintes:** los pads 17-24 eligen uno de los 8 macros del patch; el valor de cada par es la posición de ese macro, escrita como automatización. {B}: un par vacío empieza en 0.
-- **Página de tono, pista MIDI:** los pads 17-24 eligen un destino del motor (tono de los dos osciladores, tono de OSC 2, WAVE, FM, MIX, envolvente → filtro, SHAPE, decay); 64 = sin cambio, otros valores lo desplazan en esos dos pasos.
-- {B} **Página de velocity con destino propio:** en la página de velocity, los pads 17-24 eligen un destino para la página 2 (el mismo pad otra vez = ninguno); los knobs escriben entonces ese destino (MIDI desde 64, sintes desde 0). En MIDI la página 2 usa el carril de automatización de REL, así que REL no se reproduce ni se graba con el step-drummer encendido.
+- **Página de tono, pista MIDI:** los pads 17-24 eligen un destino del motor (tono de los dos osciladores, tono de OSC 2, WAVE, FM, MIX, envolvente → filtro, SHAPE, decay) y el valor lo desplaza en esos dos pasos. {B}: el punto sin modulación es el centro para los destinos bipolares (los dos tonos, envolvente → filtro) y 0 para los unipolares (WAVE, FM, MIX, SHAPE, decay); un par vacío empieza ahí y el LED del knob muestra la cantidad (tenue = nada, más brillante = más, hacia arriba o abajo). En RC0.9, siempre desde el centro (64).
+- {B} **Página de velocity con destino propio:** en la página de velocity, los pads 17-24 eligen un destino para la página 2 (el mismo pad otra vez = ninguno); los knobs escriben entonces ese destino (MIDI desde el punto sin modulación del destino, sintes desde 0). En MIDI la página 2 usa el carril de automatización de REL, así que REL no se reproduce ni se graba con el step-drummer encendido.
 - {B} **Toggle pitch-vel (pad 32 de la vista, verde):** además de sus destinos, la página de tono mueve las **notas** un grado de la escala del proyecto cada 8 pasos del knob (MIDI −8 … +8 desde el centro, sintes 0 … +16) y la página de velocity fija también la velocity de las notas. Con el toggle, los destinos de tono de la página de tono ya no desafinan el sinte propio (se mueve la nota).
 
 ### Extras de {BETA}
@@ -344,7 +344,7 @@ Elige un paso con notas (pads 1-16) y toca un pad de la fila 3 o 4.
 - **Drums** {B}: la misma vista para un drum (Pattern Settings dos veces = modo 1, pad 25 = modo 2). Frecuencia y dinámicas como arriba (un drum solo se puede retrasar dentro de su paso); pads 25-28 = **random-mutate del sample**: nada · 25 % ±1 (el sample de al lado en su fila de 8) · 25 % ±8 (la misma columna en otra fila) · 12 % de cada uno.
 
 ### Vista Micro Step {B}
-Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Pads 17-22 = los 6 micropasos del paso elegido, pad 24 = Tie, pads 25-30 = sus notas, como en stock. Añadido:
+Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock: pads 17-22 = los 6 micropasos del paso elegido, **pad 24 = Tie** (un toggle: enlaza las notas elegidas con el paso siguiente), pads 25-30 = las notas del paso (tocar una la elige y la hace sonar). **Cada nota tiene un solo micropaso:** tocar otro lo mueve ahí; para varias en el paso, pon varias notas (en los drums sí se encienden varios: repeticiones). Añadido:
 - **Pad 32 = gate por pulsación** (verde): al introducir notas a mano, lo que mantienes el pad es la duración de la nota.
 - **Pad 31 = longitud fija** (naranja): con los dos apagados abre un selector (pads 17-32 = 1-16 pasos); elegir una longitud lo enciende, y toda nota introducida a mano la toma.
 - Con uno encendido, pulsarlo otra vez lo apaga; pulsar el otro cambia.
