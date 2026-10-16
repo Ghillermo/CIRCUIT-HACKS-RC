@@ -75,6 +75,19 @@ def use_v3():
     V3 = True
 
 
+V4 = False                                     # SC43.4 (use_v4)
+
+
+def use_v4():
+    """SC43.4 (the user, 2026-10-16: «For the step drummer, I was mistaken. Make all knobs bipolar (so they add / subtract to the manually set value
+    on parameter view) centered and dim, with positive / negative modulation making them brighter»): use_v3 with every destination bipolar: on
+    MIDI 1 / 2 an empty pair = 64 for all of them, the offset value - 64 is added to (or taken from) the value set on the engine's page, and the LED
+    is dim at the centre and brighter the further it goes either way."""
+    global V4
+    use_v3()
+    V4 = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -101,7 +114,7 @@ def arm_code(base, L, prev):
         a.label(tag + "l")
 
     RET = h(0x4770)
-    tab = bytes(V.SD_DEST) + bytes(V.SD_DCOL) + (bytes(64 if c in BIP_CODES else 0 for c in V.SD_DEST) if V3 else b"")
+    tab = bytes(V.SD_DEST) + bytes(V.SD_DCOL) + (bytes(64 if V4 or c in BIP_CODES else 0 for c in V.SD_DEST) if V3 else b"")
     for i in range(0, len(tab), 2): E(raw, tab[i:i + 2])
     t_dest, t_col, t_bip = base, base + 8, base + 16
 

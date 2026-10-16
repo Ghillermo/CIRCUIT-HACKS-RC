@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.23 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.24 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.23"
+BETA = "Beta 1.24"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -198,7 +198,7 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 | K7 Modulation | LFO amount | LFO speed |
 | K8 FX | Distortion; left of zero, bitcrush | Distortion type: stock, soft, hard, folded |
 
-- **Reset:** Clear + knob right = default (both layers; LED lavender, as on the original); Clear + knob left = delete that knob's automation (red), as on the original. {B}: Clear + K3 right also puts attack, start and cut to 0.
+- **Reset:** Clear + knob right = default (both layers; LED lavender, as on the original); Clear + knob left = delete that knob's automation (red), as on the original. {B}: Clear + K3 right also puts attack, start and cut to 0; Clear + K8 right also removes the bitcrush; **Clear + the drum's button** (with its view on screen) puts all its knobs back to their defaults.
 - **RC0.9:** a new or untouched project starts with the filter mode in DJ, which removes the stock EQ: drums can sound different from a stock Circuit. Shift + K5 to «EQ tilt» brings the stock sound back. {B}: fixed (the default is the stock EQ).
 
 ### Play a drum like a keyboard
@@ -221,6 +221,8 @@ In the drums' Note view (press **Note** until rows 1-3 show dim pads), rows 1-3 
 **Shift + FX** opens it. {B}: **K1-K4** = attack, hold, decay and depth of the sidechain of the track whose preset you touched last (Synth 1 if none), in the track's colour; **K7 / K8** = attack / release of the master compressor (switched on in Advanced Setup), saved with the project.
 
 **Sidechain between drums:** **Shift + FX**, then **Octave ▼**: rows 3-4 hold the ducking pages for each drum, and pads 5-8 of row 1 pick which drum triggers the ducking. {B}: on a drum page **K1-K4** set attack, hold, decay and depth for the drum whose preset you touched last (in the drum's colour; touching a preset brings back the preset's values). Saved with the project.
+
+**Sidechain from patterns** {B}: on the Synth and MIDI pages of the Sidechain view, **row 1 pads 1-4** (next to the drums on pads 5-8) pick **Synth 1, Synth 2, MIDI 1 or MIDI 2** as the source of the chosen track (the last preset touched): every pattern note of that track ducks it, as a drum hit does. Saved with the project.
 """, [F("Drum track view: the knobs follow the panel labels; Shift gives the second layer.",
         knobs={1: "Pitch", 2: "Ring", 3: "Decay /\nattack", 4: "Env→F", 5: "Filter", 6: "Reso", 7: "LFO", 8: "Drive"}, buttons={"Drum 1": "white", "Shift": "grey"}, view="Drum 1"),
       F("The drums' Note view: rollers on rows 1-3 (beta); the drum boxes below.",
@@ -242,7 +244,7 @@ A layer over the pattern: the pattern decides which steps play; the knobs give e
 - **Pads 1-16** = the steps (bright = a note, white = playing); touch = listen, **Shift + touch** = add or remove a note. With Record, the steps you play are recorded in real time.
 - **Opening it:** synth = pad 30 of the source view; MIDI track = pad 30 of its Preset view with an engine on (**Shift + pad 30** turns it off). {B}: on MIDI pad 30 shows dim when off and bright when on.
 - **Pitch page, synths:** pads 17-24 pick one of the patch's 8 macros; each pair's value is that macro's position, written as automation. {B}: an empty pair starts at 0.
-- **Pitch page, MIDI track:** pads 17-24 pick a destination of the engine (pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, envelope → filter, SHAPE, decay) and the value shifts it for those two steps. {B}: the point of no modulation is the centre for the bipolar destinations (both pitches, envelope → filter) and 0 for the unipolar ones (WAVE, FM, MIX, SHAPE, decay); an empty pair starts there and the knob LED shows the amount (dim = none, brighter = more, up or down). In RC0.9 always from the centre (64).
+- **Pitch page, MIDI track:** pads 17-24 pick a destination of the engine (pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, envelope → filter, SHAPE, decay) and the value (64 = no change) shifts it for those two steps, adding to or taking from the value on the engine's page. {B}: the knob LED shows the amount (dim at the centre, brighter the further it goes, up or down).
 - {B} **Velocity page with its own destination:** on the velocity page, pads 17-24 pick a destination for page 2 (the same pad again = none); the knobs then write that destination (MIDI from the destination's point of no modulation, synths from 0). On MIDI page 2 uses the REL automation lane, so REL is not played or recorded while the step-drummer is on.
 - {B} **Pitch-vel toggle (pad 32 of the view, green):** on top of their destinations, the pitch page moves the **notes** one degree of the project's scale every 8 knob steps (MIDI −8 … +8 from the centre, synths 0 … +16) and the velocity page also sets the notes' velocity. With the toggle, pitch destinations of the pitch page no longer detune the own synth (the note moves instead).
 
@@ -354,6 +356,7 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
 - **Editing a rule** (mode on): a pattern = **A** (yellow); A again = one more play (up to 8; the knob LEDs count); another pattern of the track = **B** (green), the next one = **C** (red). n = 3 plays A A A B A A A C; B and C play once and the track returns to A.
 - **Clear + pattern:** in the mode, removes the rule; outside, clears the pattern with its rule and order.
 - **Scenes:** a scene saved in chain mode shows peach and brings the mode back when loaded. In the Mixer, **Shift + pads 9-16** = 1-8 repeats of the current scene; tracks following a rule blink.
+- **Drop-ins on the bar** {B}: in the Mixer, **Shift + a track pad (1-8)** mutes or unmutes it as the next bar starts (it blinks while it waits; again cancels it).
 """, [F("Pattern Settings: stock pads plus 25-28; with Shift, the arpeggiator (beta).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "First"), **{n: ("green", "", True) for n in range(17, 25)},
               25: ("peach", "Mode 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decon."), 29: ("purple", "Fwd", True), 30: ("purple", "Back", True), 31: ("purple", "Ping", True), 32: ("purple", "Rnd", True)},

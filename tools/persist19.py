@@ -102,6 +102,18 @@ K3_ATK_MAX = 1.0                      # s: the attack at 127 (time ~ (A / 127)^2
 K3_COL_WHITE = 0x01                   # the K3 LED: the attack (and, with Shift, the cut) in white; the start in the drum's colour
 
 
+CLRBC = False                         # SC43.4 (use_clrbc)
+
+
+def use_clrbc():
+    """SC43.4 (the user, 2026-10-16: «on drums k8: when set to the left (bitcrush), clear doesn't work»): Clear + K8 to the right put the stock's
+    distortion back to its default but left our bitcrush (the upper nibble of the drum's extended values, left of the knob's 0) as it was; now it
+    goes to 0 too (and to the DSP)."""
+    global CLRBC
+    assert CLEAR
+    CLRBC = True
+
+
 def use_k3split():
     """SC41.7 (the user, 2026-10-15: K3 «izquierda: decay, derecha: ataque, centro neutro»; Shift + K3 «izquierda: inicio, derecha: corte»; before, the start point
     lived left of decay 0 on K3, so it only played with the shortest decay).  Needs drums2_dsp.use_k3split().
@@ -423,7 +435,7 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
         a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(bl, "c_k3sturn"); a.emit(b, "dk_done")
         a.label("dk_xo")
     if CLEAR:
-        a.emit(mov_reg, 0, 4); a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); bc("dk_old", "ne")
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); bc("dk_bcz" if CLRBC else "dk_old", "ne")
     a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6); a.emit(mov_reg, 3, 7)
     a.emit(bl, "c_dext_turn"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dk_old", "eq"); a.emit(b, "dk_done")
     if REMAP and EXTRAS:
@@ -440,6 +452,11 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
             a.emit(mov_reg, 0, 7); a.emit(movs_imm, 1, 0); a.emit(bl, "c_xt_set")
             a.emit(mov_reg, 0, 4); a.emit(movs_imm, 1, 10); a.emit(bl, "c_mark")
             a.emit(b, "dk_cr")
+    if CLRBC:                                                                       # Clear + K8 right: the bitcrush to 0 too, then the stock's Clear
+        a.label("dk_bcz")
+        a.emit(cmp_imm, 5, 5); bc("dk_old", "ne"); a.emit(cmp_imm, 6, 0); bc("dk_old", "le")
+        a.emit(mov_reg, 0, 7); a.emit(movs_imm, 1, 4); a.emit(movs_imm, 2, 0); a.emit(bl, "c_dnib_set")
+        a.emit(mov_reg, 0, 7); a.emit(bl, L["c_mh"]); a.emit(movs_imm, 1, 10); a.emit(bl, "c_mark")
     a.label("dk_old")
     a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6)
     a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["c_dknob3"])

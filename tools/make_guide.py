@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.23"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.24"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -232,10 +232,10 @@ view("step-drummer", "III", "Vista del step-drummer",
 | Octave ▲ / ▼ | Página pitch / velocity. |
 | 1-16 / 17-32 | La otra mitad del patrón. |
 
-- El valor del par desplaza el destino (desde el centro: 64 = sin cambio). {B} **En MIDI el punto sin modulación depende del destino:** el centro (64) para los bipolares (tono de los dos osciladores, tono del OSC 2, envolvente → filtro) y **0 para los unipolares** (WAVE, FM, MIX, SHAPE, decay: solo suman). Un par vacío empieza ahí y **el LED del knob muestra la cantidad**: tenue = sin modulación, más brillante cuanto más se aleja, hacia arriba o hacia abajo.
+- El valor del par desplaza el destino desde el centro (64 = sin cambio): suma o resta al valor que tenga el parámetro en la página del motor. {B} **El LED del knob muestra la cantidad**: tenue en el centro, más brillante cuanto más se aleja, hacia arriba o hacia abajo.
 - Cada paso conserva la altura de su primera nota.
-- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde el punto sin modulación de su destino, como la página pitch; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
-- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el punto sin modulación del destino de la página pitch (centro: −8 … +8 grados; destino unipolar: 0 … +16), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
+- {B} **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde el centro, 64; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
+- {B} **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el centro (−8 … +8 grados), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
 - {B} En MIDI el pad 30 se ve **tenue** con el step-drummer desactivado y **brillante** activado (antes, apagado / tenue).
 - Con **Record**, tocar un paso lo graba en el paso que suena (tiempo real).
 - Con el motor en **secuenciador de efectos** (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final **random** {B} (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.
@@ -257,7 +257,8 @@ view("drum-pista", "IV", "Vista de pista de un drum (knobs)",
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
 - **K3:** girando a la izquierda el ataque vuelve a 0 antes de que baje el decay; con Shift, uno de los dos (inicio o corte) vuelve a 0 antes de que se mueva el otro. LED: ataque en blanco; con Shift, inicio en el color del drum, corte en blanco.
-- **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte. Clear + knob restablece las dos capas en los demás.
+- **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte; **Clear + K8 a la derecha** quita también el bitcrush {B}. Clear + knob restablece las dos capas en los demás.
+- **Clear + el botón del drum** {B} (con una de sus vistas en pantalla): los ocho knobs del drum, con su capa Shift, a sus valores por defecto.
 - Con todo en neutro un sample suena como en el original. Todo se guarda con el proyecto y tiene NRPN.
 - **Sidechain entre drums:** Shift + FX y Octave ▼ (capítulo VI).
 """, [("knobs-drums", 0)])
@@ -396,6 +397,7 @@ view("mixer", "VI", "Vista Mixer y escenas",
 |---|---|
 | **Shift + knob a la derecha / izquierda** | Nivel de esa pista a 100 / a 0 (página de niveles; en la de panorama, Shift + knob es el de stock). Sale por MIDI y se graba como un giro. |
 | **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. {B} |
+| **Shift + pads 1-8** {B} | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
 | **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). {B} |
 | Pistas que parpadean | Están siguiendo una regla de cadena. {B} |
 | **Mixer** otra vez | Master FX. |
@@ -466,6 +468,7 @@ view("sidechain", "VI", "Vista Sidechain",
 |---|---|
 | **K1-K4** {B} | Ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno); LEDs del color de la pista. |
 | **K7 / K8** {B} | Ataque / release del compresor master (el que se activa en Advanced Setup), en blanco. Se guardan con el proyecto. |
+| **Pads 1-4 de la fila 1** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 como fuente** del sidechain de la pista elegida (la del último preset tocado), junto a los drums 1-4 de los pads 5-8: cada nota del **patrón** de esa pista dispara la envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida, en el color de la pista; las demás, tenues. Un pad 5-8 vuelve a un drum. Se guarda con el proyecto. |
 | **Octave ▼** con los drums | **Sidechain entre drums**: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). |
 | **K1-K4** en una página de drums {B} | Ataque, hold, decay y profundidad del sidechain del drum del último preset tocado (empiezan en los de su preset; tocar un preset los vuelve a él); LEDs del color del drum. Se guardan con el proyecto. |
 """)
@@ -596,9 +599,10 @@ ABOUT = dict(
 - **En tiempo real** — con Record, tocar un paso lo graba.
 - **Secuenciador de efectos** — con ese motor, cada par elige qué hueco de Master FX suena.
 """,
-       "drum-pista": """
+       "drum-pista": f"""
 - **Moldear cada drum** — tono exacto, ring mod, ataque y decay, inicio y corte del sample, filtro con varios modos, LFO y distorsión de varios tipos: de un sample salen muchos sonidos.
 - **Todo neutro = el original** — con los knobs nuevos en su punto neutro, el sample suena como en el Circuit original.
+- **Volver a empezar** {B} — Clear + el botón del drum deja todos sus knobs por defecto.
 """,
        "drum-preset": f"""
 - **La captura como drum** — graba lo que suena (Master FX) y úsalo como sample de un drum; al guardar el proyecto queda en el pack.
@@ -632,6 +636,7 @@ ABOUT = dict(
     mixer=f"""
 - **Nivel a 100 o a 0** — Shift + knob deja una pista a su nivel nominal o en silencio de un gesto.
 - **Escenas con cadenas y repeticiones** {B} — una escena puede repetirse n veces y recordar el modo cadena.
+- **Entradas y salidas al compás** {B} — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
 """,
     **{"master-fx": f"""
 - **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico {B}: mientras mantienes o fijados.
@@ -649,6 +654,7 @@ ABOUT = dict(
 - **El sidechain con knobs** {B} — ataque, hold, decay y profundidad del ducking de cada pista, más allá de los presets.
 - **Compresor master** {B} — su ataque y su release.
 - **Sidechain entre drums** — que un drum baje el volumen de otro (el bombo al bajo, por ejemplo).
+- **Disparado por patrones** {B} — Synth 1 / 2 o MIDI 1 / 2 como fuente: las notas de su patrón agachan otra pista, no solo los drums.
 """,
     projects=f"""
 - **Copiar proyectos** {B} — duplica un proyecto en otro hueco o en otro pack.

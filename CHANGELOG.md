@@ -4,6 +4,21 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.24 — 2026-10-16
+
+**Beta 1.24** (marca `B1.24`; = SC43.4) = Beta 1.23 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.24)
+- **Sidechain disparado por patrones de Synth 1 / 2 y MIDI 1 / 2:** en la vista Sidechain (Shift + FX), los pads 1-4 de la fila 1 (antes apagados) eligen Synth 1, Synth 2, MIDI 1 o MIDI 2 como fuente del ducking de la pista elegida, junto a los drums 1-4 (pads 5-8). Cada nota del patrón de esa pista dispara la envolvente, como un golpe de drum. Se guarda con el proyecto.
+- **Mixer, Shift + pad de pista (1-8):** silencia / activa esa pista **en el compás siguiente**; el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento.
+- **Clear + botón de un drum** (con su vista en pantalla): sus ocho knobs (las dos capas) vuelven a sus valores por defecto.
+
+### Cambios (solo Beta 1.24)
+- **Step-drummer de MIDI 1 / 2:** todos los destinos son bipolares: un par vacío está en el centro (64, LED tenue) y el knob suma o resta al valor que tenga el parámetro en la página del motor; el LED se ilumina más cuanto más se aleja, hacia los dos lados (Beta 1.23 dejaba WAVE, FM, MIX, SHAPE y decay en 0).
+
+### Arreglos (solo Beta 1.24)
+- **Clear + K8 de drums** ya pone a 0 el bitcrush (la zona a la izquierda del 0), no solo la distorsión.
+
 ## Beta 1.23 — 2026-10-16
 
 **Beta 1.23** (marca `B1.23`; = SC43.3) = Beta 1.22 + un cambio en el step-drummer. Las RC siguen en RC0.9 / RC0.9S.
@@ -278,6 +293,21 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.24 — 2026-10-16
+
+**Beta 1.24** (marker `B1.24`; = SC43.4) = Beta 1.23 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.24 only)
+- **Sidechain triggered by Synth 1 / 2 and MIDI 1 / 2 patterns:** in the Sidechain view (Shift + FX), row 1 pads 1-4 (dark before) pick Synth 1, Synth 2, MIDI 1 or MIDI 2 as the ducking source of the chosen track, next to drums 1-4 (pads 5-8). Every pattern note of that track fires the envelope, as a drum hit does. Saved with the project.
+- **Mixer, Shift + a track pad (1-8):** mutes / unmutes that track **on the next bar**; the pad blinks while it waits; again cancels it. Stopped, at once.
+- **Clear + a drum's button** (with its view on screen): its eight knobs (both layers) back to their defaults.
+
+### Changes (Beta 1.24 only)
+- **MIDI 1 / 2 step-drummer:** every destination is bipolar: an empty pair sits at the centre (64, LED dim) and the knob adds to or takes from the value the parameter has on the engine's page; the LED gets brighter the further it goes, either way (Beta 1.23 had WAVE, FM, MIX, SHAPE and decay at 0).
+
+### Fixes (Beta 1.24 only)
+- **Drums' Clear + K8** now puts the bitcrush (the zone left of 0) back to 0 too, not only the distortion.
 
 ## Beta 1.23 — 2026-10-16
 

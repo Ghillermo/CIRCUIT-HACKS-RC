@@ -212,10 +212,10 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | Octave ▲ / ▼ | Pitch / velocity page. |
 | 1-16 / 17-32 | The other half of the pattern. |
 
-- The pair's value offsets the destination (from the centre: 64 = no change). {B} **On MIDI the point of no modulation follows the destination:** the centre (64) for the bipolar ones (pitch of both oscillators, OSC 2 pitch, envelope → filter) and **0 for the unipolar ones** (WAVE, FM, MIX, SHAPE, decay: they only add). An empty pair starts there and **the knob LED shows the amount**: dim = no modulation, brighter the further it goes, up or down.
+- The pair's value offsets the destination from the centre (64 = no change): it adds to or takes from the value the parameter has on the engine's page. {B} **The knob LED shows the amount**: dim at the centre, brighter the further it goes, up or down.
 - Every step keeps the pitch of its first note.
-- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from the point of no modulation of its destination, as on the pitch page; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
-- {B} **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the point of no modulation of the pitch page's destination (centre: −8 … +8 degrees; unipolar destination: 0 … +16), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
+- {B} **Velocity page with a destination:** the knobs write their value into the pair (MIDI: from the centre, 64; synths: from 0), without touching the velocity while the toggle is off. With no destination and no toggle the velocity page does nothing. On MIDI, page 2 uses REL's automation lane: with the step-drummer on, REL is neither played nor recorded.
+- {B} **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
 - {B} On MIDI, pad 30 shows **dim** with the step-drummer off and **bright** when it is on (it was dark / dim).
 - With **Record**, touching a step records it on the playing step (real time).
 - With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** {B} (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.
@@ -313,7 +313,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | K8 FX | Distortion; left of 0, **bitcrush** | **Distortion type**: stock, soft, hard, fold |
 
 - **K3:** turning left, the attack goes back to 0 before the decay goes down; with Shift, one of the two (start or cut) goes back to 0 before the other moves. LED: attack in white; with Shift, start in the drum's colour, cut in white.
-- **Clear + K3 to the right** puts attack, start and cut to 0. Clear + knob resets both layers on the others.
+- **Clear + K3 to the right** puts attack, start and cut to 0; **Clear + K8 to the right** removes the bitcrush too {B}. Clear + knob resets both layers on the others.
+- **Clear + the drum's button** {B} (with one of its views on screen): the drum's eight knobs, with their Shift layer, back to their defaults.
 - All neutral, a sample sounds as on the original. Everything is saved with the project and has an NRPN.
 - **Sidechain between drums:** Shift + FX and Octave ▼ (chapter 8).
 """),
@@ -396,6 +397,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 |---|---|
 | **K1-K4** {B} | Attack, hold, decay and depth of the sidechain of the track of the last preset touched (Synth 1 if none); LEDs in the track's colour. |
 | **K7 / K8** {B} | Attack / release of the master compressor (switched on in Advanced Setup), white. Saved with the project. |
+| **Row 1 pads 1-4** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 as the source** of the chosen track's side-chain (the last preset touched), next to drums 1-4 on pads 5-8: every **pattern** note of that track fires the envelope, as a drum hit does (notes played live do not). The chosen one in the track's colour, the others dim. A pad 5-8 goes back to a drum. Saved with the project. |
 | **Octave ▼** with the drums | **Sidechain between drums**: ducking pages per drum (rows 3-4) and which drum triggers (row 1, pads 5-8). |
 | **K1-K4** on a drum page {B} | Attack, hold, decay and depth of the sidechain of the drum of the last preset touched (starting from its preset's; touching a preset brings them back to it); LEDs in the drum's colour. Saved with the project. |
 """),
@@ -418,6 +420,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 |---|---|
 | **Shift + knob to the right / left** | That track's level to 100 / to 0 (levels page; on the pan page, Shift + knob is the stock one). Goes out over MIDI and is recorded like a turn. |
 | **Scene pads** | As always; a scene saved in **chain mode** shows **peach** and loading it brings the mode back; a normal one turns it off. {B} |
+| **Shift + pads 1-8** {B} | **Mute / unmute that track on the next bar**: the pad blinks while it waits; again cancels it. Stopped, at once. |
 | **Shift + pads 9-16** | **Repeats** of the current scene (1-8; with Shift the row is yellow, the chosen one green). {B} |
 | Blinking tracks | They are following a chain rule. {B} |
 | **Mixer** again | Master FX. |
@@ -516,9 +519,10 @@ ABOUT = {
 - **In real time** — with Record, touching a step records it.
 - **FX sequencer** — with that engine, each pair picks which Master FX slot sounds.
 """,
-    "drum-pista": """
+    "drum-pista": f"""
 - **Shape each drum** — exact pitch, ring mod, attack and decay, sample start and cut, a filter with several modes, LFO and several kinds of distortion: many sounds from one sample.
 - **All neutral = the original** — with the new knobs at their neutral point, the sample sounds as on the original Circuit.
+- **Start over** {B} — Clear + the drum's button puts all its knobs back to their defaults.
 """,
     "drum-preset": f"""
 - **The capture as a drum** — record what is playing (Master FX) and use it as a drum's sample; saving the project puts it in the pack.
@@ -552,6 +556,7 @@ ABOUT = {
     "mixer": f"""
 - **Level to 100 or 0** — Shift + knob puts a track at its nominal level or silent in one move.
 - **Scenes with chains and repeats** {B} — a scene can repeat n times and remember chain mode.
+- **Drop-ins on the bar** {B} — Shift + a track pad mutes or unmutes the track right as the next bar starts.
 """,
     "master-fx": f"""
 - **Live effects on the whole master** — Gater, Auto-Filter, Digitise, Phaser, Glitch and the mechanical gesture {B}: while held or latched.
@@ -569,6 +574,7 @@ ABOUT = {
 - **Sidechain with knobs** {B} — attack, hold, decay and depth of each track's ducking, beyond the presets.
 - **Master compressor** {B} — its attack and release.
 - **Sidechain between drums** — one drum ducks another (the kick ducking the bass, for example).
+- **Triggered by patterns** {B} — Synth 1 / 2 or MIDI 1 / 2 as the source: their pattern notes duck another track, not only the drums.
 """,
     "projects": f"""
 - **Copy projects** {B} — duplicates a project into another slot or another pack.
