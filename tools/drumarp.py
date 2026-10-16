@@ -19,7 +19,8 @@ Ours:
     pad held is the stock's; a second one held with it is not the stock's (no selection, no sound) and starts the arpeggio of the samples held,
     sorted, in the chosen order (the note arpeggiator's c_arord): each step sets the drum's sample through the player's [+ 0x50] and hits through
     its interface (the pad's velocity), like a sample flip; while playing on the drum's grid of micro steps (the player's slot 2), stopped from the
-    LED task at the project's tempo; it goes on while any sample is held; at the end the drum's selected sample again; not recorded;
+    LED task at the project's tempo; it goes on while any sample is held; at the end the drum's selected sample again; not recorded (SC42.9, use_rec:
+    recorded while playing with Record);
   * the running state (tail + 636..663, RAM): n, a magic, the drum, k / group / place (c_arord's), 6 samples, 6 velocities, the stock's first
     sample, flags, the next time (ms), the time the view was last drawn (no view for 200 ms: stopped).
 """
@@ -50,6 +51,17 @@ COL_ON = 0x17
 SEEN_MS = 200
 # the running state
 S_N, S_MAG, S_DRUM, S_K, S_FG, S_FP, S_SMP, S_VEL, S_FIRST, S_FL, S_NEXT, S_SEEN = 0, 1, 2, 3, 4, 5, 6, 12, 18, 19, 20, 24
+
+
+REC = False                                              # SC42.9 (use_rec)
+
+
+def use_rec():
+    """SC42.9 (the user, 2026-10-16: «sí, graba los samples con record»): playing with Record (not in the count-in), each hit of the arpeggio is
+    written into the drum's pattern: the micro step's bit, the sample as the step's sample flip (one a step: the last one wins), and on an empty
+    step its velocity and probability 7."""
+    global REC
+    REC = True
 
 
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -174,7 +186,10 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(bl, L["c_arord"]); E(adds_reg, 0, 0, 4); E(ldrb_imm, 5, 0, S_SMP); E(ldrb_imm, 6, 0, S_VEL)
     E(ldrb_imm, 0, 4, S_DRUM); E(mov_reg, 1, 5); E(bl, "c_dasmp")
     E(ldrb_imm, 0, 4, S_DRUM); E(mov_reg, 1, 6); E(bl, "c_dahit")
-    a.label("fi_x"); E(pop_list, [4, 5, 6], pc=True)
+    if REC: E(mov_reg, 0, 5); E(mov_reg, 1, 6); E(pop_list, [4, 5, 6], pc=True)            # (REC) r0 = the sample, r1 = the velocity
+    a.label("fi_x")
+    if REC: E(movs_imm, 0, 0xFF)
+    E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_daend(r0 = the state): the arpeggio stops: the drum's selected sample again; clobbers r0-r3
     a.label("c_daend")
@@ -293,6 +308,16 @@ def arm_code(base, L, prev):
     E(ldr_sp, 0, 8); E(movs_imm, 2, 6); E(muls, 0, 2); E(ldr_sp, 2, 12); E(adds_reg, 0, 0, 2); E(muls, 0, 6)
     E(raw, udiv(2, 0, 1)); E(raw, mls_(0, 2, 1, 0)); E(cmp_imm, 0, 0); bc("dp_x", "ne")
     E(mov_reg, 0, 4); E(bl, "c_dafire")
+    if REC:                                                                                 # recording: into the pattern
+        E(cmp_imm, 0, 0xFF); bc("dp_x", "eq"); E(mov_reg, 6, 0); E(mov_reg, 7, 1)
+        for k, want in ((1, "ne"), (2, "eq")):
+            imm32(0, TRANSPORT); E(movs_imm, 1, k); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("dp_x", "eq" if want == "ne" else "ne")
+        E(ldr_sp, 0, 0); E(ldr_imm, 0, 0, 0x48); E(ldr_sp, 1, 4); E(movw, 2, 0x6A8); E(muls, 1, 2); E(adds_reg, 0, 0, 1)
+        E(ldr_sp, 1, 8); E(adds_reg, 0, 0, 1)                                                # r0 = the step's velocity byte
+        E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "dp_v", "ne"); E(strb_imm, 7, 0, 0); E(movs_imm, 1, 7); E(movs_imm, 2, 0x20); E(strb_reg, 1, 0, 2)
+        a.label("dp_v")
+        E(movs_imm, 1, 0x40); E(strb_reg, 6, 0, 1)                                          # the sample flip
+        E(adds_imm8, 0, 0x60); E(ldrb_imm, 1, 0, 0); E(ldr_sp, 2, 12); E(movs_imm, 3, 1); E(raw, h(0x4093)); E(orrs_reg, 1, 3); E(strb_imm, 1, 0, 0)   # lsls r3, r2
     a.label("dp_x"); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7], pc=True)
 
     # ---- c_daledtask (the LED task calls: ctrl, frame): the chain; the view gone for 200 ms = over; stopped: the arpeggio at the project's tempo

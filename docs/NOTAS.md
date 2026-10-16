@@ -150,6 +150,11 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 - **Pruebas:** `emu_rc0_6.py` (sobre el arnés publicado, sin depender de las pruebas de las builds privadas) y `emu_sc38_5.py`, en las dos.
 - **Publicación:** el árbol público sale de la última fuente publicada (`67893da`, BETA5) más solo esto, para no sacar las builds privadas SC39.7-SC40.5: rama `pub-rc0.6`.
 
+### SC42.9 / Beta 1.19 = SC42.8 + `drumarp.use_rec()` — ⏳ pendientes de probar
+- **El usuario (2026-10-16):** «sí, graba los samples con record».
+- En `c_daplay`, tras cada golpe del arpegio: con Record (`0x20011034` p1) y fuera de la cuenta atrás (p2 = 0), en el patrón del drum (`[reproductor + 0x48] + 0x6A8 × patrón`): el bit del micropaso (`+ 0x60 + paso`), el sample como sample flip (`+ 0x40 + paso`; uno por paso: queda el último) y, en un paso vacío, la velocity (`+ paso`) y probabilidad 7 (`+ 0x20 + paso`). `c_dafire` devuelve el sample y la velocity.
+- Prueba `emu_sc42_9.py` (también `emu_sc42_8.py` sobre SC42.9).
+
 ### SC42.8 / Beta 1.18 = SC42.7 + el arpegiador de los drums (`tools/drumarp.py`) — ⏳ pendientes de probar
 - **El usuario (2026-10-16):** «arpeggiator en drums: mismo comportamiento, pero en vez de saltar entre notas salta entre samples»; de las tres lecturas propuestas eligió «C» = los samples mantenidos en la vista Preset del drum (como las notas mantenidas).
 - **Vista Preset de un drum** (vtable `0x0805ABBC`, `[[ctrl + 0x2C] + 0x8C + 4 d]`): pad p = sample p + 32 × la página (`[vista + 0x20]` p0); al pulsar: el sample del drum por `[vista + 0xC]` (ranura 0: (obj, id del parámetro `[vista + 0x24]` = 44 + 5 d, sample)), `0x0804E0E8(vista)` para lo que sonaba y `0x0804E0BA(vista, pad, velocity)` = note-on por `[vista + 0x10]`; al soltar el stock escribe la selección (`[vista + 0x2C]` = el `[+ 0x5C]` del reproductor); `[vista + 0x3C]` p0 = el pad mantenido; `[vista + 0x51]` bit 0 = la cromática.

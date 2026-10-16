@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.19 — 2026-10-16
+
+**Beta 1.19** (marca `B1.19`; = SC42.9) = Beta 1.18 + la grabación del arpegiador de los drums. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.19)
+- **El arpegio de los drums se graba con Record** (en marcha, no en la cuenta atrás): cada golpe escribe en el patrón su micropaso, su sample como sample flip del paso (uno por paso: queda el último) y, en un paso vacío, su velocity.
+
 ## Beta 1.18 — 2026-10-16
 
 **Beta 1.18** (marca `B1.18`; = SC42.8) = Beta 1.17 + el arpegiador de los drums. Las RC siguen en RC0.9 / RC0.9S.
@@ -239,6 +246,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.19 — 2026-10-16
+
+**Beta 1.19** (marker `B1.19`; = SC42.9) = Beta 1.18 + recording the drums' arpeggiator. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.19 only)
+- **The drums' arpeggio is recorded with Record** (playing, not in the count-in): every hit writes its micro step into the pattern, its sample as the step's sample flip (one a step: the last one stays) and, on an empty step, its velocity.
 
 ## Beta 1.18 — 2026-10-16
 
