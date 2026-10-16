@@ -225,7 +225,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 |---|---|
 | 1-16 | First / last step (stock). |
 | 17-24 | Sync rate (stock). |
-| 25 | Note tracks: opens the probability view in **mode 2** (dynamics and random-mutate). **Clear + pad 25**: clears the dynamics and the random-mutate of every step of the pattern; the frequency stays {B}. |
+| 25 | Opens the probability view in **mode 2** (dynamics and random-mutate; on the drums too {B}). **Clear + pad 25** (note tracks): clears the dynamics and the random-mutate of every step of the pattern; the frequency stays {B}. |
 | 26 | **Nudge** (orange): the chosen first step becomes step 1; what was in front goes to the end (steps and automation, over 16 or 32). |
 | 27 | **Fractal** order: 1 · 1 2 · 1 2 3 · … up to the last step. |
 | 28 | **Deconstructed** order: the grid's diagonals (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15). |
@@ -258,7 +258,7 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 - **The two toggles** {B}: with one on, **pressing it again turns it off** (nothing opens); **pressing the other one** turns the first off and the new one on (pad 31 by opening its selector).
 - The arpeggiator uses those gates too: each note of the chord lasts its own.
 """),
-"probabilidad": ("Probability view (note tracks)",
+"probabilidad": ("Probability view (note tracks and drums)",
     "**Shift + Pattern Settings** (stock mode), **Pattern Settings twice** (mode 1) or **pad 25** of Pattern Settings (mode 2). Hold a step with notes and touch a pad of rows 3-4.", f"""
 | Mode | Row 3 | Row 4 |
 |---|---|---|
@@ -281,6 +281,21 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 | Velocity | — | — | 0 to +32 | 0 to +32 | 0 to +32 | — | ±32 | −32 to +64 |
 
 - With Record and mode 2 on screen, what plays (mutated note, dynamics) is written into the pattern. Everything is saved with the step.
+
+### On the drums {B}
+The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of its Pattern Settings (mode 2, peach; green when its arpeggiator is on). Pick a step with a hit (pads 1-16) and touch a pad of rows 3-4.
+
+| Mode | Row 3 | Row 4 |
+|---|---|---|
+| Mode 1 | Step probability (stock) | **Frequency** (1-8), yellow |
+| Mode 2 | **Dynamics** (the same 8 levels) | Pads 25-28: **random-mutate of the sample** |
+
+| Pad | 25 | 26 | 27 | 28 |
+|---|---|---|---|---|
+| Random-mutate | — | 25 % ±1 (the next sample in its row of 8) | 25 % ±8 (the same column in another row) | 12 % of each |
+
+- The dynamics only delay the hit inside its step (a drum cannot play earlier). The mutate starts from the step's sample flip, or the chosen sample; it is not recorded.
+- The values live in bytes of the pattern the stock does not use (they travel when it is duplicated and with Nudge); the first one set clears those bytes in the project's 32 drum patterns (a factory pack keeps garbage there).
 """),
 "drum-pista": ("Drum track view (knobs)",
     "Press **Drum 1-4**. Every knob does what its label says, with a second layer on Shift.", f"""

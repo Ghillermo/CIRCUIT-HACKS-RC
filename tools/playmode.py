@@ -47,6 +47,15 @@ DIAG = [r * 4 + (r + d) % 4 for d in range(4) for r in range(4)]
 ORDER = DIAG + [16 + s for s in DIAG]
 INV = dict(eq="ne", ne="eq", lo="hs", hs="lo", hi="ls", ls="hi")
 DRUMS = False                                                 # SC40.9: the three pads on the drum tracks too (see use_drums)
+DSYNC = False                                                 # SC43 (use_dsync)
+
+
+def use_dsync():
+    """SC43: Nudge on a drum pattern also puts the rotated arrays into the drum's edit store (drumstore.py: the stock's next commit undid it) and
+    rotates drumpat's step bytes (+ 0x88)."""
+    global DSYNC
+    assert DRUMS
+    DSYNC = True
 CLRMOD = False                                                # SC41.7 (see use_clrmod)
 PAD_MODE2, MGR_HELD = 24, 0x20                                # pad 25 (stepmod's mode 2); the held buttons = p0 of [[ctrl + 0x20] + 0xC], bit 0 Clear
 
@@ -209,6 +218,9 @@ def arm_code(base, L, prev):
         E(movs_imm, 6, 0)
         a.label("nu_d1"); E(lsls_imm, 0, 6, 5); E(adds_reg, 0, 0, 4); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
         E(adds_imm8, 6, 1); E(cmp_imm, 6, D_ARRAYS); E(b_cond, "nu_d1", "lo")
+        if DSYNC:                                                                     # drumpat's bytes; the drum's edit store
+            E(mov_reg, 0, 4); E(adds_imm8, 0, 0x88); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(ldr_sp, 0, 8); E(subs_imm8, 0, 4); E(mov_reg, 1, 4); E(bl, "c_pmdsync")
         E(movs_imm, 0, D_LANES); E(str_sp, 0, 8); E(movs_imm, 0, D_AUTO_OFF); E(str_sp, 0, 12)
         a.label("nu_la")
         E(movs_imm, 6, 0)
@@ -240,6 +252,10 @@ def arm_code(base, L, prev):
         E(ldr_sp, 1, 4); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
         E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
         a.label("nu_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    if DSYNC:
+        import drumstore
+        drumstore.emit_syncall(a, "c_pmdsync")
 
     # ---- c_pmtp() -> r0 = the selected track, r1 = the pattern it plays; clobbers r2, r3
     a.label("c_pmtp")

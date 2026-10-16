@@ -52,6 +52,15 @@ def use_v2():
 
 
 FREE = False                                               # SC42.7 (use_free)
+SYNC = False                                               # SC43 (use_sync)
+
+
+def use_sync():
+    """SC43: a roller's hit recorded into the pattern also goes into the drum's edit store (drumstore.py): the stock's next commit (a probability
+    edit, for one) put the old arrays back and the hit vanished."""
+    global SYNC
+    assert V2
+    SYNC = True
 O_FREE = 564                                               # (FREE) the clock: + 0 the next micro step's time (1/16 ms), + 4 its number 0..5, + 5 0xA7 = running
 TICKS_TAB, TEMPO = 0x0805B8B8, 0x20011404
 
@@ -159,6 +168,7 @@ def arm_code(base, prev):
         a.label("rp_m")
         E(adds_reg, 2, 7, 1); E(adds_imm8, 2, 0x60); E(ldrb_imm, 0, 2, 0); E(ldr_sp, 1, 12); E(movs_imm, 3, 1); E(raw, h(0x408B))   # lsls r3, r1
         E(raw, h(0x4318)); E(strb_imm, 0, 2, 0)                                                        # orrs r0, r3: the micro step's bit
+        if SYNC: E(mov_reg, 0, 4); E(ldr_sp, 1, 8); E(mov_reg, 2, 7); E(bl, "c_rlsync")
     a.label("rp_x"); E(add_sp_imm, 16); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_rlledtask (the LED task calls: ctrl, frame): the chain; out of a drums' Note view the masks are cleared
@@ -176,6 +186,9 @@ def arm_code(base, prev):
     E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "rt_x", "eq"); E(movs_imm, 1, 0); E(raw, h(0x6001))         # str r1, [r0]: the four masks
     if FREE: E(b, "rt_x"); a.label("rt_k"); E(bl, "c_rlfree")
     a.label("rt_x"); E(pop_list, [3, 4], pc=True)
+    if SYNC:
+        import drumstore
+        drumstore.emit_sync(a, "c_rlsync")
     if FREE:
         zc = [0]
         INV = {"eq": "ne", "ne": "eq", "mi": "pl", "pl": "mi", "hs": "lo", "lo": "hs"}

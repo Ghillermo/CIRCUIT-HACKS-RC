@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.19"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.20"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -294,7 +294,7 @@ view("pattern-settings", "V", "Vista Pattern Settings",
 |---|---|
 | 1-16 | Primer / último paso (stock). |
 | 17-24 | Sync rate (stock). |
-| 25 | Pistas de notas: abre la vista de probabilidad en **modo 2** (dinámicas y random-mutate). **Clear + pad 25**: borra las dinámicas y el random-mutate de todos los pasos del patrón; la frecuencia se queda {B}. |
+| 25 | Abre la vista de probabilidad en **modo 2** (dinámicas y random-mutate; en los drums también {B}). **Clear + pad 25** (pistas de notas): borra las dinámicas y el random-mutate de todos los pasos del patrón; la frecuencia se queda {B}. |
 | 26 | **Nudge** (naranja): el primer paso elegido pasa a ser el paso 1; lo de delante va al final (pasos y automatización, sobre 16 o 32). |
 | 27 | Orden **fractal**: 1 · 1 2 · 1 2 3 · … hasta el último paso. |
 | 28 | Orden **deconstruido**: las diagonales de la rejilla (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15). |
@@ -330,7 +330,7 @@ view("micropasos", "V", "Vista Micro Step (pistas de notas)",
 - Esos gates los usa también el arpegiador: cada nota del acorde dura el suyo.
 """)
 
-view("probabilidad", "V", "Vista de probabilidad (pistas de notas)",
+view("probabilidad", "V", "Vista de probabilidad (pistas de notas y drums)",
      "**Shift + Pattern Settings** (modo de stock), **Pattern Settings dos veces** (modo 1) o el **pad 25** de Pattern Settings (modo 2). Mantén un paso con notas y toca un pad de las filas 3-4.",
      f"""
 | Modo | Fila 3 | Fila 4 |
@@ -354,6 +354,21 @@ view("probabilidad", "V", "Vista de probabilidad (pistas de notas)",
 | Velocity | — | — | 0 a +32 | 0 a +32 | 0 a +32 | — | ±32 | −32 a +64 |
 
 - Con Record y el modo 2 en pantalla, lo que suena (nota mutada, dinámica) se escribe en el patrón. Todo se guarda con el paso.
+
+### En los drums {B}
+La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 25** de su Pattern Settings (modo 2, melocotón; verde si su arpegiador está encendido). Elige un paso con golpe (pads 1-16) y toca un pad de las filas 3-4.
+
+| Modo | Fila 3 | Fila 4 |
+|---|---|---|
+| Modo 1 | Probabilidad del paso (stock) | **Frecuencia** (1-8), amarillo |
+| Modo 2 | **Dinámicas** (los mismos 8 niveles) | Pads 25-28: **random-mutate del sample** |
+
+| Pad | 25 | 26 | 27 | 28 |
+|---|---|---|---|---|
+| Random-mutate | — | 25 % ±1 (el sample de al lado en su fila de 8) | 25 % ±8 (el de la misma columna en otra fila) | 12 % de cada uno |
+
+- Las dinámicas solo retrasan el golpe dentro de su paso (un drum no puede sonar antes). El mutate parte del sample flip del paso, o del sample elegido; no se graba.
+- Los valores van en bytes del patrón que el stock no usa (viajan al duplicarlo y con Nudge); la primera vez que pones uno se limpian esos bytes en los 32 patrones de drum del proyecto (un pack de fábrica trae basura ahí).
 """, [("random-mutate", 0)])
 
 view("patterns", "V", "Vista Patterns y cadenas de patrones",

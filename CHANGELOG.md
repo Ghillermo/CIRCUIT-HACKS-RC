@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.20 — 2026-10-16
+
+**Beta 1.20** (marca `B1.20`; = SC43) = Beta 1.19 + las funciones de Pattern Settings en los drums y tres arreglos de grabación. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.20)
+- **Frecuencia, dinámicas y random-mutate en los drums**, en su vista de probabilidad (Pattern Settings dos veces = modo 1; pad 25 de su Pattern Settings = modo 2), como en las pistas de notas. El random-mutate cambia el sample del golpe: 25 % de ±1 (el de al lado en su fila), 25 % de ±8 (otra fila), 12 % de cada uno. Las dinámicas solo retrasan el golpe dentro de su paso.
+
+### Arreglos (solo Beta 1.20)
+- **Los golpes grabados por los rollers y por el arpegio de los drums ya no se pierden** en la siguiente edición del patrón (el stock volvía a escribir su propia copia de los pasos).
+- **El Nudge de los drums** ya no se deshace con la siguiente edición, y mueve también los valores nuevos de cada paso.
+
 ## Beta 1.19 — 2026-10-16
 
 **Beta 1.19** (marca `B1.19`; = SC42.9) = Beta 1.18 + la grabación del arpegiador de los drums. Las RC siguen en RC0.9 / RC0.9S.
@@ -246,6 +257,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.20 — 2026-10-16
+
+**Beta 1.20** (marker `B1.20`; = SC43) = Beta 1.19 + the Pattern Settings features on the drums and three recording fixes. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.20 only)
+- **Frequency, dynamics and random-mutate on the drums**, in their probability view (Pattern Settings twice = mode 1; pad 25 of their Pattern Settings = mode 2), as on the note tracks. The random-mutate changes the hit's sample: 25 % of ±1 (the next one in its row), 25 % of ±8 (another row), 12 % of each. The dynamics only delay the hit inside its step.
+
+### Fixes (Beta 1.20 only)
+- **Hits recorded by the rollers and by the drums' arpeggio are no longer lost** at the next edit of the pattern (the stock wrote its own copy of the steps back).
+- **Drum Nudge** is no longer undone by the next edit, and it moves the new per-step values too.
 
 ## Beta 1.19 — 2026-10-16
 

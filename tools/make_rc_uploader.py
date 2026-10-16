@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.19 RC0.8 RC0.8S B1.18; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.20 RC0.8 RC0.8S B1.19; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria
                   "RC0.9 — full version: RC0.8 + the internal memory pack, read only for the mod"),
         "RC0.9S": ("RC0.9S — versión más segura (= RC0.8S): nada del mod escribe ficheros en la SD ni en la memoria interna",
                    "RC0.9S — safer build (= RC0.8S): nothing of the mod writes files to the SD card or to the internal memory"),
+        "B1.20": ("Beta 1.20 — beta (= SC43): Beta 1.19 + frecuencia, dinámicas y random-mutate del sample en los drums, y los golpes grabados por rollers / arpegio ya no se pierden",
+                  "Beta 1.20 — beta (= SC43): Beta 1.19 + frequency, dynamics and sample random-mutate on the drums, and hits recorded by rollers / arpeggio are no longer lost"),
         "B1.19": ("Beta 1.19 — beta (= SC42.9): Beta 1.18 + el arpegio de los drums se graba con Record",
                   "Beta 1.19 — beta (= SC42.9): Beta 1.18 + the drums' arpeggio recorded with Record"),
         "B1.18": ("Beta 1.18 — beta (= SC42.8): Beta 1.17 + el arpegiador de los drums (salta entre los samples mantenidos en la vista Preset)",
@@ -476,4 +478,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.19", "RC0.8", "RC0.8S", "B1.18"])
+    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.20", "RC0.8", "RC0.8S", "B1.19"])

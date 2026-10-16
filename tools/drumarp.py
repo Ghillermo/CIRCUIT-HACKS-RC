@@ -54,6 +54,14 @@ S_N, S_MAG, S_DRUM, S_K, S_FG, S_FP, S_SMP, S_VEL, S_FIRST, S_FL, S_NEXT, S_SEEN
 
 
 REC = False                                              # SC42.9 (use_rec)
+SYNC = False                                             # SC43 (use_sync)
+
+
+def use_sync():
+    """SC43: the recorded hits also go into the drum's edit store (drumstore.py), or the stock's next commit put the old arrays back."""
+    global SYNC
+    assert REC
+    SYNC = True
 
 
 def use_rec():
@@ -318,6 +326,8 @@ def arm_code(base, L, prev):
         a.label("dp_v")
         E(movs_imm, 1, 0x40); E(strb_reg, 6, 0, 1)                                          # the sample flip
         E(adds_imm8, 0, 0x60); E(ldrb_imm, 1, 0, 0); E(ldr_sp, 2, 12); E(movs_imm, 3, 1); E(raw, h(0x4093)); E(orrs_reg, 1, 3); E(strb_imm, 1, 0, 0)   # lsls r3, r2
+        if SYNC:
+            E(ldr_sp, 0, 0); E(ldr_imm, 2, 0, 0x48); E(ldr_sp, 1, 4); E(movw, 3, 0x6A8); E(muls, 1, 3); E(adds_reg, 2, 2, 1); E(ldr_sp, 1, 8); E(bl, "c_dasync")
     a.label("dp_x"); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7], pc=True)
 
     # ---- c_daledtask (the LED task calls: ctrl, frame): the chain; the view gone for 200 ms = over; stopped: the arpeggio at the project's tempo
@@ -374,6 +384,9 @@ def arm_code(base, L, prev):
     E(lsrs_imm, 0, 4, 3); E(movs_imm, 2, 15); E(ands_reg, 0, 2); E(cmp_imm, 0, 0); E(b_cond, "pb_x", "eq"); E(cmp_imm, 0, 8); E(b_cond, "pb_x", "hi")
     E(adds_imm8, 0, PS_PAD_RATE - 1); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
     a.label("pb_x"); E(mov_reg, 0, 5); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+    if SYNC:
+        import drumstore
+        drumstore.emit_sync(a, "c_dasync")
     return a.assemble()
 
 
