@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.17 RC0.8 RC0.8S B1.16; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.18 RC0.8 RC0.8S B1.17; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria
                   "RC0.9 — full version: RC0.8 + the internal memory pack, read only for the mod"),
         "RC0.9S": ("RC0.9S — versión más segura (= RC0.8S): nada del mod escribe ficheros en la SD ni en la memoria interna",
                    "RC0.9S — safer build (= RC0.8S): nothing of the mod writes files to the SD card or to the internal memory"),
+        "B1.18": ("Beta 1.18 — beta (= SC42.8): Beta 1.17 + el arpegiador de los drums (salta entre los samples mantenidos en la vista Preset)",
+                  "Beta 1.18 — beta (= SC42.8): Beta 1.17 + the drums' arpeggiator (it jumps between the samples held in the Preset view)"),
         "B1.17": ("Beta 1.17 — beta (= SC42.7): Beta 1.16 + step-drummer desde 0 y transposición más gruesa, toggles de la vista Micro Step, rollers con el transporte parado",
                   "Beta 1.17 — beta (= SC42.7): Beta 1.16 + step-drummer from 0 and a coarser transposition, the Micro Step view's toggles, rollers with the transport stopped"),
         "B1.16": ("Beta 1.16 — beta (= SC42.6): Beta 1.3 + arpegiador, escala propia, metrónomo con cuenta atrás, gate por pulsación y longitud fija, rollers de drums, página 2 y toggle pitch-vel del step-drummer, sidechain de drums con knobs, canales de Program Change, sin el stutter del delay",
@@ -472,4 +474,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.17", "RC0.8", "RC0.8S", "B1.16"])
+    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.18", "RC0.8", "RC0.8S", "B1.17"])

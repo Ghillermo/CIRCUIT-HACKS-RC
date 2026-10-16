@@ -245,6 +245,9 @@ While **Shift** is held, the arpeggiator's pads keep their Pattern Settings colo
 - **Sequence:** when two or more notes start on a step, they play one at a time (at the arpeggio's resolution), in the chosen order over the notes sorted by pitch, for as long as the chord's longest note. Each note lasts **its own gate, at most one arpeggio step** (and what is left of the chord) and keeps its velocity: a chord recorded by holding its notes plays arpeggiated, one entered with short notes, staccato.
 - **Input:** the first note sounds as always; holding another one with it starts the arpeggio of the held notes, one an arpeggio step (with the transport stopped, at the project's tempo), until all are let go; each note lasts an arpeggio step. **With Record the chord is recorded**, not the single notes: the sequence plays the arpeggio afterwards.
 - Saved with the project, per track and pattern.
+
+### The drums' arpeggiator {B}
+The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Settings turn its arpeggiator on for the pattern it plays, with its order and resolution. In the **drum's Preset view** the first sample held is the usual one; **holding another one with it starts the arpeggio of the samples held**: the drum jumps from sample to sample (in the chosen order, over the samples sorted by number), with its pad's velocity. Playing, it follows the drum's grid; stopped, the project's tempo. It goes on while any is held; when all are let go, the drum goes back to its chosen sample. Not recorded.
 """),
 "micropasos": ("Micro Step view (note tracks)",
     "Press **Gate twice** with a note track selected (Synth 1 / 2, MIDI 1 / 2).", f"""
@@ -304,6 +307,7 @@ While **Shift** is held, the arpeggiator's pads keep their Pattern Settings colo
 | **Clear + pad**, **Clear + the same pad** | **Replaces** that sample with Master FX's capture. Volatile until you save: then it is written into the pack if it fits in the sample memory. |
 | **Duplicate + pad A + pad B** (same pack) | Swaps the two samples (files and table); sounds at once. |
 | **Preset again** {B} | The drum's chromatic / scale view on / off (the same as Shift + Preset). |
+| **Several pads held** {B} | With the drum's arpeggiator on (Pattern Settings, Shift + pad 25): the arpeggio of the samples held (Pattern Settings chapter). |
 | **Duplicate + pad A**, load another pack, **Duplicate + pad B** | Copies sample A over B (B may be empty). It goes into B's place if it fits; otherwise into the free import memory. It never overwrites a sample that plays. |
 | **Shift + Preset** | Chromatic / scale view (next section). |
 

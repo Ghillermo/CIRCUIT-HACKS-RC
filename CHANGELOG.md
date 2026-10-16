@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.18 — 2026-10-16
+
+**Beta 1.18** (marca `B1.18`; = SC42.8) = Beta 1.17 + el arpegiador de los drums. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.18)
+- **Arpegiador de los drums:** en el Pattern Settings de un drum, **Shift + pad 25** lo enciende para el patrón que suena, **Shift + pads 27-32** = orden, **Shift + pads 17-24** = resolución (como en las pistas de notas). En la vista Preset del drum, al mantener varios samples a la vez el drum salta de sample en sample en ese orden (a la rejilla del drum en marcha, al tempo parado); al soltarlos vuelve a su sample elegido. No se graba.
+
 ## Beta 1.17 — 2026-10-16
 
 **Beta 1.17** (marca `B1.17`; = SC42.7) = Beta 1.16 + lo pedido tras probarla. Las RC siguen en RC0.9 / RC0.9S.
@@ -232,6 +239,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.18 — 2026-10-16
+
+**Beta 1.18** (marker `B1.18`; = SC42.8) = Beta 1.17 + the drums' arpeggiator. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.18 only)
+- **The drums' arpeggiator:** in a drum's Pattern Settings, **Shift + pad 25** turns it on for the pattern it plays, **Shift + pads 27-32** = order, **Shift + pads 17-24** = resolution (as on the note tracks). In the drum's Preset view, holding several samples at once makes the drum jump from sample to sample in that order (on the drum's grid while playing, at the tempo when stopped); when they are let go it goes back to its chosen sample. Not recorded.
 
 ## Beta 1.17 — 2026-10-16
 
