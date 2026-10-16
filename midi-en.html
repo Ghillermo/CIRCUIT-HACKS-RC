@@ -1,0 +1,92 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MIDI reference of the new features</title>
+<style>
+:root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
+:root[data-theme="dark"] { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 "Helvetica Neue", Arial, sans-serif; }
+header.cover { background:#17181b; color:#fff; padding:56px 24px 40px; text-align:center; }
+header.cover h1 { font-size:40px; margin:0 0 8px; letter-spacing:.5px; } header.cover p { color:#c9cdd2; margin:4px 0; }
+header.cover .bar { height:6px; width:180px; margin:18px auto 0; background:linear-gradient(90deg,#ff3b30,#ff8a00,#ffd23f,#3ddc5a,#00c2a8,#2f7bff,#8e5cff,#e040fb); border-radius:3px; }
+main { max-width:980px; margin:0 auto; padding:24px 16px 64px; }
+nav.toc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 22px; }
+nav.toc h2 { margin-top:0; } nav.toc ol { padding-left:20px; } nav.toc a { color:var(--fg); }
+h2.group { margin-top:48px; padding-bottom:6px; border-bottom:3px solid var(--accent); }
+section.feat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 24px; margin:22px 0; }
+section.feat h3 { margin-top:0; } section.feat .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+.summary { color:var(--muted); border-left:4px solid var(--accent); padding-left:12px; }
+figure { margin:16px 0; } figure svg { width:100%; height:auto; border-radius:14px; } figcaption { color:var(--muted); font-size:14px; margin-top:6px; text-align:center; }
+table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14.5px; display:block; overflow-x:auto; }
+body { overflow-x:hidden; } th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15); padding:1px 4px; border-radius:4px; }
+footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
+p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
+</style></head><body>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>MIDI reference of the new features</p><p>RC0.9</p><div class="bar"></div></header><main>
+<p class="lang"><a href="midi.html">Versión en español</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>
+<p>The CCs / NRPNs the mod adds. The original device&#x27;s parameters (synths, drums, mixer, FX) keep the numbers of Novation’s <em>Programmer’s Reference Guide</em>. Everything follows the CC Tx / CC Rx filters of the Setup view.</p>
+<section class="feat"><h3>Selecting an NRPN</h3><p>Send <strong>CC 99</strong> (MSB), <strong>CC 98</strong> (LSB) and <strong>CC 6</strong> (value), in that order. The device remembers the chosen NRPN until the next CC 99 / 98.</p></section>
+<section class="feat"><h3>MIDI track engine (MIDI 1 / 2)</h3><p>The MIDI track&#x27;s channel. Values 0-127; bipolar ones, 64 = centre. Sent when the knob turns (also with Clear) and received on the same number. «Page / knob» = where it is in the Preset view with the engine on (pads 1-5 = pages). In the granular engine page 2 uses the same numbers with another meaning (in brackets).</p>
+<table><thead><tr><th>Code</th><th>Parameter</th><th>Message</th><th>Page / knob</th></tr></thead><tbody>
+<tr><td>1</td><td>Filter</td><td>CC 74</td><td>1 / K5</td></tr>
+<tr><td>2</td><td>Resonance</td><td>CC 71</td><td>1 / K6</td></tr>
+<tr><td>3</td><td>Envelope → filter</td><td>CC 79</td><td>1 / K4</td></tr>
+<tr><td>4</td><td>LFO → filter</td><td>NRPN 4:4</td><td>1 / Shift + K4</td></tr>
+<tr><td>5</td><td>Attack</td><td>CC 73</td><td>1 / K1</td></tr>
+<tr><td>6</td><td>Decay</td><td>CC 75</td><td>1 / Shift + K2</td></tr>
+<tr><td>7</td><td>Sustain</td><td>CC 70</td><td>1 / Shift + K1</td></tr>
+<tr><td>8</td><td>Release</td><td>CC 72</td><td>1 / K2</td></tr>
+<tr><td>9</td><td>Effect amount</td><td>CC 91</td><td>1 / K8</td></tr>
+<tr><td>10</td><td>VCA gain</td><td>CC 59</td><td>1 / Shift + K6</td></tr>
+<tr><td>11</td><td>LFO speed</td><td>NRPN 0:76</td><td>1 / K7</td></tr>
+<tr><td>12</td><td>LFO → level</td><td>NRPN 4:12</td><td>1 / Shift + K3</td></tr>
+<tr><td>13</td><td>Effect type</td><td>NRPN 4:13</td><td>1 / Shift + K8</td></tr>
+<tr><td>15</td><td>Envelope → level</td><td>NRPN 4:15</td><td>1 / K3</td></tr>
+<tr><td>16</td><td>Filter type</td><td>NRPN 4:16</td><td>1 / Shift + K5</td></tr>
+<tr><td>17</td><td>TUNE (granular: pitch)</td><td>CC 26</td><td>2 / K1</td></tr>
+<tr><td>18</td><td>FINE (granular: size)</td><td>CC 27</td><td>2 / Shift + K1</td></tr>
+<tr><td>19</td><td>WAVE (granular: position)</td><td>CC 20</td><td>2 / K7</td></tr>
+<tr><td>20</td><td>SHAPE (granular: density)</td><td>CC 21</td><td>2 / K2</td></tr>
+<tr><td>21</td><td>LFO → pitch (granular: scan)</td><td>NRPN 4:21</td><td>2 / K5</td></tr>
+<tr><td>22</td><td>Envelope → pitch (granular: env → position)</td><td>NRPN 4:22</td><td>2 / K3</td></tr>
+<tr><td>23</td><td>Envelope → shape (granular: zone)</td><td>NRPN 4:23</td><td>2 / K4</td></tr>
+<tr><td>24</td><td>LFO → shape (granular: LFO → position)</td><td>NRPN 4:24</td><td>2 / K6</td></tr>
+<tr><td>25</td><td>Envelope → morph (granular: source)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
+<tr><td>26</td><td>LFO → morph (granular: note mode)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
+<tr><td>27</td><td>TUNE 2 (granular: LFO → size)</td><td>CC 37</td><td>3 / K1</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / Shift + K1</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: pitch spread)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>30</td><td>SHAPE 2 (granular: window)</td><td>CC 31</td><td>3 / K2</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3</td></tr>
+<tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / Shift + K2</td></tr>
+<tr><td>34</td><td>RING (granular: reverse)</td><td>CC 54</td><td>3 / Shift + K3</td></tr>
+</tbody></table>
+<p><strong>Page 4</strong> (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect.</p></section>
+<section class="feat"><h3>Drums</h3><p>The drums channel (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = value</strong>. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs.</p>
+<table><thead><tr><th>LSB</th><th>Parameter</th><th>Values</th></tr></thead><tbody>
+<tr><td>1</td><td>Envelope → pitch</td><td>0-127, 64 = 0</td></tr>
+<tr><td>2</td><td>Ring mod: frequency</td><td>0-127</td></tr>
+<tr><td>3</td><td>LFO: amount</td><td>0-127, 64 = 0</td></tr>
+<tr><td>4</td><td>LFO: speed</td><td>0-127, 64 = centre</td></tr>
+<tr><td>5</td><td>Envelope → cutoff</td><td>0-127, 64 = 0</td></tr>
+<tr><td>6</td><td>Resonance</td><td>0-127</td></tr>
+<tr><td>7</td><td>Envelope shape</td><td>0-127, 64 = centre</td></tr>
+<tr><td>8</td><td>Ring mod: amount</td><td>0-127</td></tr>
+<tr><td>9</td><td>Filter mode</td><td>0 stock tilt EQ, 1 band-pass, 2 notch, 3 comb, 4 DJ</td></tr>
+<tr><td>10</td><td>Sample start</td><td>beta: 0-120 (/128); RC: 0-15 (/64)</td></tr>
+<tr><td>11</td><td>Bitcrush</td><td>0-15</td></tr>
+<tr><td>12</td><td>Distortion type</td><td>0 stock, 1 soft, 2 hard, 3 fold</td></tr>
+<tr><td>13</td><td>Cut from the end (beta only)</td><td>0-120 (/128)</td></tr>
+<tr><td>14</td><td>Attack (beta only)</td><td>0-127</td></tr>
+</tbody></table></section>
+<section class="feat"><h3>Master FX</h3><p>Channel 16. <strong>CC 99 = 9</strong>, <strong>CC 98 = 4 × effect + knob</strong> (knob 0-3 = K1-K4), <strong>CC 6 = value</strong>.</p>
+<table><thead><tr><th>LSB</th><th>Effect</th><th>K1-K4</th></tr></thead><tbody>
+<tr><td>0-3</td><td>Gater</td><td>division, depth, width, smoothing</td></tr>
+<tr><td>4-7</td><td>Auto-Filter (pads 2 / 3)</td><td>speed, depth, resonance, centre</td></tr>
+<tr><td>8-11</td><td>Digitise</td><td>sample rate, bits, delay throw (beta), envelope (beta)</td></tr>
+<tr><td>12-15</td><td>Phaser</td><td>speed, depth, feedback, mix</td></tr>
+<tr><td>16-19</td><td>Vinyl (RC) / Glitch (beta)</td><td>RC: crackle, hiss, tone, wear; beta: speed, repeat, delay, chaos</td></tr>
+</tbody></table></section>
+<section class="feat"><h3>Program Change</h3><p><strong>Project:</strong> listen and output channel in the Setup view, pads 29 / 30 (16 by default; beta only); what arrives on the listen channel is sent again on the output one. <strong>Patch flip:</strong> every note of MIDI 1 / 2 goes out as a Program Change on the track&#x27;s channel (MIDI Preset view, pad 26).</p></section>
+</main></body></html>

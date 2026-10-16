@@ -1,0 +1,92 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Referencia MIDI de las funciones nuevas</title>
+<style>
+:root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
+:root[data-theme="dark"] { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 "Helvetica Neue", Arial, sans-serif; }
+header.cover { background:#17181b; color:#fff; padding:56px 24px 40px; text-align:center; }
+header.cover h1 { font-size:40px; margin:0 0 8px; letter-spacing:.5px; } header.cover p { color:#c9cdd2; margin:4px 0; }
+header.cover .bar { height:6px; width:180px; margin:18px auto 0; background:linear-gradient(90deg,#ff3b30,#ff8a00,#ffd23f,#3ddc5a,#00c2a8,#2f7bff,#8e5cff,#e040fb); border-radius:3px; }
+main { max-width:980px; margin:0 auto; padding:24px 16px 64px; }
+nav.toc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 22px; }
+nav.toc h2 { margin-top:0; } nav.toc ol { padding-left:20px; } nav.toc a { color:var(--fg); }
+h2.group { margin-top:48px; padding-bottom:6px; border-bottom:3px solid var(--accent); }
+section.feat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 24px; margin:22px 0; }
+section.feat h3 { margin-top:0; } section.feat .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+.summary { color:var(--muted); border-left:4px solid var(--accent); padding-left:12px; }
+figure { margin:16px 0; } figure svg { width:100%; height:auto; border-radius:14px; } figcaption { color:var(--muted); font-size:14px; margin-top:6px; text-align:center; }
+table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14.5px; display:block; overflow-x:auto; }
+body { overflow-x:hidden; } th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15); padding:1px 4px; border-radius:4px; }
+footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
+p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
+</style></head><body>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Referencia MIDI de las funciones nuevas</p><p>RC0.9</p><div class="bar"></div></header><main>
+<p class="lang"><a href="midi-en.html">English version</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>
+<p>Los CC / NRPN que añade el mod. Los parámetros del aparato original (sintes, drums, mixer, FX) siguen con los números de la <em>Programmer’s Reference Guide</em> de Novation. Todo respeta los filtros CC Tx / CC Rx de la vista Setup.</p>
+<section class="feat"><h3>Seleccionar un NRPN</h3><p>Manda <strong>CC 99</strong> (MSB), <strong>CC 98</strong> (LSB) y <strong>CC 6</strong> (valor), en ese orden. El aparato recuerda el NRPN elegido hasta el siguiente CC 99 / 98.</p></section>
+<section class="feat"><h3>Motor de las pistas MIDI (MIDI 1 / 2)</h3><p>Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar el knob (también con Clear) y entra por el mismo número. «Página / knob» = dónde está en la vista Preset con el motor encendido (pads 1-5 = páginas). En el motor granular la página 2 usa los mismos números con otro significado (entre paréntesis).</p>
+<table><thead><tr><th>Código</th><th>Parámetro</th><th>Mensaje</th><th>Página / knob</th></tr></thead><tbody>
+<tr><td>1</td><td>Filtro</td><td>CC 74</td><td>1 / K5</td></tr>
+<tr><td>2</td><td>Resonancia</td><td>CC 71</td><td>1 / K6</td></tr>
+<tr><td>3</td><td>Envolvente → filtro</td><td>CC 79</td><td>1 / K4</td></tr>
+<tr><td>4</td><td>LFO → filtro</td><td>NRPN 4:4</td><td>1 / Shift + K4</td></tr>
+<tr><td>5</td><td>Ataque</td><td>CC 73</td><td>1 / K1</td></tr>
+<tr><td>6</td><td>Decay</td><td>CC 75</td><td>1 / Shift + K2</td></tr>
+<tr><td>7</td><td>Sustain</td><td>CC 70</td><td>1 / Shift + K1</td></tr>
+<tr><td>8</td><td>Release</td><td>CC 72</td><td>1 / K2</td></tr>
+<tr><td>9</td><td>Cantidad de efecto</td><td>CC 91</td><td>1 / K8</td></tr>
+<tr><td>10</td><td>Gain del VCA</td><td>CC 59</td><td>1 / Shift + K6</td></tr>
+<tr><td>11</td><td>Velocidad del LFO</td><td>NRPN 0:76</td><td>1 / K7</td></tr>
+<tr><td>12</td><td>LFO → nivel</td><td>NRPN 4:12</td><td>1 / Shift + K3</td></tr>
+<tr><td>13</td><td>Tipo de efecto</td><td>NRPN 4:13</td><td>1 / Shift + K8</td></tr>
+<tr><td>15</td><td>Envolvente → nivel</td><td>NRPN 4:15</td><td>1 / K3</td></tr>
+<tr><td>16</td><td>Tipo de filtro</td><td>NRPN 4:16</td><td>1 / Shift + K5</td></tr>
+<tr><td>17</td><td>TUNE (granular: tono)</td><td>CC 26</td><td>2 / K1</td></tr>
+<tr><td>18</td><td>FINE (granular: tamaño)</td><td>CC 27</td><td>2 / Shift + K1</td></tr>
+<tr><td>19</td><td>WAVE (granular: posición)</td><td>CC 20</td><td>2 / K7</td></tr>
+<tr><td>20</td><td>SHAPE (granular: densidad)</td><td>CC 21</td><td>2 / K2</td></tr>
+<tr><td>21</td><td>LFO → tono (granular: scan)</td><td>NRPN 4:21</td><td>2 / K5</td></tr>
+<tr><td>22</td><td>Envolvente → tono (granular: env → posición)</td><td>NRPN 4:22</td><td>2 / K3</td></tr>
+<tr><td>23</td><td>Envolvente → forma (granular: zona)</td><td>NRPN 4:23</td><td>2 / K4</td></tr>
+<tr><td>24</td><td>LFO → forma (granular: LFO → posición)</td><td>NRPN 4:24</td><td>2 / K6</td></tr>
+<tr><td>25</td><td>Envolvente → morph (granular: fuente)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
+<tr><td>26</td><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
+<tr><td>27</td><td>TUNE 2 (granular: LFO → tamaño)</td><td>CC 37</td><td>3 / K1</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / Shift + K1</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>30</td><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3</td></tr>
+<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / Shift + K2</td></tr>
+<tr><td>34</td><td>RING (granular: reverso)</td><td>CC 54</td><td>3 / Shift + K3</td></tr>
+</tbody></table>
+<p><strong>Página 4</strong> (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto.</p></section>
+<section class="feat"><h3>Drums</h3><p>Canal de drums (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = valor</strong>. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales.</p>
+<table><thead><tr><th>LSB</th><th>Parámetro</th><th>Valores</th></tr></thead><tbody>
+<tr><td>1</td><td>Envolvente → tono</td><td>0-127, 64 = 0</td></tr>
+<tr><td>2</td><td>Ring mod: frecuencia</td><td>0-127</td></tr>
+<tr><td>3</td><td>LFO: cantidad</td><td>0-127, 64 = 0</td></tr>
+<tr><td>4</td><td>LFO: velocidad</td><td>0-127, 64 = centro</td></tr>
+<tr><td>5</td><td>Envolvente → corte</td><td>0-127, 64 = 0</td></tr>
+<tr><td>6</td><td>Resonancia</td><td>0-127</td></tr>
+<tr><td>7</td><td>Forma de la envolvente</td><td>0-127, 64 = centro</td></tr>
+<tr><td>8</td><td>Ring mod: cantidad</td><td>0-127</td></tr>
+<tr><td>9</td><td>Modo de filtro</td><td>0 EQ tilt de stock, 1 paso banda, 2 notch, 3 comb, 4 DJ</td></tr>
+<tr><td>10</td><td>Inicio del sample</td><td>beta: 0-120 (/128); RC: 0-15 (/64)</td></tr>
+<tr><td>11</td><td>Bitcrush</td><td>0-15</td></tr>
+<tr><td>12</td><td>Tipo de distorsión</td><td>0 stock, 1 suave, 2 dura, 3 plegada</td></tr>
+<tr><td>13</td><td>Corte desde el final (solo beta)</td><td>0-120 (/128)</td></tr>
+<tr><td>14</td><td>Ataque (solo beta)</td><td>0-127</td></tr>
+</tbody></table></section>
+<section class="feat"><h3>Master FX</h3><p>Canal 16. <strong>CC 99 = 9</strong>, <strong>CC 98 = 4 × efecto + knob</strong> (knob 0-3 = K1-K4), <strong>CC 6 = valor</strong>.</p>
+<table><thead><tr><th>LSB</th><th>Efecto</th><th>K1-K4</th></tr></thead><tbody>
+<tr><td>0-3</td><td>Gater</td><td>división, profundidad, ancho, suavizado</td></tr>
+<tr><td>4-7</td><td>Auto-Filter (pads 2 / 3)</td><td>velocidad, profundidad, resonancia, centro</td></tr>
+<tr><td>8-11</td><td>Digitise</td><td>muestreo, bits, envío al delay (beta), envolvente (beta)</td></tr>
+<tr><td>12-15</td><td>Phaser</td><td>velocidad, profundidad, realimentación, mezcla</td></tr>
+<tr><td>16-19</td><td>Vinyl (RC) / Glitch (beta)</td><td>RC: crackle, siseo, tono, desgaste; beta: velocidad, repetición, retraso, caos</td></tr>
+</tbody></table></section>
+<section class="feat"><h3>Program Change</h3><p><strong>Proyecto:</strong> canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; solo beta); lo recibido en el de escucha se reenvía por el de salida. <strong>Patch flip:</strong> cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26).</p></section>
+</main></body></html>
