@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.25 — 2026-10-17
+
+**Beta 1.25** (marca `B1.25`; = SC43.5) = Beta 1.24 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Cambios (solo Beta 1.25)
+- **Pitch de los drums en dos partes:** **K1 = cromático** (un semitono por paso del knob, propio del mod; se guarda con el proyecto; LED tenue en el centro) y **Shift + K6 = el pitch de stock**, continuo y lineal como en el Circuit original. El pitch guardado en los proyectos, su automatización y su CC son el continuo, así que un proyecto de stock suena igual. Clear + K1 a la derecha = cromático al centro; Clear + K6 a la derecha = también el continuo al centro.
+- **Vista cromática de los drums:** los pads fijan el valor cromático (K1); ya no se graba la altura por paso.
+
+### Novedades (solo Beta 1.25)
+- **Clear + Synth 1 / 2** (con su vista en pantalla): sus ocho macros vuelven a los valores del patch cargado (leído otra vez del pack).
+
 ## Beta 1.24 — 2026-10-16
 
 **Beta 1.24** (marca `B1.24`; = SC43.4) = Beta 1.23 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
@@ -293,6 +304,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.25 — 2026-10-17
+
+**Beta 1.25** (marker `B1.25`; = SC43.5) = Beta 1.24 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### Changes (Beta 1.25 only)
+- **Drum pitch in two parts:** **K1 = chromatic** (one semitone per knob step, the mod's own; saved with the project; LED dim at the centre) and **Shift + K6 = the stock pitch**, continuous and linear as on the original Circuit. The pitch saved in projects, its automation and its CC are the continuous one, so a stock project sounds the same. Clear + K1 right = chromatic back to the centre; Clear + K6 right = the continuous one back to the centre too.
+- **The drums' chromatic view:** the pads set the chromatic value (K1); the pitch is no longer recorded per step.
+
+### New (Beta 1.25 only)
+- **Clear + Synth 1 / 2** (with its view on screen): its eight macros go back to the values of the loaded patch (read again from the pack).
 
 ## Beta 1.24 — 2026-10-16
 

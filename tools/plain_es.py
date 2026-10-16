@@ -1,10 +1,10 @@
 """La guía en palabras sencillas, en español (la escribe tools/make_plain.py).  Estructura y estilo llano de la guía de la comunidad «Circuit Tracks mod
 manual, in plain English» de u/luxurysoft1337 (Reddit, 15 de octubre de 2026, escrita para RC0.9 / Beta 1.3); reescrita, corregida y completada hasta
-Beta 1.24 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
+Beta 1.25 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.24"
+BETA = "Beta 1.25"
 B = f"*(solo {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
@@ -189,12 +189,12 @@ Cada knob hace lo que dice su etiqueta del panel, con una segunda capa con Shift
 
 | Knob | Solo | Con Shift |
 |---|---|---|
-| K1 Oscillator | Tono, en semitonos exactos | Cantidad de la envolvente de tono |
+| K1 Oscillator | Tono, en semitonos exactos ({B}: un valor cromático propio, guardado con el proyecto) | Cantidad de la envolvente de tono |
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
 | K3 Amp envelope | RC: decay; a la izquierda del cero, el punto de inicio del sample. {B}: **izquierda = decay** (el de stock), **derecha pasado el máximo = ataque** (entrada gradual de hasta 1 s) | {B}: **izquierda = inicio del sample**, **derecha = corte** desde el final |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
 | K5 Filter frequency | Filtro / EQ | Modo del filtro: EQ tilt (stock), paso banda, notch, comb, DJ |
-| K6 Resonance | Resonancia | — |
+| K6 Resonance | Resonancia | {B}: **tono continuo**, el de stock (lineal, como el original) |
 | K7 Modulation | Cantidad del LFO | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda del cero, bitcrush | Tipo de distorsión: stock, suave, dura, plegada |
 
@@ -202,7 +202,7 @@ Cada knob hace lo que dice su etiqueta del panel, con una segunda capa con Shift
 - **RC0.9:** un proyecto nuevo o sin tocar empieza con el modo de filtro en DJ, que quita el EQ de stock: los drums pueden sonar distinto que en un Circuit de stock. Shift + K5 a «EQ tilt» devuelve el sonido de stock. {B}: arreglado (por defecto, el EQ de stock).
 
 ### Tocar un drum como un teclado
-Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso.
+Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso ({B}: los pads fijan el valor cromático de K1 y no se graban por paso).
 
 ### Vista Preset de drums
 | Gesto | Qué hace |

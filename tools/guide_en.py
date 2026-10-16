@@ -28,6 +28,8 @@ VIEWS = {
 | **Shift** | all | While Shift is held, the shortcuts available light **yellow**; the chosen option, another colour. |
 | **Save** | all | Saves the project as always; it also writes into the pack the samples replaced by captures (drum Preset), if they fit in the sample memory *(writes to the card)*. |
 | **Press the track button again** | Synth 1 / 2 | Opens the synth's source view (chapter 2). |
+| **Clear + Synth 1 / 2** | its view | {B} Its eight macros back to the loaded patch's values. |
+| **Clear + a drum's button** | its view | {B} Its eight knobs back to their defaults. |
 | **Synth 1 + Synth 2 together** | all | Split keyboard {B}. |
 | **Shift + Clear** | all | Metronome in four states {B}: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. |
 | **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo, Record blinks red), then recording starts {B}. Play during the count cancels it. The count-in is saved with the project. |
@@ -303,12 +305,12 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "Press **Drum 1-4**. Every knob does what its label says, with a second layer on Shift.", f"""
 | Knob | Alone | With Shift |
 |---|---|---|
-| K1 Oscillator | Pitch (exact semitones) | Pitch envelope amount |
+| K1 Oscillator | Pitch in exact semitones ({B}: a chromatic value of the mod's, saved with the project) | Pitch envelope amount |
 | K2 Osc mod | Ring mod frequency | Ring mod amount |
 | K3 Amp envelope | **Left: decay** (the stock one). Past its maximum, **right: attack** (fade-in, up to 1 s). Neutral in the middle. {B} | **Left: sample start**; **right: cut** from the end (up to 120/128 each). Middle = the whole sample. {B} |
 | K4 Filter envelope | Envelope → cutoff | Envelope shape |
 | K5 Filter frequency | Filter / EQ (by default the stock tilt EQ) | **Filter mode**: stock tilt EQ, band-pass, notch, comb, DJ |
-| K6 Resonance | Resonance | — |
+| K6 Resonance | Resonance | {B} **Continuous pitch**: the stock one, linear as on the original (the one saved in projects, automated and sent as CC) |
 | K7 Modulation | LFO amount | LFO speed |
 | K8 FX | Distortion; left of 0, **bitcrush** | **Distortion type**: stock, soft, hard, fold |
 
@@ -335,7 +337,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "**Shift + Preset** with a drum selected. The pads play the sample transposed along the scale.", f"""
 - Three rows of notes in the scale and root of the Scales view.
 - **K1** = pitch offset in semitones; **Shift + K1** = fine tuning in cents.
-- While recording, each pitch is recorded on its own step only.
+- While recording, each pitch is recorded on its own step only. {B}: the pads set the chromatic value (K1) and are not recorded per step.
 - **The drums' Note view:** pads 25-28 repeat the boxes of drums 4 … 1.
 - **Micro-step rollers** {B} on rows 1-3 of the drums' Note view: each column is the drum of its box below (columns 1-4 = drums 4-1, columns 5-8 = drums 1-4), dim in its colour. A drum's left column is its micro steps 1-3 (rows 1-3) and the right one 4-6: drum 1 = pads 4, 12, 20 and 5, 13, 21. **While held** (one or several, of one or several drums), the drum plays on **every step** at those micro steps (with the step's velocity, or 100 on an empty step); they light up while held. **With the transport stopped** {B} too: at the project's tempo, starting when the first one is pressed (velocity 100). **With Record** their hits are recorded into the pattern too (the micro step, and velocity 100 on an empty step).
 """),

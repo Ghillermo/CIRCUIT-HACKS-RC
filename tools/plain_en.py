@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.24 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.25 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.24"
+BETA = "Beta 1.25"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -189,12 +189,12 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 
 | Knob | Alone | With Shift |
 |---|---|---|
-| K1 Oscillator | Pitch, in exact semitones | Pitch envelope amount |
+| K1 Oscillator | Pitch, in exact semitones ({B}: a chromatic value of the mod's, saved with the project) | Pitch envelope amount |
 | K2 Osc mod | Ring mod frequency | Ring mod amount |
 | K3 Amp envelope | RC: decay; left of zero, the sample's start point. {B}: **left = decay** (the stock one), **right of the maximum = attack** (fade-in up to 1 s) | {B}: **left = sample start**, **right = cut** from the end |
 | K4 Filter envelope | Envelope → cutoff | Envelope shape |
 | K5 Filter frequency | Filter / EQ | Filter mode: EQ tilt (stock), band pass, notch, comb, DJ |
-| K6 Resonance | Resonance | — |
+| K6 Resonance | Resonance | {B}: **continuous pitch**, the stock one (linear, as the original) |
 | K7 Modulation | LFO amount | LFO speed |
 | K8 FX | Distortion; left of zero, bitcrush | Distortion type: stock, soft, hard, folded |
 
@@ -202,7 +202,7 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 - **RC0.9:** a new or untouched project starts with the filter mode in DJ, which removes the stock EQ: drums can sound different from a stock Circuit. Shift + K5 to «EQ tilt» brings the stock sound back. {B}: fixed (the default is the stock EQ).
 
 ### Play a drum like a keyboard
-Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step.
+Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step ({B}: the pads set K1's chromatic value and are not recorded per step).
 
 ### Drum Preset view
 | Gesture | What it does |

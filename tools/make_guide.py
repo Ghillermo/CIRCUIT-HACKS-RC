@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.24"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.25"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -49,6 +49,8 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Shift** | todas | Con Shift pulsado, los atajos disponibles se iluminan en **amarillo**; la opción elegida, en otro color. |
 | **Save** | todas | Guarda el proyecto como siempre; además escribe en el pack los samples sustituidos por capturas (Preset de drums) si caben en la memoria de samples *(escribe en la tarjeta)*. |
 | **Pulsar el botón de la pista otra vez** | Synth 1 / 2 | Abre la vista de la fuente del sinte (capítulo II). |
+| **Clear + Synth 1 / 2** | su vista | {B} Sus ocho macros a los valores del patch cargado. |
+| **Clear + el botón de un drum** | su vista | {B} Sus ocho knobs a sus valores por defecto. |
 | **Synth 1 + Synth 2 a la vez** | todas | Teclado partido {B}. |
 | **Shift + Clear** | todas | Metrónomo en cuatro estados {B}: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / cian (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. |
 | **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación {B}. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
@@ -247,12 +249,12 @@ view("drum-pista", "IV", "Vista de pista de un drum (knobs)",
      f"""
 | Knob | Solo | Con Shift |
 |---|---|---|
-| K1 Oscillator | Pitch (semitonos exactos) | Cantidad de la envolvente de tono |
+| K1 Oscillator | Pitch en semitonos exactos ({B}: un valor cromático propio, que se guarda con el proyecto) | Cantidad de la envolvente de tono |
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
 | K3 Amp envelope | **Izquierda: decay** (el de stock). Pasado el máximo, **derecha: ataque** (fundido de entrada, hasta 1 s). Centro neutro. {B} | **Izquierda: inicio** del sample; **derecha: corte** desde el final (hasta 120/128 cada uno). Centro = el sample entero. {B} |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
 | K5 Filter frequency | Filtro / EQ (por defecto, el EQ tilt de stock) | **Modo de filtro**: EQ tilt de stock, paso banda, notch, comb, DJ |
-| K6 Resonance | Resonancia | — |
+| K6 Resonance | Resonancia | {B} **Pitch continuo**: el de stock, lineal como el original (el que se guarda en los proyectos, se automatiza y sale por CC) |
 | K7 Modulation | Cantidad del LFO | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
@@ -283,7 +285,7 @@ view("drum-cromatica", "IV", "Vista cromática y de escala de los drums",
      f"""
 - Tres filas de notas en la escala y la tónica de la vista Scales.
 - **K1** = sesgo de tono en semitonos; **Shift + K1** = afinación fina en cents.
-- Grabando, cada tono se graba solo en su paso.
+- Grabando, cada tono se graba solo en su paso. {B}: los pads fijan el valor cromático (K1) y no se graban por paso.
 - **Vista Note de los drums:** los pads 25-28 repiten los cuadros de los drums 4 … 1.
 - **Rollers de micropasos** {B} en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con el transporte parado** {B} también: al tempo del proyecto, empezando al pulsar el primero (velocity 100). **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
 """)
