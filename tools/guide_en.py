@@ -316,7 +316,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 - **Sidechain between drums:** Shift + FX and Octave ▼ (chapter 8).
 """),
 "drum-preset": ("Drum Preset view",
-    "Press **Preset** with a drum selected. The pads pick the sample as always (Shift + pad = pick without sound).", """
+    "Press **Preset** with a drum selected. The pads pick the sample as always (Shift + pad = pick without sound).", f"""
 | Gesture | What it does |
 |---|---|
 | **Clear + pad**, **Clear + the same pad** | **Replaces** that sample with Master FX's capture. Volatile until you save: then it is written into the pack if it fits in the sample memory. |
@@ -329,7 +329,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 - Duplicate lights in this view. Writes to the card: not in the «S» versions nor in the internal memory's pack.
 """),
 "drum-cromatica": ("Chromatic and scale view of the drums",
-    "**Shift + Preset** with a drum selected. The pads play the sample transposed along the scale.", """
+    "**Shift + Preset** with a drum selected. The pads play the sample transposed along the scale.", f"""
 - Three rows of notes in the scale and root of the Scales view.
 - **K1** = pitch offset in semitones; **Shift + K1** = fine tuning in cents.
 - While recording, each pitch is recorded on its own step only.

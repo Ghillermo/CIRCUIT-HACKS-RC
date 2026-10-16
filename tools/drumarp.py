@@ -53,6 +53,16 @@ SEEN_MS = 200
 S_N, S_MAG, S_DRUM, S_K, S_FG, S_FP, S_SMP, S_VEL, S_FIRST, S_FL, S_NEXT, S_SEEN = 0, 1, 2, 3, 4, 5, 6, 12, 18, 19, 20, 24
 
 
+NOTEOFF = False                                          # SC43.1 (use_noteoff)
+
+
+def use_noteoff():
+    """SC43.1: each hit leaves its note-off to rollers' c_rloffset / c_rlsweep (rollers.use_noteoff): stopped, the last hit of an arpeggio never got
+    one (the drum's boxes of the Note view stayed white, its MIDI note hung)."""
+    global NOTEOFF
+    NOTEOFF = True
+
+
 REC = False                                              # SC42.9 (use_rec)
 SYNC = False                                             # SC43 (use_sync)
 
@@ -184,6 +194,7 @@ def arm_code(base, L, prev):
     a.label("dh_on")
     E(ldr_imm, 0, 4, 0x4C); E(movs_imm, 1, 0x58); E(ldrb_reg, 1, 4, 1); E(mov_reg, 2, 6); E(movs_imm, 3, 0); E(ldr_imm, 5, 0, 0); E(ldr_imm, 5, 5, 0); E(raw, h(0x47A8))
     E(movs_imm, 0, 1); E(movs_imm, 1, 0x59); E(strb_reg, 0, 4, 1)
+    if NOTEOFF: E(mov_reg, 0, 4); E(bl, L["c_rloffset"])
     E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_dafire(r0 = the state): the next sample of the order on the drum
@@ -398,6 +409,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = dict(c_arord=lab("arp", "c_arord"), c_shift=lab("sc15", "c_shift"), c_pmtp=lab("playmode", "c_pmtp"))
+    if NOTEOFF: L["c_rloffset"] = lab("rollers", "c_rloffset")
     prev = dict(pad=u(DPV_VT) & ~1, rel=u(DPV_VT + 4) & ~1, leds=u(DPV_VT + 28) & ~1, pspad=u(PS_VT) & ~1, psbuf=u(PS_VT + 28) & ~1,
                 play=u(DP_VT + 8) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert prev["play"] == lab("rollers", "c_rlplay"), hex(prev["play"])

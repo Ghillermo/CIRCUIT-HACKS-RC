@@ -4,6 +4,20 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.22 — 2026-10-16
+
+**Beta 1.22** (marca `B1.22`; = SC43.2) = Beta 1.21 + un arreglo. Las RC siguen en RC0.9 / RC0.9S.
+
+### Arreglos (solo Beta 1.22)
+- **Grabar con el arpegiador:** la segunda nota de un acorde (y las siguientes) llegaba al grabador pero nunca su note-off, así que el grabador la daba por mantenida y la ignoraba cuando se volvía a tocar, hasta pulsar Record otra vez: en un patrón de 32 pasos los acordes de la segunda página se grababan solo con su primera nota y el arpegiador no los arpegiaba. Ahora al soltar esas notas el grabador también recibe su note-off.
+
+## Beta 1.21 — 2026-10-16
+
+**Beta 1.21** (marca `B1.21`; = SC43.1) = Beta 1.20 + un arreglo. Las RC siguen en RC0.9 / RC0.9S.
+
+### Arreglos (solo Beta 1.21)
+- **Rollers y arpegio de drums con el transporte parado:** sus golpes no recibían el note-off, así que los cuadros del drum en la vista Note (pads 27-30 para los drums 1 y 2) se quedaban en blanco y la nota MIDI del drum colgada. Ahora cada golpe se suelta 100 ms después.
+
 ## Beta 1.20 — 2026-10-16
 
 **Beta 1.20** (marca `B1.20`; = SC43) = Beta 1.19 + las funciones de Pattern Settings en los drums y tres arreglos de grabación. Las RC siguen en RC0.9 / RC0.9S.
@@ -257,6 +271,20 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.22 — 2026-10-16
+
+**Beta 1.22** (marker `B1.22`; = SC43.2) = Beta 1.21 + one fix. The RCs stay RC0.9 / RC0.9S.
+
+### Fixes (Beta 1.22 only)
+- **Recording with the arpeggiator:** a chord's second note (and the later ones) reached the recorder but its note-off never did, so the recorder took it as still held and ignored it when it was played again, until Record was pressed again: in a 32-step pattern the chords of the second page were recorded with their first note only, and the arpeggiator did not arpeggiate them. Now letting go of those notes also gives the recorder their note-off.
+
+## Beta 1.21 — 2026-10-16
+
+**Beta 1.21** (marker `B1.21`; = SC43.1) = Beta 1.20 + one fix. The RCs stay RC0.9 / RC0.9S.
+
+### Fixes (Beta 1.21 only)
+- **Drum rollers and drum arpeggio with the transport stopped:** their hits never got a note-off, so the drum's boxes in the Note view (pads 27-30 for drums 1 and 2) stayed white and the drum's MIDI note hung. Now each hit is released 100 ms later.
 
 ## Beta 1.20 — 2026-10-16
 

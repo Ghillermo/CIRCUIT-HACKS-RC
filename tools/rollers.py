@@ -73,6 +73,21 @@ def use_free():
     FREE = True
 
 
+NOTEOFF = False                                            # SC43.1 (use_noteoff)
+O_OFF, OFF_MS = 664, 100                                   # (NOTEOFF) a drum's note-off time (ms, 0 = none), 4 B a drum
+
+
+def use_noteoff():
+    """SC43.1 (the user, 2026-10-16: «en el roller, la fila inferior se ve parcialmente blanca (pads 27 al 30)»): a drum's note-on through its
+    player's interface lights its two boxes of the Note view white (0x01, the palette + 0x148) until the note-off; playing, the stock sends it on
+    the next step, but the hits of the rollers (and of the drum arpeggio) with the transport stopped never got one: the boxes stayed white and the
+    drum's MIDI note hung.  Now such a hit leaves a note-off time (+ 100 ms) in the record's tail + 664 + 4 d (RAM, free in the builds without
+    stutdiag; c_rloffset) and the LED task sends it (c_rlsweep); playing, the time is dropped (the sequencer's).  Needs use_free."""
+    global NOTEOFF
+    assert FREE
+    NOTEOFF = True
+
+
 DRUM_COL = (0x45, 0x2D, 0x49, 0x4D)                        # drums 1-4 (the bottom row's colours); + 1 = the dim one of the same family
 
 
@@ -185,7 +200,9 @@ def arm_code(base, prev):
     a.label("rt_z")
     E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "rt_x", "eq"); E(movs_imm, 1, 0); E(raw, h(0x6001))         # str r1, [r0]: the four masks
     if FREE: E(b, "rt_x"); a.label("rt_k"); E(bl, "c_rlfree")
-    a.label("rt_x"); E(pop_list, [3, 4], pc=True)
+    a.label("rt_x")
+    if NOTEOFF: E(bl, "c_rlsweep")
+    E(pop_list, [3, 4], pc=True)
     if SYNC:
         import drumstore
         drumstore.emit_sync(a, "c_rlsync")
@@ -203,6 +220,7 @@ def arm_code(base, prev):
         a.label("rh_on")
         E(ldr_imm, 0, 4, 0x4C); E(raw, ldrbw(1, 4, 0x58)); E(movs_imm, 2, VEL_EMPTY); E(movs_imm, 3, 0); E(ldr_imm, 5, 0, 0); E(ldr_imm, 5, 5, 0); E(raw, h(0x47A8))   # blx r5
         E(movs_imm, 0, 1); E(raw, strbw(0, 4, 0x59))
+        if NOTEOFF: E(mov_reg, 0, 4); E(bl, "c_rloffset")
         E(pop_list, [4, 5], pc=True)
         # ---- c_rlfree(): the transport stopped and a roller held: the micro steps due on our clock
         a.label("c_rlfree")
@@ -236,6 +254,39 @@ def arm_code(base, prev):
         a.label("rf_e"); E(pop_list, [0]); E(b, "rf_x")
         a.label("rf_z"); E(movs_imm, 0, 0); E(strb_imm, 0, 5, 5)                                            # stopped: the next roller starts the clock again
         a.label("rf_x"); E(pop_list, [4, 5, 6, 7], pc=True)
+    if NOTEOFF:
+        # ---- c_rloffset(r0 = a drum player): its note-off due in OFF_MS; clobbers r0-r3
+        a.label("c_rloffset")
+        E(push_list, [4], lr=True)
+        imm32(1, DP0); E(subs_reg, 0, 0, 1); E(movs_imm, 1, DP_SZ); E(raw, udiv(4, 0, 1))                  # r4 = the drum
+        E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "ro_x", "eq")
+        E(movw, 1, O_MASK - O_OFF); E(subs_reg, 0, 0, 1); E(lsls_imm, 4, 4, 2); E(adds_reg, 4, 0, 4)
+        imm32(1, HAL_TICK); E(ldr_imm, 1, 1, 0); E(adds_imm8, 1, OFF_MS); E(cmp_imm, 1, 0); E(b_cond, "ro_s", "ne"); E(movs_imm, 1, 1)
+        a.label("ro_s"); E(str_imm, 1, 4, 0)
+        a.label("ro_x"); E(pop_list, [4], pc=True)
+        # ---- c_rloff1(r0 = a drum player): its note-off when it sounds
+        a.label("c_rloff1")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        E(raw, ldrbw(0, 4, 0x59)); E(cmp_imm, 0, 0); E(b_cond, "r1_x", "eq")
+        E(ldr_imm, 0, 4, 0x4C); E(raw, ldrbw(1, 4, 0x58)); E(movs_imm, 2, 0); E(ldr_imm, 3, 0, 0); E(ldr_imm, 3, 3, 4); E(raw, h(0x4798))   # blx r3
+        E(movs_imm, 0, 0); E(raw, strbw(0, 4, 0x59))
+        a.label("r1_x"); E(pop_list, [4], pc=True)
+        # ---- c_rlsweep() (the LED task): the note-offs due, stopped; playing they are dropped
+        a.label("c_rlsweep")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "sw_x", "eq")
+        E(movw, 1, O_MASK - O_OFF); E(subs_reg, 5, 0, 1)                                                     # r5 = the times
+        imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 7, 0, 0)                      # r7 = playing
+        imm32(0, HAL_TICK); E(ldr_imm, 6, 0, 0)                                                             # r6 = now
+        E(movs_imm, 4, 0)
+        a.label("sw_l")
+        E(lsls_imm, 0, 4, 2); E(adds_reg, 0, 5, 0); E(ldr_imm, 1, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "sw_n", "eq")
+        E(cmp_imm, 7, 0); E(b_cond, "sw_c", "ne")
+        E(subs_reg, 1, 6, 1); E(b_cond, "sw_n", "mi")                                                       # not due yet
+        E(movs_imm, 0, DP_SZ); E(muls, 0, 4); imm32(1, DP0); E(adds_reg, 0, 0, 1); E(bl, "c_rloff1")
+        a.label("sw_c"); E(lsls_imm, 0, 4, 2); E(adds_reg, 0, 5, 0); E(movs_imm, 1, 0); E(str_imm, 1, 0, 0)
+        a.label("sw_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 4); E(b_cond, "sw_l", "lo")
+        a.label("sw_x"); E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 
 

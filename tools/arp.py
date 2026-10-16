@@ -66,6 +66,22 @@ PS_PAD_RATE = 16                                              # (RATE) Shift + p
 
 
 COLS2 = False                                                 # SC42.5 (use_cols2): with Shift only the chosen ones green
+RECOFF = False                                                # SC43.2 (use_recoff)
+REC_OFF = 0x0802E5CC                                          # the recorder's note-off gate (rec, note, track)
+
+
+def use_recoff():
+    """SC43.2 (the user, 2026-10-16: «al grabar un patrón con arpegiador de 32 pasos, sólo se aplica el arpegiador a la página donde se pulsó
+    grabar … grabar una segunda vez … sí que aplica el arpegiador, pero solo a las notas nuevas»): the second and later notes of a chord go to
+    the recorder's note-on gate by us (0x0802E56A), but their note-off took the stock's path, which never reached the recorder (the stock's
+    router only knows the notes it routed): the recorder kept them held (its list at [recorder + 0x54], 12 B a note, flag byte 3 = released)
+    and ignored the same notes played again until Record was pressed again, so later chords were recorded as their first note alone and
+    the arpeggiator saw no chord.  Now letting go of such a note also calls the recorder's note-off gate (0x0802E5CC(rec, note, track));
+    letting go of the first note (the stock's) clears the state's first note, so a note pressed again while others are held is ours."""
+    global RECOFF
+    RECOFF = True
+
+
 
 
 def use_cols2():
@@ -481,7 +497,15 @@ def arm_code(base, L, prev):
     E(adds_reg, 2, 0, 1); E(raw, ldrb_w_(5, 2, 0x40))                                   # r5 = the note
     E(ldr_imm, 0, 0, 0x18); E(ldrb_imm, 7, 0, 0xC); E(cmp_imm, 7, 3); E(b_cond, "lf_s", "hi")
     E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arst"); E(cmp_imm, 0, 0); E(b_cond, "lf_s", "eq"); E(mov_reg, 4, 0)
+    if RECOFF: E(ldrb_imm, 6, 4, S_N)                                                    # (RECOFF) r6 = how many before
     E(mov_reg, 1, 5); E(bl, "c_ardel")
+    if RECOFF:
+        E(ldrb_imm, 0, 4, S_N); E(cmp_reg, 0, 6); E(b_cond, "lf_q", "eq")                  # not one of the held: nothing
+        E(ldrb_imm, 0, 4, S_FIRST); E(cmp_reg, 0, 5); E(b_cond, "lf_r", "ne")
+        E(movs_imm, 0, 0xFF); E(strb_imm, 0, 4, S_FIRST); E(b, "lf_q")                     # the stock's first note: its own note-off
+        a.label("lf_r")
+        imm32(0, REC); E(mov_reg, 1, 5); E(mov_reg, 2, 7); E(bl, REC_OFF)                  # ours: the recorder's note-off
+        a.label("lf_q")
     E(ldrb_imm, 0, 4, S_PEND); E(cmp_reg, 0, 5); E(b_cond, "lf_p", "ne"); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 4, S_PEND)   # the stock stops it
     a.label("lf_p")
     E(ldrb_imm, 0, 4, S_N); E(cmp_imm, 0, 0); E(b_cond, "lf_s", "ne")

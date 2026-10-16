@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.20"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.22"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -263,7 +263,7 @@ view("drum-pista", "IV", "Vista de pista de un drum (knobs)",
 
 view("drum-preset", "IV", "Vista Preset de drums",
      "Pulsa **Preset** con un drum elegido. Los pads eligen el sample como siempre (Shift + pad = elegir sin que suene).",
-     """
+     f"""
 | Gesto | Qué hace |
 |---|---|
 | **Clear + pad**, **Clear + el mismo pad** | **Sustituye** ese sample por la captura de Master FX. Volátil hasta guardar: al guardar se escribe en el pack si cabe en la memoria de samples. |
@@ -278,7 +278,7 @@ view("drum-preset", "IV", "Vista Preset de drums",
 
 view("drum-cromatica", "IV", "Vista cromática y de escala de los drums",
      "**Shift + Preset** con un drum elegido. Los pads tocan el sample transpuesto según la escala.",
-     """
+     f"""
 - Tres filas de notas en la escala y la tónica de la vista Scales.
 - **K1** = sesgo de tono en semitonos; **Shift + K1** = afinación fina en cents.
 - Grabando, cada tono se graba solo en su paso.
