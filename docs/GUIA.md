@@ -1,4 +1,4 @@
-# Guía por vistas — CIRCUIT-HACKS (RC2)
+# Guía por vistas — CIRCUIT-HACKS (RC2.01)
 
 Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía recorre las vistas del aparato y explica todo lo que se puede hacer en cada una. La [lista de características](MANUAL.md) resume cada función por temas.
 
@@ -79,7 +79,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - **Pads 1-32** de arriba-izquierda a abajo-derecha: fila 1 = 1-8, fila 2 = 9-16, fila 3 = 17-24, fila 4 = 25-32.
 - **Knobs K1-K4** arriba, **K5-K8** abajo. «**Shift + X**» = mantener Shift mientras se usa X; lo mismo con Clear y Duplicate.
 - Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).
-- *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2S, no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
+- *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.01S (y RC2S), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 
 <a id="botones"></a>
@@ -637,7 +637,7 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 - **Modo frase:** Shift + paso = inicio (fin 16); un toque = el fin; Shift + otro = nuevo inicio; Shift + el inicio o el pad 9 = salir.
 
 ### Sample capturado (pads 7 y 32)
-- **Pad 32:** mantener = graba mientras lo mantienes (hasta 3,46 s); toque corto = hasta el siguiente; **Shift + pad 32** = armado (graba el compás siguiente; parado, desde Play). La captura graba la salida sin los efectos de Master FX; el sample que suena sí pasa por ellos.
+- **Pad 32:** mantener = graba mientras lo mantienes (hasta 3,46 s); toque corto = hasta el siguiente; **Shift + pad 32** = armado (graba el compás siguiente; parado, desde Play). La captura graba la salida sin los efectos de Master FX; el sample que suena sí pasa por ellos. **Desde RC2.01** la captura y el sample van antes del filtro master: el filtro le afecta al sonar y la captura no lo lleva.
 - **Pad 7:** tocar; **Shift + pad 7** = bucle enganchado hasta volver a pulsarlo. El modo loop (K2 azul) suena solo mientras mantienes.
 - Se puede asignar a un hueco (pad 7 + pad de abajo) y sustituir a un drum (vista Preset de drums). Al guardar el proyecto se guarda en el pack si cabe.
 
@@ -806,6 +806,6 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 *Cómo se llega:* `tools/rc_uploader.html` parchea el firmware oficial en el navegador y lo envía por Web MIDI.
 
 1. Descarga el firmware oficial 1.2.1 de Novation, abre `tools/rc_uploader.html` en Chrome y conecta el Circuit Tracks por USB.
-2. Elige la versión (RC2, la más segura RC2S, o una anterior) y envía. El bootloader de Novation no se toca.
+2. Elige la versión (RC2.01, la más segura RC2.01S, o una anterior) y envía. El bootloader de Novation no se toca.
 3. **Haz antes una copia de la tarjeta.** Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si no arranca: **Scales + Preset + Note** al encender.

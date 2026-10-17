@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2.01</p><div class="bar"></div></header><main>
 <p class="lang"><a href="index.html">Versión en español</a> · <a href="guide.html"><strong>Guide by views (user manual)</strong></a> · <a href="midi-en.html">MIDI reference</a></p>
 <p><strong>Conventions.</strong> Pads 1-32 from top left to bottom right (row 1 = 1-8 … row 4 = 25-32). Knobs K1-K4 on top and K5-K8 at the bottom. “Shift + X” = hold Shift while using X. The colours of the diagrams are approximate; a dim pad is drawn translucent. Anything not described here works as on the original device (see Novation’s official user guide).</p>
 <nav class="toc"><h2>Feature index</h2>
@@ -3631,6 +3631,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Hold:</strong> records while held (up to 3.46 s).</li>
 <li><strong>Short press:</strong> records until the next press.</li>
 <li><strong>Master FX effects (from RC0.5):</strong> the sample that plays goes through the Master FX effects; the capture records the output without them (in RC0-RC0.4 it was the other way round: the capture held the effects and the sample played without them).</li>
+<li><strong>Master filter (since RC2.01):</strong> the capture and the sample that plays sit before the master filter: the filter acts on the sample as it plays and the capture records the mix without the filter (up to RC2 the other way round: the capture held the filter and the sample played without it).</li>
 <li><strong>Shift + pad 32:</strong> armed: with the transport running it records the next bar; stopped, it starts when you press <strong>Play</strong>, from the first beat, and records that bar (from RC0.4; it used to start a bar late).</li>
 </ul>
 <h4>Playing (pad 7)</h4>
@@ -4498,7 +4499,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="e3-instalar"><h3><span class="code">E3</span>Installing and going back</h3>
 <div class="summary"><p><code>tools/ct_uploader.html</code> sends the <code>.syx</code> over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.</p></div>
 <ol>
-<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2, RC2S (or the earlier RC0.9 / RC0.9S) or “Official”.</li>
+<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.01, RC2.01S (or the earlier RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.</li>
 <li>1. Open <code>tools/ct_uploader.html</code> in Chrome and connect the Circuit Tracks over USB.</li>
 <li>2. Pick the <code>.syx</code> from <code>firmware/&lt;version&gt;/</code>: the uploader checks its SHA-256.</li>
 <li>3. Send. Novation’s bootloader is not modified.</li>
@@ -4506,9 +4507,10 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Going back:</strong> send another version or the official firmware. If the device does not start: hold <strong>Scales + Preset + Note</strong> at power-on (bootloader recovery mode).</li>
 <li>The RC branch does not publish <code>.syx</code> files: they are generated with <code>tools/patch_official.py</code> from the official firmware.</li>
+<li><strong>RC2.01</strong> (files and marker <code>R201</code>) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).</li>
 <li><strong>RC2</strong> (release candidate 2, marker <code>RC2</code>) = SC44 = RC0.9 + everything this manual marks <strong>since RC2</strong>: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.</li>
 <li><strong>RC0.9</strong> (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
-<li><strong>Safer build:</strong> RC2S = RC2, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
+<li><strong>Safer build:</strong> RC2.01S (files <code>R201S</code>; before, RC2S) = RC2.01, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
 <li>New features and fixes of every version: <code>CHANGELOG.md</code>.</li>
 </ul>
 </section>
@@ -4542,4 +4544,4 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Master FX — channel 16, NRPN MSB 9</h4>
 <p>LSB = 4 × set + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl 16-19.</p>
 </section>
-<footer>CIRCUIT-HACKS RC2 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.01 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>

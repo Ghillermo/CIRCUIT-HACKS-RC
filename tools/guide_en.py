@@ -16,7 +16,7 @@ VIEWS = {
 - **Pads 1-32** from top-left to bottom-right: row 1 = 1-8, row 2 = 9-16, row 3 = 17-24, row 4 = 25-32.
 - **Knobs K1-K4** on top, **K5-K8** below. «**Shift + X**» = hold Shift while using X; the same with Clear and Duplicate.
 - Anything not described here works as on the original device (Novation's official manual).
-- {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2S, writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
+- {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2.01S (and RC2S), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -386,7 +386,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 - **Phrase mode:** Shift + step = start (end 16); a touch = the end; Shift + another = new start; Shift + the start or pad 9 = leave.
 
 ### Captured sample (pads 7 and 32)
-- **Pad 32:** hold = records while held (up to 3.46 s); short tap = until the next; **Shift + pad 32** = armed (records the next bar; stopped, from Play). The capture records the output without Master FX's effects; the playing sample goes through them.
+- **Pad 32:** hold = records while held (up to 3.46 s); short tap = until the next; **Shift + pad 32** = armed (records the next bar; stopped, from Play). The capture records the output without Master FX's effects; the playing sample goes through them. **Since RC2.01** the capture and the sample sit before the master filter: the filter acts on the sample as it plays and the capture does not hold it.
 - **Pad 7:** play; **Shift + pad 7** = latched loop until pressed again. Loop mode (K2 blue) sounds only while held.
 - It can be assigned to a slot (pad 7 + a pad below) and replace a drum (drum Preset view). When the project is saved it goes into the pack if it fits.
 
@@ -485,7 +485,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 "instalar": ("Installing and going back",
     "`tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.", """
 1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
-2. Pick the version (RC2, the safer RC2S, or an earlier one) and send. Novation's bootloader is not touched.
+2. Pick the version (RC2.01, the safer RC2.01S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
 """),

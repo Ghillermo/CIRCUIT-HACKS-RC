@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "RC2"
+VERSION = "RC2.01"
 
 # ---------------------------------------------------------------------------------------------------- colours (approximations of the pad colours)
 C = dict(red="#ff3b30", orange="#ff8a00", yellow="#ffd23f", green="#3ddc5a", teal="#00c2a8", blue="#2f7bff", purple="#8e5cff", magenta="#e040fb",
@@ -714,6 +714,7 @@ sec("sample", "C", "Sample capturado",
 - **Mantener:** graba mientras se mantiene (hasta 3,46 s).
 - **Pulsación corta:** graba hasta la siguiente pulsación.
 - **Efectos de Master FX (desde RC0.5):** el sample que suena pasa por los efectos de Master FX; la captura graba la salida sin ellos (en RC0-RC0.4 era al revés: la captura llevaba los efectos y el sample sonaba sin ellos).
+- **Filtro master (desde RC2.01):** la captura y el sample que suena van antes del filtro master: el filtro actúa sobre el sample al sonar y la captura graba la mezcla sin el filtro (hasta RC2, al revés: la captura llevaba el filtro y el sample sonaba sin él).
 - **Shift + pad 32:** armado: con el transporte en marcha graba el compás siguiente; parado, empieza al pulsar **Play**, desde el primer pulso, y graba ese compás (desde RC0.4; antes empezaba un compás tarde).
 
 ### Tocar (pad 7)
@@ -1006,15 +1007,16 @@ sec("pack-interno", "E", "El pack de la memoria interna: solo lectura",
 sec("instalar", "E", "Instalar y volver atrás",
     ["`tools/ct_uploader.html` envía el `.syx` por Web MIDI; solo acepta firmwares verificados. Recuperación: Scales + Preset + Note al encender."],
     """
-0. **Sin compilar:** `tools/rc_uploader.html` parchea el firmware oficial ([descarga de Novation](https://components.novationmusic.com/api/v2/firmwares/168/file)) en el navegador y lo envía. Elige RC2, RC2S (o las anteriores RC0.9 / RC0.9S) u «Oficial».
+0. **Sin compilar:** `tools/rc_uploader.html` parchea el firmware oficial ([descarga de Novation](https://components.novationmusic.com/api/v2/firmwares/168/file)) en el navegador y lo envía. Elige RC2.01, RC2.01S (o las anteriores RC2 / RC2S, RC0.9 / RC0.9S) u «Oficial».
 1. Abre `tools/ct_uploader.html` en Chrome y conecta el Circuit Tracks por USB.
 2. Elige el `.syx` de `firmware/<versión>/`: el uploader comprueba su SHA-256.
 3. Envía. El bootloader de Novation no se modifica.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si el aparato no arranca: mantén **Scales + Preset + Note** al encender (modo de recuperación del bootloader).
 - En la rama RC los `.syx` no se publican: se generan con `tools/patch_official.py` a partir del firmware oficial.
+- **RC2.01** (ficheros y marca `R201`) = RC2 + el sample capturado antes del filtro master (el filtro le afecta al sonar; la captura graba la mezcla sin el filtro).
 - **RC2** (versión candidata 2, marca `RC2`) = SC44 = RC0.9 + todo lo marcado **desde RC2** en este manual: lo de las betas 1.0-1.30 (gesto mecánico y Glitch en el pad 6, Digitise K3 / K4, Master FX por sesión, knobs del sidechain y del compresor, frecuencia, dinámicas y random-mutate por paso, cadenas de patrones y escenas, Nudge y órdenes de reproducción, patches del sinte propio, arpegiadores, rollers, escala propia, cuenta atrás, modo cue, sidechain desde las pistas de notas, cuantizar, formas del LFO, modo muestra…) y sus arreglos. Gran parte está sin probar en el aparato: úsala con una copia de la SD.
 - **RC0.9** (décima versión candidata) = RC0.8 + el pack de la memoria interna, de solo lectura para el mod; RC0.8 = RC0.7 + un arreglo (los knobs de pitch del step-drummer conservan su valor: desde RC0 cada giro escribía solo su incremento); RC0.7 = RC0.6 + dos arreglos (el step-drummer, el secuenciador de efectos y el stretch siguen el patrón de su propia pista, antes el de otra; el knob selector del secuenciador de efectos, más lento); RC0.6 = RC0.5 + dos arreglos (el LFO del Auto-Filter y del Phaser arranca al activar el efecto; el blanco tenue de Clear ya no pulsa); RC0.5 = RC0.4 + el sample capturado delante de los efectos de Master FX; RC0.4 = RC0.3 + los arreglos de SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
-- **Versión más segura:** RC2S = RC2, pero todo lo que el mod pediría escribir o borrar en la tarjeta o en la memoria interna se rechaza (el LED de Save se pone rojo): no hacen nada guardar la captura con el proyecto (A8), los intercambios y copias de samples y patches entre packs, los patches del sinte propio, guardar el patch del sinte, copiar proyectos ni borrar packs; los guardados del original (proyectos, patches, ajustes) sí. Las anteriores: RC0.9S = RC0.9 sin esas funciones. **Haz una copia de la SD antes de instalar** cualquier versión.
+- **Versión más segura:** RC2.01S (ficheros `R201S`; antes RC2S) = RC2.01, pero todo lo que el mod pediría escribir o borrar en la tarjeta o en la memoria interna se rechaza (el LED de Save se pone rojo): no hacen nada guardar la captura con el proyecto (A8), los intercambios y copias de samples y patches entre packs, los patches del sinte propio, guardar el patch del sinte, copiar proyectos ni borrar packs; los guardados del original (proyectos, patches, ajustes) sí. Las anteriores: RC0.9S = RC0.9 sin esas funciones. **Haz una copia de la SD antes de instalar** cualquier versión.
 - Novedades y arreglos de cada versión: `CHANGELOG.md`.
 """)
 

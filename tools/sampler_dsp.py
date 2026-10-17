@@ -49,6 +49,30 @@ PRE = False                                          # SC39.2 (the user, 2026-10
                                                      #   `jmp fx_hook + 2` (fx_out keeps its own `move #>$2e10,r1` + `rts`).  The sample that plays goes through
                                                      #   the effects; the capture records the master before them (and still never itself); the tail (the
                                                      #   granular copies, the Glitch) also runs before the effects, so the effects process the Glitch's output
+FILT = False                                         # RC2.01 (see use_prefilter)
+PF_L, PF_R, PF_AT = 0x2C02, 0x2C24, 0xD53             # (FILT) the master mix before the master filter (P:$D3E: L / R, x:$3a words each, >> 1); the
+                                                     #   two nops before the filter's jsr (P:$D55 jsr func_0013ad)
+SAVF4, SAVF5, SAVF6 = SMB + 0x18, SMB + 0x19, SMB + 0x1A   # (FILT) the caller's r4 / r5 / r6 (free words, after the first call's clearing of 0x18 words);
+                                                     #   r0 / r1 come back as the mix loop leaves them: X:$2C02 / $2C24 + x:$3a
+
+
+def use_prefilter():
+    """RC2.01 (the user, 2026-10-17: «pon el master sampler detras del filtro» · «Todo antes del filtro»): the capture and the playback of the
+    sample run before the master filter, so the filter acts on the sample that plays (it went in after it: Master FX hooks P:$274, after the
+    filter and the << 2), and the capture records the mix before the filter (still never itself).  smp_post is called by a jsr in place of the
+    two nops of P:$D53 (after the mix loop of P:$D3E, before jsr func_0013ad: the same depth as the filter's own call); it works on the two
+    mono arrays X:$2C02 (L) / X:$2C24 (R) of the final mix: the filter's last stage (P:$1451) mixes them with its low / high pass, multiplies
+    by the master gain y:$7FF and shifts << 2 into X:$2E10, and P:$269 shifts << 2 again, so Master FX gets 16 x the mix: the capture =
+    (L + R) / 2 x 16 and the playback adds the sample / 16 to L and R, the levels of before with the filter in the middle and the gain at the
+    top (the capture no longer holds the gain y:$7FF; the sample that plays goes through it); r4, r5, r6 come back (saved) and
+    r0 / r1 as the mix loop leaves them.  The
+    tail (the granular copies, the Glitch) stays at the start of Master FX: fx_hook's first instruction -> jmp smp_tail (m4 linear, r2 = the
+    state as before), which ends with that instruction and jmp fx_hook + 2."""
+    global FILT
+    assert PRE and V34                                                  # (V34: the first call clears only 0x18 words, so SAVF4..6 survive it)
+    FILT = True
+
+
 SAMPLE_TAB = 0x1D8D
 TAIL = None                                          # SC36: a callable (a, e) emitting code at the end of smp_post, before M4 / M5 / R2 come back
 TAIL_TABLE = None                                    #   and (a) emitting its data after the code (granular_dsp.core0_tail / core0_table)
@@ -88,6 +112,7 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     L("smp_post")
     if v34:                                                                                  # r2 = the base of the state (saved / restored)
         a.emit(T("move r2,x:>$%x" % SAVR2)); a.emit(T("move m2,x:>$%x" % SAVM2)); a.emit(T("move #>$%x,r2" % SMB)); a.emit(T("move #>$ffffff,m2"))
+    if FILT: e("move r4,x:>$%x" % SAVF4, "move r5,x:>$%x" % SAVF5, "move r6,x:>$%x" % SAVF6)   # (before the first call's clearing, which keeps them)
     e("move x:>$%x,a" % MAGIC_AT, "move #>$%x,x0" % MAGIC, "cmp x0,a"); a.emit(J("eq"), "sm_ok")
     e("clr a", "move #>$%x,r0" % SMB); a.emit(D.NOP)
     e("rep #%d" % (0x18 if v34 else NSTATE), "move a,x:(r0)+")
@@ -106,9 +131,14 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     e("move x:>$%x,a" % WP, "move #>$%x,x0" % base_y, "add x0,a", "move a1,r4")
     e("move x:>$%x,a" % WP, "move x:>$%x,x0" % FRAMES, "add x0,a", "move #>$%x,x0" % maxlen, "cmp x0,a"); a.emit(J("gt"), "sm_nr")   # full
     e("move a1,x:>$%x" % WP, "move a1,x:>$%x" % LEN)
-    e("move #>$%x,r0" % G.BUF); a.emit(D.NOP)
-    a.emit(D.do_x, FRAMES, "sm_re")
-    e("move x:(r0)+,a", "move x:(r0)+,x0", "add x0,a", "asr a")
+    if FILT:                                                                                 # before the filter: (L + R) / 2 x 16
+        e("move #>$%x,r0" % PF_L, "move #>$%x,r1" % PF_R); a.emit(D.NOP)
+        a.emit(D.do_x, FRAMES, "sm_re")
+        e("move x:(r0)+,a", "move x:(r1)+,x0", "add x0,a", "asl #3,a,a")                    # (L + R) / 2 x 16
+    else:
+        e("move #>$%x,r0" % G.BUF); a.emit(D.NOP)
+        a.emit(D.do_x, FRAMES, "sm_re")
+        e("move x:(r0)+,a", "move x:(r0)+,x0", "add x0,a", "asr a")
     L("sm_re"); e("move a,y:(r4)+")
     L("sm_nr")
     # ---- 2. command
@@ -152,7 +182,8 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     e("move x:>$%x,b" % INCI, "move x:>$%x,b0" % INCF)
     e("move x:>$%x,a" % PI, "move x:>$%x,a0" % PF)                                            # a = position
     e("move r6,x:>$%x" % SAVR6, "move #>$%x,r6" % zero)                                     # r6 = the silent word
-    e("move #>$%x,r0" % G.BUF); a.emit(D.NOP)
+    if FILT: e("move #>$%x,r0" % PF_L, "move #>$%x,r1" % PF_R); a.emit(D.NOP)
+    else: e("move #>$%x,r0" % G.BUF); a.emit(D.NOP)
     e("move x:>$%x,x1" % SS, "move y0,x0")
     e("move x1,a", "cmp x0,a"); a.emit(J("lt"), "sm_fw")                                      # S < E: forward (a is reloaded below)
     e("neg b")                                                                               # reverse: the increment negated
@@ -183,10 +214,24 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
         e("move r4,x:>$%x" % CPSRC, "move r5,x:>$%x" % CPDST)
         L("sm_ncp")
         e("move x:>$%x,m5" % SAVM5)
-    if TAIL: TAIL(a, e)
+    if TAIL and not FILT: TAIL(a, e)
     e("move x:>$%x,m4" % SAVM4)
+    if FILT:
+        e("move x:>$%x,r4" % SAVF4, "move x:>$%x,r5" % SAVF5, "move x:>$%x,r6" % SAVF6)
+        e("move x:>$%x,x0" % FRAMES, "move #>$%x,a" % PF_L, "add x0,a", "move a1,r0", "move #>$%x,a" % PF_R, "add x0,a", "move a1,r1")
     if v34: a.emit(T("move x:>$%x,m2" % SAVM2)); a.emit(T("move x:>$%x,r2" % SAVR2))
-    if pre_ret is not None:                                                                  # PRE: the instruction the hook replaced, then the chain
+    if FILT:                                                                                 # back to the mix, before the filter
+        a.emit(D.RTS)
+        # ---- smp_tail (FILT: fx_hook's first instruction jumps here): the tail with m4 linear and r2 = the state, the replaced instruction, the chain
+        L("smp_tail")
+        if v34:
+            a.emit(T("move r2,x:>$%x" % SAVR2)); a.emit(T("move m2,x:>$%x" % SAVM2)); a.emit(T("move #>$%x,r2" % SMB)); a.emit(T("move #>$ffffff,m2"))
+        e("move m4,x:>$%x" % SAVM4, "move #>$ffffff,m4")
+        if TAIL: TAIL(a, e)
+        e("move x:>$%x,m4" % SAVM4)
+        if v34: a.emit(T("move x:>$%x,m2" % SAVM2)); a.emit(T("move x:>$%x,r2" % SAVR2))
+        a.emit(T("move x:>$%x,x0" % G.FX_ON)); a.emit(D.jmp(pre_ret))
+    elif pre_ret is not None:                                                                # PRE: the instruction the hook replaced, then the chain
         a.emit(T("move x:>$%x,x0" % G.FX_ON)); a.emit(D.jmp(pre_ret))
     else:
         e("move #>$%x,r1" % G.BUF); a.emit(D.RTS)
@@ -241,6 +286,11 @@ def loops(a, e, tag, cond):
 
 
 def mix(e):
+    if FILT:                                                                                 # before the filter: the sample / 16 on L (r0) and R (r1)
+        e("move y:(r5),b", "asr #4,b,b", "move b,y1")
+        e("move x:(r0),b", "add y1,b", "move b,x:(r0)+")
+        e("move x:(r1),b", "add y1,b", "move b,x:(r1)+")
+        return
     e("move y:(r5),y1")
     e("move x:(r0),b", "add y1,b", "move b,x:(r0)+")
     e("move x:(r0),b", "add y1,b", "move b,x:(r0)+")
@@ -257,7 +307,8 @@ def install_dsp(s16):
 
 
 def patch_dsp(img, report):
-    """After building: Master FX's fx_out (`move #>$2e10,r1` + `rts`) -> `jmp smp_post` + `nop`."""
+    """After building: Master FX's fx_out (`move #>$2e10,r1` + `rts`) -> `jmp smp_post` + `nop` (PRE: fx_hook's first instruction -> `jmp smp_post`;
+    FILT: -> `jmp smp_tail`, and P:$D53-$D54 (nop, nop) -> `jsr smp_post`)."""
     import struct
     dl = {k: int(v, 16) for k, v in report["sc16"]["dsp_labels"].items()}
     tab = struct.unpack_from("<I", img, 0x08029700 - 0x08010000)[0]          # the relocated core-0 block (our code exists only there)
@@ -265,8 +316,14 @@ def patch_dsp(img, report):
         o = tab - 0x08010000 + 6 + 3 * dl["fx_hook"]
         cur = [int.from_bytes(img[o + 3 * i:o + 3 * i + 3], 'big') for i in range(2)]
         assert cur == T("move x:>$%x,x0" % G.FX_ON), [hex(x) for x in cur]
-        for i, w in enumerate(D.jmp(dl["smp_post"])):
+        for i, w in enumerate(D.jmp(dl["smp_tail" if FILT else "smp_post"])):
             img[o + 3 * i:o + 3 * i + 3] = w.to_bytes(3, 'big')
+        if FILT:                                                             # the two nops before the master filter -> jsr smp_post
+            o = tab - 0x08010000 + 6 + 3 * PF_AT
+            cur = [int.from_bytes(img[o + 3 * i:o + 3 * i + 3], 'big') for i in range(2)]
+            assert cur == [0, 0], [hex(x) for x in cur]
+            for i, w in enumerate(D.jsr(dl["smp_post"])):
+                img[o + 3 * i:o + 3 * i + 3] = w.to_bytes(3, 'big')
         assert dl["sm_se"] + 16 <= 0x4000, hex(dl["sm_se"])
         return
     o = tab - 0x08010000 + 6 + 3 * dl["fx_out"]

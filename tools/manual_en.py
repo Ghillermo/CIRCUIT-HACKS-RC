@@ -609,6 +609,7 @@ sec("sample", "Captured sample",
 - **Hold:** records while held (up to 3.46 s).
 - **Short press:** records until the next press.
 - **Master FX effects (from RC0.5):** the sample that plays goes through the Master FX effects; the capture records the output without them (in RC0-RC0.4 it was the other way round: the capture held the effects and the sample played without them).
+- **Master filter (since RC2.01):** the capture and the sample that plays sit before the master filter: the filter acts on the sample as it plays and the capture records the mix without the filter (up to RC2 the other way round: the capture held the filter and the sample played without it).
 - **Shift + pad 32:** armed: with the transport running it records the next bar; stopped, it starts when you press **Play**, from the first beat, and records that bar (from RC0.4; it used to start a bar late).
 
 ### Playing (pad 7)
@@ -893,15 +894,16 @@ sec("pack-interno", "The internal memory pack: read only",
 sec("instalar", "Installing and going back",
     ["`tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on."],
     """
-0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2, RC2S (or the earlier RC0.9 / RC0.9S) or “Official”.
+0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.01, RC2.01S (or the earlier RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.
 1. Open `tools/ct_uploader.html` in Chrome and connect the Circuit Tracks over USB.
 2. Pick the `.syx` from `firmware/<version>/`: the uploader checks its SHA-256.
 3. Send. Novation’s bootloader is not modified.
 - **Going back:** send another version or the official firmware. If the device does not start: hold **Scales + Preset + Note** at power-on (bootloader recovery mode).
 - The RC branch does not publish `.syx` files: they are generated with `tools/patch_official.py` from the official firmware.
+- **RC2.01** (files and marker `R201`) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).
 - **RC2** (release candidate 2, marker `RC2`) = SC44 = RC0.9 + everything this manual marks **since RC2**: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.
 - **RC0.9** (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
-- **Safer build:** RC2S = RC2, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
+- **Safer build:** RC2.01S (files `R201S`; before, RC2S) = RC2.01, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
 - New features and fixes of every version: `CHANGELOG.md`.
 """)
 

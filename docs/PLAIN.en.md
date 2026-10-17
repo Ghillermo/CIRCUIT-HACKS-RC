@@ -1,6 +1,6 @@
 # Circuit Tracks mod guide, in plain words
 
-First draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, written for RC0.9 and Beta 1.3. This edition is rewritten for **RC2** and **RC2S**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
+First draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, written for RC0.9 and Beta 1.3. This edition is rewritten for **RC2.01** and **RC2.01S**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
 
 Nothing here has been tested on a real unit unless the [CHANGELOG](https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md) says so. The mod is not affiliated with Novation.
 
@@ -44,9 +44,9 @@ The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra
 
 | Build | What it is |
 |---|---|
-| **RC2** | The release candidate: everything in this guide. |
-| **RC2S** | The *safer* build: RC2, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
-| **RC0.9 / RC0.9S** | The earlier versions, without what is marked *(since RC2)*. |
+| **RC2.01** | The release candidate: everything in this guide (RC2 + the captured sample before the master filter). |
+| **RC2.01S** | The *safer* build: RC2.01, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
+| **RC2 / RC2S, RC0.9 / RC0.9S** | The earlier ones: RC2 with the sample after the master filter; RC0.9 without what is marked *(since RC2)*. |
 
 ### Installing
 1. Download Novation's official firmware 1.2.1 (the update file from Components).
@@ -163,7 +163,7 @@ Live effects on the whole output. **Hold** a pad to hear its effect; **Shift + p
 - The playing step shows white; the pointer starts off when a project loads.
 
 ### The capture (pads 32 and 7)
-- **Pad 32 (red):** hold = record while held (up to about 3.5 s); a short tap = record until the next tap; **Shift + pad 32** = armed: with the sequencer running it records the next bar, stopped it waits for Play and records the first bar.
+- **Pad 32 (red):** hold = record while held (up to about 3.5 s); a short tap = record until the next tap; **Shift + pad 32** = armed: with the sequencer running it records the next bar, stopped it waits for Play and records the first bar. Since RC2.01 the capture and the playing sample sit before the master filter: the filter acts on the sample and the capture does not hold it.
 - It records the output **without** the Master FX effects; when it plays, it goes through them.
 - **Pad 7 (yellow)** plays it: K1 pitch (±24 semitones), K2 mode by colour (yellow one-shot, green gate, blue loop: the loop sounds while you hold the pad), K3 start, K4 end (end before start = backwards). **Shift + pad 7** keeps it playing in any mode until pad 7 again (or pad 8).
 - Hold pad 7 and touch a slot to store it there; replace a drum with it (section 8); use it as a granular source (section 10).

@@ -4,6 +4,13 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC2.01 / RC2.01S — 2026-10-18
+
+**RC2.01** (ficheros y marca `R201`; = SC44.1) = RC2 + lo siguiente; **RC2.01S** (`R201S`) = RC2.01 sin escrituras propias en la SD, como RC2S.
+
+### Cambios
+- **El sample capturado de Master FX va antes del filtro master:** el filtro master actúa sobre el sample que suena (pad 7 y los huecos), y la captura (pad 32) graba la mezcla sin el filtro. Hasta RC2 iba después: la captura llevaba el filtro y el sample sonaba sin él. Los efectos de Master FX siguen detrás de los dos.
+
 ## RC2 / RC2S — 2026-10-17
 
 **RC2** (marca `RC2`) = **Beta 1.30** (SC44) como segunda versión candidata: RC0.9 + todo lo de las betas 1.0-1.30 (sus entradas, abajo). **RC2S** (marca `RC2S`) = la versión más segura: RC2, pero nada del mod escribe ni borra en la tarjeta o en la memoria interna: esas peticiones se rechazan en cualquier pack (el LED de Save en rojo) y los guardados del original pasan. En RC2S no hacen nada guardar la captura con el proyecto, intercambiar o copiar samples y patches entre packs, los patches del sinte propio, guardar el patch del sinte, copiar proyectos y borrar packs. Lo marcado «solo Beta 1.x» en los manuales anteriores es ahora «desde RC2».
@@ -379,6 +386,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC2.01 / RC2.01S — 2026-10-18
+
+**RC2.01** (files and marker `R201`; = SC44.1) = RC2 + the following; **RC2.01S** (`R201S`) = RC2.01 without writes of its own to the SD card, as RC2S.
+
+### Changes
+- **The captured sample of Master FX sits before the master filter:** the master filter acts on the sample that plays (pad 7 and the slots), and the capture (pad 32) records the mix without the filter. Up to RC2 it sat after it: the capture held the filter and the sample played without it. The Master FX effects still come after both.
 
 ## RC2 / RC2S — 2026-10-17
 

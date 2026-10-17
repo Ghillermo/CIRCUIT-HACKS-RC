@@ -1,4 +1,4 @@
-# Feature list — CIRCUIT-HACKS (RC2)
+# Feature list — CIRCUIT-HACKS (RC2.01)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Every feature in one line, by topic. **The user manual is the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html)); the CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Illustrated version of this list: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 

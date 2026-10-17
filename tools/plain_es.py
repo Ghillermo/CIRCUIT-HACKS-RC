@@ -12,7 +12,7 @@ UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencil
           footer="CIRCUIT-HACKS — mod del firmware del Novation Circuit Tracks (1.2.1, build 4486). Sin relación con Novation.",
           html="sencilla.html", md="docs/SENCILLA.md", pdf="sencilla.pdf")
 
-INTRO = f"""Primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC2** y **RC2S**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](guia.html) y la [lista de características](index.html).
+INTRO = f"""Primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC2.01** y **RC2.01S**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](guia.html) y la [lista de características](index.html).
 
 Nada de esto está probado en un aparato real salvo que lo diga el [CHANGELOG](https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md). El mod no tiene relación con Novation."""
 
@@ -40,9 +40,9 @@ sec("install", "Antes de instalar", f"""
 
 | Versión | Qué es |
 |---|---|
-| **RC2** | La versión candidata: todo lo de esta guía. |
-| **RC2S** | La versión *más segura*: RC2, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
-| **RC0.9 / RC0.9S** | Las versiones anteriores, sin lo marcado {B}. |
+| **RC2.01** | La versión candidata: todo lo de esta guía (RC2 + el sample capturado antes del filtro master). |
+| **RC2.01S** | La versión *más segura*: RC2.01, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
+| **RC2 / RC2S, RC0.9 / RC0.9S** | Las anteriores: RC2 con el sample tras el filtro master; RC0.9 sin lo marcado {B}. |
 
 ### Instalar
 1. Descarga el firmware oficial 1.2.1 de Novation (el fichero de actualización de Components).
@@ -164,7 +164,7 @@ Efectos en directo sobre toda la salida. **Mantén** un pad para oír su efecto;
 - El paso que suena se ve blanco; el puntero empieza apagado al cargar un proyecto.
 
 ### La captura (pads 32 y 7)
-- **Pad 32 (rojo):** mantener = graba mientras lo mantienes (hasta ~3,5 s); un toque corto = graba hasta el siguiente toque; **Shift + pad 32** = armado: con el secuenciador en marcha graba el compás siguiente, parado espera a Play y graba el primer compás.
+- **Pad 32 (rojo):** mantener = graba mientras lo mantienes (hasta ~3,5 s); un toque corto = graba hasta el siguiente toque; **Shift + pad 32** = armado: con el secuenciador en marcha graba el compás siguiente, parado espera a Play y graba el primer compás. Desde RC2.01 la captura y el sample que suena van antes del filtro master: el filtro le afecta y la captura no lo lleva.
 - Graba la salida **sin** los efectos de Master FX; al sonar, pasa por ellos.
 - El **pad 7 (amarillo)** la toca: K1 tono (±24 semitonos), K2 modo por colores (amarillo one-shot, verde gate, azul bucle: el bucle suena mientras mantienes el pad), K3 inicio, K4 final (final antes del inicio = al revés). **Shift + pad 7** la deja sonando en cualquier modo hasta volver a pulsar el 7 (o el 8).
 - Mantén el pad 7 y toca un hueco para guardarla ahí; sustituye un drum con ella (sección 8); úsala de fuente del granular (sección 10).

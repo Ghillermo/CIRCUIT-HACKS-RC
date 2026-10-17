@@ -11,7 +11,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - Haz una copia completa de la SD (proyectos, packs y samples) antes de enviar cualquier versión del mod.
 > - No trabajes con proyectos importantes guardados en el aparato mientras lo pruebas.
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
-> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2S](firmware/rc2s/PRUEBA.md)**: es RC2 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
+> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.01S](firmware/r201s/PRUEBA.md)**: es RC2.01 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -34,7 +34,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **Descarga y abre [`tools/rc_uploader.html`](tools/rc_uploader.html)** en Chrome o Edge.
-3. **Elige el `.syx` oficial y la versión**: RC2, la versión más segura RC2S (o las anteriores), u «Oficial» para volver atrás.
+3. **Elige el `.syx` oficial y la versión**: RC2.01, la versión más segura RC2.01S (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -47,15 +47,15 @@ La página no contiene código de Novation: solo los bytes del mod y las instruc
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version RC2`. Para la versión más segura, sin escrituras propias en la SD, usa `--version RC2S`.
-4. Envía `firmware/rc2/circuittracks-4486-RC2.syx` con `tools/ct_uploader.html` (Chrome / Edge).
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R201`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R201S`.
+4. Envía `firmware/r201/circuittracks-4486-R201.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
 
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2**; **más segura: RC2S** (sin escrituras propias en la SD). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.01**; **más segura: RC2.01S** (sin escrituras propias en la SD). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -68,11 +68,11 @@ Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering 
 **Solo el firmware** (Python 3.10+; no hace falta compilar nada):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version RC2
+python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R201
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version RC2S` = la versión más segura; `--list` enseña todas; `--all` las construye todas.
+- `--version R201S` = la versión más segura; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -84,7 +84,7 @@ bash tools/run_tests.sh            # pruebas en emulación
 Windows sin WSL, flujo de un parche nuevo y detalles: [`docs/LOCAL.md`](docs/LOCAL.md). Dependencias, fuentes y licencias: [`docs/DEPENDENCIAS.md`](docs/DEPENDENCIAS.md). Manuales: [`docs/MANUAL.md`](docs/MANUAL.md) y [manual ilustrado en color](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html).
 
 <!-- FEATURES:BEGIN -->
-## Características (RC2)
+## Características (RC2.01)
 
 Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · esta lista: [ilustrada en color](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html) · [resumida](docs/MANUAL.md) · **guía en palabras sencillas, ilustrada** ([web](https://ghillermo.github.io/CIRCUITS-HACKS-RC/sencilla.html), [PDF](https://ghillermo.github.io/CIRCUITS-HACKS-RC/sencilla.pdf); primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [su guía original](https://files.catbox.moe/xgogqy.pdf)). Novedades y arreglos de cada versión: [`CHANGELOG.md`](CHANGELOG.md). Lo marcado **desde RC2** es nuevo en RC2 / RC2S (no está en RC0.9).
 
@@ -172,7 +172,7 @@ Firmware patches for the **Novation Circuit Tracks** (reference firmware 1.2.1 b
 > - Make a full copy of the SD card (projects, packs and samples) before sending any version of the mod.
 > - Do not work on important projects stored on the device while you test it.
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
-> - If you would rather not risk the card, use the **safer build, [RC2S](firmware/rc2s/PRUEBA.md)**: RC2 without any feature that creates, changes or deletes files on the SD card on its own.
+> - If you would rather not risk the card, use the **safer build, [RC2.01S](firmware/r201s/PRUEBA.md)**: RC2.01 without any feature that creates, changes or deletes files on the SD card on its own.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUITS-HACKS-RC>.
@@ -193,7 +193,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **Download and open [`tools/rc_uploader.html`](tools/rc_uploader.html)** in Chrome or Edge.
-3. **Pick the official `.syx` and the version**: RC2, the safer RC2S (or the earlier ones), or “Official” to go back.
+3. **Pick the official `.syx` and the version**: RC2.01, the safer RC2.01S (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -207,11 +207,11 @@ The page contains no Novation code: only the bytes of the mod and the instructio
 **Firmware only** (Python 3.10+; nothing to compile):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version RC2
+python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R201
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version RC2S` = the safer build; `--list` shows them all; `--all` builds them all.
+- `--version R201S` = the safer build; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -227,14 +227,14 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2**; **safer: RC2S**.
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.01**; **safer: RC2.01S**.
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).
 - [`CLAUDE.md`](CLAUDE.md) — context for Claude Code (Spanish).
 
 <!-- FEATURES-EN:BEGIN -->
-## Features (RC2)
+## Features (RC2.01)
 
 User manual: [guide by views](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)) · [MIDI reference](docs/MIDI.en.md) · this list: [illustrated colour](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [short](docs/MANUAL.en.md) · **guide in plain words, illustrated** ([web](https://ghillermo.github.io/CIRCUITS-HACKS-RC/plain.html), [PDF](https://ghillermo.github.io/CIRCUITS-HACKS-RC/plain.pdf); first draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [the original guide](https://files.catbox.moe/xgogqy.pdf)). New features and fixes of every version: [`CHANGELOG.md`](CHANGELOG.md#changelog). What is marked **since RC2** is new in RC2 / RC2S (not in RC0.9).
 
