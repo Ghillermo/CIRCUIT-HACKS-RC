@@ -68,9 +68,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#c9-frecuencia-dinamicas">C9 Step frequency and dynamics</a></li>
 <li><a href="#c10-cadenas">C10 Pattern chains and scenes</a></li>
 <li><a href="#c11-nudge-ordenes">C11 Nudge and play orders</a></li>
-<li><a href="#c12-arpegiador">C12 Arpeggiator (Beta 1.26 only)</a></li>
-<li><a href="#c13-rollers">C13 Drums micro-step rollers (Beta 1.26 only)</a></li>
-<li><a href="#c14-escala-propia">C14 Custom scale (Beta 1.26 only)</a></li>
+<li><a href="#c12-arpegiador">C12 Arpeggiator (Beta 1.27 only)</a></li>
+<li><a href="#c13-rollers">C13 Drums micro-step rollers (Beta 1.27 only)</a></li>
+<li><a href="#c14-escala-propia">C14 Custom scale (Beta 1.27 only)</a></li>
 <li><a href="#c15-master-fx-beta">C15 Master FX in the beta: mechanical gesture, Glitch, Digitise and saving per session</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
@@ -293,28 +293,29 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>14</td><td><strong>Scales + Preset + Note</strong> at power-on</td><td>Bootloader recovery mode (E2)</td></tr>
 <tr><td>15</td><td>Mixer: <strong>Shift + knob</strong></td><td>Track level to 100 (right) / 0 (left) (A11)</td></tr>
 <tr><td>16</td><td>Master FX: <strong>Shift + pad 7</strong></td><td>Sample in a latched loop until pad 7 is pressed again (C5)</td></tr>
-<tr><td>17</td><td>MIDI 1 / 2 Preset: <strong>Clear + a page pad (1-5)</strong></td><td>The values of that knob page back to their initial values (C1, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B7, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> together</td><td>Split keyboard: Synth 1 on top, Synth 2 below (A12, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, a step, <strong>row 4</strong></td><td>Random-mutate of the step: random octave / scale changes (C8, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>21</td><td>MIDI 1 / 2 Preset: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> twice, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches of the own synth: load, save, exchange, page (A14, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + the track button</strong></td><td>The track engine back to its initial values (A14, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>23</td><td>Synth 1 / 2 Preset: <strong>Clear + pad</strong> twice</td><td>Saves the synth’s patch into that slot of the pack (A15, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>24</td><td>Synth source view: <strong>pad 32</strong></td><td>Editor of the macro knob destinations (A16, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>25</td><td>Projects: <strong>Duplicate + pad A</strong>, <strong>Duplicate + pad B</strong></td><td>Copies project A into slot B, in another pack too (A17, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>26</td><td>MIDI 1 / 2 Preset: <strong>Duplicate + slot A</strong>, another pack, <strong>Duplicate + slot B</strong></td><td>Copies an own-synth patch into another pack (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>27</td><td>Sidechain (<strong>Shift + FX</strong>): <strong>K1-K4</strong>, <strong>K7 / K8</strong></td><td>Side-chain of the chosen track; attack / release of the master compressor (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>28</td><td>Setup: <strong>Record</strong></td><td>Record into the synth what the MIDI track sends it: yellow = yes (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>29</td><td><strong>Pattern Settings</strong> twice, <strong>row 4</strong></td><td>Step frequency: it plays every n plays of the pattern (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>30</td><td>Pattern Settings: <strong>pad 25</strong></td><td>Dynamics (row 3) and random-mutate (row 4); <strong>Clear + pad 25</strong> clears them from the pattern (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>31</td><td>Pattern Settings: <strong>pads 26 / 27 / 28</strong></td><td>Nudge, fractal order, deconstructed order (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>32</td><td>Patterns: <strong>Shift + Octave ▲ / ▼</strong></td><td>Pattern chain mode on / off (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>33</td><td>Mixer: <strong>Shift + pads 9-16</strong></td><td>Repeats of the current scene (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>34</td><td>Setup: <strong>pad 29 / pad 30</strong>, then a channel pad</td><td>Listen / output channel of the project’s Program Changes (B7, <strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>35</td><td><strong>Shift + Clear</strong></td><td>Metronome / count-in in four states; with the count-in, Record + Play = one bar before recording (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>36</td><td>Pattern Settings: <strong>Shift + pad 25</strong>, <strong>Shift + pads 27-32</strong></td><td>The pattern&#x27;s arpeggiator on / off and its order; chords of the sequence and notes held together, one a step (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Custom scale editor: up to 7 notes and a period; one iteration a row (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>38</td><td>Step-drummer: <strong>pad 32</strong>; velocity page: <strong>pads 17-24</strong></td><td>Pitch-vel toggle (transpose in the scale / velocity) and page 2&#x27;s own destination (<strong>Beta 1.26 only</strong>)</td></tr>
+<tr><td>17</td><td>MIDI 1 / 2 Preset: <strong>Clear + a page pad (1-5)</strong></td><td>The values of that knob page back to their initial values (C1, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B7, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> together</td><td>Split keyboard: Synth 1 on top, Synth 2 below (A12, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, a step, <strong>row 4</strong></td><td>Random-mutate of the step: random octave / scale changes (C8, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>21</td><td>MIDI 1 / 2 Preset: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> twice, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches of the own synth: load, save, exchange, page (A14, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + the track button</strong></td><td>The track engine back to its initial values (A14, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>23</td><td>Synth 1 / 2 Preset: <strong>Clear + pad</strong> twice</td><td>Saves the synth’s patch into that slot of the pack (A15, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>24</td><td>Synth source view: <strong>pad 32</strong></td><td>Editor of the macro knob destinations (A16, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>25</td><td>Projects: <strong>Duplicate + pad A</strong>, <strong>Duplicate + pad B</strong></td><td>Copies project A into slot B, in another pack too (A17, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>26</td><td>MIDI 1 / 2 Preset: <strong>Duplicate + slot A</strong>, another pack, <strong>Duplicate + slot B</strong></td><td>Copies an own-synth patch into another pack (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>27</td><td>Sidechain (<strong>Shift + FX</strong>): <strong>K1-K4</strong>, <strong>K7 / K8</strong></td><td>Side-chain of the chosen track; attack / release of the master compressor (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>28</td><td>Setup: <strong>Record</strong></td><td>Record into the synth what the MIDI track sends it: yellow = yes (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>29</td><td><strong>Pattern Settings</strong> twice, <strong>row 4</strong></td><td>Step frequency: it plays every n plays of the pattern (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>30</td><td>Pattern Settings: <strong>pad 25</strong></td><td>Dynamics (row 3) and random-mutate (row 4); <strong>Clear + pad 25</strong> clears them from the pattern (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>31</td><td>Pattern Settings: <strong>pads 26 / 27 / 28</strong></td><td>Nudge, fractal order, deconstructed order (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>32</td><td>Patterns: <strong>Shift + Octave ▲ / ▼</strong></td><td>Pattern chain mode on / off (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>33</td><td>Mixer: <strong>Shift + pads 9-16</strong></td><td>Repeats of the current scene (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>34</td><td>Setup: <strong>pad 29 / pad 30</strong>, then a channel pad</td><td>Listen / output channel of the project’s Program Changes (B7, <strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>35</td><td><strong>Shift + Clear</strong></td><td>Metronome / count-in in four states; with the count-in, Record + Play = one bar before recording (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>36</td><td>Pattern Settings: <strong>Shift + pad 25</strong>, <strong>Shift + pads 27-32</strong></td><td>The pattern&#x27;s arpeggiator on / off and its order; chords of the sequence and notes held together, one a step (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Custom scale editor: up to 7 notes and a period; one iteration a row (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>38</td><td>Step-drummer: <strong>pad 32</strong>; velocity page: <strong>pads 17-24</strong></td><td>Pitch-vel toggle (transpose in the scale / velocity) and page 2&#x27;s own destination (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>39</td><td><strong>Shift + Play</strong></td><td>Quantize the pattern the selected track plays (<strong>Beta 1.27 only</strong>)</td></tr>
 </tbody></table>
 </section>
 <section class="feat" id="a2-master-fx-acceso"><h3><span class="code">A2</span>Master FX on the Mixer button</h3>
@@ -878,7 +879,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>K1</strong> = pitch offset in semitones; <strong>Shift + K1</strong> = fine tuning in cents.</li>
 <li>While recording, each pitch is recorded on its own step only.</li>
 <li><strong>Note</strong> view of the drums: pads 25-28 repeat the tiles of drums 4 … 1.</li>
-<li><strong>Beta 1.26 only:</strong> in a drum&#x27;s Preset view, <strong>Preset again</strong> turns the chromatic view on / off (as Shift + Preset).</li>
+<li><strong>Beta 1.27 only:</strong> in a drum&#x27;s Preset view, <strong>Preset again</strong> turns the chromatic view on / off (as Shift + Preset).</li>
 </ul>
 </section>
 <section class="feat" id="a8-pack"><h3><span class="code">A8</span>Pack management on the device</h3>
@@ -1371,14 +1372,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Mixer: Shift + knob right = level 100, left = 0.</figcaption></figure>
 <ul>
-<li>On the levels page of the Mixer (the normal one, Octave ▲). On the pan page (Octave ▼), Shift + knob moves the pan as always (<strong>Beta 1.26 only</strong>: it turns the cue mode on / off, see the guide by views).</li>
+<li>On the levels page of the Mixer (the normal one, Octave ▲). On the pan page (Octave ▼), Shift + knob moves the pan as always (<strong>Beta 1.27 only</strong>: it turns the cue mode on / off, see the guide by views).</li>
 <li>The jump works like a turn of the knob: it goes out over MIDI and, while recording, it is written into the automation.</li>
 <li>On the original, Shift + knob did the same as the plain knob: no function is lost. Clear + knob (delete the automation) and Master FX (Mixer twice) do not change.</li>
 <li>From RC0.3 (also in RC0.3S).</li>
 </ul>
 </section>
 <section class="feat" id="a12-teclado-partido"><h3><span class="code">A12</span>Split keyboard Synth 1 + Synth 2</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> Hold <strong>Synth 1</strong> and press <strong>Synth 2</strong> (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> Hold <strong>Synth 1</strong> and press <strong>Synth 2</strong> (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Split keyboard: rows 1-2 = Synth 1, rows 3-4 = Synth 2.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1526,7 +1527,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a13-colores-patch"><h3><span class="code">A13</span>Synth patches by voice mode</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: <strong>mono dark blue</strong>, <strong>glide lavender</strong>, <strong>poly as always</strong>.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: <strong>mono dark blue</strong>, <strong>glide lavender</strong>, <strong>poly as always</strong>.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1677,7 +1678,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a14-patches-midi"><h3><span class="code">A14</span>Patches of the own synth (MIDI 1 / 2)</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), <strong>Clear + pad</strong> twice = save, <strong>Duplicate + A + B</strong> = exchange; <strong>Octave ▼ / ▲</strong> = 4 pages (64 slots per pack).</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), <strong>Clear + pad</strong> twice = save, <strong>Duplicate + A + B</strong> = exchange; <strong>Octave ▼ / ▲</strong> = 4 pages (64 slots per pack).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of MIDI 1: rows 2-3 = patches of the own synth.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1836,7 +1837,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a15-guardar-patch"><h3><span class="code">A15</span>Saving the synth’s patch into the pack</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Preset view of Synth 1 / 2: <strong>Clear + pad</strong> asks (it blinks white) and <strong>Clear + the same pad again</strong> saves the patch as it sounds into that slot.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Preset view of Synth 1 / 2: <strong>Clear + pad</strong> asks (it blinks white) and <strong>Clear + the same pad again</strong> saves the patch as it sounds into that slot.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1988,7 +1989,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a16-destinos-macro"><h3><span class="code">A16</span>Macro knob destinations</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the synth source view (A6), <strong>pad 32</strong> opens the editor: a knob picks its macro, <strong>Octave ▼ / ▲</strong> steps the field and the pads draw the number.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the synth source view (A6), <strong>pad 32</strong> opens the editor: a knob picks its macro, <strong>Octave ▼ / ▲</strong> steps the field and the pads draw the number.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Source view with the macro editor: pad 32 lit, the picked knob white.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2153,7 +2154,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a17-copiar-proyectos"><h3><span class="code">A17</span>Copying projects to another slot or another pack</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Projects view: <strong>Duplicate + pad A</strong> picks the project (it blinks yellow) and <strong>Duplicate + pad B</strong> copies it into that slot, of the same pack or of another one.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Projects view: <strong>Duplicate + pad A</strong> picks the project (it blinks yellow) and <strong>Duplicate + pad B</strong> copies it into that slot, of the same pack or of another one.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Projects view: Duplicate + A = the source (yellow, blinking), Duplicate + B = the copy.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2306,7 +2307,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="a18-patches-entre-packs"><h3><span class="code">A18</span>Own-synth patches to another pack</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Preset view of MIDI 1 / 2: <strong>Duplicate + slot A</strong>, load another pack and <strong>Duplicate + slot B</strong> copies the patch (engine, parameters and name).</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Preset view of MIDI 1 / 2: <strong>Duplicate + slot A</strong>, load another pack and <strong>Duplicate + slot B</strong> copies the patch (engine, parameters and name).</p></div>
 <ul>
 <li><strong>Duplicate + slot A</strong> with the source pack loaded: the patch is remembered.</li>
 <li>Load the other pack and go back to the Preset view of MIDI 1 / 2: <strong>Duplicate lights yellow</strong> (a patch is waiting).</li>
@@ -2467,12 +2468,12 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Knobs of a drum.</figcaption></figure>
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
-<tr><td>K1 Oscillator</td><td>Pitch (exact semitones; <strong>Beta 1.26 only</strong>: the mod&#x27;s chromatic value)</td><td>Pitch envelope amount</td></tr>
+<tr><td>K1 Oscillator</td><td>Pitch (exact semitones; <strong>Beta 1.27 only</strong>: the stock one, continuous, with the chromatic view on top)</td><td>Pitch envelope amount</td></tr>
 <tr><td>K2 Osc mod</td><td>Ring mod frequency</td><td>Ring mod amount</td></tr>
 <tr><td>K3 Amp envelope</td><td>Left: decay; past its maximum, <strong>attack</strong> (centre neutral)</td><td>Left: sample <strong>start</strong>; right: <strong>cut</strong> (centre = whole)</td></tr>
 <tr><td>K4 Filter envelope</td><td>Envelope → cutoff</td><td>Envelope shape</td></tr>
 <tr><td>K5 Filter frequency</td><td>Filter / EQ (by default the stock EQ tilt)</td><td><strong>Filter mode</strong>: stock EQ tilt (default), band pass, notch, comb, DJ</td></tr>
-<tr><td>K6 Resonance</td><td>Resonance</td><td><strong>Beta 1.26 only</strong>: the stock continuous pitch</td></tr>
+<tr><td>K6 Resonance</td><td>Resonance</td><td>—</td></tr>
 <tr><td>K7 Modulation</td><td>LFO amount</td><td>LFO speed</td></tr>
 <tr><td>K8 FX</td><td>Distortion; left of 0, <strong>bitcrush</strong></td><td><strong>Distortion type</strong>: stock, soft, hard, folded</td></tr>
 </tbody></table>
@@ -2490,16 +2491,16 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="b3-sidechain-comp"><h3><span class="code">B3</span>Side-chain and master compressor on the knobs</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Sidechain view (<strong>Shift + FX</strong>): <strong>K1-K4</strong> = attack, hold, decay and depth of the side-chain of the chosen track; <strong>K7 / K8</strong> = attack and release of the master compressor.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Sidechain view (<strong>Shift + FX</strong>): <strong>K1-K4</strong> = attack, hold, decay and depth of the side-chain of the chosen track; <strong>K7 / K8</strong> = attack and release of the master compressor.</p></div>
 <ul>
 <li><strong>K1-K4</strong> act on the track of the last side-chain preset you touched (Synth 1 until you touch one); their LEDs take that track’s colour. A preset pad still writes its four values.</li>
 <li><strong>K7</strong> = attack and <strong>K8</strong> = release of the master compressor (the one switched on in Advanced Setup), white with their value. Threshold and ratio are fixed.</li>
 <li>The compressor’s attack and release are saved with the project (see “Master FX in the beta”).</li>
-<li><strong>Beta 1.26 only:</strong> on the drum pages (Octave ▼), <strong>K1-K4</strong> = attack, hold, decay and depth of the side-chain of the drum of the last preset touched, in the drum&#x27;s colour; saved with the project, and a preset brings them back to its own.</li>
+<li><strong>Beta 1.27 only:</strong> on the drum pages (Octave ▼), <strong>K1-K4</strong> = attack, hold, decay and depth of the side-chain of the drum of the last preset touched, in the drum&#x27;s colour; saved with the project, and a preset brings them back to its own.</li>
 </ul>
 </section>
 <section class="feat" id="b4-grabar-interno"><h3><span class="code">B4</span>Recording the internal MIDI routes</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Setup view, <strong>Record</strong> decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: <strong>yellow = yes</strong>, dark = no (the default).</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Setup view, <strong>Record</strong> decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: <strong>yellow = yes</strong>, dark = no (the default).</p></div>
 <ul>
 <li>When MIDI 1 / 2 shares a channel with Synth 1 / 2, what you play or turn on the MIDI track sounds on the synth without a cable. By default that is <strong>not</strong> recorded into the synth’s pattern, only into the MIDI track’s.</li>
 <li>With <strong>Record yellow</strong> (Setup view, not Advanced Setup) it is recorded into the synth too, as if it came from external MIDI: useful to record scale or octave changes made from the MIDI track in real time.</li>
@@ -2524,7 +2525,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="b7-setup"><h3><span class="code">B7</span>Setup and device MIDI</h3>
-<div class="summary"><p>Channel 16 Rx / Tx (pad 16), shared channels, <strong>internal loopback</strong> without a cable and <strong>reverb / delay returns through strips 3 / 4</strong> (pads 22 / 23, cream / peach like the reverb and delay of the FX view).</p><p><strong>Beta 1.26 only:</strong> MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, <strong>Merge</strong> (DIN In + the device’s MIDI) and <strong>Filter</strong> (DIN In without the channels the device listens to).</p><p><strong>Beta 1.26 only:</strong> own <strong>Program Change</strong> channels: pads 29 / 30 show and pick the listen / output channel (16 by default); what is received is forwarded on the output one.</p><p><strong>Beta 1.26 only:</strong> <strong>metronome with count-in</strong>: Shift + Clear walks no metronome, metronome, count-in only and both; the count-in is one bar before recording.</p></div>
+<div class="summary"><p>Channel 16 Rx / Tx (pad 16), shared channels, <strong>internal loopback</strong> without a cable and <strong>reverb / delay returns through strips 3 / 4</strong> (pads 22 / 23, cream / peach like the reverb and delay of the FX view).</p><p><strong>Beta 1.27 only:</strong> MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, <strong>Merge</strong> (DIN In + the device’s MIDI) and <strong>Filter</strong> (DIN In without the channels the device listens to).</p><p><strong>Beta 1.27 only:</strong> own <strong>Program Change</strong> channels: pads 29 / 30 show and pick the listen / output channel (16 by default); what is received is forwarded on the output one.</p><p><strong>Beta 1.27 only:</strong> <strong>metronome with count-in</strong>: Shift + Clear walks no metronome, metronome, count-in only and both; the count-in is one bar before recording.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Setup: pad 22 = reverb return through strip 3 (cream), pad 23 = delay return through strip 4 (peach).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2674,15 +2675,15 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>Setup, pad 22</td><td>The reverb return goes through mixer strip 3</td></tr>
 <tr><td>Setup, pad 23</td><td>The delay return goes through strip 4</td></tr>
 <tr><td>Setup, channels</td><td>MIDI 1 / 2 may use a channel already used by another track</td></tr>
-<tr><td>Advanced Setup, Duplicate</td><td>MIDI Thru: Thru → Out 2 → <strong>Merge</strong> → <strong>Filter</strong> (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>Setup, pad 29 / 30</td><td>Listen / output channel of the project’s Program Changes (<strong>Beta 1.26 only</strong>)</td></tr>
-<tr><td>Any view, Shift + Clear</td><td>Metronome: off / on / count-in only / count-in and metronome (<strong>Beta 1.26 only</strong>)</td></tr>
+<tr><td>Advanced Setup, Duplicate</td><td>MIDI Thru: Thru → Out 2 → <strong>Merge</strong> → <strong>Filter</strong> (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>Setup, pad 29 / 30</td><td>Listen / output channel of the project’s Program Changes (<strong>Beta 1.27 only</strong>)</td></tr>
+<tr><td>Any view, Shift + Clear</td><td>Metronome: off / on / count-in only / count-in and metronome (<strong>Beta 1.27 only</strong>)</td></tr>
 </tbody></table>
 <ul>
 <li><strong>Internal loopback:</strong> if a MIDI track shares its channel with a synth or the drums, what it sends reaches them internally.</li>
 <li>Pads 22 / 23 light cream (reverb) and peach (delay), the colours of the FX view; dim = off.</li>
 </ul>
-<h4>Metronome and count-in (Beta 1.26 only)</h4>
+<h4>Metronome and count-in (Beta 1.27 only)</h4>
 <p><strong>Shift + Clear</strong>, in any view, walks four states (the original only turned the metronome on and off):</p>
 <table><thead><tr><th>State</th><th>Clear LED while Shift is held</th></tr></thead><tbody>
 <tr><td>No metronome</td><td>red</td></tr>
@@ -2696,7 +2697,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>The metronome is the stock setting; the count-in is saved with the project.</li>
 <li><strong>Click volume:</strong> the stock&#x27;s, pressing <strong>Tempo/Swing</strong> and turning <strong>K5</strong>.</li>
 </ul>
-<h4>MIDI Thru: Merge and Filter (Beta 1.26 only)</h4>
+<h4>MIDI Thru: Merge and Filter (Beta 1.27 only)</h4>
 <p>The original only lets the Thru jack be <strong>Thru</strong> (a hardware copy of DIN In, Duplicate dim red) or <strong>Out 2</strong> (a second MIDI output, green). Duplicate in the Advanced Setup view now steps through four modes:</p>
 <table><thead><tr><th>Mode</th><th>Duplicate LED</th><th>Out of the Thru jack</th></tr></thead><tbody>
 <tr><td>Thru</td><td>dim red</td><td>DIN In, by hardware</td></tr>
@@ -2708,7 +2709,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>DIN In SysEx is not copied in Merge / Filter. In Merge, if the device follows the DIN In clock and has Clock Tx on, the Thru jack carries two clocks: switch Clock Tx off.</li>
 <li>It is saved in the settings. With the original firmware, Merge / Filter go back to Out 2.</li>
 </ul>
-<h4>Program Change channels (Beta 1.26 only)</h4>
+<h4>Program Change channels (Beta 1.27 only)</h4>
 <p>In the Setup view (not Advanced Setup):</p>
 <ol>
 <li>1. <strong>Pad 29 (PGM Rx)</strong>: pads 1-16 show the <strong>listen channel</strong> (white = the chosen one, dim white = the rest). This first touch does not change PGM Rx.</li>
@@ -2735,7 +2736,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </section>
 <h2 class="group">C. New control modes</h2>
 <section class="feat" id="c1-motor-midi"><h3><span class="code">C1</span>Engine of the MIDI tracks (pad 27)</h3>
-<div class="summary"><p>Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → <strong>line</strong> → <strong>oscillator</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>FX sequencer</strong>.</p><p>Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). <strong>Beta 1.26 only:</strong> Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).</p></div>
+<div class="summary"><p>Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → <strong>line</strong> → <strong>oscillator</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>FX sequencer</strong>.</p><p>Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). <strong>Beta 1.27 only:</strong> Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MIDI 1 Preset view with the oscillator (pad 27 green): page row and engine pads; pad 28 shows only with the oscillator or VA-drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -2913,9 +2914,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>25</td><td>CC editor (A10)</td></tr>
 <tr><td>26</td><td>Patch flip (B8)</td></tr>
 <tr><td>27</td><td>Engine</td></tr>
-<tr><td>1-5</td><td>Knob page. <strong>Clear + the pad</strong> (Beta 1.26 only): the values of that page (with and without Shift) go back to their initial values; the engine stays</td></tr>
+<tr><td>1-5</td><td>Knob page. <strong>Clear + the pad</strong> (Beta 1.27 only): the values of that page (with and without Shift) go back to their initial values; the engine stays</td></tr>
 <tr><td>28</td><td>One / two oscillators (only with the oscillators or VA-drum; dark with the other engines)</td></tr>
-<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX</td></tr>
+<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX (<strong>Beta 1.27 only</strong>: Shift + 29 = gate retrigger; off = legato)</td></tr>
 <tr><td>30</td><td>Step-drummer (C2)</td></tr>
 <tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes</td></tr>
 </tbody></table>
@@ -2942,7 +2943,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K7</td><td>WAVE (morph sine → triangle → saw → square)</td><td>—</td></tr>
 <tr><td>K8</td><td>LFO → morph</td><td>Envelope → morph</td></tr>
 </tbody></table>
-<p>Page 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (<strong>Beta 1.26 only</strong>: all eight without Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING). Page 4: the 8 sequenceable values (B6). Page 5: ADSR on top, LFO at the bottom.</p>
+<p>Page 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (<strong>Beta 1.27 only</strong>: all eight without Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING). Page 4: the 8 sequenceable values (B6). Page 5: ADSR on top, LFO at the bottom.</p>
 <ul>
 <li>The engine values are saved in the device (not with the project); the OSC 2 ones are volatile.</li>
 </ul>
@@ -3111,7 +3112,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>Synth 1 / 2</td><td>Source view (synth button twice), <strong>pad 30</strong></td></tr>
 </tbody></table>
 <ul>
-<li>Pad 30 bright = view open; dim = closed. On MIDI, <strong>Shift + pad 30</strong> disables the step-drummer. <strong>Beta 1.26 only:</strong> on MIDI, dim = off, bright = on.</li>
+<li>Pad 30 bright = view open; dim = closed. On MIDI, <strong>Shift + pad 30</strong> disables the step-drummer. <strong>Beta 1.27 only:</strong> on MIDI, dim = off, bright = on.</li>
 </ul>
 <h4>Controls</h4>
 <table><thead><tr><th>Control</th><th>Function</th></tr></thead><tbody>
@@ -3122,12 +3123,12 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>1-16 / 17-32</td><td>The other half of the pattern</td></tr>
 </tbody></table>
 <ul>
-<li><strong>Pitch on MIDI:</strong> the pair value offsets the destination: pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, env → filter, SHAPE, decay (64 = no change: it adds to or takes from the value on the engine&#x27;s page; <strong>Beta 1.26 only</strong>: the knob LED dim at the centre and brighter the further it goes).</li>
+<li><strong>Pitch on MIDI:</strong> the pair value offsets the destination: pitch of both oscillators, OSC 2 pitch, WAVE, FM, MIX, env → filter, SHAPE, decay (64 = no change: it adds to or takes from the value on the engine&#x27;s page; <strong>Beta 1.27 only</strong>: the knob LED dim at the centre and brighter the further it goes).</li>
 <li><strong>Pitch on the synths:</strong> the value is the macro position, written as automation.</li>
 <li>Each step keeps the pitch of its first note; a new note takes the pair’s or the previous one.</li>
 <li><strong>Real-time recording:</strong> with Record on, playing a step also records it on the step that plays, with its microstep.</li>
 </ul>
-<h4>Page 2 and the pitch-vel toggle (Beta 1.26 only)</h4>
+<h4>Page 2 and the pitch-vel toggle (Beta 1.27 only)</h4>
 <ul>
 <li><strong>Velocity page, pads 17-24</strong> = page 2&#x27;s own destination (the same pad again = none). With a destination the knobs write the pair&#x27;s value (MIDI: from 64, in REL&#x27;s lane, which is neither played nor recorded while the step-drummer is on; synths: that macro&#x27;s automation, from 0). With no destination and no toggle, page 2 does nothing.</li>
 <li><strong>Pad 32</strong> = the <strong>pitch-vel</strong> toggle (green): on top of their destinations, the pitch page transposes every note of the track by one degree of the project&#x27;s scale (stock or custom) every 8 knob steps (MIDI −8 … +8 from the centre, synths 0 … +16 from 0) and the velocity page also sets the velocity, as before. With the toggle, the pitch page&#x27;s pitch destinations do not move the own synth. Saved with the project.</li>
@@ -3135,7 +3136,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="c3-fx-seq"><h3><span class="code">C3</span>FX sequencer</h3>
-<div class="summary"><p><strong>Blue</strong> state of pad 27: the step-drummer of the track picks, for each pair of steps, <strong>a slot of the Master FX bottom row</strong> (0 = none); it plays on the steps with a note.</p><p>The knob moves slowly (<strong>one slot every ~48 steps of the turn</strong>) and lights in the <strong>colour of the chosen effect</strong>. <strong>A slot with no effect assigned does nothing:</strong> assign the effects to the Master FX bottom row first (see “Assignable bottom row”). <strong>Beta 1.26 only:</strong> at the end of the travel there is the <strong>random</strong> value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).</p></div>
+<div class="summary"><p><strong>Blue</strong> state of pad 27: the step-drummer of the track picks, for each pair of steps, <strong>a slot of the Master FX bottom row</strong> (0 = none); it plays on the steps with a note.</p><p>The knob moves slowly (<strong>one slot every ~48 steps of the turn</strong>) and lights in the <strong>colour of the chosen effect</strong>. <strong>A slot with no effect assigned does nothing:</strong> assign the effects to the Master FX bottom row first (see “Assignable bottom row”). <strong>Beta 1.27 only:</strong> at the end of the travel there is the <strong>random</strong> value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FX sequencer: each knob = the Master FX bottom-row slot of its pair of steps.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -3812,7 +3813,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="c8-random-mutate"><h3><span class="code">C8</span>Random-mutate per step</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the probability view (<strong>Shift + Pattern Settings</strong>) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the probability view (<strong>Shift + Pattern Settings</strong>) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Probability view: row 3 = the step’s probability (original), row 4 = random-mutate.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -3990,11 +3991,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="c9-frecuencia-dinamicas"><h3><span class="code">C9</span>Step frequency and dynamics</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the probability view of the note tracks: <strong>row 4 = every how many plays of the pattern the step sounds</strong> (1-8). With <strong>pad 25 of Pattern Settings</strong>: row 3 = random <strong>dynamics</strong> (velocity, position and length), row 4 = random-mutate.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the probability view of the note tracks: <strong>row 4 = every how many plays of the pattern the step sounds</strong> (1-8). With <strong>pad 25 of Pattern Settings</strong>: row 3 = random <strong>dynamics</strong> (velocity, position and length), row 4 = random-mutate.</p></div>
 <ul>
 <li><strong>Mode 1</strong> (press <strong>Pattern Settings</strong> twice): row 3 = the usual probability; <strong>row 4 = frequency</strong>, in yellow: with n the step sounds on the last of every n plays of the pattern. Each pattern counts its plays from Play.</li>
 <li><strong>Mode 2</strong> (<strong>pad 25</strong> of the Pattern Settings view): row 3 = dynamics, row 4 = random-mutate.</li>
-<li><strong>Clear + pad 25</strong> (Beta 1.26 only): clears the dynamics and the random-mutate of every step of the pattern; the frequency stays.</li>
+<li><strong>Clear + pad 25</strong> (Beta 1.27 only): clears the dynamics and the random-mutate of every step of the pattern; the frequency stays.</li>
 </ul>
 <table><thead><tr><th>Pad (row 3)</th><th>Micro steps (position and length)</th><th>Velocity</th><th></th></tr></thead><tbody>
 <tr><td>1</td><td>—</td><td>—</td><td>no change</td></tr>
@@ -4009,14 +4010,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li>Everything is saved with the step. With <strong>Record</strong> and mode 2 on the screen, what sounds (the mutated note, the dynamics) is written into the pattern.</li>
 </ul>
-<h4>On the drums (Beta 1.26 only)</h4>
+<h4>On the drums (Beta 1.27 only)</h4>
 <ul>
 <li>The same view for a drum (Pattern Settings twice = mode 1; pad 25 of its Pattern Settings = mode 2): mode 1 row 4 = frequency; mode 2: row 3 = dynamics (they only delay the hit inside its step), pads 25-28 = <strong>random-mutate of the sample</strong>: none, 25 % of ±1 (the next one in its row of 8), 25 % of ±8 (another row), 12 % of each.</li>
 <li>They live in bytes of the pattern the stock does not use: they travel when duplicated and with Nudge; the first time they are cleared in the project&#x27;s 32 drum patterns.</li>
 </ul>
 </section>
 <section class="feat" id="c10-cadenas"><h3><span class="code">C10</span>Pattern chains and scenes</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. <strong>Shift + Octave ▲ / ▼</strong> in the Patterns view switches the <strong>chain mode</strong> of the whole project on / off; every scene remembers the mode it was saved in.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. <strong>Shift + Octave ▲ / ▼</strong> in the Patterns view switches the <strong>chain mode</strong> of the whole project on / off; every scene remembers the mode it was saved in.</p></div>
 <ul>
 <li><strong>Chain mode:</strong> in the Patterns view, <strong>Shift + Octave ▲</strong> switches it on (Octave ▲ green) and <strong>Shift + Octave ▼</strong> off. While Shift is held, the Octave button that does something is yellow. The mode stays on when you leave the view.</li>
 <li><strong>Editing a rule</strong> (with the mode on): press a pattern = <strong>A</strong> (yellow; it is selected as usual). <strong>A again</strong> = one more play (up to 8; the knob LEDs count them). <strong>Another pattern of the track</strong> = <strong>B</strong> (green) and the next one = <strong>C</strong> (red). Examples: n = 3 → A A A B A A A C; no C → A A A B; n = 1 → A B A C.</li>
@@ -4030,7 +4031,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="c11-nudge-ordenes"><h3><span class="code">C11</span>Nudge and play orders</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Pattern Settings view: <strong>pad 26 = Nudge</strong> (the pattern rotated so that the chosen first step becomes step 1), <strong>pad 27 = fractal order</strong>, <strong>pad 28 = deconstructed order</strong>. On every track, drums included.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Pattern Settings view: <strong>pad 26 = Nudge</strong> (the pattern rotated so that the chosen first step becomes step 1), <strong>pad 27 = fractal order</strong>, <strong>pad 28 = deconstructed order</strong>. On every track, drums included.</p></div>
 <ul>
 <li><strong>Nudge (pad 26, orange):</strong> rewrites the pattern so that the chosen first step becomes step 1; what was in front of it goes to the end. It rotates whole steps with their automation, over 16 steps (a pattern of up to 16) or over 32. The last step moves with it (steps 6-13 → 1-8).</li>
 <li><strong>Fractal (pad 27):</strong> 1 · 1 2 · 1 2 3 · 1 2 3 4 … up to the last step, then again.</li>
@@ -4040,34 +4041,34 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>The order is saved with the pattern. Clearing the pattern removes it.</li>
 </ul>
 </section>
-<section class="feat" id="c12-arpegiador"><h3><span class="code">C12</span>Arpeggiator (Beta 1.26 only)</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> In the Pattern Settings view of a note track: <strong>Shift + pad 25</strong> = the pattern&#x27;s arpeggiator on / off, <strong>Shift + pads 27-32</strong> = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern&#x27;s direction.</p></div>
+<section class="feat" id="c12-arpegiador"><h3><span class="code">C12</span>Arpeggiator (Beta 1.27 only)</h3>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> In the Pattern Settings view of a note track: <strong>Shift + pad 25</strong> = the pattern&#x27;s arpeggiator on / off, <strong>Shift + pads 27-32</strong> = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern&#x27;s direction.</p></div>
 <ul>
 <li>With Shift, pad 25 and pads 27-32 show yellow and the chosen ones green; without Shift, pad 25 shows green while the arpeggiator is on.</li>
 <li><strong>Sequence:</strong> when two or more notes start on a step, they play one a step (at the pattern&#x27;s sync rate) in the chosen order, over the notes sorted by pitch, for as long as the chord&#x27;s longest note. Each note lasts a step and keeps its velocity. The step&#x27;s random-mutate and dynamics do not apply to them.</li>
 <li><strong>Input:</strong> the first note sounds as always; holding another one with it starts the arpeggio of the held notes, one a step (stopped: at the project&#x27;s tempo and the track&#x27;s sync rate), until all are let go. <strong>With Record the chord is recorded</strong>: the sequence plays the arpeggio afterwards.</li>
 <li>Saved with the project, per track and pattern.</li>
-<li><strong>Shift + pads 17-24</strong> = the arpeggio&#x27;s own resolution (1/32T … 1/4; the same pad again = the track&#x27;s). Each note of the chord lasts its own gate.</li>
-<li><strong>Drums</strong> (Beta 1.26 only): the same gestures in a drum&#x27;s Pattern Settings; in its Preset view, holding several samples = the arpeggio of the samples (the drum jumps from one to another), on the drum&#x27;s grid while playing and at the tempo when stopped; with Record it is recorded (micro step and sample flip).</li>
+<li><strong>Shift + pads 17-24</strong> = the arpeggio&#x27;s own resolution (1/4 … 1/32T, in the sync rate&#x27;s order; the same pad again = the track&#x27;s). Each note of the chord lasts its own gate.</li>
+<li><strong>Drums</strong> (Beta 1.27 only): the same gestures in a drum&#x27;s Pattern Settings; in its Preset view, holding several samples = the arpeggio of the samples (the drum jumps from one to another), on the drum&#x27;s grid while playing and at the tempo when stopped; with Record it is recorded (micro step and sample flip).</li>
 <li><strong>Gate by holding</strong> (Micro Step view = Gate twice, pad 32, per track): when entering notes by hand, how long you hold the pad is the gate. <strong>Pad 31</strong> = fixed length (with both off it opens the selector; picking a length turns it on). A toggle that is on turns off when pressed again; pressing the other one switches.</li>
 </ul>
 </section>
-<section class="feat" id="c13-rollers"><h3><span class="code">C13</span>Drums micro-step rollers (Beta 1.26 only)</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> Rows 1-3 of the drums&#x27; Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project&#x27;s tempo.</p></div>
+<section class="feat" id="c13-rollers"><h3><span class="code">C13</span>Drums micro-step rollers (Beta 1.27 only)</h3>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> Rows 1-3 of the drums&#x27; Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project&#x27;s tempo.</p></div>
 <ul>
 <li>Each column is the drum of its box below (with the mirrored copy: columns 1-4 = drums 4-1, 5-8 = drums 1-4); dim in the drum&#x27;s colour, lit while held.</li>
 <li>Several at once combine; with the step&#x27;s velocity (100 on an empty step); with Record they are recorded into the pattern.</li>
 </ul>
 </section>
-<section class="feat" id="c14-escala-propia"><h3><span class="code">C14</span>Custom scale (Beta 1.26 only)</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> <strong>Shift + Scales</strong> = an editor of a custom scale for the note tracks: up to 7 notes over the root and any <strong>period</strong> (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.</p></div>
+<section class="feat" id="c14-escala-propia"><h3><span class="code">C14</span>Custom scale (Beta 1.27 only)</h3>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> <strong>Shift + Scales</strong> = an editor of a custom scale for the note tracks: up to 7 notes over the root and any <strong>period</strong> (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.</p></div>
 <ul>
 <li>The editor&#x27;s keyboard: two octaves of a piano from the root (rows 4 / 3 the first octave, white / black; rows 2 / 1 the second). The highest key pressed is the period (orange), the others the notes (green).</li>
 <li>It drives playing, the lit notes of the sequence, quantising and random-mutate. A stock scale switches it off; the editor switches it on again.</li>
 </ul>
 </section>
 <section class="feat" id="c15-master-fx-beta"><h3><span class="code">C15</span>Master FX in the beta: mechanical gesture, Glitch, Digitise and saving per session</h3>
-<div class="summary"><p><strong>Beta 1.26 only.</strong> Pad 6 of Master FX is the <strong>Glitch</strong> and pad 31 a <strong>mechanical gesture</strong> (tape stop, scratch…); Digitise gains <strong>K3 = momentary send to the delay</strong> and <strong>K4 = envelope</strong>; the Master FX knobs and slots <strong>are saved with every project</strong>.</p></div>
+<div class="summary"><p><strong>Beta 1.27 only.</strong> Pad 6 of Master FX is the <strong>Glitch</strong> and pad 31 a <strong>mechanical gesture</strong> (tape stop, scratch…); Digitise gains <strong>K3 = momentary send to the delay</strong> and <strong>K4 = envelope</strong>; the Master FX knobs and slots <strong>are saved with every project</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (it replaces the Vinyl): held, latched, assignable to the slots and to the FX sequencer like the other effects; its K1-K4 are the Glitch’s.</li>
 <li><strong>Pad 31 = mechanical gesture:</strong> on press the audio slows down to a stop; on release it starts again. <strong>K1</strong> = moves per gesture (1-8), <strong>K2</strong> = type, blended continuously and shown in colours (tape stop → baby scratch → tear → back spin → rattle), <strong>K3</strong> = stop time, <strong>K4</strong> = start time.</li>
@@ -4104,7 +4105,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>OSC 1:</strong> WAVE is a continuous morph (0 sine, 42 triangle, 84 saw, 126 square); SHAPE folds the sine / triangle, bends the saw or changes the square’s width. Envelope and LFO move pitch, shape and morph.</li>
 <li><strong>OSC 2 (pad 28):</strong> its own TUNE / FINE / WAVE / SHAPE; MIX, FM (OSC 2 → OSC 1 phase), RING and BITSYNC (soft sync every N cycles, xor, or, nor, and, nand).</li>
-<li><strong>Paraphony:</strong> one note = unison; two = one per oscillator (<strong>Beta 1.26 only</strong>: with one oscillator the last note has priority; releasing it goes back to the previous one).</li>
+<li><strong>Paraphony:</strong> one note = unison; two = one per oscillator (<strong>Beta 1.27 only</strong>: with one oscillator the last note has priority; releasing it goes back to the previous one).</li>
 </ul>
 </section>
 <section class="feat" id="d4-va-drum"><h3><span class="code">D4</span>VA-drum engine</h3>
@@ -4122,7 +4123,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 </section>
 <section class="feat" id="d5-granular"><h3><span class="code">D5</span>Granular synth</h3>
-<div class="summary"><p>Up to <strong>16 grains per track</strong> from any sample of the pack or the capture, with interpolation and window; on the second DSP core.</p><p>K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, Beta 1.26 only), LFO → size, source.</p></div>
+<div class="summary"><p>Up to <strong>16 grains per track</strong> from any sample of the pack or the capture, with interpolation and window; on the second DSP core.</p><p>K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, Beta 1.27 only), LFO → size, source.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Granular page (pad 2, magenta engine).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -4279,14 +4280,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K3</td><td>Scan: centre = frozen, right moves forward, left backwards</td><td>Probability of a reversed grain</td></tr>
 <tr><td>K4</td><td>Grain size, 5-500 ms</td><td>Pitch spray (±12 st)</td></tr>
 <tr><td>K5</td><td>Density, 1-16 overlapping grains</td><td>Window: rectangular → triangular → percussive</td></tr>
-<tr><td>K6</td><td>Length of the scan zone</td><td>Note mode: pitch / slicer / stretch (stretch in Beta 1.26 only)</td></tr>
+<tr><td>K6</td><td>Length of the scan zone</td><td>Note mode: pitch / slicer / stretch (stretch in Beta 1.27 only)</td></tr>
 <tr><td>K7</td><td>LFO → position</td><td>LFO → size</td></tr>
-<tr><td>K8</td><td>Envelope → position</td><td><strong>Source</strong>: pack sample 1-64, to the left the capture. <strong>Beta 1.26 only:</strong> a long travel over five zones: the capture (red) and the sample Drum 1 (orange), 2 (yellow), 3 (violet) and 4 (teal) has now; it stays fixed even if the drum changes its sample; dim white = no drum has that sample any more</td></tr>
+<tr><td>K8</td><td>Envelope → position</td><td><strong>Source</strong>: pack sample 1-64, to the left the capture. <strong>Beta 1.27 only:</strong> a long travel over five zones: the capture (red) and the sample Drum 1 (orange), 2 (yellow), 3 (violet) and 4 (teal) has now; it stays fixed even if the drum changes its sample; dim white = no drum has that sample any more</td></tr>
 </tbody></table>
 <ul>
 <li><strong>Pitch mode:</strong> the note changes the pitch of the grains; with two notes they are shared between both.</li>
 <li><strong>Slicer mode:</strong> the note picks one of 16 slices of the sample.</li>
-<li><strong>Stretch mode (Beta 1.26 only):</strong> the stretch from K2 to the end of the sample lasts <strong>K3</strong> steps (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 or 64; K3’s LED shows it) at any tempo, without changing the pitch, and starts again in step with the start of the transport; the notes change the pitch as in pitch mode. With the transport stopped it stands still. K7 / K8 do little in this mode.</li>
+<li><strong>Stretch mode (Beta 1.27 only):</strong> the stretch from K2 to the end of the sample lasts <strong>K3</strong> steps (1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48 or 64; K3’s LED shows it) at any tempo, without changing the pitch, and starts again in step with the start of the transport; the notes change the pitch as in pitch mode. With the transport stopped it stands still. K7 / K8 do little in this mode.</li>
 <li>It goes through the VCA-VCF of page 1. It shares its saved values with the oscillator page.</li>
 </ul>
 </section>
@@ -4339,7 +4340,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="e3-instalar"><h3><span class="code">E3</span>Installing and going back</h3>
 <div class="summary"><p><code>tools/ct_uploader.html</code> sends the <code>.syx</code> over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.</p></div>
 <ol>
-<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC0.9, RC0.9S, Beta 1.26 (or the earlier RC0.8 / RC0.8S, Beta 1.19) or “Official”.</li>
+<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC0.9, RC0.9S, Beta 1.27 (or the earlier RC0.8 / RC0.8S, Beta 1.19) or “Official”.</li>
 <li>1. Open <code>tools/ct_uploader.html</code> in Chrome and connect the Circuit Tracks over USB.</li>
 <li>2. Pick the <code>.syx</code> from <code>firmware/&lt;version&gt;/</code>: the uploader checks its SHA-256.</li>
 <li>3. Send. Novation’s bootloader is not modified.</li>
@@ -4348,7 +4349,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Going back:</strong> send another version or the official firmware. If the device does not start: hold <strong>Scales + Preset + Note</strong> at power-on (bootloader recovery mode).</li>
 <li>The RC branch does not publish <code>.syx</code> files: they are generated with <code>tools/patch_official.py</code> from the official firmware.</li>
 <li><strong>RC0.9</strong> (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
-<li><strong>Beta 1.26</strong> (beta build, marker <code>B1.3</code> on the device) = SC41.3: RC0.9 + what this manual marks <strong>Beta 1.26 only</strong>: what the earlier betas had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency and dynamics, pattern chains and scenes with the project-wide chain mode, Nudge and the fractal / deconstructed orders on the drums too, own-synth patches between packs, recording of the internal routes, random value of the FX sequencer) and their fixes (the Master FX view no longer overwrites the state of other features; a chain rule out of range no longer reads outside the memory). What was added since Beta 1.0 is untested on the device: use it with a backup of the SD card.</li>
+<li><strong>Beta 1.27</strong> (beta build, marker <code>B1.3</code> on the device) = SC41.3: RC0.9 + what this manual marks <strong>Beta 1.27 only</strong>: what the earlier betas had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency and dynamics, pattern chains and scenes with the project-wide chain mode, Nudge and the fractal / deconstructed orders on the drums too, own-synth patches between packs, recording of the internal routes, random value of the FX sequencer) and their fixes (the Master FX view no longer overwrites the state of other features; a chain rule out of range no longer reads outside the memory). What was added since Beta 1.0 is untested on the device: use it with a backup of the SD card.</li>
 <li><strong>Safer build:</strong> RC0.9S = RC0.9 without features that write to the SD card (no A8, no remote diagnostics; = RC0S + what RC0.1-RC0.9 add outside the SD card). <strong>Back up the SD card before installing</strong> any version.</li>
 <li>New features and fixes of every version: <code>CHANGELOG.md</code>.</li>
 </ul>
