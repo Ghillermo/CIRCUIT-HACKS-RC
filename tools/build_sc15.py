@@ -157,6 +157,7 @@ def arm_code(base, c_gst, c_h9):
 
 def dasm(lines):
     import dspasm_cache
+    if D.SHORTX: return D.mark(list(zip(lines, dspasm_cache.assemble(lines))))   # (SHORTX) the moves x:(Rn+d) marked
     return [w for ws in dspasm_cache.assemble(lines) for w in ws]
 
 

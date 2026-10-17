@@ -1,18 +1,18 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.28 with the names of the mod's own manual, and illustrated with its panel drawings."""
+RC2 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.28"
-B = f"*({BETA})*"
+BETA = "RC2"
+B = f"*(since {BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
           other='<p class="lang"><a href="sencilla.html">Español</a> · <a href="plain.pdf">PDF</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>',
           footer="CIRCUIT-HACKS — firmware mod for the Novation Circuit Tracks (1.2.1, build 4486). Not affiliated with Novation.",
           html="plain.html", md="docs/PLAIN.en.md", pdf="plain.pdf")
 
-INTRO = f"""First draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, written for RC0.9 and Beta 1.3. This edition is rewritten for **RC0.9** and **{BETA}**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
+INTRO = f"""First draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, written for RC0.9 and Beta 1.3. This edition is rewritten for **RC2** and **RC2S**, keeps the names of the mod's own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the [guide by views](guide.html) and the [feature list](en.html).
 
 Nothing here has been tested on a real unit unless the [CHANGELOG](https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md) says so. The mod is not affiliated with Novation."""
 
@@ -28,7 +28,7 @@ sec("what", "What the mod is", f"""
 The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra features patched in. Whatever this guide does not mention works exactly as on a stock unit, so **Novation's user guide still applies**.
 
 - Features with no mark are in every build.
-- Features marked **{B}** are only in the beta build. Many of them have not been tried on a real unit yet: treat the beta as experimental and keep a copy of your card.
+- Features marked **{B}** are new since RC0.9. Many of them have not been tried on a real unit yet: keep a copy of your card.
 - Novation's bootloader (the part that installs firmware) is never modified, so you can always go back.
 """)
 
@@ -40,9 +40,9 @@ sec("install", "Before you install", f"""
 
 | Build | What it is |
 |---|---|
-| **RC0.9** | The release candidate: everything without the {BETA} mark. |
-| **RC0.9S** | The *safer* build: RC0.9 without the features that write files to the card on their own (pack management on the device, saving captures into packs, copying samples and patches between packs). |
-| **{BETA}** | RC0.9 plus everything marked {B}. Experimental. |
+| **RC2** | The release candidate: everything in this guide. |
+| **RC2S** | The *safer* build: RC2, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
+| **RC0.9 / RC0.9S** | The earlier versions, without what is marked {B}. |
 
 ### Installing
 1. Download Novation's official firmware 1.2.1 (the update file from Components).
@@ -177,7 +177,7 @@ Pressing pad 31 slows the audio to a stop; releasing it starts it again. K1 = mo
 
 ### Slots (pads 26-30)
 Hold an effect (pads 1-6), pad 7 (the capture) or the Glitch / gesture pad and touch a slot: the slot keeps that effect with a copy of its knobs. Touch the slot = on while held; **Shift + slot** = latched. Slots are saved with the project. An empty slot is the stock performance effect of the FX view. The FX sequencer (section 10) triggers these slots.
-""", [F("Master FX (Mixer twice). RC: pad 6 Vinyl, pad 31 Glitch; beta: pad 6 Glitch, pad 31 mechanical gesture.",
+""", [F("Master FX (Mixer twice). RC0.9: pad 6 Vinyl, pad 31 Glitch; RC2: pad 6 Glitch, pad 31 mechanical gesture.",
         pads={1: ("orange", "Gater"), 2: ("yellow", "Filter\nLP"), 3: ("yellow", "Filter\nHP"), 4: ("lime", "Digitise"), 5: ("magenta", "Phaser"), 6: ("teal", "Glitch"),
               7: ("yellow", "Capture\nplay"), 8: ("white", "All\noff"), **{n: ("purple", str(n - 8), True) for n in range(9, 25)},
               **{n: ("peach", f"Slot\n{n - 25}", True) for n in range(26, 31)}, 31: ("pink", "Gesture"), 32: ("red", "Rec")},
@@ -226,7 +226,7 @@ In the drums' Note view (press **Note** until rows 1-3 show dim pads), rows 1-3 
 **Sidechain from patterns** {B}: on the Synth and MIDI pages of the Sidechain view, **row 1 pads 1-4** (next to the drums on pads 5-8) pick **Synth 1, Synth 2, MIDI 1 or MIDI 2** as the source of the chosen track (the last preset touched): every pattern note of that track ducks it, as a drum hit does. Saved with the project.
 """, [F("Drum track view: the knobs follow the panel labels; Shift gives the second layer.",
         knobs={1: "Pitch", 2: "Ring", 3: "Decay /\nattack", 4: "Env→F", 5: "Filter", 6: "Reso", 7: "LFO", 8: "Drive"}, buttons={"Drum 1": "white", "Shift": "grey"}, view="Drum 1"),
-      F("The drums' Note view: rollers on rows 1-3 (beta); the drum boxes below.",
+      F("The drums' Note view: rollers on rows 1-3 (RC2); the drum boxes below.",
         pads={**{n: ("blue", "", True) for n in (1, 9, 17)}, **{n: ("purple", "", True) for n in (2, 10, 18)}, **{n: ("yellow", "", True) for n in (3, 11, 19)},
               **{n: ("red", "D1", True) for n in (4, 12, 20, 5, 13, 21)}, **{n: ("yellow", "", True) for n in (6, 14, 22)}, **{n: ("purple", "", True) for n in (7, 15, 23)},
               **{n: ("blue", "", True) for n in (8, 16, 24)}, 25: ("blue", "D4"), 26: ("purple", "D3"), 27: ("yellow", "D2"), 28: ("red", "D1"),
@@ -257,7 +257,7 @@ A layer over the pattern: the pattern decides which steps play; the knobs give e
 """, [F("Synth source view (the synth's button twice).",
         pads={25: ("white", "Noise"), 26: ("green", "In 1"), 27: ("green", "In 2"), 28: ("teal", "In 1\ninv."), 29: ("teal", "In 2\ninv."), 30: ("purple", "Step\ndrum"), 32: ("teal", "Macro\nedit")},
         buttons={"Synth 1": "white"}, view="Source"),
-      F("Step-drummer view: steps on rows 1-2, destination on row 3, pad 32 = pitch-vel (beta); K1-K8 = the 8 pairs.",
+      F("Step-drummer view: steps on rows 1-2, destination on row 3, pad 32 = pitch-vel (RC2); K1-K8 = the 8 pairs.",
         pads={**{n: (("yellow" if (n - 1) // 2 % 2 == 0 else "red"), "", n not in (1, 2, 5, 9, 13)) for n in range(1, 17)}, 7: ("white", "▶"),
               **{n: ("green", ["Pitch", "OSC2", "WAVE", "FM", "MIX", "Env F", "SHAPE", "DEC"][n - 17], n != 17) for n in range(17, 25)}, 30: ("purple", "Step\ndrum"), 32: ("green", "Pitch\nvel")},
         knobs={k: f"pair {k}" for k in range(1, 9)}, buttons={"Oct ▲": "yellow", "Oct ▼": "grey", "1-16 / 17-32": "grey"}, view="Step-drummer")])
@@ -267,7 +267,7 @@ sec("midi", "MIDI tracks as synths", f"""
 Normally a MIDI track only sends MIDI. With the mod, MIDI 1 and MIDI 2 can each have their **own engine** on the Circuit itself; the notes still go out over MIDI.
 
 ### The engine (pad 27)
-In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (yellow) → oscillator (green) → VA-drum (red) → granular (magenta) → FX sequencer (blue) → off.
+In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (yellow) → oscillator (green) → VA-drum (red) → granular (magenta) → sample (cyan, {B}) → FX sequencer (blue) → off.
 
 | Engine | In plain words |
 |---|---|
@@ -275,6 +275,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 | Oscillator | A two-oscillator synth: WAVE morphs sine (0) → triangle (42) → saw (84) → square (126); SHAPE folds, bends or changes the width; OSC 2 adds FM, ring and bit modes. One note = unison, two notes = one per oscillator ({B}: with one oscillator, the last note has priority). |
 | VA-drum | The oscillator as a one-shot percussion voice: Sustain = pitch envelope decay, Release = filter envelope decay, LFO speed = noise level. Kick: sine, Decay ~70, Sustain ~30, envelope → pitch right; snare: more noise, short Decay, band pass. |
 | Granular | Up to 16 grains of a sample at once: textures, frozen or stretched sounds (page 2 below). |
+| Sample {B} | A pack sample one-shot, at the pitch of each note (C3 = as recorded): tunable drums on a MIDI track. **Note twice** = the picker: rows 3-4 the samples (Octave ▼ / ▲ = 4 pages, all 64), rows 1-2 the steps; hold a step and touch a sample = that step plays that sample (sample flip), also live with Record. |
 | FX sequencer | No sound: each pair of steps of its step-drummer triggers a Master FX slot. |
 
 - Every sound engine goes through a VCA, an effect and a filter (with envelope and LFO) before mixer strip 3 or 4; **pad 29** swaps the order VCA → effect → filter / filter → VCA → effect ({B}: pad 29 in the VCA-VCF page's colour).
@@ -297,7 +298,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 - **Page 1, VCA-VCF:** K1 attack (Shift sustain), K2 release (Shift decay), K3 envelope → level (Shift LFO → level), K4 envelope → filter (Shift LFO → filter), K5 filter (Shift filter type: DJ, LP 12, HP 12, band pass, notch, LP 24, HP 24), K6 resonance (Shift VCA gain, up to +18 dB with saturation), K7 LFO speed, K8 effect amount (Shift effect type: soft, hard, folded, wavefold, ring, comb, chorus).
 - **Page 2, OSC 1:** K1 tune (Shift fine), K2 shape (Shift mix OSC 1 ↔ OSC 2), K3 envelope → pitch (Shift bitsync), K4 envelope → shape, K5 LFO → pitch, K6 LFO → shape, K7 WAVE, K8 LFO → morph (Shift envelope → morph).
 - **Page 2, granular:** K1 pitch ±24 (Shift fine), K2 position (Shift position spread), K3 scan: centre freezes, right forward, left backward (Shift chance of a reversed grain), K4 grain size 5-500 ms (Shift pitch spread), K5 density 1-16 (Shift window), K6 scan zone (Shift note mode: pitch / slicer; {B} stretch = from the position to the end over a set number of steps, without changing pitch), K7 LFO → position (Shift LFO → size), K8 envelope → position (Shift source: RC a pack sample or, left, the capture; {B} the capture or the current sample of a drum).
-- **Page 3, OSC 2:** {B}: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below.
+- **Page 3, OSC 2:** {B}: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below ({B}: **Shift + K8** = the LFO's shape, six shapes in colours).
 - **Automation:** with Record + Play, the moves of the page 4 values are recorded into the pattern. {B}: **Clear + knob left** deletes that knob's automation (red), **Clear + knob right** = default (lavender).
 
 ### FX sequencer
@@ -360,7 +361,7 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
 - **Scenes:** a scene saved in chain mode shows peach and brings the mode back when loaded. In the Mixer, **Shift + pads 9-16** = 1-8 repeats of the current scene; tracks following a rule blink.
 - **Drop-ins on the bar** {B}: in the Mixer, **Shift + a track pad (1-8)** mutes or unmutes it as the next bar starts (it blinks while it waits; again cancels it).
 - **Cue mode** {B}: on the Mixer's pan page (Octave ▼), **Shift + a knob turned right** turns it on (Octave ▼ pink) and **turned left** turns it off. The left output carries the mix in mono; the right one, only the tracks you send to the cue with their pan knob (from the centre to the right). Use it to hear a muted track before bringing it in: it plays in time on the right only.
-""", [F("Pattern Settings: stock pads plus 25-28; with Shift, the arpeggiator (beta).",
+""", [F("Pattern Settings: stock pads plus 25-28; with Shift, the arpeggiator (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "First"), **{n: ("green", "", True) for n in range(17, 25)},
               25: ("peach", "Mode 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decon."), 29: ("purple", "Fwd", True), 30: ("purple", "Back", True), 31: ("purple", "Ping", True), 32: ("purple", "Rnd", True)},
         buttons={"Pattern Settings": "white", "Shift": "yellow"}, view="Pattern Settings"),
@@ -368,7 +369,7 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 3: ("white", "Step"), **{n: ("green", str(n - 16), n != 19) for n in range(17, 25)},
               **{n: ("peach", str(n - 24), n > 27) for n in range(25, 33)}},
         buttons={"Pattern Settings": "white"}, view="Probability"),
-      F("Micro Step view (Gate twice): pad 31 fixed length, pad 32 gate by holding (beta).",
+      F("Micro Step view (Gate twice): pad 31 fixed length, pad 32 gate by holding (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 17: ("green", "μ1"), **{n: ("green", f"μ{n - 16}", True) for n in range(18, 23)}, 24: ("orange", "Tie", True),
               25: ("magenta", "Note"), 31: ("orange", "Fixed"), 32: ("green", "Hold")},
         buttons={"Gate": "white"}, view="Micro Step")])
@@ -404,7 +405,7 @@ sec("setup", "Setup and MIDI", f"""
 | Advanced Setup, **Duplicate** {B} | MIDI Thru jack: Thru (dim red) → Out 2 (green) → **Merge** (yellow: DIN In plus the device's MIDI) → **Filter** (blue: DIN In without the channels the device listens to). No SysEx in Merge / Filter; with Merge, switch Clock Tx off to avoid two clocks. |
 
 - **RC0.9 known issue:** opening Setup from the Synth 1 / 2 view, that synth's channel cannot be picked: open Setup from another view. {B}: fixed.
-""", [F("Setup view: pad 16, pads 22 / 23, and (beta) pads 29 / 30 for the Program Change channels.",
+""", [F("Setup view: pad 16, pads 22 / 23, and (RC2) pads 29 / 30 for the Program Change channels.",
         pads={16: ("white", "Ch 16"), 22: ("cream", "Rev →\n3"), 23: ("peach", "Dly →\n4"), 29: ("white", "PGM\nRx"), 30: ("white", "PGM\nTx")},
         buttons={"Record": "yellow"}, view="Setup")])
 
@@ -433,7 +434,7 @@ sec("not", "What the mod does not do", """
 - Patterns are still at most 32 steps, and a track cannot change its type; the closest thing is a MIDI track with an engine (section 10).
 - The developer tools (diagnostic builds, DSP internals) are left out of this guide: see the repository's technical notes.
 
-### Known issues in RC0.9 (fixed in the beta)
+### Known issues in RC0.9 (fixed in RC2)
 - Drums can sound different from a stock Circuit in new or untouched projects (filter mode DJ): Shift + K5 to EQ tilt.
 - Setup opened from the Synth 1 / 2 view cannot pick that synth: open Setup from another view.
 - The left part of the drum K3 (sample start) is under investigation.

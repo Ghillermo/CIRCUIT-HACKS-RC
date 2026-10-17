@@ -5,7 +5,8 @@
   * called from the mod's area (a stub placed there): an item of pack 0, or of 0xFF while pack 0 is loaded, fails (0xFFFFFFFD) and the stock code
     is not reached; an item of a card pack (3, 31), or of 0xFF while a card pack is loaded, reaches the stock code; reads are never stopped;
   * after a refusal the Save LED is red, 1.5 s later it is not;
-  * the previous build: every call reaches the stock code.
+  * the previous build: every call reaches the stock code;
+  * RC2S (rodisk.use_allpacks, the label ro_all): every item of every pack refused.
 """
 from __future__ import annotations
 import gc, json, struct, sys
@@ -20,7 +21,7 @@ import rodisk as RD  # noqa: E402
 from thumb import bl as tbl, b_w  # noqa: E402
 
 B = 0x08010000
-STUB = 0x0807E000                                             # (in the mod's area, past every image)
+STUB = 0x0807E000                                             # (in the mod's area; inside the largest images, but never called there by the test)
 
 
 def run(img, man):
@@ -60,11 +61,14 @@ def main(img, man, prev, prev_man):
     check(at(RD.WRITE, 4) == b_w(RD.WRITE, L["c_rowr"]) and at(RD.DELETE, 4) == b_w(RD.DELETE, L["c_rodel"]),
           "the stock's write and delete begin with a branch to the guards")
     o, (t, l1, l2) = run(img, man)
+    allp = "ro_all" in L                                                                       # RC2S (rodisk.use_allpacks): every pack refused
     want = {(0, 0): "refused", (5, 0): "refused", (0, 0xFF): "refused", (5, 0xFF): "stock", (5, 3): "stock", (0, 31): "stock"}
+    if allp: want = {k: "refused" for k in want}
     for name in ("write", "delete"):
         got = {k[1:]: v[0] for k, v in o.items() if k[0] == name}
         fail_code = all(v[1] == RD.FAIL for k, v in o.items() if k[0] == name and v[0] == "refused")
-        check(got == want and fail_code, f"the mod's {name}: pack 0, or 0xFF with pack 0 loaded, refused with 0xFFFFFFFD; a card pack reaches the stock ({got})")
+        check(got == want and fail_code, (f"the mod's {name}: every pack refused with 0xFFFFFFFD (RC2S) ({got})" if allp else
+                                          f"the mod's {name}: pack 0, or 0xFF with pack 0 loaded, refused with 0xFFFFFFFD; a card pack reaches the stock ({got})"))
     check(t != 0 and l1 == RD.COL_NO and l2 != RD.COL_NO, f"a refusal: the Save LED red ({l1:#x}), 1.5 s later not ({l2:#x})")
     gc.collect(); p, _ = run(prev, prev_man)
     check(all(v[0] == "stock" for v in p.values()), "the previous build: every call reaches the stock code")

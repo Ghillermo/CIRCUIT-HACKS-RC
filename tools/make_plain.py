@@ -56,7 +56,7 @@ def write(lang):
     # html
     h = [f'<!doctype html><html lang="{U["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(U["title"])}</title>',
          f"<style>{M.CSS}{PRINT_CSS}</style></head><body>",
-         f'<header class="cover"><h1>CIRCUIT-HACKS</h1><p>{U["cover"]}</p><p>{M.VERSION} · {T.BETA}</p><p>{CREDIT[lang]}</p><div class="bar"></div></header><main>',
+         f'<header class="cover"><h1>CIRCUIT-HACKS</h1><p>{U["cover"]}</p><p>{M.VERSION} · {M.VERSION}S</p><p>{CREDIT[lang]}</p><div class="bar"></div></header><main>',
          U["other"]]
     h += [links(M.md2html(p)) for p in T.INTRO.split("\n\n")]
     h.append(f'<nav class="toc"><h2>{U["toc"]}</h2><ol>')

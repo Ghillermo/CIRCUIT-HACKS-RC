@@ -31,6 +31,17 @@ SESSION_OBJ, TAIL, T_OFF = 0x2003D71C, 0x27024, 276           # the time of the 
 HAL_TICK = 0x2000081C
 LED_SAVE, COL_NO, SHOW_MS = 57, 0x53, 1500
 FAIL = 0xFFFFFFFD
+ALL = False                                                   # RC2S (see use_allpacks)
+
+
+def use_allpacks():
+    """RC2S (the user, 2026-10-17: «New RC + RC2S»): the safer build of RC2: every write and delete the mod starts is refused, on every pack
+    (not only pack 0), with the same red Save LED; the stock's own writes (its project, patch and settings saves) pass as always.  So nothing of
+    the mod creates, changes or deletes a file on the card or in the internal memory, and nothing has to be taken out of the build: the features
+    that write (the captured sample saved with the project, exchanges and copies between packs, own-synth patches, the synth patch save, the copy
+    of projects, the deletion of a pack) just fail."""
+    global ALL
+    ALL = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -49,13 +60,14 @@ def arm_code(base, prev):
     a.label("ri_c"); E(movs_imm, 0, 0); E(cmp_imm, 1, INTERNAL); E(b_cond, "ri_x", "ne"); E(movs_imm, 0, 1)
     a.label("ri_x"); E(raw, h(0x4770))
 
-    # ---- c_rowr / c_rodel (in place of the first 4 bytes of the stock's write / delete): the mod's calls on the internal pack fail
+    # ---- c_rowr / c_rodel (in place of the first 4 bytes of the stock's write / delete): the mod's calls on the internal pack fail (ALL: on any pack)
+    if ALL: a.label("ro_all")
     for name, fn in (("c_rowr", WRITE), ("c_rodel", DELETE)):
         a.label(name)
         E(raw, pushw([0, 1, 2, 3], lr=True))
         imm32(1, MOD_START)
         E(mov_reg, 2, 14); E(cmp_reg, 2, 1); E(b_cond, f"{name}_p", "lo")              # (lr below the mod's area: a stock caller)
-        E(bl, "c_rointernal"); E(cmp_imm, 0, 0); E(b_cond, f"{name}_p", "eq")
+        if not ALL: E(bl, "c_rointernal"); E(cmp_imm, 0, 0); E(b_cond, f"{name}_p", "eq")
         E(bl, "c_ronote")
         E(raw, popw([0, 1, 2, 3], lr=True)); imm32(0, FAIL); E(raw, h(0x4770))
         a.label(f"{name}_p")

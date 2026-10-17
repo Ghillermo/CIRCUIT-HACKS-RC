@@ -39,8 +39,9 @@ B = 0x08010000
 ENG = PC.ENG
 
 
-def seq_part(img, man):
-    """the FX sequencer of MIDI 1: which track's step it reads, the selector knob -> (the step read, the positions after the knob events)"""
+def seq_part(img, man, presses=5):
+    """the FX sequencer of MIDI 1: which track's step it reads, the selector knob -> (the step read, the positions after the knob events);
+    `presses` = pad 27 from off to the FX sequencer (6 from SC44: the sample state before it)"""
     import emu_sc36_1 as T361
     V = T361.V
     V.use_fxseq3()
@@ -49,7 +50,7 @@ def seq_part(img, man):
     pad = lambda p: (e.padr(p), e.rel(p))
     def r0(fn, *a): e.call(fn, *a); return e.uc.reg_read(UC_ARM_REG_R0)
     e.btn(2); e.track(2); e.btn(8)
-    for _ in range(5): pad(V.PAD_OSC)
+    for _ in range(presses): pad(V.PAD_OSC)
     fsq = r0(e.vl["c_fsq"], 0)
     pad(V.PAD_SD)
     for t, s in ((2, 7), (5, 3), (0, 11), (3, 13)):

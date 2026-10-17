@@ -1,0 +1,28 @@
+"""Circuit Tracks 4486 - SC44 = SC43.9 + vcf21_dsp / vcf21 use_sampler() + tools/smpick.py (the sample mode of the own engine of MIDI 1 / 2: a pack
+sample played one-shot at the note's pitch through the engine's filter / VCA / FX / LFO; the expanded Note view = the sample picker and the
+sample flips of the steps).
+
+SC43.9 = SC43.8 + dsp56.use_shortx() + vcf21_dsp / vcf21 / mpatch use_lfoshape / use_lshape."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_sc43_9 as B  # noqa: E402
+import vcf21_dsp  # noqa: E402
+vcf21_dsp.use_sampler()
+import vcf21  # noqa: E402
+vcf21.use_sampler()
+import build_sc41_5 as B5  # noqa: E402
+import smpick  # noqa: E402
+import linein3  # noqa: E402
+
+NAME = "SC44"
+
+
+def extra(img, report):
+    B.extra(img, report)
+    B5.add(img, report, "smpick", smpick)
+
+
+if __name__ == "__main__":
+    b5 = B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B.B9.B8.B7.B6.B5.B4.B2.B1.B.B.b33.b32.b31.b30.b29.b28.b27.b26.b25.b24.b223.b22.b182.b18.b6.b5
+    linein3.main(NAME, b5.build, b5.s15, sys.argv[1:], extra=extra)

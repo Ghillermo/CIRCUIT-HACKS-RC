@@ -1,6 +1,6 @@
 """Build a CIRCUIT-HACKS firmware from the OFFICIAL Novation firmware that you provide (the repository does not ship any Novation code).
 
-    python tools/patch_official.py OFFICIAL.syx|OFFICIAL.bin [--version RC0.9] [--all] [--list]
+    python tools/patch_official.py OFFICIAL.syx|OFFICIAL.bin [--version RC2] [--all] [--list]
   1. The official file: the Circuit Tracks 1.2.1 (build 4486) update as Components serves it (.syx), or its application image (.bin).
      It is checked against the SHA-256 in stock/SHA256SUMS.txt; another version is refused.
   2. It is stored as stock/circuittracks-firmware-4486-STOCK.bin (+ .syx), the Thumb listing re/app.asm is generated (tools/gen_listing.py, needs capstone 5.0.7).
@@ -81,7 +81,7 @@ def build_one(d, script, extra):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("official", type=Path, nargs="?")
-    ap.add_argument("--version", default="RC0.9")
+    ap.add_argument("--version", default="RC2")
     ap.add_argument("--all", action="store_true", help="every version of tools/verify_builds.py")
     ap.add_argument("--list", action="store_true")
     a = ap.parse_args()

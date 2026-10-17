@@ -19,24 +19,24 @@ ENGINE = [
     (21, "LFO → tono (granular: scan)", "LFO → pitch (granular: scan)", "2 / K5"), (22, "Envolvente → tono (granular: env → posición)", "Envelope → pitch (granular: env → position)", "2 / K3"),
     (23, "Envolvente → forma (granular: zona)", "Envelope → shape (granular: zone)", "2 / K4"), (24, "LFO → forma (granular: LFO → posición)", "LFO → shape (granular: LFO → position)", "2 / K6"),
     (25, "Envolvente → morph (granular: fuente)", "Envelope → morph (granular: source)", "2 / Shift + K8"), (26, "LFO → morph (granular: modo de nota)", "LFO → morph (granular: note mode)", "2 / K8"),
-    (27, "TUNE 2 (granular: LFO → tamaño)", "TUNE 2 (granular: LFO → size)", "3 / K1"), (28, "FINE 2 (granular: fino)", "FINE 2 (granular: fine)", "3 / K5 (beta) · 3 / Shift + K1 (RC)"),
+    (27, "TUNE 2 (granular: LFO → tamaño)", "TUNE 2 (granular: LFO → size)", "3 / K1"), (28, "FINE 2 (granular: fino)", "FINE 2 (granular: fine)", "3 / K5 (RC2) · 3 / Shift + K1 (RC0.9)"),
     (29, "WAVE 2 (granular: dispersión del tono)", "WAVE 2 (granular: pitch spread)", "3 / K7"), (30, "SHAPE 2 (granular: ventana)", "SHAPE 2 (granular: window)", "3 / K2"),
-    (31, "MIX OSC 1 ↔ OSC 2", "MIX OSC 1 ↔ OSC 2", "2 / Shift + K2 · 3 / K3 (beta)"), (32, "BITSYNC", "BITSYNC", "2 / Shift + K3 · 3 / K6 (beta)"),
-    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / K4 (beta) · 3 / Shift + K2 (RC)"), (34, "RING (granular: reverso)", "RING (granular: reverse)", "3 / K8 (beta) · 3 / Shift + K3 (RC)")]
+    (31, "MIX OSC 1 ↔ OSC 2", "MIX OSC 1 ↔ OSC 2", "2 / Shift + K2 · 3 / K3 (RC2)"), (32, "BITSYNC", "BITSYNC", "2 / Shift + K3 · 3 / K6 (RC2)"),
+    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)"), (34, "RING (granular: reverso)", "RING (granular: reverse)", "3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)")]
 DRUMS = [  # lsb, es, en, values es, values en
     (1, "Envolvente → tono", "Envelope → pitch", "0-127, 64 = 0", "0-127, 64 = 0"), (2, "Ring mod: frecuencia", "Ring mod: frequency", "0-127", "0-127"),
     (3, "LFO: cantidad", "LFO: amount", "0-127, 64 = 0", "0-127, 64 = 0"), (4, "LFO: velocidad", "LFO: speed", "0-127, 64 = centro", "0-127, 64 = centre"),
     (5, "Envolvente → corte", "Envelope → cutoff", "0-127, 64 = 0", "0-127, 64 = 0"), (6, "Resonancia", "Resonance", "0-127", "0-127"),
     (7, "Forma de la envolvente", "Envelope shape", "0-127, 64 = centro", "0-127, 64 = centre"), (8, "Ring mod: cantidad", "Ring mod: amount", "0-127", "0-127"),
     (9, "Modo de filtro", "Filter mode", "0 EQ tilt de stock, 1 paso banda, 2 notch, 3 comb, 4 DJ", "0 stock tilt EQ, 1 band-pass, 2 notch, 3 comb, 4 DJ"),
-    (10, "Inicio del sample", "Sample start", "beta: 0-120 (/128); RC: 0-15 (/64)", "beta: 0-120 (/128); RC: 0-15 (/64)"),
+    (10, "Inicio del sample", "Sample start", "RC2: 0-120 (/128); RC0.9: 0-15 (/64)", "RC2: 0-120 (/128); RC0.9: 0-15 (/64)"),
     (11, "Bitcrush", "Bitcrush", "0-15", "0-15"), (12, "Tipo de distorsión", "Distortion type", "0 stock, 1 suave, 2 dura, 3 plegada", "0 stock, 1 soft, 2 hard, 3 fold"),
-    (13, "Corte desde el final (solo beta)", "Cut from the end (beta only)", "0-120 (/128)", "0-120 (/128)"), (14, "Ataque (solo beta)", "Attack (beta only)", "0-127", "0-127")]
+    (13, "Corte desde el final (desde RC2)", "Cut from the end (since RC2)", "0-120 (/128)", "0-120 (/128)"), (14, "Ataque (desde RC2)", "Attack (since RC2)", "0-127", "0-127")]
 GFX = [("Gater", "división, profundidad, ancho, suavizado", "division, depth, width, smoothing"),
        ("Auto-Filter (pads 2 / 3)", "velocidad, profundidad, resonancia, centro", "speed, depth, resonance, centre"),
-       ("Digitise", "muestreo, bits, envío al delay (beta), envolvente (beta)", "sample rate, bits, delay throw (beta), envelope (beta)"),
+       ("Digitise", "muestreo, bits, envío al delay (RC2), envolvente (RC2)", "sample rate, bits, delay throw (RC2), envelope (RC2)"),
        ("Phaser", "velocidad, profundidad, realimentación, mezcla", "speed, depth, feedback, mix"),
-       ("Vinyl (RC) / Glitch (beta)", "RC: crackle, siseo, tono, desgaste; beta: velocidad, repetición, retraso, caos", "RC: crackle, hiss, tone, wear; beta: speed, repeat, delay, chaos")]
+       ("Vinyl (RC0.9) / Glitch (RC2)", "RC: crackle, siseo, tono, desgaste; RC2: velocidad, repetición, retraso, caos", "RC: crackle, hiss, tone, wear; RC2: speed, repeat, delay, chaos")]
 UI = dict(
     es=dict(title="Referencia MIDI de las funciones nuevas", md="docs/MIDI.md", html="midi.html", lang="es",
             other='<p class="lang"><a href="midi-en.html">English version</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>',
@@ -48,7 +48,7 @@ UI = dict(
             drum=("Drums", "Canal de drums (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = valor**. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales."),
             drum_cols=("LSB", "Parámetro", "Valores"),
             gfx=("Master FX", "Canal 16. **CC 99 = 9**, **CC 98 = 4 × efecto + knob** (knob 0-3 = K1-K4), **CC 6 = valor**."), gfx_cols=("LSB", "Efecto", "K1-K4"),
-            pgm=("Program Change", "**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; solo beta); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26).")),
+            pgm=("Program Change", "**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26).")),
     en=dict(title="MIDI reference of the new features", md="docs/MIDI.en.md", html="midi-en.html", lang="en",
             other='<p class="lang"><a href="midi.html">Versión en español</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>',
             intro="The CCs / NRPNs the mod adds. The original device's parameters (synths, drums, mixer, FX) keep the numbers of Novation’s *Programmer’s Reference Guide*. Everything follows the CC Tx / CC Rx filters of the Setup view.",
@@ -59,7 +59,7 @@ UI = dict(
             drum=("Drums", "The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs."),
             drum_cols=("LSB", "Parameter", "Values"),
             gfx=("Master FX", "Channel 16. **CC 99 = 9**, **CC 98 = 4 × effect + knob** (knob 0-3 = K1-K4), **CC 6 = value**."), gfx_cols=("LSB", "Effect", "K1-K4"),
-            pgm=("Program Change", "**Project:** listen and output channel in the Setup view, pads 29 / 30 (16 by default; beta only); what arrives on the listen channel is sent again on the output one. **Patch flip:** every note of MIDI 1 / 2 goes out as a Program Change on the track's channel (MIDI Preset view, pad 26).")))
+            pgm=("Program Change", "**Project:** listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. **Patch flip:** every note of MIDI 1 / 2 goes out as a Program Change on the track's channel (MIDI Preset view, pad 26).")))
 
 
 def sections(lang):

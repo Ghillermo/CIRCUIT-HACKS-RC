@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.28 RC0.8 RC0.8S B1.27; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,10 +77,18 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria interna, de solo lectura para el mod",
+DESC = {"RC2": ("RC2 — la versión candidata 2 (= Beta 1.30 / SC44): RC0.9 + todo lo de las betas 1.0-1.30",
+                "RC2 — release candidate 2 (= Beta 1.30 / SC44): RC0.9 + everything of betas 1.0-1.30"),
+        "RC2S": ("RC2S — versión más segura: RC2, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                 "RC2S — safer build: RC2, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria interna, de solo lectura para el mod",
                   "RC0.9 — full version: RC0.8 + the internal memory pack, read only for the mod"),
         "RC0.9S": ("RC0.9S — versión más segura (= RC0.8S): nada del mod escribe ficheros en la SD ni en la memoria interna",
                    "RC0.9S — safer build (= RC0.8S): nothing of the mod writes files to the SD card or to the internal memory"),
+        "B1.30": ("Beta 1.30 — beta (= SC44): Beta 1.29 + modo muestra del sinte propio de MIDI 1 / 2: un sample del pack a la altura de la nota, selector en la vista Note ampliada y sample flips por paso",
+                  "Beta 1.30 — beta (= SC44): Beta 1.29 + sample mode of the own synth of MIDI 1 / 2: a pack sample at the note's pitch, a picker in the expanded Note view and sample flips per step"),
+        "B1.29": ("Beta 1.29 — beta (= SC43.9): Beta 1.28 + seis formas del LFO del sinte propio (página 5, Shift + K8), el programa del DSP compactado",
+                  "Beta 1.29 — beta (= SC43.9): Beta 1.28 + six LFO shapes for the own synth (page 5, Shift + K8), the DSP program compacted"),
         "B1.28": ("Beta 1.28 — beta (= SC43.8): Beta 1.27 + sidechain de drums con Synth 1 / 2 y MIDI 1 / 2, el sinte propio guardado entero al apagar",
                   "Beta 1.28 — beta (= SC43.8): Beta 1.27 + drum side-chain from Synth 1 / 2 and MIDI 1 / 2, the own synth fully saved over a power cycle"),
         "B1.27": ("Beta 1.27 — beta (= SC43.7): Beta 1.26 + pitch de drums continuo (K1) y cromático (pads) a la vez, el panorama de drums de vuelta, Clear + Drum, Shift + Play = cuantizar, arpegiador en MIDI 1 / 2",
@@ -494,4 +502,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.28", "RC0.8", "RC0.8S", "B1.27"])
+    main(sys.argv[1:] or ["RC2", "RC2S", "RC0.9", "RC0.9S"])

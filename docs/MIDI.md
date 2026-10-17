@@ -1,4 +1,4 @@
-# Referencia MIDI de las funciones nuevas — CIRCUIT-HACKS (RC0.9)
+# Referencia MIDI de las funciones nuevas — CIRCUIT-HACKS (RC2)
 
 Los CC / NRPN que añade el mod. Los parámetros del aparato original (sintes, drums, mixer, FX) siguen con los números de la *Programmer’s Reference Guide* de Novation. Todo respeta los filtros CC Tx / CC Rx de la vista Setup.
 
@@ -38,13 +38,13 @@ Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar
 | 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 |
 | 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → tamaño) | CC 37 | 3 / K1 |
-| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (beta) · 3 / Shift + K1 (RC) |
+| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
 | 29 | WAVE 2 (granular: dispersión del tono) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 |
-| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (beta) |
-| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (beta) |
-| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (beta) · 3 / Shift + K2 (RC) |
-| 34 | RING (granular: reverso) | CC 54 | 3 / K8 (beta) · 3 / Shift + K3 (RC) |
+| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
+| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
+| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
+| 34 | RING (granular: reverso) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
 
 **Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto.
 
@@ -63,11 +63,11 @@ Canal de drums (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC
 | 7 | Forma de la envolvente | 0-127, 64 = centro |
 | 8 | Ring mod: cantidad | 0-127 |
 | 9 | Modo de filtro | 0 EQ tilt de stock, 1 paso banda, 2 notch, 3 comb, 4 DJ |
-| 10 | Inicio del sample | beta: 0-120 (/128); RC: 0-15 (/64) |
+| 10 | Inicio del sample | RC2: 0-120 (/128); RC0.9: 0-15 (/64) |
 | 11 | Bitcrush | 0-15 |
 | 12 | Tipo de distorsión | 0 stock, 1 suave, 2 dura, 3 plegada |
-| 13 | Corte desde el final (solo beta) | 0-120 (/128) |
-| 14 | Ataque (solo beta) | 0-127 |
+| 13 | Corte desde el final (desde RC2) | 0-120 (/128) |
+| 14 | Ataque (desde RC2) | 0-127 |
 
 ## Master FX
 
@@ -77,10 +77,10 @@ Canal 16. **CC 99 = 9**, **CC 98 = 4 × efecto + knob** (knob 0-3 = K1-K4), **CC
 |---|---|---|
 | 0-3 | Gater | división, profundidad, ancho, suavizado |
 | 4-7 | Auto-Filter (pads 2 / 3) | velocidad, profundidad, resonancia, centro |
-| 8-11 | Digitise | muestreo, bits, envío al delay (beta), envolvente (beta) |
+| 8-11 | Digitise | muestreo, bits, envío al delay (RC2), envolvente (RC2) |
 | 12-15 | Phaser | velocidad, profundidad, realimentación, mezcla |
-| 16-19 | Vinyl (RC) / Glitch (beta) | RC: crackle, siseo, tono, desgaste; beta: velocidad, repetición, retraso, caos |
+| 16-19 | Vinyl (RC0.9) / Glitch (RC2) | RC: crackle, siseo, tono, desgaste; RC2: velocidad, repetición, retraso, caos |
 
 ## Program Change
 
-**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; solo beta); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26).
+**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26).

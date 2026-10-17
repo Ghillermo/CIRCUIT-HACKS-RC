@@ -1,7 +1,7 @@
 """English text of the guide by views (tools/make_guide.py): VIEWS[id] = (title, how to get there, detail).  Same ids as the Spanish source."""
 from make_guide import BETA
 
-B = f"*({BETA} only)*"
+B = f"*(since {BETA})*"
 PARTS = [("0", "Introduction"), ("1", "Setup"), ("2", "Stock synths (Synth 1 / 2)"), ("3", "MIDI tracks (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Scenes and patterns"), ("10", "Projects and packs"), ("A", "Appendix")]
 UI = dict(title="Guide by views — CIRCUIT-HACKS ({v})", cover="Guide by views", how="How to get there:", about="In this view", toc="Views",
@@ -16,7 +16,7 @@ VIEWS = {
 - **Pads 1-32** from top-left to bottom-right: row 1 = 1-8, row 2 = 9-16, row 3 = 17-24, row 4 = 25-32.
 - **Knobs K1-K4** on top, **K5-K8** below. «**Shift + X**» = hold Shift while using X; the same with Clear and Duplicate.
 - Anything not described here works as on the original device (Novation's official manual).
-- {B} = only in the beta version; the rest is also in the release candidates (RC). The «S» versions write nothing of their own to the card: they lack what is marked «writes to the card».
+- {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2S, writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -126,7 +126,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | 9-24 | **Own-synth patches** {B}: see below. |
 | 25 | **CC editor** of the MIDI macros (next sections). |
 | 26 | **Patch flip**: every note of the track goes out as a Program Change (on the track's channel; if that is a synth's or the drums' channel, also internally). Exclusive with the engine. |
-| 27 | Track **engine**: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → blue (FX sequencer). |
+| 27 | Track **engine**: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → cyan (sample {B}) → blue (FX sequencer). |
 | 28 | One / two oscillators (oscillator and VA-drum). |
 | 29 | Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page's colour {B}). |
 | **Shift + 29** {B} | **Gate retrigger**: on (green with Shift, the default) = every new note restarts the envelope; off (yellow) = **legato**: with other notes held, a new note only changes the pitch. Saved with the project. |
@@ -189,7 +189,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 ### Pages 3-5
 - **Page 3 (OSC 2):** {B}: the eight values without Shift, following the printed labels: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (in RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
 - **Page 4:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect).
-- **Page 5:** ADSR on top, LFO below.
+- **Page 5:** ADSR on top, LFO below. {B}: **Shift + K8 = the LFO's shape**: reverse saw (orange, the usual one), saw (magenta), triangle (green), square (red), sine (cyan), sample & hold (white: a random value each cycle); a step every 4 clicks, K8's LED with Shift in its colour. Saved with the project and in the own-synth patch; with the VA-drum the LFO stays its noise.
 - Type knobs show colour (type) and brightness (position within the type). Everything goes out and comes in over CC / NRPN (MIDI reference).
 """),
 "midi-cc": ("CC editor of the MIDI macros (pad 25)",
@@ -302,6 +302,21 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 
 - The dynamics only delay the hit inside its step (a drum cannot play earlier). The mutate starts from the step's sample flip, or the chosen sample; it is not recorded.
 - The values live in bytes of the pattern the stock does not use (they travel when it is duplicated and with Nudge); the first one set clears those bytes in the project's 32 drum patterns (a factory pack keeps garbage there).
+"""),
+"midi-muestra": ("Sample mode and sample picker",
+    f"{B} MIDI 1 / 2 with the engine on **sample** (pad 27 cyan, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.", """
+| Control | Function |
+|---|---|
+| Pads 17-32 | 16 samples of the pack: touch = the track's sample (cyan) and it sounds; the others dim. |
+| Octave ▼ / ▲ | Next / previous page of samples (4 pages = the pack's 64; lit when there are more that way). |
+| Pads 1-16 | The 16 steps of the half shown: peach = with a sample flip, dim cyan (the background) = without, white = the one playing. **Hold a step + touch a sample** = its flip (the step green, its sample yellow); **Clear + step** = remove it. |
+| 1-16 / 17-32 | The other half of the pattern. |
+
+- **The pitch:** C3 (note 60) = the sample as recorded; an octave up = twice as fast. The notes come from the normal Note view, the step-drummer or incoming MIDI.
+- **One-shot:** the VCA stays open and the sample plays to its end; every new note restarts it (one voice per track). The filter, effect and LFO of the engine pages still work.
+- **Live:** with **Record + Play**, touching a sample records a note 60 on the step playing, with its flip.
+- The track's sample is the same source as the granular's (Shift + K8 on its page; the capture is picked there).
+- The flips live in the track's level automation lane (Mixer): a flip replaces the level recorded on its step; recording the level over it erases those flips.
 """),
 "drum-pista": ("Drum track view (knobs)",
     "Press **Drum 1-4**. Every knob does what its label says, with a second layer on Shift.", f"""
@@ -454,8 +469,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "Project, pattern, pack or device settings.", f"""
 | What | Where |
 |---|---|
-| New drum knobs (attack, start and cut included), synth source, reverb / delay, Master FX slots and knobs, compressor, chain mode and scenes, count-in, arpeggiator (with its resolution), custom scale, gate by holding | The project |
-| Step-drummer notes, FX sequencer values, random-mutate, frequency, dynamics, chain rules, play order | The pattern |
+| New drum knobs (attack, start and cut included), synth source, reverb / delay, Master FX slots and knobs, compressor, chain mode and scenes, count-in, arpeggiator (with its resolution), custom scale, gate by holding, the own synth's gate retrigger and LFO shape {B} | The project |
+| Step-drummer notes, FX sequencer values, random-mutate, frequency, dynamics, chain rules, play order, the sample mode's sample flips {B} | The pattern |
 | Saved synth patches, own-synth patches, captures used as samples | The pack *(writes to the card)* |
 | MIDI track engine (state and values; {B}: also OSC 2, the Shift knobs of the granular and the oscillator and pads 28 / 29), MIDI Thru mode, PGM channels | Device settings |
 | Latched effects, song pointer, Setup's Record toggle, presets and triggers of the side-chain between drums | Not saved |
@@ -470,7 +485,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 "instalar": ("Installing and going back",
     "`tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.", """
 1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
-2. Pick the version (RC, «S» or beta) and send. Novation's bootloader is not touched.
+2. Pick the version (RC2, the safer RC2S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
 """),
@@ -526,6 +541,10 @@ ABOUT = {
 - **Pitch-vel toggle** {B} — page 1 transposes the notes in degrees of the scale and page 2 sets their velocity: a melody from a single pattern of notes.
 - **In real time** — with Record, touching a step records it.
 - **FX sequencer** — with that engine, each pair picks which Master FX slot sounds.
+""",
+    "midi-muestra": f"""
+- **Pitched drums on a MIDI track** — any pack sample plays at the pitch of each note, like a drum machine with tunable samples.
+- **A different sample per step** — the sample flip changes sample step by step with no other track; it can be recorded live too.
 """,
     "drum-pista": f"""
 - **Shape each drum** — exact pitch, ring mod, attack and decay, sample start and cut, a filter with several modes, LFO and several kinds of distortion: many sounds from one sample.

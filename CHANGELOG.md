@@ -4,6 +4,35 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC2 / RC2S — 2026-10-17
+
+**RC2** (marca `RC2`) = **Beta 1.30** (SC44) como segunda versión candidata: RC0.9 + todo lo de las betas 1.0-1.30 (sus entradas, abajo). **RC2S** (marca `RC2S`) = la versión más segura: RC2, pero nada del mod escribe ni borra en la tarjeta o en la memoria interna: esas peticiones se rechazan en cualquier pack (el LED de Save en rojo) y los guardados del original pasan. En RC2S no hacen nada guardar la captura con el proyecto, intercambiar o copiar samples y patches entre packs, los patches del sinte propio, guardar el patch del sinte, copiar proyectos y borrar packs. Lo marcado «solo Beta 1.x» en los manuales anteriores es ahora «desde RC2».
+
+### Cambios
+- Modo muestra: las filas 1-2 del selector (los pasos) tienen fondo cian.
+
+## Beta 1.30 — 2026-10-17
+
+**Beta 1.30** (marca `B1.30`; = SC44) = Beta 1.29 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.30)
+- **Modo muestra del sinte propio de MIDI 1 / 2 (C15):** un estado nuevo del pad 27 (cian, entre el granular y el secuenciador de efectos): la pista toca **un sample del pack de un golpe** a la altura de cada nota (**C3 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena hasta el final (una voz por pista: cada nota lo vuelve a empezar).
+- **Selector de samples en la vista Note ampliada** (Note dos veces, en ese modo): filas 3-4 = 16 samples, **Octave ▼ / ▲** = 4 páginas (los 64 del pack); tocar uno = el sample de la pista (y suena). Filas 1-2 = los pasos: **mantener un paso y tocar un sample** = **sample flip** de ese paso; **Clear + paso** lo quita; **1-16 / 17-32** = la otra mitad. Con **Record + Play**, tocar un sample graba la nota y su flip.
+
+### Cambios (solo Beta 1.30)
+- El pad 27 llega al secuenciador de efectos una pulsación más tarde (el modo muestra va antes).
+- Los flips van en el carril de la automatización de nivel de la pista MIDI: un flip sustituye el nivel grabado en su paso.
+
+## Beta 1.29 — 2026-10-17
+
+**Beta 1.29** (marca `B1.29`; = SC43.9) = Beta 1.28 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.29)
+- **Formas del LFO del sinte propio de MIDI 1 / 2:** en la página 5 de knobs, **Shift + K8** elige la forma del LFO: diente de sierra inverso (naranja, la de siempre), diente de sierra (magenta), triángulo (verde), cuadrada (roja), seno (cian) y sample & hold (blanco: un valor al azar en cada vuelta). Un paso cada 4 clics, sin dar la vuelta. Con Shift, el LED de K8 enseña la forma en su color. Se guarda con el proyecto y en los patches propios (los guardados antes cargan la de siempre). Con el motor VA-drum el LFO sigue siendo su ruido.
+
+### Interno (solo Beta 1.29)
+- **El programa del DSP, más corto:** el código propio del núcleo 0 usa la forma de una palabra de las lecturas y escrituras de memoria con desplazamiento (la que usan las voces del original): 441 palabras menos y el mismo sonido (comprobado en emulación, memoria idéntica bloque a bloque). Deja sitio para lo siguiente: 372 palabras libres tras las formas del LFO (antes 8).
+
 ## Beta 1.28 — 2026-10-17
 
 **Beta 1.28** (marca `B1.28`; = SC43.8) = Beta 1.27 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
@@ -350,6 +379,35 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC2 / RC2S — 2026-10-17
+
+**RC2** (marker `RC2`) = **Beta 1.30** (SC44) as the second release candidate: RC0.9 + everything of betas 1.0-1.30 (their entries, below). **RC2S** (marker `RC2S`) = the safer build: RC2, but nothing of the mod writes or deletes on the card or in the internal memory: those requests are refused on every pack (the Save LED red) and the original's saves pass. In RC2S saving the capture with the project, exchanging or copying samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing. What the earlier manuals marked «Beta 1.x only» is now «since RC2».
+
+### Changes
+- Sample mode: rows 1-2 of the picker (the steps) have a cyan background.
+
+## Beta 1.30 — 2026-10-17
+
+**Beta 1.30** (marker `B1.30`; = SC44) = Beta 1.29 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.30 only)
+- **Sample mode of the own synth of MIDI 1 / 2 (C15):** a new state of pad 27 (cyan, between the granular and the FX sequencer): the track plays **a pack sample one-shot** at the pitch of each note (**C3 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end (one voice per track: every note restarts it).
+- **Sample picker in the expanded Note view** (Note twice, in that mode): rows 3-4 = 16 samples, **Octave ▼ / ▲** = 4 pages (all 64 of the pack); touching one = the track's sample (and it sounds). Rows 1-2 = the steps: **hold a step and touch a sample** = that step's **sample flip**; **Clear + step** removes it; **1-16 / 17-32** = the other half. With **Record + Play**, touching a sample records the note and its flip.
+
+### Changes (Beta 1.30 only)
+- Pad 27 reaches the FX sequencer one press later (the sample mode comes first).
+- The flips live in the MIDI track's level automation lane: a flip replaces the level recorded on its step.
+
+## Beta 1.29 — 2026-10-17
+
+**Beta 1.29** (marker `B1.29`; = SC43.9) = Beta 1.28 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.29 only)
+- **LFO shapes of the own synth of MIDI 1 / 2:** on knob page 5, **Shift + K8** picks the LFO's shape: reverse saw (orange, the one it always had), saw (magenta), triangle (green), square (red), sine (cyan) and sample & hold (white: a random value each cycle). One step every 4 clicks, no wrap. With Shift, K8's LED shows the shape in its colour. Saved with the project and in the own-synth patches (patches saved before load the usual one). With the VA-drum engine the LFO stays its noise.
+
+### Internal (Beta 1.29 only)
+- **A shorter DSP program:** the mod's code on core 0 uses the one-word form of the memory reads and writes with a displacement (the one the original's voices use): 441 words fewer and the same sound (checked in emulation: the memory identical block by block). It leaves room for what comes next: 372 words free after the LFO shapes (8 before).
 
 ## Beta 1.28 — 2026-10-17
 

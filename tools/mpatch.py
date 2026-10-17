@@ -44,6 +44,15 @@ ID_DOWN, ID_UP = 19, 20               # Octave down = the next page, Octave up =
 LED_DOWN, LED_UP, COL_BTN = 51, 52, 0x01
 PAGES = 4
 INV = V.INV
+LSHAPE = False                        # SC43.9 (see use_lshape)
+
+
+def use_lshape():
+    """SC43.9: a patch also holds the LFO shape of the engine (vcf21.use_lfoshape): [41] = 2 (the version) and [42] = the shape 0..5; a patch of
+    version 1 (or any other) loads the reverse saw.  The check (the signature, the sum of [4..39]) stays: older firmwares load these patches as before."""
+    global LSHAPE
+    assert V.LFOSHAPE
+    LSHAPE = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -205,6 +214,8 @@ def arm_code(base, L, prev):
     for k, v in enumerate(V.DEFAULTS_V2): E(movs_imm, 2, v & 0xFF); E(strb_w, 2, 5, 32 + k)
     a.label("mg_s")
     E(bl, "c_mpsum"); E(movs_imm, 1, 40); E(strb_reg, 0, 5, 1); E(movs_imm, 0, 1); E(movs_imm, 1, 41); E(strb_reg, 0, 5, 1)
+    if LSHAPE:                                                                                               # version 2: + the LFO shape
+        E(movs_imm, 0, 2); E(strb_reg, 0, 5, 1); E(mov_reg, 0, 4); E(bl, L["c_vlsh"]); E(movs_imm, 1, 42); E(strb_reg, 0, 5, 1)
     E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_mpsum() -> r0 = the sum of the buffer's bytes 4..39; clobbers r1-r3
@@ -236,6 +247,10 @@ def arm_code(base, L, prev):
     E(movs_imm, 3, 0)
     a.label("ma_w"); E(mov_reg, 1, 3); E(adds_imm8, 1, 32); E(ldrb_reg, 2, 5, 1); E(strb_reg, 2, 0, 3); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "ma_w", "lo")
     a.label("ma_s")
+    if LSHAPE:                                                                                               # the LFO shape (version 2), else the reverse saw
+        E(movs_imm, 2, 41); E(ldrb_reg, 0, 5, 2); E(movs_imm, 1, 0); E(cmp_imm, 0, 2); E(b_cond, "ma_ls", "ne")
+        E(movs_imm, 2, 42); E(ldrb_reg, 1, 5, 2); E(cmp_imm, 1, V.LS_N); E(b_cond, "ma_ls", "lo"); E(movs_imm, 1, 0)
+        a.label("ma_ls"); E(mov_reg, 0, 4); E(bl, L["c_vlsset"])
     E(movs_imm, 1, 1); E(ands_reg, 7, 1)                                                                     # r7 = the mode on
     E(mov_reg, 0, 4); E(movs_imm, 1, 1); E(bl, L["c_vset"])                                                  # on: every value marked to be sent
     E(cmp_imm, 7, 0); E(b_cond, "ma_on", "ne")
@@ -426,6 +441,8 @@ def install(img, report, base_addr):
     L = dict(c_gst=lab("sc14", "c_gst"), c_gfst=lab("sc17", "c_gfst"), c_shift=lab("sc15", "c_shift"), c_settings=lab("sc06", "c_settings"),
              c_curpack=lab("packio", "c_curpack"))
     for n in ("c_edact", "c_sdscr", "c_sdnib", "c_sdsetnib", "c_vset", "c_vsetpage", "c_von", "c_vflag", "c_vdbit", "c_vvaddr", "c_vmark"): L[n] = lab("vcf20", n)
+    if LSHAPE:
+        for n in ("c_vlsh", "c_vlsset"): L[n] = lab("vcf20", n)
     prev = dict(pad=u(TMPL_VT) & ~1, leds=u(TMPL_VT + 28) & ~1, btn=bw_target(img, BTN_ENTRY, BASE), hmask=u(PK.CT_VT + 0x20) & ~1,
                 ledtask=lab("packio", "c_pkled"))
     code, labels = arm_code(base_addr, L, prev)

@@ -73,6 +73,38 @@ VADRUM = False                                  # SC29: the VA-drum engine (insp
 VD_EF, VD_EP, VD_NS, VD_NL = 22, 23, 24, 25
 LCG_K, LCG_C = 0x0343FD, 0x269EC3               # the noise: s = (s x K + C) mod 2^24 (full period)
 KEYF_OFF = 19                                   # word of the oscillator block that holds the key follow (the block uses +0..+18)
+LFOSHAPE = False                                # SC43.9 (see use_lfoshape)
+SAMPLER = False                                 # SC44 (see use_sampler)
+SM_P, SM_F, SM_S, SM_L, SM_ON, SM_N = 40, 41, 44, 45, 46, 47   # (SAMPLER) words of the OSC1 block: position, fraction (1.23), start, length, playing, the new note's TRIG
+SM_TAB, SM_CAP, SM_CAPLEN = 0x1D8D, 0xE80000, 0x3D09           # the pack's sample table (X: start, length, ...), the capture and its length
+
+
+def use_sampler():
+    """SC44 (the user, 2026-10-17: «drum tracks on MIDI tracks, but the pitch is controlled by the noteON, inspired by Circuit Rhythm» · «A, … sample
+    selection mode overtakes the note expand view, and the available samples are the whole library … sample flipping» · «since samples are one-hit,
+    the vca will default to full open during sample mode and back to normal on the other modes»): a sample source of the own engine, ACT = 3.
+      * a new note (control(): the TRIG value, GNEW) restarts it: TRIG & $100 = that sample (TRIG & 63), else code 25 (the track's sample; < 0 =
+        the capture); its start / length from the pack's sample table X:$1D8D + 4 N (core 0's, the stock drums'), the position 0;
+      * every block (vpre, like the oscillator): the rate = TINC[clamp(NOTE + TUNE)] x 2^38 / TINC[60] = the ratio to note 60 in 9.15 (note 60 = the
+        sample as recorded), 32 frames read from the external Y memory with linear interpolation into the ring (r4 / n4 / m4 linear; n4 is saved
+        with the registers); the block that could pass the end (up to 64 frames a block) stops it (silence after);
+      * the VCA: the envelope term of its target is 1.0 (gain, the envelope amount, the velocity and the tremolo as before): the one-shot opens it;
+        the other sources as before."""
+    global SAMPLER
+    assert OSC3 and VADRUM and GRAN
+    SAMPLER = True
+N_LSHAPES = 6                                   # (LFOSHAPE) 0 reverse saw (as before), 1 saw, 2 triangle, 3 square, 4 sine, 5 sample & hold
+
+
+def use_lfoshape():
+    """SC43.9 (the user, 2026-10-17: «add waveshapes to own synth's lfo»): the LFO of the own engine (one value LV a block per voice, from the phase
+    PH += TLFO[LRATE]) had one shape, the reverse saw (LV = -PH).  The shape now comes with the ACT message (bits 13-15 of its value: the mailbox
+    keeps bits 8-15 in DFLAGS, so DFLAGS bits 5-7; the other DFLAGS bits are only tested one by one): 0 the reverse saw (the same instructions as
+    before), 1 saw (PH), 2 triangle (2 |PH| - 1), 3 square (+1 / -1 by the sign of PH), 4 sine (4 PH (1 - |PH|): the parabola, the limiter at the
+    top), 5 sample & hold (a new value of the voice's noise generator, DFLAGS + 3, each time the phase wraps)."""
+    global LFOSHAPE
+    assert VADRUM and DUAL
+    LFOSHAPE = True
 GRAN = False                                    # SC36: the granular engine of DSP core 1 (granular_dsp): DFLAGS bit 4 (ACT bit 12) = this voice plays OUT instead of the oscillator; GNEW counted for core 1
 GATEREL = False                                  # SC23.3: release 0 = a ~2 ms release (a basic gate); see use_gaterel
 GATE_RKC = None                                  # set by use_gaterel: the release coefficient per block
@@ -203,7 +235,7 @@ def code(base, tabs, premix, ret_old):
                 a.emit(J("al"), p + "mbd")
             if DUAL:                                                              # ACT: the value = act | route << 8 | dual << 9 -> the ACT slot keeps act, DFLAGS keeps the two flags
                 L(p + "z19")
-                e("move a1,y0", "and #>3,a", "move a,x:(r7)", "move y0,a", "lsr #8,a", "and #>%d,a" % (31 if GRAN else 15 if VADRUM else 3), "move a1,y0")
+                e("move a1,y0", "and #>3,a", "move a,x:(r7)", "move y0,a", "lsr #8,a", "and #>%d,a" % (255 if LFOSHAPE else 31 if GRAN else 15 if VADRUM else 3), "move a1,y0")
                 e("move r6,b", "sub #>%d,b" % (VB0 - OSB0 - DFLAGS_OFF), "move b,r0"); a.emit(D.NOP)
                 e("move y0,a", "move a,x:(r0)")
                 a.emit(J("al"), p + "mbd")
@@ -222,6 +254,10 @@ def code(base, tabs, premix, ret_old):
             e("move #>1,x0", "move x0,%s" % X(GNEW))
             L(p + "gf")
         e("move %s,a" % X(GNEW), "tst a"); a.emit(J("eq"), p + "ng")
+        if SAMPLER:                                                              # (SAMPLER) the TRIG value for the sample (r7 = DFLAGS), in the sample mode only
+            e("move %s,b" % X(ACT), "cmp #>3,b"); a.emit(J("ne"), p + "nsn")
+            e("move a,x:(r7+%d)" % (SM_N - DFLAGS_OFF))
+            L(p + "nsn")
         if VADRUM:                                                               # a new note: the two extra envelopes start from the top (DFLAGS bit 3: from the velocity)
             e("move #>$7fffff,x0", "move x:(r7),a", "and #>8,a"); a.emit(J("eq"), p + "vt")
             e("move %s,a" % X(VEL), "asl #16,a,a", "move a,x0")
@@ -269,7 +305,27 @@ def code(base, tabs, premix, ret_old):
         L(p + "ee")
         # ---- LFO (reverse sawtooth only): PH += TLFO[LRATE]; LV = -PH
         e("move %s,a" % X(P_LRATE)); ld_tab("TLFO", "a", "x0")
-        e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH), "neg a", "move a,%s" % X(LV))
+        if LFOSHAPE:                                                              # the shape from DFLAGS bits 5-7 (r7 = DFLAGS)
+            e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH))
+            e("move x:(r7),b", "lsr #5,b", "and #>7,b", "tst b"); a.emit(J("eq"), p + "l0")
+            e("move %s,a" % X(PH))                                                # the wrapped phase p
+            for k in range(1, N_LSHAPES):
+                e("cmp #>%d,b" % k); a.emit(J("eq"), p + "l%d" % k)
+            a.emit(J("al"), p + "l0")
+            L(p + "l1"); a.emit(J("al"), p + "lw")                                # saw: p
+            L(p + "l2"); e("abs a", "sub #>$400000,a", "asl a"); a.emit(J("al"), p + "lw")             # triangle: 2 |p| - 1
+            L(p + "l3"); e("move #>$800000,b", "move #>$7fffff,x0", "tst a", "tge x0,a", "tlt b,a"); a.emit(J("al"), p + "lw")   # square (x0, y0, b: dead here)
+            L(p + "l4"); e("move a1,x0", "abs a", "move #>$7fffff,b", "sub a,b", "move b1,y0", "mpy y0,x0,a", "asl #2,a,a"); a.emit(J("al"), p + "lw")   # sine
+            L(p + "l5")                                                           # sample & hold: a new value when the phase wraps (p < 0 and p - inc < -1)
+            e("tst a"); a.emit(J("ge"), p + "le")
+            e("sub x0,a", "cmp #>$800000,a"); a.emit(J("ge"), p + "le")
+            e("move x:(r7+3),x0", "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)", "move b1,a")
+            a.emit(J("al"), p + "lw")
+            L(p + "l0"); e("neg a")                                               # the reverse saw: as before (from the unwrapped sum)
+            L(p + "lw"); e("move a,%s" % X(LV))
+            L(p + "le")
+        else:
+            e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH), "neg a", "move a,%s" % X(LV))
         if VADRUM:
             e("move x:(r7),a", "and #>4,a"); a.emit(J("ne"), p + "vd")
             e("move %s,x0" % X(ENV), "move x0,x:(r7+1)", "move x0,x:(r7+2)", "move #>0,x0", "move x0,x:(r7+4)"); a.emit(J("al"), p + "vx2")    # the other engines: one envelope for everything, no noise
@@ -336,7 +392,12 @@ def code(base, tabs, premix, ret_old):
         e("asl #14,a,a"); a.emit(J("al"), p + "gx")
         L(p + "gh"); e("sub #>64,a", "move a,b", "asl #3,a,a", "sub b,a", "asl #14,a,a", "add #>$100000,a")
         L(p + "gx")                                                              # a = T0 (kept in a: the next lines use b, x0, y0 only)
-        e("move %s,b" % X(P_ENVA), "asl #%d,b,b" % (17 if BISEND else 16), "move b,x0", "move %s,y0" % X(ENV), "mpy x0,y0,b")
+        if SAMPLER:                                                              # the sample: the envelope term at 1.0 (the VCA open for the one-shot)
+            e("move %s,b" % X(P_ENVA), "asl #%d,b,b" % (17 if BISEND else 16), "move b,x0", "move %s,b" % X(ACT), "move #>$7fffff,y0", "cmp #>3,b"); a.emit(J("eq"), p + "vso")
+            e("move %s,y0" % X(ENV))
+            L(p + "vso"); e("mpy x0,y0,b")
+        else:
+            e("move %s,b" % X(P_ENVA), "asl #%d,b,b" % (17 if BISEND else 16), "move b,x0", "move %s,y0" % X(ENV), "mpy x0,y0,b")
         e("move b,x0", "move %s,b" % X(VEL), "asl #16,b,b", "move b,y0", "mpy x0,y0,b")
         if BISEND:
             e("asr #3,b,b", "add b,a", "tst a"); a.emit(J("ge"), p + "tp"); e("clr a")
@@ -456,6 +517,44 @@ def code(base, tabs, premix, ret_old):
         if OSC3:
             # ---- oscillator v3 (vpre only, ACT = 2): the four waves of the shape family mixed with the morph weights; the phase lives in the block (X + 10)
             e("move x:>$%x,a" % RMODE, "tst a"); a.emit(J("ne"), p + "nosc")
+            if SAMPLER:                                                           # ---- the sample (ACT = 3)
+                y0k = int(round((1 << 38) / int(round(440 * 2 ** ((60 - 69) / 12) / 48000 * (1 << 24)))))
+                e("move %s,a" % X(ACT), "cmp #>3,a"); a.emit(J("ne"), p + "nsm")
+                e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
+                e("move r0,r1")
+                e("move x:(r3+%d),a" % SM_N, "tst a"); a.emit(J("eq"), p + "smr")            # a new note: which sample, from its start
+                e("move #>0,x0", "move x0,x:(r3+%d)" % SM_N, "move a1,b", "and #>$100,b"); a.emit(J("ne"), p + "smx")
+                e("move x:(r3+8),a")                                                         # code 25: the track's sample
+                L(p + "smx"); e("tst a"); a.emit(J("lt"), p + "smc")
+                e("and #>63,a", "asl #2,a,a", "add #>$%x,a" % SM_TAB, "move a1,r4"); a.emit(D.NOP)
+                e("move x:(r4)+,x0", "move x:(r4),a"); a.emit(J("al"), p + "sms")
+                L(p + "smc"); e("move #>$%x,x0" % SM_CAP, "move x:>$%x,a" % SM_CAPLEN)
+                L(p + "sms")
+                e("move x0,x:(r3+%d)" % SM_S, "move a1,x:(r3+%d)" % SM_L, "move #>0,x0", "move x0,x:(r3+%d)" % SM_P, "move x0,x:(r3+%d)" % SM_F,
+                  "move #>1,x0", "move x0,x:(r3+%d)" % SM_ON)
+                L(p + "smr")
+                e("move x:(r3+%d),a" % SM_ON, "tst a"); a.emit(J("eq"), p + "smz")
+                e("move %s,a" % X(NOTE), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "sm1"); e("clr a")
+                L(p + "sm1"); e("cmp #>127,a"); a.emit(J("le"), p + "sm2"); e("move #>127,a")
+                L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), "TINC"); e("move a,r4"); a.emit(D.NOP); e("move p:(r4),x0")
+                e("move #>$%x,y0" % y0k, "mpy y0,x0,a")                                     # a1 = the ratio in 9.15
+                e("move a1,b", "asr #15,b,b", "move b1,n4", "and #>$7fff,a", "asl #8,a,a", "move a1,y1")   # n4 = its integer part, y1 = the fraction (1.23)
+                e("move n4,b", "add #>1,b", "asl #6,b,b", "move x:(r3+%d),x0" % SM_P, "add x0,b", "add #>1,b", "move x:(r3+%d),x0" % SM_L, "cmp x0,b"); a.emit(J("ge"), p + "sme")
+                e("move x:(r3+%d),b" % SM_S, "move x:(r3+%d),x0" % SM_P, "add x0,b", "move b1,r4", "move #>$ffffff,m4", "move x:(r3+%d),x1" % SM_F)
+                a.emit(D.do_x, 0x3A, p + "sml")
+                e("move y:(r4)+,a", "move y:(r4)-,b", "sub a,b", "move b,y0", "move x1,x0", "mac y0,x0,a", "move a,%s:(r0)+n0" % sp, "move x1,b", "add y1,b")
+                a.emit(lambda t: T("jclr #23,b1,$%x" % t), p + "smn")
+                e("bclr #23,b1", "move (r4)+")
+                L(p + "smn"); e("move b1,x1")
+                L(p + "sml"); e("move (r4)+n4")
+                e("move r4,b", "move x:(r3+%d),x0" % SM_S, "sub x0,b", "move b1,x:(r3+%d)" % SM_P, "move x1,x:(r3+%d)" % SM_F)
+                e("move r1,r0"); a.emit(J("al"), p + "nosc")
+                L(p + "sme"); e("move #>0,x0", "move x0,x:(r3+%d)" % SM_ON)
+                L(p + "smz"); e("clr a")
+                a.emit(D.do_x, 0x3A, p + "smzl")
+                L(p + "smzl"); e("move a,%s:(r0)+n0" % sp)
+                e("move r1,r0"); a.emit(J("al"), p + "nosc")
+                L(p + "nsm")
             e("move %s,a" % X(ACT), "cmp #>2,a"); a.emit(J("ne"), p + "nosc")
             e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
             e("move r0,r1")
@@ -727,7 +826,7 @@ def code(base, tabs, premix, ret_old):
         elif VFF: blk_vca(); blk_fx(); blk_filter()
         else: blk_filter(); blk_fx(); blk_vca()
 
-    REGS = ["x0", "x1", "y0", "y1", "r0", "r1", "r6", "r7", "n0", "m0"] + (["r2"] if SLOPES else []) + (["r3", "r4", "m2", "m4"] if FXMORE else [])
+    REGS = ["x0", "x1", "y0", "y1", "r0", "r1", "r6", "r7", "n0", "m0"] + (["r2"] if SLOPES else []) + (["r3", "r4", "m2", "m4"] if FXMORE else []) + (["n4"] if SAMPLER else [])
     SAVB = SAVX if FXMORE else SAV
     def save_regs():
         for i, r in enumerate(REGS): e("move %s,x:>$%x" % (r, SAVB + i))
@@ -749,6 +848,7 @@ def code(base, tabs, premix, ret_old):
     L("vp_on")
     control("vc_")
     if OSC: e("move %s,a" % X(ACT), "cmp #>2,a"); a.emit(J("eq"), "vp_ring")                  # the oscillator replaces the input: always the ring
+    if SAMPLER: e("cmp #>3,a"); a.emit(J("eq"), "vp_ring")                                     # so does the sample
     e("move x:>$%x,a" % FLAGS, "move a1,x1")
     ld(TCNT, "b"); e("tst b"); a.emit(J("ne"), "vp_t1")
     a.emit(JCLR(0, "x1"), "vp_ring"); a.emit(J("al"), "vp_next")                 # the reverb return takes strip 3: vret does this voice
