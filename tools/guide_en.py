@@ -403,6 +403,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **K7 / K8** {B} | Attack / release of the master compressor (switched on in Advanced Setup), white. Saved with the project. |
 | **Row 1 pads 1-4** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 as the source** of the chosen track's side-chain (the last preset touched), next to drums 1-4 on pads 5-8: every **pattern** note of that track fires the envelope, as a drum hit does (notes played live do not). The chosen one in the track's colour, the others dim. A pad 5-8 goes back to a drum. Saved with the project. |
 | **Octave ▼** with the drums | **Sidechain between drums**: ducking pages per drum (rows 3-4) and which drum triggers (row 1, pads 5-8). |
+| **Row 1 pads 1-4** on a drum page {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 as the trigger** of the drum whose preset was touched last: every **pattern** note of that track opens its envelope (notes played live do not). The chosen one in the drum's colour; the others dim. A pad 5-8 goes back to a drum. Like the presets of the side-chain between drums, it is not saved. |
 | **K1-K4** on a drum page {B} | Attack, hold, decay and depth of the sidechain of the drum of the last preset touched (starting from its preset's; touching a preset brings them back to it); LEDs in the drum's colour. Saved with the project. |
 """),
 "patterns": ("Patterns view and pattern chains",
@@ -450,14 +451,14 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 - **The internal memory's pack** (the first one) is read-only for the mod: it cannot be deleted and nothing of the mod is written into it (copies, patches, captures); the Save LED turns red for 1.5 s. It can be read and copied from to a pack on the card *(writes to the card)*.
 """),
 "guardado": ("What is saved and where",
-    "Project, pattern, pack or device settings.", """
+    "Project, pattern, pack or device settings.", f"""
 | What | Where |
 |---|---|
 | New drum knobs (attack, start and cut included), synth source, reverb / delay, Master FX slots and knobs, compressor, chain mode and scenes, count-in, arpeggiator (with its resolution), custom scale, gate by holding | The project |
 | Step-drummer notes, FX sequencer values, random-mutate, frequency, dynamics, chain rules, play order | The pattern |
 | Saved synth patches, own-synth patches, captures used as samples | The pack *(writes to the card)* |
-| MIDI track engine (state, pages 1-2), MIDI Thru mode, PGM channels | Device settings |
-| OSC 2, granular Shift parameters, latched effects, song pointer, Setup's Record toggle | Not saved |
+| MIDI track engine (state and values; {B}: also OSC 2, the Shift knobs of the granular and the oscillator and pads 28 / 29), MIDI Thru mode, PGM channels | Device settings |
+| Latched effects, song pointer, Setup's Record toggle, presets and triggers of the side-chain between drums | Not saved |
 """),
 "midi": ("MIDI of the new features",
     "Everything new goes out and comes in over CC / NRPN, following the Setup's CC Tx / Rx filters.", """

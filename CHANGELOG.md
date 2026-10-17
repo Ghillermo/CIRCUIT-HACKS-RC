@@ -4,6 +4,16 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.28 — 2026-10-17
+
+**Beta 1.28** (marca `B1.28`; = SC43.8) = Beta 1.27 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.28)
+- **Sidechain de los drums con Synth 1 / 2 y MIDI 1 / 2:** en las páginas de drums de la vista Sidechain (**Shift + FX**, luego **Octave ▼**), los **pads 1-4 de la fila 1** eligen **Synth 1, Synth 2, MIDI 1 o MIDI 2** como disparo del drum del último preset tocado: cada nota del **patrón** de esa pista abre su envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida se ve en el color del drum; un pad 5-8 vuelve a un drum. Como el resto del sidechain entre drums, no se guarda con el proyecto.
+
+### Arreglos (solo Beta 1.28)
+- **El sinte propio de MIDI 1 / 2 al apagar:** los valores de la página OSC 2, los knobs con Shift del granular (Shift + K1-K5 y K7) y del oscilador (Shift + K2 / K3), los pads 28 (dos osciladores) y 29 (orden de la cadena) y la página de knobs volvían a sus valores iniciales en cada encendido. Ahora se guardan en el aparato con el resto del motor. La primera vez que enciendas con Beta 1.28 salen todavía los iniciales: lo guardado antes no los tenía.
+
 ## Beta 1.27 — 2026-10-17
 
 **Beta 1.27** (marca `B1.27`; = SC43.7) = Beta 1.26 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
@@ -340,6 +350,16 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.28 — 2026-10-17
+
+**Beta 1.28** (marker `B1.28`; = SC43.8) = Beta 1.27 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.28 only)
+- **Drum side-chain from Synth 1 / 2 and MIDI 1 / 2:** on the drum pages of the Sidechain view (**Shift + FX**, then **Octave ▼**), **row 1 pads 1-4** pick **Synth 1, Synth 2, MIDI 1 or MIDI 2** as the trigger of the drum whose preset was touched last: every **pattern** note of that track opens its envelope, as a drum hit does (notes played live do not). The chosen one shows in the drum's colour; a pad 5-8 goes back to a drum. Like the rest of the side-chain between drums, it is not saved with the project.
+
+### Fixes (Beta 1.28 only)
+- **The own synth of MIDI 1 / 2 over a power cycle:** the OSC 2 page's values, the Shift knobs of the granular (Shift + K1-K5 and K7) and of the oscillator (Shift + K2 / K3), pads 28 (two oscillators) and 29 (chain order) and the knob page went back to their defaults at every power-up. Now they are saved in the unit with the rest of the engine. The first power-up with Beta 1.28 still shows the defaults: what was saved before did not hold them.
 
 ## Beta 1.27 — 2026-10-17
 

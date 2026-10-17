@@ -209,6 +209,8 @@ BUILDS = [
     ("b1.26", "build_beta1_26.py", []),
     ("sc43.7", "build_sc43_7.py", []),
     ("b1.27", "build_beta1_27.py", []),
+    ("sc43.8", "build_sc43_8.py", []),
+    ("b1.28", "build_beta1_28.py", []),
     ("b1.1", "build_beta1_1.py", []),
     ("rc0.8", "build_rc0_8.py", []),
     ("rc0.8s", "build_rc0_8s.py", []),

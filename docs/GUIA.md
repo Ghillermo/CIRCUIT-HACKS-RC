@@ -78,7 +78,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - **Pads 1-32** de arriba-izquierda a abajo-derecha: fila 1 = 1-8, fila 2 = 9-16, fila 3 = 17-24, fila 4 = 25-32.
 - **Knobs K1-K4** arriba, **K5-K8** abajo. «**Shift + X**» = mantener Shift mientras se usa X; lo mismo con Clear y Duplicate.
 - Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).
-- *(solo Beta 1.27)* = solo en la versión beta; lo demás está también en las versiones candidatas (RC). Las versiones «S» no escriben nada propio en la tarjeta: no tienen lo marcado «escribe en la tarjeta».
+- *(solo Beta 1.28)* = solo en la versión beta; lo demás está también en las versiones candidatas (RC). Las versiones «S» no escriben nada propio en la tarjeta: no tienen lo marcado «escribe en la tarjeta».
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 
 <a id="botones"></a>
@@ -89,25 +89,25 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 **En esta vista**
 
 - **Volver un knob a su valor o borrar lo grabado** — Clear + knob, sin buscar el valor a mano ni borrar el patrón entero.
-- **Metrónomo y cuenta atrás** *(solo Beta 1.27)* — un compás de clics antes de grabar, para entrar a tiempo.
-- **Teclado partido** *(solo Beta 1.27)* — los dos sintes a la vez, uno con cada mano.
-- **Escala propia** *(solo Beta 1.27)* — escalas que el aparato no trae, también con periodos que no son la octava.
+- **Metrónomo y cuenta atrás** *(solo Beta 1.28)* — un compás de clics antes de grabar, para entrar a tiempo.
+- **Teclado partido** *(solo Beta 1.28)* — los dos sintes a la vez, uno con cada mano.
+- **Escala propia** *(solo Beta 1.28)* — escalas que el aparato no trae, también con periodos que no son la octava.
 - **Atajos en amarillo** — con Shift pulsado, la vista enseña lo que ofrece.
 
 | Gesto | Dónde | Qué hace |
 |---|---|---|
 | **Clear + knob a la derecha** | drums, motor de las pistas MIDI, Master FX | El knob vuelve a su valor por defecto (las dos capas, con y sin Shift). LED **lavanda** = hecho, como en el original. |
-| **Clear + knob a la izquierda** | drums (knobs de stock), motor de las pistas MIDI *(solo Beta 1.27)* | Borra la automatización de ese knob en el patrón que suena, como el original (LED **rojo**). En el motor MIDI, la de los dos carriles del knob (con y sin Shift) que tengan automatización. |
+| **Clear + knob a la izquierda** | drums (knobs de stock), motor de las pistas MIDI *(solo Beta 1.28)* | Borra la automatización de ese knob en el patrón que suena, como el original (LED **rojo**). En el motor MIDI, la de los dos carriles del knob (con y sin Shift) que tengan automatización. |
 | **Shift** | todas | Con Shift pulsado, los atajos disponibles se iluminan en **amarillo**; la opción elegida, en otro color. |
 | **Save** | todas | Guarda el proyecto como siempre; además escribe en el pack los samples sustituidos por capturas (Preset de drums) si caben en la memoria de samples *(escribe en la tarjeta)*. |
 | **Pulsar el botón de la pista otra vez** | Synth 1 / 2 | Abre la vista de la fuente del sinte (capítulo II). |
-| **Clear + Synth 1 / 2** | su vista | *(solo Beta 1.27)* Sus ocho macros a los valores del patch cargado. |
-| **Clear + el botón de un drum** | su vista | *(solo Beta 1.27)* Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
-| **Synth 1 + Synth 2 a la vez** | todas | Teclado partido *(solo Beta 1.27)*. |
-| **Shift + Clear** | todas | Metrónomo en cuatro estados *(solo Beta 1.27)*: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / cian (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. |
-| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación *(solo Beta 1.27)*. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
-| **Shift + Play** | todas | *(solo Beta 1.27)* **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
-| **Shift + Scales** | todas | Editor de la escala propia *(solo Beta 1.27)* (capítulo II, vista Scales). |
+| **Clear + Synth 1 / 2** | su vista | *(solo Beta 1.28)* Sus ocho macros a los valores del patch cargado. |
+| **Clear + el botón de un drum** | su vista | *(solo Beta 1.28)* Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
+| **Synth 1 + Synth 2 a la vez** | todas | Teclado partido *(solo Beta 1.28)*. |
+| **Shift + Clear** | todas | Metrónomo en cuatro estados *(solo Beta 1.28)*: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / cian (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. |
+| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación *(solo Beta 1.28)*. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
+| **Shift + Play** | todas | *(solo Beta 1.28)* **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
+| **Shift + Scales** | todas | Editor de la escala propia *(solo Beta 1.28)* (capítulo II, vista Scales). |
 | **Mixer dos veces** | todas | Master FX (capítulo VI). |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
 
@@ -125,17 +125,17 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 
 - **Canales compartidos (loopback interno)** — una pista MIDI toca un sinte o los drums del propio aparato.
 - **Retornos por las tiras 3 / 4** — la reverb y el delay como canales del mixer.
-- **Canales de Program Change** *(solo Beta 1.27)* — escucha y manda cambios de programa por canales propios.
-- **Grabar los ruteos internos** *(solo Beta 1.27)* — lo que la pista MIDI toca en un sinte se graba también en él.
+- **Canales de Program Change** *(solo Beta 1.28)* — escucha y manda cambios de programa por canales propios.
+- **Grabar los ruteos internos** *(solo Beta 1.28)* — lo que la pista MIDI toca en un sinte se graba también en él.
 
 | Control | Qué hace |
 |---|---|
 | Botones de pista + pads 1-15 | Canal de cada pista; MIDI 1 / 2 pueden usar un canal que ya tenga otra (lo que mandan les llega por dentro: **loopback interno**). Synth 1 / 2 se eligen también si entraste desde su vista. |
 | **Pad 16** | Canal 16 (proyecto y FX): recepción y envío de lo que no es Program Change. |
 | **Pad 22 / 23** | El retorno de reverb pasa por la tira 3 / el de delay por la tira 4 del mixer (crema / melocotón). |
-| **Pad 29 (PGM Rx)** *(solo Beta 1.27)* | Primer toque: los pads 1-16 enseñan el **canal de escucha** de los Program Change del proyecto (blanco); un pad lo elige; otra vez = encender / apagar. |
-| **Pad 30 (PGM Tx)** *(solo Beta 1.27)* | Lo mismo con el **canal de salida**. Por defecto los dos son el 16. Lo recibido en el de escucha se reenvía por el de salida. |
-| **Record** *(solo Beta 1.27)* | Amarillo = lo que una pista MIDI manda a un sinte por el canal compartido se graba también en ese sinte (cambios de escala u octava en tiempo real). Apagado por defecto; se apaga al reiniciar. |
+| **Pad 29 (PGM Rx)** *(solo Beta 1.28)* | Primer toque: los pads 1-16 enseñan el **canal de escucha** de los Program Change del proyecto (blanco); un pad lo elige; otra vez = encender / apagar. |
+| **Pad 30 (PGM Tx)** *(solo Beta 1.28)* | Lo mismo con el **canal de salida**. Por defecto los dos son el 16. Lo recibido en el de escucha se reenvía por el de salida. |
+| **Record** *(solo Beta 1.28)* | Amarillo = lo que una pista MIDI manda a un sinte por el canal compartido se graba también en ese sinte (cambios de escala u octava en tiempo real). Apagado por defecto; se apaga al reiniciar. |
 
 - El patch flip sale siempre por el canal de su pista MIDI.
 
@@ -146,9 +146,9 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 
 **En esta vista**
 
-- **MIDI Thru, Merge y Filter** *(solo Beta 1.27)* — el jack Thru puede mezclar el MIDI de entrada con el del aparato o filtrarlo.
+- **MIDI Thru, Merge y Filter** *(solo Beta 1.28)* — el jack Thru puede mezclar el MIDI de entrada con el del aparato o filtrarlo.
 
-- **Duplicate** = modo del jack MIDI Thru *(solo Beta 1.27)*: Thru (rojo tenue, el DIN In por hardware) → Out 2 (verde) → **Merge** (amarillo: el DIN In + el MIDI del aparato) → **Filter** (azul: el DIN In sin los canales en los que escucha el aparato). Sin SysEx en Merge / Filter. Se guarda en los ajustes.
+- **Duplicate** = modo del jack MIDI Thru *(solo Beta 1.28)*: Thru (rojo tenue, el DIN In por hardware) → Out 2 (verde) → **Merge** (amarillo: el DIN In + el MIDI del aparato) → **Filter** (azul: el DIN In sin los canales en los que escucha el aparato). Sin SysEx en Merge / Filter. Se guarda en los ajustes.
 - Los pads 22 / 23 no se iluminan aquí (allí no hacen nada).
 - El ataque / release del compresor master se ajustan en la vista Sidechain, K7 / K8.
 
@@ -162,10 +162,10 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 **En esta vista**
 
 - **Vista de la fuente** — el sinte puede procesar una entrada de audio en lugar de su ruido.
-- **Teclado partido** *(solo Beta 1.27)* — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity.
+- **Teclado partido** *(solo Beta 1.28)* — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity.
 
 - **Pulsar el mismo botón otra vez** (con su vista en pantalla) abre la **vista de la fuente** del sinte (siguiente capítulo).
-- **Synth 1 + Synth 2 a la vez** (mantén uno y pulsa el otro) abre el **teclado partido** *(solo Beta 1.27)*:
+- **Synth 1 + Synth 2 a la vez** (mantén uno y pulsa el otro) abre el **teclado partido** *(solo Beta 1.28)*:
 - las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2, cada una con su escala, su octava, su velocity y sus colores;
 - los knobs y Octave son los del primer sinte que pulsaste;
 - cualquier botón de pista o de vista lo cierra (las notas pulsadas se sueltan); Play, Record, Octave y Shift no.
@@ -178,9 +178,9 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 
 **En esta vista**
 
-- **Escala propia** *(solo Beta 1.27)* — hasta 7 notas sobre la tónica y un periodo libre (por ejemplo, una escala que se repite cada 7 semitonos). La usan los pads de las pistas de notas, el cuantizado y el random-mutate; se guarda con el proyecto.
+- **Escala propia** *(solo Beta 1.28)* — hasta 7 notas sobre la tónica y un periodo libre (por ejemplo, una escala que se repite cada 7 semitonos). La usan los pads de las pistas de notas, el cuantizado y el random-mutate; se guarda con el proyecto.
 
-- **Shift + Scales** abre la vista Scales con el **editor de la escala propia** *(solo Beta 1.27)*; con Shift pulsado, el botón Scales se ve amarillo. Scales otra vez, Shift + Scales u otra vista lo cierran.
+- **Shift + Scales** abre la vista Scales con el **editor de la escala propia** *(solo Beta 1.28)*; con Shift pulsado, el botón Scales se ve amarillo. Scales otra vez, Shift + Scales u otra vista lo cierran.
 - **El teclado del editor** son dos octavas en piano a partir de la **tónica** (la de la vista Scales, que se elige como siempre fuera del editor): fila 4 = teclas blancas de la primera octava (tónica, +2, +4, +5, +7, +9, +11, +12), fila 3 = sus negras; filas 2 / 1 = la segunda octava (+12 … +24).
 - **Pulsar una tecla** la pone o la quita (hasta **7**). La más alta pulsada es el **periodo**: la tónica de la siguiente iteración (no tiene por qué ser la octava); las demás son las notas de la escala. Colores: tónica blanca, notas verdes, periodo naranja, teclas libres tenues.
 - **En las pistas de notas** (Synth 1 / 2, MIDI 1 / 2) cada fila de pads es **una iteración**: sus notas y la nota del periodo al final, como las octavas de una escala de stock. Con **4 notas o menos**, **dos iteraciones por fila** (una en cada mitad). Octave ▼ / ▲ mueven una fila.
@@ -196,7 +196,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 **En esta vista**
 
 - **Fuente del ruido** — cambia el ruido del patch por la entrada de audio 1 o 2 (normal o invertida): el filtro, las envolventes y los efectos del sinte procesan tu señal externa al ritmo de las notas.
-- **Destinos de los macros** *(solo Beta 1.27)* — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
+- **Destinos de los macros** *(solo Beta 1.28)* — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
 - **Step-drummer del sinte** — secuencia los macros por pares de pasos: cada knob fija la posición de un macro en dos pasos del patrón.
 
 ### Pads 25-30: la fuente
@@ -212,7 +212,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - El patch debe tener nivel de ruido (CC 56) para oír la fuente. La fuente se guarda con el proyecto.
 - Si en Setup los retornos de reverb / delay van por las tiras 3 / 4, esa señal es la que entra al sinte.
 
-### Pad 32: editor de los destinos de los macro knobs *(solo Beta 1.27)*
+### Pad 32: editor de los destinos de los macro knobs *(solo Beta 1.28)*
 Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido (inicio y fin) y una profundidad.
 1. **Pad 32** (verde azulado) = editor encendido; los knobs ya no mueven los macros.
 2. **Gira un knob** para elegir su macro (LED blanco); el primer giro no cambia nada.
@@ -221,7 +221,7 @@ Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido
 - El destino recorre primero los 31 parámetros con CC (por número) y luego los 39 que solo tienen NRPN. Los cambios suenan al momento; para dejarlos en el pack, guarda el patch (vista Preset).
 
 ### Pad 30: step-drummer del sinte
-La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III): pads 1-16 pasos, 17-24 = **macro 1-8** como destino, K1-K8 = los 8 pares de pasos. El valor de cada par es la posición del macro, escrita como automatización; un par vacío empieza en 0 *(solo Beta 1.27)* (antes, en la posición actual del macro).
+La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III): pads 1-16 pasos, 17-24 = **macro 1-8** como destino, K1-K8 = los 8 pares de pasos. El valor de cada par es la posición del macro, escrita como automatización; un par vacío empieza en 0 *(solo Beta 1.28)* (antes, en la posición actual del macro).
 
 <a id="synth-preset"></a>
 ### 2.4 Vista Preset de Synth 1 / 2
@@ -230,14 +230,14 @@ La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III):
 
 **En esta vista**
 
-- **El modo de voz a la vista** *(solo Beta 1.27)* — los patches mono, mono con glide y poly se distinguen por el color.
-- **Guardar el patch** *(solo Beta 1.27)* — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).
+- **El modo de voz a la vista** *(solo Beta 1.28)* — los patches mono, mono con glide y poly se distinguen por el color.
+- **Guardar el patch** *(solo Beta 1.28)* — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).
 - **Intercambiar y copiar** — reordena los patches del pack o lleva uno a otro pack.
 
 | Gesto | Qué hace |
 |---|---|
-| Colores de los patches *(solo Beta 1.27)* | **Azul oscuro** = mono, **lavanda** = mono con glide, color de la pista = poly; el elegido, más claro. |
-| **Clear + pad**, **Clear + el mismo pad** antes de ~5 s *(solo Beta 1.27)* | **Guarda** en ese hueco el patch tal como suena (knobs, MIDI recibido, destinos de macro). El primer toque pregunta (parpadea en blanco); otro pad mueve la pregunta *(escribe en la tarjeta)*. |
+| Colores de los patches *(solo Beta 1.28)* | **Azul oscuro** = mono, **lavanda** = mono con glide, color de la pista = poly; el elegido, más claro. |
+| **Clear + pad**, **Clear + el mismo pad** antes de ~5 s *(solo Beta 1.28)* | **Guarda** en ese hueco el patch tal como suena (knobs, MIDI recibido, destinos de macro). El primer toque pregunta (parpadea en blanco); otro pad mueve la pregunta *(escribe en la tarjeta)*. |
 | **Duplicate + pad A + pad B** (mismo pack) | Intercambia los dos patches. |
 | **Duplicate + pad A**, cargar otro pack, **Duplicate + pad B** | Copia el patch A sobre B en el otro pack (el pack de A no cambia); B puede estar vacío *(escribe en la tarjeta)*. |
 
@@ -255,34 +255,34 @@ La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III):
 
 - **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, VA-drum o granular) y siguen mandando MIDI.
 - **Secuenciador de efectos** — un motor que no suena: dispara efectos de Master FX en los pasos que elijas.
-- **Patches del sinte propio** *(solo Beta 1.27)* — 64 sonidos por pack para esos motores, a un toque.
+- **Patches del sinte propio** *(solo Beta 1.28)* — 64 sonidos por pack para esos motores, a un toque.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 ### Pads
 | Pad | Función |
 |---|---|
-| 1-5 | Página de knobs del motor: 1 VCA-VCF, 2 OSC 1 (granular en ese motor), 3 OSC 2, 4 secuenciables, 5 modulación. **Clear + el pad** *(solo Beta 1.27)*: los valores de esa página (con y sin Shift) a los iniciales. |
-| 9-24 | **Patches del sinte propio** *(solo Beta 1.27)*: ver abajo. |
+| 1-5 | Página de knobs del motor: 1 VCA-VCF, 2 OSC 1 (granular en ese motor), 3 OSC 2, 4 secuenciables, 5 modulación. **Clear + el pad** *(solo Beta 1.28)*: los valores de esa página (con y sin Shift) a los iniciales. |
+| 9-24 | **Patches del sinte propio** *(solo Beta 1.28)*: ver abajo. |
 | 25 | **Editor de CC** de los macros MIDI (capítulo siguiente). |
 | 26 | **Patch flip**: cada nota de la pista sale como Program Change (por el canal de la pista; si ese canal es el de un sinte o los drums, también por dentro). Excluyente con el motor. |
 | 27 | **Motor** de la pista: apagado → amarillo (entrada de línea) → verde (oscilador) → rojo (VA-drum) → magenta (granular) → azul (secuenciador de efectos). |
 | 28 | Uno / dos osciladores (oscilador y VA-drum). |
-| 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX (en el color de la página VCA-VCF *(solo Beta 1.27)*). |
-| **Shift + 29** *(solo Beta 1.27)* | **Gate retrigger**: encendido (verde con Shift, por defecto) = cada nota nueva vuelve a disparar la envolvente; apagado (amarillo) = **legato**: con otras notas pulsadas, una nota nueva solo cambia la altura. Se guarda con el proyecto. |
+| 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX (en el color de la página VCA-VCF *(solo Beta 1.28)*). |
+| **Shift + 29** *(solo Beta 1.28)* | **Gate retrigger**: encendido (verde con Shift, por defecto) = cada nota nueva vuelve a disparar la envolvente; apagado (amarillo) = **legato**: con otras notas pulsadas, una nota nueva solo cambia la altura. Se guarda con el proyecto. |
 | 30 | Abre el **step-drummer**; **Shift + pad 30** lo desactiva. |
 | 31 | Solo en VA-drum: la velocity escala las envolventes de pitch y filtro. |
 
-### Patches del sinte propio (pads 9-24) *(solo Beta 1.27)*
+### Patches del sinte propio (pads 9-24) *(solo Beta 1.28)*
 - 16 huecos por página; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack, comunes a MIDI 1 y MIDI 2).
 - **Tocar** = cargar (suena la tónica mientras mantienes el pad). **Clear + pad** dos veces = guardar. **Duplicate + A + B** = intercambiar; **Duplicate + A**, otro pack, **Duplicate + B** = copiar a otro pack (Duplicate en amarillo mientras hay uno esperando).
 - Colores: melocotón tenue = con patch, brillante = el último usado, violeta = vacío.
 - Un patch guarda el motor entero: motor elegido, osciladores, orden, todos los valores y el ajuste del step-drummer *(escribe en la tarjeta)*.
-- **Clear + el botón de la pista** *(solo Beta 1.27)* devuelve todos los valores del motor a los iniciales (el motor elegido se queda).
+- **Clear + el botón de la pista** *(solo Beta 1.28)* devuelve todos los valores del motor a los iniciales (el motor elegido se queda).
 
 ### Los motores (pad 27)
 - **Entrada de línea** (amarillo): la entrada de audio de la pista (línea 1 en MIDI 1, línea 2 en MIDI 2) pasa por el VCA-VCF; las notas de la pista lo disparan.
-- **Oscilador** (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, *(solo Beta 1.27)*: la última nota manda y al soltarla vuelve la anterior).
+- **Oscilador** (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, *(solo Beta 1.28)*: la última nota manda y al soltarla vuelve la anterior).
 - **VA-drum** (rojo): VCA de un disparo, envolventes de decay para pitch (knob Sustain) y filtro (knob Release), ruido blanco (velocidad del LFO) y valores aleatorios en lugar del LFO.
 - **Granular** (magenta): hasta 16 granos desde un sample del pack o la captura (página 2, capítulo siguiente).
 - **Secuenciador de efectos** (azul): el step-drummer de la pista dispara los huecos de la fila inferior de Master FX (capítulo VI).
@@ -332,12 +332,12 @@ La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III):
 | K3 | Scan (centro congelado) | Probabilidad de grano al revés |
 | K4 | Tamaño del grano 5-500 ms | Dispersión del tono |
 | K5 | Densidad 1-16 granos | Ventana |
-| K6 | Zona del scan | Modo de nota: tono / slicer / stretch *(solo Beta 1.27)* |
+| K6 | Zona del scan | Modo de nota: tono / slicer / stretch *(solo Beta 1.28)* |
 | K7 | LFO → posición | LFO → tamaño |
-| K8 | Envolvente → posición | Fuente: la captura o el sample de un drum *(solo Beta 1.27)* |
+| K8 | Envolvente → posición | Fuente: la captura o el sample de un drum *(solo Beta 1.28)* |
 
 ### Páginas 3-5
-- **Página 3 (OSC 2):** *(solo Beta 1.27)*: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
+- **Página 3 (OSC 2):** *(solo Beta 1.28)*: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
 - **Página 4:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto).
 - **Página 5:** ADSR arriba, LFO abajo.
 - Los knobs de tipo se ven de color (tipo) y brillo (posición dentro del tipo). Todo sale y entra por CC / NRPN (capítulo VIII).
@@ -370,28 +370,28 @@ La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III):
 **En esta vista**
 
 - **Parámetros por pares de pasos** — los 8 knobs son 8 pares de pasos del patrón: cada uno mueve un destino (tono, forma, FM, filtro…) solo en esos pasos, para melodías, acentos o cambios de timbre sin automatizar a mano.
-- **El LED dice cuánto** *(solo Beta 1.27)* — tenue sin modulación, más brillante cuanto más se aleja.
-- **Segunda página con destino propio** *(solo Beta 1.27)* — la página de velocity mueve otro destino a la vez.
-- **Toggle pitch-vel** *(solo Beta 1.27)* — la página 1 transpone las notas por grados de la escala y la 2 marca su velocity: una melodía a partir de un solo patrón de notas.
+- **El LED dice cuánto** *(solo Beta 1.28)* — tenue sin modulación, más brillante cuanto más se aleja.
+- **Segunda página con destino propio** *(solo Beta 1.28)* — la página de velocity mueve otro destino a la vez.
+- **Toggle pitch-vel** *(solo Beta 1.28)* — la página 1 transpone las notas por grados de la escala y la 2 marca su velocity: una melodía a partir de un solo patrón de notas.
 - **En tiempo real** — con Record, tocar un paso lo graba.
 - **Secuenciador de efectos** — con ese motor, cada par elige qué hueco de Master FX suena.
 
 | Control | Función |
 |---|---|
 | Pads 1-16 | Los 16 pasos de la mitad mostrada: brillante = con nota, blanco = el que suena. Tocar = escuchar; **Shift + tocar** = poner / quitar nota. |
-| Pads 17-24 | Página pitch: destino de la fila de pitch (MIDI: tono, OSC 2, WAVE, FM, MIX, env → filtro, SHAPE, decay) / macro 1-8 (sintes). Página velocity: **destino de la página 2** *(solo Beta 1.27)* (el mismo pad otra vez = ninguno). |
-| Pad 32 | **Toggle pitch-vel** *(solo Beta 1.27)* (verde brillante = activado): además de su destino, la página pitch transpone las notas y la página velocity cambia la velocity. |
+| Pads 17-24 | Página pitch: destino de la fila de pitch (MIDI: tono, OSC 2, WAVE, FM, MIX, env → filtro, SHAPE, decay) / macro 1-8 (sintes). Página velocity: **destino de la página 2** *(solo Beta 1.28)* (el mismo pad otra vez = ninguno). |
+| Pad 32 | **Toggle pitch-vel** *(solo Beta 1.28)* (verde brillante = activado): además de su destino, la página pitch transpone las notas y la página velocity cambia la velocity. |
 | K1-K8 | Los 8 pares de pasos (el que suena, blanco). |
 | Octave ▲ / ▼ | Página pitch / velocity. |
 | 1-16 / 17-32 | La otra mitad del patrón. |
 
-- El valor del par desplaza el destino desde el centro (64 = sin cambio): suma o resta al valor que tenga el parámetro en la página del motor. *(solo Beta 1.27)* **El LED del knob muestra la cantidad**: tenue en el centro, más brillante cuanto más se aleja, hacia arriba o hacia abajo.
+- El valor del par desplaza el destino desde el centro (64 = sin cambio): suma o resta al valor que tenga el parámetro en la página del motor. *(solo Beta 1.28)* **El LED del knob muestra la cantidad**: tenue en el centro, más brillante cuanto más se aleja, hacia arriba o hacia abajo.
 - Cada paso conserva la altura de su primera nota.
-- *(solo Beta 1.27)* **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde el centro, 64; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
-- *(solo Beta 1.27)* **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el centro (−8 … +8 grados), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
-- *(solo Beta 1.27)* En MIDI el pad 30 se ve **tenue** con el step-drummer desactivado y **brillante** activado (antes, apagado / tenue).
+- *(solo Beta 1.28)* **Página velocity con destino:** los knobs escriben su valor en el par (MIDI: desde el centro, 64; sintes: desde 0), sin tocar la velocity si el toggle está apagado. Sin destino ni toggle, la página velocity no hace nada. En MIDI la página 2 usa el carril de automatización de REL: con el step-drummer activado, REL no se reproduce ni se graba.
+- *(solo Beta 1.28)* **Toggle pitch-vel:** cada nota de la pista sube / baja **un grado de la escala** del proyecto (la de stock o la propia) **cada 8 pasos del knob**: MIDI desde el centro (−8 … +8 grados), sintes desde 0 (0 … +16), entre las notas 0 y 127; también al escuchar un paso. Con el toggle, los destinos de tono de la página pitch (tono de los dos osciladores / del OSC 2) ya no mueven el sinte propio: lo hace la nota. La velocity sigue a la página velocity.
+- *(solo Beta 1.28)* En MIDI el pad 30 se ve **tenue** con el step-drummer desactivado y **brillante** activado (antes, apagado / tenue).
 - Con **Record**, tocar un paso lo graba en el paso que suena (tiempo real).
-- Con el motor en **secuenciador de efectos** (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final **random** *(solo Beta 1.27)* (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.
+- Con el motor en **secuenciador de efectos** (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final **random** *(solo Beta 1.28)* (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.
 
 ## 4. Pattern Settings
 
@@ -404,22 +404,22 @@ La vista del step-drummer es la misma que la de las pistas MIDI (capítulo III):
 
 - **Nudge** — rota el patrón para que empiece en otro paso.
 - **Órdenes fractal y deconstruido** — recorren el patrón de otra forma sin cambiar sus notas.
-- **Arpegiador** *(solo Beta 1.27)* — los acordes del patrón (y los que tocas) suenan nota a nota, con su orden y su resolución; en los drums, saltando de sample.
+- **Arpegiador** *(solo Beta 1.28)* — los acordes del patrón (y los que tocas) suenan nota a nota, con su orden y su resolución; en los drums, saltando de sample.
 - **Dinámicas y random-mutate** (pad 25) — variaciones para que el patrón no suene siempre igual.
 
 | Pad | Función |
 |---|---|
 | 1-16 | Primer / último paso (stock). |
 | 17-24 | Sync rate (stock). |
-| 25 | Abre la vista de probabilidad en **modo 2** (dinámicas y random-mutate; en los drums también *(solo Beta 1.27)*). **Clear + pad 25** (pistas de notas): borra las dinámicas y el random-mutate de todos los pasos del patrón; la frecuencia se queda *(solo Beta 1.27)*. |
+| 25 | Abre la vista de probabilidad en **modo 2** (dinámicas y random-mutate; en los drums también *(solo Beta 1.28)*). **Clear + pad 25** (pistas de notas): borra las dinámicas y el random-mutate de todos los pasos del patrón; la frecuencia se queda *(solo Beta 1.28)*. |
 | 26 | **Nudge** (naranja): el primer paso elegido pasa a ser el paso 1; lo de delante va al final (pasos y automatización, sobre 16 o 32). |
 | 27 | Orden **fractal**: 1 · 1 2 · 1 2 3 · … hasta el último paso. |
 | 28 | Orden **deconstruido**: las diagonales de la rejilla (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15). |
 | 29-32 | Dirección de stock; excluyente con 27 / 28. |
 
-- Nudge y órdenes también en los drums. El orden se guarda con el patrón; Clear del patrón lo quita. *(solo Beta 1.27)*
+- Nudge y órdenes también en los drums. El orden se guarda con el patrón; Clear del patrón lo quita. *(solo Beta 1.28)*
 
-### Arpegiador (pistas de notas) *(solo Beta 1.27)*
+### Arpegiador (pistas de notas) *(solo Beta 1.28)*
 Con **Shift** pulsado, los pads del arpegiador conservan sus colores de Pattern Settings y lo elegido se ve en verde:
 
 | Gesto | Función |
@@ -432,7 +432,7 @@ Con **Shift** pulsado, los pads del arpegiador conservan sus colores de Pattern 
 - **Entrada:** la primera nota suena como siempre; al mantener otra a la vez empieza el arpegio de las notas mantenidas, una por paso de arpegio (con el transporte parado, al tempo del proyecto), hasta soltarlas todas; cada nota dura un paso de arpegio. **Con Record se graba el acorde**, no las notas sueltas: el arpegio lo toca después la secuencia.
 - Se guarda con el proyecto, por pista y patrón.
 
-### Arpegiador de los drums *(solo Beta 1.27)*
+### Arpegiador de los drums *(solo Beta 1.28)*
 Los mismos gestos (**Shift + pad 25 / 27-32 / 17-24**) en el Pattern Settings de un drum encienden su arpegiador para el patrón que suena, con su orden y su resolución. En la **vista Preset del drum**, el primer sample mantenido es el de siempre; **al mantener otro a la vez empieza el arpegio de los samples mantenidos**: el drum va saltando de sample en sample (en el orden elegido, sobre los samples ordenados por número), con la velocity de su pad. En marcha va a la rejilla del drum; parado, al tempo del proyecto. Sigue mientras quede alguno mantenido; al soltarlos todos, el drum vuelve a su sample elegido. **Con Record** (en marcha) cada golpe se graba en el patrón: su micropaso, su sample como sample flip del paso (uno por paso: queda el último) y, en un paso vacío, su velocity.
 
 <a id="micropasos"></a>
@@ -443,15 +443,15 @@ Los mismos gestos (**Shift + pad 25 / 27-32 / 17-24**) en el Pattern Settings de
 **En esta vista**
 
 - **Micropasos y Tie (de stock)** — coloca cada nota fuera de la rejilla y enlázala con el paso siguiente.
-- **Gate por pulsación** *(solo Beta 1.27)* — al introducir notas a mano, lo que mantienes es lo que dura la nota.
-- **Longitud fija** *(solo Beta 1.27)* — todas las notas que introduces a mano con la misma duración.
+- **Gate por pulsación** *(solo Beta 1.28)* — al introducir notas a mano, lo que mantienes es lo que dura la nota.
+- **Longitud fija** *(solo Beta 1.28)* — todas las notas que introduces a mano con la misma duración.
 
 - **Lo de stock:** pads 17-22 = los 6 micropasos del paso elegido; **pad 24 = Tie** (un toggle: enlaza las notas elegidas con el paso siguiente); pads 25-30 = las notas del paso: tocar una la elige (a ella se aplican el micropaso y el Tie) y la hace sonar.
 - **Un micropaso por nota (de stock):** cada nota guarda una sola posición, así que tocar otro micropaso mueve la nota elegida; no se pueden encender dos a la vez. Para varias en el mismo paso, pon varias notas. En los drums sí se encienden varios micropasos (repeticiones).
 - **Gate una vez** es la vista Gate (pads 17-32 = la duración): ahí los pads 31 / 32 son los de stock.
-- **Pad 32 = gate por pulsación** *(solo Beta 1.27)* de la pista (verde = encendido, tenue = apagado; se guarda con el proyecto): al **introducir notas a mano** (un paso mantenido + un pad de nota, o una nota mantenida + un pad de paso), **el tiempo que mantienes el pad es el gate** de esa nota, al tempo del proyecto y al sync rate de la pista (de 1 micropaso a 16 pasos). Termina al soltar el primero de los dos pads. Apagado: el gate de stock.
-- **Pad 31 = longitud fija** *(solo Beta 1.27)* de la pista (naranja = encendida): con los dos apagados, abre el **selector** (pads 17-32 = 1 … 16 pasos, como la vista Gate) y **elegir una longitud la enciende** (y cierra el selector). Con ella, toda nota introducida a mano (no la grabada en vivo) lleva ese gate.
-- **Los dos toggles** *(solo Beta 1.27)*: con uno encendido, **pulsarlo otra vez lo apaga** (sin abrir nada); **pulsar el otro** apaga el primero y enciende el nuevo (el pad 31, abriendo su selector).
+- **Pad 32 = gate por pulsación** *(solo Beta 1.28)* de la pista (verde = encendido, tenue = apagado; se guarda con el proyecto): al **introducir notas a mano** (un paso mantenido + un pad de nota, o una nota mantenida + un pad de paso), **el tiempo que mantienes el pad es el gate** de esa nota, al tempo del proyecto y al sync rate de la pista (de 1 micropaso a 16 pasos). Termina al soltar el primero de los dos pads. Apagado: el gate de stock.
+- **Pad 31 = longitud fija** *(solo Beta 1.28)* de la pista (naranja = encendida): con los dos apagados, abre el **selector** (pads 17-32 = 1 … 16 pasos, como la vista Gate) y **elegir una longitud la enciende** (y cierra el selector). Con ella, toda nota introducida a mano (no la grabada en vivo) lleva ese gate.
+- **Los dos toggles** *(solo Beta 1.28)*: con uno encendido, **pulsarlo otra vez lo apaga** (sin abrir nada); **pulsar el otro** apaga el primero y enciende el nuevo (el pad 31, abriendo su selector).
 - Esos gates los usa también el arpegiador: cada nota del acorde dura el suyo.
 
 <a id="probabilidad"></a>
@@ -462,15 +462,15 @@ Los mismos gestos (**Shift + pad 25 / 27-32 / 17-24**) en el Pattern Settings de
 **En esta vista**
 
 - **Probabilidad (de stock)** — que un paso suene solo a veces.
-- **Frecuencia** *(solo Beta 1.27)* — que un paso suene una de cada n vueltas: variaciones que vuelven cada 2, 4 u 8 vueltas.
-- **Dinámicas** *(solo Beta 1.27)* — pequeñas variaciones de velocity y de posición: un patrón más humano.
-- **Random-mutate** *(solo Beta 1.27)* — notas que saltan de octava o a otra nota de la escala; en los drums, a otro sample.
+- **Frecuencia** *(solo Beta 1.28)* — que un paso suene una de cada n vueltas: variaciones que vuelven cada 2, 4 u 8 vueltas.
+- **Dinámicas** *(solo Beta 1.28)* — pequeñas variaciones de velocity y de posición: un patrón más humano.
+- **Random-mutate** *(solo Beta 1.28)* — notas que saltan de octava o a otra nota de la escala; en los drums, a otro sample.
 
 | Modo | Fila 3 | Fila 4 |
 |---|---|---|
-| Stock (Shift + Pattern Settings) | Probabilidad del paso | **Random-mutate** *(solo Beta 1.27)* |
-| Modo 1 (Pattern Settings dos veces) | Probabilidad del paso | **Frecuencia**: el paso suena en la última de cada n vueltas (1-8), amarillo *(solo Beta 1.27)* |
-| Modo 2 (pad 25) | **Dinámicas** aleatorias *(solo Beta 1.27)* | Random-mutate *(solo Beta 1.27)* |
+| Stock (Shift + Pattern Settings) | Probabilidad del paso | **Random-mutate** *(solo Beta 1.28)* |
+| Modo 1 (Pattern Settings dos veces) | Probabilidad del paso | **Frecuencia**: el paso suena en la última de cada n vueltas (1-8), amarillo *(solo Beta 1.28)* |
+| Modo 2 (pad 25) | **Dinámicas** aleatorias *(solo Beta 1.28)* | Random-mutate *(solo Beta 1.28)* |
 
 ### Random-mutate (fila 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |
@@ -488,7 +488,7 @@ Los mismos gestos (**Shift + pad 25 / 27-32 / 17-24**) en el Pattern Settings de
 
 - Con Record y el modo 2 en pantalla, lo que suena (nota mutada, dinámica) se escribe en el patrón. Todo se guarda con el paso.
 
-### En los drums *(solo Beta 1.27)*
+### En los drums *(solo Beta 1.28)*
 La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 25** de su Pattern Settings (modo 2, melocotón; verde si su arpegiador está encendido). Elige un paso con golpe (pads 1-16) y toca un pad de las filas 3-4.
 
 | Modo | Fila 3 | Fila 4 |
@@ -514,13 +514,13 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 - **Moldear cada drum** — tono exacto, ring mod, ataque y decay, inicio y corte del sample, filtro con varios modos, LFO y distorsión de varios tipos: de un sample salen muchos sonidos.
 - **Todo neutro = el original** — con los knobs nuevos en su punto neutro, el sample suena como en el Circuit original.
-- **Volver a empezar** *(solo Beta 1.27)* — Clear + el botón del drum deja todos sus knobs por defecto.
+- **Volver a empezar** *(solo Beta 1.28)* — Clear + el botón del drum deja todos sus knobs por defecto.
 
 | Knob | Solo | Con Shift |
 |---|---|---|
-| K1 Oscillator | Pitch (*(solo Beta 1.27)*: el de stock, continuo como el original; los pads de la vista cromática transponen encima) | Cantidad de la envolvente de tono |
+| K1 Oscillator | Pitch (*(solo Beta 1.28)*: el de stock, continuo como el original; los pads de la vista cromática transponen encima) | Cantidad de la envolvente de tono |
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
-| K3 Amp envelope | **Izquierda: decay** (el de stock). Pasado el máximo, **derecha: ataque** (fundido de entrada, hasta 1 s). Centro neutro. *(solo Beta 1.27)* | **Izquierda: inicio** del sample; **derecha: corte** desde el final (hasta 120/128 cada uno). Centro = el sample entero. *(solo Beta 1.27)* |
+| K3 Amp envelope | **Izquierda: decay** (el de stock). Pasado el máximo, **derecha: ataque** (fundido de entrada, hasta 1 s). Centro neutro. *(solo Beta 1.28)* | **Izquierda: inicio** del sample; **derecha: corte** desde el final (hasta 120/128 cada uno). Centro = el sample entero. *(solo Beta 1.28)* |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
 | K5 Filter frequency | Filtro / EQ (por defecto, el EQ tilt de stock) | **Modo de filtro**: EQ tilt de stock, paso banda, notch, comb, DJ |
 | K6 Resonance | Resonancia | — |
@@ -528,8 +528,8 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
 - **K3:** girando a la izquierda el ataque vuelve a 0 antes de que baje el decay; con Shift, uno de los dos (inicio o corte) vuelve a 0 antes de que se mueva el otro. LED: ataque en blanco; con Shift, inicio en el color del drum, corte en blanco.
-- **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte; **Clear + K8 a la derecha** quita también el bitcrush *(solo Beta 1.27)*. Clear + knob restablece las dos capas en los demás.
-- **Clear + el botón del drum** *(solo Beta 1.27)* (con una de sus vistas en pantalla): los ocho knobs del drum, con su capa Shift, a sus valores por defecto.
+- **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte; **Clear + K8 a la derecha** quita también el bitcrush *(solo Beta 1.28)*. Clear + knob restablece las dos capas en los demás.
+- **Clear + el botón del drum** *(solo Beta 1.28)* (con una de sus vistas en pantalla): los ocho knobs del drum, con su capa Shift, a sus valores por defecto.
 - Con todo en neutro un sample suena como en el original. Todo se guarda con el proyecto y tiene NRPN.
 - **Sidechain entre drums:** Shift + FX y Octave ▼ (capítulo VI).
 
@@ -542,14 +542,14 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 - **La captura como drum** — graba lo que suena (Master FX) y úsalo como sample de un drum; al guardar el proyecto queda en el pack.
 - **Intercambiar y copiar samples** — reordena los samples o trae uno de otro pack.
-- **Arpegio de samples** *(solo Beta 1.27)* — al mantener varios samples, el drum salta de uno a otro.
+- **Arpegio de samples** *(solo Beta 1.28)* — al mantener varios samples, el drum salta de uno a otro.
 
 | Gesto | Qué hace |
 |---|---|
 | **Clear + pad**, **Clear + el mismo pad** | **Sustituye** ese sample por la captura de Master FX. Volátil hasta guardar: al guardar se escribe en el pack si cabe en la memoria de samples. |
 | **Duplicate + pad A + pad B** (mismo pack) | Intercambia los dos samples (ficheros y tabla); suena al instante. |
-| **Preset otra vez** *(solo Beta 1.27)* | Vista cromática / de escala del drum encendida / apagada (lo mismo que Shift + Preset). |
-| **Varios pads mantenidos** *(solo Beta 1.27)* | Con el arpegiador del drum encendido (Pattern Settings, Shift + pad 25): el arpegio de los samples mantenidos (capítulo de Pattern Settings). |
+| **Preset otra vez** *(solo Beta 1.28)* | Vista cromática / de escala del drum encendida / apagada (lo mismo que Shift + Preset). |
+| **Varios pads mantenidos** *(solo Beta 1.28)* | Con el arpegiador del drum encendido (Pattern Settings, Shift + pad 25): el arpegio de los samples mantenidos (capítulo de Pattern Settings). |
 | **Duplicate + pad A**, cargar otro pack, **Duplicate + pad B** | Copia el sample A sobre B (B puede estar vacío). Va al sitio de B si cabe; si no, a la memoria libre de importación. Nunca pisa un sample que suena. |
 | **Shift + Preset** | Vista cromática / de escala (siguiente capítulo). |
 
@@ -563,13 +563,13 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 **En esta vista**
 
 - **Un drum como teclado** — el sample transpuesto en la escala del proyecto.
-- **Rollers** *(solo Beta 1.27)* — repite el drum en los micropasos que mantengas: redobles y ratchets en directo, también parado, y grabados con Record.
+- **Rollers** *(solo Beta 1.28)* — repite el drum en los micropasos que mantengas: redobles y ratchets en directo, también parado, y grabados con Record.
 
 - Tres filas de notas en la escala y la tónica de la vista Scales.
 - **K1** = sesgo de tono en semitonos; **Shift + K1** = afinación fina en cents.
-- Grabando, cada tono se graba solo en su paso. *(solo Beta 1.27)*: los pads transponen en semitonos sobre el pitch de K1 y, grabando, quedan en su paso dentro del carril de pitch del drum (un paso guarda un giro de K1 o una nota cromática); Clear + K1 a la izquierda (sostenido) borra los dos.
+- Grabando, cada tono se graba solo en su paso. *(solo Beta 1.28)*: los pads transponen en semitonos sobre el pitch de K1 y, grabando, quedan en su paso dentro del carril de pitch del drum (un paso guarda un giro de K1 o una nota cromática); Clear + K1 a la izquierda (sostenido) borra los dos.
 - **Vista Note de los drums:** los pads 25-28 repiten los cuadros de los drums 4 … 1.
-- **Rollers de micropasos** *(solo Beta 1.27)* en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con el transporte parado** *(solo Beta 1.27)* también: al tempo del proyecto, empezando al pulsar el primero (velocity 100). **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
+- **Rollers de micropasos** *(solo Beta 1.28)* en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con el transporte parado** *(solo Beta 1.28)* también: al tempo del proyecto, empezando al pulsar el primero (velocity 100). **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
 
 ## 6. Master FX
 
@@ -580,32 +580,32 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 **En esta vista**
 
-- **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico *(solo Beta 1.27)*: mientras mantienes o fijados.
+- **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico *(solo Beta 1.28)*: mientras mantienes o fijados.
 - **Song pointer** — repite o hace bucle de partes del patrón en directo.
 - **Captura** — graba hasta 3,5 s de lo que suena para tocarlo, ponerlo en un hueco o usarlo como drum.
 - **Huecos** — un efecto con sus ajustes a un toque; el secuenciador de efectos los dispara.
-- **Por proyecto** *(solo Beta 1.27)* — cada proyecto recuerda sus ajustes de Master FX.
+- **Por proyecto** *(solo Beta 1.28)* — cada proyecto recuerda sus ajustes de Master FX.
 
 ### Pads
 | Pad | Función | K1-K4 al pulsarlo |
 |---|---|---|
 | 1 | Gater | división, profundidad, ancho, suavizado |
 | 2 / 3 | Auto-Filter paso bajo / alto | velocidad, profundidad, resonancia, centro |
-| 4 | Digitise | muestreo, bits; **K3 = envío momentáneo al delay** mientras mantienes el pad, **K4 = envolvente de la cantidad** *(solo Beta 1.27)* |
+| 4 | Digitise | muestreo, bits; **K3 = envío momentáneo al delay** mientras mantienes el pad, **K4 = envolvente de la cantidad** *(solo Beta 1.28)* |
 | 5 | Phaser | velocidad, profundidad, realimentación, mezcla |
-| 6 | Vinyl (RC) / **Glitch** *(solo Beta 1.27)* | Glitch: velocidad, repetición, retraso, caos / sobrecarga |
+| 6 | Vinyl (RC) / **Glitch** *(solo Beta 1.28)* | Glitch: velocidad, repetición, retraso, caos / sobrecarga |
 | 7 | **Sample capturado**: tocar | pitch, modo (one-shot / gate / loop), start, end |
 | 8 | Apagar todo lo fijado (efectos, song pointer, sample) y bypass | — |
 | 9-24 | **Song pointer**: pasos 1-16 | — |
 | 25 | (stock) | — |
 | 26-30 | **Huecos asignables** | los del efecto asignado |
-| 31 | **Glitch** (RC) / **gesto mecánico** *(solo Beta 1.27)* | gesto: movimientos, tipo, tiempo de parada, tiempo de arranque |
+| 31 | **Glitch** (RC) / **gesto mecánico** *(solo Beta 1.28)* | gesto: movimientos, tipo, tiempo de parada, tiempo de arranque |
 | 32 | **Grabar** la captura | — |
 
 ### Efectos (pads 1-6)
 - **Mantener** = activo; **Shift + pad** = fijado; tocarlo otra vez lo suelta. El brillo de los LEDs de los knobs enseña el valor.
 - **Clear + knob a la derecha** = valor por defecto; con Clear pulsado los knobs que están en su valor por defecto se ven lavanda (Master FX no tiene automatización: no hay rojo).
-- **Por sesión** *(solo Beta 1.27)*: los 20 knobs de los efectos, la asignación de los huecos y el compresor se guardan con cada proyecto.
+- **Por sesión** *(solo Beta 1.28)*: los 20 knobs de los efectos, la asignación de los huecos y el compresor se guardan con cada proyecto.
 
 ### Song pointer (pads 9-24)
 - **Un paso mantenido** = retrigger; **dos** = frase momentánea entre ellos; **Shift + dos** = frase fijada (pad 9 blanco; tocarlo la quita).
@@ -622,7 +622,7 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 ### Glitch y gesto mecánico
 - **Glitch:** la salida pasa a una cabeza de cinta sobre el audio reciente: K1 velocidad (arriba normal, centro parada, abajo hacia atrás), K2 repetición, K3 retraso (hasta 2,6 s), K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).
-- **Gesto mecánico** *(solo Beta 1.27)*: al pulsar el audio se frena hasta parar; al soltar arranca. K1 movimientos (1-8), K2 tipo continuo en colores (parada de cinta → baby scratch → tear → back spin → rattle), K3 tiempo de parada, K4 de arranque. Usa el mismo motor que el Glitch: mientras suena, el Glitch espera.
+- **Gesto mecánico** *(solo Beta 1.28)*: al pulsar el audio se frena hasta parar; al soltar arranca. K1 movimientos (1-8), K2 tipo continuo en colores (parada de cinta → baby scratch → tear → back spin → rattle), K3 tiempo de parada, K4 de arranque. Usa el mismo motor que el Glitch: mientras suena, el Glitch espera.
 
 ## 7. FX
 
@@ -656,29 +656,30 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 **En esta vista**
 
-- **El sidechain con knobs** *(solo Beta 1.27)* — ataque, hold, decay y profundidad del ducking de cada pista, más allá de los presets.
-- **Compresor master** *(solo Beta 1.27)* — su ataque y su release.
+- **El sidechain con knobs** *(solo Beta 1.28)* — ataque, hold, decay y profundidad del ducking de cada pista, más allá de los presets.
+- **Compresor master** *(solo Beta 1.28)* — su ataque y su release.
 - **Sidechain entre drums** — que un drum baje el volumen de otro (el bombo al bajo, por ejemplo).
-- **Disparado por patrones** *(solo Beta 1.27)* — Synth 1 / 2 o MIDI 1 / 2 como fuente: las notas de su patrón agachan otra pista, no solo los drums.
+- **Disparado por patrones** *(solo Beta 1.28)* — Synth 1 / 2 o MIDI 1 / 2 como fuente: las notas de su patrón agachan otra pista, no solo los drums.
 
 | Control | Qué hace |
 |---|---|
-| **K1-K4** *(solo Beta 1.27)* | Ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno); LEDs del color de la pista. |
-| **K7 / K8** *(solo Beta 1.27)* | Ataque / release del compresor master (el que se activa en Advanced Setup), en blanco. Se guardan con el proyecto. |
-| **Pads 1-4 de la fila 1** *(solo Beta 1.27)* | **Synth 1, Synth 2, MIDI 1, MIDI 2 como fuente** del sidechain de la pista elegida (la del último preset tocado), junto a los drums 1-4 de los pads 5-8: cada nota del **patrón** de esa pista dispara la envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida, en el color de la pista; las demás, tenues. Un pad 5-8 vuelve a un drum. Se guarda con el proyecto. |
+| **K1-K4** *(solo Beta 1.28)* | Ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno); LEDs del color de la pista. |
+| **K7 / K8** *(solo Beta 1.28)* | Ataque / release del compresor master (el que se activa en Advanced Setup), en blanco. Se guardan con el proyecto. |
+| **Pads 1-4 de la fila 1** *(solo Beta 1.28)* | **Synth 1, Synth 2, MIDI 1, MIDI 2 como fuente** del sidechain de la pista elegida (la del último preset tocado), junto a los drums 1-4 de los pads 5-8: cada nota del **patrón** de esa pista dispara la envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida, en el color de la pista; las demás, tenues. Un pad 5-8 vuelve a un drum. Se guarda con el proyecto. |
 | **Octave ▼** con los drums | **Sidechain entre drums**: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). |
-| **K1-K4** en una página de drums *(solo Beta 1.27)* | Ataque, hold, decay y profundidad del sidechain del drum del último preset tocado (empiezan en los de su preset; tocar un preset los vuelve a él); LEDs del color del drum. Se guardan con el proyecto. |
+| **Pads 1-4 de la fila 1** en una página de drums *(solo Beta 1.28)* | **Synth 1, Synth 2, MIDI 1, MIDI 2 como disparo** del drum del último preset tocado: cada nota del **patrón** de esa pista abre su envolvente (las notas tocadas en directo no). La elegida, en el color del drum; las demás, tenues. Un pad 5-8 vuelve a un drum. Como los presets del sidechain entre drums, no se guarda. |
+| **K1-K4** en una página de drums *(solo Beta 1.28)* | Ataque, hold, decay y profundidad del sidechain del drum del último preset tocado (empiezan en los de su preset; tocar un preset los vuelve a él); LEDs del color del drum. Se guardan con el proyecto. |
 
 ## 9. Escenas y patterns
 
 <a id="patterns"></a>
 ### 9.1 Vista Patterns y cadenas de patrones
 
-*Cómo se llega:* Botón **Patterns**. Columnas = pistas, filas = patrones. Con el **modo cadena** *(solo Beta 1.27)*, cada patrón puede llevar una regla «suena n veces, salta a B; la vez siguiente, a C».
+*Cómo se llega:* Botón **Patterns**. Columnas = pistas, filas = patrones. Con el **modo cadena** *(solo Beta 1.28)*, cada patrón puede llevar una regla «suena n veces, salta a B; la vez siguiente, a C».
 
 **En esta vista**
 
-- **Cadenas de patrones** *(solo Beta 1.27)* — un patrón suena n veces y salta a otro, y la vez siguiente a un tercero: estructuras A A A B sin encadenar a mano.
+- **Cadenas de patrones** *(solo Beta 1.28)* — un patrón suena n veces y salta a otro, y la vez siguiente a un tercero: estructuras A A A B sin encadenar a mano.
 
 | Gesto | Qué hace |
 |---|---|
@@ -699,23 +700,23 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 **En esta vista**
 
 - **Nivel a 100 o a 0** — Shift + knob deja una pista a su nivel nominal o en silencio de un gesto.
-- **Escenas con cadenas y repeticiones** *(solo Beta 1.27)* — una escena puede repetirse n veces y recordar el modo cadena.
-- **Entradas y salidas al compás** *(solo Beta 1.27)* — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
-- **Modo cue** *(solo Beta 1.27)* — la mezcla en mono por la izquierda y, por la derecha, las pistas que quieras escuchar antes de meterlas.
+- **Escenas con cadenas y repeticiones** *(solo Beta 1.28)* — una escena puede repetirse n veces y recordar el modo cadena.
+- **Entradas y salidas al compás** *(solo Beta 1.28)* — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
+- **Modo cue** *(solo Beta 1.28)* — la mezcla en mono por la izquierda y, por la derecha, las pistas que quieras escuchar antes de meterlas.
 
 | Gesto | Qué hace |
 |---|---|
-| **Shift + knob a la derecha / izquierda** | Nivel de esa pista a 100 / a 0 (página de niveles; en la de panorama, *(solo Beta 1.27)*: el modo cue). Sale por MIDI y se graba como un giro. |
-| **Página de panorama: Shift + knob a la derecha / izquierda** *(solo Beta 1.27)* | **Modo cue** encendido / apagado (Octave ▼ rosa / blanco; se guarda en el aparato). |
-| **Modo cue: un knob de panorama** *(solo Beta 1.27)* | El envío de esa pista al **cue** (salida derecha), del centro a la derecha (a la izquierda nada); Clear + knob = sin cue. Los knobs en rosa, más brillantes cuanto más envío. |
-| **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. *(solo Beta 1.27)* |
-| **Shift + pads 1-8** *(solo Beta 1.27)* | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
-| **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). *(solo Beta 1.27)* |
-| Pistas que parpadean | Están siguiendo una regla de cadena. *(solo Beta 1.27)* |
+| **Shift + knob a la derecha / izquierda** | Nivel de esa pista a 100 / a 0 (página de niveles; en la de panorama, *(solo Beta 1.28)*: el modo cue). Sale por MIDI y se graba como un giro. |
+| **Página de panorama: Shift + knob a la derecha / izquierda** *(solo Beta 1.28)* | **Modo cue** encendido / apagado (Octave ▼ rosa / blanco; se guarda en el aparato). |
+| **Modo cue: un knob de panorama** *(solo Beta 1.28)* | El envío de esa pista al **cue** (salida derecha), del centro a la derecha (a la izquierda nada); Clear + knob = sin cue. Los knobs en rosa, más brillantes cuanto más envío. |
+| **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. *(solo Beta 1.28)* |
+| **Shift + pads 1-8** *(solo Beta 1.28)* | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
+| **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). *(solo Beta 1.28)* |
+| Pistas que parpadean | Están siguiendo una regla de cadena. *(solo Beta 1.28)* |
 | **Mixer** otra vez | Master FX. |
 
 - Una escena termina cuando termina su cadena más larga. Guardar otra vez una escena no cambia sus repeticiones.
-- **Modo cue** *(solo Beta 1.27)*: la **salida izquierda** lleva la mezcla en mono como siempre y la **derecha** solo las pistas en cue, cada una a su envío. Una pista silenciada en cue suena solo por la derecha, en el paso en que va su patrón; su pad sigue tenue y su pad (o Shift + pad, al compás siguiente) la mete o la saca de la mezcla. Los paneos no se tocan y vuelven al apagar el modo; guardar el proyecto guarda los mutes de la mezcla. La reverb, el delay y Master FX son los de la mezcla: el cue también los oye.
+- **Modo cue** *(solo Beta 1.28)*: la **salida izquierda** lleva la mezcla en mono como siempre y la **derecha** solo las pistas en cue, cada una a su envío. Una pista silenciada en cue suena solo por la derecha, en el paso en que va su patrón; su pad sigue tenue y su pad (o Shift + pad, al compás siguiente) la mete o la saca de la mezcla. Los paneos no se tocan y vuelven al apagar el modo; guardar el proyecto guarda los mutes de la mezcla. La reverb, el delay y Master FX son los de la mezcla: el cue también los oye.
 
 ## 10. Projects y packs
 
@@ -726,10 +727,10 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 
 **En esta vista**
 
-- **Copiar proyectos** *(solo Beta 1.27)* — duplica un proyecto en otro hueco o en otro pack.
+- **Copiar proyectos** *(solo Beta 1.28)* — duplica un proyecto en otro hueco o en otro pack.
 
 - **Duplicate + pad A** (un proyecto) = la fuente (amarillo, parpadea); Duplicate + A otra vez la olvida.
-- **Duplicate + pad B** = copia. B vacío: se escribe al momento; B ocupado: parpadea en blanco y hay que repetir Duplicate + B antes de ~5 s. Nunca el proyecto cargado. *(solo Beta 1.27)*
+- **Duplicate + pad B** = copia. B vacío: se escribe al momento; B ocupado: parpadea en blanco y hay que repetir Duplicate + B antes de ~5 s. Nunca el proyecto cargado. *(solo Beta 1.28)*
 - **A otro pack:** elige la fuente, carga el otro pack, vuelve a Projects y Duplicate + B.
 - Se copia el proyecto guardado en la tarjeta; mientras copia el aparato no responde unos instantes. En otro pack suena con sus patches y samples *(escribe en la tarjeta)*.
 
@@ -761,8 +762,8 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 | Knobs nuevos de drums (incluidos ataque, inicio y corte), fuente de los sintes, reverb / delay, huecos y knobs de Master FX, compresor, modo cadena y escenas, cuenta atrás, arpegiador (con su resolución), escala propia, gate por pulsación | El proyecto |
 | Notas del step-drummer, valores del secuenciador de efectos, random-mutate, frecuencia, dinámicas, reglas de cadena, orden de reproducción | El patrón |
 | Patches de sinte guardados, patches del sinte propio, capturas usadas como samples | El pack *(escribe en la tarjeta)* |
-| Motor de las pistas MIDI (estado, páginas 1-2), modo de MIDI Thru, canales de PGM | Ajustes del aparato |
-| OSC 2, parámetros con Shift del granular, efectos fijados, song pointer, toggle de Record del Setup | No se guardan |
+| Motor de las pistas MIDI (estado y valores; *(solo Beta 1.28)*: también OSC 2, los knobs con Shift del granular y del oscilador y los pads 28 / 29), modo de MIDI Thru, canales de PGM | Ajustes del aparato |
+| Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums | No se guardan |
 
 <a id="midi"></a>
 ### A.2 MIDI de las funciones nuevas

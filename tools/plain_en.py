@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.27 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.28 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.27"
+BETA = "Beta 1.28"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -221,7 +221,7 @@ In the drums' Note view (press **Note** until rows 1-3 show dim pads), rows 1-3 
 ### Sidechain view
 **Shift + FX** opens it. {B}: **K1-K4** = attack, hold, decay and depth of the sidechain of the track whose preset you touched last (Synth 1 if none), in the track's colour; **K7 / K8** = attack / release of the master compressor (switched on in Advanced Setup), saved with the project.
 
-**Sidechain between drums:** **Shift + FX**, then **Octave ▼**: rows 3-4 hold the ducking pages for each drum, and pads 5-8 of row 1 pick which drum triggers the ducking. {B}: on a drum page **K1-K4** set attack, hold, decay and depth for the drum whose preset you touched last (in the drum's colour; touching a preset brings back the preset's values). Saved with the project.
+**Sidechain between drums:** **Shift + FX**, then **Octave ▼**: rows 3-4 hold the ducking pages for each drum, and pads 5-8 of row 1 pick which drum triggers the ducking ({B}: pads 1-4, **Synth 1, Synth 2, MIDI 1 or MIDI 2**: every note of their pattern). {B}: on a drum page **K1-K4** set attack, hold, decay and depth for the drum whose preset you touched last (in the drum's colour; touching a preset brings back the preset's values). Saved with the project.
 
 **Sidechain from patterns** {B}: on the Synth and MIDI pages of the Sidechain view, **row 1 pads 1-4** (next to the drums on pads 5-8) pick **Synth 1, Synth 2, MIDI 1 or MIDI 2** as the source of the chosen track (the last preset touched): every pattern note of that track ducks it, as a drum hit does. Saved with the project.
 """, [F("Drum track view: the knobs follow the panel labels; Shift gives the second layer.",

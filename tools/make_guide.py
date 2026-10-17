@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.27"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.28"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -477,6 +477,7 @@ view("sidechain", "VI", "Vista Sidechain",
 | **K7 / K8** {B} | Ataque / release del compresor master (el que se activa en Advanced Setup), en blanco. Se guardan con el proyecto. |
 | **Pads 1-4 de la fila 1** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 como fuente** del sidechain de la pista elegida (la del último preset tocado), junto a los drums 1-4 de los pads 5-8: cada nota del **patrón** de esa pista dispara la envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida, en el color de la pista; las demás, tenues. Un pad 5-8 vuelve a un drum. Se guarda con el proyecto. |
 | **Octave ▼** con los drums | **Sidechain entre drums**: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). |
+| **Pads 1-4 de la fila 1** en una página de drums {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 como disparo** del drum del último preset tocado: cada nota del **patrón** de esa pista abre su envolvente (las notas tocadas en directo no). La elegida, en el color del drum; las demás, tenues. Un pad 5-8 vuelve a un drum. Como los presets del sidechain entre drums, no se guarda. |
 | **K1-K4** en una página de drums {B} | Ataque, hold, decay y profundidad del sidechain del drum del último preset tocado (empiezan en los de su preset; tocar un preset los vuelve a él); LEDs del color del drum. Se guardan con el proyecto. |
 """)
 
@@ -526,14 +527,14 @@ view("advanced-setup", "VII", "Vista Advanced Setup",
 # ===================================================================================================== VIII
 view("guardado", "VIII", "Qué se guarda y dónde",
      "Proyecto, patrón, pack o ajustes del aparato.",
-     """
+     f"""
 | Qué | Dónde |
 |---|---|
 | Knobs nuevos de drums (incluidos ataque, inicio y corte), fuente de los sintes, reverb / delay, huecos y knobs de Master FX, compresor, modo cadena y escenas, cuenta atrás, arpegiador (con su resolución), escala propia, gate por pulsación | El proyecto |
 | Notas del step-drummer, valores del secuenciador de efectos, random-mutate, frecuencia, dinámicas, reglas de cadena, orden de reproducción | El patrón |
 | Patches de sinte guardados, patches del sinte propio, capturas usadas como samples | El pack *(escribe en la tarjeta)* |
-| Motor de las pistas MIDI (estado, páginas 1-2), modo de MIDI Thru, canales de PGM | Ajustes del aparato |
-| OSC 2, parámetros con Shift del granular, efectos fijados, song pointer, toggle de Record del Setup | No se guardan |
+| Motor de las pistas MIDI (estado y valores; {B}: también OSC 2, los knobs con Shift del granular y del oscilador y los pads 28 / 29), modo de MIDI Thru, canales de PGM | Ajustes del aparato |
+| Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums | No se guardan |
 """)
 
 view("midi", "VIII", "MIDI de las funciones nuevas",

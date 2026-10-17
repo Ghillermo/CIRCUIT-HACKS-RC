@@ -1,10 +1,10 @@
 """La guía en palabras sencillas, en español (la escribe tools/make_plain.py).  Estructura y estilo llano de la guía de la comunidad «Circuit Tracks mod
 manual, in plain English» de u/luxurysoft1337 (Reddit, 15 de octubre de 2026, escrita para RC0.9 / Beta 1.3); reescrita, corregida y completada hasta
-Beta 1.27 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
+Beta 1.28 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.27"
+BETA = "Beta 1.28"
 B = f"*(solo {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
@@ -221,7 +221,7 @@ En la vista Note de los drums (pulsa **Note** hasta que las filas 1-3 se vean te
 ### Vista Sidechain
 Se abre con **Shift + FX**. {B}: **K1-K4** = ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno), en el color de la pista; **K7 / K8** = ataque / release del compresor master (se enciende en Advanced Setup), guardados con el proyecto.
 
-**Sidechain entre drums:** **Shift + FX** y luego **Octave ▼**: las filas 3-4 tienen las páginas de ducking de cada drum, y los pads 5-8 de la fila 1 eligen qué drum provoca el ducking. {B}: en la página de un drum, **K1-K4** fijan ataque, hold, decay y profundidad del drum del último preset tocado (en el color del drum; tocar un preset devuelve los valores del preset). Se guarda con el proyecto.
+**Sidechain entre drums:** **Shift + FX** y luego **Octave ▼**: las filas 3-4 tienen las páginas de ducking de cada drum, y los pads 5-8 de la fila 1 eligen qué drum provoca el ducking ({B}: los pads 1-4, **Synth 1, Synth 2, MIDI 1 o MIDI 2**: cada nota de su patrón). {B}: en la página de un drum, **K1-K4** fijan ataque, hold, decay y profundidad del drum del último preset tocado (en el color del drum; tocar un preset devuelve los valores del preset). Se guarda con el proyecto.
 
 **Sidechain desde patrones** {B}: en las páginas de Synth y MIDI de la vista Sidechain, los **pads 1-4 de la fila 1** (junto a los drums de los pads 5-8) eligen **Synth 1, Synth 2, MIDI 1 o MIDI 2** como fuente de la pista elegida (la del último preset tocado): cada nota del patrón de esa pista la agacha, como un golpe de drum. Se guarda con el proyecto.
 """, [F("Vista de pista de un drum: los knobs siguen las etiquetas del panel; Shift da la segunda capa.",

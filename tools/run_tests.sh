@@ -573,6 +573,8 @@ run python3 tools/emu_sc43_3.py firmware/sc43.3/circuittracks-4486-SC43.3.bin fi
 run python3 tools/emu_sc43_3.py firmware/b1.23/circuittracks-4486-B1.23.bin firmware/b1.23/manifest.json
 run python3 tools/emu_sc43_4.py firmware/sc43.4/circuittracks-4486-SC43.4.bin firmware/sc43.4/manifest.json
 run python3 tools/emu_sc43_4.py firmware/b1.24/circuittracks-4486-B1.24.bin firmware/b1.24/manifest.json
+run python3 tools/emu_sc43_8.py firmware/sc43.8/circuittracks-4486-SC43.8.bin firmware/sc43.8/manifest.json
+run python3 tools/emu_sc43_8.py firmware/b1.28/circuittracks-4486-B1.28.bin firmware/b1.28/manifest.json
 run python3 tools/emu_sc43_7.py firmware/sc43.7/circuittracks-4486-SC43.7.bin firmware/sc43.7/manifest.json
 run python3 tools/emu_sc43_7.py firmware/b1.27/circuittracks-4486-B1.27.bin firmware/b1.27/manifest.json
 run python3 tools/emu_sc43_4.py firmware/sc43.7/circuittracks-4486-SC43.7.bin firmware/sc43.7/manifest.json

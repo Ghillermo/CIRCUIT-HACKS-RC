@@ -42,6 +42,23 @@ MARK_DIRTY, GETTER = 0x0803BDCC, 0x08036192
 COL = (0x32, 0x17, 0x09, 0x3B)                                # the targets' colours (as the stock's chosen source pad, sckn.COL)
 DIM = 0x02                                                    # the stock's not-chosen source pad
 PAD_DRUM0 = 4                                                 # pads 5-8: the stock's sources
+DRUMS = False                                                 # SC43.8 (use_drums)
+S16_BLK, PAL = 0x3A10, 0x08056464                             # SC16's DSP blocks (X:$3A10 + 9 d: word 0 = the trigger); the palette
+OWN0 = 4                                                      # (DRUMS) SC16's trigger byte [8 + d]: 0..3 a drum, 4..7 Synth 1, Synth 2, MIDI 1, MIDI 2
+DIM_I = 0x13                                                  # SC16's palette index of a source pad not chosen (the chosen: 5 + the drum)
+
+
+def use_drums():
+    """SC43.8 (the user, 2026-10-17: «add gate sidechain to the drums»): Synth 1, Synth 2, MIDI 1 and MIDI 2 as the trigger of SC16's drum
+    side-chain too.  SC16 (build_sc16.py): its state (c_gst() + 24) holds a trigger drum per drum ([8 + d], 0..3; RAM only, as its presets);
+    a drum hit (c_trig) writes word 0 of the DSP block X:$3A10 + 9 k = 1 for every drum k with a preset whose trigger is that drum.
+    Ours: the trigger byte 4..7 = a note track (SC16's own code never matches it: no drum fires it, no pad 5-8 is lit):
+      * on SC16's drum pages of the Sidechain view, row 1 pads 1-4 (dark there) = Synth 1, Synth 2, MIDI 1, MIDI 2 as the trigger of the drum
+        touched last ([13], the one SC16's pads 5-8 set); a pad 5-8 gives it back to a drum (SC16's);
+      * every pattern note of that track (the players' note-on, velocity > 0, as for the note tracks' targets) = word 0 of the drum's block;
+      * LEDs from the LED task: the chosen pad in the colour SC16 gives the chosen drum source (palette 5 + the drum), the others dim (0x13)."""
+    global DRUMS
+    DRUMS = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -119,10 +136,25 @@ def arm_code(base, L, prev):
     E(push_list, [0, 1, 2, 3, 4], lr=True)
     E(cmp_imm, 2, 0); E(b_cond, "sn_x", "eq")
     E(bl, L["c_artrk"]); E(cmp_imm, 0, 3); E(b_cond, "sn_x", "hi"); E(mov_reg, 4, 0)
+    if DRUMS: E(bl, "c_spdrum"); E(mov_reg, 0, 4)
     E(adds_imm8, 0, 1); E(bl, "c_spuses"); E(cmp_imm, 0, 0); E(b_cond, "sn_x", "eq")
     E(movs_imm, 0, 0); E(movs_imm, 1, 0xF); E(lsls_imm, 1, 1, 8); E(movw, 2, TRIG); E(adds_reg, 2, 2, 4); E(bl, DSP_W)
     a.label("sn_x"); E(raw, popw([0, 1, 2, 3, 4], lr=True))
     E(raw, NOTE_ON_OLD); E(b_w, NOTE_ON + 4)
+
+    if DRUMS:
+        # ---- c_spdrum(r0 = a note track 0..3): the drums whose side-chain it triggers: word 0 of their blocks
+        a.label("c_spdrum")
+        E(push_list, [4, 5, 6], lr=True)
+        E(adds_imm8, 0, OWN0); E(mov_reg, 6, 0)
+        E(bl, L["c_scst"]); E(cmp_imm, 0, 0); E(b_cond, "dd_x", "eq"); E(mov_reg, 4, 0); E(movs_imm, 5, 0)
+        a.label("dd_l")
+        E(adds_reg, 0, 4, 5); E(ldrb_imm, 1, 0, 4); E(cmp_imm, 1, 0); E(b_cond, "dd_n", "eq")          # a preset on
+        E(ldrb_imm, 1, 0, 8); E(cmp_reg, 1, 6); E(b_cond, "dd_n", "ne")
+        E(movs_imm, 2, 9); E(muls, 2, 5); E(movw, 0, S16_BLK); E(adds_reg, 2, 2, 0)
+        E(movs_imm, 0, 0); E(movs_imm, 1, 1); E(lsls_imm, 1, 1, 8); E(bl, DSP_W)
+        a.label("dd_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 4); E(b_cond, "dd_l", "lo")
+        a.label("dd_x"); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_spdirty(r0 = target): its source parameter marked, so the group goes to the DSP again (the interface task); clobbers r0-r3
     a.label("c_spdirty")
@@ -138,7 +170,7 @@ def arm_code(base, L, prev):
     a.label("c_sppad")
     E(push_list, [0, 1, 2, 4, 5], lr=True)
     E(cmp_imm, 1, 8); E(b_cond, "sp_f", "hs")
-    E(bl, "c_spstock"); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "eq")
+    E(bl, "c_spstock"); E(cmp_imm, 0, 0); E(b_cond, "sp_dr" if DRUMS else "sp_f", "eq")
     E(ldr_sp, 0, 0); E(ldr_imm, 0, 0, 0x1C); E(ldrb_imm, 4, 0, 0x14); E(cmp_imm, 4, 3); E(b_cond, "sp_f", "hi")   # r4 = the target
     E(ldr_sp, 5, 4); E(cmp_imm, 5, PAD_DRUM0); E(b_cond, "sp_d", "hs")
     E(mov_reg, 0, 4); E(adds_imm8, 5, 1); E(mov_reg, 1, 5); E(bl, "c_spset"); E(mov_reg, 0, 4); E(bl, "c_spdirty")
@@ -147,13 +179,20 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(bl, "c_spget"); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "eq")
     E(mov_reg, 0, 4); E(movs_imm, 1, 0); E(bl, "c_spset"); E(mov_reg, 0, 4); E(bl, "c_spdirty")
     a.label("sp_f"); E(raw, popw([0, 1, 2, 4, 5], lr=True)); E(b_w, prev["pad"])
+    if DRUMS:                                                                                          # a drum page: pads 1-4 = a note track
+        a.label("sp_dr")
+        E(ldr_sp, 5, 4); E(cmp_imm, 5, PAD_DRUM0); E(b_cond, "sp_f", "hs")
+        E(bl, L["c_scst"]); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "eq")
+        E(ldrb_imm, 1, 0, 13); E(cmp_imm, 1, 3); E(b_cond, "sp_f", "hi"); E(adds_reg, 1, 1, 0)
+        E(adds_imm8, 5, OWN0); E(strb_imm, 5, 1, 8)
+        E(raw, h(0xB003)); E(pop_list, [4, 5], pc=True)                                                # add sp, #12
 
     # ---- c_spledtask (the LED task calls: ctrl, frame): the chain; the Sidechain view's stock pages: pads 1-8 as above
     a.label("c_spledtask")
     E(push_list, [3, 4, 5, 6, 7], lr=True)
     E(mov_reg, 5, 1); E(bl, prev["ledtask"])
     E(bl, L["c_skon"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x", "eq")
-    E(bl, "c_spstock"); E(cmp_imm, 0, 0); E(b_cond, "sl_x", "eq")
+    E(bl, "c_spstock"); E(cmp_imm, 0, 0); E(b_cond, "sl_dr" if DRUMS else "sl_x", "eq")
     imm32(0, SC_VIEW); E(ldr_imm, 0, 0, 0x1C); E(ldrb_imm, 4, 0, 0x14); E(cmp_imm, 4, 3); E(b_cond, "sl_x", "hi")
     E(mov_reg, 0, 4); E(bl, "c_spget"); E(mov_reg, 6, 0)                                               # r6 = ours (0: the stock's drum)
     E(movs_imm, 7, 0)
@@ -166,6 +205,17 @@ def arm_code(base, L, prev):
     a.label("sl_w"); E(lsls_imm, 1, 7, 1); E(raw, h(0x5268))                                            # strh r0, [r5, r1]
     a.label("sl_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "sl_l", "lo")
     a.label("sl_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+    if DRUMS:                                                                                          # a drum page: pads 1-4
+        a.label("sl_dr")
+        E(bl, L["c_scst"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x", "eq"); E(mov_reg, 4, 0)
+        E(ldrb_imm, 6, 4, 13); E(cmp_imm, 6, 3); E(b_cond, "sl_x", "hi")                               # r6 = the drum
+        E(adds_reg, 0, 4, 6); E(ldrb_imm, 7, 0, 8); E(movs_imm, 3, 0)                                  # r7 = its trigger
+        a.label("sl_dl")
+        E(movs_imm, 0, DIM_I); E(adds_imm3, 1, 3, OWN0); E(cmp_reg, 1, 7); E(b_cond, "sl_dw", "ne"); E(adds_imm3, 0, 6, 5)
+        a.label("sl_dw"); E(lsls_imm, 0, 0, 1); imm32(1, PAL); E(raw, h(0x5A08))                       # ldrh r0, [r1, r0]
+        E(lsls_imm, 1, 3, 1); E(raw, h(0x5268))                                                        # strh r0, [r5, r1]
+        E(adds_imm8, 3, 1); E(cmp_imm, 3, 4); E(b_cond, "sl_dl", "lo")
+        E(b, "sl_x")
     return a.assemble()
 
 

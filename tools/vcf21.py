@@ -457,6 +457,19 @@ def use_fxseq2():
     FXSEQ2 = True
 
 
+V2SAVE = False                                    # SC43.8 (see use_v2save)
+
+
+def use_v2save():
+    """SC43.8 (the user, 2026-10-17: «revisa el guardado de sintes propios y granular, hay parametros que no parecen cargarse al reiniciar,
+    especialmente los shift»): the volatile codes 27..34 (the OSC 2 page; the granular page's Shift + K1-K5 / K7; the oscillator page's Shift + K2 /
+    K3) and the toggles of pads 28 / 29 (two oscillators, the chain order: bits 7 of RT_VEL / RT_NOTE) were never saved: every power-up put the
+    defaults back.  tools/engsave.py puts them into the record the stock writes; here their changes ask for the save too (c_vsave: deferred by
+    lazysave), as the codes 1..26 do."""
+    global V2SAVE
+    V2SAVE = True
+
+
 def use_grsrc():
     """SC39.1 (the user, 2026-10-11: «el selector de sample (Shift + K8) selecciona entre el sample capturado (izquierda, rojo) y el sample de banco
     seleccionado actualmente por drum 1 (naranja), 2 (amarillo), 3 (purple) o 4 (derecha, teal). Haz el recorrido largo y cambia de color. Al soltar Shift,
@@ -1659,7 +1672,7 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
     a.label("gk_s")
     a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vmark")
     if CCIO: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6); a.emit(bl, "c_vsync")
-    a.emit(cmp_imm, 5, 26); a.emit(b_cond, "gk_x", "hi")                          # the volatile codes (27..34) are not saved
+    if not V2SAVE: a.emit(cmp_imm, 5, 26); a.emit(b_cond, "gk_x", "hi")          # the volatile codes (27..34) are not saved
     a.emit(bl, "c_vsave")
     a.label("gk_x"); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
@@ -2940,7 +2953,7 @@ def arm_code(base, L):
         a.label("vk_nc2")
         a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vmark")
         if CCIO: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 4); a.emit(bl, "c_vsync")      # out as MIDI, recorded in its lane
-        a.emit(cmp_imm, 5, 26); bc("vk_done", "hi")                               # the volatile codes (27..34) are not saved
+        if not V2SAVE: a.emit(cmp_imm, 5, 26); bc("vk_done", "hi")               # the volatile codes (27..34) are not saved
         a.emit(bl, "c_vsave")
     else:
         tail(2); mulstride(3, 7); a.emit(adds_reg, 2, 2, 3); a.emit(adds_reg, 2, 2, 5); a.emit(strb_imm, 0, 2, 0)
@@ -3273,6 +3286,7 @@ def arm_code(base, L):
             a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); bc(lab + "_x", "eq")
             if DUALHIDE and off == RT_VEL: a.emit(mov_reg, 0, 6); a.emit(bl, "c_vosc"); a.emit(cmp_imm, 0, 0); bc(lab + "_x", "eq")   # no oscillators: nothing
             a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, off); a.emit(bl, "c_vflip7")
+            if V2SAVE: a.emit(mov_reg, 7, 0); a.emit(bl, "c_vsave"); a.emit(mov_reg, 0, 7)                         # (V2SAVE) saved too
             if off == RT_VEL:
                 a.emit(cmp_imm, 0, 0); bc(lab + "_x", "ne")                                                          # now one oscillator: the OSC2 page is gone
                 a.emit(mov_reg, 0, 6); a.emit(bl, "c_vpage"); a.emit(cmp_imm, 0, 2); bc(lab + "_x", "ne")
