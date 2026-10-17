@@ -32,9 +32,9 @@ header.cover a { color:#ffb38a; }
 }
 @page { size:A4; margin:14mm 12mm; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>A guide in plain words, illustrated</p><p>RC2 · RC2S</p><p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>A guide in plain words, illustrated</p><p>RC2.01 · RC2.01S</p><p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
 <p class="lang"><a href="sencilla.html">Español</a> · <a href="plain.pdf">PDF</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>
-<p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>, whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by <strong><a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></strong>, written for RC0.9 and Beta 1.3. This edition is rewritten for <strong>RC2</strong> and <strong>RC2S</strong>, keeps the names of the mod&#x27;s own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the <a href="guide.html">guide by views</a> and the <a href="en.html">feature list</a>.</p>
+<p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>, whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by <strong><a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></strong>, written for RC0.9 and Beta 1.3. This edition is rewritten for <strong>RC2.01</strong> and <strong>RC2.01S</strong>, keeps the names of the mod&#x27;s own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the <a href="guide.html">guide by views</a> and the <a href="en.html">feature list</a>.</p>
 <p>Nothing here has been tested on a real unit unless the <a href="https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md">CHANGELOG</a> says so. The mod is not affiliated with Novation.</p>
 <nav class="toc"><h2>Contents</h2><ol>
 <li><a href="#what">What the mod is</a></li>
@@ -71,9 +71,9 @@ header.cover a { color:#ffb38a; }
 <li>3. Pick a build:</li>
 </ol>
 <table><thead><tr><th>Build</th><th>What it is</th></tr></thead><tbody>
-<tr><td><strong>RC2</strong></td><td>The release candidate: everything in this guide.</td></tr>
-<tr><td><strong>RC2S</strong></td><td>The <em>safer</em> build: RC2, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red).</td></tr>
-<tr><td><strong>RC0.9 / RC0.9S</strong></td><td>The earlier versions, without what is marked <em>(since RC2)</em>.</td></tr>
+<tr><td><strong>RC2.01</strong></td><td>The release candidate: everything in this guide (RC2 + the captured sample before the master filter).</td></tr>
+<tr><td><strong>RC2.01S</strong></td><td>The <em>safer</em> build: RC2.01, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red).</td></tr>
+<tr><td><strong>RC2 / RC2S, RC0.9 / RC0.9S</strong></td><td>The earlier ones: RC2 with the sample after the master filter; RC0.9 without what is marked <em>(since RC2)</em>.</td></tr>
 </tbody></table>
 <h4>Installing</h4>
 <ol>
@@ -675,7 +675,7 @@ header.cover a { color:#ffb38a; }
 </ul>
 <h4>The capture (pads 32 and 7)</h4>
 <ul>
-<li><strong>Pad 32 (red):</strong> hold = record while held (up to about 3.5 s); a short tap = record until the next tap; <strong>Shift + pad 32</strong> = armed: with the sequencer running it records the next bar, stopped it waits for Play and records the first bar.</li>
+<li><strong>Pad 32 (red):</strong> hold = record while held (up to about 3.5 s); a short tap = record until the next tap; <strong>Shift + pad 32</strong> = armed: with the sequencer running it records the next bar, stopped it waits for Play and records the first bar. Since RC2.01 the capture and the playing sample sit before the master filter: the filter acts on the sample and the capture does not hold it.</li>
 <li>It records the output <strong>without</strong> the Master FX effects; when it plays, it goes through them.</li>
 <li><strong>Pad 7 (yellow)</strong> plays it: K1 pitch (±24 semitones), K2 mode by colour (yellow one-shot, green gate, blue loop: the loop sounds while you hold the pad), K3 start, K4 end (end before start = backwards). <strong>Shift + pad 7</strong> keeps it playing in any mode until pad 7 again (or pad 8).</li>
 <li>Hold pad 7 and touch a slot to store it there; replace a drum with it (section 8); use it as a granular source (section 10).</li>

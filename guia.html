@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2)</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2.01)</title>
 <style>
 :root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2.01</p><div class="bar"></div></header><main>
 <p class="lang"><a href="guide.html">English version</a> · <a href="index.html">Lista de características</a> · <a href="midi.html">Referencia MIDI</a></p>
 <p>Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía recorre las vistas del aparato y explica todo lo que se puede hacer en cada una. La </p>
 <nav class="toc"><h2>Vistas</h2>
@@ -87,7 +87,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Pads 1-32</strong> de arriba-izquierda a abajo-derecha: fila 1 = 1-8, fila 2 = 9-16, fila 3 = 17-24, fila 4 = 25-32.</li>
 <li><strong>Knobs K1-K4</strong> arriba, <strong>K5-K8</strong> abajo. «<strong>Shift + X</strong>» = mantener Shift mientras se usa X; lo mismo con Clear y Duplicate.</li>
 <li>Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).</li>
-<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2S, no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
+<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.01S (y RC2S), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
 <li>La <strong>lista de características</strong> (el manual anterior) resume cada función en una línea, por temas.</li>
 </ul>
 </section>
@@ -3439,7 +3439,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 <h4>Sample capturado (pads 7 y 32)</h4>
 <ul>
-<li><strong>Pad 32:</strong> mantener = graba mientras lo mantienes (hasta 3,46 s); toque corto = hasta el siguiente; <strong>Shift + pad 32</strong> = armado (graba el compás siguiente; parado, desde Play). La captura graba la salida sin los efectos de Master FX; el sample que suena sí pasa por ellos.</li>
+<li><strong>Pad 32:</strong> mantener = graba mientras lo mantienes (hasta 3,46 s); toque corto = hasta el siguiente; <strong>Shift + pad 32</strong> = armado (graba el compás siguiente; parado, desde Play). La captura graba la salida sin los efectos de Master FX; el sample que suena sí pasa por ellos. <strong>Desde RC2.01</strong> la captura y el sample van antes del filtro master: el filtro le afecta al sonar y la captura no lo lleva.</li>
 <li><strong>Pad 7:</strong> tocar; <strong>Shift + pad 7</strong> = bucle enganchado hasta volver a pulsarlo. El modo loop (K2 azul) suena solo mientras mantienes.</li>
 <li>Se puede asignar a un hueco (pad 7 + pad de abajo) y sustituir a un drum (vista Preset de drums). Al guardar el proyecto se guarda en el pack si cabe.</li>
 </ul>
@@ -4016,11 +4016,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <div class="summary"><p><strong>Cómo se llega:</strong> <code>tools/rc_uploader.html</code> parchea el firmware oficial en el navegador y lo envía por Web MIDI.</p></div>
 <ol>
 <li>1. Descarga el firmware oficial 1.2.1 de Novation, abre <code>tools/rc_uploader.html</code> en Chrome y conecta el Circuit Tracks por USB.</li>
-<li>2. Elige la versión (RC2, la más segura RC2S, o una anterior) y envía. El bootloader de Novation no se toca.</li>
+<li>2. Elige la versión (RC2.01, la más segura RC2.01S, o una anterior) y envía. El bootloader de Novation no se toca.</li>
 <li>3. <strong>Haz antes una copia de la tarjeta.</strong> Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.</li>
 </ol>
 <ul>
 <li><strong>Volver atrás:</strong> envía otra versión o el firmware oficial. Si no arranca: <strong>Scales + Preset + Note</strong> al encender.</li>
 </ul>
 </section>
-<footer>CIRCUIT-HACKS RC2 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.01 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>
