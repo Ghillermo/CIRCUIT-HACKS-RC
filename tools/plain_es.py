@@ -1,10 +1,10 @@
 """La guía en palabras sencillas, en español (la escribe tools/make_plain.py).  Estructura y estilo llano de la guía de la comunidad «Circuit Tracks mod
 manual, in plain English» de u/luxurysoft1337 (Reddit, 15 de octubre de 2026, escrita para RC0.9 / Beta 1.3); reescrita, corregida y completada hasta
-Beta 1.25 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
+Beta 1.26 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.25"
+BETA = "Beta 1.26"
 B = f"*(solo {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
@@ -202,7 +202,7 @@ Cada knob hace lo que dice su etiqueta del panel, con una segunda capa con Shift
 - **RC0.9:** un proyecto nuevo o sin tocar empieza con el modo de filtro en DJ, que quita el EQ de stock: los drums pueden sonar distinto que en un Circuit de stock. Shift + K5 a «EQ tilt» devuelve el sonido de stock. {B}: arreglado (por defecto, el EQ de stock).
 
 ### Tocar un drum como un teclado
-Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso ({B}: los pads fijan el valor cromático de K1 y no se graban por paso).
+Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso ({B}: los pads fijan el valor cromático de K1 y, grabando, quedan en su paso; Clear + K1 a la izquierda los borra).
 
 ### Vista Preset de drums
 | Gesto | Qué hace |
@@ -271,7 +271,7 @@ En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor s
 | Motor | En palabras sencillas |
 |---|---|
 | Entrada de línea | La entrada de audio (línea 1 para MIDI 1, línea 2 para MIDI 2) por el VCA, el filtro, la envolvente y el LFO de la pista, disparados por sus notas: dar forma a un sonido externo con el Circuit. |
-| Oscilador | Un sinte de dos osciladores: WAVE pasa de seno (0) → triángulo (42) → sierra (84) → cuadrada (126); SHAPE pliega, curva o cambia la anchura; OSC 2 añade FM, ring y modos de bits. Una nota = unísono, dos notas = una por oscilador. |
+| Oscilador | Un sinte de dos osciladores: WAVE pasa de seno (0) → triángulo (42) → sierra (84) → cuadrada (126); SHAPE pliega, curva o cambia la anchura; OSC 2 añade FM, ring y modos de bits. Una nota = unísono, dos notas = una por oscilador ({B}: con un oscilador, la última nota manda). |
 | VA-drum | El oscilador como voz de percusión de un disparo: Sustain = decay de la envolvente de tono, Release = decay de la de filtro, velocidad del LFO = nivel de ruido. Bombo: seno, Decay ~70, Sustain ~30, envolvente → tono a la derecha; caja: más ruido, Decay corto, paso banda. |
 | Granular | Hasta 16 granos de un sample a la vez: texturas, sonidos congelados o estirados (página 2, más abajo). |
 | Secuenciador de efectos | No suena: cada par de pasos de su step-drummer dispara un hueco de Master FX. |
@@ -295,7 +295,7 @@ En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor s
 - **Página 1, VCA-VCF:** K1 ataque (Shift sustain), K2 release (Shift decay), K3 envolvente → nivel (Shift LFO → nivel), K4 envolvente → filtro (Shift LFO → filtro), K5 filtro (Shift tipo de filtro: DJ, LP 12, HP 12, paso banda, notch, LP 24, HP 24), K6 resonancia (Shift ganancia del VCA, hasta +18 dB con saturación), K7 velocidad del LFO, K8 cantidad del efecto (Shift tipo de efecto: suave, dura, plegada, wavefold, ring, comb, chorus).
 - **Página 2, OSC 1:** K1 afinación (Shift fina), K2 forma (Shift mezcla OSC 1 ↔ OSC 2), K3 envolvente → tono (Shift bitsync), K4 envolvente → forma, K5 LFO → tono, K6 LFO → forma, K7 WAVE, K8 LFO → morph (Shift envolvente → morph).
 - **Página 2, granular:** K1 tono ±24 (Shift fino), K2 posición (Shift dispersión de la posición), K3 recorrido: el centro congela, derecha hacia delante, izquierda hacia atrás (Shift probabilidad de un grano al revés), K4 tamaño del grano 5-500 ms (Shift dispersión del tono), K5 densidad 1-16 (Shift ventana), K6 zona del recorrido (Shift modo de nota: tono / slicer; {B} stretch = desde la posición hasta el final en un número fijo de pasos, sin cambiar el tono), K7 LFO → posición (Shift LFO → tamaño), K8 envolvente → posición (Shift fuente: RC un sample del pack o, a la izquierda, la captura; {B} la captura o el sample actual de un drum).
-- **Página 3, OSC 2:** K1 afinación 2 (Shift fina 2), K2 forma 2 (Shift FM), Shift + K3 ring, K7 WAVE 2. **Página 4:** los 8 valores automatizables (afinación, release, envolvente → nivel, envolvente → filtro, filtro, resonancia, velocidad del LFO, efecto). **Página 5:** ADSR arriba, LFO abajo.
+- **Página 3, OSC 2:** {B}: K1 afinación 2, K2 forma 2, K3 mezcla OSC 1 / OSC 2, K4 FM, K5 afinación fina 2, K6 BITSYNC, K7 WAVE 2, K8 ring, todos sin Shift (RC0.9: K1 afinación 2 con Shift fina 2, K2 forma 2 con Shift FM, Shift + K3 ring, K7 WAVE 2). **Página 4:** los 8 valores automatizables (afinación, release, envolvente → nivel, envolvente → filtro, filtro, resonancia, velocidad del LFO, efecto). **Página 5:** ADSR arriba, LFO abajo.
 - **Automatización:** con Record + Play, los movimientos de los valores de la página 4 se graban en el patrón. {B}: **Clear + knob a la izquierda** borra la automatización de ese knob (rojo), **Clear + knob a la derecha** = por defecto (lavanda).
 
 ### Secuenciador de efectos
@@ -357,6 +357,7 @@ Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock
 - **Clear + patrón:** en el modo, quita la regla; fuera, borra el patrón con su regla y su orden.
 - **Escenas:** una escena guardada en modo cadena se ve melocotón y al cargarla vuelve el modo. En el Mixer, **Shift + pads 9-16** = 1-8 repeticiones de la escena actual; las pistas que siguen una regla parpadean.
 - **Entradas al compás** {B}: en el Mixer, **Shift + pad de pista (1-8)** la silencia o la activa al empezar el compás siguiente (parpadea mientras espera; otra vez lo cancela).
+- **Modo cue** {B}: en la página de panorama del Mixer (Octave ▼), **Shift + knob a la derecha** lo enciende (Octave ▼ rosa) y **a la izquierda** lo apaga. Por la salida izquierda va la mezcla en mono; por la derecha, solo las pistas que mandas al cue con su knob de panorama (del centro a la derecha). Sirve para escuchar una pista silenciada antes de meterla: suena a tempo solo por la derecha.
 """, [F("Pattern Settings: pads de stock más 25-28; con Shift, el arpegiador (beta).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "Primero"), **{n: ("green", "", True) for n in range(17, 25)},
               25: ("peach", "Modo 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decons."), 29: ("purple", "Adel.", True), 30: ("purple", "Atrás", True), 31: ("purple", "Ping", True), 32: ("purple", "Azar", True)},

@@ -291,6 +291,39 @@ CLR_LAV = 0x07                                    # the stock's colour of a knob
 EDITOR0, EDITOR_SZ, LANE_CLEAR = 0x20039E50, 0x3A0, 0x0803D3B8   # the note tracks' pattern editors (Synth 1, 2, MIDI 1, 2); (editor, lane): the lane to 0xFF
 
 
+LASTNOTE = False                                  # SC43.6 (use_lastnote)
+N2FIRST = False                                   # SC43.6 (use_n2first)
+
+
+def use_lastnote():
+    """SC43.6 (the user, 2026-10-17: «in single OSC mode, when two notes are held, the second note triggers Gate signal but doesn't change pitch.  Last
+    note held should get priority»): with one oscillator (bit 7 of RT_VEL clear) a note played while another is held takes OSC1 (n1) and the one it
+    replaces waits in n2 (unused by the DSP with one oscillator: the key follow takes the mean only with two); releasing it goes back to n2 (the
+    stock c_vnote_off already does n1 := n2), without a new gate.  Two oscillators: the paraphonic assignment as before."""
+    global LASTNOTE
+    assert DUALUI
+    LASTNOTE = True
+
+
+def use_n2first():
+    """SC43.6 (the user, 2026-10-17: «on granular, the pitch doesn't seem to track the scale very well»): the granular voice (DSP core 1) starts a
+    note's grains alternating NOTE2 (code 14) and NOTE, the first one with NOTE2; a new note marks NOTE, VEL, GATE, TRIG and code 14, and c_vsend sent
+    code 14 last, one message every 2 ms: the first grain of every note (up to 500 ms) played the note before.  Now code 14 goes right after NOTE and
+    VEL, before the gate and the trigger (emulated on core 1: NOTE 60 + k with NOTE2 60 gives an increment of 1.0 for the first grain)."""
+    global N2FIRST
+    assert DUALUI
+    N2FIRST = True
+
+
+def use_osc2pg():
+    """SC43.6 (the user, 2026-10-17: «on osc2 knobs, the layer is all wrong. Assign the controls to non-shift knobs when available, making sense of the
+    printed tags»): the OSC 2 page (page 3) has its eight values on the eight knobs, none with Shift: K1 Oscillator = TUNE 2, K2 Osc mod = SHAPE 2 (as
+    on the OSC 1 page), K3 Amp envelope = MIX OSC 1 / OSC 2 (the level), K4 Filter envelope = FM (the brightness), K5 Filter frequency = FINE 2,
+    K6 Resonance = BITSYNC (hard sync, the resonant sweep), K7 Modulation = WAVE 2 (as on the OSC 1 page), K8 FX = RING (one of the FX types)."""
+    global KNOB_CODES_C
+    KNOB_CODES_C = (27, 30, 31, 33, 28, 32, 29, 34,  0, 0, 0, 0, 0, 0, 0, 0)
+
+
 def use_routecol():
     """SC42.7 (the user, 2026-10-16: «cambiar color del pad 29 a amarillo (color del filtro)»): pad 29 of the MIDI Preset view (the chain order) in
     the colours of the VCA / VCF page pad."""
@@ -1404,6 +1437,11 @@ def dualui_routines(a, L, tail, mulstride, bc):
     a.label("no_c")
     a.emit(lsrs_imm, 7, 7, 4); a.emit(lsls_imm, 7, 7, 4); a.emit(orrs_reg, 7, 3)                      # r7 = the new RT_CNT byte
     a.emit(cmp_imm, 1, 0); a.emit(b_cond, "no_f", "eq")
+    if LASTNOTE:                                                                  # one oscillator: the new note takes OSC1, the one it replaces waits in n2
+        a.emit(ldrb_imm, 3, 5, RT_VEL); a.emit(lsrs_imm, 3, 3, 7); a.emit(b_cond, "no_dl", "ne")
+        a.emit(ldrb_imm, 0, 5, RT_NOTE); a.emit(movs_imm, 3, 0x7F); a.emit(ands_reg, 0, 3); a.emit(strb_imm, 0, 6, 0)
+        a.emit(movs_imm, 0, RT_NOTE); a.emit(bl, "c_vsetn"); a.emit(movs_imm, 3, 0x80); a.emit(orrs_reg, 7, 3); a.emit(b, "no_d")
+        a.label("no_dl")
     a.emit(cmp_imm, 1, 1); a.emit(b_cond, "no_2", "eq")
     a.emit(movs_imm, 3, 0x80); a.emit(tst_reg, 7, 3); a.emit(b_cond, "no_s2", "ne")
     a.emit(movs_imm, 0, RT_NOTE); a.emit(bl, "c_vsetn"); a.emit(movs_imm, 3, 0x80); a.emit(orrs_reg, 7, 3); a.emit(b, "no_d")   # three or more: the older oscillator takes the note (OSC1 first)
@@ -3460,6 +3498,11 @@ def arm_code(base, L):
     if DUALUI: a.emit(movs_imm, 2, 0x7F); a.emit(ands_reg, 1, 2)
     a.emit(movs_imm, 0, 20); a.emit(b, "sd_send")
     a.label("sd_3")
+    if N2FIRST:                                                                   # SC43.6: the note of OSC 2 (code 14) before the gate and the trigger
+        a.emit(ldrb_imm, 1, 7, RT_DHI); a.emit(movs_imm, 2, 0x20); a.emit(tst_reg, 1, 2); a.emit(b_cond, "sd_3n", "eq")
+        a.emit(bics_reg, 1, 2); a.emit(strb_imm, 1, 7, RT_DHI)
+        mulstride(1, 6); a.emit(adds_reg, 1, 1, 5); a.emit(raw, ldrsb_w(1, 1, 14)); a.emit(movs_imm, 0, 14); a.emit(b, "sd_send")
+        a.label("sd_3n")
     if SDRUM:                                                                     # step-drummer: the values the pitch row moves (codes 17 / 18 / 19 / 20, 3, 6) go before the gate and the trigger
         a.emit(ldrb_imm, 1, 7, RT_DX); a.emit(movs_imm, 2, 0x0F); a.emit(ands_reg, 1, 2); a.emit(ldrb_imm, 2, 7, RT_DLO); a.emit(movs_imm, 3, 0x24); a.emit(ands_reg, 2, 3); a.emit(orrs_reg, 1, 2)
         a.emit(cmp_imm, 1, 0); a.emit(b_cond, "sd_3a", "eq")

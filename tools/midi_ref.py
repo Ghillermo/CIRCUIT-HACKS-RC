@@ -19,10 +19,10 @@ ENGINE = [
     (21, "LFO → tono (granular: scan)", "LFO → pitch (granular: scan)", "2 / K5"), (22, "Envolvente → tono (granular: env → posición)", "Envelope → pitch (granular: env → position)", "2 / K3"),
     (23, "Envolvente → forma (granular: zona)", "Envelope → shape (granular: zone)", "2 / K4"), (24, "LFO → forma (granular: LFO → posición)", "LFO → shape (granular: LFO → position)", "2 / K6"),
     (25, "Envolvente → morph (granular: fuente)", "Envelope → morph (granular: source)", "2 / Shift + K8"), (26, "LFO → morph (granular: modo de nota)", "LFO → morph (granular: note mode)", "2 / K8"),
-    (27, "TUNE 2 (granular: LFO → tamaño)", "TUNE 2 (granular: LFO → size)", "3 / K1"), (28, "FINE 2 (granular: fino)", "FINE 2 (granular: fine)", "3 / Shift + K1"),
+    (27, "TUNE 2 (granular: LFO → tamaño)", "TUNE 2 (granular: LFO → size)", "3 / K1"), (28, "FINE 2 (granular: fino)", "FINE 2 (granular: fine)", "3 / K5 (beta) · 3 / Shift + K1 (RC)"),
     (29, "WAVE 2 (granular: dispersión del tono)", "WAVE 2 (granular: pitch spread)", "3 / K7"), (30, "SHAPE 2 (granular: ventana)", "SHAPE 2 (granular: window)", "3 / K2"),
-    (31, "MIX OSC 1 ↔ OSC 2", "MIX OSC 1 ↔ OSC 2", "2 / Shift + K2"), (32, "BITSYNC", "BITSYNC", "2 / Shift + K3"),
-    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / Shift + K2"), (34, "RING (granular: reverso)", "RING (granular: reverse)", "3 / Shift + K3")]
+    (31, "MIX OSC 1 ↔ OSC 2", "MIX OSC 1 ↔ OSC 2", "2 / Shift + K2 · 3 / K3 (beta)"), (32, "BITSYNC", "BITSYNC", "2 / Shift + K3 · 3 / K6 (beta)"),
+    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / K4 (beta) · 3 / Shift + K2 (RC)"), (34, "RING (granular: reverso)", "RING (granular: reverse)", "3 / K8 (beta) · 3 / Shift + K3 (RC)")]
 DRUMS = [  # lsb, es, en, values es, values en
     (1, "Envolvente → tono", "Envelope → pitch", "0-127, 64 = 0", "0-127, 64 = 0"), (2, "Ring mod: frecuencia", "Ring mod: frequency", "0-127", "0-127"),
     (3, "LFO: cantidad", "LFO: amount", "0-127, 64 = 0", "0-127, 64 = 0"), (4, "LFO: velocidad", "LFO: speed", "0-127, 64 = centro", "0-127, 64 = centre"),

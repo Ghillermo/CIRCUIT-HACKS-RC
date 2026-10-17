@@ -38,13 +38,13 @@ The MIDI track's channel. Values 0-127; bipolar ones, 64 = centre. Sent when the
 | 25 | Envelope → morph (granular: source) | NRPN 4:25 | 2 / Shift + K8 |
 | 26 | LFO → morph (granular: note mode) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → size) | CC 37 | 3 / K1 |
-| 28 | FINE 2 (granular: fine) | CC 39 | 3 / Shift + K1 |
+| 28 | FINE 2 (granular: fine) | CC 39 | 3 / K5 (beta) · 3 / Shift + K1 (RC) |
 | 29 | WAVE 2 (granular: pitch spread) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: window) | CC 31 | 3 / K2 |
-| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 |
-| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 |
-| 33 | FM (granular: position spread) | NRPN 4:33 | 3 / Shift + K2 |
-| 34 | RING (granular: reverse) | CC 54 | 3 / Shift + K3 |
+| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (beta) |
+| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (beta) |
+| 33 | FM (granular: position spread) | NRPN 4:33 | 3 / K4 (beta) · 3 / Shift + K2 (RC) |
+| 34 | RING (granular: reverse) | CC 54 | 3 / K8 (beta) · 3 / Shift + K3 (RC) |
 
 **Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect.
 

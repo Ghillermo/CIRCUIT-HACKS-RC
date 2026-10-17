@@ -140,7 +140,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 
 ### The engines (pad 27)
 - **Line input** (yellow): the track's audio input (line 1 on MIDI 1, line 2 on MIDI 2) goes through the VCA-VCF; the track's notes trigger it.
-- **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony.
+- **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony (with one oscillator, {B}: the last note has priority and releasing it goes back to the previous one).
 - **VA-drum** (red): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
 - **Granular** (magenta): up to 16 grains from a pack sample or the capture (page 2, next section).
 - **FX sequencer** (blue): the track's step-drummer triggers the slots of Master FX's bottom row (chapter 6).
@@ -185,7 +185,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | K8 | Envelope → position | Source: the capture or a drum's sample {B} |
 
 ### Pages 3-5
-- **Page 3 (OSC 2):** K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2.
+- **Page 3 (OSC 2):** {B}: the eight values without Shift, following the printed labels: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (in RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
 - **Page 4:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect).
 - **Page 5:** ADSR on top, LFO below.
 - Type knobs show colour (type) and brightness (position within the type). Everything goes out and comes in over CC / NRPN (MIDI reference).
@@ -337,7 +337,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "**Shift + Preset** with a drum selected. The pads play the sample transposed along the scale.", f"""
 - Three rows of notes in the scale and root of the Scales view.
 - **K1** = pitch offset in semitones; **Shift + K1** = fine tuning in cents.
-- While recording, each pitch is recorded on its own step only. {B}: the pads set the chromatic value (K1) and are not recorded per step.
+- While recording, each pitch is recorded on its own step only. {B}: the pads set the chromatic value (K1) and, while recording, stay on their step; Clear + K1 to the left deletes the chromatic steps of the playing pattern. In {B} the drums have no pan automation: that lane holds their chromatic steps.
 - **The drums' Note view:** pads 25-28 repeat the boxes of drums 4 … 1.
 - **Micro-step rollers** {B} on rows 1-3 of the drums' Note view: each column is the drum of its box below (columns 1-4 = drums 4-1, columns 5-8 = drums 1-4), dim in its colour. A drum's left column is its micro steps 1-3 (rows 1-3) and the right one 4-6: drum 1 = pads 4, 12, 20 and 5, 13, 21. **While held** (one or several, of one or several drums), the drum plays on **every step** at those micro steps (with the step's velocity, or 100 on an empty step); they light up while held. **With the transport stopped** {B} too: at the project's tempo, starting when the first one is pressed (velocity 100). **With Record** their hits are recorded into the pattern too (the micro step, and velocity 100 on an empty step).
 """),
@@ -420,7 +420,9 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "The **Mixer** button: levels (Octave ▲) and pan (Octave ▼) as always; **Mixer again** = Master FX.", f"""
 | Gesture | What it does |
 |---|---|
-| **Shift + knob to the right / left** | That track's level to 100 / to 0 (levels page; on the pan page, Shift + knob is the stock one). Goes out over MIDI and is recorded like a turn. |
+| **Shift + knob to the right / left** | That track's level to 100 / to 0 (levels page; on the pan page, {B}: the cue mode). Goes out over MIDI and is recorded like a turn. |
+| **Pan page: Shift + knob to the right / left** {B} | **Cue mode** on / off (Octave ▼ pink / white; stored in the unit). |
+| **Cue mode: a pan knob** {B} | That track's send to the **cue** (right output), from the centre to the right (to the left nothing); Clear + knob = no cue. The knobs pink, brighter with more send. |
 | **Scene pads** | As always; a scene saved in **chain mode** shows **peach** and loading it brings the mode back; a normal one turns it off. {B} |
 | **Shift + pads 1-8** {B} | **Mute / unmute that track on the next bar**: the pad blinks while it waits; again cancels it. Stopped, at once. |
 | **Shift + pads 9-16** | **Repeats** of the current scene (1-8; with Shift the row is yellow, the chosen one green). {B} |
@@ -428,6 +430,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Mixer** again | Master FX. |
 
 - A scene ends when its longest chain ends. Saving a scene again does not change its repeats.
+- **Cue mode** {B}: the **left output** carries the mix in mono as always and the **right** one only the cued tracks, each at its send. A muted track in the cue plays only on the right, at the step its pattern is on; its pad stays dim and its pad (or Shift + pad, on the next bar) takes it into or out of the mix. The pans are not touched and come back when the mode goes off; saving the project saves the mix's mutes. Reverb, delay and Master FX are the mix's: the cue hears them too.
 """),
 "projects": ("Projects view",
     "The **Projects** button: loading and saving projects as always, plus copying.", f"""
@@ -559,6 +562,7 @@ ABOUT = {
 - **Level to 100 or 0** — Shift + knob puts a track at its nominal level or silent in one move.
 - **Scenes with chains and repeats** {B} — a scene can repeat n times and remember chain mode.
 - **Drop-ins on the bar** {B} — Shift + a track pad mutes or unmutes the track right as the next bar starts.
+- **Cue mode** {B} — the mix in mono on the left and, on the right, the tracks you want to hear before bringing them in.
 """,
     "master-fx": f"""
 - **Live effects on the whole master** — Gater, Auto-Filter, Digitise, Phaser, Glitch and the mechanical gesture {B}: while held or latched.

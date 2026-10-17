@@ -38,13 +38,13 @@ Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar
 | 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 |
 | 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → tamaño) | CC 37 | 3 / K1 |
-| 28 | FINE 2 (granular: fino) | CC 39 | 3 / Shift + K1 |
+| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (beta) · 3 / Shift + K1 (RC) |
 | 29 | WAVE 2 (granular: dispersión del tono) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 |
-| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 |
-| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 |
-| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / Shift + K2 |
-| 34 | RING (granular: reverso) | CC 54 | 3 / Shift + K3 |
+| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (beta) |
+| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (beta) |
+| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (beta) · 3 / Shift + K2 (RC) |
+| 34 | RING (granular: reverso) | CC 54 | 3 / K8 (beta) · 3 / Shift + K3 (RC) |
 
 **Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto.
 

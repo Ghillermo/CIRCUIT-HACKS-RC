@@ -4,6 +4,22 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.26 — 2026-10-17
+
+**Beta 1.26** (marca `B1.26`; = SC43.6) = Beta 1.25 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Novedades (solo Beta 1.26)
+- **Modo cue en el Mixer:** en la página de panorama (Octave ▼), **Shift + un knob a la derecha** lo enciende y **a la izquierda** lo apaga (Octave ▼ rosa encendido, blanco apagado; se guarda en el aparato). En el modo, la **salida izquierda** lleva la mezcla en mono como siempre y la **derecha** solo las pistas que mandas al cue: cada knob de panorama es el envío de esa pista al cue, desde el centro hacia la derecha (a la izquierda no hace nada; Clear + knob = sin cue). Una pista silenciada también se puede escuchar en el cue: sigue el patrón en el paso en que está y suena solo por la derecha; su pad sigue tenue y los pads de pista (también Shift + pad, al compás siguiente) la sacan o la meten en la mezcla. Los paneos de las pistas no se tocan y vuelven al salir; la reverb, el delay y Master FX son los de la mezcla (el cue los oye).
+- **Vista cromática de los drums:** grabando, cada pad vuelve a quedar en su paso (el valor cromático de K1); Clear + K1 a la izquierda borra los pasos cromáticos del patrón que suena.
+
+### Cambios (solo Beta 1.26)
+- Los drums ya no graban ni reproducen automatización de **panorama**: ese carril del patrón guarda ahora sus pasos cromáticos (ninguna de las 173 sesiones de la copia lo usaba).
+- **Sinte propio de MIDI 1 / 2, página 3 (OSC 2):** sus ocho valores en los ocho knobs, sin Shift, según la serigrafía: K1 Oscillator = TUNE 2, K2 Osc mod = SHAPE 2, K3 Amp envelope = MIX OSC 1 ↔ OSC 2, K4 Filter envelope = FM, K5 Filter frequency = FINE 2, K6 Resonance = BITSYNC, K7 Modulation = WAVE 2, K8 FX = RING.
+
+### Arreglos (solo Beta 1.26)
+- **Un oscilador:** con una nota pulsada, otra nota disparaba la puerta pero no cambiaba la altura (iba al segundo oscilador, que no suena). Ahora **la última nota manda**; al soltarla vuelve la anterior, sin volver a disparar.
+- **Granular:** el primer grano de cada nota sonaba a la altura de la nota anterior (la nota del segundo oscilador llegaba después del disparo); ahora llega antes y cada nota empieza en su altura.
+
 ## Beta 1.25 — 2026-10-17
 
 **Beta 1.25** (marca `B1.25`; = SC43.5) = Beta 1.24 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
@@ -304,6 +320,22 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.26 — 2026-10-17
+
+**Beta 1.26** (marker `B1.26`; = SC43.6) = Beta 1.25 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### New (Beta 1.26 only)
+- **Cue mode in the Mixer:** on the pan page (Octave ▼), **Shift + a knob turned right** turns it on and **turned left** turns it off (Octave ▼ pink on, white off; stored in the unit). In the mode the **left output** carries the mix in mono as always and the **right** one only the tracks you send to the cue: each pan knob is that track's cue send, from the centre to the right (to the left it does nothing; Clear + knob = no cue). A muted track can be heard in the cue too: it follows the pattern at the step it is on and plays only on the right; its pad stays dim and the track pads (Shift + pad too, on the next bar) take it out of or into the mix. The tracks' pans are not touched and come back when you leave; reverb, delay and Master FX are the mix's (the cue hears them).
+- **The drums' chromatic view:** while recording, each pad is written to its step again (K1's chromatic value); Clear + K1 to the left deletes the chromatic steps of the playing pattern.
+
+### Changes (Beta 1.26 only)
+- The drums no longer record or play **pan** automation: that lane of the pattern now holds their chromatic steps (none of the 173 sessions of the card's copy used it).
+- **The own synth of MIDI 1 / 2, page 3 (OSC 2):** its eight values on the eight knobs, no Shift, following the printed labels: K1 Oscillator = TUNE 2, K2 Osc mod = SHAPE 2, K3 Amp envelope = MIX OSC 1 ↔ OSC 2, K4 Filter envelope = FM, K5 Filter frequency = FINE 2, K6 Resonance = BITSYNC, K7 Modulation = WAVE 2, K8 FX = RING.
+
+### Fixes (Beta 1.26 only)
+- **One oscillator:** with a note held, another note triggered the gate but did not change the pitch (it went to the second oscillator, which is silent). Now **the last note has priority**; releasing it goes back to the previous one, without a new trigger.
+- **Granular:** the first grain of every note played at the previous note's pitch (the second oscillator's note arrived after the trigger); now it arrives first and every note starts at its pitch.
 
 ## Beta 1.25 — 2026-10-17
 

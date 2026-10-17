@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.25 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.26 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.25"
+BETA = "Beta 1.26"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -202,7 +202,7 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 - **RC0.9:** a new or untouched project starts with the filter mode in DJ, which removes the stock EQ: drums can sound different from a stock Circuit. Shift + K5 to «EQ tilt» brings the stock sound back. {B}: fixed (the default is the stock EQ).
 
 ### Play a drum like a keyboard
-Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step ({B}: the pads set K1's chromatic value and are not recorded per step).
+Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step ({B}: the pads set K1's chromatic value and, while recording, stay on their step; Clear + K1 to the left deletes them).
 
 ### Drum Preset view
 | Gesture | What it does |
@@ -271,7 +271,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 | Engine | In plain words |
 |---|---|
 | Line input | The audio input (line 1 for MIDI 1, line 2 for MIDI 2) through the track's VCA, filter, envelope and LFO, triggered by its notes: shape an outside sound with the Circuit. |
-| Oscillator | A two-oscillator synth: WAVE morphs sine (0) → triangle (42) → saw (84) → square (126); SHAPE folds, bends or changes the width; OSC 2 adds FM, ring and bit modes. One note = unison, two notes = one per oscillator. |
+| Oscillator | A two-oscillator synth: WAVE morphs sine (0) → triangle (42) → saw (84) → square (126); SHAPE folds, bends or changes the width; OSC 2 adds FM, ring and bit modes. One note = unison, two notes = one per oscillator ({B}: with one oscillator, the last note has priority). |
 | VA-drum | The oscillator as a one-shot percussion voice: Sustain = pitch envelope decay, Release = filter envelope decay, LFO speed = noise level. Kick: sine, Decay ~70, Sustain ~30, envelope → pitch right; snare: more noise, short Decay, band pass. |
 | Granular | Up to 16 grains of a sample at once: textures, frozen or stretched sounds (page 2 below). |
 | FX sequencer | No sound: each pair of steps of its step-drummer triggers a Master FX slot. |
@@ -295,7 +295,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 - **Page 1, VCA-VCF:** K1 attack (Shift sustain), K2 release (Shift decay), K3 envelope → level (Shift LFO → level), K4 envelope → filter (Shift LFO → filter), K5 filter (Shift filter type: DJ, LP 12, HP 12, band pass, notch, LP 24, HP 24), K6 resonance (Shift VCA gain, up to +18 dB with saturation), K7 LFO speed, K8 effect amount (Shift effect type: soft, hard, folded, wavefold, ring, comb, chorus).
 - **Page 2, OSC 1:** K1 tune (Shift fine), K2 shape (Shift mix OSC 1 ↔ OSC 2), K3 envelope → pitch (Shift bitsync), K4 envelope → shape, K5 LFO → pitch, K6 LFO → shape, K7 WAVE, K8 LFO → morph (Shift envelope → morph).
 - **Page 2, granular:** K1 pitch ±24 (Shift fine), K2 position (Shift position spread), K3 scan: centre freezes, right forward, left backward (Shift chance of a reversed grain), K4 grain size 5-500 ms (Shift pitch spread), K5 density 1-16 (Shift window), K6 scan zone (Shift note mode: pitch / slicer; {B} stretch = from the position to the end over a set number of steps, without changing pitch), K7 LFO → position (Shift LFO → size), K8 envelope → position (Shift source: RC a pack sample or, left, the capture; {B} the capture or the current sample of a drum).
-- **Page 3, OSC 2:** K1 tune 2 (Shift fine 2), K2 shape 2 (Shift FM), Shift + K3 ring, K7 WAVE 2. **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below.
+- **Page 3, OSC 2:** {B}: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below.
 - **Automation:** with Record + Play, the moves of the page 4 values are recorded into the pattern. {B}: **Clear + knob left** deletes that knob's automation (red), **Clear + knob right** = default (lavender).
 
 ### FX sequencer
@@ -357,6 +357,7 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
 - **Clear + pattern:** in the mode, removes the rule; outside, clears the pattern with its rule and order.
 - **Scenes:** a scene saved in chain mode shows peach and brings the mode back when loaded. In the Mixer, **Shift + pads 9-16** = 1-8 repeats of the current scene; tracks following a rule blink.
 - **Drop-ins on the bar** {B}: in the Mixer, **Shift + a track pad (1-8)** mutes or unmutes it as the next bar starts (it blinks while it waits; again cancels it).
+- **Cue mode** {B}: on the Mixer's pan page (Octave ▼), **Shift + a knob turned right** turns it on (Octave ▼ pink) and **turned left** turns it off. The left output carries the mix in mono; the right one, only the tracks you send to the cue with their pan knob (from the centre to the right). Use it to hear a muted track before bringing it in: it plays in time on the right only.
 """, [F("Pattern Settings: stock pads plus 25-28; with Shift, the arpeggiator (beta).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "First"), **{n: ("green", "", True) for n in range(17, 25)},
               25: ("peach", "Mode 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decon."), 29: ("purple", "Fwd", True), 30: ("purple", "Back", True), 31: ("purple", "Ping", True), 32: ("purple", "Rnd", True)},
