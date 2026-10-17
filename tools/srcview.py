@@ -70,6 +70,17 @@ def use_split():
     """SC38.9: Synth 1 + Synth 2 pressed together = a split keyboard (pads 1-16 Synth 1, 17-32 Synth 2)."""
     global SPLIT
     SPLIT = True
+KEEPPLAY = False                      # SC43.7 (use_keepplay)
+ID_KEEP = (16, 17)                    # (KEEPPLAY) Record, Play
+
+
+def use_keepplay():
+    """SC43.7 (the user, 2026-10-17: «en sinte 1 y 2 step-drummer, pulsar play o record envía a la vista Preset»): Record and Play (ids 16 / 17)
+    keep the source view open (and the step-drummer view inside it), as Shift does; they do not change the view in the stock."""
+    global KEEPPLAY
+    KEEPPLAY = True
+
+
 METER = False                         # SC20D: pad rows 2 and 3 (bytes 16..47 of the LED buffer) belong to the DSP meter tick (tools/meter20.py)
 INV = {"eq": "ne", "ne": "eq", "cc": "cs", "cs": "cc", "lo": "hs", "hs": "lo", "hi": "ls", "ls": "hi",
        "ge": "lt", "lt": "ge", "gt": "le", "le": "gt", "mi": "pl", "pl": "mi"}
@@ -107,6 +118,8 @@ def arm_code(base, L, K):
     a.emit(bl, L["c_gst"]); a.emit(cmp_imm, 0, 0); bc("be_stock", "eq")
     a.emit(ldrb_imm, 1, 0, S_PAINT); a.emit(movs_imm, 2, F_SRC); a.emit(tst_reg, 1, 2); bc("be_closed", "eq")
     a.emit(cmp_imm, 5, ID_SHIFT); bc("be_stock", "eq")                         # Shift keeps the view
+    if KEEPPLAY:
+        for k in ID_KEEP: a.emit(cmp_imm, 5, k); bc("be_stock", "eq")          # so do Record and Play
     a.emit(adds_imm8, 0, S_PAINT); a.emit(movs_imm, 1, 0); a.emit(bl, "c_rmw"); a.emit(b, "be_stock")      # clear the flag (r2 = F_SRC)
     a.label("be_closed")                                                       # view closed: a second press of a Synth button?
     a.emit(cmp_imm, 5, 1); bc("be_stock", "hi")

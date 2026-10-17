@@ -32,6 +32,15 @@ def use_synth():
     (0x0804D242 only stops the preview note, 0x0804D504)."""
     global SYNTH
     SYNTH = True
+AUTOCLR = False                                 # SC43.7 (use_autoclr)
+
+
+def use_autoclr():
+    """SC43.7 (the user, 2026-10-17: «clear+drum# to clear all automations and back to init»): Clear + a Drum button first turns each of its eight
+    knobs 48 clicks to the left (the stock's Clear + knob left: after 40 the knob's automation lane of the pattern is deleted; the mod's own knobs
+    only show red), then 48 to the right as before (the defaults)."""
+    global AUTOCLR
+    AUTOCLR = True
 S_CUR, DRUM_SUB0, DRUM_SUBS = 0x152, 36, 8
 EVENTS = 48
 
@@ -56,7 +65,13 @@ def arm_code(base, L, prev):
     E(ldrb_w, 1, 0, S_CUR); E(subs_imm8, 1, DRUM_SUB0); E(lsls_imm, 2, 4, 3); E(subs_reg, 1, 1, 2); E(cmp_imm, 1, DRUM_SUBS - 1); E(b_cond, "cb_p", "hi")
     E(mov_reg, 0, 4); E(bl, L["c_mh"]); E(cmp_imm, 0, 0); E(b_cond, "cb_p", "eq"); E(mov_reg, 5, 0)          # r5 = its macro handler
     E(movs_imm, 6, 0)
-    a.label("cb_k"); E(movs_imm, 7, EVENTS)
+    a.label("cb_k")
+    if AUTOCLR:                                                                                          # left first: the automation deleted
+        E(movs_imm, 7, EVENTS)
+        a.label("cb_m")
+        E(mov_reg, 0, 5); E(mov_reg, 1, 6); E(movs_imm, 2, 1); E(raw, h(0x4252)); E(ldr_imm, 3, 5, 0); E(ldr_imm, 3, 3, 16); E(raw, h(0x4798))   # negs r2, r2; blx r3
+        E(subs_imm8, 7, 1); E(b_cond, "cb_m", "ne")
+    E(movs_imm, 7, EVENTS)
     a.label("cb_n")
     E(mov_reg, 0, 5); E(mov_reg, 1, 6); E(movs_imm, 2, 1); E(ldr_imm, 3, 5, 0); E(ldr_imm, 3, 3, 16); E(raw, h(0x4798))   # blx r3: slot 4
     E(subs_imm8, 7, 1); E(b_cond, "cb_n", "ne")

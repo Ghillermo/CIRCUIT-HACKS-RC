@@ -74,6 +74,16 @@ def use_sync():
     SYNC = True
 
 
+RATEFLIP = False                                         # SC43.7 (use_rateflip)
+
+
+def use_rateflip():
+    """SC43.7 (the user, 2026-10-17: «más lento a la izquierda, más rápido a la derecha»): the resolution pads in the stock's sync rate order,
+    pad 17 = 1/4 ... pad 24 = 1/32T (arp.use_rateflip); the setting's values stay."""
+    global RATEFLIP
+    RATEFLIP = True
+
+
 def use_rec():
     """SC42.9 (the user, 2026-10-16: «sí, graba los samples con record»): playing with Record (not in the count-in), each hit of the arpeggio is
     written into the drum's pattern: the micro step's bit, the sample as the step's sample flip (one a step: the last one wins), and on an empty
@@ -370,7 +380,9 @@ def arm_code(base, L, prev):
     E(bl, L["c_pmtp"]); E(subs_imm8, 0, 4); E(cmp_imm, 0, 3); E(b_cond, "pp_p", "hi")      # r0 = the drum, r1 = its pattern
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(bl, "c_dacfg")
     E(cmp_imm, 6, PS_PAD_ARP); E(b_cond, "pp_k", "hs")
-    E(subs_imm8, 6, PS_PAD_RATE - 1); E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 15); E(ands_reg, 1, 2); E(cmp_reg, 1, 6); E(b_cond, "pp_rs", "ne")
+    if RATEFLIP: E(movs_imm, 1, PS_PAD_RATE + 8); E(subs_reg, 6, 1, 6)                      # pad 17 = 8 (1/4) .. pad 24 = 1 (1/32T)
+    else: E(subs_imm8, 6, PS_PAD_RATE - 1)
+    E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 15); E(ands_reg, 1, 2); E(cmp_reg, 1, 6); E(b_cond, "pp_rs", "ne")
     E(movs_imm, 6, 0)
     a.label("pp_rs"); E(movs_imm, 1, 0x78); E(bics_reg, 0, 1); E(lsls_imm, 6, 6, 3); E(orrs_reg, 0, 6); E(b, "pp_w")
     a.label("pp_k"); E(cmp_imm, 6, PS_PAD_ARP); E(b_cond, "pp_o", "ne")
@@ -393,7 +405,9 @@ def arm_code(base, L, prev):
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("pb_x", "eq")
     E(movs_imm, 0, 7); E(ands_reg, 0, 4); imm32(2, t_ord + 6); E(ldrb_reg, 0, 2, 0); E(lsls_imm, 0, 0, 1); E(movs_imm, 1, COL_ON); E(strh_reg, 1, 5, 0)
     E(lsrs_imm, 0, 4, 3); E(movs_imm, 2, 15); E(ands_reg, 0, 2); E(cmp_imm, 0, 0); E(b_cond, "pb_x", "eq"); E(cmp_imm, 0, 8); E(b_cond, "pb_x", "hi")
-    E(adds_imm8, 0, PS_PAD_RATE - 1); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
+    if RATEFLIP: E(movs_imm, 2, PS_PAD_RATE + 8); E(subs_reg, 0, 2, 0)
+    else: E(adds_imm8, 0, PS_PAD_RATE - 1)
+    E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
     a.label("pb_x"); E(mov_reg, 0, 5); E(pop_list, [3, 4, 5, 6, 7], pc=True)
     if SYNC:
         import drumstore

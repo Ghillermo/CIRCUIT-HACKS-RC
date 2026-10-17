@@ -29,10 +29,11 @@ VIEWS = {
 | **Save** | all | Saves the project as always; it also writes into the pack the samples replaced by captures (drum Preset), if they fit in the sample memory *(writes to the card)*. |
 | **Press the track button again** | Synth 1 / 2 | Opens the synth's source view (chapter 2). |
 | **Clear + Synth 1 / 2** | its view | {B} Its eight macros back to the loaded patch's values. |
-| **Clear + a drum's button** | its view | {B} Its eight knobs back to their defaults. |
+| **Clear + a drum's button** | its view | {B} Deletes the automation of its knobs in the playing pattern and puts its eight knobs back to their defaults. |
 | **Synth 1 + Synth 2 together** | all | Split keyboard {B}. |
 | **Shift + Clear** | all | Metronome in four states {B}: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. |
 | **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo, Record blinks red), then recording starts {B}. Play during the count cancels it. The count-in is saved with the project. |
+| **Shift + Play** | all | {B} **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
 | **Shift + Scales** | all | Custom scale editor {B} (chapter 2, Scales view). |
 | **Mixer twice** | all | Master FX (chapter 6). |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
@@ -128,6 +129,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | 27 | Track **engine**: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → blue (FX sequencer). |
 | 28 | One / two oscillators (oscillator and VA-drum). |
 | 29 | Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page's colour {B}). |
+| **Shift + 29** {B} | **Gate retrigger**: on (green with Shift, the default) = every new note restarts the envelope; off (yellow) = **legato**: with other notes held, a new note only changes the pitch. Saved with the project. |
 | 30 | Opens the **step-drummer**; **Shift + pad 30** turns it off. |
 | 31 | VA-drum only: velocity scales the pitch and filter envelopes. |
 
@@ -243,7 +245,7 @@ While **Shift** is held, the arpeggiator's pads keep their Pattern Settings colo
 |---|---|
 | **Shift + pad 25** | The arpeggiator of the pattern the track plays: on / off. Without Shift, pad 25 shows green while it is on (and still opens mode 2). |
 | **Shift + pads 27-32** | The arpeggio's order, independent of the pattern's direction: fractal, deconstructed, up, down, ping-pong, random. |
-| **Shift + pads 17-24** | The arpeggio's **resolution**, apart from the track's sync rate: 1/32T, 1/32, 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4. The same pad again = the track's (no pad green). |
+| **Shift + pads 17-24** | The arpeggio's **resolution**, apart from the track's sync rate, in the same order as the sync rate pads (slower to the left): 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T. The same pad again = the track's (no pad green). |
 
 - **Sequence:** when two or more notes start on a step, they play one at a time (at the arpeggio's resolution), in the chosen order over the notes sorted by pitch, for as long as the chord's longest note. Each note lasts **its own gate, at most one arpeggio step** (and what is left of the chord) and keeps its velocity: a chord recorded by holding its notes plays arpeggiated, one entered with short notes, staccato.
 - **Input:** the first note sounds as always; holding another one with it starts the arpeggio of the held notes, one an arpeggio step (with the transport stopped, at the project's tempo), until all are let go; each note lasts an arpeggio step. **With Record the chord is recorded**, not the single notes: the sequence plays the arpeggio afterwards.
@@ -305,12 +307,12 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "Press **Drum 1-4**. Every knob does what its label says, with a second layer on Shift.", f"""
 | Knob | Alone | With Shift |
 |---|---|---|
-| K1 Oscillator | Pitch in exact semitones ({B}: a chromatic value of the mod's, saved with the project) | Pitch envelope amount |
+| K1 Oscillator | Pitch ({B}: the stock one, continuous as on the original; the chromatic view's pads transpose on top) | Pitch envelope amount |
 | K2 Osc mod | Ring mod frequency | Ring mod amount |
 | K3 Amp envelope | **Left: decay** (the stock one). Past its maximum, **right: attack** (fade-in, up to 1 s). Neutral in the middle. {B} | **Left: sample start**; **right: cut** from the end (up to 120/128 each). Middle = the whole sample. {B} |
 | K4 Filter envelope | Envelope → cutoff | Envelope shape |
 | K5 Filter frequency | Filter / EQ (by default the stock tilt EQ) | **Filter mode**: stock tilt EQ, band-pass, notch, comb, DJ |
-| K6 Resonance | Resonance | {B} **Continuous pitch**: the stock one, linear as on the original (the one saved in projects, automated and sent as CC) |
+| K6 Resonance | Resonance | — |
 | K7 Modulation | LFO amount | LFO speed |
 | K8 FX | Distortion; left of 0, **bitcrush** | **Distortion type**: stock, soft, hard, fold |
 
@@ -337,7 +339,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "**Shift + Preset** with a drum selected. The pads play the sample transposed along the scale.", f"""
 - Three rows of notes in the scale and root of the Scales view.
 - **K1** = pitch offset in semitones; **Shift + K1** = fine tuning in cents.
-- While recording, each pitch is recorded on its own step only. {B}: the pads set the chromatic value (K1) and, while recording, stay on their step; Clear + K1 to the left deletes the chromatic steps of the playing pattern. In {B} the drums have no pan automation: that lane holds their chromatic steps.
+- While recording, each pitch is recorded on its own step only. {B}: the pads transpose in semitones on top of K1's pitch and, while recording, stay on their step inside the drum's pitch lane (a step holds a K1 turn or a chromatic note); Clear + K1 to the left (held) deletes both.
 - **The drums' Note view:** pads 25-28 repeat the boxes of drums 4 … 1.
 - **Micro-step rollers** {B} on rows 1-3 of the drums' Note view: each column is the drum of its box below (columns 1-4 = drums 4-1, columns 5-8 = drums 1-4), dim in its colour. A drum's left column is its micro steps 1-3 (rows 1-3) and the right one 4-6: drum 1 = pads 4, 12, 20 and 5, 13, 21. **While held** (one or several, of one or several drums), the drum plays on **every step** at those micro steps (with the step's velocity, or 100 on an empty step); they light up while held. **With the transport stopped** {B} too: at the project's tempo, starting when the first one is pressed (velocity 100). **With Record** their hits are recorded into the pattern too (the micro step, and velocity 100 on an empty step).
 """),

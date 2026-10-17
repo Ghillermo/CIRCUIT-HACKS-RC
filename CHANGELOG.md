@@ -4,6 +4,26 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 1.27 — 2026-10-17
+
+**Beta 1.27** (marca `B1.27`; = SC43.7) = Beta 1.26 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
+
+### Cambios (solo Beta 1.27)
+- **Pitch de los drums:** **K1 vuelve a ser el pitch de stock**, continuo y lineal como en el original (se guarda, se automatiza, sale por CC). Los **pads de la vista cromática transponen encima** en semitonos (los dos se multiplican) y, grabando, cada pad queda en su paso dentro del **mismo carril de pitch** del drum: un paso guarda un movimiento del knob o una nota cromática. Shift + K6 vuelve a ser el de stock.
+- **Clear + K1:** a la izquierda (sostenido, como en el original) borra la automatización de pitch, pasos cromáticos incluidos; a la derecha, el pitch al centro. Las dos ponen además el cromático al centro.
+- **Clear + el botón de un drum:** borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs a los valores por defecto.
+- **Resolución del arpegiador** (Shift + pads 17-24 de Pattern Settings, en las pistas de notas y en los drums): ahora en el orden de los pads de sync rate de stock, **más lenta a la izquierda y más rápida a la derecha**: pad 17 = 1/4 … pad 21 = 1/16 … pad 24 = 1/32T (antes iba al revés). Lo guardado en los proyectos conserva su resolución.
+
+### Novedades (solo Beta 1.27)
+- **Shift + Play = cuantizar** el patrón que suena en la pista elegida (la de la vista en pantalla): las notas y los golpes grabados fuera de la rejilla van al paso más cercano (en los micropasos 1-2, al inicio de su paso; en los 3-5, al inicio del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda como está. Con Shift pulsado el LED de Play se ve amarillo, y verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar la reproducción).
+- **Gate retrigger del sinte propio de MIDI 1 / 2:** en su vista Preset, **Shift + pad 29** lo enciende / apaga (con Shift: verde = encendido, por defecto; amarillo = apagado). Apagado = **legato**: con otras notas pulsadas, una nota nueva cambia la altura sin volver a disparar la envolvente. Se guarda con el proyecto.
+
+### Arreglos (solo Beta 1.27)
+- **Arpegiador en MIDI 1 / 2:** al empezar el arpegio de las notas mantenidas, la primera nota no se apagaba: en MIDI 1 / 2 seguía sonando debajo de todo el arpegio (por la salida MIDI y en el sinte propio, cuya puerta no se cerraba); en Synth 1 / 2, hasta que el arpegio volvía a ella. Ahora se apaga al empezar el arpegio.
+- **Step-drummer de Synth 1 / 2:** Play y Record ya no sacan de su vista; al volver al sinte (su botón) vuelve a salir el step-drummer si estaba abierto (se cierra con su pad 30).
+- **Rollers:** sonando, los rollers de un drum silenciado en el Mixer no sonaban (el original no ejecuta el paso de una pista silenciada); ahora suenan.
+- **Panorama de los drums:** en Beta 1.26 los pasos cromáticos iban al carril de automatización de panorama y el original también los aplicaba como panorama. Ahora el carril de panorama vuelve a ser solo del panorama (se graba y se reproduce como en el original). Los pasos cromáticos grabados con Beta 1.26 sonarán como movimientos de panorama: bórralos con Clear + K5 de ese drum en el Mixer (página de panorama, a la izquierda) o vuelve a grabarlos.
+
 ## Beta 1.26 — 2026-10-17
 
 **Beta 1.26** (marca `B1.26`; = SC43.6) = Beta 1.25 + lo siguiente. Las RC siguen en RC0.9 / RC0.9S.
@@ -320,6 +340,26 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 1.27 — 2026-10-17
+
+**Beta 1.27** (marker `B1.27`; = SC43.7) = Beta 1.26 + the following. The RCs stay RC0.9 / RC0.9S.
+
+### Changes (Beta 1.27 only)
+- **Drum pitch:** **K1 is the stock pitch again**, continuous and linear as on the original (saved, automated, sent as CC). The **pads of the chromatic view transpose on top** in semitones (the two multiply) and, while recording, each pad stays on its step inside the drum's **own pitch lane**: a step holds a knob movement or a chromatic note. Shift + K6 is the stock one again.
+- **Clear + K1:** to the left (held, as on the original) deletes the pitch automation, chromatic steps included; to the right, the pitch to the centre. Both also put the chromatic value back to the centre.
+- **Clear + a drum's button:** deletes the automation of its knobs in the playing pattern and puts its eight knobs back to their defaults.
+- **Arpeggiator resolution** (Shift + pads 17-24 of Pattern Settings, on the note tracks and the drums): now in the order of the stock's sync rate pads, **slower to the left and faster to the right**: pad 17 = 1/4 … pad 21 = 1/16 … pad 24 = 1/32T (it was the other way round). What projects hold keeps its resolution.
+
+### New (Beta 1.27 only)
+- **Shift + Play = quantize** the pattern the selected track plays (the one whose view is on the screen): notes and hits recorded off the grid go to the nearest step (on micro steps 1-2, to the start of their step; on 3-5, to the start of the next one; the last step's, to the first). On the drums, a step with several hits (a roll) stays as it is. While Shift is held the Play LED is yellow, and green after quantizing. It replaces the original's Shift + Play (another way to start playback).
+- **Gate retrigger of the own synth of MIDI 1 / 2:** in its Preset view, **Shift + pad 29** turns it on / off (with Shift: green = on, the default; yellow = off). Off = **legato**: with other notes held, a new note changes the pitch without restarting the envelope. Saved with the project.
+
+### Fixes (Beta 1.27 only)
+- **Arpeggiator on MIDI 1 / 2:** when the arpeggio of the held notes started, the first note was not stopped: on MIDI 1 / 2 it kept sounding under the whole arpeggio (on the MIDI out and in the own synth, whose gate never closed); on Synth 1 / 2, until the arpeggio came back to it. Now it stops when the arpeggio starts.
+- **Step-drummer of Synth 1 / 2:** Play and Record no longer take you out of its view; going back to the synth (its button) shows the step-drummer again if it was open (pad 30 closes it).
+- **Rollers:** while playing, the rollers of a drum muted in the Mixer did not sound (the original firmware skips the step of a muted track); now they do.
+- **Drum pan:** in Beta 1.26 the chromatic steps went to the pan automation lane and the original firmware also applied them as the pan. Now the pan lane is the pan's alone again (recorded and played as on the original). Chromatic steps recorded with Beta 1.26 will play as pan moves: delete them with Clear + that drum's knob on the Mixer's pan page (to the left) or record them again.
 
 ## Beta 1.26 — 2026-10-17
 

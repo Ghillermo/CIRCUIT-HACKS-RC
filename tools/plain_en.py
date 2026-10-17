@@ -1,10 +1,10 @@
 """The plain-language guide, English (tools/make_plain.py renders it).  Structure and plain style after the community guide «Circuit Tracks mod
 manual, in plain English» by u/luxurysoft1337 (Reddit, 15 October 2026, written for RC0.9 / Beta 1.3); rewritten, corrected and completed up to
-Beta 1.26 with the names of the mod's own manual, and illustrated with its panel drawings."""
+Beta 1.27 with the names of the mod's own manual, and illustrated with its panel drawings."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.26"
+BETA = "Beta 1.27"
 B = f"*({BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
@@ -109,6 +109,7 @@ sec("finder", "Quick finder: I want to…", f"""
 | Give a MIDI track its own sound | MIDI 1 / 2, **Preset**, **pad 27**. |
 | Rotate a pattern (Nudge) | Pattern Settings: choose the first step, then **pad 26** {B} (badge 5). |
 | Arpeggiate a track | Pattern Settings, **Shift + pad 25** {B}. |
+| Quantize a recorded pattern | **Shift + Play** {B} (the selected track). |
 | Use my own scale | **Shift + Scales** {B} (badge 6). |
 | Metronome / count-in | **Shift + Clear** {B} (badges 3 + 2). |
 | Gate = how long I hold | **Gate** twice (Micro Step), **pad 32** {B} (badge 8). |
@@ -189,12 +190,12 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 
 | Knob | Alone | With Shift |
 |---|---|---|
-| K1 Oscillator | Pitch, in exact semitones ({B}: a chromatic value of the mod's, saved with the project) | Pitch envelope amount |
+| K1 Oscillator | Pitch ({B}: the stock one, continuous; the chromatic pads transpose on top) | Pitch envelope amount |
 | K2 Osc mod | Ring mod frequency | Ring mod amount |
 | K3 Amp envelope | RC: decay; left of zero, the sample's start point. {B}: **left = decay** (the stock one), **right of the maximum = attack** (fade-in up to 1 s) | {B}: **left = sample start**, **right = cut** from the end |
 | K4 Filter envelope | Envelope → cutoff | Envelope shape |
 | K5 Filter frequency | Filter / EQ | Filter mode: EQ tilt (stock), band pass, notch, comb, DJ |
-| K6 Resonance | Resonance | {B}: **continuous pitch**, the stock one (linear, as the original) |
+| K6 Resonance | Resonance | — |
 | K7 Modulation | LFO amount | LFO speed |
 | K8 FX | Distortion; left of zero, bitcrush | Distortion type: stock, soft, hard, folded |
 
@@ -202,7 +203,7 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 - **RC0.9:** a new or untouched project starts with the filter mode in DJ, which removes the stock EQ: drums can sound different from a stock Circuit. Shift + K5 to «EQ tilt» brings the stock sound back. {B}: fixed (the default is the stock EQ).
 
 ### Play a drum like a keyboard
-Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step ({B}: the pads set K1's chromatic value and, while recording, stay on their step; Clear + K1 to the left deletes them).
+Choose the drum and press **Shift + Preset** ({B}: or **Preset again** in its Preset view). Three rows of pads play its sample at different pitches, in the scale and root of the Scales view. K1 = offset in semitones, Shift + K1 = fine tuning in cents. When recording, each pitch goes only into its own step ({B}: the pads transpose on top of K1's pitch and, while recording, stay on their step; Clear + K1 to the left, held, deletes them with K1's automation).
 
 ### Drum Preset view
 | Gesture | What it does |
@@ -288,6 +289,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 | 27 | The engine. |
 | 28 | One / two oscillators (oscillator and VA-drum). |
 | 29 | Chain order. |
+| Shift + 29 | {B}: gate retrigger; off (yellow) = legato, a new note while others are held only changes the pitch. |
 | 30 | Step-drummer. |
 | 31 | VA-drum: velocity scales the pitch and filter envelopes. |
 
@@ -328,7 +330,7 @@ Press **Pattern Settings** with a track chosen. As on a stock unit: pads 1-16 th
 - Pads 27, 28 and the four direction pads exclude each other. The order is saved with the pattern; clearing the pattern removes it. Nudge and the orders work on the drums too.
 
 ### Arpeggiator {B}
-- **Shift + pad 25** = the arpeggiator of the pattern the track plays, on / off (pad 25 green while on). **Shift + pads 27-32** = its order (fractal, deconstructed, up, down, ping-pong, random), apart from the pattern's direction. **Shift + pads 17-24** = its own resolution (1/32T … 1/4; the same pad again = the track's). With Shift, the pads keep their Pattern Settings colours and the chosen ones show green.
+- **Shift + pad 25** = the arpeggiator of the pattern the track plays, on / off (pad 25 green while on). **Shift + pads 27-32** = its order (fractal, deconstructed, up, down, ping-pong, random), apart from the pattern's direction. **Shift + pads 17-24** = its own resolution (from 1/4 on pad 17 to 1/32T on pad 24, as the sync rate; the same pad again = the track's). With Shift, the pads keep their Pattern Settings colours and the chosen ones show green.
 - **Sequence:** when two or more notes start on a step, they play one at a time in the chosen order, each lasting its own gate (at most one arpeggio step).
 - **Live:** the first note sounds as always; holding another one starts the arpeggio of the held notes until you let them all go (stopped: at the project's tempo). With Record the chord is recorded, and the sequence arpeggiates it.
 - **Drums:** the same gestures in a drum's Pattern Settings. In the drum's Preset view the first sample held is the usual one; holding more makes the drum **jump from sample to sample** in that order. With Record (playing) each hit is recorded with its sample as the step's sample flip.

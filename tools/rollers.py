@@ -77,6 +77,23 @@ NOTEOFF = False                                            # SC43.1 (use_noteoff
 O_OFF, OFF_MS = 664, 100                                   # (NOTEOFF) a drum's note-off time (ms, 0 = none), 4 B a drum
 
 
+MUTE = False                                               # SC43.7 (use_mute)
+MUTE_AT, MUTE_OLD, MUTE_BACK = 0x0804A632, bytes.fromhex("002004f13801"), 0x0804A638   # the muted branch of the players' tick (movs r0, #0; add.w r1, r4, #0x38)
+TICK_TAB, MICRO_N = 0x08059218, 0x0804A2E8                 # the step's micro step of a tick by the sync index (24 B a row); the micro steps of a tick
+
+
+def use_mute():
+    """SC43.7 (the user, 2026-10-17: «durante la reproducción, los roller con pistas desactivadas en el pad mixer no suena»): the stock (emulated):
+    a track muted in the Mixer has [player + 0x28] p0 = 1 (the Mixer's mute store), and the players' tick (0x0804A5C6) then skips the step
+    (0x0804A714: its automation and its hits through slot 2, where c_rlplay lives): the rollers stopped with the track.  Now that branch
+    (0x0804A632) -> c_rlmute: a drum player muted while playing (the step's flag r5 clear) runs only the rollers' part of the step (c_rlroll) for
+    the micro steps of the tick, as 0x0804A714 finds them (TICK_TAB, 0x0804A2E8); every roller hit leaves its note-off (c_rloffset), which the
+    LED task sends after 100 ms when its track is muted (playing and unmuted, the sequencer's next step does it).  Needs use_noteoff."""
+    global MUTE
+    assert NOTEOFF
+    MUTE = True
+
+
 def use_noteoff():
     """SC43.1 (the user, 2026-10-16: «en el roller, la fila inferior se ve parcialmente blanca (pads 27 al 30)»): a drum's note-on through its
     player's interface lights its two boxes of the Note view white (0x01, the palette + 0x148) until the note-off; playing, the stock sends it on
@@ -165,6 +182,7 @@ def arm_code(base, prev):
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
     E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 3, 12)
     E(bl, DP_PLAY)
+    if MUTE: a.label("rp_go")
     E(ldr_sp, 4, 0); imm32(1, DP0); E(subs_reg, 0, 4, 1); E(movs_imm, 1, DP_SZ); E(raw, udiv(6, 0, 1)); E(cmp_imm, 6, 3); E(b_cond, "rp_x", "hi")   # r6 = the drum
     E(bl, "c_rlm"); E(cmp_imm, 0, 0); E(b_cond, "rp_x", "eq"); E(ldrb_reg, 0, 0, 6)
     E(ldr_sp, 1, 12); E(raw, h(0x40C8)); E(movs_imm, 1, 1); E(raw, h(0x4208)); E(b_cond, "rp_x", "eq")          # lsrs r0, r1; tst r0, r1
@@ -177,6 +195,7 @@ def arm_code(base, prev):
     a.label("rp_on")
     E(ldr_imm, 0, 4, 0x4C); E(raw, ldrbw(1, 4, 0x58)); E(mov_reg, 2, 5); E(movs_imm, 3, 0); E(ldr_imm, 6, 0, 0); E(ldr_imm, 6, 6, 0); E(raw, h(0x47B0))   # blx r6
     E(movs_imm, 0, 1); E(raw, strbw(0, 4, 0x59))
+    if MUTE: E(mov_reg, 0, 4); E(bl, "c_rloffset")                                                   # its note-off (the LED task: only when muted)
     if V2:                                                                                             # Record armed: into the pattern
         imm32(0, TRANSPORT); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "rp_x", "eq")
         E(ldr_sp, 1, 8); E(ldrb_reg, 0, 7, 1); E(cmp_imm, 0, 0); E(b_cond, "rp_m", "ne"); E(strb_reg, 5, 7, 1)   # an empty step: its velocity
@@ -185,6 +204,33 @@ def arm_code(base, prev):
         E(raw, h(0x4318)); E(strb_imm, 0, 2, 0)                                                        # orrs r0, r3: the micro step's bit
         if SYNC: E(mov_reg, 0, 4); E(ldr_sp, 1, 8); E(mov_reg, 2, 7); E(bl, "c_rlsync")
     a.label("rp_x"); E(add_sp_imm, 16); E(pop_list, [4, 5, 6, 7], pc=True)
+    if MUTE:
+        # ---- c_rlroll (this, pattern, step, micro step): the rollers' part of c_rlplay alone (a muted track: no stock hit)
+        a.label("c_rlroll")
+        E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
+        E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 3, 12); E(b, "rp_go")
+        # ---- c_rlmute (in place of the muted branch's movs r0, #0; add.w r1, r4, #0x38: r4 = the player, r5 = the step's other flag)
+        a.label("c_rlmute")
+        E(push_list, [0, 1, 2, 3, 4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
+        E(cmp_imm, 5, 0); E(b_cond, "rmu_x", "ne")
+        imm32(1, DP0); E(subs_reg, 0, 4, 1); E(movs_imm, 1, DP_SZ); E(raw, udiv(2, 0, 1)); E(cmp_imm, 2, 3); E(b_cond, "rmu_x", "hi")
+        E(muls, 1, 2); E(cmp_reg, 1, 0); E(b_cond, "rmu_x", "ne")
+        E(ldr_imm, 0, 4, 0x28); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "rmu_x", "eq")   # muted
+        E(ldr_imm, 0, 4, 8); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 6, 0, 0)                    # r6 = the pattern
+        E(ldr_imm, 0, 4, 8); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 7, 0, 0)                    # r7 = the step
+        E(ldr_imm, 0, 4, 8); E(movs_imm, 1, 2); E(bl, PARAM_GET); E(ldr_imm, 5, 0, 0)                     # r5 = the tick
+        E(ldr_imm, 0, 4, 0x10); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0)                 # r1 = the sync index
+        E(movs_imm, 2, 24); E(muls, 2, 1); imm32(3, TICK_TAB); E(adds_reg, 2, 2, 3); E(ldrb_reg, 3, 2, 5)  # r3 = the micro step
+        E(cmp_imm, 3, 0xFF); E(b_cond, "rmu_x", "eq"); E(str_sp, 3, 0)
+        E(movs_imm, 0, 1); E(str_sp, 0, 4)
+        E(cmp_imm, 1, 3); E(b_cond, "rmu_l", "hs")
+        E(mov_reg, 0, 5); E(bl, MICRO_N); E(str_sp, 0, 4); E(cmp_imm, 0, 1); E(b_cond, "rmu_x", "lt")
+        a.label("rmu_l")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(mov_reg, 2, 7); E(ldr_sp, 3, 0); E(bl, "c_rlroll")
+        E(ldr_sp, 3, 0); E(adds_imm8, 3, 1); E(str_sp, 3, 0); E(ldr_sp, 0, 4); E(subs_imm8, 0, 1); E(str_sp, 0, 4); E(b_cond, "rmu_l", "ne")
+        a.label("rmu_x"); E(add_sp_imm, 8); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7])
+        E(raw, h(0xF85D) + h(0xEB04))                                                                  # ldr.w lr, [sp], #4
+        E(raw, MUTE_OLD); E(b_w, MUTE_BACK)
 
     # ---- c_rlledtask (the LED task calls: ctrl, frame): the chain; out of a drums' Note view the masks are cleared
     a.label("c_rlledtask")
@@ -281,7 +327,14 @@ def arm_code(base, prev):
         E(movs_imm, 4, 0)
         a.label("sw_l")
         E(lsls_imm, 0, 4, 2); E(adds_reg, 0, 5, 0); E(ldr_imm, 1, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "sw_n", "eq")
-        E(cmp_imm, 7, 0); E(b_cond, "sw_c", "ne")
+        if MUTE:                                                                                       # playing: dropped, unless the drum is muted
+            E(cmp_imm, 7, 0); E(b_cond, "sw_d", "eq")
+            E(movs_imm, 0, DP_SZ); E(muls, 0, 4); imm32(1, DP0); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0x28); E(movs_imm, 1, 0); E(bl, PARAM_GET)
+            E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "sw_c", "eq")
+            E(lsls_imm, 0, 4, 2); E(adds_reg, 0, 5, 0); E(ldr_imm, 1, 0, 0)
+            a.label("sw_d")
+        else:
+            E(cmp_imm, 7, 0); E(b_cond, "sw_c", "ne")
         E(subs_reg, 1, 6, 1); E(b_cond, "sw_n", "mi")                                                       # not due yet
         E(movs_imm, 0, DP_SZ); E(muls, 0, 4); imm32(1, DP0); E(adds_reg, 0, 0, 1); E(bl, "c_rloff1")
         a.label("sw_c"); E(lsls_imm, 0, 4, 2); E(adds_reg, 0, 5, 0); E(movs_imm, 1, 0); E(str_imm, 1, 0, 0)
@@ -304,6 +357,10 @@ def install(img, report, base_addr):
         img += bytes([0xFF])
     assert len(img) <= 0x70000
     struct.pack_into("<I", img, DP_VT + 8 - BASE, labels["c_rlplay"] | 1)
+    if MUTE:
+        from thumb import b_w as bw
+        assert bytes(img[MUTE_AT - BASE:MUTE_AT - BASE + 6]) == MUTE_OLD
+        img[MUTE_AT - BASE:MUTE_AT - BASE + 6] = bw(MUTE_AT, labels["c_rlmute"]) + h(0xBF00)
     struct.pack_into("<I", img, NV_VT - BASE, labels["c_rlpad"] | 1)
     struct.pack_into("<I", img, NV_VT + 4 - BASE, labels["c_rlrel"] | 1)
     struct.pack_into("<I", img, NV_VT + 28 - BASE, labels["c_rlleds"] | 1)

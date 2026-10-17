@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.26 RC0.8 RC0.8S B1.25; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: RC0.9 RC0.9S B1.27 RC0.8 RC0.8S B1.26; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"RC0.9": ("RC0.9 — la versión completa: RC0.8 + el pack de la memoria
                   "RC0.9 — full version: RC0.8 + the internal memory pack, read only for the mod"),
         "RC0.9S": ("RC0.9S — versión más segura (= RC0.8S): nada del mod escribe ficheros en la SD ni en la memoria interna",
                    "RC0.9S — safer build (= RC0.8S): nothing of the mod writes files to the SD card or to the internal memory"),
+        "B1.27": ("Beta 1.27 — beta (= SC43.7): Beta 1.26 + pitch de drums continuo (K1) y cromático (pads) a la vez, el panorama de drums de vuelta, Clear + Drum, Shift + Play = cuantizar, arpegiador en MIDI 1 / 2",
+                  "Beta 1.27 — beta (= SC43.7): Beta 1.26 + drum pitch continuous (K1) and chromatic (pads) together, the drums' pan back, Clear + Drum, Shift + Play = quantize, arpeggiator on MIDI 1 / 2"),
         "B1.26": ("Beta 1.26 — beta (= SC43.6): Beta 1.25 + modo cue en el Mixer (mezcla mono a la izquierda, cue a la derecha), la vista cromática de drums graba por paso",
                   "Beta 1.26 — beta (= SC43.6): Beta 1.25 + cue mode in the Mixer (mono mix on the left, cue on the right), the drums' chromatic view records per step"),
         "B1.25": ("Beta 1.25 — beta (= SC43.5): Beta 1.24 + pitch de drums cromático (K1) y continuo de stock (Shift + K6), Clear + Synth = macros del patch",
@@ -490,4 +492,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.26", "RC0.8", "RC0.8S", "B1.25"])
+    main(sys.argv[1:] or ["RC0.9", "RC0.9S", "B1.27", "RC0.8", "RC0.8S", "B1.26"])

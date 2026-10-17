@@ -18,6 +18,7 @@ Ours:
   * LEDs: K1 = |S - 64| x 2 in the drum's colour (dim at 64); with Shift K6 = |P - 64| x 2.
 
 SC43.6 (use_rec): the chromatic steps recorded again, in lane 7 of the drum pattern (see use_rec).
+SC43.7 (use_lane0): K1 = the stock pitch again, the chromatic steps tagged in the drum's own pitch lane (see use_lane0).
 """
 from __future__ import annotations
 import struct
@@ -43,6 +44,26 @@ ENG, TRANSPORT = 0x20038EC0, 0x20011034
 AUTO_CALL, AUTO = 0x0804A752, 0x0804A7CA                 # (REC) the players' step: bl to the automation of the step (player, pattern, step, micro step)
 REC_GATE = 0x0802E62C                                    # (REC) the automation gate (gate, id, value); its head is SC05's b.w
 DSP_W, PITCH_X = 0x080292F8, 0xA4                        # the drum's pitch word: X:$A4 + 10 d (0x080292F8(0, word, address), as its DSP group)
+
+
+L0 = False                                               # SC43.7 (use_lane0)
+LV_AT, LV_OLD, LV_BACK = 0x0804A946, bytes.fromhex("0f5c7fe7"), 0x0804A84A   # (L0) in 0x0804A7CA: ldrb r7, [r1, r0] (a lane's byte at the micro step); b (the apply)
+
+
+def use_lane0():
+    """SC43.7 (the user, 2026-10-17: «alternatives to sacrifice pan, I want to be able to both pitch the drums continuously and have chromatic pads»;
+    «1 if able»): K1 is the stock Pitch again (continuous and linear, saved, automated, its CC), the chromatic pads transpose on top (the word =
+    the linear factor of P x 2^((S - 64) / 12) x the cents, as SC43.5), and the recorded chromatic steps go to the drum's pitch lane (lane 0)
+    with bit 7 set (0x80 | S, S 0..126): a step holds a knob movement or a chromatic note.  The stock (emulated): 0x0804A7CA takes the value of a
+    lane at a micro step (the drums: the raw byte, ldrb r7, [r1, r0] at 0x0804A946, no interpolation) and applies it when it changes; that
+    load -> c_dplv, which gives 0xFFFF (no change) for a drum's lane 0 byte 0x80..0xFE, so P is not moved by a chromatic step; c_dpauto (micro step 0) takes S
+    from it.  Lane 7 is the drum's pan automation again (its gate and its halfwords untouched; SC43.6 had the stock apply its chromatic steps as
+    the pan too, before c_dpauto).  Clear + K1 (the stock: left 40 clicks = the lane deleted, right = 64) also puts S back to 64 at once;
+    Shift + K6 and the LEDs of K1 / K6 are the chain's again."""
+    global L0, LANE
+    assert REC
+    L0 = True
+    LANE = 0
 
 
 def use_rec():
@@ -144,46 +165,58 @@ def arm_code(base, L, prev):
     a.label("dd_e"); E(mov_reg, 0, 1); E(cmp_imm, 0, 3); E(b_cond, "dd_x", "ls"); E(movs_imm, 0, 0xFF)
     a.label("dd_x"); E(raw, RET)
 
-    # ---- c_dpknob (the drum macro handlers' slot 4: handler, knob, delta): K1 = S, Shift + K6 = the stock Pitch, Clear + K6 = P back to 64 too
-    a.label("c_dpknob")
-    E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
-    E(mov_reg, 5, 1); E(mov_reg, 6, 2)
-    E(bl, "c_dpdrum"); E(cmp_imm, 0, 3); E(b_cond, "dk_f", "hi"); E(mov_reg, 7, 0)       # r7 = the drum
-    E(bl, L["c_shift"]); E(mov_reg, 4, 0)                                               # r4 = Shift
-    E(cmp_imm, 5, 0); E(b_cond, "dk_6", "ne"); E(cmp_imm, 4, 0); E(b_cond, "dk_f", "ne")  # Shift + K1: the chain (pitch envelope / the cents)
-    E(raw, h(0x9800)); E(bl, L["c_clr_held"]); E(cmp_imm, 0, 0); E(b_cond, "dk_s", "eq")  # ldr r0, [sp]: Clear held?
-    E(cmp_imm, 6, 0); E(b_cond, "dk_cl" if REC else "dk_e", "le")
-    E(mov_reg, 0, 7); E(movs_imm, 1, 64); E(bl, "c_dpput")
-    E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, L["c_dzero"])                            # its Shift layer (the pitch envelope)
-    E(raw, h(0x9800)); E(movs_imm, 1, 0); E(movs_imm, 2, 1); E(bl, L["c_clr_set"])       # blue
-    E(b, "dk_e")
-    a.label("dk_s")                                                                     # S += delta, 0..127; in the chromatic view the bias too
-    E(mov_reg, 0, 7); E(bl, "c_dpnow"); E(adds_reg, 1, 0, 6)
-    E(cmp_imm, 1, 0); E(b_cond, "dk_l", "ge"); E(movs_imm, 1, 0)
-    a.label("dk_l"); E(cmp_imm, 1, 127); E(b_cond, "dk_h", "le"); E(movs_imm, 1, 127)
-    a.label("dk_h"); E(subs_reg, 6, 1, 0); E(mov_reg, 0, 7); E(bl, "c_dpput")            # r6 = the change applied
-    E(mov_reg, 0, 7); E(bl, L["c_dview"]); E(cmp_imm, 0, 0); E(b_cond, "dk_e", "eq")
-    E(ldrb_w, 1, 0, FLAG); E(lsls_imm, 1, 1, 31); E(b_cond, "dk_e", "eq")
-    E(ldrb_w, 1, 0, BIAS); E(raw, sxtb(1, 1)); E(adds_reg, 1, 1, 6); E(strb_w, 1, 0, BIAS)
-    E(b, "dk_e")
-    a.label("dk_6")
-    E(cmp_imm, 5, 5); E(b_cond, "dk_f", "ne")
-    E(cmp_imm, 4, 0); E(b_cond, "dk_6c", "eq")
-    E(raw, h(0x9800)); E(movs_imm, 1, 1); E(mov_reg, 2, 6); E(bl, DK_STOCK); E(b, "dk_e")    # Shift + K6: the stock Pitch
-    a.label("dk_6c")                                                                    # K6 with Clear right: P back to 64 as well, then the chain
-    E(raw, h(0x9800)); E(bl, L["c_clr_held"]); E(cmp_imm, 0, 0); E(b_cond, "dk_f", "eq"); E(cmp_imm, 6, 0); E(b_cond, "dk_f", "le")
-    imm32(0, CTX); E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0x10); E(ldr_imm, 0, 0, 0); E(adds_imm8, 0, 4)
-    E(movs_imm, 1, 0x10); E(lsls_imm, 2, 7, 3); E(subs_reg, 2, 2, 7); E(adds_imm8, 2, 2); E(movs_imm, 3, 64); E(bl, PARAM_SET)
-    a.label("dk_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
-    a.label("dk_e"); E(raw, h(0xB003)); E(pop_list, [4, 5, 6, 7], pc=True)                  # add sp, #12
-    if REC:
-        a.label("dk_cl")                                                                # Clear + K1 left: lane 7 of the playing pattern deleted, red
-        E(cmp_imm, 6, 0); E(b_cond, "dk_e", "eq")
-        E(mov_reg, 0, 7); E(bl, "c_dplane"); E(movs_imm, 1, 0xFF); E(movs_imm, 2, 0)
-        a.label("dk_cz"); E(raw, h(0x5481)); E(adds_imm8, 2, 1); E(cmp_imm, 2, 192); E(b_cond, "dk_cz", "lo")   # strb r1, [r0, r2]
-        E(mov_reg, 0, 7); E(bl, "c_dpoff")
-        E(raw, h(0x9800)); E(movs_imm, 1, 0); E(movs_imm, 2, 0); E(bl, L["c_clr_set"])       # red
+    if L0:
+        # ---- c_dpknob (L0; the drum macro handlers' slot 4: handler, knob, delta): Clear + K1 = S back to 64 too; always the chain (the stock Pitch)
+        a.label("c_dpknob")
+        E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+        E(cmp_imm, 1, 0); E(b_cond, "dk_f", "ne")
+        E(bl, "c_dpdrum"); E(cmp_imm, 0, 3); E(b_cond, "dk_f", "hi"); E(mov_reg, 7, 0)
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "dk_f", "ne")
+        E(raw, h(0x9800)); E(bl, L["c_clr_held"]); E(cmp_imm, 0, 0); E(b_cond, "dk_f", "eq")
+        E(mov_reg, 0, 7); E(bl, "c_dpnow"); E(cmp_imm, 0, 64); E(b_cond, "dk_f", "eq")
+        E(mov_reg, 0, 7); E(movs_imm, 1, 64); E(bl, "c_dpput")
+        a.label("dk_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
+    else:
+        # ---- c_dpknob (the drum macro handlers' slot 4: handler, knob, delta): K1 = S, Shift + K6 = the stock Pitch, Clear + K6 = P back to 64 too
+        a.label("c_dpknob")
+        E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+        E(mov_reg, 5, 1); E(mov_reg, 6, 2)
+        E(bl, "c_dpdrum"); E(cmp_imm, 0, 3); E(b_cond, "dk_f", "hi"); E(mov_reg, 7, 0)       # r7 = the drum
+        E(bl, L["c_shift"]); E(mov_reg, 4, 0)                                               # r4 = Shift
+        E(cmp_imm, 5, 0); E(b_cond, "dk_6", "ne"); E(cmp_imm, 4, 0); E(b_cond, "dk_f", "ne")  # Shift + K1: the chain (pitch envelope / the cents)
+        E(raw, h(0x9800)); E(bl, L["c_clr_held"]); E(cmp_imm, 0, 0); E(b_cond, "dk_s", "eq")  # ldr r0, [sp]: Clear held?
+        E(cmp_imm, 6, 0); E(b_cond, "dk_cl" if REC else "dk_e", "le")
+        E(mov_reg, 0, 7); E(movs_imm, 1, 64); E(bl, "c_dpput")
+        E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, L["c_dzero"])                            # its Shift layer (the pitch envelope)
+        E(raw, h(0x9800)); E(movs_imm, 1, 0); E(movs_imm, 2, 1); E(bl, L["c_clr_set"])       # blue
         E(b, "dk_e")
+        a.label("dk_s")                                                                     # S += delta, 0..127; in the chromatic view the bias too
+        E(mov_reg, 0, 7); E(bl, "c_dpnow"); E(adds_reg, 1, 0, 6)
+        E(cmp_imm, 1, 0); E(b_cond, "dk_l", "ge"); E(movs_imm, 1, 0)
+        a.label("dk_l"); E(cmp_imm, 1, 127); E(b_cond, "dk_h", "le"); E(movs_imm, 1, 127)
+        a.label("dk_h"); E(subs_reg, 6, 1, 0); E(mov_reg, 0, 7); E(bl, "c_dpput")            # r6 = the change applied
+        E(mov_reg, 0, 7); E(bl, L["c_dview"]); E(cmp_imm, 0, 0); E(b_cond, "dk_e", "eq")
+        E(ldrb_w, 1, 0, FLAG); E(lsls_imm, 1, 1, 31); E(b_cond, "dk_e", "eq")
+        E(ldrb_w, 1, 0, BIAS); E(raw, sxtb(1, 1)); E(adds_reg, 1, 1, 6); E(strb_w, 1, 0, BIAS)
+        E(b, "dk_e")
+        a.label("dk_6")
+        E(cmp_imm, 5, 5); E(b_cond, "dk_f", "ne")
+        E(cmp_imm, 4, 0); E(b_cond, "dk_6c", "eq")
+        E(raw, h(0x9800)); E(movs_imm, 1, 1); E(mov_reg, 2, 6); E(bl, DK_STOCK); E(b, "dk_e")    # Shift + K6: the stock Pitch
+        a.label("dk_6c")                                                                    # K6 with Clear right: P back to 64 as well, then the chain
+        E(raw, h(0x9800)); E(bl, L["c_clr_held"]); E(cmp_imm, 0, 0); E(b_cond, "dk_f", "eq"); E(cmp_imm, 6, 0); E(b_cond, "dk_f", "le")
+        imm32(0, CTX); E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0x10); E(ldr_imm, 0, 0, 0); E(adds_imm8, 0, 4)
+        E(movs_imm, 1, 0x10); E(lsls_imm, 2, 7, 3); E(subs_reg, 2, 2, 7); E(adds_imm8, 2, 2); E(movs_imm, 3, 64); E(bl, PARAM_SET)
+        a.label("dk_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
+        a.label("dk_e"); E(raw, h(0xB003)); E(pop_list, [4, 5, 6, 7], pc=True)                  # add sp, #12
+        if REC:
+            a.label("dk_cl")                                                                # Clear + K1 left: lane 7 of the playing pattern deleted, red
+            E(cmp_imm, 6, 0); E(b_cond, "dk_e", "eq")
+            E(mov_reg, 0, 7); E(bl, "c_dplane"); E(movs_imm, 1, 0xFF); E(movs_imm, 2, 0)
+            a.label("dk_cz"); E(raw, h(0x5481)); E(adds_imm8, 2, 1); E(cmp_imm, 2, 192); E(b_cond, "dk_cz", "lo")   # strb r1, [r0, r2]
+            E(mov_reg, 0, 7); E(bl, "c_dpoff")
+            E(raw, h(0x9800)); E(movs_imm, 1, 0); E(movs_imm, 2, 0); E(bl, L["c_clr_set"])       # red
+            E(b, "dk_e")
 
     # ---- c_dppad(r0 = the chromatic drum view, r1 = the note's value): S (instead of SC11's Pitch); clobbers r0-r3
     a.label("c_dppad")
@@ -203,7 +236,12 @@ def arm_code(base, L, prev):
         E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(raw, h(0xBC02))       # the playing step; pop {r1}
         E(cmp_imm, 0, 31); E(b_cond, "dv_x", "hi")
         E(movs_imm, 2, 6); E(muls, 0, 2); E(adds_reg, 1, 1, 0)
-        for m in range(6): E(strb_imm, 5, 1, m)
+        if L0:                                                                          # 0x80 | S (S at most 126: 0xFF is the empty byte)
+            E(mov_reg, 3, 5); E(cmp_imm, 3, 126); E(b_cond, "dv_t", "ls"); E(movs_imm, 3, 126)
+            a.label("dv_t"); E(adds_imm8, 3, 0x80)
+            for m in range(6): E(strb_imm, 3, 1, m)
+        else:
+            for m in range(6): E(strb_imm, 5, 1, m)
         E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_dpeff")
         a.label("dv_x")
     E(pop_list, [4, 5], pc=True)
@@ -248,23 +286,39 @@ def arm_code(base, L, prev):
         imm32(4, DP0); E(subs_reg, 4, 0, 4); E(movs_imm, 5, DP_SZ); E(raw, udiv(5, 4, 5))
         E(cmp_imm, 5, 3); E(b_cond, "da_x", "hi")
         E(movs_imm, 0, DP_SZ); E(muls, 0, 5); E(cmp_reg, 0, 4); E(b_cond, "da_x", "ne")      # r5 = the drum
-        E(ldrb_w, 0, 7, 0x38); E(cmp_imm, 0, LANE); E(b_cond, "da_m", "ls")
-        E(movw, 4, 0xFFFF); E(ldr_imm, 0, 7, 0x40); E(strh_imm, 4, 0, 2 * LANE); E(ldr_imm, 0, 7, 0x44); E(strh_imm, 4, 0, 2 * LANE)
-        a.label("da_m")
+        if not L0:
+            E(ldrb_w, 0, 7, 0x38); E(cmp_imm, 0, LANE); E(b_cond, "da_m", "ls")
+            E(movw, 4, 0xFFFF); E(ldr_imm, 0, 7, 0x40); E(strh_imm, 4, 0, 2 * LANE); E(ldr_imm, 0, 7, 0x44); E(strh_imm, 4, 0, 2 * LANE)
+            a.label("da_m")
         E(cmp_imm, 3, 0); E(b_cond, "da_x", "ne"); E(cmp_imm, 2, 31); E(b_cond, "da_x", "hi")
         E(ldr_imm, 0, 7, 0x48); imm32(4, PAT_SZ); E(muls, 4, 6); E(adds_reg, 0, 0, 4); imm32(4, 0xA8 + 192 * LANE); E(adds_reg, 0, 0, 4)
         E(movs_imm, 4, 6); E(muls, 4, 2); E(adds_reg, 0, 0, 4); E(ldrb_imm, 6, 0, 0)          # r6 = the lane's byte at the step
+        if L0:                                                                          # a chromatic step = 0x80 | S; anything else = none
+            E(cmp_imm, 6, 0x80); E(b_cond, "da_n", "lo"); E(cmp_imm, 6, 0xFF); E(b_cond, "da_n", "eq"); E(subs_imm8, 6, 0x80); E(b, "da_g")
+            a.label("da_n"); E(movs_imm, 6, 0xFF)
+            a.label("da_g")
         E(mov_reg, 0, 5); E(bl, "c_dpcur"); E(mov_reg, 4, 0)                                  # r4 = the S before
         E(mov_reg, 0, 5); E(mov_reg, 1, 6); E(bl, "c_dpeff")
         E(mov_reg, 0, 5); E(bl, "c_dpcur"); E(cmp_reg, 0, 4); E(b_cond, "da_x", "eq")
         E(mov_reg, 0, 5); E(bl, L["c_pitchnow"]); E(mov_reg, 1, 0); E(mov_reg, 0, 5); E(bl, "c_dpword")
         E(mov_reg, 1, 0); E(movs_imm, 0, 0); E(movs_imm, 2, 10); E(muls, 2, 5); E(adds_imm8, 2, PITCH_X); E(bl, DSP_W)
         a.label("da_x"); E(pop_list, [4, 5, 6, 7], pc=True)
-        # ---- c_dpgate (the automation gate: gate, id, value): a drum's pan (ids 89-92) not recorded
-        a.label("c_dpgate")
-        E(cmp_imm, 1, LANE_IDS[0]); E(b_cond, "dg_f", "lo"); E(cmp_imm, 1, LANE_IDS[1]); E(b_cond, "dg_f", "hi")
-        E(movs_imm, 0, 1); E(raw, RET)
-        a.label("dg_f"); E(b_w, prev["gate"])
+        if not L0:
+            # ---- c_dpgate (the automation gate: gate, id, value): a drum's pan (ids 89-92) not recorded
+            a.label("c_dpgate")
+            E(cmp_imm, 1, LANE_IDS[0]); E(b_cond, "dg_f", "lo"); E(cmp_imm, 1, LANE_IDS[1]); E(b_cond, "dg_f", "hi")
+            E(movs_imm, 0, 1); E(raw, RET)
+            a.label("dg_f"); E(b_w, prev["gate"])
+        else:
+            # ---- c_dplv (L0; in place of 0x0804A7CA's ldrb r7, [r1, r0]; b 0x0804A84A: r5 = the lane, r6 = the player; r0-r3 free there):
+            #      a drum's lane 0 byte 0x80..0xFE (a chromatic step) -> 0xFFFF, so the stock does not move P
+            a.label("c_dplv")
+            E(raw, h(0x5C0F))                                                                # ldrb r7, [r1, r0]
+            E(cmp_imm, 5, 0); E(b_cond, "lv_x", "ne"); E(cmp_imm, 7, 0x80); E(b_cond, "lv_x", "lo"); E(cmp_imm, 7, 0xFF); E(b_cond, "lv_x", "eq")
+            imm32(1, DP0); E(subs_reg, 1, 6, 1); E(movs_imm, 2, DP_SZ); E(raw, udiv(3, 1, 2)); E(cmp_imm, 3, 3); E(b_cond, "lv_x", "hi")
+            E(muls, 2, 3); E(cmp_reg, 2, 1); E(b_cond, "lv_x", "ne")
+            E(movw, 7, 0xFFFF)
+            a.label("lv_x"); E(b_w, LV_BACK)
         # ---- c_dpledtask (the LED task calls: ctrl, frame): the chain; stopped, the steps' S give way to the knobs'
         a.label("c_dpledtask")
         E(push_list, [3, 4, 5], lr=True)
@@ -277,21 +331,22 @@ def arm_code(base, L, prev):
         a.label("dt_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 4); E(b_cond, "dt_l", "lo")
         a.label("dt_x"); E(pop_list, [3, 4, 5], pc=True)
 
-    # ---- c_dpled (the drum macro handlers' slot 7: handler -> the LED buffer): K1 = S; with Shift K6 = P (|v - 64| x 2, dim at 64)
-    a.label("c_dpled")
-    E(push_list, [4, 5, 6, 7], lr=True)
-    E(mov_reg, 4, 0); E(bl, prev["leds"]); E(mov_reg, 5, 0)
-    E(mov_reg, 0, 4); E(bl, "c_dpdrum"); E(cmp_imm, 0, 3); E(b_cond, "dl_x", "hi"); E(mov_reg, 7, 0)
-    imm32(1, t_col); E(adds_reg, 1, 1, 7); E(ldrb_imm, 6, 1, 0)                           # r6 = the drum's colour
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "dl_s", "ne")
-    E(mov_reg, 0, 7); E(bl, "c_dpnow"); E(movs_imm, 1, 0); E(b, "dl_w")
-    a.label("dl_s")
-    E(ldr_imm, 0, 4, 0xC); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(movs_imm, 1, 10)   # P; position 5
-    a.label("dl_w")
-    E(subs_imm8, 0, 64); E(b_cond, "dl_p", "pl"); E(raw, h(0x4240))                        # negs r0, r0
-    a.label("dl_p"); E(lsls_imm, 0, 0, 1); E(cmp_imm, 0, 127); E(b_cond, "dl_c", "ls"); E(movs_imm, 0, 127)
-    a.label("dl_c"); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 6); E(raw, h(0x5268))   # strh r0, [r5, r1]
-    a.label("dl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
+    if not L0:
+        # ---- c_dpled (the drum macro handlers' slot 7: handler -> the LED buffer): K1 = S; with Shift K6 = P (|v - 64| x 2, dim at 64)
+        a.label("c_dpled")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(mov_reg, 4, 0); E(bl, prev["leds"]); E(mov_reg, 5, 0)
+        E(mov_reg, 0, 4); E(bl, "c_dpdrum"); E(cmp_imm, 0, 3); E(b_cond, "dl_x", "hi"); E(mov_reg, 7, 0)
+        imm32(1, t_col); E(adds_reg, 1, 1, 7); E(ldrb_imm, 6, 1, 0)                           # r6 = the drum's colour
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "dl_s", "ne")
+        E(mov_reg, 0, 7); E(bl, "c_dpnow"); E(movs_imm, 1, 0); E(b, "dl_w")
+        a.label("dl_s")
+        E(ldr_imm, 0, 4, 0xC); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(movs_imm, 1, 10)   # P; position 5
+        a.label("dl_w")
+        E(subs_imm8, 0, 64); E(b_cond, "dl_p", "pl"); E(raw, h(0x4240))                        # negs r0, r0
+        a.label("dl_p"); E(lsls_imm, 0, 0, 1); E(cmp_imm, 0, 127); E(b_cond, "dl_c", "ls"); E(movs_imm, 0, 127)
+        a.label("dl_c"); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 6); E(raw, h(0x5268))   # strh r0, [r5, r1]
+        a.label("dl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 
 
@@ -310,6 +365,7 @@ def install(img, report, base_addr):
         import packio as PK, fxdiag as FD, mpatch as MP
         prev.update(gate=MP.bw_target(img, REC_GATE, BASE), ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
         assert bytes(img[AUTO_CALL - BASE:AUTO_CALL - BASE + 4]) == bl_enc(AUTO_CALL, AUTO)
+        if L0: assert bytes(img[LV_AT - BASE:LV_AT - BASE + 4]) == LV_OLD
         L["c_pitchnow"] = lab("sc11", "c_pitchnow")
     for d, c in enumerate(S12.CALLS):
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, lab("sc12", f"c_conv{d}")), hex(c)
@@ -323,11 +379,12 @@ def install(img, report, base_addr):
     for d, c in enumerate(S12.CALLS):
         img[c - BASE:c - BASE + 4] = bl_enc(c, labels[f"c_dpc{d}"])
     struct.pack_into("<I", img, MH_VT + 16 - BASE, labels["c_dpknob"] | 1)
-    struct.pack_into("<I", img, MH_VT + 28 - BASE, labels["c_dpled"] | 1)
+    if not L0: struct.pack_into("<I", img, MH_VT + 28 - BASE, labels["c_dpled"] | 1)
     if REC:
         from thumb import b_w as bw
         img[AUTO_CALL - BASE:AUTO_CALL - BASE + 4] = bl_enc(AUTO_CALL, labels["c_dpauto"])
-        img[REC_GATE - BASE:REC_GATE - BASE + 4] = bw(REC_GATE, labels["c_dpgate"])
+        if L0: img[LV_AT - BASE:LV_AT - BASE + 4] = bw(LV_AT, labels["c_dplv"])
+        else: img[REC_GATE - BASE:REC_GATE - BASE + 4] = bw(REC_GATE, labels["c_dpgate"])
         for c in PK.LED_CALLS:
             assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)
             img[c - BASE:c - BASE + 4] = bl_enc(c, labels["c_dpledtask"])

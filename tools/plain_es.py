@@ -1,10 +1,10 @@
 """La guía en palabras sencillas, en español (la escribe tools/make_plain.py).  Estructura y estilo llano de la guía de la comunidad «Circuit Tracks mod
 manual, in plain English» de u/luxurysoft1337 (Reddit, 15 de octubre de 2026, escrita para RC0.9 / Beta 1.3); reescrita, corregida y completada hasta
-Beta 1.26 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
+Beta 1.27 con los nombres del manual del mod, e ilustrada con sus dibujos del panel.  Mismas secciones y figuras que tools/plain_en.py."""
 import make_manual as M
 
 F = M.fig
-BETA = "Beta 1.26"
+BETA = "Beta 1.27"
 B = f"*(solo {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
@@ -109,6 +109,7 @@ sec("finder", "Buscador rápido: quiero…", f"""
 | Dar a una pista MIDI su propio sonido | MIDI 1 / 2, **Preset**, **pad 27**. |
 | Rotar un patrón (Nudge) | Pattern Settings: elige el primer paso y luego **pad 26** {B} (círculo 5). |
 | Arpegiar una pista | Pattern Settings, **Shift + pad 25** {B}. |
+| Cuantizar un patrón grabado | **Shift + Play** {B} (la pista elegida). |
 | Usar mi propia escala | **Shift + Scales** {B} (círculo 6). |
 | Metrónomo / cuenta atrás | **Shift + Clear** {B} (círculos 3 + 2). |
 | Gate = lo que mantengo el pad | **Gate** dos veces (Micro Step), **pad 32** {B} (círculo 8). |
@@ -189,12 +190,12 @@ Cada knob hace lo que dice su etiqueta del panel, con una segunda capa con Shift
 
 | Knob | Solo | Con Shift |
 |---|---|---|
-| K1 Oscillator | Tono, en semitonos exactos ({B}: un valor cromático propio, guardado con el proyecto) | Cantidad de la envolvente de tono |
+| K1 Oscillator | Tono ({B}: el de stock, continuo; los pads cromáticos transponen encima) | Cantidad de la envolvente de tono |
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
 | K3 Amp envelope | RC: decay; a la izquierda del cero, el punto de inicio del sample. {B}: **izquierda = decay** (el de stock), **derecha pasado el máximo = ataque** (entrada gradual de hasta 1 s) | {B}: **izquierda = inicio del sample**, **derecha = corte** desde el final |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
 | K5 Filter frequency | Filtro / EQ | Modo del filtro: EQ tilt (stock), paso banda, notch, comb, DJ |
-| K6 Resonance | Resonancia | {B}: **tono continuo**, el de stock (lineal, como el original) |
+| K6 Resonance | Resonancia | — |
 | K7 Modulation | Cantidad del LFO | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda del cero, bitcrush | Tipo de distorsión: stock, suave, dura, plegada |
 
@@ -202,7 +203,7 @@ Cada knob hace lo que dice su etiqueta del panel, con una segunda capa con Shift
 - **RC0.9:** un proyecto nuevo o sin tocar empieza con el modo de filtro en DJ, que quita el EQ de stock: los drums pueden sonar distinto que en un Circuit de stock. Shift + K5 a «EQ tilt» devuelve el sonido de stock. {B}: arreglado (por defecto, el EQ de stock).
 
 ### Tocar un drum como un teclado
-Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso ({B}: los pads fijan el valor cromático de K1 y, grabando, quedan en su paso; Clear + K1 a la izquierda los borra).
+Elige el drum y pulsa **Shift + Preset** ({B}: o **Preset otra vez** en su vista Preset). Tres filas de pads tocan su sample a distintas alturas, en la escala y la tónica de la vista Scales. K1 = desplazamiento en semitonos, Shift + K1 = afinación fina en cents. Al grabar, cada altura va solo a su propio paso ({B}: los pads transponen sobre el tono de K1 y, grabando, quedan en su paso; Clear + K1 a la izquierda, sostenido, los borra con la automatización de K1).
 
 ### Vista Preset de drums
 | Gesto | Qué hace |
@@ -288,6 +289,7 @@ En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor s
 | 27 | El motor. |
 | 28 | Uno / dos osciladores (oscilador y VA-drum). |
 | 29 | Orden de la cadena. |
+| Shift + 29 | {B}: gate retrigger; apagado (amarillo) = legato, una nota nueva con otras pulsadas solo cambia la altura. |
 | 30 | Step-drummer. |
 | 31 | VA-drum: la velocity escala las envolventes de tono y de filtro. |
 
@@ -328,7 +330,7 @@ Pulsa **Pattern Settings** con una pista elegida. Como en stock: pads 1-16 el pr
 - Los pads 27, 28 y los cuatro de dirección se excluyen. El orden se guarda con el patrón; borrar el patrón lo quita. Nudge y los órdenes funcionan también en los drums.
 
 ### Arpegiador {B}
-- **Shift + pad 25** = el arpegiador del patrón que suena en la pista, encendido / apagado (pad 25 verde encendido). **Shift + pads 27-32** = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), aparte de la dirección del patrón. **Shift + pads 17-24** = su propia resolución (1/32T … 1/4; el mismo pad otra vez = la de la pista). Con Shift, los pads conservan sus colores de Pattern Settings y los elegidos se ven verdes.
+- **Shift + pad 25** = el arpegiador del patrón que suena en la pista, encendido / apagado (pad 25 verde encendido). **Shift + pads 27-32** = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), aparte de la dirección del patrón. **Shift + pads 17-24** = su propia resolución (de 1/4 en el pad 17 a 1/32T en el 24, como el sync rate; el mismo pad otra vez = la de la pista). Con Shift, los pads conservan sus colores de Pattern Settings y los elegidos se ven verdes.
 - **Secuencia:** cuando dos o más notas empiezan en un paso, suenan de una en una en el orden elegido, cada una con su propio gate (como mucho un paso del arpegio).
 - **En vivo:** la primera nota suena como siempre; mantener otra empieza el arpegio de las notas mantenidas hasta que las sueltas todas (parado: al tempo del proyecto). Con Record se graba el acorde, y la secuencia lo arpegia.
 - **Drums:** los mismos gestos en el Pattern Settings de un drum. En la vista Preset del drum, el primer sample mantenido es el normal; mantener más hace que el drum **salte de sample en sample** en ese orden. Con Record (en marcha) cada golpe se graba con su sample como sample flip del paso.

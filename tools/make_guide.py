@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-BETA = "Beta 1.26"                     # the beta the «solo beta» marks refer to (change it with each beta)
+BETA = "Beta 1.27"                     # the beta the «solo beta» marks refer to (change it with each beta)
 B = f"*(solo {BETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -50,10 +50,11 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Save** | todas | Guarda el proyecto como siempre; además escribe en el pack los samples sustituidos por capturas (Preset de drums) si caben en la memoria de samples *(escribe en la tarjeta)*. |
 | **Pulsar el botón de la pista otra vez** | Synth 1 / 2 | Abre la vista de la fuente del sinte (capítulo II). |
 | **Clear + Synth 1 / 2** | su vista | {B} Sus ocho macros a los valores del patch cargado. |
-| **Clear + el botón de un drum** | su vista | {B} Sus ocho knobs a sus valores por defecto. |
+| **Clear + el botón de un drum** | su vista | {B} Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
 | **Synth 1 + Synth 2 a la vez** | todas | Teclado partido {B}. |
 | **Shift + Clear** | todas | Metrónomo en cuatro estados {B}: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / cian (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. |
 | **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación {B}. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
+| **Shift + Play** | todas | {B} **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
 | **Shift + Scales** | todas | Editor de la escala propia {B} (capítulo II, vista Scales). |
 | **Mixer dos veces** | todas | Master FX (capítulo VI). |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
@@ -142,6 +143,7 @@ view("midi-preset", "III", "Vista Preset de MIDI 1 / 2",
 | 27 | **Motor** de la pista: apagado → amarillo (entrada de línea) → verde (oscilador) → rojo (VA-drum) → magenta (granular) → azul (secuenciador de efectos). |
 | 28 | Uno / dos osciladores (oscilador y VA-drum). |
 | 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX (en el color de la página VCA-VCF {B}). |
+| **Shift + 29** {B} | **Gate retrigger**: encendido (verde con Shift, por defecto) = cada nota nueva vuelve a disparar la envolvente; apagado (amarillo) = **legato**: con otras notas pulsadas, una nota nueva solo cambia la altura. Se guarda con el proyecto. |
 | 30 | Abre el **step-drummer**; **Shift + pad 30** lo desactiva. |
 | 31 | Solo en VA-drum: la velocity escala las envolventes de pitch y filtro. |
 
@@ -249,12 +251,12 @@ view("drum-pista", "IV", "Vista de pista de un drum (knobs)",
      f"""
 | Knob | Solo | Con Shift |
 |---|---|---|
-| K1 Oscillator | Pitch en semitonos exactos ({B}: un valor cromático propio, que se guarda con el proyecto) | Cantidad de la envolvente de tono |
+| K1 Oscillator | Pitch ({B}: el de stock, continuo como el original; los pads de la vista cromática transponen encima) | Cantidad de la envolvente de tono |
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
 | K3 Amp envelope | **Izquierda: decay** (el de stock). Pasado el máximo, **derecha: ataque** (fundido de entrada, hasta 1 s). Centro neutro. {B} | **Izquierda: inicio** del sample; **derecha: corte** desde el final (hasta 120/128 cada uno). Centro = el sample entero. {B} |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
 | K5 Filter frequency | Filtro / EQ (por defecto, el EQ tilt de stock) | **Modo de filtro**: EQ tilt de stock, paso banda, notch, comb, DJ |
-| K6 Resonance | Resonancia | {B} **Pitch continuo**: el de stock, lineal como el original (el que se guarda en los proyectos, se automatiza y sale por CC) |
+| K6 Resonance | Resonancia | — |
 | K7 Modulation | Cantidad del LFO | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
@@ -285,7 +287,7 @@ view("drum-cromatica", "IV", "Vista cromática y de escala de los drums",
      f"""
 - Tres filas de notas en la escala y la tónica de la vista Scales.
 - **K1** = sesgo de tono en semitonos; **Shift + K1** = afinación fina en cents.
-- Grabando, cada tono se graba solo en su paso. {B}: los pads fijan el valor cromático (K1) y, grabando, quedan en su paso; Clear + K1 a la izquierda borra los pasos cromáticos del patrón que suena. En {B} los drums no tienen automatización de panorama: ese carril guarda sus pasos cromáticos.
+- Grabando, cada tono se graba solo en su paso. {B}: los pads transponen en semitonos sobre el pitch de K1 y, grabando, quedan en su paso dentro del carril de pitch del drum (un paso guarda un giro de K1 o una nota cromática); Clear + K1 a la izquierda (sostenido) borra los dos.
 - **Vista Note de los drums:** los pads 25-28 repiten los cuadros de los drums 4 … 1.
 - **Rollers de micropasos** {B} en las filas 1-3 de la vista Note de los drums: cada columna es el drum de su cuadro de abajo (columnas 1-4 = drums 4-1, columnas 5-8 = drums 1-4), en su color tenue. La columna izquierda de un drum son sus micropasos 1-3 (filas 1-3) y la derecha los 4-6: el drum 1 = pads 4, 12, 20 y 5, 13, 21. **Mientras se mantienen** (uno o varios, de uno o varios drums), el drum suena en **cada paso** en esos micropasos (con la velocity del paso, o 100 si el paso está vacío); se encienden mientras se mantienen. **Con el transporte parado** {B} también: al tempo del proyecto, empezando al pulsar el primero (velocity 100). **Con Record** sus golpes también se graban en el patrón (el micropaso, y velocity 100 en un paso vacío).
 """)
@@ -313,7 +315,7 @@ Con **Shift** pulsado, los pads del arpegiador conservan sus colores de Pattern 
 |---|---|
 | **Shift + pad 25** | Arpegiador del patrón que suena en la pista: encendido / apagado. Sin Shift, el pad 25 se ve verde mientras está encendido (y sigue abriendo el modo 2). |
 | **Shift + pads 27-32** | Orden del arpegio, independiente de la dirección del patrón: fractal, deconstruido, arriba, abajo, ping-pong, aleatorio. |
-| **Shift + pads 17-24** | **Resolución** del arpegio, distinta del sync rate de la pista: 1/32T, 1/32, 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4. El mismo pad otra vez = la de la pista (ningún pad verde). |
+| **Shift + pads 17-24** | **Resolución** del arpegio, distinta del sync rate de la pista, en el mismo orden que los pads de sync rate (más lenta a la izquierda): 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T. El mismo pad otra vez = la de la pista (ningún pad verde). |
 
 - **Secuencia:** cuando en un paso empiezan dos notas o más, suenan de una en una (a la resolución del arpegio), en el orden elegido sobre las notas ordenadas por altura, mientras dura la nota más larga del acorde. Cada nota dura **su propio gate, como mucho un paso de arpegio** (y lo que queda del acorde) y lleva su velocity: un acorde grabado manteniendo las notas suena arpegiado, uno introducido con notas cortas, staccato.
 - **Entrada:** la primera nota suena como siempre; al mantener otra a la vez empieza el arpegio de las notas mantenidas, una por paso de arpegio (con el transporte parado, al tempo del proyecto), hasta soltarlas todas; cada nota dura un paso de arpegio. **Con Record se graba el acorde**, no las notas sueltas: el arpegio lo toca después la secuencia.

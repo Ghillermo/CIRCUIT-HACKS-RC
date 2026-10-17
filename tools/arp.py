@@ -68,6 +68,30 @@ PS_PAD_RATE = 16                                              # (RATE) Shift + p
 COLS2 = False                                                 # SC42.5 (use_cols2): with Shift only the chosen ones green
 RECOFF = False                                                # SC43.2 (use_recoff)
 REC_OFF = 0x0802E5CC                                          # the recorder's note-off gate (rec, note, track)
+VIEWOFF = False                                               # SC43.7 (use_viewoff)
+VIEW_IFC0, VIEW_SZ = 0x200413F0, 0x2F4                        # the note-on interface of track t's view (embedded at view + 0x110)
+RATEFLIP = False                                              # SC43.7 (use_rateflip)
+
+
+def use_viewoff():
+    """SC43.7 (the user, 2026-10-17: «implementar arpeggiator en midi1-2»): the first note held (the stock's, through the track view's note
+    interface, view + 0x110) was stopped through the player's note interface ([player + 0x4C]) when the arpeggio took over; that interface only
+    knows its own notes, so the note-off went nowhere (seen in emulation down to the MIDI transmitter): on MIDI 1 / 2 the first note stayed on
+    under the whole arpeggio (the MIDI out and the own engine: its gate never closed), on the synths until the arpeggio played it again.  Now
+    it is stopped through the view's interface that started it, with its pad (the view's note-off takes the pad: [view + 0x80 + note]; the
+    stock's own note-off when the pad is let go then finds nothing)."""
+    global VIEWOFF
+    VIEWOFF = True
+
+
+def use_rateflip():
+    """SC43.7 (the user, 2026-10-17: «el reloj de arpeggiator no es consistente con reloj de proyecto. Solución: más lento a la izquierda, más
+    rápido a la derecha»): the stock's sync rate pads (17-24 of Pattern Settings) go from 1/4 (pad 17) to 1/32T (pad 24); the arpeggiator's
+    resolution pads went the other way.  Now the same as the stock's: pad 17 = 1/4 ... pad 24 = 1/32T.  The setting's values are the same
+    (bits 3-6 = 1 + the sync rate, 0 = the track's): what a project holds keeps its resolution."""
+    global RATEFLIP
+    assert RATE
+    RATEFLIP = True
 
 
 def use_recoff():
@@ -321,13 +345,23 @@ def arm_code(base, L, prev):
     E(push_list, [4], lr=True); E(ldr_imm, 0, 0, 0x4C); E(movs_imm, 2, 0); E(ldr_imm, 4, 0, 0); E(ldr_imm, 4, 4, 4); E(raw, h(0x47A0))
     E(pop_list, [4], pc=True)
 
+    if VIEWOFF:
+        # ---- c_arvoff(r0 = player, r1 = note): note off through the note interface of its track's view
+        a.label("c_arvoff")
+        E(push_list, [4, 5], lr=True); E(mov_reg, 5, 1); E(bl, "c_artrk"); E(cmp_imm, 0, 3); E(b_cond, "vf_x", "hi")
+        imm32(1, VIEW_SZ); E(muls, 0, 1); imm32(1, VIEW_IFC0 - 0x110); E(adds_reg, 0, 0, 1)                 # r0 = the view
+        E(adds_reg, 2, 0, 5); E(raw, ldrb_w_(2, 2, 0x80))                                                  # r2 = the note's pad ([view + 0x80 + note])
+        imm32(1, 0x110); E(adds_reg, 0, 0, 1)                                                              # its interface: (obj, note, pad)
+        E(mov_reg, 1, 5); E(ldr_imm, 4, 0, 0); E(ldr_imm, 4, 4, 4); E(raw, h(0x47A0))                       # blx r4
+        a.label("vf_x"); E(pop_list, [4, 5], pc=True)
+
     # ---- c_arnext(r0 = state, r1 = order, r2 = player, r3 = 1: through the stock's note-on (ticks in [sp]), 0: by hand)
     #      a note by hand still on and the first note held are stopped; then the next note of the order
     a.label("c_arnext")
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2); E(str_sp, 3, 0)
     E(ldrb_imm, 1, 4, S_PEND); E(cmp_imm, 1, 0xFF); E(b_cond, "nx_m", "eq")
-    E(mov_reg, 0, 6); E(bl, "c_arifoff"); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 4, S_PEND)
+    E(mov_reg, 0, 6); E(bl, "c_arvoff" if VIEWOFF else "c_arifoff"); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 4, S_PEND)
     a.label("nx_m")
     E(ldrb_imm, 0, 4, S_FL); E(lsls_imm, 0, 0, 30); E(b_cond, "nx_n", "pl")
     E(ldrb_imm, 1, 4, S_LAST); E(mov_reg, 0, 6); E(bl, "c_arifoff")
@@ -527,7 +561,9 @@ def arm_code(base, L, prev):
     E(bl, L["c_pmtp"]); E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(bl, "c_arcfg")
     if RATE:                                                                           # pads 17-24: the resolution (the chosen one again: the track's)
         E(cmp_imm, 6, PS_PAD_ARP); E(b_cond, "pp_k", "hs")
-        E(subs_imm8, 6, PS_PAD_RATE - 1); E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 15); E(raw, h(0x4011)); E(cmp_reg, 1, 6); E(b_cond, "pp_rs", "ne")   # ands r1, r2
+        if RATEFLIP: E(movs_imm, 1, PS_PAD_RATE + 8); E(subs_reg, 6, 1, 6)                  # pad 17 = 8 (1/4) .. pad 24 = 1 (1/32T)
+        else: E(subs_imm8, 6, PS_PAD_RATE - 1)
+        E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 15); E(raw, h(0x4011)); E(cmp_reg, 1, 6); E(b_cond, "pp_rs", "ne")   # ands r1, r2
         E(movs_imm, 6, 0)
         a.label("pp_rs"); E(movs_imm, 1, 0x78); E(raw, h(0x4388)); E(lsls_imm, 6, 6, 3); E(raw, h(0x4330)); E(b, "pp_w")   # bics r0, r1; orrs r0, r6
         a.label("pp_k")
@@ -575,7 +611,9 @@ def arm_code(base, L, prev):
         a.label("pb_rw")
         if COLS2: E(b, "pb_rn2")
         if COLS2: a.label("pb_rw2")
-        E(lsls_imm, 0, 3, 1); E(adds_imm8, 0, 2 * (PS_PAD_RATE - 1)); E(raw, h(0x5229))   # strh r1, [r5, r0]
+        if RATEFLIP: E(lsls_imm, 0, 3, 1); E(movs_imm, 2, 2 * (PS_PAD_RATE + 8)); E(subs_reg, 0, 2, 0)
+        else: E(lsls_imm, 0, 3, 1); E(adds_imm8, 0, 2 * (PS_PAD_RATE - 1))
+        E(raw, h(0x5229))                                                              # strh r1, [r5, r0]
         if COLS2: a.label("pb_rn2")
         E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "pb_r", "ls")
     a.label("pb_x"); E(mov_reg, 0, 6); E(pop_list, [3, 4, 5, 6, 7], pc=True)
