@@ -201,6 +201,7 @@ TEMPLATE = r"""<!doctype html>
   progress { width:100%; height:14px; }
   ol { margin:0; padding-left:20px; } a { color:var(--acc); }
   .note { border-left:4px solid var(--warn); padding-left:10px; }
+  .sub-steps { margin:4px 0 0; }
   html[lang="es"] .en, html[lang="en"] .es { display:none !important; }
   .top { display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; }
   .lang { display:flex; gap:4px; }
@@ -222,6 +223,7 @@ TEMPLATE = r"""<!doctype html>
       <li><span class="es">Cierra Novation Components y cualquier DAW o programa MIDI (en Windows, un puerto MIDI solo lo puede abrir una aplicación).</span><span class="en">Close Novation Components and any DAW or MIDI program (on Windows a MIDI port can only be opened by one application).</span></li>
       <li><span class="es">Conecta el Circuit Tracks por USB y enciéndelo de forma normal (o en modo bootloader: Scales + Preset + Note al encender). No lo desconectes durante el envío.</span><span class="en">Connect the Circuit Tracks over USB and power it on normally (or in bootloader mode: Scales + Preset + Note at power-on). Do not disconnect it while sending.</span></li>
       <li><span class="es">Usa Chrome o Edge (Web MIDI con SysEx).</span><span class="en">Use Chrome or Edge (Web MIDI with SysEx).</span></li>
+      <li class="note"><div class="es"><b>En caso de brick</b> (el aparato no arranca):<ol class="sub-steps"><li>Desconéctalo de la corriente.</li><li>Pulsa el botón de apagado 15-30 s.</li><li>Mantén <b>Scales + Preset + Note</b> mientras lo enciendes.</li><li>Sube la última versión estable o el firmware de stock («Oficial») a través de esta misma página.</li></ol></div><div class="en"><b>If the device is bricked</b> (it does not start):<ol class="sub-steps"><li>Unplug it from power.</li><li>Press the power button for 15-30 s.</li><li>Hold <b>Scales + Preset + Note</b> while you power it on.</li><li>Send the latest stable version or the stock firmware (“Official”) with this same page.</li></ol></div></li>
     </ol>
   </section>
 
