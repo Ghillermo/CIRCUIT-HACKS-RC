@@ -31,6 +31,11 @@ def engine_of(img, man, default=ENGINE):
             h3, h4 = int.from_bytes(img[off + k + 4:off + k + 6], "little"), int.from_bytes(img[off + k + 6:off + k + 8], "little")
             imm = lambda a_, b_: (a_ & 0xF) << 12 | (a_ >> 10 & 1) << 11 | (b_ >> 12 & 7) << 8 | (b_ & 0xFF)
             return imm(h3, h4) << 16 | imm(h1, h2)
+        if h1 & 0xF800 == 0x4800 or h1 in (0xF85F, 0xF8DF):            # (thumb.COMPACT) the LDR from a literal pool
+            pc = (0x08010000 + off + k + 4) & ~3
+            lit = pc + (h1 & 0xFF) * 4 if h1 & 0xF800 == 0x4800 else pc + ((h2 & 0xFFF) if h1 & 0x80 else -(h2 & 0xFFF))
+            v = int.from_bytes(img[lit - 0x08010000:lit - 0x08010000 + 4], "little")
+            if v >> 24 == 0x20: return v
     return default
 TICK_FN, SET_TICKS = 0x0802C418, 0x0802BFE0
 

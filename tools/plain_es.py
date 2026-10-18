@@ -40,9 +40,9 @@ sec("install", "Antes de instalar", f"""
 
 | Versión | Qué es |
 |---|---|
-| **RC2.01** | La versión candidata: todo lo de esta guía (RC2 + el sample capturado antes del filtro master). |
-| **RC2.01S** | La versión *más segura*: RC2.01, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
-| **RC2 / RC2S, RC0.9 / RC0.9S** | Las anteriores: RC2 con el sample tras el filtro master; RC0.9 sin lo marcado {B}. |
+| **RC2.02** | La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO). |
+| **RC2.02S** | La versión *más segura*: RC2.02, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
+| **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | Las anteriores: RC2.01 sin lo marcado *(desde RC2.02)*; RC2 con el sample tras el filtro master; RC0.9 sin lo marcado {B}. |
 
 ### Instalar
 1. Descarga el firmware oficial 1.2.1 de Novation (el fichero de actualización de Components).
@@ -250,7 +250,7 @@ Una capa sobre el patrón: el patrón decide qué pasos suenan; los knobs dan a 
 - {B} **Toggle pitch-vel (pad 32 de la vista, verde):** además de sus destinos, la página de tono mueve las **notas** un grado de la escala del proyecto cada 8 pasos del knob (MIDI −8 … +8 desde el centro, sintes 0 … +16) y la página de velocity fija también la velocity de las notas. Con el toggle, los destinos de tono de la página de tono ya no desafinan el sinte propio (se mueve la nota).
 
 ### Extras de {BETA}
-- **Teclado partido:** mantén Synth 1 y pulsa Synth 2 (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2, cada uno con su escala, octava y velocity. Knobs y Octave siguen al sinte pulsado primero; cualquier botón de pista o de vista sale.
+- **Teclado partido:** mantén Synth 1 y pulsa Synth 2 (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2, cada uno con su escala, octava y velocity. Knobs y Octave siguen al sinte pulsado primero; cualquier botón de pista o de vista sale. *(Desde RC2.02:* con cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2; arriba, la pista que mantuviste primero.*)*
 - **Colores de los patches** en la vista Preset: azul oscuro = mono, lavanda = mono con glide, color de la pista = poly; el elegido más claro.
 - **Guardar un patch en el pack:** vista Preset, **Clear + pad** y luego **Clear + el mismo pad** en ~5 s: el patch tal como suena va a ese hueco (el stock no guarda patches desde el aparato). Se rechaza en el pack de la memoria interna.
 - **Destinos de los macros:** en la vista de la fuente, el pad 32 abre el editor. Gira un knob para elegir su macro; el knob cambia el campo actual y **Octave ▼ / ▲** recorren los campos (ranura 1-4, inicio, final, destino, profundidad); los pads dibujan el número. Cualquier pad suelta el macro; el pad 32 cierra el editor. Los destinos son los números de CC / NRPN de la Programmer's Reference Guide de Novation (por ejemplo CC 74 = corte del filtro).
@@ -284,6 +284,7 @@ En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor s
 | Pad | Función |
 |---|---|
 | 1-5 | Página de knobs: 1 VCA-VCF, 2 OSC 1 (los controles del granular en granular), 3 OSC 2, 4 los 8 valores automatizables, 5 modulación. {B}: **Clear + pad de página** = esa página a sus valores iniciales. |
+| 6 | *(desde RC2.02)* **Matriz de modulación** (más abajo). |
 | 9-24 | {B} **Patches del sinte propio** (más abajo). |
 | 25 | Editor de CC de los macros de la plantilla. |
 | 26 | Patch flip: cada nota sale como Program Change ({B}: solo por el canal de la pista). Excluyente con el motor. |
@@ -298,7 +299,7 @@ En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor s
 - **Página 1, VCA-VCF:** K1 ataque (Shift sustain), K2 release (Shift decay), K3 envolvente → nivel (Shift LFO → nivel), K4 envolvente → filtro (Shift LFO → filtro), K5 filtro (Shift tipo de filtro: DJ, LP 12, HP 12, paso banda, notch, LP 24, HP 24), K6 resonancia (Shift ganancia del VCA, hasta +18 dB con saturación), K7 velocidad del LFO, K8 cantidad del efecto (Shift tipo de efecto: suave, dura, plegada, wavefold, ring, comb, chorus).
 - **Página 2, OSC 1:** K1 afinación (Shift fina), K2 forma (Shift mezcla OSC 1 ↔ OSC 2), K3 envolvente → tono (Shift bitsync), K4 envolvente → forma, K5 LFO → tono, K6 LFO → forma, K7 WAVE, K8 LFO → morph (Shift envolvente → morph).
 - **Página 2, granular:** K1 tono ±24 (Shift fino), K2 posición (Shift dispersión de la posición), K3 recorrido: el centro congela, derecha hacia delante, izquierda hacia atrás (Shift probabilidad de un grano al revés), K4 tamaño del grano 5-500 ms (Shift dispersión del tono), K5 densidad 1-16 (Shift ventana), K6 zona del recorrido (Shift modo de nota: tono / slicer; {B} stretch = desde la posición hasta el final en un número fijo de pasos, sin cambiar el tono), K7 LFO → posición (Shift LFO → tamaño), K8 envolvente → posición (Shift fuente: RC un sample del pack o, a la izquierda, la captura; {B} la captura o el sample actual de un drum).
-- **Página 3, OSC 2:** {B}: K1 afinación 2, K2 forma 2, K3 mezcla OSC 1 / OSC 2, K4 FM, K5 afinación fina 2, K6 BITSYNC, K7 WAVE 2, K8 ring, todos sin Shift (RC0.9: K1 afinación 2 con Shift fina 2, K2 forma 2 con Shift FM, Shift + K3 ring, K7 WAVE 2). **Página 4:** los 8 valores automatizables (afinación, release, envolvente → nivel, envolvente → filtro, filtro, resonancia, velocidad del LFO, efecto). **Página 5:** ADSR arriba, LFO abajo ({B}: **Shift + K8** = la forma del LFO, seis formas en colores).
+- **Página 3, OSC 2:** {B}: K1 afinación 2, K2 forma 2, K3 mezcla OSC 1 / OSC 2, K4 FM, K5 afinación fina 2, K6 BITSYNC, K7 WAVE 2, K8 ring, todos sin Shift (RC0.9: K1 afinación 2 con Shift fina 2, K2 forma 2 con Shift FM, Shift + K3 ring, K7 WAVE 2). **Página 4:** los 8 valores automatizables (afinación, release, envolvente → nivel, envolvente → filtro, filtro, resonancia, velocidad del LFO, efecto). **Página 5:** ADSR arriba, LFO abajo ({B}: **Shift + K8** = la forma del LFO, seis formas en colores; *(desde RC2.02)* siete, con un sample & hold suavizado, y el triángulo de inicio).
 - **Automatización:** con Record + Play, los movimientos de los valores de la página 4 se graban en el patrón. {B}: **Clear + knob a la izquierda** borra la automatización de ese knob (rojo), **Clear + knob a la derecha** = por defecto (lavanda).
 
 ### Secuenciador de efectos
@@ -306,6 +307,9 @@ Pon primero efectos en los huecos de Master FX. Luego abre el step-drummer (pad 
 
 ### Editor de CC (pad 25)
 Mueve un knob para elegirlo; su número de CC se dibuja en los pads. **Octave ▼ / ▲** recorren los campos; girar el knob cambia el valor. Un CC normal tiene número, inicio y final; 99 / 98 / 6 = NRPN de 7 bits (MSB, LSB…), 38 = NRPN de 14 bits. Se guarda con el pad 26; cualquier botón de vista o el pad 25 descartan.
+
+### Matriz de modulación *(desde RC2.02)*
+Con el motor encendido, el **pad 6** de la vista Preset de MIDI convierte los 8 knobs en **8 fuentes**: K1 velocity, K2 nota, K3 azar por nota, K4 LFO 2, K5 envolvente 2, K6 golpe de un drum, K7 posición en el patrón, K8 azar por pasos. **Girar un knob elige a qué parámetro va** (cualquiera de las páginas de knobs, un tramo cada uno, en el color de su página) **y cuánto** (dentro del tramo). Mientras giras, los pads enseñan dónde está ese parámetro. **Shift + K4 / K5 / K6 / K8** = forma y velocidad del LFO, ataque y caída de la envolvente, qué drum, cada cuántos pasos. **Clear + knob** = fuente apagada; **Clear + pad 6** = todas. Se guarda con los patches del sinte propio.
 
 ### Patches del sinte propio {B}
 Las filas 2-3 de la vista Preset de MIDI son 16 huecos de patch, 4 páginas con Octave ▼ / ▲ (64 por pack, compartidos por MIDI 1 y 2). Tocar = cargar (la tónica suena mientras lo mantienes). **Clear + pad** dos veces = guardar. **Duplicate + A + B** = intercambiar; **Duplicate + A**, otro pack, **Duplicate + B** = copiar. Melocotón tenue = un patch, brillante = el último usado, violeta = vacío. Un patch guarda el motor, los dos osciladores, el orden, todos los valores y el ajuste del step-drummer (los pasos son del patrón). **Clear + el botón de la pista** reinicia todo el motor.

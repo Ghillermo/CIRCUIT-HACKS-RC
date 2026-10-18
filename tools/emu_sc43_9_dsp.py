@@ -81,7 +81,7 @@ def dsp_run(img, sched, blocks=BLOCKS, checks=CHECKS, every=(), shape=0, force=(
         Ls += s._mem(later.get(b, []))
         if b < len(sched):
             for w, addr in sched[b]:
-                if shape and addr == MB[0] and (w >> 16) & 0x7F == 19: w |= shape << 13          # MIDI 1's ACT: + the LFO shape
+                if shape and addr == MB[0] and (w >> 16) & 0x7F == 19: w = w & ~(7 << 13) | shape << 13   # MIDI 1's ACT: the LFO shape (newer builds' traffic carries one already)
                 Ls.append('X %x %06x' % (addr, w & 0xFFFFFF))
         Ls += ['X %x %06x' % (a_, v_) for a_, v_ in force]
         Ls += [f'PC {DS.STUB:x}', f'STOP {DS.STUB + 2:x}', 'RUN']

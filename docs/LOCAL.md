@@ -10,7 +10,7 @@ La rama **RC** no incluye código ni binarios de Novation. Para obtener un `.syx
 
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R201
+python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R202
 ```
 
 - Comprueba que el fichero es el oficial (SHA-256 de `stock/SHA256SUMS.txt`) y lo guarda en `stock/`.
@@ -20,7 +20,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R201
 - No hace falta compilar nada: el ensamblado del DSP sale de la caché `tools/dsp_asm_cache.json`.
 - Envía el `.syx` con `tools/ct_uploader.html`.
 
-**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R201S`.
+**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R202S`.
 
 ## 1. Requisitos
 | Para | Necesitas |

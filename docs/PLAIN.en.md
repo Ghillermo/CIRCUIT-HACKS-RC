@@ -44,9 +44,9 @@ The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra
 
 | Build | What it is |
 |---|---|
-| **RC2.01** | The release candidate: everything in this guide (RC2 + the captured sample before the master filter). |
-| **RC2.01S** | The *safer* build: RC2.01, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
-| **RC2 / RC2S, RC0.9 / RC0.9S** | The earlier ones: RC2 with the sample after the master filter; RC0.9 without what is marked *(since RC2)*. |
+| **RC2.02** | The release candidate: everything in this guide (RC2.01 + the mod matrix, the split keyboard with any pair and the new LFO shapes). |
+| **RC2.02S** | The *safer* build: RC2.02, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
+| **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | The earlier ones: RC2.01 without what is marked *(since RC2.02)*; RC2 with the sample after the master filter; RC0.9 without what is marked *(since RC2)*. |
 
 ### Installing
 1. Download Novation's official firmware 1.2.1 (the update file from Components).
@@ -238,7 +238,7 @@ A layer over the pattern: the pattern decides which steps play; the knobs give e
 - *(since RC2)* **Pitch-vel toggle (pad 32 of the view, green):** on top of their destinations, the pitch page moves the **notes** one degree of the project's scale every 8 knob steps (MIDI −8 … +8 from the centre, synths 0 … +16) and the velocity page also sets the notes' velocity. With the toggle, pitch destinations of the pitch page no longer detune the own synth (the note moves instead).
 
 ### RC2 extras
-- **Split keyboard:** hold Synth 1 and press Synth 2 (or the other way round): the top two rows play Synth 1, the bottom two Synth 2, each with its scale, octave and velocity. Knobs and Octave follow the synth pressed first; any track or view button leaves.
+- **Split keyboard:** hold Synth 1 and press Synth 2 (or the other way round): the top two rows play Synth 1, the bottom two Synth 2, each with its scale, octave and velocity. Knobs and Octave follow the synth pressed first; any track or view button leaves. *(since RC2.02:* with any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2; the track you held first on top.*)*
 - **Patch colours** in the Preset view: dark blue = mono, lavender = mono with glide, track colour = poly; the chosen one lighter.
 - **Save a patch into the pack:** Preset view, **Clear + pad**, then **Clear + the same pad** within about 5 s: the patch as it sounds goes into that slot (the stock cannot save patches on the device). Refused in the internal memory's pack.
 - **Macro destinations:** in the source view, pad 32 opens the editor. Turn a knob to pick its macro; the knob changes the current field and **Octave ▼ / ▲** walk the fields (slot 1-4, start, end, destination, depth); the pads draw the number. Any pad drops the macro; pad 32 closes the editor. Destinations are the CC / NRPN numbers of Novation's Programmer's Reference Guide (for example CC 74 = filter cutoff).
@@ -266,6 +266,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 | Pad | Function |
 |---|---|
 | 1-5 | Knob page: 1 VCA-VCF, 2 OSC 1 (the granular controls in granular), 3 OSC 2, 4 the 8 automatable values, 5 modulation. *(since RC2)*: **Clear + page pad** = that page back to its defaults. |
+| 6 | *(since RC2.02)* **Mod matrix** (below). |
 | 9-24 | *(since RC2)* **Own-synth patches** (below). |
 | 25 | CC editor of the template's macros. |
 | 26 | Patch flip: every note goes out as a Program Change (*(since RC2)*: only on the track's channel). Exclusive with the engine. |
@@ -280,7 +281,7 @@ In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine
 - **Page 1, VCA-VCF:** K1 attack (Shift sustain), K2 release (Shift decay), K3 envelope → level (Shift LFO → level), K4 envelope → filter (Shift LFO → filter), K5 filter (Shift filter type: DJ, LP 12, HP 12, band pass, notch, LP 24, HP 24), K6 resonance (Shift VCA gain, up to +18 dB with saturation), K7 LFO speed, K8 effect amount (Shift effect type: soft, hard, folded, wavefold, ring, comb, chorus).
 - **Page 2, OSC 1:** K1 tune (Shift fine), K2 shape (Shift mix OSC 1 ↔ OSC 2), K3 envelope → pitch (Shift bitsync), K4 envelope → shape, K5 LFO → pitch, K6 LFO → shape, K7 WAVE, K8 LFO → morph (Shift envelope → morph).
 - **Page 2, granular:** K1 pitch ±24 (Shift fine), K2 position (Shift position spread), K3 scan: centre freezes, right forward, left backward (Shift chance of a reversed grain), K4 grain size 5-500 ms (Shift pitch spread), K5 density 1-16 (Shift window), K6 scan zone (Shift note mode: pitch / slicer; *(since RC2)* stretch = from the position to the end over a set number of steps, without changing pitch), K7 LFO → position (Shift LFO → size), K8 envelope → position (Shift source: RC a pack sample or, left, the capture; *(since RC2)* the capture or the current sample of a drum).
-- **Page 3, OSC 2:** *(since RC2)*: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below (*(since RC2)*: **Shift + K8** = the LFO's shape, six shapes in colours).
+- **Page 3, OSC 2:** *(since RC2)*: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). **Page 4:** the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). **Page 5:** ADSR on top, LFO below (*(since RC2)*: **Shift + K8** = the LFO's shape, six shapes in colours; *(since RC2.02)* seven, with a slewed sample & hold, and the triangle to start with).
 - **Automation:** with Record + Play, the moves of the page 4 values are recorded into the pattern. *(since RC2)*: **Clear + knob left** deletes that knob's automation (red), **Clear + knob right** = default (lavender).
 
 ### FX sequencer
@@ -288,6 +289,9 @@ Put effects into the Master FX slots first. Then open the step-drummer (pad 30) 
 
 ### CC editor (pad 25)
 Move a knob to pick it; its CC number is drawn on the pads. **Octave ▼ / ▲** walk the fields; turning the knob changes the value. A plain CC has number, start and end; 99 / 98 / 6 = 7-bit NRPN (MSB, LSB…), 38 = 14-bit NRPN. Save with pad 26; any view button or pad 25 discards.
+
+### Mod matrix *(since RC2.02)*
+With the engine on, **pad 6** of the MIDI Preset view turns the 8 knobs into **8 sources**: K1 velocity, K2 note, K3 random per note, K4 LFO 2, K5 envelope 2, K6 a drum hit, K7 the pattern position, K8 stepped random. **Turning a knob picks which parameter it moves** (any of the knob pages, one stretch each, in its page's colour) **and how much** (inside the stretch). While you turn, the pads show where that parameter is. **Shift + K4 / K5 / K6 / K8** = the LFO's shape and rate, the envelope's attack and decay, which drum, every how many steps. **Clear + knob** = source off; **Clear + pad 6** = all. Saved with the own-synth patches.
 
 ### Own-synth patches *(since RC2)*
 Rows 2-3 of the MIDI Preset view are 16 patch slots, 4 pages with Octave ▼ / ▲ (64 per pack, shared by MIDI 1 and 2). Touch = load (the tonic sounds while you hold). **Clear + pad** twice = save. **Duplicate + A + B** = swap; **Duplicate + A**, another pack, **Duplicate + B** = copy. Dim peach = a patch, bright = the last used, violet = empty. A patch keeps the engine, both oscillators, the order, every value and the step-drummer setting (the steps belong to the pattern). **Clear + the track button** resets the whole engine.

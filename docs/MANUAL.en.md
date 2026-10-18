@@ -1,4 +1,4 @@
-# Feature list — CIRCUIT-HACKS (RC2.01)
+# Feature list — CIRCUIT-HACKS (RC2.02)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Every feature in one line, by topic. **The user manual is the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html)); the CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Illustrated version of this list: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 
@@ -55,7 +55,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [C13 Drums micro-step rollers (since RC2)](#c13-rollers)
 - [C14 Custom scale (since RC2)](#c14-escala-propia)
 - [C15 Sample mode of the MIDI tracks (since RC2)](#c15-modo-muestra)
-- [C16 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c16-master-fx-beta)
+- [C16 Mod matrix of the own synth (since RC2.02)](#c16-matriz-mod)
+- [C17 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c17-master-fx-beta)
 
 **D. DSP**
 
@@ -258,8 +259,13 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** A new state of pad 27 (cyan, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
 - The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
 
-<a id="c16-master-fx-beta"></a>
-### C16. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
+<a id="c16-matriz-mod"></a>
+### C16. Mod matrix of the own synth (since RC2.02)
+- **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
+- Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
+
+<a id="c17-master-fx-beta"></a>
+### C17. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
 - **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP

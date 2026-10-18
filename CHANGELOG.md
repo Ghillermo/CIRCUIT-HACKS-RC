@@ -4,6 +4,25 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC2.02 / RC2.02S — 2026-10-18
+
+**RC2.02** (ficheros y marca `R202`; = SC44.3) = RC2.01 + todo lo de la **Beta 3.0** (su entrada, abajo: matriz de modulación del sinte propio, teclado partido con cualquier par de pistas de notas, LFO con triángulo por defecto y sample & hold suavizado, el código del ARM compactado). **RC2.02S** (`R202S`) = RC2.02 sin escrituras propias en la SD, como RC2.01S. La Beta 3.0 no se publicó por separado.
+
+## Beta 3.0 — 2026-10-18
+
+**Beta 3.0** (marca `B3.0`; = SC44.3) = RC2.01 + lo siguiente (reúne las betas 1.31 y 1.32, que no se publicaron). Las RC siguen en RC2.01 / RC2.01S. Las betas ya no tienen versión «S»: solo las RC.
+
+### Novedades (solo Beta 3.0)
+- **Matriz de modulación del sinte propio de MIDI 1 / 2 (C16):** con el motor encendido, el **pad 6** de la vista Preset es una página de knobs nueva (azul claro). **K1-K8 = ocho fuentes:** velocity, nota (C3 = 0), azar por nota, LFO 2, envolvente 2, golpe de un drum, posición en el patrón, azar por pasos. **La posición de cada knob es el destino y la cantidad:** a la izquierda del todo apagado; al girar se pasa por los 33 parámetros de las páginas de knobs, un tramo cada uno, y dentro del tramo la cantidad crece. Knobs lentos (dos clics por paso, 16 pasos por destino); el LED en el color de la página del destino y el brillo de la cantidad; mientras giras, los pads enseñan dónde está el destino. **Shift + K4 / K5 / K6 / K8** = forma y velocidad del LFO 2, ataque y caída de la envolvente 2, qué drum y su caída, cada cuántos pasos. **Clear + knob** = fuente apagada; **Clear + pad 6** = todas. Se guarda con los patches del sinte propio (también al intercambiarlos o copiarlos entre packs).
+- **Teclado partido con cualquier par de pistas de notas:** mantén uno de Synth 1, Synth 2, MIDI 1, MIDI 2 y pulsa otro: arriba la pista que mantuviste primero, abajo la otra.
+- **LFO del sinte propio de MIDI 1 / 2** (página 5, Shift + K8): una séptima forma, **sample & hold suavizado** (violeta): se desliza de un valor al azar al siguiente durante cada vuelta. El sample & hold de escalones (blanco) sigue.
+- **LFO 2 de la matriz de modulación** (Shift + K4): también **sample & hold suavizado** (violeta), y sus colores son los del LFO del motor (triángulo verde, sierra magenta, cuadrada roja, sample & hold blanco).
+
+### Cambios (solo Beta 3.0)
+- El código del ARM ocupa 3 264 B menos (las constantes de 32 bits en tablas compartidas); el comportamiento es el mismo.
+- En el teclado partido de Synth 1 + Synth 2, si mantienes primero Synth 2, Synth 2 queda arriba.
+- El LFO del sinte propio empieza en **triángulo** cuando el proyecto no guarda forma (un proyecto nuevo o de antes); antes, el diente de sierra inverso. Un patch propio de antes de las formas sigue cargando el diente de sierra inverso.
+
 ## RC2.01 / RC2.01S — 2026-10-18
 
 **RC2.01** (ficheros y marca `R201`; = SC44.1) = RC2 + lo siguiente; **RC2.01S** (`R201S`) = RC2.01 sin escrituras propias en la SD, como RC2S.
@@ -386,6 +405,25 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC2.02 / RC2.02S — 2026-10-18
+
+**RC2.02** (files and marker `R202`; = SC44.3) = RC2.01 + everything of **Beta 3.0** (its entry, below: mod matrix of the own synth, split keyboard with any pair of note tracks, LFO with a triangle by default and slewed sample & hold, the compacted ARM code). **RC2.02S** (`R202S`) = RC2.02 without writes of its own to the SD card, as RC2.01S. Beta 3.0 was not published on its own.
+
+## Beta 3.0 — 2026-10-18
+
+**Beta 3.0** (marker `B3.0`; = SC44.3) = RC2.01 + the following (it gathers betas 1.31 and 1.32, never published). The RCs stay at RC2.01 / RC2.01S. Betas no longer get an «S» build: only the RCs do.
+
+### New (Beta 3.0 only)
+- **Mod matrix of the MIDI 1 / 2 own synth (C16):** with the engine on, **pad 6** of the Preset view is a new knob page (light blue). **K1-K8 = eight sources:** velocity, note (C3 = 0), random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random. **Each knob's position is the destination and the amount:** fully left = off; turning goes through the 33 parameters of the knob pages, one stretch each, and the amount grows inside the stretch. Slow knobs (two clicks a step, 16 steps a destination); the LED in the destination page's colour, the brightness the amount; while you turn, the pads show where the destination is. **Shift + K4 / K5 / K6 / K8** = LFO 2's shape and rate, envelope 2's attack and decay, which drum and its decay, every how many steps. **Clear + knob** = source off; **Clear + pad 6** = all. Saved with the own-synth patches (also when swapping or copying them between packs).
+- **Split keyboard with any pair of note tracks:** hold one of Synth 1, Synth 2, MIDI 1, MIDI 2 and press another: the track you held first on top, the other below.
+- **The MIDI 1 / 2 own synth's LFO** (page 5, Shift + K8): a seventh shape, **slewed sample & hold** (violet): it glides from one random value to the next during each cycle. The stepped sample & hold (white) stays.
+- **The mod matrix's LFO 2** (Shift + K4): **slewed sample & hold** too (violet), and its colours are the engine LFO's (triangle green, saw magenta, square red, sample & hold white).
+
+### Changes (Beta 3.0 only)
+- The ARM code is 3,264 B smaller (the 32-bit constants in shared tables); same behaviour.
+- On the Synth 1 + Synth 2 split keyboard, holding Synth 2 first puts Synth 2 on top.
+- The own synth's LFO starts as a **triangle** when the project saves no shape (a new or older project); before, the reverse saw. An own-synth patch from before the shapes still loads the reverse saw.
 
 ## RC2.01 / RC2.01S — 2026-10-18
 

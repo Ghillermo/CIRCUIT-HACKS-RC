@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,10 +77,16 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R201": ("RC2.01 — la versión candidata 2.01 (= SC44.1): RC2 + el sample capturado antes del filtro master",
+DESC = {"R202": ("RC2.02 — la versión candidata 2.02 (= SC44.3): RC2.01 + matriz de modulación del sinte propio de MIDI 1 / 2, teclado partido con cualquier par de pistas de notas, LFO con triángulo por defecto y sample & hold suavizado",
+                 "RC2.02 — release candidate 2.02 (= SC44.3): RC2.01 + mod matrix of the MIDI 1 / 2 own synth, split keyboard with any pair of note tracks, LFO with a triangle by default and slewed sample & hold"),
+        "R202S": ("RC2.02S — versión más segura: RC2.02, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC2.02S — safer build: RC2.02, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "R201": ("RC2.01 — la versión candidata 2.01 (= SC44.1): RC2 + el sample capturado antes del filtro master",
                  "RC2.01 — release candidate 2.01 (= SC44.1): RC2 + the captured sample before the master filter"),
         "R201S": ("RC2.01S — versión más segura: RC2.01, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.01S — safer build: RC2.01, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.0": ("Beta 3.0 — beta (= SC44.3): RC2.01 + matriz de modulación del sinte propio de MIDI 1 / 2 (pad 6: K1-K8 = ocho fuentes, la posición del knob = destino y cantidad), teclado partido con cualquier par de pistas de notas, LFO con triángulo por defecto y sample & hold suavizado",
+                 "Beta 3.0 — beta (= SC44.3): RC2.01 + mod matrix of the own synth of MIDI 1 / 2 (pad 6: K1-K8 = eight sources, the knob position = destination and amount), split keyboard with any pair of note tracks, LFO with triangle by default and smoothed sample & hold"),
         "RC2": ("RC2 — la versión candidata 2 (= Beta 1.30 / SC44): RC0.9 + todo lo de las betas 1.0-1.30",
                 "RC2 — release candidate 2 (= Beta 1.30 / SC44): RC0.9 + everything of betas 1.0-1.30"),
         "RC2S": ("RC2S — versión más segura: RC2, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
@@ -508,4 +514,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

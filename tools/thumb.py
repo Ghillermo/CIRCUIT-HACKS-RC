@@ -168,6 +168,8 @@ class Asm:
         self.items.append(("ins", (fn, args, kw)))
 
     def assemble(self, external=None):
+        if COMPACT:
+            return _assemble_compact(self, external)
         labels = dict(external or {})
         # pass 1: sizes (all our encodings have fixed size per function)
         size_of = {bl: 4, cmp_w_imm: 4}
@@ -358,3 +360,193 @@ def ldrb_w(rt, rn, imm12):          # LDRB.W Rt,[Rn,#imm12]
 
 def strb_w(rt, rn, imm12):          # STRB.W Rt,[Rn,#imm12]
     assert 0 <= imm12 < 4096; return h(0xF880 | rn) + h(rt << 12 | imm12)
+
+
+# ---- (option) literal pools ------------------------------------------------
+# COMPACT: every `movw rd, lo` + `movt rd, hi` pair (8 B) becomes one LDR rd, [pc, #off] (2 B for r0-r7 when the pool is
+# 0..1020 B ahead, else LDR.W, 4 B) from a pool of shared words placed after an instruction that never falls through
+# (b, b.w, bx, pop {pc}).  Kept as a pair: inside an IT block, before a `*_fix` label (patched later in place), or with no
+# usable pool in reach.  A pool that would push a short branch (b<c>, b, cbz) out of range is not placed.  Off: the
+# assembler is the one above, byte for byte.
+COMPACT = False
+LAST = None         # (seq, addrs, pools, kept pairs, load sizes) of the last compacted block, for the checkers
+STATS = dict(pairs=0, narrow=0, wide=0, kept=0, pools=0, words=0, pad=0, before=0, after=0)
+# labels whose first N bytes a builder later reads or patches at fixed offsets: their pairs stay
+KEEP = dict(c_m1=8, c_m2=8, c_ckledtask=16, c_shbtn2=0x3C, c_conv0=64)
+
+
+def ldr_lit_n(rt, off):             # LDR Rt,[PC,#off] T1 (off from Align(PC, 4))
+    _lo(rt); assert off % 4 == 0 and 0 <= off <= 1020, off
+    return h(0x4800 | rt << 8 | off // 4)
+
+
+def ldr_lit_w(rt, off):             # LDR.W Rt,[PC,#+-off] T2
+    assert -4095 <= off <= 4095 and rt < 13, off
+    return h(0xF85F | (0x80 if off >= 0 else 0)) + h(rt << 12 | abs(off))
+
+
+def _size(fn, args):
+    if fn is raw:
+        return len(args[0])
+    return 4 if fn in (bl, cmp_w_imm, b_w, movw, movt, ldrb_w, strb_w, strh_w_imm, strh_w_reg_lsl1) else 2
+
+
+def _it_count(fn, args, kw):
+    if fn is it:
+        return 1 + len(args[1] if len(args) > 1 else kw.get("mask_pattern", ""))
+    if fn is raw and len(args[0]) == 2:
+        v = args[0][0] | args[0][1] << 8
+        if v & 0xFF00 == 0xBF00 and v & 0xF:
+            m = v & 0xF
+            return 4 - ((m & -m).bit_length() - 1)
+    return 0
+
+
+def _barrier(fn, args, kw):
+    """1 = never falls through; 2 = raw bytes that decode as such (a pool only if code, not more raw data, follows)."""
+    if fn in (b, b_w, bx_lr, pop_pc):
+        return 1
+    if fn is pop_list and (kw.get("pc") or (len(args) > 1 and args[1])):
+        return 1
+    if fn is raw:
+        d = args[0]
+        if len(d) == 2:
+            v = d[0] | d[1] << 8
+            if v == 0x4770 or v & 0xFF00 == 0xBD00 or v & 0xFF87 == 0x4700 or v & 0xF800 == 0xE000:
+                return 2
+        elif len(d) == 4:
+            h1, h2 = d[0] | d[1] << 8, d[2] | d[3] << 8
+            if (h1 & 0xF800 == 0xF000 and h2 & 0xD000 == 0x9000) or (h1 == 0xE8BD and h2 & 0x8000) or (h1 == 0xF85D and h2 == 0xFB04):
+                return 2
+    return 0
+
+
+def _assemble_compact(asm, external):
+    items, n = asm.items, len(asm.items)
+    seq, it_left, i, u, keep = [], 0, 0, 0, -1
+    while i < n:
+        kind, p = items[i]
+        if kind == "label":
+            if p in KEEP: keep = max(keep, u + KEEP[p])
+            seq.append(("label", p)); i += 1; continue
+        fn, args, kw = p
+        nx = items[i + 1] if i + 1 < n else None
+        u += _size(fn, args)
+        if (fn is movw and u - 4 >= keep and not it_left and not kw and nx and nx[0] == "ins" and nx[1][0] is movt and not nx[1][2]
+                and nx[1][1][0] == args[0] and isinstance(args[1], int) and isinstance(nx[1][1][1], int)
+                and not (i + 2 < n and items[i + 2][0] == "label" and str(items[i + 2][1]).endswith("_fix"))):
+            seq.append(("lit", args[0], args[1] | nx[1][1][1] << 16)); i += 2; u += 4; continue
+        inside = it_left > 0
+        if inside:
+            it_left -= 1
+        seq.append(("ins", fn, args, kw, _size(fn, args)))
+        c = _it_count(fn, args, kw)
+        if c:
+            it_left = c
+        if not inside:
+            bk = _barrier(fn, args, kw)
+            if bk == 2:
+                j = i + 1
+                while j < n and items[j][0] == "label": j += 1
+                if j < n and items[j][1][0] is raw: bk = 0
+            if bk:
+                seq.append(("site",))
+        i += 1
+    base = asm.base
+    lits = [k for k, e in enumerate(seq) if e[0] == "lit"]
+    lsz = {k: 2 if seq[k][1] < 8 else 4 for k in lits}
+    forbid, pair = set(), set()
+
+    def sz(k):
+        e = seq[k]
+        return e[4] if e[0] == "ins" else (8 if k in pair else lsz[k]) if e[0] == "lit" else 0
+
+    for _attempt in range(400):
+        # (a) pools, greedily: flush at a site when the next usable site would leave an open load out of reach
+        pools, owner, addrs, open_, addr = {}, {}, {}, [], base
+        for k, e in enumerate(seq):
+            addrs[k] = addr
+            if e[0] == "site" and open_ and k not in forbid:
+                vals, a2, nxt = {seq[j][2] for j, _ in open_}, addr, None
+                for j in range(k + 1, len(seq)):
+                    if seq[j][0] == "site" and j not in forbid:
+                        nxt = a2; break
+                    if seq[j][0] == "lit" and j not in pair:
+                        vals.add(seq[j][2])
+                    a2 += sz(j)
+                flush = nxt is None or any(nxt + 2 + 4 * (len(vals) - 1) - ((aj + 4) & ~3) > (1020 if lsz[j] == 2 else 4095) for j, aj in open_)
+                if flush:
+                    pv = []
+                    for j, _ in open_:
+                        if seq[j][2] not in pv: pv.append(seq[j][2])
+                        owner[j] = k
+                    pools[k], open_ = pv, []
+                    addr += (addr & 2) + 4 * len(pv)
+                continue
+            if e[0] == "lit" and k not in pair:
+                open_.append((k, addr))
+            addr += sz(k)
+        changed = bool(open_)
+        pair |= {j for j, _ in open_}
+        if changed:
+            continue
+        # (b) the size each load needs where its pool landed (sizes only grow, so this ends)
+        offs = {}
+        for j in lits:
+            if j in pair: continue
+            s = owner[j]
+            off = addrs[s] + (addrs[s] & 2) + 4 * pools[s].index(seq[j][2]) - ((addrs[j] + 4) & ~3)
+            need = 2 if seq[j][1] < 8 and 0 <= off <= 1020 else 4 if -4095 <= off <= 4095 else 8
+            if need == 8: pair.add(j); changed = True
+            elif need > lsz[j]: lsz[j] = need; changed = True
+            offs[j] = off
+        if changed:
+            continue
+        # (c) encode; a short branch out of range forbids the sites between it and its target
+        labels = dict(external or {})
+        for k, e in enumerate(seq):
+            if e[0] == "label": labels[e[1]] = addrs[k]
+        out, fail = bytearray(), None
+        for k, e in enumerate(seq):
+            assert base + len(out) == addrs[k], (hex(base + len(out)), hex(addrs[k]))
+            if e[0] == "label":
+                continue
+            if e[0] == "site":
+                if k in pools:
+                    if addrs[k] & 2: out += nop()
+                    for v in pools[k]: out += struct.pack("<I", v)
+                continue
+            if e[0] == "lit":
+                rd, v = e[1], e[2]
+                out += (movw(rd, v & 0xFFFF) + movt(rd, v >> 16) if k in pair else
+                        ldr_lit_n(rd, offs[k]) if lsz[k] == 2 else ldr_lit_w(rd, offs[k]))
+                continue
+            fn, args, kw = e[1], e[2], e[3]
+            a = [labels[x] if isinstance(x, str) and x in labels else x for x in args]
+            try:
+                enc = fn(addrs[k], *a, **kw) if fn in (b_cond, b, bl, cbz, b_w) else fn(*a, **kw)
+            except AssertionError as ex:
+                tgt = args[0] if args and isinstance(args[0], str) else None
+                if fn in (b_cond, b, cbz) and tgt and any(x[0] == "label" and x[1] == tgt for x in seq):
+                    fail = (k, tgt); break
+                raise AssertionError(f"{ex} ({getattr(fn, '__name__', fn)} at {hex(addrs[k])}, operands {args})") from None
+            assert len(enc) == e[4], (getattr(fn, "__name__", fn), len(enc), e[4])
+            out += enc
+        if fail:
+            k0, tgt = fail
+            t = next(j for j, x in enumerate(seq) if x[0] == "label" and x[1] == tgt)
+            new = {j for j in range(min(k0, t), max(k0, t)) if seq[j][0] == "site"} - forbid
+            if not new:
+                raise AssertionError(f"branch out of range without a pool between ({hex(addrs[k0])} -> {tgt})")
+            forbid |= new
+            continue
+        STATS["pairs"] += len(lits); STATS["kept"] += len(pair)
+        STATS["narrow"] += sum(1 for j in lits if j not in pair and lsz[j] == 2)
+        STATS["wide"] += sum(1 for j in lits if j not in pair and lsz[j] == 4)
+        STATS["pools"] += len(pools); STATS["words"] += sum(len(v) for v in pools.values())
+        STATS["pad"] += sum(2 for s in pools if addrs[s] & 2)
+        STATS["before"] += sum(8 if e[0] == "lit" else e[4] if e[0] == "ins" else 0 for e in seq); STATS["after"] += len(out)
+        global LAST
+        LAST = (seq, addrs, pools, pair, lsz)
+        return bytes(out), labels
+    raise AssertionError("literal pools: no stable layout")

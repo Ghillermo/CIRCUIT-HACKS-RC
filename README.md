@@ -1,6 +1,6 @@
 # CIRCUIT-HACKS
 
-> 📢 **Ya está aquí RC2** (ahora **RC2.01**): la segunda versión candidata, con todo lo de las betas hasta la 1.30. **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
+> 📢 **Ya está aquí RC2.02**: la segunda versión candidata con todo lo de las betas hasta la 3.0 (lo último: matriz de modulación del sinte propio de MIDI 1 / 2, teclado partido con cualquier par de pistas de notas y nuevas formas del LFO). **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
 
 Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo.
 
@@ -15,7 +15,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - Haz una copia completa de la SD (proyectos, packs y samples) antes de enviar cualquier versión del mod.
 > - No trabajes con proyectos importantes guardados en el aparato mientras lo pruebas.
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
-> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.01S](firmware/r201s/PRUEBA.md)**: es RC2.01 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
+> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.02S](firmware/r202s/PRUEBA.md)**: es RC2.02 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -38,7 +38,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC2.01, la versión más segura RC2.01S (o las anteriores), u «Oficial» para volver atrás.
+3. **Elige el `.syx` oficial y la versión**: RC2.02, la versión más segura RC2.02S (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -51,15 +51,15 @@ La página no contiene código de Novation: solo los bytes del mod y las instruc
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R201`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R201S`.
-4. Envía `firmware/r201/circuittracks-4486-R201.syx` con `tools/ct_uploader.html` (Chrome / Edge).
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R202`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R202S`.
+4. Envía `firmware/r202/circuittracks-4486-R202.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
 
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.01**; **más segura: RC2.01S** (sin escrituras propias en la SD). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.02**; **más segura: RC2.02S** (sin escrituras propias en la SD). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -72,11 +72,11 @@ Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering 
 **Solo el firmware** (Python 3.10+; no hace falta compilar nada):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R201
+python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R202
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R201S` = la versión más segura; `--list` enseña todas; `--all` las construye todas.
+- `--version R202S` = la versión más segura; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -88,7 +88,7 @@ bash tools/run_tests.sh            # pruebas en emulación
 Windows sin WSL, flujo de un parche nuevo y detalles: [`docs/LOCAL.md`](docs/LOCAL.md). Dependencias, fuentes y licencias: [`docs/DEPENDENCIAS.md`](docs/DEPENDENCIAS.md). Manuales: [`docs/MANUAL.md`](docs/MANUAL.md) y [manual ilustrado en color](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html).
 
 <!-- FEATURES:BEGIN -->
-## Características (RC2.01)
+## Características (RC2.02)
 
 Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · esta lista: [ilustrada en color](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html) · [resumida](docs/MANUAL.md) · **guía en palabras sencillas, ilustrada** ([web](https://ghillermo.github.io/CIRCUITS-HACKS-RC/sencilla.html), [PDF](https://ghillermo.github.io/CIRCUITS-HACKS-RC/sencilla.pdf); primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [su guía original](https://files.catbox.moe/xgogqy.pdf)). Novedades y arreglos de cada versión: [`CHANGELOG.md`](CHANGELOG.md). Lo marcado **desde RC2** es nuevo en RC2 / RC2S (no está en RC0.9).
 
@@ -138,7 +138,8 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 - **[C13 Rollers de micropasos de los drums (desde RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c13-rollers)** — **Desde RC2.** Filas 1-3 de la vista Note de los drums: mantener un roller hace sonar su drum en cada paso en ese micropaso (dos columnas por drum, micropasos 1-3 y 4-6), en directo; con el transporte parado, al tempo del proyecto.
 - **[C14 Escala propia (desde RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c14-escala-propia)** — **Desde RC2.** **Shift + Scales** = editor de una escala propia para las pistas de notas: hasta 7 notas sobre la tónica y un **periodo** cualquiera (hasta 24 semitonos) que es la tónica de la siguiente iteración; cada fila de pads es una iteración (dos con 4 notas o menos). Se guarda con el proyecto.
 - **[C15 Modo muestra de las pistas MIDI (desde RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c15-modo-muestra)** — **Desde RC2.** Un estado nuevo del pad 27 (cian, tras el granular): la pista MIDI toca **un sample del pack de un golpe**, a la altura de la nota (**C3 = nota 60 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero. La **vista Note ampliada** (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; **paso mantenido + sample** = sample flip de ese paso, también en vivo con Record.
-- **[C16 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c16-master-fx-beta)** — **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
+- **[C16 Matriz de modulación del sinte propio (desde RC2.02)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c16-matriz-mod)** — **Desde RC2.02.** Con el motor de MIDI 1 / 2 encendido, el **pad 6** de su vista Preset es una página de knobs nueva: **K1-K8 = ocho fuentes** (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos). La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
+- **[C17 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#c17-master-fx-beta)** — **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
 
 ### D. DSP
 - **[D1 Efectos de Master FX](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#d1-efectos-grid)** — Gater, Auto-Filter LP / HP, Digitise, Phaser y Vinyl sobre la salida master, con 4 parámetros cada uno.
@@ -168,7 +169,7 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 <a id="english"></a>
 # CIRCUIT-HACKS (English)
 
-> 📢 **RC2 is out** (now **RC2.01**): the second release candidate, with everything of the betas up to 1.30. **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new: [`CHANGELOG.md`](CHANGELOG.md#changelog).
+> 📢 **RC2.02 is out**: the second release candidate with everything of the betas up to 3.0 (the latest: mod matrix of the MIDI 1 / 2 own synth, split keyboard with any pair of note tracks and new LFO shapes). **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new: [`CHANGELOG.md`](CHANGELOG.md#changelog).
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
@@ -180,7 +181,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - Make a full copy of the SD card (projects, packs and samples) before sending any version of the mod.
 > - Do not work on important projects stored on the device while you test it.
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
-> - If you would rather not risk the card, use the **safer build, [RC2.01S](firmware/r201s/PRUEBA.md)**: RC2.01 without any feature that creates, changes or deletes files on the SD card on its own.
+> - If you would rather not risk the card, use the **safer build, [RC2.02S](firmware/r202s/PRUEBA.md)**: RC2.02 without any feature that creates, changes or deletes files on the SD card on its own.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUITS-HACKS-RC>.
@@ -201,7 +202,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC2.01, the safer RC2.01S (or the earlier ones), or “Official” to go back.
+3. **Pick the official `.syx` and the version**: RC2.02, the safer RC2.02S (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -215,11 +216,11 @@ The page contains no Novation code: only the bytes of the mod and the instructio
 **Firmware only** (Python 3.10+; nothing to compile):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R201
+python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R202
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R201S` = the safer build; `--list` shows them all; `--all` builds them all.
+- `--version R202S` = the safer build; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -235,14 +236,14 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.01**; **safer: RC2.01S**.
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.02**; **safer: RC2.02S**.
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).
 - [`CLAUDE.md`](CLAUDE.md) — context for Claude Code (Spanish).
 
 <!-- FEATURES-EN:BEGIN -->
-## Features (RC2.01)
+## Features (RC2.02)
 
 User manual: [guide by views](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)) · [MIDI reference](docs/MIDI.en.md) · this list: [illustrated colour](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [short](docs/MANUAL.en.md) · **guide in plain words, illustrated** ([web](https://ghillermo.github.io/CIRCUITS-HACKS-RC/plain.html), [PDF](https://ghillermo.github.io/CIRCUITS-HACKS-RC/plain.pdf); first draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [the original guide](https://files.catbox.moe/xgogqy.pdf)). New features and fixes of every version: [`CHANGELOG.md`](CHANGELOG.md#changelog). What is marked **since RC2** is new in RC2 / RC2S (not in RC0.9).
 
@@ -292,7 +293,8 @@ User manual: [guide by views](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guid
 - **[C13 Drums micro-step rollers (since RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c13-rollers)** — **Since RC2.** Rows 1-3 of the drums' Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project's tempo.
 - **[C14 Custom scale (since RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c14-escala-propia)** — **Since RC2.** **Shift + Scales** = an editor of a custom scale for the note tracks: up to 7 notes over the root and any **period** (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.
 - **[C15 Sample mode of the MIDI tracks (since RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c15-modo-muestra)** — **Since RC2.** A new state of pad 27 (cyan, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end. The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
-- **[C16 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c16-master-fx-beta)** — **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
+- **[C16 Mod matrix of the own synth (since RC2.02)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c16-matriz-mod)** — **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random). Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
+- **[C17 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#c17-master-fx-beta)** — **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ### D. DSP
 - **[D1 Master FX effects](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#d1-efectos-grid)** — Gater, Auto-Filter LP / HP, Digitise, Phaser and Vinyl on the master output, with 4 parameters each.

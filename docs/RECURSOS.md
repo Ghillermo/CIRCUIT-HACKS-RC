@@ -10,6 +10,7 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 |---|---|---|---|---|
 | Flash de la aplicación (ARM) | 0x70000 B = 448 KB (lo que acepta el bootloader) | 143 908 B (140,5 KB) tras la imagen de 0x4CDDC B | 96 876 B | **47 032 B (45,9 KB)** |
 | RAM del ARM (heap) | límite del heap `0x20044E58` | 240 B (el stock nunca más reserva tras arrancar) | 236 B | **4 B** |
+| RAM del ARM sobre el heap (SC44.2) | `0x20044E58–0x2004FDFF` (el informe de memoria del stock: «Remaining»; pila de 512 B encima) | ≈ 44 KB (nunca escrita en los volcados del firmware en marcha) | 208 B (`modmx`, `split4`) | **≈ 43 KB** (quedarse por debajo de `0x2004F000`) |
 | Guardado por proyecto | 65 B reservados en los bloques de la sesión | 65 B | 65 B | ≈ 7 bits |
 | Guardado global (ajustes) | 75 B finales del registro de ajustes | 75 B | 75 B | 0 |
 | Programa del DSP, núcleo 0 | `P:$0000–$3FFF` = 16 384 palabras | 5 538 palabras (`$2A5E–$3FFF`) + `P:$80–$FF` | 5 515 + 125 palabras | **23 palabras** (SC37: 19; SC37.1: 17; RC0.1: 20) |
@@ -25,6 +26,9 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 ## ARM (STM32F745, Cortex-M7)
 
 ### Flash
+- SC44.3 / Beta 1.32 (0x6FE1C B, compactada): **484 B de flash libres** (las formas nuevas de los dos LFO, 176 B con el código del DSP). **DSP núcleo 0: termina en `P:$3F8B`, 116 palabras libres** (40 para el sample & hold suavizado). RAM: `OSC1 + 26` del DSP (el valor anterior del suavizado; libres las palabras 26..39 de los bloques OSC1), `modmx` + 54.
+- SC44.2 / Beta 1.31 (0x6FD6C B, compactada): **660 B de flash libres** (la matriz de modulación 2 812 B, el teclado partido 636 B; sin compactar no cabría: 0x70A00). RAM: `0x20045000–0x200450CF` (sobre el heap, ver la tabla). DSP: el de SC44.1.
+- **Con `thumb.COMPACT`** (los pares `movw` / `movt` del ARM en tablas de constantes; ver NOTAS): SC44.1 queda en 0x6EFF4 B = **4 108 B libres** (3 132 B recuperados). Las builds nuevas que la usen parten de ahí.
 - SC44.1 / RC2.01 (0x6FC30 B): **976 B de flash libres** (160 B más que SC44: el código del DSP crece). **DSP núcleo 0: termina en `P:$3F63`, 157 palabras libres** (58 para el sampler antes del filtro). RAM: `X:$3D18..$3D1A` (los registros del llamador).
 - SC44 / Beta 1.30 (0x6FB90 B): **1136 B de flash libres** (1 828 B para el modo muestra: el ARM del motor y el selector). **DSP núcleo 0: termina en `P:$3F29`, 215 palabras libres** (157 para el modo muestra). RAM: la cola `+ 953` / `+ 997` (el flip pendiente de MIDI 1 / 2): **la cola del proyecto ya no tiene bytes libres**; el estado del selector en los bytes 14 / 15 del bloque de SC16. Guardado: los flips en el carril de nivel de la pista MIDI (`0x80 | s`).
 - SC43.9 / Beta 1.29 (0x6F46C B): **2 964 B de flash libres** (la compactación del DSP ahorra 1 323 B de la imagen; las formas del LFO, el ARM y el patch, el resto). **DSP núcleo 0: termina en `P:$3E8C`, 372 palabras libres** (441 recuperadas con la forma de una palabra de `x:(rn+d)`, 76 para las formas del LFO). RAM: la cola `+ 561..563` (la forma del LFO por pista y el acumulador del knob); libres `+ 953`, `+ 997`.

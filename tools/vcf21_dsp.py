@@ -94,6 +94,8 @@ def use_sampler():
     assert OSC3 and VADRUM and GRAN
     SAMPLER = True
 N_LSHAPES = 6                                   # (LFOSHAPE) 0 reverse saw (as before), 1 saw, 2 triangle, 3 square, 4 sine, 5 sample & hold
+LS_SLEW = False                                 # SC44.3 (use_lfoshape2): shape 6 = slewed sample & hold
+SL_PREV = 26                                    # (LS_SLEW) the word of the OSC1 block with the last random value (words 26..39 are free)
 
 
 def use_lfoshape():
@@ -105,6 +107,15 @@ def use_lfoshape():
     global LFOSHAPE
     assert VADRUM and DUAL
     LFOSHAPE = True
+def use_lfoshape2():
+    """SC44.3 (the user, 2026-10-18: «add s&h (stepped random) and slewed s&h (glided random) as waveshapes»): shape 6 of the own engine's LFO =
+    slewed sample & hold: when the phase wraps the old random value goes to OSC1 + SL_PREV and the voice's noise generator (DFLAGS + 3) gives a new
+    one, as shape 5; every block LV = prev + (new - prev) x (p + 1) / 2: a straight glide from one random value to the next over the cycle."""
+    global N_LSHAPES, LS_SLEW
+    assert LFOSHAPE and SL_PREV - DFLAGS_OFF == 5
+    N_LSHAPES, LS_SLEW = 7, True
+
+
 GRAN = False                                    # SC36: the granular engine of DSP core 1 (granular_dsp): DFLAGS bit 4 (ACT bit 12) = this voice plays OUT instead of the oscillator; GNEW counted for core 1
 GATEREL = False                                  # SC23.3: release 0 = a ~2 ms release (a basic gate); see use_gaterel
 GATE_RKC = None                                  # set by use_gaterel: the release coefficient per block
@@ -321,6 +332,16 @@ def code(base, tabs, premix, ret_old):
             e("sub x0,a", "cmp #>$800000,a"); a.emit(J("ge"), p + "le")
             e("move x:(r7+3),x0", "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)", "move b1,a")
             a.emit(J("al"), p + "lw")
+            if LS_SLEW:
+                L(p + "l6")                                                       # slewed sample & hold: y1 = p; at a wrap prev = the old value, a new one
+                e("move a,y1", "tst a"); a.emit(J("ge"), p + "l6v")
+                e("sub x0,a", "cmp #>$800000,a"); a.emit(J("ge"), p + "l6v")
+                e("move x:(r7+3),x0", "move x0,x:(r7+%d)" % (SL_PREV - DFLAGS_OFF), "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)")
+                L(p + "l6v")                                                      # LV = prev + (new - prev) x (p + 1) / 2 (the halves keep it in range)
+                e("move y1,a", "asr a", "add #>$400000,a", "move a1,x0")
+                e("move x:(r7+3),b", "asr b", "move x:(r7+%d),a" % (SL_PREV - DFLAGS_OFF), "asr a", "sub a,b", "move b1,y0")
+                e("mpy y0,x0,a", "asl a", "move x:(r7+%d),x1" % (SL_PREV - DFLAGS_OFF), "add x1,a")
+                a.emit(J("al"), p + "lw")
             L(p + "l0"); e("neg a")                                               # the reverse saw: as before (from the unwrapped sum)
             L(p + "lw"); e("move a,%s" % X(LV))
             L(p + "le")

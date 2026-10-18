@@ -1,4 +1,4 @@
-# Lista de características — CIRCUIT-HACKS (RC2.01)
+# Lista de características — CIRCUIT-HACKS (RC2.02)
 
 Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no aparece aquí funciona como en el aparato original. Cada función en una línea, por temas. **El manual de uso es la [guía por vistas](GUIA.md)** (en color: [guia.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guia.html)); los CC / NRPN, en la [referencia MIDI](MIDI.md). Versión ilustrada de esta lista: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). English version: [`docs/MANUAL.en.md`](MANUAL.en.md).
 
@@ -55,7 +55,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C13 Rollers de micropasos de los drums (desde RC2)](#c13-rollers)
 - [C14 Escala propia (desde RC2)](#c14-escala-propia)
 - [C15 Modo muestra de las pistas MIDI (desde RC2)](#c15-modo-muestra)
-- [C16 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c16-master-fx-beta)
+- [C16 Matriz de modulación del sinte propio (desde RC2.02)](#c16-matriz-mod)
+- [C17 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c17-master-fx-beta)
 
 **D. DSP**
 
@@ -258,8 +259,13 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC2.** Un estado nuevo del pad 27 (cian, tras el granular): la pista MIDI toca **un sample del pack de un golpe**, a la altura de la nota (**C3 = nota 60 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero.
 - La **vista Note ampliada** (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; **paso mantenido + sample** = sample flip de ese paso, también en vivo con Record.
 
-<a id="c16-master-fx-beta"></a>
-### C16. Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión
+<a id="c16-matriz-mod"></a>
+### C16. Matriz de modulación del sinte propio (desde RC2.02)
+- **Desde RC2.02.** Con el motor de MIDI 1 / 2 encendido, el **pad 6** de su vista Preset es una página de knobs nueva: **K1-K8 = ocho fuentes** (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos).
+- La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
+
+<a id="c17-master-fx-beta"></a>
+### C17. Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión
 - **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
 
 ## D. DSP

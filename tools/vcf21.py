@@ -510,6 +510,7 @@ LS_SESSION, LS_TAIL, O_LS = 0x2003D71C, 0x27024, 561   # (LFOSHAPE) the project'
 LS_TAG, LS_N, LS_STEP = 0xB0, 6, 4                 # 6 shapes; one step every 4 knob clicks
 LS_COLS = (0x09, 0x32, 0x17, 0x53, 0x4D, 0x01)     # reverse saw orange, saw magenta, triangle green, square red, sine cyan, sample & hold white
 LS_PAGE, LS_KNOB = 4, 15                          # page 5 (KNOB_CODES_E), Shift + K8 (its free slot)
+LS_DEF = 0                                        # the shape without the project's tag (SC44.3 use_lfoshape2: the triangle)
 
 
 def use_lfoshape():
@@ -521,6 +522,16 @@ def use_lfoshape():
     global LFOSHAPE
     assert DUALUI and PAGES5 and TYPEZONE
     LFOSHAPE = True
+
+
+def use_lfoshape2():
+    """SC44.3 (the user, 2026-10-18: «Fix: set triangle as default waveshape for the lfo, add s&h (stepped random) and slewed s&h (glided random) as
+    waveshapes»): the LFO of the own engine (page 5, Shift + K8): without the project's tag (a new project, one saved before SC43.9) the triangle,
+    not the reverse saw; a seventh shape, slewed sample & hold (vcf21_dsp.use_lfoshape2: a glide from the last random value to a new one over each
+    cycle; LED violet).  The stepped sample & hold (shape 5, white) was there.  A version 1 own-synth patch still loads the reverse saw (its sound)."""
+    global LS_N, LS_DEF, LS_COLS
+    assert LFOSHAPE
+    LS_N, LS_DEF, LS_COLS = 7, 2, LS_COLS + (0x49,)
 
 
 def lfoshape_routines(a, L):
@@ -537,8 +548,8 @@ def lfoshape_routines(a, L):
     # ---- c_vlsh(r0 = track) -> r0 = its shape 0..5 (0 without the tag); clobbers r1, r2
     a.label("c_vlsh")
     E(push_list, [3], lr=True); E(bl, "c_vlsb"); E(cmp_imm, 0, 0); E(b_cond, "lh_x", "eq")
-    E(ldrb_imm, 1, 0, 0); E(lsrs_imm, 2, 1, 4); E(movs_imm, 0, 0); E(cmp_imm, 2, LS_TAG >> 4); E(b_cond, "lh_x", "ne")
-    E(movs_imm, 0, 7); E(ands_reg, 0, 1); E(cmp_imm, 0, LS_N); E(b_cond, "lh_x", "lo"); E(movs_imm, 0, 0)
+    E(ldrb_imm, 1, 0, 0); E(lsrs_imm, 2, 1, 4); E(movs_imm, 0, LS_DEF); E(cmp_imm, 2, LS_TAG >> 4); E(b_cond, "lh_x", "ne")
+    E(movs_imm, 0, 7); E(ands_reg, 0, 1); E(cmp_imm, 0, LS_N); E(b_cond, "lh_x", "lo"); E(movs_imm, 0, LS_DEF)
     a.label("lh_x"); E(pop_list, [3], pc=True)
 
     # ---- c_vlsset(r0 = track, r1 = shape 0..5): stored, ACT to be sent again; clobbers r0-r3

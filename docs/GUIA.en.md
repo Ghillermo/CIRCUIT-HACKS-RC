@@ -1,4 +1,4 @@
-# Guide by views — CIRCUIT-HACKS (RC2.01)
+# Guide by views — CIRCUIT-HACKS (RC2.02)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This guide walks through the device's views and explains everything each one can do. The [feature list](MANUAL.en.md) sums up every feature by topic.
 
@@ -25,9 +25,10 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 
 - [3.1 MIDI 1 / 2 Preset view](#midi-preset)
 - [3.2 Knob pages of the MIDI 1 / 2 engine](#midi-knobs)
-- [3.3 CC editor of the MIDI macros (pad 25)](#midi-cc)
-- [3.4 Step-drummer view](#step-drummer)
-- [3.5 Sample mode and sample picker](#midi-muestra)
+- [3.3 Mod matrix](#midi-matriz)
+- [3.4 CC editor of the MIDI macros (pad 25)](#midi-cc)
+- [3.5 Step-drummer view](#step-drummer)
+- [3.6 Sample mode and sample picker](#midi-muestra)
 
 **4. Pattern Settings**
 
@@ -79,7 +80,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 - **Pads 1-32** from top-left to bottom-right: row 1 = 1-8, row 2 = 9-16, row 3 = 17-24, row 4 = 25-32.
 - **Knobs K1-K4** on top, **K5-K8** below. «**Shift + X**» = hold Shift while using X; the same with Clear and Duplicate.
 - Anything not described here works as on the original device (Novation's official manual).
-- *(since RC2)* = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2.01S (and RC2S), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
+- *(since RC2)* = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2.02S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
+- *(since RC2.02)* = new in RC2.02 (not in RC2.01).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 
 <a id="botones"></a>
@@ -104,7 +106,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 | **Press the track button again** | Synth 1 / 2 | Opens the synth's source view (chapter 2). |
 | **Clear + Synth 1 / 2** | its view | *(since RC2)* Its eight macros back to the loaded patch's values. |
 | **Clear + a drum's button** | its view | *(since RC2)* Deletes the automation of its knobs in the playing pattern and puts its eight knobs back to their defaults. |
-| **Synth 1 + Synth 2 together** | all | Split keyboard *(since RC2)*. |
+| **Two note-track buttons together** | all | Split keyboard *(since RC2)*: Synth 1 + Synth 2; *(since RC2.02)* any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2. |
 | **Shift + Clear** | all | Metronome in four states *(since RC2)*: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. |
 | **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo, Record blinks red), then recording starts *(since RC2)*. Play during the count cancels it. The count-in is saved with the project. |
 | **Shift + Play** | all | *(since RC2)* **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
@@ -163,12 +165,12 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 **In this view**
 
 - **Source view** — the synth can process an audio input instead of its noise.
-- **Split keyboard** *(since RC2)* — one synth on top and the other below, each with its scale, octave and velocity.
+- **Split keyboard** *(since RC2)* — one synth on top and the other below, each with its scale, octave and velocity; *(since RC2.02)* with any pair of note tracks.
 
 - **Pressing the same button again** (with its view on screen) opens the synth's **source view** (next section).
-- **Synth 1 + Synth 2 together** (hold one, press the other) opens the **split keyboard** *(since RC2)*:
-- the top two rows play Synth 1 and the bottom two Synth 2, each with its scale, octave, velocity and colours;
-- the knobs and Octave are those of the synth you pressed first;
+- **Synth 1 + Synth 2 together** (hold one, press the other) opens the **split keyboard** *(since RC2)*; *(since RC2.02)* **any pair of note tracks** (Synth 1, Synth 2, MIDI 1, MIDI 2: hold one button and press another):
+- the top two rows play the track you held first and the bottom two the other one, each with its scale, octave, velocity and colours (in RC2: Synth 1 always on top);
+- the knobs and Octave are those of the track you pressed first; a drum button does not open the split keyboard;
 - any track or view button closes it (held notes are released); Play, Record, Octave and Shift do not.
 - The macro knobs work as always; their destinations can be edited on the device (source view, pad 32).
 
@@ -257,6 +259,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 - **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, VA-drum or granular) and still send MIDI.
 - **FX sequencer** — an engine with no sound: it triggers Master FX effects on the steps you choose.
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
+- **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
@@ -264,6 +267,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | Pad | Function |
 |---|---|
 | 1-5 | Engine knob page: 1 VCA-VCF, 2 OSC 1 (granular in that engine), 3 OSC 2, 4 sequenceable, 5 modulation. **Clear + the pad** *(since RC2)*: that page's values (with and without Shift) back to their defaults. |
+| 6 | *(since RC2.02)* **Mod matrix** (light blue; see “Mod matrix”). **Clear + pad 6**: every source off. |
 | 9-24 | **Own-synth patches** *(since RC2)*: see below. |
 | 25 | **CC editor** of the MIDI macros (next sections). |
 | 26 | **Patch flip**: every note of the track goes out as a Program Change (on the track's channel; if that is a synth's or the drums' channel, also internally). Exclusive with the engine. |
@@ -340,11 +344,38 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 ### Pages 3-5
 - **Page 3 (OSC 2):** *(since RC2)*: the eight values without Shift, following the printed labels: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (in RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
 - **Page 4:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect).
-- **Page 5:** ADSR on top, LFO below. *(since RC2)*: **Shift + K8 = the LFO's shape**: reverse saw (orange, the usual one), saw (magenta), triangle (green), square (red), sine (cyan), sample & hold (white: a random value each cycle); a step every 4 clicks, K8's LED with Shift in its colour. Saved with the project and in the own-synth patch; with the VA-drum the LFO stays its noise.
+- **Page 5:** ADSR on top, LFO below. *(since RC2)*: **Shift + K8 = the LFO's shape**: reverse saw (orange, the usual one), saw (magenta), triangle (green), square (red), sine (cyan), sample & hold (white: a random value each cycle); *(since RC2.02)*: **slewed sample & hold** (violet: it glides from one random value to the next during each cycle), and **with no shape saved (a new or older project) the triangle** (in RC2: the reverse saw; an own-synth patch from before the shapes still loads the reverse saw). A step every 4 clicks, K8's LED with Shift in its colour. Saved with the project and in the own-synth patch; with the VA-drum the LFO stays its noise.
+- **Page 6** *(since RC2.02)*: the mod matrix (next section).
 - Type knobs show colour (type) and brightness (position within the type). Everything goes out and comes in over CC / NRPN (MIDI reference).
 
+<a id="midi-matriz"></a>
+### 3.3 Mod matrix
+
+*How to get there:* *(since RC2.02)* MIDI 1 / 2 with the engine on: Preset view, **pad 6**. The 8 knobs become 8 modulation sources.
+
+| Knob | Source | With Shift |
+|---|---|---|
+| K1 | The note's velocity | — |
+| K2 | The note (C3 = 0; one octave = a quarter of the travel) | — |
+| K3 | Random: a new value at each note | — |
+| K4 | LFO 2 | Shape × rate: triangle (green, the initial one), saw (magenta), square (red), sample & hold (white: steps), slewed sample & hold (violet: gliding); the engine LFO's colours; in each shape, 0.05 to 20 Hz |
+| K5 | Envelope 2: attack and decay from each note | Attack × decay: attack 0 (white), short (light blue), medium (teal), long (blue); in each, the decay from 20 ms to 4 s |
+| K6 | A drum hit: a decay from each hit | Drum 1-4 (orange, yellow, violet, teal) × its decay |
+| K7 | The pattern position: from 0 on the first step to full on the last | — |
+| K8 | Stepped random: a new value every N sequencer steps | N = 1, 2, 4, 8 or 16 steps |
+
+- **The knob's position is the destination and the amount.** Fully left = off. Turning right goes through **every parameter of the knob pages** (33: page 1's, then page 2's, page 3's and the page 5 ones not seen before), one stretch each: inside a stretch the amount grows from 1/16 to full; into the next stretch the destination changes and the amount starts again.
+- **Slow knobs:** two clicks a step, 16 steps a destination.
+- **The LED's colour is the destination page's** (the colours of pads 1-5: orange VCA-VCF, green OSC 1, teal OSC 2), its **brightness** the amount; dark = no destination.
+- **While you turn a source** (and 1.5 s after), the pads show where its destination lives: its page pad lights up and pads 9-16 / 17-24 are that page's K1-K8 / Shift + K1-K8 (dim the ones with a parameter, bright the destination). While they show, pads 9-24 do not load patches.
+- **Full amount** = the whole source sweeps the parameter's whole range. The bipolar sources (note, random, LFO 2, stepped random) go up and down; the others only up. The parameter's stored value does not change: the matrix is added when it is sent.
+- Several sources can share a destination (they add up). TUNE moves in semitones and FINE in fractions; with the granular engine, its ranges; in sample mode the sample parameter picks the sample (from the capture to 64) and only TUNE changes the pitch.
+- **Clear + knob** = that source off; **Clear + Shift + knob** = its parameter back to the default; **Clear + pad 6** = all off.
+- **Saved with the own-synth patches** (pads 9-24: Duplicate + pad, also when swapping them or copying them between packs); a patch saved before loads it off. Not saved with the project nor across a power-down. No CC / NRPN.
+- The modulations reach the engine some 100-250 times a second, shared by everything that moves on the track: several fast sources at once update more slowly.
+
 <a id="midi-cc"></a>
-### 3.3 CC editor of the MIDI macros (pad 25)
+### 3.4 CC editor of the MIDI macros (pad 25)
 
 *How to get there:* MIDI 1 / 2 Preset view, **pad 25**: change on the device which CC / NRPN each macro knob of the template sends.
 
@@ -364,7 +395,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 | 38 | 14-bit NRPN | number, MSB, LSB, start (MSB, LSB), end (MSB, LSB) |
 
 <a id="step-drummer"></a>
-### 3.4 Step-drummer view
+### 3.5 Step-drummer view
 
 *How to get there:* MIDI 1 / 2: Preset view with the engine on, **pad 30**. Synth 1 / 2: source view, **pad 30**. Sequencing by step pairs over the pattern.
 
@@ -395,7 +426,7 @@ The step-drummer view is the MIDI tracks' one (chapter 3): pads 1-16 steps, 17-2
 - With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** *(since RC2)* (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing.
 
 <a id="midi-muestra"></a>
-### 3.5 Sample mode and sample picker
+### 3.6 Sample mode and sample picker
 
 *How to get there:* *(since RC2)* MIDI 1 / 2 with the engine on **sample** (pad 27 cyan, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.
 
@@ -785,9 +816,9 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 |---|---|
 | New drum knobs (attack, start and cut included), synth source, reverb / delay, Master FX slots and knobs, compressor, chain mode and scenes, count-in, arpeggiator (with its resolution), custom scale, gate by holding, the own synth's gate retrigger and LFO shape *(since RC2)* | The project |
 | Step-drummer notes, FX sequencer values, random-mutate, frequency, dynamics, chain rules, play order, the sample mode's sample flips *(since RC2)* | The pattern |
-| Saved synth patches, own-synth patches, captures used as samples | The pack *(writes to the card)* |
+| Saved synth patches, own-synth patches (with their mod matrix *(since RC2.02)*), captures used as samples | The pack *(writes to the card)* |
 | MIDI track engine (state and values; *(since RC2)*: also OSC 2, the Shift knobs of the granular and the oscillator and pads 28 / 29), MIDI Thru mode, PGM channels | Device settings |
-| Latched effects, song pointer, Setup's Record toggle, presets and triggers of the side-chain between drums | Not saved |
+| Latched effects, song pointer, Setup's Record toggle, presets and triggers of the side-chain between drums, the mod matrix outside a patch *(since RC2.02)* (off at power-up) | Not saved |
 
 <a id="midi"></a>
 ### A.2 MIDI of the new features
@@ -805,6 +836,6 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 *How to get there:* `tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.
 
 1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
-2. Pick the version (RC2.01, the safer RC2.01S, or an earlier one) and send. Novation's bootloader is not touched.
+2. Pick the version (RC2.02, the safer RC2.02S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
