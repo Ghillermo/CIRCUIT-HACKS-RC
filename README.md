@@ -2,7 +2,7 @@
 
 > 📢 **Ya está aquí RC2.02**: la segunda versión candidata con todo lo de las betas hasta la 3.0 (lo último: matriz de modulación del sinte propio de MIDI 1 / 2, teclado partido con cualquier par de pistas de notas y nuevas formas del LFO). **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
 
-Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo.
+Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo. Tampoco instales firmware protegido en tu Tracks. Sed honestos con los desarrolladores oficiales, gracias a su trabajo podemos tener cosas bonitas.
 
 <!-- LANG-NOTICE -->
 > **English:** the English version of this README is [further below](#english). Illustrated colour manual: [English](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [Español](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html).
@@ -175,7 +175,7 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 
 Firmware patches for the **Novation Circuit Tracks** (reference firmware 1.2.1 build 4486). The project was developed using Claude (Anthropic).
 
-Legal Notice: Code sourced by Novation is propietary. Don't install it on a device other than Circuit Tracks. This installer checos for a Circuit Tracks specifically, and won't allow you to use it on any other device.
+Legal Notice: Code sourced by Novation is propietary. Don't install it on a device other than Circuit Tracks. This installer checos for a Circuit Tracks specifically, and won't allow you to use it on any other device. Don't install propietary firmware from other devices in your Tracks either. Keep it fair for the official developers, they're the ones responsible for us having nice things.
 
 > ⚠️ **Before installing: back up your SD card.**
 > - Make a full copy of the SD card (projects, packs and samples) before sending any version of the mod.
