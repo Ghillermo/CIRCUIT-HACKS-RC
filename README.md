@@ -1,5 +1,7 @@
 # CIRCUIT-HACKS
 
+> 📢 **Ya está aquí RC2** (ahora **RC2.01**): la segunda versión candidata, con todo lo de las betas hasta la 1.30. Instálala desde el navegador con el instalador [`tools/rc_uploader.html`](tools/rc_uploader.html) ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
+
 <!-- LANG-NOTICE -->
 > **English:** the English version of this README is [further below](#english). Illustrated colour manual: [English](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [Español](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html).
 
@@ -163,6 +165,8 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 
 <a id="english"></a>
 # CIRCUIT-HACKS (English)
+
+> 📢 **RC2 is out** (now **RC2.01**): the second release candidate, with everything of the betas up to 1.30. Install it from your browser with the installer [`tools/rc_uploader.html`](tools/rc_uploader.html) ([how](#install-without-building-toolsrc_uploaderhtml)). What's new: [`CHANGELOG.md`](CHANGELOG.md#changelog).
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
