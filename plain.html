@@ -32,7 +32,7 @@ header.cover a { color:#ffb38a; }
 }
 @page { size:A4; margin:14mm 12mm; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>A guide in plain words, illustrated</p><p>RC2.01 · RC2.01S</p><p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>A guide in plain words, illustrated</p><p>RC2.02 · RC2.02S</p><p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
 <p class="lang"><a href="sencilla.html">Español</a> · <a href="plain.pdf">PDF</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>
 <p>First draft by <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>, whom we thank. This guide explains the CIRCUIT-HACKS mod in plain words, view by view, with drawings of the panel. It follows the structure and the plain style of the community guide «Circuit Tracks mod manual, in plain English» by <strong><a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></strong>, written for RC0.9 and Beta 1.3. This edition is rewritten for <strong>RC2.01</strong> and <strong>RC2.01S</strong>, keeps the names of the mod&#x27;s own manual (capture, step-drummer, slots…), corrects what that guide got wrong or left open, and adds every feature that came after Beta 1.3. The detailed references are the <a href="guide.html">guide by views</a> and the <a href="en.html">feature list</a>.</p>
 <p>Nothing here has been tested on a real unit unless the <a href="https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md">CHANGELOG</a> says so. The mod is not affiliated with Novation.</p>
@@ -71,9 +71,9 @@ header.cover a { color:#ffb38a; }
 <li>3. Pick a build:</li>
 </ol>
 <table><thead><tr><th>Build</th><th>What it is</th></tr></thead><tbody>
-<tr><td><strong>RC2.01</strong></td><td>The release candidate: everything in this guide (RC2 + the captured sample before the master filter).</td></tr>
-<tr><td><strong>RC2.01S</strong></td><td>The <em>safer</em> build: RC2.01, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red).</td></tr>
-<tr><td><strong>RC2 / RC2S, RC0.9 / RC0.9S</strong></td><td>The earlier ones: RC2 with the sample after the master filter; RC0.9 without what is marked <em>(since RC2)</em>.</td></tr>
+<tr><td><strong>RC2.02</strong></td><td>The release candidate: everything in this guide (RC2.01 + the mod matrix, the split keyboard with any pair and the new LFO shapes).</td></tr>
+<tr><td><strong>RC2.02S</strong></td><td>The <em>safer</em> build: RC2.02, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red).</td></tr>
+<tr><td><strong>RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S</strong></td><td>The earlier ones: RC2.01 without what is marked <em>(since RC2.02)</em>; RC2 with the sample after the master filter; RC0.9 without what is marked <em>(since RC2)</em>.</td></tr>
 </tbody></table>
 <h4>Installing</h4>
 <ol>
@@ -1351,7 +1351,7 @@ attack</text>
 </ul>
 <h4>RC2 extras</h4>
 <ul>
-<li><strong>Split keyboard:</strong> hold Synth 1 and press Synth 2 (or the other way round): the top two rows play Synth 1, the bottom two Synth 2, each with its scale, octave and velocity. Knobs and Octave follow the synth pressed first; any track or view button leaves.</li>
+<li><strong>Split keyboard:</strong> hold Synth 1 and press Synth 2 (or the other way round): the top two rows play Synth 1, the bottom two Synth 2, each with its scale, octave and velocity. Knobs and Octave follow the synth pressed first; any track or view button leaves. <em>(since RC2.02:</em> with any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2; the track you held first on top.<em>)</em></li>
 <li><strong>Patch colours</strong> in the Preset view: dark blue = mono, lavender = mono with glide, track colour = poly; the chosen one lighter.</li>
 <li><strong>Save a patch into the pack:</strong> Preset view, <strong>Clear + pad</strong>, then <strong>Clear + the same pad</strong> within about 5 s: the patch as it sounds goes into that slot (the stock cannot save patches on the device). Refused in the internal memory&#x27;s pack.</li>
 <li><strong>Macro destinations:</strong> in the source view, pad 32 opens the editor. Turn a knob to pick its macro; the knob changes the current field and <strong>Octave ▼ / ▲</strong> walk the fields (slot 1-4, start, end, destination, depth); the pads draw the number. Any pad drops the macro; pad 32 closes the editor. Destinations are the CC / NRPN numbers of Novation&#x27;s Programmer&#x27;s Reference Guide (for example CC 74 = filter cutoff).</li>
@@ -1536,6 +1536,7 @@ attack</text>
 <h4>Pads of the MIDI Preset view</h4>
 <table><thead><tr><th>Pad</th><th>Function</th></tr></thead><tbody>
 <tr><td>1-5</td><td>Knob page: 1 VCA-VCF, 2 OSC 1 (the granular controls in granular), 3 OSC 2, 4 the 8 automatable values, 5 modulation. <em>(since RC2)</em>: <strong>Clear + page pad</strong> = that page back to its defaults.</td></tr>
+<tr><td>6</td><td><em>(since RC2.02)</em> <strong>Mod matrix</strong> (below).</td></tr>
 <tr><td>9-24</td><td><em>(since RC2)</em> <strong>Own-synth patches</strong> (below).</td></tr>
 <tr><td>25</td><td>CC editor of the template&#x27;s macros.</td></tr>
 <tr><td>26</td><td>Patch flip: every note goes out as a Program Change (<em>(since RC2)</em>: only on the track&#x27;s channel). Exclusive with the engine.</td></tr>
@@ -1551,13 +1552,15 @@ attack</text>
 <li><strong>Page 1, VCA-VCF:</strong> K1 attack (Shift sustain), K2 release (Shift decay), K3 envelope → level (Shift LFO → level), K4 envelope → filter (Shift LFO → filter), K5 filter (Shift filter type: DJ, LP 12, HP 12, band pass, notch, LP 24, HP 24), K6 resonance (Shift VCA gain, up to +18 dB with saturation), K7 LFO speed, K8 effect amount (Shift effect type: soft, hard, folded, wavefold, ring, comb, chorus).</li>
 <li><strong>Page 2, OSC 1:</strong> K1 tune (Shift fine), K2 shape (Shift mix OSC 1 ↔ OSC 2), K3 envelope → pitch (Shift bitsync), K4 envelope → shape, K5 LFO → pitch, K6 LFO → shape, K7 WAVE, K8 LFO → morph (Shift envelope → morph).</li>
 <li><strong>Page 2, granular:</strong> K1 pitch ±24 (Shift fine), K2 position (Shift position spread), K3 scan: centre freezes, right forward, left backward (Shift chance of a reversed grain), K4 grain size 5-500 ms (Shift pitch spread), K5 density 1-16 (Shift window), K6 scan zone (Shift note mode: pitch / slicer; <em>(since RC2)</em> stretch = from the position to the end over a set number of steps, without changing pitch), K7 LFO → position (Shift LFO → size), K8 envelope → position (Shift source: RC a pack sample or, left, the capture; <em>(since RC2)</em> the capture or the current sample of a drum).</li>
-<li><strong>Page 3, OSC 2:</strong> <em>(since RC2)</em>: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). <strong>Page 4:</strong> the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). <strong>Page 5:</strong> ADSR on top, LFO below (<em>(since RC2)</em>: <strong>Shift + K8</strong> = the LFO&#x27;s shape, six shapes in colours).</li>
+<li><strong>Page 3, OSC 2:</strong> <em>(since RC2)</em>: K1 tune 2, K2 shape 2, K3 mix OSC 1 / OSC 2, K4 FM, K5 fine 2, K6 BITSYNC, K7 WAVE 2, K8 ring, all without Shift (RC0.9: K1 tune 2 with Shift fine 2, K2 shape 2 with Shift FM, Shift + K3 ring, K7 WAVE 2). <strong>Page 4:</strong> the 8 automatable values (tune, release, envelope → level, envelope → filter, filter, resonance, LFO speed, effect). <strong>Page 5:</strong> ADSR on top, LFO below (<em>(since RC2)</em>: <strong>Shift + K8</strong> = the LFO&#x27;s shape, six shapes in colours; <em>(since RC2.02)</em> seven, with a slewed sample &amp; hold, and the triangle to start with).</li>
 <li><strong>Automation:</strong> with Record + Play, the moves of the page 4 values are recorded into the pattern. <em>(since RC2)</em>: <strong>Clear + knob left</strong> deletes that knob&#x27;s automation (red), <strong>Clear + knob right</strong> = default (lavender).</li>
 </ul>
 <h4>FX sequencer</h4>
 <p>Put effects into the Master FX slots first. Then open the step-drummer (pad 30) and put notes on steps (Shift + pad). Each knob picks a slot for its pair: 0 none, 1-5 = pads 26-30, 6 = pad 31; on every step with a note that slot switches on, and the knob LED takes the effect&#x27;s colour. The knob moves slowly (about 48 steps of turning per slot). <em>(since RC2)</em>: at the end of the travel, <strong>random</strong> (white): one of the assigned slots at random on each note.</p>
 <h4>CC editor (pad 25)</h4>
 <p>Move a knob to pick it; its CC number is drawn on the pads. <strong>Octave ▼ / ▲</strong> walk the fields; turning the knob changes the value. A plain CC has number, start and end; 99 / 98 / 6 = 7-bit NRPN (MSB, LSB…), 38 = 14-bit NRPN. Save with pad 26; any view button or pad 25 discards.</p>
+<h4>Mod matrix <em>(since RC2.02)</em></h4>
+<p>With the engine on, <strong>pad 6</strong> of the MIDI Preset view turns the 8 knobs into <strong>8 sources</strong>: K1 velocity, K2 note, K3 random per note, K4 LFO 2, K5 envelope 2, K6 a drum hit, K7 the pattern position, K8 stepped random. <strong>Turning a knob picks which parameter it moves</strong> (any of the knob pages, one stretch each, in its page&#x27;s colour) <strong>and how much</strong> (inside the stretch). While you turn, the pads show where that parameter is. <strong>Shift + K4 / K5 / K6 / K8</strong> = the LFO&#x27;s shape and rate, the envelope&#x27;s attack and decay, which drum, every how many steps. <strong>Clear + knob</strong> = source off; <strong>Clear + pad 6</strong> = all. Saved with the own-synth patches.</p>
 <h4>Own-synth patches <em>(since RC2)</em></h4>
 <p>Rows 2-3 of the MIDI Preset view are 16 patch slots, 4 pages with Octave ▼ / ▲ (64 per pack, shared by MIDI 1 and 2). Touch = load (the tonic sounds while you hold). <strong>Clear + pad</strong> twice = save. <strong>Duplicate + A + B</strong> = swap; <strong>Duplicate + A</strong>, another pack, <strong>Duplicate + B</strong> = copy. Dim peach = a patch, bright = the last used, violet = empty. A patch keeps the engine, both oscillators, the order, every value and the step-drummer setting (the steps belong to the pattern). <strong>Clear + the track button</strong> resets the whole engine.</p>
 </section>

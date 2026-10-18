@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2.01)</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2.02)</title>
 <style>
 :root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2.01</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2.02</p><div class="bar"></div></header><main>
 <p class="lang"><a href="guide.html">English version</a> · <a href="index.html">Lista de características</a> · <a href="midi.html">Referencia MIDI</a></p>
 <p>Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía recorre las vistas del aparato y explica todo lo que se puede hacer en cada una. La </p>
 <nav class="toc"><h2>Vistas</h2>
@@ -43,9 +43,10 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h3>3. Pistas MIDI (MIDI 1 / 2)</h3><ol>
 <li><a href="#midi-preset">3.1 Vista Preset de MIDI 1 / 2</a></li>
 <li><a href="#midi-knobs">3.2 Páginas de knobs del motor de MIDI 1 / 2</a></li>
-<li><a href="#midi-cc">3.3 Editor de CC de los macros MIDI (pad 25)</a></li>
-<li><a href="#step-drummer">3.4 Vista del step-drummer</a></li>
-<li><a href="#midi-muestra">3.5 Modo muestra y selector de samples</a></li>
+<li><a href="#midi-matriz">3.3 Matriz de modulación</a></li>
+<li><a href="#midi-cc">3.4 Editor de CC de los macros MIDI (pad 25)</a></li>
+<li><a href="#step-drummer">3.5 Vista del step-drummer</a></li>
+<li><a href="#midi-muestra">3.6 Modo muestra y selector de samples</a></li>
 </ol>
 <h3>4. Pattern Settings</h3><ol>
 <li><a href="#pattern-settings">4.1 Vista Pattern Settings</a></li>
@@ -87,7 +88,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Pads 1-32</strong> de arriba-izquierda a abajo-derecha: fila 1 = 1-8, fila 2 = 9-16, fila 3 = 17-24, fila 4 = 25-32.</li>
 <li><strong>Knobs K1-K4</strong> arriba, <strong>K5-K8</strong> abajo. «<strong>Shift + X</strong>» = mantener Shift mientras se usa X; lo mismo con Clear y Duplicate.</li>
 <li>Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).</li>
-<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.01S (y RC2S), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
+<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.02S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
+<li><em>(desde RC2.02)</em> = nuevo en RC2.02 (no está en RC2.01).</li>
 <li>La <strong>lista de características</strong> (el manual anterior) resume cada función en una línea, por temas.</li>
 </ul>
 </section>
@@ -289,7 +291,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Pulsar el botón de la pista otra vez</strong></td><td>Synth 1 / 2</td><td>Abre la vista de la fuente del sinte (capítulo II).</td></tr>
 <tr><td><strong>Clear + Synth 1 / 2</strong></td><td>su vista</td><td><em>(desde RC2)</em> Sus ocho macros a los valores del patch cargado.</td></tr>
 <tr><td><strong>Clear + el botón de un drum</strong></td><td>su vista</td><td><em>(desde RC2)</em> Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto.</td></tr>
-<tr><td><strong>Synth 1 + Synth 2 a la vez</strong></td><td>todas</td><td>Teclado partido <em>(desde RC2)</em>.</td></tr>
+<tr><td><strong>Dos botones de pista de notas a la vez</strong></td><td>todas</td><td>Teclado partido <em>(desde RC2)</em>: Synth 1 + Synth 2; <em>(desde RC2.02)</em> cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2.</td></tr>
 <tr><td><strong>Shift + Clear</strong></td><td>todas</td><td>Metrónomo en cuatro estados <em>(desde RC2)</em>: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / cian (las dos). El volumen del clic es el de stock: <strong>Tempo/Swing</strong> y <strong>K5</strong>.</td></tr>
 <tr><td><strong>Play</strong> con Record armado y la cuenta atrás</td><td>parado</td><td>Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación <em>(desde RC2)</em>. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto.</td></tr>
 <tr><td><strong>Shift + Play</strong></td><td>todas</td><td><em>(desde RC2)</em> <strong>Cuantiza</strong> el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar).</td></tr>
@@ -480,7 +482,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="synth-nota"><h3><span class="code">2.1</span>Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)</h3>
 <div class="summary"><p><strong>Cómo se llega:</strong> Pulsa <strong>Synth 1</strong> o <strong>Synth 2</strong>. Los pads tocan el sinte como siempre.</p><p class="about-h"><strong>En esta vista</strong></p><ul>
 <li><strong>Vista de la fuente</strong> — el sinte puede procesar una entrada de audio en lugar de su ruido.</li>
-<li><strong>Teclado partido</strong> <em>(desde RC2)</em> — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity.</li>
+<li><strong>Teclado partido</strong> <em>(desde RC2)</em> — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity; <em>(desde RC2.02)</em> con cualquier par de pistas de notas.</li>
 </ul></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -623,9 +625,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.</figcaption></figure>
 <ul>
 <li><strong>Pulsar el mismo botón otra vez</strong> (con su vista en pantalla) abre la <strong>vista de la fuente</strong> del sinte (siguiente capítulo).</li>
-<li><strong>Synth 1 + Synth 2 a la vez</strong> (mantén uno y pulsa el otro) abre el <strong>teclado partido</strong> <em>(desde RC2)</em>:</li>
-<li>las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2, cada una con su escala, su octava, su velocity y sus colores;</li>
-<li>los knobs y Octave son los del primer sinte que pulsaste;</li>
+<li><strong>Synth 1 + Synth 2 a la vez</strong> (mantén uno y pulsa el otro) abre el <strong>teclado partido</strong> <em>(desde RC2)</em>; <em>(desde RC2.02)</em> <strong>cualquier par de pistas de notas</strong> (Synth 1, Synth 2, MIDI 1, MIDI 2: mantén un botón y pulsa otro):</li>
+<li>las dos filas de arriba tocan la pista que mantuviste primero y las dos de abajo la otra, cada una con su escala, su octava, su velocity y sus colores (en RC2: arriba siempre Synth 1);</li>
+<li>los knobs y Octave son los de la primera pista que pulsaste; un botón de drum no abre el teclado partido;</li>
 <li>cualquier botón de pista o de vista lo cierra (las notas pulsadas se sueltan); Play, Record, Octave y Shift no.</li>
 <li>Los macro knobs funcionan como siempre; sus destinos se pueden editar en el aparato (vista de la fuente, pad 32).</li>
 </ul>
@@ -1273,6 +1275,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Un sinte en cada pista MIDI</strong> — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, VA-drum o granular) y siguen mandando MIDI.</li>
 <li><strong>Secuenciador de efectos</strong> — un motor que no suena: dispara efectos de Master FX en los pasos que elijas.</li>
 <li><strong>Patches del sinte propio</strong> <em>(desde RC2)</em> — 64 sonidos por pack para esos motores, a un toque.</li>
+<li><strong>Matriz de modulación</strong> <em>(desde RC2.02)</em> — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.</li>
 <li><strong>Patch flip</strong> — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.</li>
 <li><strong>Editor de CC</strong> — cambia qué CC manda cada knob de la plantilla sin Components.</li>
 </ul></div>
@@ -1581,6 +1584,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Pads</h4>
 <table><thead><tr><th>Pad</th><th>Función</th></tr></thead><tbody>
 <tr><td>1-5</td><td>Página de knobs del motor: 1 VCA-VCF, 2 OSC 1 (granular en ese motor), 3 OSC 2, 4 secuenciables, 5 modulación. <strong>Clear + el pad</strong> <em>(desde RC2)</em>: los valores de esa página (con y sin Shift) a los iniciales.</td></tr>
+<tr><td>6</td><td><em>(desde RC2.02)</em> <strong>Matriz de modulación</strong> (azul claro; ver «Matriz de modulación»). <strong>Clear + pad 6</strong>: todas las fuentes apagadas.</td></tr>
 <tr><td>9-24</td><td><strong>Patches del sinte propio</strong> <em>(desde RC2)</em>: ver abajo.</td></tr>
 <tr><td>25</td><td><strong>Editor de CC</strong> de los macros MIDI (capítulo siguiente).</td></tr>
 <tr><td>26</td><td><strong>Patch flip</strong>: cada nota de la pista sale como Program Change (por el canal de la pista; si ese canal es el de un sinte o los drums, también por dentro). Excluyente con el motor.</td></tr>
@@ -1803,11 +1807,36 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Página 3 (OSC 2):</strong> <em>(desde RC2)</em>: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).</li>
 <li><strong>Página 4:</strong> los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto).</li>
-<li><strong>Página 5:</strong> ADSR arriba, LFO abajo. <em>(desde RC2)</em>: <strong>Shift + K8 = forma del LFO</strong>: diente de sierra inverso (naranja, la de siempre), diente de sierra (magenta), triángulo (verde), cuadrada (roja), seno (cian), sample &amp; hold (blanco: un valor al azar en cada vuelta); un paso cada 4 clics, el LED de K8 con Shift en su color. Se guarda con el proyecto y en el patch propio; con el VA-drum el LFO sigue siendo su ruido.</li>
+<li><strong>Página 5:</strong> ADSR arriba, LFO abajo. <em>(desde RC2)</em>: <strong>Shift + K8 = forma del LFO</strong>: diente de sierra inverso (naranja, la de siempre), diente de sierra (magenta), triángulo (verde), cuadrada (roja), seno (cian), sample &amp; hold (blanco: un valor al azar en cada vuelta); <em>(desde RC2.02)</em>: <strong>sample &amp; hold suavizado</strong> (violeta: se desliza de un valor al azar al siguiente durante cada vuelta), y <strong>sin forma guardada (un proyecto nuevo o de antes) el triángulo</strong> (en RC2: el diente de sierra inverso; un patch propio de antes de las formas sigue cargando el diente de sierra inverso). Un paso cada 4 clics, el LED de K8 con Shift en su color. Se guarda con el proyecto y en el patch propio; con el VA-drum el LFO sigue siendo su ruido.</li>
+<li><strong>Página 6</strong> <em>(desde RC2.02)</em>: la matriz de modulación (capítulo siguiente).</li>
 <li>Los knobs de tipo se ven de color (tipo) y brillo (posición dentro del tipo). Todo sale y entra por CC / NRPN (capítulo VIII).</li>
 </ul>
 </section>
-<section class="feat" id="midi-cc"><h3><span class="code">3.3</span>Editor de CC de los macros MIDI (pad 25)</h3>
+<section class="feat" id="midi-matriz"><h3><span class="code">3.3</span>Matriz de modulación</h3>
+<div class="summary"><p><strong>Cómo se llega:</strong> <em>(desde RC2.02)</em> MIDI 1 / 2 con el motor encendido: vista Preset, <strong>pad 6</strong>. Los 8 knobs pasan a ser 8 fuentes de modulación.</p></div>
+<table><thead><tr><th>Knob</th><th>Fuente</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1</td><td>Velocity de la nota</td><td>—</td></tr>
+<tr><td>K2</td><td>Nota (C3 = 0; una octava = un cuarto del recorrido)</td><td>—</td></tr>
+<tr><td>K3</td><td>Azar: un valor nuevo en cada nota</td><td>—</td></tr>
+<tr><td>K4</td><td>LFO 2</td><td>Forma × velocidad: triángulo (verde, la inicial), diente de sierra (magenta), cuadrada (rojo), sample &amp; hold (blanco: escalones), sample &amp; hold suavizado (violeta: deslizándose); los colores del LFO del motor; en cada forma, de 0,05 a 20 Hz</td></tr>
+<tr><td>K5</td><td>Envolvente 2: ataque y caída desde cada nota</td><td>Ataque × caída: ataque 0 (blanco), corto (azul claro), medio (verde azulado), largo (azul); en cada uno, la caída de 20 ms a 4 s</td></tr>
+<tr><td>K6</td><td>Golpe de un drum: una caída desde cada golpe</td><td>Drum 1-4 (naranja, amarillo, violeta, verde azulado) × su caída</td></tr>
+<tr><td>K7</td><td>Posición en el patrón: de 0 en el primer paso al máximo en el último</td><td>—</td></tr>
+<tr><td>K8</td><td>Azar por pasos: un valor nuevo cada N pasos del secuenciador</td><td>N = 1, 2, 4, 8 o 16 pasos</td></tr>
+</tbody></table>
+<ul>
+<li><strong>La posición del knob es el destino y la cantidad.</strong> Del todo a la izquierda = apagado. Al girar a la derecha se pasa por <strong>todos los parámetros de las páginas de knobs</strong> (33: los de la página 1, luego los de la 2, la 3 y los de la 5 que no salen antes), cada uno con un tramo: dentro del tramo la cantidad crece de 1/16 a entera; al pasar al tramo siguiente cambia el destino y la cantidad vuelve a empezar.</li>
+<li><strong>Knobs lentos:</strong> dos clics por paso, 16 pasos por destino.</li>
+<li><strong>El color del LED es el de la página del destino</strong> (los colores de los pads 1-5: naranja VCA-VCF, verde OSC 1, verde azulado OSC 2), el <strong>brillo</strong> la cantidad; apagado = sin destino.</li>
+<li><strong>Mientras giras una fuente</strong> (y 1,5 s después), los pads enseñan dónde vive su destino: el pad de su página brilla y los pads 9-16 / 17-24 son los K1-K8 / Shift + K1-K8 de esa página (tenues los que tienen un parámetro, brillante el destino). Mientras se ven, los pads 9-24 no cargan patches.</li>
+<li><strong>Cantidad entera</strong> = la fuente entera recorre todo el rango del parámetro. Las fuentes bipolares (nota, azar, LFO 2, azar por pasos) suben y bajan; las demás solo suben. El valor guardado del parámetro no cambia: la matriz se suma al enviarlo.</li>
+<li>Varias fuentes pueden ir al mismo destino (se suman). TUNE se mueve en semitonos y FINE en fracciones; con el motor granular, sus rangos; en el modo muestra el parámetro del sample elige sample (de la captura al 64) y solo TUNE cambia la altura.</li>
+<li><strong>Clear + knob</strong> = esa fuente apagada; <strong>Clear + Shift + knob</strong> = su parámetro al valor inicial; <strong>Clear + pad 6</strong> = todas apagadas.</li>
+<li><strong>Se guarda con los patches del sinte propio</strong> (pads 9-24: Duplicate + pad, también al intercambiarlos o copiarlos entre packs); un patch guardado antes la carga apagada. No se guarda con el proyecto ni al apagar el aparato. No tiene CC / NRPN.</li>
+<li>Las modulaciones llegan al motor unas 100-250 veces por segundo, repartidas entre todo lo que se mueve en la pista: varias fuentes rápidas a la vez se actualizan más despacio.</li>
+</ul>
+</section>
+<section class="feat" id="midi-cc"><h3><span class="code">3.4</span>Editor de CC de los macros MIDI (pad 25)</h3>
 <div class="summary"><p><strong>Cómo se llega:</strong> Vista Preset de MIDI 1 / 2, <strong>pad 25</strong>: cambia desde el aparato qué CC / NRPN manda cada macro knob de la plantilla.</p><p class="about-h"><strong>En esta vista</strong></p><ul>
 <li><strong>Controlar otro aparato</strong> — elige el número de CC (o NRPN) y el recorrido de cada knob de la plantilla, y guárdalo en ella.</li>
 </ul></div>
@@ -1823,7 +1852,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>38</td><td>NRPN de 14 bits</td><td>número, MSB, LSB, inicio (MSB, LSB), fin (MSB, LSB)</td></tr>
 </tbody></table>
 </section>
-<section class="feat" id="step-drummer"><h3><span class="code">3.4</span>Vista del step-drummer</h3>
+<section class="feat" id="step-drummer"><h3><span class="code">3.5</span>Vista del step-drummer</h3>
 <div class="summary"><p><strong>Cómo se llega:</strong> MIDI 1 / 2: vista Preset con el motor encendido, <strong>pad 30</strong>. Synth 1 / 2: vista de la fuente, <strong>pad 30</strong>. Secuencia por pares de pasos sobre el patrón.</p><p class="about-h"><strong>En esta vista</strong></p><ul>
 <li><strong>Parámetros por pares de pasos</strong> — los 8 knobs son 8 pares de pasos del patrón: cada uno mueve un destino (tono, forma, FM, filtro…) solo en esos pasos, para melodías, acentos o cambios de timbre sin automatizar a mano.</li>
 <li><strong>El LED dice cuánto</strong> <em>(desde RC2)</em> — tenue sin modulación, más brillante cuanto más se aleja.</li>
@@ -2156,7 +2185,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Con el motor en <strong>secuenciador de efectos</strong> (azul), cada knob elige un hueco de la fila inferior de Master FX: 0 nada, 1-5 pads 26-30, 6 el pad 31, y al final <strong>random</strong> <em>(desde RC2)</em> (LED blanco: uno al azar entre los que tienen efecto). Avanza despacio (un hueco cada ~48 pasos de giro). Un hueco sin efecto asignado no hace nada.</li>
 </ul>
 </section>
-<section class="feat" id="midi-muestra"><h3><span class="code">3.5</span>Modo muestra y selector de samples</h3>
+<section class="feat" id="midi-muestra"><h3><span class="code">3.6</span>Modo muestra y selector de samples</h3>
 <div class="summary"><p><strong>Cómo se llega:</strong> <em>(desde RC2)</em> MIDI 1 / 2 con el motor en <strong>muestra</strong> (pad 27 cian, tras el granular): <strong>Note dos veces</strong> (vista Note ampliada). La pista toca un sample del pack de un golpe, a la altura de cada nota.</p><p class="about-h"><strong>En esta vista</strong></p><ul>
 <li><strong>Drums con altura en una pista MIDI</strong> — cualquier sample del pack suena a la altura de cada nota, como en una caja de ritmos con samples afinables.</li>
 <li><strong>Un sample distinto por paso</strong> — el sample flip cambia de sample paso a paso sin otra pista; se graba también en vivo.</li>
@@ -3998,9 +4027,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Qué</th><th>Dónde</th></tr></thead><tbody>
 <tr><td>Knobs nuevos de drums (incluidos ataque, inicio y corte), fuente de los sintes, reverb / delay, huecos y knobs de Master FX, compresor, modo cadena y escenas, cuenta atrás, arpegiador (con su resolución), escala propia, gate por pulsación, gate retrigger y forma del LFO del sinte propio <em>(desde RC2)</em></td><td>El proyecto</td></tr>
 <tr><td>Notas del step-drummer, valores del secuenciador de efectos, random-mutate, frecuencia, dinámicas, reglas de cadena, orden de reproducción, sample flips del modo muestra <em>(desde RC2)</em></td><td>El patrón</td></tr>
-<tr><td>Patches de sinte guardados, patches del sinte propio, capturas usadas como samples</td><td>El pack <em>(escribe en la tarjeta)</em></td></tr>
+<tr><td>Patches de sinte guardados, patches del sinte propio (con su matriz de modulación <em>(desde RC2.02)</em>), capturas usadas como samples</td><td>El pack <em>(escribe en la tarjeta)</em></td></tr>
 <tr><td>Motor de las pistas MIDI (estado y valores; <em>(desde RC2)</em>: también OSC 2, los knobs con Shift del granular y del oscilador y los pads 28 / 29), modo de MIDI Thru, canales de PGM</td><td>Ajustes del aparato</td></tr>
-<tr><td>Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums</td><td>No se guardan</td></tr>
+<tr><td>Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums, la matriz de modulación fuera de un patch <em>(desde RC2.02)</em> (se apaga al apagar el aparato)</td><td>No se guardan</td></tr>
 </tbody></table>
 </section>
 <section class="feat" id="midi"><h3><span class="code">A.2</span>MIDI de las funciones nuevas</h3>
@@ -4016,11 +4045,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <div class="summary"><p><strong>Cómo se llega:</strong> <code>tools/rc_uploader.html</code> parchea el firmware oficial en el navegador y lo envía por Web MIDI.</p></div>
 <ol>
 <li>1. Descarga el firmware oficial 1.2.1 de Novation, abre <code>tools/rc_uploader.html</code> en Chrome y conecta el Circuit Tracks por USB.</li>
-<li>2. Elige la versión (RC2.01, la más segura RC2.01S, o una anterior) y envía. El bootloader de Novation no se toca.</li>
+<li>2. Elige la versión (RC2.02, la más segura RC2.02S, o una anterior) y envía. El bootloader de Novation no se toca.</li>
 <li>3. <strong>Haz antes una copia de la tarjeta.</strong> Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.</li>
 </ol>
 <ul>
 <li><strong>Volver atrás:</strong> envía otra versión o el firmware oficial. Si no arranca: <strong>Scales + Preset + Note</strong> al encender.</li>
 </ul>
 </section>
-<footer>CIRCUIT-HACKS RC2.01 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.02 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>

@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2.01</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2.02</p><div class="bar"></div></header><main>
 <p class="lang"><a href="index.html">Versión en español</a> · <a href="guide.html"><strong>Guide by views (user manual)</strong></a> · <a href="midi-en.html">MIDI reference</a></p>
 <p><strong>Conventions.</strong> Pads 1-32 from top left to bottom right (row 1 = 1-8 … row 4 = 25-32). Knobs K1-K4 on top and K5-K8 at the bottom. “Shift + X” = hold Shift while using X. The colours of the diagrams are approximate; a dim pad is drawn translucent. Anything not described here works as on the original device (see Novation’s official user guide).</p>
 <nav class="toc"><h2>Feature index</h2>
@@ -72,7 +72,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#c13-rollers">C13 Drums micro-step rollers (since RC2)</a></li>
 <li><a href="#c14-escala-propia">C14 Custom scale (since RC2)</a></li>
 <li><a href="#c15-modo-muestra">C15 Sample mode of the MIDI tracks (since RC2)</a></li>
-<li><a href="#c16-master-fx-beta">C16 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
+<li><a href="#c16-matriz-mod">C16 Mod matrix of the own synth (since RC2.02)</a></li>
+<li><a href="#c17-master-fx-beta">C17 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
 <li><a href="#d1-efectos-grid">D1 Master FX effects</a></li>
@@ -296,7 +297,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>16</td><td>Master FX: <strong>Shift + pad 7</strong></td><td>Sample in a latched loop until pad 7 is pressed again (C5)</td></tr>
 <tr><td>17</td><td>MIDI 1 / 2 Preset: <strong>Clear + a page pad (1-5)</strong></td><td>The values of that knob page back to their initial values (C1, <strong>since RC2</strong>)</td></tr>
 <tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B7, <strong>since RC2</strong>)</td></tr>
-<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> together</td><td>Split keyboard: Synth 1 on top, Synth 2 below (A12, <strong>since RC2</strong>)</td></tr>
+<tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> together</td><td>Split keyboard: Synth 1 on top, Synth 2 below (A12, <strong>since RC2</strong>); <strong>Since RC2.02</strong>: any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2, the track you held first on top</td></tr>
 <tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, a step, <strong>row 4</strong></td><td>Random-mutate of the step: random octave / scale changes (C8, <strong>since RC2</strong>)</td></tr>
 <tr><td>21</td><td>MIDI 1 / 2 Preset: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> twice, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches of the own synth: load, save, exchange, page (A14, <strong>since RC2</strong>)</td></tr>
 <tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + the track button</strong></td><td>The track engine back to its initial values (A14, <strong>since RC2</strong>)</td></tr>
@@ -318,6 +319,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>38</td><td>Step-drummer: <strong>pad 32</strong>; velocity page: <strong>pads 17-24</strong></td><td>Pitch-vel toggle (transpose in the scale / velocity) and page 2&#x27;s own destination (<strong>since RC2</strong>)</td></tr>
 <tr><td>39</td><td><strong>Shift + Play</strong></td><td>Quantize the pattern the selected track plays (<strong>since RC2</strong>)</td></tr>
 <tr><td>40</td><td>MIDI 1 / 2 in the sample mode: <strong>Note twice</strong>; <strong>a held step + a sample</strong></td><td>Picker of the pack&#x27;s 64 samples (Octave ▼ / ▲) and a sample flip per step, also live with Record (<strong>since RC2</strong>)</td></tr>
+<tr><td>41</td><td>MIDI 1 / 2 Preset: <strong>pad 6</strong>; <strong>K1-K8</strong>, <strong>Shift + K4 / K5 / K6 / K8</strong>, <strong>Clear + pad 6</strong></td><td>Mod matrix of the own synth: each knob a source, its position = destination and amount (C16, <strong>Since RC2.02</strong>)</td></tr>
 </tbody></table>
 </section>
 <section class="feat" id="a2-master-fx-acceso"><h3><span class="code">A2</span>Master FX on the Mixer button</h3>
@@ -1526,6 +1528,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>The knobs and Octave belong to the synth you pressed first.</li>
 <li><strong>Leaving:</strong> any track or view button (Note, Preset, Mixer, FX, a single Synth…). Held notes are released. Play, Record, Octave and Shift do not close it.</li>
 <li>Synth 1 or Synth 2 alone work as always (twice = the source view, A6).</li>
+<li><strong>Since RC2.02: any pair of note tracks</strong> (Synth 1, Synth 2, MIDI 1, MIDI 2): hold one button and press another; the top rows play the one you held first (in RC2, Synth 1 always on top). The drum buttons do not open it.</li>
 </ul>
 </section>
 <section class="feat" id="a13-colores-patch"><h3><span class="code">A13</span>Synth patches by voice mode</h3>
@@ -2946,7 +2949,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K7</td><td>WAVE (morph sine → triangle → saw → square)</td><td>—</td></tr>
 <tr><td>K8</td><td>LFO → morph</td><td>Envelope → morph</td></tr>
 </tbody></table>
-<p>Page 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (<strong>since RC2</strong>: all eight without Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING). Page 4: the 8 sequenceable values (B6). Page 5: ADSR on top, LFO at the bottom (<strong>since RC2</strong>: Shift + K8 = the LFO&#x27;s shape, six shapes).</p>
+<p>Page 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (<strong>since RC2</strong>: all eight without Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING). Page 4: the 8 sequenceable values (B6). Page 5: ADSR on top, LFO at the bottom (<strong>since RC2</strong>: Shift + K8 = the LFO&#x27;s shape, six shapes; <strong>Since RC2.02</strong>: seven, with the slewed sample &amp; hold, and the triangle when the project saves none).</p>
 <ul>
 <li>The engine values are saved in the device (not with the project); the OSC 2 ones, the Shift knobs of the granular and the oscillator and pads 28 / 29 too since Beta 1.28 (before, they went back to their defaults at power-up).</li>
 </ul>
@@ -4226,7 +4229,18 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Without the sample mode, the expanded Note view is the usual one.</li>
 </ul>
 </section>
-<section class="feat" id="c16-master-fx-beta"><h3><span class="code">C16</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
+<section class="feat" id="c16-matriz-mod"><h3><span class="code">C16</span>Mod matrix of the own synth (since RC2.02)</h3>
+<div class="summary"><p><strong>Since RC2.02.</strong> With the MIDI 1 / 2 engine on, <strong>pad 6</strong> of its Preset view is a new knob page: <strong>K1-K8 = eight sources</strong> (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).</p><p>Each knob&#x27;s <strong>position</strong> is the <strong>destination</strong> (every parameter of the knob pages, 33, one stretch each, in its page&#x27;s colour) and, inside the stretch, the <strong>amount</strong>. Slow knobs: two clicks a step, 16 steps a destination.</p></div>
+<ul>
+<li><strong>Sources:</strong> K1 velocity, K2 the note (C3 = 0), K3 a random value at each note, K4 LFO 2, K5 envelope 2 (attack / decay from each note), K6 a decay from each hit of a drum, K7 the pattern position (first to last step), K8 a random value every N steps.</li>
+<li><strong>With Shift:</strong> K4 = shape (triangle, saw, square, sample &amp; hold, slewed sample &amp; hold) × rate (0.05-20 Hz); K5 = attack (0 / short / medium / long) × decay (20 ms-4 s); K6 = drum 1-4 × decay; K8 = N (1, 2, 4, 8, 16). Their LED in the zone&#x27;s colour.</li>
+<li><strong>LEDs:</strong> the knob in the colour of the destination&#x27;s page and the brightness of the amount. While you turn (and 1.5 s after) the pads show the destination: its page (pads 1-5) and its knob on that page (pads 9-16 = K1-K8, 17-24 = Shift + K1-K8).</li>
+<li><strong>Full amount</strong> = the source sweeps the parameter&#x27;s whole range; it is added to the stored value when sent (the stored value does not change). Several sources on one destination add up.</li>
+<li><strong>Clear + knob</strong> = source off; <strong>Clear + Shift + knob</strong> = its parameter back to the default; <strong>Clear + pad 6</strong> = all off.</li>
+<li><strong>Saved with the own-synth patches</strong> (A14); not with the project nor across a power-down. No CC / NRPN. Some 100-250 updates a second, shared by what moves on the track.</li>
+</ul>
+</section>
+<section class="feat" id="c17-master-fx-beta"><h3><span class="code">C17</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
 <div class="summary"><p><strong>Since RC2.</strong> Pad 6 of Master FX is the <strong>Glitch</strong> and pad 31 a <strong>mechanical gesture</strong> (tape stop, scratch…); Digitise gains <strong>K3 = momentary send to the delay</strong> and <strong>K4 = envelope</strong>; the Master FX knobs and slots <strong>are saved with every project</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (it replaces the Vinyl): held, latched, assignable to the slots and to the FX sequencer like the other effects; its K1-K4 are the Glitch’s.</li>
@@ -4499,7 +4513,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="e3-instalar"><h3><span class="code">E3</span>Installing and going back</h3>
 <div class="summary"><p><code>tools/ct_uploader.html</code> sends the <code>.syx</code> over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.</p></div>
 <ol>
-<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.01, RC2.01S (or the earlier RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.</li>
+<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.02, RC2.02S (or the earlier RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.</li>
 <li>1. Open <code>tools/ct_uploader.html</code> in Chrome and connect the Circuit Tracks over USB.</li>
 <li>2. Pick the <code>.syx</code> from <code>firmware/&lt;version&gt;/</code>: the uploader checks its SHA-256.</li>
 <li>3. Send. Novation’s bootloader is not modified.</li>
@@ -4507,10 +4521,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Going back:</strong> send another version or the official firmware. If the device does not start: hold <strong>Scales + Preset + Note</strong> at power-on (bootloader recovery mode).</li>
 <li>The RC branch does not publish <code>.syx</code> files: they are generated with <code>tools/patch_official.py</code> from the official firmware.</li>
+<li><strong>RC2.02</strong> (files and marker <code>R202</code>) = RC2.01 + everything marked <strong>since RC2.02</strong>: the mod matrix of the own synth, the split keyboard with any pair of note tracks and the LFO with a triangle by default and slewed sample &amp; hold (what Beta 3.0 had).</li>
 <li><strong>RC2.01</strong> (files and marker <code>R201</code>) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).</li>
 <li><strong>RC2</strong> (release candidate 2, marker <code>RC2</code>) = SC44 = RC0.9 + everything this manual marks <strong>since RC2</strong>: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.</li>
 <li><strong>RC0.9</strong> (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
-<li><strong>Safer build:</strong> RC2.01S (files <code>R201S</code>; before, RC2S) = RC2.01, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
+<li><strong>Safer build:</strong> RC2.02S (files <code>R202S</code>; before, RC2.01S, RC2S) = RC2.02, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
 <li>New features and fixes of every version: <code>CHANGELOG.md</code>.</li>
 </ul>
 </section>
@@ -4544,4 +4559,4 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Master FX — channel 16, NRPN MSB 9</h4>
 <p>LSB = 4 × set + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl 16-19.</p>
 </section>
-<footer>CIRCUIT-HACKS RC2.01 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.02 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
