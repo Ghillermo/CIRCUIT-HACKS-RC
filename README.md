@@ -175,7 +175,7 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 
 Firmware patches for the **Novation Circuit Tracks** (reference firmware 1.2.1 build 4486). The project was developed using Claude (Anthropic).
 
-Legal Notice: Code sourced by Novation is propietary. Don't install it on a device other than Circuit Tracks. This installer checos for a Circuit Tracks specifically, and won't allow you to use it on any other device. Don't install propietary firmware from other devices in your Tracks either. Keep it fair for the official developers, they're the ones responsible for us having nice things.
+Legal Notice: Code sourced by Novation is propietary. Don't install it on a device other than Circuit Tracks. This installer checks for a Circuit Tracks specifically, and won't allow you to use it on any other device. Don't install propietary firmware from other devices in your Tracks either. Keep it fair for the official developers, they're the ones responsible for us having nice things.
 
 > ⚠️ **Before installing: back up your SD card.**
 > - Make a full copy of the SD card (projects, packs and samples) before sending any version of the mod.
