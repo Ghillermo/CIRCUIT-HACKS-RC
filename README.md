@@ -1,6 +1,6 @@
 # CIRCUIT-HACKS
 
-> 📢 **Ya está aquí RC2** (ahora **RC2.01**): la segunda versión candidata, con todo lo de las betas hasta la 1.30. Instálala desde el navegador con el instalador [`tools/rc_uploader.html`](tools/rc_uploader.html) ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
+> 📢 **Ya está aquí RC2** (ahora **RC2.01**): la segunda versión candidata, con todo lo de las betas hasta la 1.30. **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
 
 <!-- LANG-NOTICE -->
 > **English:** the English version of this README is [further below](#english). Illustrated colour manual: [English](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html) · [Español](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html).
@@ -35,7 +35,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 📖 [Manual ilustrado en color](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html)
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
-2. **Descarga y abre [`tools/rc_uploader.html`](tools/rc_uploader.html)** en Chrome o Edge.
+2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
 3. **Elige el `.syx` oficial y la versión**: RC2.01, la versión más segura RC2.01S (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
@@ -166,7 +166,7 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 <a id="english"></a>
 # CIRCUIT-HACKS (English)
 
-> 📢 **RC2 is out** (now **RC2.01**): the second release candidate, with everything of the betas up to 1.30. Install it from your browser with the installer [`tools/rc_uploader.html`](tools/rc_uploader.html) ([how](#install-without-building-toolsrc_uploaderhtml)). What's new: [`CHANGELOG.md`](CHANGELOG.md#changelog).
+> 📢 **RC2 is out** (now **RC2.01**): the second release candidate, with everything of the betas up to 1.30. **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new: [`CHANGELOG.md`](CHANGELOG.md#changelog).
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
@@ -196,7 +196,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
-2. **Download and open [`tools/rc_uploader.html`](tools/rc_uploader.html)** in Chrome or Edge.
+2. **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
 3. **Pick the official `.syx` and the version**: RC2.01, the safer RC2.01S (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
