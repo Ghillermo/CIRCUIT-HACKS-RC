@@ -38,13 +38,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#a9-sustituir">A9 Sustituir un drum por la captura</a></li>
 <li><a href="#a10-editor-cc">A10 Editor de CC de los macros MIDI</a></li>
 <li><a href="#a11-mixer-shift">A11 Mixer: Shift + knob = nivel a 100 / 0</a></li>
-<li><a href="#a12-teclado-partido">A12 Teclado partido Synth 1 + Synth 2</a></li>
-<li><a href="#a13-colores-patch">A13 Patches de sinte por modo de voz</a></li>
-<li><a href="#a14-patches-midi">A14 Patches del sinte propio (MIDI 1 / 2)</a></li>
-<li><a href="#a15-guardar-patch">A15 Guardar el patch del sinte en el pack</a></li>
-<li><a href="#a16-destinos-macro">A16 Destinos de los macro knobs</a></li>
-<li><a href="#a17-copiar-proyectos">A17 Copiar proyectos a otro hueco o a otro pack</a></li>
-<li><a href="#a18-patches-entre-packs">A18 Patches del sinte propio a otro pack</a></li>
+<li><a href="#a12-mixer-cue">A12 Modo cue, mutes al compás y cuantizar (desde RC2)</a></li>
+<li><a href="#a13-teclado-partido">A13 Teclado partido Synth 1 + Synth 2</a></li>
+<li><a href="#a14-colores-patch">A14 Patches de sinte por modo de voz</a></li>
+<li><a href="#a15-patches-midi">A15 Patches del sinte propio (MIDI 1 / 2)</a></li>
+<li><a href="#a16-guardar-patch">A16 Guardar el patch del sinte en el pack</a></li>
+<li><a href="#a17-destinos-macro">A17 Destinos de los macro knobs</a></li>
+<li><a href="#a18-copiar-proyectos">A18 Copiar proyectos a otro hueco o a otro pack</a></li>
+<li><a href="#a19-patches-entre-packs">A19 Patches del sinte propio a otro pack</a></li>
 </ol>
 <h3>B. Controles expuestos</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Knobs de los drums según el panel</a></li>
@@ -62,7 +63,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#c3-fx-seq">C3 Secuenciador de efectos</a></li>
 <li><a href="#c4-song-pointer">C4 Song pointer (Master FX)</a></li>
 <li><a href="#c5-sample">C5 Sample capturado</a></li>
-<li><a href="#c6-glitch-pad">C6 Glitch (pad 31) y su asignación</a></li>
+<li><a href="#c6-glitch-pad">C6 Glitch (pad 6) y su asignación</a></li>
 <li><a href="#c7-fila-inferior">C7 Fila inferior asignable (Master FX / FX)</a></li>
 <li><a href="#c8-random-mutate">C8 Random-mutate por paso</a></li>
 <li><a href="#c9-frecuencia-dinamicas">C9 Frecuencia y dinámicas por paso</a></li>
@@ -271,8 +272,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Grabar</text>
@@ -284,11 +285,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>3</td><td><strong>Shift + Preset</strong> con un drum</td><td>Vista cromática / de escala (A7)</td></tr>
 <tr><td>4</td><td><strong>Clear + knob</strong></td><td>Valor por defecto del knob, también en Master FX; en drums, a la izquierda borra la automatización (A4)</td></tr>
 <tr><td>5</td><td><strong>Octave ▲ / ▼</strong> en la vista FX</td><td>Envíos de delay / reverb; <strong>Shift + knob</strong> = sus parámetros (A3, B2)</td></tr>
-<tr><td>6</td><td><strong>Duplicate</strong> / <strong>1-16 / 17-32</strong> en la vista FX</td><td>Reset de envíos y Master FX / resonancia del filtro master (A3)</td></tr>
+<tr><td>6</td><td><strong>Duplicate</strong> / <strong>Shift + Octave ▲ / ▼</strong> (solo Beta 3.3; en RC2.02 <strong>1-16 / 17-32</strong>) en la vista FX</td><td>Reset de envíos y Master FX / resonancia del filtro master (A3)</td></tr>
 <tr><td>7</td><td><strong>Shift + FX</strong>, luego <strong>Octave ▼</strong>, con los drums</td><td>Sidechain entre drums (D7)</td></tr>
 <tr><td>8</td><td><strong>MIDI 1 / 2</strong>, <strong>Preset</strong></td><td>Pad 27 motor, 25 editor de CC, 26 patch flip, 30 step-drummer (C1)</td></tr>
 <tr><td>9</td><td>Master FX: <strong>pad 8</strong></td><td>Apagar todo lo fijado (A5)</td></tr>
-<tr><td>10</td><td>Master FX: <strong>pad 7</strong> / <strong>pad 32</strong> / <strong>pad 31</strong></td><td>Tocar / grabar el sample (C5), Glitch (C6)</td></tr>
+<tr><td>10</td><td>Master FX: <strong>pad 7</strong> / <strong>pad 32</strong> / <strong>pad 6</strong></td><td>Tocar / grabar el sample (C5), Glitch (C6)</td></tr>
 <tr><td>11</td><td>Preset de drums / de sinte: <strong>Clear + pad dos veces</strong> / <strong>Duplicate + pad + pad</strong></td><td>Sustituir por la captura / intercambiar o copiar entre packs samples y patches (A9, A8)</td></tr>
 <tr><td>12</td><td>Vista de packs: <strong>Clear</strong>, el pack, <strong>Clear</strong></td><td>Borrar un pack (A8)</td></tr>
 <tr><td>13</td><td><strong>Save</strong></td><td>Guarda también las capturas usadas como samples (A8)</td></tr>
@@ -324,7 +325,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </section>
 <section class="feat" id="a2-master-fx-acceso"><h3><span class="code">A2</span>Master FX en el botón Mixer</h3>
 <div class="summary"><p>Desde el Mixer, <strong>Mixer otra vez</strong> abre Master FX; cualquier otro botón de vista sale.</p></div>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 Glitch, 32 grabar.">
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 gesto mecánico, 32 grabar.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
@@ -417,8 +418,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <rect x="332" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Phaser</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Vinyl</text>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
 <rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Sample</text>
@@ -508,13 +509,13 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#fff1c4" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">hueco</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Grabar</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 Glitch, 32 grabar.</figcaption></figure>
+</svg><figcaption>Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 gesto mecánico, 32 grabar.</figcaption></figure>
 <p>Master FX es una vista de actuación con efectos sobre la salida master, un song pointer y una fila de efectos asignables (secciones C4, C5, C6, C7 y D1).</p>
 <ol>
 <li>1. Pulsa <strong>Mixer</strong>.</li>
@@ -523,7 +524,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ol>
 </section>
 <section class="feat" id="a3-vista-fx"><h3><span class="code">A3</span>Teclas de la vista FX</h3>
-<div class="summary"><p><strong>Octave ▲ / ▼</strong> = envíos de delay / reverb; <strong>Shift + knob</strong> = parámetros de reverb y delay.</p><p><strong>Duplicate</strong> = reset (envíos a 0, filtro master al centro, Master FX apagado); <strong>1-16 / 17-32</strong> = resonancia del filtro master.</p></div>
+<div class="summary"><p><strong>Octave ▲ / ▼</strong> = envíos de delay / reverb; <strong>Shift + knob</strong> = parámetros de reverb y delay.</p><p><strong>Duplicate</strong> = reset (envíos a 0, filtro master al centro, Master FX apagado); <strong>Shift + Octave ▲ / ▼</strong> = resonancia del filtro master ±16 (solo Beta 3.3; en RC2.02, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = filtro master apagado / encendido (solo Beta 3.3).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista FX: Octave elige delay / reverb; la fila inferior es la de Master FX.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -666,8 +667,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Grabar</text>
@@ -678,23 +679,25 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Octave ▼</strong></td><td>Los knobs controlan los <strong>envíos de reverb</strong> (color del pad 17)</td></tr>
 <tr><td><strong>Shift + knob</strong></td><td><strong>Parámetros del efecto</strong>. Reverb: tipo, decay, damping. Delay: time, sync, feedback, width, ratio, slew. Se guardan con el proyecto</td></tr>
 <tr><td><strong>Duplicate</strong></td><td>Reset: envíos a 0, filtro master al centro (sin tocar la resonancia), Master FX apagado</td></tr>
-<tr><td><strong>1-16 / 17-32</strong></td><td>Sube la resonancia del filtro master (LED verde)</td></tr>
+<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Solo Beta 3.3.</strong> Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo)</td></tr>
+<tr><td><strong>Shift + pad 25</strong></td><td><strong>Solo Beta 3.3.</strong> Filtro master apagado (suena al centro aunque se mueva el knob) / encendido (en la posición actual del knob). Apagado: LED del knob del filtro en rojo; con Shift, pad 25 amarillo / rojo</td></tr>
+<tr><td><strong>1-16 / 17-32</strong></td><td>En RC2.02: sube la resonancia del filtro master (LED verde); en la Beta 3.3 hace lo de siempre</td></tr>
 </tbody></table>
 <ul>
-<li>La fila inferior (pads 25-32) es la misma que la de Master FX: huecos asignables, el Glitch (31) y grabar (32).</li>
+<li>La fila inferior (pads 25-32) es la misma que la de Master FX: huecos asignables, el gesto mecánico (31) y grabar (32).</li>
 <li>Si en Setup el retorno de reverb / delay va a la tira 3 / 4, los envíos de esas tiras tienen tope a la mitad y van a media velocidad.</li>
 </ul>
 </section>
 <section class="feat" id="a4-clear-knob"><h3><span class="code">A4</span>Clear + knob = valor por defecto</h3>
 <div class="summary"><p>Mantén <strong>Clear</strong> y gira un knob a la derecha: vuelve a su valor por defecto. En drums (LED azul), a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en <strong>Master FX</strong>.</p></div>
 <table><thead><tr><th>Dónde</th><th>Clear + knob a la derecha</th><th>Clear + knob a la izquierda</th></tr></thead><tbody>
-<tr><td>Drums (knobs de stock y nuevos)</td><td>Valor por defecto; LED <strong>azul</strong></td><td>Knobs de stock: borra su automatización; LED <strong>rojo</strong> (como el original)</td></tr>
-<tr><td>Motor de las pistas MIDI y oscilador</td><td>Valor por defecto; LED rojo mientras Clear</td><td>Igual</td></tr>
+<tr><td>Drums (knobs de stock y nuevos)</td><td>Valor por defecto; LED <strong>lavanda</strong> (el azul del original)</td><td>Knobs de stock: borra su automatización; LED <strong>rojo</strong> (como el original)</td></tr>
+<tr><td>Motor de las pistas MIDI y oscilador</td><td>Valor por defecto; LED <strong>lavanda</strong></td><td><strong>Desde RC2:</strong> borra la automatización del knob (los carriles con y sin Shift); LED <strong>rojo</strong></td></tr>
 <tr><td><strong>Master FX</strong> (desde RC0.3)</td><td>El knob del efecto elegido vuelve a su valor por defecto</td><td>Nada (Master FX no tiene automatización)</td></tr>
 </tbody></table>
 <ul>
 <li>En drums y en el motor MIDI restablece <strong>las dos capas</strong> del knob: la normal y la de Shift.</li>
-<li><strong>Master FX:</strong> mientras Clear está pulsado, los knobs del efecto elegido se ven <strong>azules</strong> si están en su valor por defecto y <strong>rojos</strong> si no. Vale para los efectos de los pads 1-6, el Glitch (velocidad normal, sin repetición, sin retraso ni caos) y el sample (sin transposición, one-shot, inicio 0, final al máximo).</li>
+<li><strong>Master FX:</strong> mientras Clear está pulsado, los knobs del efecto elegido que están en su valor por defecto se ven <strong>lavanda</strong> (sin rojo: no hay automatización; en RC0.9, azul / rojo). Vale para los efectos de los pads 1-6, el Glitch (velocidad normal, sin repetición, sin retraso ni caos) y el sample (sin transposición, one-shot, inicio 0, final al máximo).</li>
 <li>RC0.3: el azul de los drums es el del original (antes salía un rojo anaranjado tenue).</li>
 </ul>
 </section>
@@ -1382,7 +1385,16 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Desde RC0.3 (también en RC0.3S).</li>
 </ul>
 </section>
-<section class="feat" id="a12-teclado-partido"><h3><span class="code">A12</span>Teclado partido Synth 1 + Synth 2</h3>
+<section class="feat" id="a12-mixer-cue"><h3><span class="code">A12</span>Modo cue, mutes al compás y cuantizar (desde RC2)</h3>
+<div class="summary"><p><strong>Desde RC2.</strong> Mixer, página de panorama: <strong>Shift + knob</strong> = modo cue (la salida derecha escucha las pistas que elijas). <strong>Shift + pads 1-8</strong> del Mixer = silenciar / activar al compás siguiente. <strong>Shift + Play</strong> = cuantizar el patrón de la pista elegida.</p></div>
+<ul>
+<li><strong>Modo cue:</strong> en la página de panorama (Octave ▼), Shift + knob a la derecha lo enciende y a la izquierda lo apaga (Octave ▼ rosa). Con el modo, los knobs de panorama son el envío de cada pista al cue: la salida izquierda lleva la mezcla en mono y la derecha solo las pistas en cue. Se guarda en el aparato; los paneos vuelven al apagarlo.</li>
+<li><strong>Mutes al compás:</strong> Shift + pad de pista (fila 1 del Mixer) = esa pista se silencia o se activa al empezar el compás siguiente; el pad parpadea mientras espera, otra vez lo cancela; parado, al momento.</li>
+<li><strong>Cuantizar:</strong> Shift + Play mueve las notas y golpes grabados fuera de la rejilla al paso más cercano (micropasos 1-2 → su paso, 3-5 → el siguiente), en el patrón que suena de la pista elegida. Sustituye al Shift + Play del original.</li>
+<li>Detalle en la guía por vistas (Mixer y botones de todas las vistas).</li>
+</ul>
+</section>
+<section class="feat" id="a13-teclado-partido"><h3><span class="code">A13</span>Teclado partido Synth 1 + Synth 2</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> Mantén <strong>Synth 1</strong> y pulsa <strong>Synth 2</strong> (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1531,7 +1543,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Desde RC2.02: cualquier par de pistas de notas</strong> (Synth 1, Synth 2, MIDI 1, MIDI 2): mantén un botón y pulsa otro; las filas de arriba tocan la que mantuviste primero (en RC2, arriba siempre Synth 1). Los botones de drum no lo abren.</li>
 </ul>
 </section>
-<section class="feat" id="a13-colores-patch"><h3><span class="code">A13</span>Patches de sinte por modo de voz</h3>
+<section class="feat" id="a14-colores-patch"><h3><span class="code">A14</span>Patches de sinte por modo de voz</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: <strong>mono azul oscuro</strong>, <strong>glide lavanda</strong>, <strong>poly como siempre</strong>.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1682,7 +1694,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En Advanced Setup los pads 22 / 23 ya no se encienden (allí nunca hacían nada).</li>
 </ul>
 </section>
-<section class="feat" id="a14-patches-midi"><h3><span class="code">A14</span>Patches del sinte propio (MIDI 1 / 2)</h3>
+<section class="feat" id="a15-patches-midi"><h3><span class="code">A15</span>Patches del sinte propio (MIDI 1 / 2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), <strong>Clear + pad</strong> dos veces = guardar, <strong>Duplicate + A + B</strong> = intercambiar; <strong>Octave ▼ / ▲</strong> = 4 páginas (64 huecos por pack).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1841,7 +1853,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a15-guardar-patch"><h3><span class="code">A15</span>Guardar el patch del sinte en el pack</h3>
+<section class="feat" id="a16-guardar-patch"><h3><span class="code">A16</span>Guardar el patch del sinte en el pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de Synth 1 / 2: <strong>Clear + pad</strong> pregunta (parpadea en blanco) y <strong>Clear + el mismo pad otra vez</strong> guarda en ese hueco el patch tal como suena.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1993,7 +2005,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a16-destinos-macro"><h3><span class="code">A16</span>Destinos de los macro knobs</h3>
+<section class="feat" id="a17-destinos-macro"><h3><span class="code">A17</span>Destinos de los macro knobs</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista de la fuente del sinte (A6) el <strong>pad 32</strong> abre el editor: un knob elige su macro, <strong>Octave ▼ / ▲</strong> pasa de campo y los pads dibujan el número.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de la fuente con el editor de macros: pad 32 encendido, el knob elegido en blanco.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2158,7 +2170,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Los cambios se oyen al momento y van en el patch del proyecto. Para dejarlos en el pack, guarda el patch (A15).</li>
 </ul>
 </section>
-<section class="feat" id="a17-copiar-proyectos"><h3><span class="code">A17</span>Copiar proyectos a otro hueco o a otro pack</h3>
+<section class="feat" id="a18-copiar-proyectos"><h3><span class="code">A18</span>Copiar proyectos a otro hueco o a otro pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Projects: <strong>Duplicate + pad A</strong> elige el proyecto (parpadea en amarillo) y <strong>Duplicate + pad B</strong> lo copia a ese hueco, del mismo pack o de otro.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2311,7 +2323,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a18-patches-entre-packs"><h3><span class="code">A18</span>Patches del sinte propio a otro pack</h3>
+<section class="feat" id="a19-patches-entre-packs"><h3><span class="code">A19</span>Patches del sinte propio a otro pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de MIDI 1 / 2: <strong>Duplicate + hueco A</strong>, carga otro pack y <strong>Duplicate + hueco B</strong> copia el patch (motor, parámetros y nombre).</p></div>
 <ul>
 <li><strong>Duplicate + hueco A</strong> con el pack de origen cargado: el patch queda recordado.</li>
@@ -3162,7 +3174,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">nada</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Vinyl</text>
+<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Digitise</text>
 <circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
 <text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">nada</text>
@@ -3305,7 +3317,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>3</td><td>pad 28</td></tr>
 <tr><td>4</td><td>pad 29</td></tr>
 <tr><td>5</td><td>pad 30</td></tr>
-<tr><td>6</td><td>pad 31 (el Glitch)</td></tr>
+<tr><td>6</td><td>pad 31 (el gesto mecánico; en RC0.9, el Glitch)</td></tr>
 </tbody></table>
 <ol>
 <li>4. Con el secuenciador en marcha, en cada paso con nota se enciende lo que tenga ese hueco: un efecto (con su copia de parámetros) o el Glitch. El LED del knob toma el color de ese efecto; apagado = nada.</li>
@@ -3646,9 +3658,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Asignar</h4>
 <p>Mantén el pad 7 y toca un pad de la fila inferior: ese hueco toca el sample con una copia de sus knobs.</p>
 </section>
-<section class="feat" id="c6-glitch-pad"><h3><span class="code">C6</span>Glitch (pad 31) y su asignación</h3>
-<div class="summary"><p><strong>Mantén el pad 31</strong> (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).</p><p><strong>Pad 31 mantenido + otro pad de la fila inferior</strong> = ese hueco también es un Glitch, con su copia de K1-K4.</p></div>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Glitch: pad 31; asignado también al pad 28.">
+<section class="feat" id="c6-glitch-pad"><h3><span class="code">C6</span>Glitch (pad 6) y su asignación</h3>
+<div class="summary"><p><strong>Mantén el pad 6</strong> (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).</p><p><strong>Pad 6 mantenido + un pad de la fila inferior</strong> = ese hueco también es un Glitch, con su copia de K1-K4.</p></div>
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Glitch: pad 6; asignado también al pad 28.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
@@ -3736,7 +3748,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
 <rect x="332" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
 <rect x="456" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
@@ -3787,14 +3800,13 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Glitch: pad 31; asignado también al pad 28.</figcaption></figure>
+</svg><figcaption>Glitch: pad 6; asignado también al pad 28.</figcaption></figure>
 <ul>
-<li><strong>Mantener el pad 31:</strong> la salida master se sustituye por una cabeza de cinta que lee el audio reciente (D6). Al soltar vuelve el audio normal.</li>
+<li><strong>Mantener el pad 6:</strong> la salida master se sustituye por una cabeza de cinta que lee el audio reciente (D6). Al soltar vuelve el audio normal.</li>
 <li>Al pulsarlo en Master FX, K1-K4 son sus parámetros:</li>
 </ul>
 <table><thead><tr><th>Knob</th><th>Función</th></tr></thead><tbody>
@@ -3804,16 +3816,16 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>K4</td><td>Mitad de abajo: <strong>caos</strong> (saltos atrás, cortes y cambios de sentido al azar). Mitad de arriba: <strong>sobrecarga</strong> — bloques que llegan tarde (se repiten 32 muestras y luego se recupera: chasquidos con el tono normal); desde ~3/4 del recorrido además frena: todo más grave y lento, como el DSP sobrecargado (desde RC0.2)</td></tr>
 </tbody></table>
 <ul>
-<li><strong>Asignar:</strong> mantén el pad 31 y toca otro pad de la fila inferior (sin Shift): ese hueco guarda un Glitch con la copia actual de K1-K4 y se ilumina en turquesa. Tocar ese hueco lo hace sonar con sus valores.</li>
+<li><strong>Asignar:</strong> mantén el pad 6 y toca un pad de la fila inferior (sin Shift): ese hueco guarda un Glitch con la copia actual de K1-K4 y se ilumina en turquesa. Tocar ese hueco lo hace sonar con sus valores.</li>
 <li><strong>Dos huecos con Glitch a la vez:</strong> suena el último que pulsas; al soltarlo vuelve el otro con sus valores. Ninguno copia los valores del otro (en RC0, pulsar uno mientras sonaba otro le copiaba los knobs).</li>
-<li>El pad 31 se ilumina mientras el Glitch suena.</li>
+<li>El pad 6 se ilumina mientras el Glitch suena.</li>
 </ul>
 </section>
 <section class="feat" id="c7-fila-inferior"><h3><span class="code">C7</span>Fila inferior asignable (Master FX / FX)</h3>
 <div class="summary"><p>Mantén un efecto de arriba (o el pad 7, o el pad 31) y toca un pad de abajo: ese hueco guarda el efecto con una copia de sus parámetros. Se guarda con el proyecto.</p></div>
 <ul>
-<li><strong>Pads 26-30</strong> (y el 31 como Glitch): huecos asignables. Un hueco sin asignar es el efecto de actuación de la vista FX de stock.</li>
-<li><strong>Asignar:</strong> mantén el efecto de arriba (pads 1-6), el pad 7 (sample) o el pad 31 (Glitch) y toca el hueco.</li>
+<li><strong>Pads 26-30</strong>: huecos asignables (el 31 es el gesto mecánico). Un hueco sin asignar es el efecto de actuación de la vista FX de stock.</li>
+<li><strong>Asignar:</strong> mantén el efecto de arriba (pads 1-6), el pad 7 (sample) o el pad 31 (gesto mecánico) y toca el hueco.</li>
 <li><strong>Tocar el hueco:</strong> carga su copia de parámetros y activa el efecto mientras se mantiene. <strong>Shift + hueco</strong> lo fija.</li>
 <li>Las asignaciones van con el proyecto y vuelven al encender; al cambiar de sesión se mantienen las de la RAM.</li>
 <li>El secuenciador de efectos (C3) dispara estos huecos.</li>
@@ -4251,13 +4263,13 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </section>
 <h2 class="group">D. DSP</h2>
 <section class="feat" id="d1-efectos-grid"><h3><span class="code">D1</span>Efectos de Master FX</h3>
-<div class="summary"><p>Gater, Auto-Filter LP / HP, Digitise, Phaser y Vinyl sobre la salida master, con 4 parámetros cada uno.</p></div>
+<div class="summary"><p>Gater, Auto-Filter LP / HP, Digitise, Phaser y Glitch sobre la salida master, con 4 parámetros cada uno.</p></div>
 <table><thead><tr><th>Pad</th><th>Efecto</th><th>K1-K4</th></tr></thead><tbody>
 <tr><td>1</td><td>Gater</td><td>división, profundidad, ancho, suavizado</td></tr>
 <tr><td>2 / 3</td><td>Auto-Filter paso bajo / alto</td><td>velocidad, profundidad, resonancia, frecuencia central</td></tr>
-<tr><td>4</td><td>Digitise</td><td>reducción de muestreo, reducción de bits (K3 y K4 no hacen nada)</td></tr>
+<tr><td>4</td><td>Digitise</td><td>reducción de muestreo, reducción de bits, envío al delay (K3), envolvente de la cantidad (K4)</td></tr>
 <tr><td>5</td><td>Phaser</td><td>velocidad, profundidad, realimentación, mezcla</td></tr>
-<tr><td>6</td><td>Vinyl</td><td>crackle, siseo, tono (paso bajo), desgaste (paso alto)</td></tr>
+<tr><td>6</td><td>Glitch (en RC0.9, el Vinyl)</td><td>velocidad, repetición, retraso, caos / sobrecarga</td></tr>
 </tbody></table>
 <ul>
 <li>Mantener = activo; Shift = fijado. El brillo de los LED de los knobs enseña el valor.</li>
@@ -4269,7 +4281,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Cadena por voz: VCA → efecto → filtro, o filtro → VCA → efecto (pad 29).</li>
 <li>Filtro de estado variable con seguimiento de la nota; LP / HP de 24 dB = dos etapas.</li>
 <li>VCA con ADSR, velocity, ganancia hasta +18 dB con saturación suave.</li>
-<li>LFO en rampa inversa hacia nivel, filtro, tono, forma y morph.</li>
+<li>LFO de siete formas (triángulo por defecto; página 5, Shift + K8) hacia nivel, filtro, tono, forma y morph.</li>
 <li>Los valores por defecto dejan pasar la entrada limpia.</li>
 </ul>
 </section>
@@ -4557,6 +4569,6 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Drums — NRPN MSB 5 / 6 / 7 / 8 = Drum 1-4</h4>
 <p>LSB 1 env. de tono, 2 ring (frecuencia), 3 LFO, 4 velocidad LFO, 5 env → corte, 6 resonancia, 7 forma de la envolvente, 8 ring (cantidad), 9 modo de filtro, 10 inicio (0-120; antes 0-15), 11 bitcrush, 12 tipo de distorsión, 13 corte (0-120), 14 ataque.</p>
 <h4>Master FX — canal 16, NRPN MSB 9</h4>
-<p>LSB = 4 × conjunto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl 16-19.</p>
+<p>LSB = 4 × conjunto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Glitch 16-19 (en RC0.9, Vinyl).</p>
 </section>
 <footer>CIRCUIT-HACKS RC2.02 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>
