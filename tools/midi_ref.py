@@ -36,7 +36,7 @@ GFX = [("Gater", "división, profundidad, ancho, suavizado", "division, depth, w
        ("Auto-Filter (pads 2 / 3)", "velocidad, profundidad, resonancia, centro", "speed, depth, resonance, centre"),
        ("Digitise", "muestreo, bits, envío al delay (RC2), envolvente (RC2)", "sample rate, bits, delay throw (RC2), envelope (RC2)"),
        ("Phaser", "velocidad, profundidad, realimentación, mezcla", "speed, depth, feedback, mix"),
-       ("Vinyl (RC0.9) / Glitch (RC2)", "RC: crackle, siseo, tono, desgaste; RC2: velocidad, repetición, retraso, caos", "RC: crackle, hiss, tone, wear; RC2: speed, repeat, delay, chaos")]
+       ("Glitch (RC0.9: Vinyl)", "velocidad, repetición, retraso, caos / sobrecarga (RC0.9: crackle, siseo, tono, desgaste)", "speed, repeat, delay, chaos / overload (RC0.9: crackle, hiss, tone, wear)")]
 UI = dict(
     es=dict(title="Referencia MIDI de las funciones nuevas", md="docs/MIDI.md", html="midi.html", lang="es",
             other='<p class="lang"><a href="midi-en.html">English version</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>',

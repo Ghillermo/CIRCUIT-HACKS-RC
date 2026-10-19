@@ -11,7 +11,7 @@ RA = (ROOT / "ctre/Firmware-Analysis/ram_dump_firmware_0x08037988.bin").read_byt
 TX = 0x20011334          # tx interface (vtable 0x08059FC4)
 CTX = 0x20044CB8         # receiver A
 REC_STORE = 0x20011034   # transport store read by recorder gates
-STOP = 0x0807FF00
+STOP = 0x0807FFF0          # erased flash past the image (SC44.5 reaches 0x0807FFC4; was 0x0807FF00), inside the mod zone (rodisk / lazysave LR checks)
 
 
 class E:

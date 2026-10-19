@@ -150,6 +150,32 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 - **Pruebas:** `emu_rc0_6.py` (sobre el arnés publicado, sin depender de las pruebas de las builds privadas) y `emu_sc38_5.py`, en las dos.
 - **Publicación:** el árbol público sale de la última fuente publicada (`67893da`, BETA5) más solo esto, para no sacar las builds privadas SC39.7-SC40.5: rama `pub-rc0.6`.
 
+### SC44.6 / Beta 3.3 (SC44.6 / B3.3) = SC44.5 + el filtro master apagado se queda apagado — ⏳ pendientes de probar; Beta 3.3 publicada 2026-10-19
+
+El usuario (2026-10-19): «cuando se desactiva el filtro con s25, mantener desactivado aunque se mueva. Recuperar posición actual del filtro al togglear s25 otra vez». **`mfbyp.use_hold()`** (`build_sc44_6.py`, `build_beta3_3.py`):
+- El parámetro del filtro (`0x21` índice 0) ya no se toca: lo siguen moviendo el knob, el MIDI y los proyectos (y su LED lo enseña, en rojo mientras está apagado).
+- **Las dos lecturas del filtro para `X:$CF`**: el `bl 0x08036192(0x21, 0)` del grupo master de stock (`0x08028F46`, grupo `0x08028F40`) y el de la restauración del Auto-Filter de SC14 (tras `gt_f_off`) → **`c_mfget`**: el valor, o 64 mientras está apagado (la firma `MFB1`). Buscado en toda la imagen: no hay más llamadas `GETTER(0x21, 0)` fuera de `mfbyp`.
+- Cada cambio (Shift + pad 25) pone / quita la firma y reenvía el grupo con el `MARK_DIRTY` de stock (`0x0803BDCC(0x21, 0)`: desde la pulsación, la tarea de la interfaz, nunca desde el tick del servicio del DSP); **escribir el mismo valor con el escuchador no marca el grupo** (comprobado en emulación).
+- La tarea de LEDs ya no apaga el modo cuando el parámetro deja de ser 64.
+- Flash: imagen `0x6FFB0` (80 B libres; menos código que SC44.5). Prueba `emu_mfhold.py`.
+
+### SC44.5 / Beta 3.2 (SC44.5 / B3.2) = SC44.4 + filtro master apagado / encendido en Shift + pad 25 de la vista FX — ⏳ pendientes de probar, sin publicar
+
+El usuario (2026-10-19): «add shift25 on FX view: master filter disable/enable». Función nueva: solo en la beta («ALL fixes on RC, ALL new feats on Beta»). `tools/mfbyp.py` (`build_sc44_5.py`, `build_beta3_2.py`):
+- **Pulsación:** cabeza nueva de la ranura 0 de la clase de la vista FX (`build_sc14.FX_VT` = `0x0805A6E0`, detrás `c_f_press` de SC17 / `c_fxpress` de SC14): pad 25 (índice 24, el «FX off» de stock) con Shift y la vista FX en pantalla (`[ctrl + 0x6C] == [ctrl + 0x44]`) = `c_mftog`; lo demás sigue (sin Shift el pad 25 es el de stock).
+- **Apagar:** la posición del filtro (parámetro de proyecto `0x21` índice 0, getter `0x08036192`) a `MFB + 4`, la firma `MFB1` en `MFB` (`0x200450E0`, la RAM libre sobre el heap, detrás de la de `split4`) y el filtro a 64 (centro = sin filtro) por el escuchador `0x08034D92`. **Encender:** la posición vuelve, la firma a 0. Sin firma = encendido (la RAM tiene basura al arrancar).
+- **Tarea de LEDs** (cabeza nueva de las llamadas `packio.LED_CALLS`, detrás `c_rsledtask` de `fxres`): apagado y el filtro ya no en 64 (el knob, otro proyecto) = encendido otra vez desde ahí (se borra la firma: no queda nada escondido); apagado = LED del knob del filtro (68) rojo `0x53` en todas las vistas; vista FX + Shift = pad 25 amarillo `0x2D` (rojo si está apagado).
+- **Límites:** un proyecto cargado con el filtro en 64 mientras está apagado sigue apagado (el LED rojo lo enseña) y al encender recibe la posición guardada del anterior; guardar con el filtro apagado guarda 64.
+- Flash: imagen `0x6FFC4` (**60 B libres**; `mfbyp` 232 B). **El arnés de las pruebas** paraba en `emu_sc05.STOP = 0x0807FF00`, que ahora es código de la imagen: `STOP = 0x0807FFF0` (flash borrada tras la imagen, dentro de la zona del mod para los LR de `rodisk` / `lazysave`); `emu_sc10.py` lo importa. Prueba `emu_mfbyp.py`.
+
+### SC44.4 / Beta 3.1 (SC44.4 / B3.1) = SC44.3 + resonancia del filtro master en Shift + Octave — ⏳ pendientes de probar, sin publicar
+
+El usuario (2026-10-19): «cambia master reso a shift+octave up/down, saltos de 16 en 16», «sin ciclar en max/min». `tools/fxres.py` (`build_sc44_4.py`, `build_beta3_1.py`):
+- **Antes** (SC19 … SC44.3, `fxkeys.PAGE_BTN`): el botón 1-16 / 17-32 (id 21, `b.w` en `0x080336F8` → `c_pgbtn`) subía la resonancia (parámetro de proyecto `0x21` índice 1) de 32 en 32 y tras 127 volvía a 0; `leds18.c_ledtask` encendía su LED (53) en verde en la vista FX.
+- **Ahora:** los casos de Octave ▼ / ▲ del manejador de botones (`0x08033620` / `0x08033660`, los `b.w` de `fxkeys` `c_octdn` / `c_octup`) → `c_rsdn` / `c_rsup`: con la vista FX (`[ctrl + 0x6C] == [ctrl + 0x44]`) y Shift, `c_rsstep` = resonancia ± 16 con tope en 0 / 127 (sin escribir si ya está en el tope), por el getter `0x08036192` y el escuchador `0x08034D92`, salida por el epílogo `0x08033706`; si no, el gancho anterior (la página de envíos). Con Shift el stock deja pasar los ids 19 / 20.
+- El id 21 recupera sus 4 bytes de stock (`ldr r0, [r4, #0x24]; movs r1, #0x15`); el `movw` / `movw` / `strh` del verde del LED 53 en `c_ledtask` = `nop`; cabeza nueva de las llamadas a la tarea de LEDs (`c_rsledtask`): vista FX + Shift = LEDs 51 / 52 en amarillo `0x2D`.
+- Flash: imagen `0x6FEDC` (292 B libres). Prueba `emu_fxres.py`. `emu_sc17_5.py` (resonancia en el id 21) no vale sobre SC44.4.
+
 ### RC2.02 / RC2.02S (R202 / R202S) = SC44.3 como versión candidata — ⏳ pendientes de probar; publicadas 2026-10-18
 - El usuario (2026-10-18): «Upload to RC2.xx and RC2.xxS» y luego «publica rc y pasa la nota al readme». **RC2.02** = SC44.3 / Beta 3.0 con la marca `R202` (el esquema de RC2.01 = `R201`); **RC2.02S** = RC2.02 + `rodisk.use_allpacks()` (`build_r202s.py`, como RC2.01S). La Beta 3.0 no se publicó por separado: el instalador público ofrece R202, R202S, R201, R201S, RC2, RC2S, RC0.9, RC0.9S; los manuales marcan lo de la Beta 3.0 «desde RC2.02» (`make_guide.NBETA`).
 - **Nota legal del usuario:** el 2026-10-18 añadió en GitHub (repositorio público, `9597c47`) una nota legal al README (español tras el anuncio, inglés tras la primera línea de la parte inglesa). `publish_rc.py` toma el README de la rama `RC`: la nota se copió a la rama `RC` y al README privado antes de publicar, para no borrarla.
@@ -2983,6 +3009,7 @@ Petición del usuario: el conmutador noise / entrada de línea estaba en Shift +
   - entender la interfaz entre núcleos (memoria compartida: el núcleo 1 del Rhythm usa mucho Y:$371xx; el núcleo 0 del Tracks usa X:$30000);
   - averiguar de qué depende el servicio de copia del núcleo 1 del Tracks.
 - Desensamblados en el contenedor: `ct/rhythm/dsp/blkA–D.asm`.
+- Manuales del Rhythm en `rythm/` (2026-10-18): User Guide v1.0 y Programmer's Reference Guide v2 (PDF de Novation); mapa CC / NRPN y erratas de la guía en [`rythm/MIDI.md`](../rythm/MIDI.md).
 
 ## Siguientes pasos
 0. **Probar SC15 y SC16 en hardware** (`firmware/sc15/PRUEBA.md`, `firmware/sc16/PRUEBA.md`).

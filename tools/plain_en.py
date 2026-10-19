@@ -28,7 +28,7 @@ sec("what", "What the mod is", f"""
 The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra features patched in. Whatever this guide does not mention works exactly as on a stock unit, so **Novation's user guide still applies**.
 
 - Features with no mark are in every build.
-- Features marked **{B}** are new since RC0.9. Many of them have not been tried on a real unit yet: keep a copy of your card.
+- Features marked **{B}** are new compared with RC0.9; *(since RC2.02)*, compared with RC2.01; *Beta 3.3 only*, only in the beta with the new features (not in RC2.02). Many of them have not been tried on a real unit yet: keep a copy of your card.
 - Novation's bootloader (the part that installs firmware) is never modified, so you can always go back.
 """)
 
@@ -43,6 +43,7 @@ sec("install", "Before you install", f"""
 | **RC2.02** | The release candidate: everything in this guide (RC2.01 + the mod matrix, the split keyboard with any pair and the new LFO shapes). |
 | **RC2.02S** | The *safer* build: RC2.02, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
 | **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | The earlier ones: RC2.01 without what is marked *(since RC2.02)*; RC2 with the sample after the master filter; RC0.9 without what is marked {B}. |
+| **Beta 3.3** | The test build: RC2.02 + the new features marked *Beta 3.3 only*, not tried on a unit. It writes to the card like RC2.02. |
 
 ### Installing
 1. Download Novation's official firmware 1.2.1 (the update file from Components).
@@ -127,8 +128,9 @@ Press **FX** to open the FX view:
 | **Octave ▲ / ▼** | The 8 knobs = the delay sends / the reverb sends, one per track. |
 | **Shift + knob** | The effect itself, for every track: reverb K1 type, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Saved with the project. |
 | **Duplicate** | Reset: sends to 0, master filter centred, Master FX off. |
-| **1-16 / 17-32** | Resonance of the master filter (green LED). |
-| Bottom row | The same as in Master FX: slots, Glitch, recording the capture. |
+| **Shift + Octave ▲ / ▼** | *Beta 3.3 only:* master filter resonance, 16 up / 16 down; it stops at the top and the bottom. In RC2.02 it is on **1-16 / 17-32** (green LED). |
+| **Shift + pad 25** | *Beta 3.3 only:* switches the master filter off: it sounds as with the filter at the centre even if you move its knob; again, it switches it on wherever the knob is at that moment. While off, the filter knob's light is red. |
+| Bottom row | The same as in Master FX: slots, mechanical gesture, recording the capture. |
 
 - If Setup routes the reverb / delay return through strip 3 or 4 (section 14), the sends of those strips stop at half range and move at half speed.
 """, [F("FX view: Octave ▲ / ▼ choose delay / reverb sends; Shift + knob, the effect itself.",
@@ -145,12 +147,12 @@ Live effects on the whole output. **Hold** a pad to hear its effect; **Shift + p
 | 2 / 3 | Auto-Filter, low pass / high pass | speed, depth, resonance, centre |
 | 4 | Digitise | sample rate, bits; {B}: K3 = a momentary throw into the delay, K4 = envelope of the amount |
 | 5 | Phaser | speed, depth, feedback, mix |
-| 6 | RC: Vinyl (crackle, hiss, tone, wear); {B}: **Glitch** | Glitch: speed, repeat, delay, chaos / overload |
+| 6 | **Glitch** {B} (in RC0.9, the Vinyl) | Glitch: speed, repeat, delay, chaos / overload |
 | 7 | Play the **capture** | pitch, mode, start, end |
 | 8 | Release everything latched (effects, slots, song pointer, capture) and bypass | — |
 | 9-24 | **Song pointer**: steps 1-16 | — |
 | 26-30 | **Slots** | the stored effect's |
-| 31 | RC: **Glitch**; {B}: **mechanical gesture** | gesture: moves, kind, stop time, start time |
+| 31 | **Mechanical gesture** {B} (in RC0.9, the Glitch) | gesture: moves, kind, stop time, start time |
 | 32 | **Record** the capture | — |
 
 - **Clear + knob right** = that knob back to its default. RC: while Clear is held the knobs show lavender at their default and red elsewhere; {B}: only lavender (Master FX has no automation to delete).
@@ -449,7 +451,7 @@ sec("not", "What the mod does not do", """
 sec("midiref", "MIDI reference", f"""
 Everything new goes out and comes in over CC / NRPN, following the CC Tx / Rx filters of Setup. Full tables: the [MIDI reference](midi-en.html).
 - **Drums** (drum channel): NRPN MSB 5-8 = Drums 1-4; LSB 1 pitch envelope, 2 ring frequency, 3 LFO, 4 LFO speed, 5 envelope → cutoff, 6 resonance, 7 envelope shape, 8 ring amount, 9 filter mode, 10 start point, 11 bitcrush, 12 distortion type; {B} 13 cut, 14 attack.
-- **Master FX** (channel 16): NRPN MSB 9, LSB = 4 × effect + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl (RC) / Glitch {B} 16-19.
+- **Master FX** (channel 16): NRPN MSB 9, LSB = 4 × effect + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Glitch 16-19 (in RC0.9, Vinyl).
 - **MIDI track engine** (the track's channel): filter CC 74, resonance 71, envelope → filter 79, attack 73, decay 75, sustain 70, release 72, effect 91, gain 59, tune 26, fine 27, wave 20, shape 21, tune 2 37, fine 2 39, wave 2 30, shape 2 31, mix 52, ring 54, LFO speed NRPN 0:76; the rest NRPN MSB 4.
 - **Program Change** {B}: the project's listen / send channels in Setup (pads 29 / 30); patch flip on the track's channel.
 """)

@@ -4,6 +4,12 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 3.3 — 2026-10-19
+
+**Beta 3.3** (marca `B3.3`; = SC44.6) = RC2.02 + funciones nuevas sin probar en el aparato (reúne Beta 3.1 / 3.2, que no se publicaron):
+- **Vista FX: Shift + Octave ▲ / ▼ = resonancia del filtro master** de 16 en 16, con tope en 127 / 0 (Octave en amarillo con Shift). El botón 1-16 / 17-32 vuelve a ser el de stock.
+- **Vista FX: Shift + pad 25 = filtro master apagado / encendido.** Apagado suena como con el filtro al centro aunque se mueva su knob (el LED del knob en rojo); al encenderlo vuelve en la posición actual del knob.
+
 ## RC2.02 / RC2.02S — 2026-10-18
 
 **RC2.02** (ficheros y marca `R202`; = SC44.3) = RC2.01 + todo lo de la **Beta 3.0** (su entrada, abajo: matriz de modulación del sinte propio, teclado partido con cualquier par de pistas de notas, LFO con triángulo por defecto y sample & hold suavizado, el código del ARM compactado). **RC2.02S** (`R202S`) = RC2.02 sin escrituras propias en la SD, como RC2.01S. La Beta 3.0 no se publicó por separado.
@@ -405,6 +411,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 3.3 — 2026-10-19
+
+**Beta 3.3** (marker `B3.3`; = SC44.6) = RC2.02 + new features not yet tested on the device (it gathers Beta 3.1 / 3.2, which were not published):
+- **FX view: Shift + Octave ▲ / ▼ = master filter resonance** in steps of 16, stopping at 127 / 0 (Octave yellow with Shift). The 1-16 / 17-32 button is the stock one again.
+- **FX view: Shift + pad 25 = master filter off / on.** While off it sounds as with the filter at the centre even if its knob moves (the knob's LED red); switching it on brings it back at the knob's current position.
 
 ## RC2.02 / RC2.02S — 2026-10-18
 

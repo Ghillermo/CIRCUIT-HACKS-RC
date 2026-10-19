@@ -32,7 +32,7 @@ Nada de esto está probado en un aparato real salvo que lo diga el [CHANGELOG](h
 El mod es el propio firmware del Circuit Tracks de Novation (1.2.1, build 4486) con funciones añadidas. Lo que esta guía no menciona funciona exactamente igual que en un aparato de stock, así que **la guía de usuario de Novation sigue valiendo**.
 
 - Lo que no lleva marca está en todas las versiones.
-- Lo marcado ***(desde RC2)*** es nuevo desde RC0.9. Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.
+- Lo marcado ***(desde RC2)*** es nuevo respecto a RC0.9; *(desde RC2.02)*, respecto a RC2.01; *solo Beta 3.3*, solo en la beta con las funciones nuevas (no en RC2.02). Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.
 - El bootloader de Novation (la parte que instala el firmware) nunca se modifica, así que siempre se puede volver atrás.
 
 <a id="install"></a>
@@ -47,6 +47,7 @@ El mod es el propio firmware del Circuit Tracks de Novation (1.2.1, build 4486) 
 | **RC2.02** | La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO). |
 | **RC2.02S** | La versión *más segura*: RC2.02, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
 | **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | Las anteriores: RC2.01 sin lo marcado *(desde RC2.02)*; RC2 con el sample tras el filtro master; RC0.9 sin lo marcado *(desde RC2)*. |
+| **Beta 3.3** | La versión de prueba: RC2.02 + las funciones nuevas marcadas *solo Beta 3.3*, sin probar en un aparato. Escribe en la tarjeta como RC2.02. |
 
 ### Instalar
 1. Descarga el firmware oficial 1.2.1 de Novation (el fichero de actualización de Components).
@@ -128,8 +129,9 @@ Pulsa **FX** para abrir la vista FX:
 | **Octave ▲ / ▼** | Los 8 knobs = los envíos de delay / de reverb, uno por pista. |
 | **Shift + knob** | El propio efecto, para todas las pistas: reverb K1 tipo, K2 decay, K3 amortiguación; delay K1 tiempo, K2 sincronía, K3 realimentación, K4 anchura, K5 proporción, K6 slew. Se guarda con el proyecto. |
 | **Duplicate** | Reset: envíos a 0, filtro master centrado, Master FX apagado. |
-| **1-16 / 17-32** | Resonancia del filtro master (LED verde). |
-| Fila inferior | Lo mismo que en Master FX: huecos, Glitch, grabar la captura. |
+| **Shift + Octave ▲ / ▼** | *Solo Beta 3.3:* resonancia del filtro master, 16 más / 16 menos; se para arriba y abajo. En RC2.02 va en **1-16 / 17-32** (LED verde). |
+| **Shift + pad 25** | *Solo Beta 3.3:* apaga el filtro master: suena como con el filtro al centro aunque muevas su knob; otra vez, lo enciende donde esté el knob en ese momento. Apagado, la luz del knob del filtro se pone roja. |
+| Fila inferior | Lo mismo que en Master FX: huecos, gesto mecánico, grabar la captura. |
 
 - Si el Setup manda el retorno de reverb / delay por la tira 3 o 4 (sección 14), los envíos de esas tiras se quedan a media carrera y van a media velocidad.
 
@@ -144,12 +146,12 @@ Efectos en directo sobre toda la salida. **Mantén** un pad para oír su efecto;
 | 2 / 3 | Auto-Filter, paso bajo / paso alto | velocidad, profundidad, resonancia, centro |
 | 4 | Digitise | frecuencia de muestreo, bits; *(desde RC2)*: K3 = envío momentáneo al delay, K4 = envolvente de la cantidad |
 | 5 | Phaser | velocidad, profundidad, realimentación, mezcla |
-| 6 | RC: Vinyl (crepitar, soplido, tono, desgaste); *(desde RC2)*: **Glitch** | Glitch: velocidad, repetición, retardo, caos / sobrecarga |
+| 6 | **Glitch** *(desde RC2)* (en RC0.9, el Vinyl) | Glitch: velocidad, repetición, retardo, caos / sobrecarga |
 | 7 | Tocar la **captura** | tono, modo, inicio, final |
 | 8 | Soltar todo lo fijado (efectos, huecos, song pointer, captura) y bypass | — |
 | 9-24 | **Song pointer**: pasos 1-16 | — |
 | 26-30 | **Huecos** | los del efecto guardado |
-| 31 | RC: **Glitch**; *(desde RC2)*: **gesto mecánico** | gesto: movimientos, tipo, tiempo de parada, tiempo de arranque |
+| 31 | **Gesto mecánico** *(desde RC2)* (en RC0.9, el Glitch) | gesto: movimientos, tipo, tiempo de parada, tiempo de arranque |
 | 32 | **Grabar** la captura | — |
 
 - **Clear + knob a la derecha** = ese knob a su valor por defecto. RC: mientras Clear está pulsado, los knobs se ven lavanda en su valor por defecto y rojos fuera; *(desde RC2)*: solo lavanda (Master FX no tiene automatización que borrar).
@@ -411,7 +413,7 @@ En la vista de packs (**Shift + Projects**) toca **Clear**: durante ~5 s parpade
 
 Todo lo nuevo sale y entra por CC / NRPN, según los filtros CC Tx / Rx del Setup. Tablas completas: la [referencia MIDI](midi.html).
 - **Drums** (canal de drums): NRPN MSB 5-8 = Drums 1-4; LSB 1 envolvente de tono, 2 frecuencia del ring, 3 LFO, 4 velocidad del LFO, 5 envolvente → corte, 6 resonancia, 7 forma de la envolvente, 8 cantidad del ring, 9 modo del filtro, 10 punto de inicio, 11 bitcrush, 12 tipo de distorsión; *(desde RC2)* 13 corte, 14 ataque.
-- **Master FX** (canal 16): NRPN MSB 9, LSB = 4 × efecto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Vinyl (RC) / Glitch *(desde RC2)* 16-19.
+- **Master FX** (canal 16): NRPN MSB 9, LSB = 4 × efecto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Glitch 16-19 (en RC0.9, Vinyl).
 - **Motor de las pistas MIDI** (canal de la pista): filtro CC 74, resonancia 71, envolvente → filtro 79, ataque 73, decay 75, sustain 70, release 72, efecto 91, ganancia 59, afinación 26, fina 27, wave 20, shape 21, afinación 2 37, fina 2 39, wave 2 30, shape 2 31, mezcla 52, ring 54, velocidad del LFO NRPN 0:76; el resto NRPN MSB 4.
 - **Program Change** *(desde RC2)*: los canales de escucha / envío del proyecto en el Setup (pads 29 / 30); el patch flip por el canal de la pista.
 

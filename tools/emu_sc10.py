@@ -5,7 +5,7 @@ from pathlib import Path
 from unicorn import UC_HOOK_CODE
 from unicorn.arm_const import *
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from emu_sc05 import E  # noqa: E402
+from emu_sc05 import E, STOP  # noqa: E402
 
 SETUP = 0x20044958
 PALETTE = 0x08056464
@@ -41,7 +41,7 @@ def main(stock, img):
     ws, _ = h9(stock, 0)
     for bits in (0, 1, 2, 3):
         w, pc = h9(img, bits)
-        check(w[:4] == ws and w[4:] == [(FLAGS, bits)] and pc == 0x0807FF00, f"H9 bits={bits}: stock writes + X:${FLAGS:X}={bits} {w[4:]}")
+        check(w[:4] == ws and w[4:] == [(FLAGS, bits)] and pc == STOP, f"H9 bits={bits}: stock writes + X:${FLAGS:X}={bits} {w[4:]}")
     pad_fn = struct.unpack("<I", bytes(E10(img).uc.mem_read(0x0805A98C, 4)))[0] & ~1
     for pad, bit in ((0x15, 28), (0x16, 29)):
         e = E10(img); p0 = e.p2(); marks = []

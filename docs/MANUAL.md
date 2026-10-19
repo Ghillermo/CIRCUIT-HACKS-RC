@@ -19,13 +19,14 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A9 Sustituir un drum por la captura](#a9-sustituir)
 - [A10 Editor de CC de los macros MIDI](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = nivel a 100 / 0](#a11-mixer-shift)
-- [A12 Teclado partido Synth 1 + Synth 2](#a12-teclado-partido)
-- [A13 Patches de sinte por modo de voz](#a13-colores-patch)
-- [A14 Patches del sinte propio (MIDI 1 / 2)](#a14-patches-midi)
-- [A15 Guardar el patch del sinte en el pack](#a15-guardar-patch)
-- [A16 Destinos de los macro knobs](#a16-destinos-macro)
-- [A17 Copiar proyectos a otro hueco o a otro pack](#a17-copiar-proyectos)
-- [A18 Patches del sinte propio a otro pack](#a18-patches-entre-packs)
+- [A12 Modo cue, mutes al compás y cuantizar (desde RC2)](#a12-mixer-cue)
+- [A13 Teclado partido Synth 1 + Synth 2](#a13-teclado-partido)
+- [A14 Patches de sinte por modo de voz](#a14-colores-patch)
+- [A15 Patches del sinte propio (MIDI 1 / 2)](#a15-patches-midi)
+- [A16 Guardar el patch del sinte en el pack](#a16-guardar-patch)
+- [A17 Destinos de los macro knobs](#a17-destinos-macro)
+- [A18 Copiar proyectos a otro hueco o a otro pack](#a18-copiar-proyectos)
+- [A19 Patches del sinte propio a otro pack](#a19-patches-entre-packs)
 
 **B. Controles expuestos**
 
@@ -45,7 +46,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C3 Secuenciador de efectos](#c3-fx-seq)
 - [C4 Song pointer (Master FX)](#c4-song-pointer)
 - [C5 Sample capturado](#c5-sample)
-- [C6 Glitch (pad 31) y su asignación](#c6-glitch-pad)
+- [C6 Glitch (pad 6) y su asignación](#c6-glitch-pad)
 - [C7 Fila inferior asignable (Master FX / FX)](#c7-fila-inferior)
 - [C8 Random-mutate por paso](#c8-random-mutate)
 - [C9 Frecuencia y dinámicas por paso](#c9-frecuencia-dinamicas)
@@ -90,7 +91,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="a3-vista-fx"></a>
 ### A3. Teclas de la vista FX
 - **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay.
-- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **1-16 / 17-32** = resonancia del filtro master.
+- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.3; en RC2.02, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.3).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = valor por defecto
@@ -125,32 +126,36 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 ### A11. Mixer: Shift + knob = nivel a 100 / 0
 - Vista Mixer: **Shift + girar un knob a la derecha** pone el nivel de esa pista a **100**; **a la izquierda**, a **0**.
 
-<a id="a12-teclado-partido"></a>
-### A12. Teclado partido Synth 1 + Synth 2
+<a id="a12-mixer-cue"></a>
+### A12. Modo cue, mutes al compás y cuantizar (desde RC2)
+- **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
+
+<a id="a13-teclado-partido"></a>
+### A13. Teclado partido Synth 1 + Synth 2
 - **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
 
-<a id="a13-colores-patch"></a>
-### A13. Patches de sinte por modo de voz
+<a id="a14-colores-patch"></a>
+### A14. Patches de sinte por modo de voz
 - **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
 
-<a id="a14-patches-midi"></a>
-### A14. Patches del sinte propio (MIDI 1 / 2)
+<a id="a15-patches-midi"></a>
+### A15. Patches del sinte propio (MIDI 1 / 2)
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
 
-<a id="a15-guardar-patch"></a>
-### A15. Guardar el patch del sinte en el pack
+<a id="a16-guardar-patch"></a>
+### A16. Guardar el patch del sinte en el pack
 - **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
 
-<a id="a16-destinos-macro"></a>
-### A16. Destinos de los macro knobs
+<a id="a17-destinos-macro"></a>
+### A17. Destinos de los macro knobs
 - **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
 
-<a id="a17-copiar-proyectos"></a>
-### A17. Copiar proyectos a otro hueco o a otro pack
+<a id="a18-copiar-proyectos"></a>
+### A18. Copiar proyectos a otro hueco o a otro pack
 - **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
 
-<a id="a18-patches-entre-packs"></a>
-### A18. Patches del sinte propio a otro pack
+<a id="a19-patches-entre-packs"></a>
+### A19. Patches del sinte propio a otro pack
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 ## B. Controles expuestos
@@ -218,9 +223,9 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - El sample se asigna a la fila inferior (pad 7 + pad de abajo) y puede sustituir a un drum (A9).
 
 <a id="c6-glitch-pad"></a>
-### C6. Glitch (pad 31) y su asignación
-- **Mantén el pad 31** (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).
-- **Pad 31 mantenido + otro pad de la fila inferior** = ese hueco también es un Glitch, con su copia de K1-K4.
+### C6. Glitch (pad 6) y su asignación
+- **Mantén el pad 6** (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).
+- **Pad 6 mantenido + un pad de la fila inferior** = ese hueco también es un Glitch, con su copia de K1-K4.
 
 <a id="c7-fila-inferior"></a>
 ### C7. Fila inferior asignable (Master FX / FX)
@@ -272,7 +277,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="d1-efectos-grid"></a>
 ### D1. Efectos de Master FX
-- Gater, Auto-Filter LP / HP, Digitise, Phaser y Vinyl sobre la salida master, con 4 parámetros cada uno.
+- Gater, Auto-Filter LP / HP, Digitise, Phaser y Glitch sobre la salida master, con 4 parámetros cada uno.
 
 <a id="d2-vca-vcf"></a>
 ### D2. VCA-VCF de las pistas MIDI

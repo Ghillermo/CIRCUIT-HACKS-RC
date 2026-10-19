@@ -595,6 +595,15 @@ run python3 tools/emu_sc44.py firmware/r202/circuittracks-4486-R202.bin firmware
 run python3 tools/emu_sc44.py firmware/r202s/circuittracks-4486-R202S.bin firmware/r202s/manifest.json
 run python3 tools/emu_rodisk.py firmware/r202/circuittracks-4486-R202.bin firmware/r202/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
 run python3 tools/emu_rodisk.py firmware/r202s/circuittracks-4486-R202S.bin firmware/r202s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_fxres.py firmware/sc44.4/circuittracks-4486-SC44.4.bin firmware/sc44.4/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
+run python3 tools/emu_fxres.py firmware/b3.1/circuittracks-4486-B3.1.bin firmware/b3.1/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
+run python3 tools/emu_sc44_3.py firmware/sc44.4/circuittracks-4486-SC44.4.bin firmware/sc44.4/manifest.json
+run python3 tools/emu_mfbyp.py firmware/sc44.5/circuittracks-4486-SC44.5.bin firmware/sc44.5/manifest.json firmware/sc44.4/circuittracks-4486-SC44.4.bin
+run python3 tools/emu_mfbyp.py firmware/b3.2/circuittracks-4486-B3.2.bin firmware/b3.2/manifest.json firmware/b3.1/circuittracks-4486-B3.1.bin
+run python3 tools/emu_mfhold.py firmware/sc44.6/circuittracks-4486-SC44.6.bin firmware/sc44.6/manifest.json firmware/sc44.5/circuittracks-4486-SC44.5.bin
+run python3 tools/emu_mfhold.py firmware/b3.3/circuittracks-4486-B3.3.bin firmware/b3.3/manifest.json firmware/b3.2/circuittracks-4486-B3.2.bin
+run python3 tools/emu_fxres.py firmware/sc44.6/circuittracks-4486-SC44.6.bin firmware/sc44.6/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
+run python3 tools/emu_fxres.py firmware/sc44.5/circuittracks-4486-SC44.5.bin firmware/sc44.5/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
 run python3 tools/emu_sc44.py firmware/sc44/circuittracks-4486-SC44.bin firmware/sc44/manifest.json
 run python3 tools/emu_sc44.py firmware/rc2/circuittracks-4486-RC2.bin firmware/rc2/manifest.json
 run python3 tools/emu_sc44.py firmware/rc2s/circuittracks-4486-RC2S.bin firmware/rc2s/manifest.json

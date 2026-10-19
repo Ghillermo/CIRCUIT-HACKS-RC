@@ -26,6 +26,7 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 ## ARM (STM32F745, Cortex-M7)
 
 ### Flash
+- SC44.5 / Beta 3.2 (0x6FFC4 B, compactada): **60 B de flash libres** (SC44.4: 0x6FEDC B, la resonancia en Shift + Octave 192 B; el filtro master apagado / encendido 232 B). RAM: `0x200450E0..0x200450E7` (`mfbyp`). DSP: el de SC44.3. **Las pruebas paran en `0x0807FFF0`** (`emu_sc05.STOP`): una imagen más grande que `0x6FFF0` necesita otro sitio.
 - SC44.3 / Beta 1.32 (0x6FE1C B, compactada): **484 B de flash libres** (las formas nuevas de los dos LFO, 176 B con el código del DSP). **DSP núcleo 0: termina en `P:$3F8B`, 116 palabras libres** (40 para el sample & hold suavizado). RAM: `OSC1 + 26` del DSP (el valor anterior del suavizado; libres las palabras 26..39 de los bloques OSC1), `modmx` + 54.
 - SC44.2 / Beta 1.31 (0x6FD6C B, compactada): **660 B de flash libres** (la matriz de modulación 2 812 B, el teclado partido 636 B; sin compactar no cabría: 0x70A00). RAM: `0x20045000–0x200450CF` (sobre el heap, ver la tabla). DSP: el de SC44.1.
 - **Con `thumb.COMPACT`** (los pares `movw` / `movt` del ARM en tablas de constantes; ver NOTAS): SC44.1 queda en 0x6EFF4 B = **4 108 B libres** (3 132 B recuperados). Las builds nuevas que la usen parten de ahí.
