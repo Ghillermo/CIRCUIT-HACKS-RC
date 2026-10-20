@@ -122,7 +122,7 @@ class Asm:
     def emit(self, fn, *a): self.items.append(('I', fn, a))
 
     def assemble(self):
-        sx = SHORTX and self.base >= SHORTX_MIN
+        sx = SHORTX and (self.base >= SHORTX_MIN or getattr(self, "force_sx", False))   # (force_sx: granular_dsp.use_stereo, core 1)
         labels, addr = {}, self.base
         for it in self.items:
             if it[0] == 'L': labels[it[1]] = addr

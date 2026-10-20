@@ -37,6 +37,16 @@ COMPACT = False                               # SC36: TATK stored as its first 6
 ABS = False                                   # SC19: mailbox messages carry the ABSOLUTE value (the ARM keeps the state in the project); default: deltas (SC18.1)
 K3SPLIT = False                               # SC41.7 (use_k3split): the amp attack, the start point and the cut, written by the ARM into four new words
 AINC, AENV, STARTF, ENDC = 46, 47, 48, 49     # (block words past the 46 above; sc_init clears them: 0 = none)
+LFOSYNC = False                               # SC44.8 (use_lfosync)
+LINC = 50                                     # (LFOSYNC) the ARM's increment of the synced LFO (lfosync.py)
+
+
+def use_lfosync():
+    """SC44.8 (the user, 2026-10-19: the LFO rates bipolar, right free, left synced to the tempo with the phase on beat 1): Shift + K7 of the drums
+    (LSPD, -64..63): >= 0 = free, PH += TLFO[2 v]; < 0 = synced: PH += the increment the ARM keeps in the block's word LINC (lfosync.py, which
+    also sets the phase on every sequencer tick)."""
+    global LFOSYNC
+    LFOSYNC = True
 
 
 def use_k3split():
@@ -170,7 +180,13 @@ def code(base):
     L("dc_dec"); e("move %s,x0" % X(ENV), "move %s,y0" % X(DK), "mpy y0,x0,a", "move a,%s" % X(ENV))
     L("dc_env")
     # ---- LFO
-    e("move %s,a" % X(LSPD), "add #>$40,a"); ld_tab("TLFO", "a", "x0")
+    if LFOSYNC:                                                              # < 0: the ARM's increment; >= 0: TLFO[2 v]
+        e("move %s,a" % X(LSPD), "tst a"); a.emit(J("ge"), "dl_fr")
+        e("move %s,x0" % X(LINC)); a.emit(J("al"), "dl_fi")
+        L("dl_fr"); e("asl a"); ld_tab("TLFO", "a", "x0")
+        L("dl_fi")
+    else:
+        e("move %s,a" % X(LSPD), "add #>$40,a"); ld_tab("TLFO", "a", "x0")
     e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH))
     e("move %s,a" % X(PH), "abs a", "asl a", "add #>$800000,a", "move a,%s" % X(TRI))
     # ---- pitch

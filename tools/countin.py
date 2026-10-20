@@ -35,7 +35,16 @@ ID_CLEAR, ID_PLAY = 23, 17
 PARAM_GET, PARAM_WPTR = 0x0803542C, 0x080354FA
 SETTER, SET_OBJ, ID_METRO = 0x08031608, 0x200109D8, 0x64
 METRO_STORE = 0x20010FAC                                  # [SET_OBJ + 0x38]: parameter 3 = the metronome
-TRANSPORT, TEMPO = 0x20011034, 0x20011404                 # p0 playing, p1 recording / p1 = BPM
+TRANSPORT, TEMPO = 0x20011034, 0x20011404                 # p0 playing, p1 recording / p0 = BPM (SC44.8: not p1, see use_bpm0)
+BPM0 = False                                               # SC44.8 (use_bpm0)
+
+
+def use_bpm0():
+    """SC44.8 (a fix, for the RC too): the count-in's beat from p0 of the tempo store 0x20011404, the project's BPM (the Tempo view's knob turns
+    p0; SC14's c_beat reads it).  SC41.8 .. SC44.7 read p1, which is not the tempo (120 in the dump with the project at 94): the count-in clicked
+    at a wrong speed whenever the project's tempo was not that."""
+    global BPM0
+    BPM0 = True
 CLICK = 0x0803BD58                                        # (0xFF, 0, 0x60): the stock's metronome click
 HAL_TICK = 0x2000081C
 SESSION_OBJ, TAIL = 0x2003D71C, 0x27024
@@ -121,7 +130,7 @@ def arm_code(base, L, prev):
     E(bl, "c_citail"); E(cmp_imm, 0, 0); E(b_cond, "cl_x", "eq"); E(mov_reg, 4, 0)
     E(raw, ldr_w_(0, 4, O_T0)); E(cmp_imm, 0, 0); E(b_cond, "cl_sh", "eq")
     imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, "c_cip0"); E(cmp_imm, 0, 0); E(b_cond, "cl_end", "ne")    # started otherwise: no count
-    imm32(0, TEMPO); E(movs_imm, 1, 1); E(bl, "c_cip0"); E(cmp_imm, 0, 30); E(b_cond, "cl_bt", "hs"); E(movs_imm, 0, 120)
+    imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, "c_cip0"); E(cmp_imm, 0, 30); E(b_cond, "cl_bt", "hs"); E(movs_imm, 0, 120)
     a.label("cl_bt"); E(mov_reg, 1, 0); imm32(0, 60000); E(raw, udiv(6, 0, 1))                          # r6 = ms per beat
     imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(raw, ldr_w_(1, 4, O_T0)); E(subs_reg, 7, 0, 1)                # r7 = ms since the press
     E(b_cond, "cl_pos", "pl"); E(movs_imm, 7, 0)                                                         # (a start time of 1 for 0)

@@ -20,13 +20,14 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A10 CC editor of the MIDI macros](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = level to 100 / 0](#a11-mixer-shift)
 - [A12 Cue mode, mutes on the bar and quantize (since RC2)](#a12-mixer-cue)
-- [A13 Split keyboard Synth 1 + Synth 2](#a13-teclado-partido)
-- [A14 Synth patches by voice mode](#a14-colores-patch)
-- [A15 Patches of the own synth (MIDI 1 / 2)](#a15-patches-midi)
-- [A16 Saving the synth’s patch into the pack](#a16-guardar-patch)
-- [A17 Macro knob destinations](#a17-destinos-macro)
-- [A18 Copying projects to another slot or another pack](#a18-copiar-proyectos)
-- [A19 Own-synth patches to another pack](#a19-patches-entre-packs)
+- [A13 LFO synced to the tempo (Beta 3.12 only)](#a13-lfo-sync)
+- [A14 Split keyboard Synth 1 + Synth 2](#a14-teclado-partido)
+- [A15 Synth patches by voice mode](#a15-colores-patch)
+- [A16 Patches of the own synth (MIDI 1 / 2)](#a16-patches-midi)
+- [A17 Saving the synth’s patch into the pack](#a17-guardar-patch)
+- [A18 Macro knob destinations](#a18-destinos-macro)
+- [A19 Copying projects to another slot or another pack](#a19-copiar-proyectos)
+- [A20 Own-synth patches to another pack](#a20-patches-entre-packs)
 
 **B. Exposed controls**
 
@@ -91,7 +92,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="a3-vista-fx"></a>
 ### A3. Keys of the FX view
 - **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.
-- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.3 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.3 only).
+- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = default value
@@ -130,32 +131,36 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 ### A12. Cue mode, mutes on the bar and quantize (since RC2)
 - **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track.
 
-<a id="a13-teclado-partido"></a>
-### A13. Split keyboard Synth 1 + Synth 2
+<a id="a13-lfo-sync"></a>
+### A13. LFO synced to the tempo (Beta 3.12 only)
+- **Beta 3.12 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
+
+<a id="a14-teclado-partido"></a>
+### A14. Split keyboard Synth 1 + Synth 2
 - **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
 
-<a id="a14-colores-patch"></a>
-### A14. Synth patches by voice mode
+<a id="a15-colores-patch"></a>
+### A15. Synth patches by voice mode
 - **Since RC2.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
 
-<a id="a15-patches-midi"></a>
-### A15. Patches of the own synth (MIDI 1 / 2)
+<a id="a16-patches-midi"></a>
+### A16. Patches of the own synth (MIDI 1 / 2)
 - **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
 
-<a id="a16-guardar-patch"></a>
-### A16. Saving the synth’s patch into the pack
+<a id="a17-guardar-patch"></a>
+### A17. Saving the synth’s patch into the pack
 - **Since RC2.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
 
-<a id="a17-destinos-macro"></a>
-### A17. Macro knob destinations
+<a id="a18-destinos-macro"></a>
+### A18. Macro knob destinations
 - **Since RC2.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
 
-<a id="a18-copiar-proyectos"></a>
-### A18. Copying projects to another slot or another pack
+<a id="a19-copiar-proyectos"></a>
+### A19. Copying projects to another slot or another pack
 - **Since RC2.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
 
-<a id="a19-patches-entre-packs"></a>
-### A19. Own-synth patches to another pack
+<a id="a20-patches-entre-packs"></a>
+### A20. Own-synth patches to another pack
 - **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
 
 ## B. Exposed controls

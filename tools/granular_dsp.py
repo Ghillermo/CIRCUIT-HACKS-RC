@@ -68,6 +68,32 @@ G_TOT, G_SEG, G_SID, G_E, G_DE, G_PH, G_PL, G_IH, G_IL, G_LH, G_LR, G_DR = range
 S_ON, S_HH, S_HL, S_SH, S_SL, S_REM, S_PHS, S_E, S_DE, S_STH, S_MUTE, S_DIR, S_BODY, S_RC, S_OV = range(15)
 
 OVERLOAD = False                                 # SC37.5 (see use_overload)
+STEREO = False                                   # SC44.7 (see use_stereo)
+SOUT = GB + 0x700                                # (STEREO) the sides: 2 x 64 as OUT (voice t at + 32 t); free shared X after SHLEN
+SHPAN = GB + 0x780                               # (STEREO) core 0's copy of X:$56..$59: MIDI 1 level, pan, MIDI 2 level, pan
+MIXLP = 0x56                                     #   (the stock mixer group writes them: level << 15, pan w = p / 128 by 0x080287C4)
+G_SD = 12                                        # (STEREO) grain word: its side gain (-1..1: -w left, +w right)
+V_PAN = 23                                       # (STEREO) voice state word: the track's pan w (the chance of a grain on the right)
+S_COEF = -0.445                                  # (STEREO) core 0: the sides into the mix arrays = S x GCUR x level x S_COEF: the mid's own gain at low
+                                                 #   frequencies (measured on core 0 with the engine's defaults, emu_gstereo_dsp: -0.445 at DC, +0.289 at Nyquist)
+GCUR_OFF, VCAON_OFF = 27, 34                     # vcf21_dsp: the ramped VCA gain (unity $100000, x 8) and its on flag in the voice block VB0 + 48 t
+
+
+def use_stereo():
+    """SC44.7 (the user, 2026-10-19: «haz que la dispersion granular sea stereo» · «el valor de paneo de pista controla la proporción / probabilidad de
+    izquierda / derecha» · «mantén sk2 dispersión de la posición (centro) y sk4 dispersión stereo» · «junta en sk3 bipolar dispersión tono (+-24) y
+    probabilidad reverse» · left reverse, right pitch; mid / side: the sides only follow the VCA gain and the track level):
+      * core 1: each grain gets a side gain at its spawn: |w| = Shift + K4 (code 29, 0..126 -> 0..~1; it was the pitch spray), on the right with the
+        chance of the track's pan (w = p / 128, the stock mixer's value, copied by core 0), else on the left; the grain adds its samples to OUT as
+        before (the mid) and its samples x the side gain to SOUT (the sides);
+      * Shift + K3 (code 34) bipolar: left of the centre = the chance of a reversed grain (up to 100 %), right = the pitch spray (up to +-24 st);
+      * core 0 (before the master filter, smp_post's hook): L -= S x g, R += S x g per voice, g = the voice's VCA gain (GCUR x 8, 1 with the VCA
+        off) x the track level: the sides pass the master filter and Master FX, not the engine's filter / effect, the track's pan or its sends;
+      * core 1's program: the moves x:(Rn+d) in their one-word form (dsp56.force_sx), else it does not fit (2047 of 2048 words)."""
+    global STEREO, GW, CPT_LIST
+    STEREO = True
+    GW = 13
+    CPT_LIST = CPT_LIST + ((MIXLP, SHPAN, 4),)
 OV_CHAOS, OV_BRAKE = 64, 88                      # K4 >= OV_CHAOS: the load (no chaos); K4 >= OV_BRAKE: the head also brakes by K4 - OV_BRAKE steps of K1
 
 
@@ -110,6 +136,7 @@ def model_window(w):
 def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     """The core-1 block (appended after the stock words).  rl / rn: the ring (tests use a small one)."""
     a = D.Asm(base)
+    if STEREO: a.force_sx = True
     L = a.label
     def e(*lines):
         for l in lines: a.emit(T(l))
@@ -157,6 +184,7 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     for t in range(2):
         L("c1_v%d" % t)
         e("move #>$%x,r6" % (SHA + 48 * t), "move #>$%x,r7" % (VS0 + VSS * t), "move #>$%x,r3" % (GR0 + t * maxg * GW), "move x:>$%x,a" % OBP)
+        if STEREO: e("move x:>$%x,x0" % (SHPAN + 2 * t + 1), "move x0,%s" % X("r7", V_PAN))
         if t: e("add #>32,a")
         e("move a1,r1"); a.emit(D.NOP); jsr("voice"); jmp("c1_next")
         L("c1_g%d" % t)
@@ -184,7 +212,11 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     # ================================================================ voice (r1 out, r6 VIN, r7 VS, r3 grains)
     L("voice")
     e("clr a", "move r1,r0"); a.emit(D.NOP)
-    do_i(32, "v_clr"); L("v_clr"); e("move a,x:(r0)+")
+    if STEREO:
+        e("move #>$%x,n0" % (SOUT - OUT))
+        do_i(32, "v_clr"); e("move a,x:(r0+n0)"); L("v_clr"); e("move a,x:(r0)+")
+    else:
+        do_i(32, "v_clr"); L("v_clr"); e("move a,x:(r0)+")
     e("move %s,a" % X("r6", 212), "cmp #>2,a"); jc("ne", "v_off")
     e("move %s,a" % X("r6", 21), "and #>16,a"); jc("eq", "v_off")
     e("move %s,a" % X("r6", 8), "tst a"); jc("ge", "v_tab")                                  # the source: < 0 = the capture, else the sample table entry
@@ -267,7 +299,11 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     L("sp_nn")
     e("move a1,%s" % X("r7", V_Q))
     jsr("rnd")
-    e("move %s,b" % X("r6", 98), "asl #16,b,b", "move b,y0", "mpy y0,x0,b", "move b,x1", "move #>768,x0", "mpy x1,x0,b")
+    if STEREO:                                                                                     # code 34 right of the centre: rnd x v / 64 x 24 st
+        e("move %s,b" % X("r6", 103), "tst b"); jc("ge", "sp_ps"); e("clr b")
+        L("sp_ps"); e("asl #17,b,b", "move b,y0", "mpy y0,x0,b", "move b,x1", "move #>1536,x0", "mpy x1,x0,b")
+    else:
+        e("move %s,b" % X("r6", 98), "asl #16,b,b", "move b,y0", "mpy y0,x0,b", "move b,x1", "move #>768,x0", "mpy x1,x0,b")
     e("move %s,a" % X("r7", V_Q), "move b1,x0", "add x0,a")
     e("move #>%d,x0" % (36 * 64 + 63), "cmp x0,a", "tgt x0,a", "move #>$%x,x0" % ((-48 * 64) & 0xFFFFFF), "cmp x0,a", "tlt x0,a")
     # ---- the increment q (Q19) = PT[st] + (PT[st + 1] - PT[st]) x frac / 64
@@ -294,7 +330,16 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     # ---- reversed with probability P34 / 128: start at g + span, the increment negated
     e("move b1,%s" % X("r7", V_SPR))
     jsr("rnd")
-    e("clr a", "move x0,a1", "and #>$7f0000,a", "asr #16,a,a", "move %s,x0" % X("r6", 103), "clr b", "move #>1,x1", "cmp x0,a", "tlt x1,b", "move b1,%s" % X("r7", V_REV))
+    if STEREO:                                                                                     # code 34 left of the centre: the chance (-v) x 2 / 128
+        e("move %s,b" % X("r6", 103), "neg b"); jc("ge", "sp_rv"); e("clr b")
+        L("sp_rv"); e("asl b", "move b1,y1")
+        # the side from the low 16 bits of the same random word: +w on the right with the chance of the pan, else -w
+        e("clr a", "move x0,a1", "and #>$ffff,a", "asl #7,a,a", "move %s,x1" % X("r7", V_PAN), "move %s,b" % X("r6", 98), "asl #16,b,b", "cmp x1,a"); jc("lt", "sp_sr")
+        e("neg b")
+        L("sp_sr"); e("move b1,%s" % X("r2", G_SD))
+        e("clr a", "move x0,a1", "and #>$7f0000,a", "asr #16,a,a", "move y1,x0", "clr b", "move #>1,x1", "cmp x0,a", "tlt x1,b", "move b1,%s" % X("r7", V_REV))
+    else:
+        e("clr a", "move x0,a1", "and #>$7f0000,a", "asr #16,a,a", "move %s,x0" % X("r6", 103), "clr b", "move #>1,x1", "cmp x0,a", "tlt x1,b", "move b1,%s" % X("r7", V_REV))
     e("move %s,b" % X("r7", V_SPR), "move %s,x0" % X("r7", V_S), "add x0,b")
     e("move %s,a" % X("r7", V_Q), "asr #19,a,a", "move %s,y0" % X("r7", V_REV)); a.emit(G.JCLR(0, "y0"), "sp_fw")
     e("neg a", "move %s,x0" % X("r7", V_SPAN), "add x0,b")
@@ -322,6 +367,7 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     # ================================================================ grain: 32 samples (or until it ends) added to r1 (r2 = the grain); uses r0, r4
     L("grain")
     e("move r1,r0", "move #>32,x0", "move x0,%s" % X("r7", V_NL))
+    if STEREO: e("move #>$%x,n0" % (SOUT - OUT))
     e("move %s,a" % X("r2", G_PH), "move %s,a0" % X("r2", G_PL))
     L("g_l")
     e("move %s,b" % X("r7", V_NL), "move %s,x0" % X("r2", G_SEG), "cmp x0,b", "tgt x0,b", "tst b"); jc("eq", "g_seg")
@@ -332,7 +378,12 @@ def core1_code(base, gb_src=None, rl=RL, rn=RN, maxg=MAXG, cap_base=CAP_BASE):
     do_r("x1", "g_e")
     e("move %s,b" % X("r2", G_E), "move %s,x0" % X("r2", G_DE), "add x0,b", "move b1,%s" % X("r2", G_E), "move b1,y1")
     e("move a1,r4", "move a0,b", "lsr b", "move b1,x0", "move y:(r4)+,y0", "move y:(r4),b", "sub y0,b", "asr b", "move b1,x1", "mpy x1,x0,b", "asl b", "add y0,b")
-    e("move b1,x0", "mpy x0,y1,b", "move x:(r0),x1", "add x1,b", "move b,x:(r0)+", "move %s,x1" % X("r2", G_IH), "move %s,x0" % X("r2", G_IL))
+    if STEREO:                                                                                     # the mid as before, the sides = the sample x the side gain
+        e("move b1,x0", "mpy x0,y1,b", "move b,x0", "move x:(r0),b", "add x0,b", "move b,x:(r0)")
+        e("move %s,y0" % X("r2", G_SD), "mpy y0,x0,b", "move x:(r0+n0),x1", "add x1,b", "move b,x:(r0+n0)", "move (r0)+")
+        e("move %s,x1" % X("r2", G_IH), "move %s,x0" % X("r2", G_IL))
+    else:
+        e("move b1,x0", "mpy x0,y1,b", "move x:(r0),x1", "add x1,b", "move b,x:(r0)+", "move %s,x1" % X("r2", G_IH), "move %s,x0" % X("r2", G_IL))
     L("g_e"); e("add x,a")
     e("move %s,b" % X("r2", G_SEG), "tst b"); jc("ne", "g_chk")
     L("g_seg")
@@ -529,6 +580,22 @@ def core0_tail(a, e):
     e("move x:>$%x,a" % CNT, "add #>1,a", "move a1,x:>$%x" % CNT)
     if DIAGCNT: e("move a1,y:>$%x" % DIAG_Y)                                                   # (SC419D) the counter where the ARM can read it
     e("add #>1,a", "and #>1,a", "asl #6,a,a", "move a1,x:>$%x" % RDOFS)
+
+
+def core0_sides(a, e, pf_l, pf_r):
+    """(STEREO) Before the master filter (sampler_dsp.PRE_HOOK, m4 linear): per voice t, g = GCUR x level (GCUR = unity with the VCA off), and for each
+    frame L -= S x g x S_COEF, R += S x g x S_COEF, S = SOUT[RDOFS] + 32 t.  Two straight copies (no nested do: the stack).  Uses r0, r1, r4, a, b, x0,
+    x1, y0, y1."""
+    import vcf21_dsp as V
+    for t in range(2):
+        vb = V.VB0 + V.VBS * t
+        e("move x:>$%x,b" % (vb + GCUR_OFF), "move x:>$%x,a" % (vb + VCAON_OFF), "tst a", "move #>$100000,x0", "teq x0,b", "move b1,x1")
+        e("move x:>$%x,y1" % (MIXLP + 2 * t), "mpy y1,x1,a", "move a,x1", "move #>$%x,y1" % (round(S_COEF * (1 << 23)) & 0xFFFFFF), "mpy y1,x1,a", "move a,y1")
+        e("move x:>$%x,a" % RDOFS, "add #>$%x,a" % (SOUT + 32 * t), "move a1,r4", "move #>$%x,r0" % pf_l, "move #>$%x,r1" % pf_r); a.emit(D.NOP)
+        a.emit(lambda tt: T("do #32,$%x" % (tt + 1)), "gs_%d" % t)
+        e("move x:(r4)+,x0", "mpy x0,y1,a")
+        e("move x:(r0),b", "sub a,b", "move b,x:(r0)+", "move x:(r1),b", "add a,b")
+        a.label("gs_%d" % t); e("move b,x:(r1)+")
 
 
 def core0_table(a):

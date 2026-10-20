@@ -373,6 +373,8 @@ LAST = None         # (seq, addrs, pools, kept pairs, load sizes) of the last co
 STATS = dict(pairs=0, narrow=0, wide=0, kept=0, pools=0, words=0, pad=0, before=0, after=0)
 # labels whose first N bytes a builder later reads or patches at fixed offsets: their pairs stay
 KEEP = dict(c_m1=8, c_m2=8, c_ckledtask=16, c_shbtn2=0x3C, c_conv0=64)
+# labels whose first N bytes another module copies (sdpv's HEADS: a relative branch in them): no pool there (SC44.9 sets c_sdmark)
+NOPOOL = {}
 
 
 def ldr_lit_n(rt, off):             # LDR Rt,[PC,#off] T1 (off from Align(PC, 4))
@@ -423,11 +425,12 @@ def _barrier(fn, args, kw):
 
 def _assemble_compact(asm, external):
     items, n = asm.items, len(asm.items)
-    seq, it_left, i, u, keep = [], 0, 0, 0, -1
+    seq, it_left, i, u, keep, nopool = [], 0, 0, 0, -1, -1
     while i < n:
         kind, p = items[i]
         if kind == "label":
             if p in KEEP: keep = max(keep, u + KEEP[p])
+            if p in NOPOOL: nopool = max(nopool, u + NOPOOL[p])
             seq.append(("label", p)); i += 1; continue
         fn, args, kw = p
         nx = items[i + 1] if i + 1 < n else None
@@ -449,7 +452,7 @@ def _assemble_compact(asm, external):
                 j = i + 1
                 while j < n and items[j][0] == "label": j += 1
                 if j < n and items[j][1][0] is raw: bk = 0
-            if bk:
+            if bk and u > nopool:
                 seq.append(("site",))
         i += 1
     base = asm.base

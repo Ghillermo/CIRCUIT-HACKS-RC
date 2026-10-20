@@ -313,6 +313,22 @@ def use_mechswap():
 T0FIX = False                             # SC40 (see use_t0fix)
 
 
+LFOSYNC = False                           # SC44.8 (see use_lfosync)
+LFS_RAM = 0                               # (LFOSYNC) 2 x 12 B: per LFO (Auto-Filter, Phaser) the last tick, the start time it set, the division
+
+
+def use_lfosync(ram):
+    """SC44.8 (lfosync.py; the user, 2026-10-19: the LFO rates bipolar, right free, left synced with the phase on beat 1): K1 of the Auto-Filter and
+    of the Phaser: 64..127 = free, the period PHPER[2 (v - 64)] (20 s .. 0.1 s) from the effect's own start time; 0..63 = synced, the division
+    lfosync.DIVS[(63 - v) >> 2] (the centre = 1/16T, the left end = 8 bars), period = a beat x d / 24, and on every new sequencer tick (or a new
+    division) the start time is set so that the phase = (tick mod d) / d: the cycles start on the bar's first beat.  The LED of those knobs dim
+    at the centre, brighter to both sides.  Defaults: Auto-Filter 26 (1 bar, as the 54 of before), Phaser 84 (its 40 of before)."""
+    global LFOSYNC, LFS_RAM
+    LFOSYNC, LFS_RAM = True, ram
+    DEFAULTS[1] = (26,) + tuple(DEFAULTS[1][1:])
+    DEFAULTS[3] = (84,) + tuple(DEFAULTS[3][1:])
+
+
 def use_t0fix():
     """SC40 (found in SC39.9; the user: «arregla el lfo»): in c_fxtick the loop that stores the start time of every effect set that has just come on used the
     labels ft_t0..ft_t4, and ft_t0 is also the label of the end of that section: when the Gater (set 0) was not among the new ones the whole loop was jumped,
@@ -526,6 +542,9 @@ def tables():
     t["AFTAB"] = [q24(min(0.9, 2 * math.sin(math.pi * 40 * 2 ** (i / 127 * math.log2(7500 / 40)) / FS))) for i in range(128)]
     t["AFQ"] = [q24(min(0.999, 1.0 - k / 127 * 0.92)) for k in range(128)]
     t["PHPER"] = [int(20000 * 2 ** (-k / 127 * math.log2(200))) for k in range(128)]       # 20 s .. 100 ms
+    if LFOSYNC:
+        import lfosync as LF
+        t["LDIV"] = list(LF.DIVS) + [0] * (128 - len(LF.DIVS))
     def ap(i):
         fc = 100 * 2 ** (i / 127 * math.log2(6000 / 100)); tt = math.tan(math.pi * fc / FS)
         return q24((tt - 1) / (tt + 1))
@@ -839,6 +858,11 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
                     a.emit(push_list, [0]); a.emit(movs_imm, 0, 127); a.emit(ands_reg, 2, 0); a.emit(movs_imm, 0, 127 - MECH_MINB); a.emit(muls, 2, 0)
                     a.emit(lsrs_imm, 2, 2, 7); a.emit(adds_imm8, 2, MECH_MINB + 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 3); a.emit(pop_list, [0])
                     a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
+                elif KNOB_BRIGHT and LFOSYNC and SETMAP[i] in (1, 3) and k == 0:   # the rates of the Auto-Filter / the Phaser: |2 v - 127|, dim at the centre
+                    a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(lsls_imm, 2, 2, 1); a.emit(subs_imm8, 2, 127)
+                    a.emit(b_cond, f"gk_lf{i}", "pl"); a.emit(raw, h(0x4252))                      # rsbs r2, r2, #0
+                    a.label(f"gk_lf{i}"); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0)
+                    a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
                 elif KNOB_BRIGHT:                                              # colour | (value + 2) << 8: the converter hook of persist19.KNOB_LEVELS splits it
                     a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0)
                     a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
@@ -893,6 +917,28 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.label("dc_same"); a.emit(raw, h(0x4770))
 
     # ---- c_tri(r0 = period ms, r1 = t0) -> r0 = triangle 0..127 (0 at t0), r1 = phase ms (clobbers r2, r3)
+    if LFOSYNC:
+        import lfosync as LF
+        # ---- c_lfper(r0 = K1 0..127, r1 = the effect's start time, r2 = its slot) -> r0 = the period (ms), r1 = the start time for c_tri
+        a.label("c_lfper")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 6, 1); a.emit(mov_reg, 7, 2)
+        a.emit(cmp_imm, 0, 64); bc("lp_sy", "lo")
+        a.emit(subs_imm8, 0, 64); a.emit(lsls_imm, 1, 0, 1); ldtab(0, "PHPER", 1); a.emit(mov_reg, 1, 6); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("lp_sy")
+        a.emit(movs_imm, 1, 63); a.emit(subs_reg, 1, 1, 0); a.emit(lsrs_imm, 5, 1, 2)            # r5 = the division's index
+        a.emit(bl, c_beat); ldtab(1, "LDIV", 5); a.emit(muls, 0, 1); a.emit(movs_imm, 2, 24); a.emit(raw, udiv(4, 0, 2))   # r4 = the period
+        a.emit(movw, 0, (LF.ENG + 0x90) & 0xFFFF); a.emit(movt, 0, (LF.ENG + 0x90) >> 16); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(movs_imm, 1, 0); a.emit(bl, LF.PARAM_GET); a.emit(ldr_imm, 6, 0, 0)                 # r6 = the tick
+        a.emit(ldr_imm, 0, 7, 0); a.emit(cmp_reg, 0, 6); bc("lp_new", "ne")
+        a.emit(ldr_imm, 0, 7, 8); a.emit(cmp_reg, 0, 5); bc("lp_k", "eq")
+        a.label("lp_new")
+        a.emit(str_imm, 6, 7, 0); a.emit(str_imm, 5, 7, 8)
+        ldtab(1, "LDIV", 5); a.emit(raw, udiv(0, 6, 1)); a.emit(muls, 0, 1); a.emit(subs_reg, 0, 6, 0)   # tick mod d
+        a.emit(muls, 0, 4); a.emit(raw, udiv(0, 0, 1)); a.emit(mov_reg, 5, 0)                      # x period / d
+        a.emit(bl, c_now); a.emit(subs_reg, 0, 0, 5); a.emit(str_imm, 0, 7, 4)
+        a.label("lp_k"); a.emit(ldr_imm, 1, 7, 4); a.emit(mov_reg, 0, 4); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+
     a.label("c_tri")
     a.emit(push_list, [4, 5], lr=True)
     a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
@@ -1009,9 +1055,13 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.label("ft_g")
     # Auto-Filter: period = beat*n16/4 ; idx = cut(127 - tri, centre, depth) ; f = AFTAB[idx]
     a.emit(lsrs_imm, 0, 6, 2); bc("ft_a", "cc")
-    a.emit(bl, c_beat); a.emit(mov_reg, 5, 0)
-    knob(1, 4, 1, 0); ldtab(0, "AFN", 1); a.emit(muls, 0, 5); a.emit(lsrs_imm, 0, 0, 2)
-    a.emit(ldr_imm, 1, 4, S_T0 + 4); a.emit(bl, "c_tri")
+    if LFOSYNC:
+        knob(0, 4, 1, 0); a.emit(ldr_imm, 1, 4, S_T0 + 4); a.emit(movw, 2, LFS_RAM & 0xFFFF); a.emit(movt, 2, LFS_RAM >> 16); a.emit(bl, "c_lfper")
+        a.emit(bl, "c_tri")
+    else:
+        a.emit(bl, c_beat); a.emit(mov_reg, 5, 0)
+        knob(1, 4, 1, 0); ldtab(0, "AFN", 1); a.emit(muls, 0, 5); a.emit(lsrs_imm, 0, 0, 2)
+        a.emit(ldr_imm, 1, 4, S_T0 + 4); a.emit(bl, "c_tri")
     a.emit(movs_imm, 1, 127); a.emit(subs_reg, 0, 1, 0)
     knob(1, 4, 1, 3); knob(2, 4, 1, 1); a.emit(bl, "c_cut")
     a.emit(mov_reg, 1, 0); ldtab(0, "AFTAB", 1)
@@ -1019,8 +1069,12 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.label("ft_a")
     # Phaser: period = PHPER[rate] ; idx = cut(tri, 64, depth) ; A = PHTAB[idx]
     a.emit(lsrs_imm, 0, 6, 4); bc("ft_p", "cc")
-    knob(1, 4, 3, 0); ldtab(0, "PHPER", 1)
-    a.emit(ldr_imm, 1, 4, S_T0 + 12); a.emit(bl, "c_tri")
+    if LFOSYNC:
+        knob(0, 4, 3, 0); a.emit(ldr_imm, 1, 4, S_T0 + 12); a.emit(movw, 2, (LFS_RAM + 12) & 0xFFFF); a.emit(movt, 2, (LFS_RAM + 12) >> 16); a.emit(bl, "c_lfper")
+    else:
+        knob(1, 4, 3, 0); ldtab(0, "PHPER", 1)
+        a.emit(ldr_imm, 1, 4, S_T0 + 12)
+    a.emit(bl, "c_tri")
     a.emit(movs_imm, 1, 64); knob(2, 4, 3, 1); a.emit(bl, "c_cut")
     a.emit(mov_reg, 1, 0); ldtab(0, "PHTAB", 1)
     a.emit(movw, 1, G.PH_A); a.emit(movs_imm, 2, S_CA); a.emit(bl, "c_dwc")

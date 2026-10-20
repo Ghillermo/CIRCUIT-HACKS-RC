@@ -23,6 +23,19 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 | Memoria externa del DSP (16 bits por palabra) | 16 M palabras (`$000000–$FFFFFF`) | `$337000–$57EFFF` + `$E80000–$FFEFFF` ≈ 4 M palabras (≈ 82 s mono a 48 kHz) | ≈ 1,75 M | **≈ 2,2 M palabras (≈ 45 s)** |
 | Tarjeta SD | la de la tarjeta | — | ficheros `PCM/NN_PCM.wav` del pack al guardar (solo RC0; RC0S nada) | — |
 
+> **SC44.7 (2026-10-19):** el código del núcleo 1 pasa sus `move x:(Rn+d)` a la forma corta de una palabra: **1871 palabras de 2 048** (antes 2 047), con el granular estéreo dentro.
+
+> **SC44.8 (2026-10-19): flash nueva:** la copia de stock de los programas del DSP (`0x080101F0–0x0801865A`, 33 KB) ya no se carga y aloja código ARM (`tools/hole.py`; solo módulos que no escriban en la tarjeta ni guarden ajustes). En SC44.8 ocupa 4260 B (`modmx`, `split4`, `lfosync`).
+
+> **SC44.9 (2026-10-19):** la zona libre lleva además `p4dest` (528 B) y `recinst` (992 B): 5 780 B usados, **27 862 B libres**. RAM sobre el heap (`modmx.MXR`): + 0x160..0x17F (filas de la página 4, acumulador), + 0x180..0x183 (Record mantenido).
+
+> **SC45 (2026-10-19):** zona libre + `autorel` (704 B) + `modesel` (404 B): **26 754 B libres**. RAM `MXR + 0x1A0..0x1A7` (modesel), `+ 0x1B0..0x1DB` (autorel). Bit 7 del byte [3] de cada paso de las pistas de notas (se guarda con el patrón).
+> **SC45.1 (2026-10-20):** zona libre + `mutebank` (160 B): **26 594 B libres**. Sin RAM nueva.
+> **SC45.5 (2026-10-20):** supersaw y triángulo exponencial en el núcleo 0: el programa **termina en `P:$3FB4` (75 palabras libres**; las cuatro formas en una subrutina), imagen `0x6F4F0` (**2 832 B libres**). DSP: palabras 28..37 y 42 de cada bloque del oscilador. **CPU del núcleo 0: + 1 538 instrucciones por bloque y voz con un oscilador, + 3 170 con dos** (medido; peor caso ≈ + 6 300, ≈ 4 %). Un nivel más de la pila del sistema dentro del bucle de muestras.
+> **SC45.4 (2026-10-20):** arpegiador +100 B en la imagen: imagen `0x6F594` (**2 668 B libres**). Sin RAM nueva.
+> **SC45.3 / RC2.04 (2026-10-20):** zona libre + `smhold` (148 B) + `recfix` (276 B); SC45.3 además el arpegiador +248 B en la imagen: imagen `0x6F530` (**2 768 B libres**), zona libre **26 170 B**; RC2.04: imagen `0x6FE1C` sin cambios, zona libre 33 218 B. RAM `modmx.MXR + 0x1E0..0x1E7` (`recfix`, temporal). Estado del arpegiador: extensión + 8..14 de cada estado (cola `+ 680..904`, RAM).
+> **SC45.2 (2026-10-20):** `patchain.use_iterled()` (+60 B en la imagen, no en la zona libre): imagen `0x6F438` (**3 016 B libres** en la imagen de `0x70000`). Sin RAM nueva.
+
 ## ARM (STM32F745, Cortex-M7)
 
 ### Flash

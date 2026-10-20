@@ -35,6 +35,9 @@ class EC(E8):
         self.uc.hook_add(UC_HOOK_CODE, delay, begin=0x08029A00, end=0x08029A00)   # the apply's last call (an SPI transfer that waits for the hardware)
         rec = self.r32(CI.SESSION_OBJ + 0x14); assert rec
         self.tail = rec + CI.TAIL
+        for i in (0, 1):                                               # 120 BPM in p0 (the tempo: SC44.8 / RC2.03) and in p1 (what SC41.8 .. RC2.02 read)
+            for fn in (CI.PARAM_WPTR, 0x0803542C):
+                self.call(fn, CI.TEMPO, i, maxins=200000); self.uc.mem_write(self.uc.reg_read(UC_ARM_REG_R0), bytes([120]))
 
     def r0(self, fn, *a):
         self.call(fn, *a, maxins=2_000_000); return self.uc.reg_read(UC_ARM_REG_R0)

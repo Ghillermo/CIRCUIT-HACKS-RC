@@ -9,7 +9,13 @@ import setupfix  # noqa: E402
 
 NAME = "SC41.5"
 
+HOLE = set()                                         # SC44.8: modules put in the dead DSP blocks of the stock image (hole.py) instead of the end
+
+
 def add(img, report, name, mod):
+    if name in HOLE:
+        import hole
+        return hole.add(img, report, name, mod)
     import build_shared_channels as sc
     ext = (len(img) + 0x08010000 + 3) & ~3
     labels, code, prev = mod.install(img, report, ext)

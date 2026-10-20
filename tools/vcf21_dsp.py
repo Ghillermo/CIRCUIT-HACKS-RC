@@ -107,6 +107,39 @@ def use_lfoshape():
     global LFOSHAPE
     assert VADRUM and DUAL
     LFOSHAPE = True
+LFOSYNC = False                                 # SC44.8 (see use_lfosync)
+LFS_INC = 40                                    # (LFOSYNC) word of the OSC2 block (OS2B0 + 48 t + 40; the block uses +0..+23): the ARM's increment of the synced LFO
+
+
+def use_lfosync():
+    """SC44.8 (the user, 2026-10-19: «en los lfo rate, hazlo bipolar (manten 0 dim y lados bright) hacia la derecha, lfo libre, izquierda, lfo a tempo
+    con sync en beat 1»): LRATE (code 11) bipolar -64..63: >= 0 = free, PH += TLFO[2 v]; < 0 = synced: PH += the increment the ARM keeps in
+    OS2B0 + 48 t + LFS_INC (lfosync.py: from the tempo and the division, and the phase itself set from the sequencer's tick).  The VA-drum's noise
+    level (the same knob) = v + 64."""
+    global LFOSYNC
+    LFOSYNC = True
+
+
+SUPERSAW = False                                # SC45.5 (use_supersaw)
+SS_PH, SS_D, SS_W = 28, 35, 42                  # (SUPERSAW) words of each oscillator block: the six side phases (+28..+33), the detune steps D, 3 D, 6 D (+35..+37),
+                                                # the side saws' weight (+42; OSC1: the sampler's words are +40, +41, +44..+47; OSC2: +40 is lfosync's)
+SS_D1 = 0.0183                                  # the inner pair's detune at the knob's far right (x the increment); 3 D / 6 D = 0.055 / 0.11: the classic supersaw's spread
+
+
+def use_supersaw():
+    """SC45.5 (the user, 2026-10-20: «Cambia el control de sierra a normal-supersaw», all the knob's travel, 7 saws; «Implementa log/exp a la
+    izquierda en triangular», exponential): SHAPE on the saw = s = (m + 1) / 2 (m = the shape, -1 .. 1: the knob's far left = a plain saw, its far
+    right = the full supersaw; the envelope / LFO move it as before): six more saws at increment +- D, +- 3 D, +- 6 D (D = 0.0183 s x the
+    increment; their phases kept in the block, the signed increment +11 so the soft sync's reversal follows), the centre saw at w (1 - s / 2) / 2,
+    each side one at w s / 16 (w = the morph weight of the saw; the other waves are at +-0.5 too).  SHAPE on the triangle, left of the centre:
+    t' = t - c / 2 x (1 - t^2), c = -m (exponential ramps: the peaks sharp, the valleys wide; c = 0 at the centre and right of it, where the
+    wavefold works as before).  The saw's slope is gone (+13 = c / 2).  The four waves become a subroutine (OW = r4, called three times: the
+    single oscillator, OSC2 and OSC1 of the dual one) to make room: one more level of the system stack inside the sample loop."""
+    global SUPERSAW
+    assert OSC3 and SINEFIX and DUAL
+    SUPERSAW = True
+
+
 def use_lfoshape2():
     """SC44.3 (the user, 2026-10-18: «add s&h (stepped random) and slewed s&h (glided random) as waveshapes»): shape 6 of the own engine's LFO =
     slewed sample & hold: when the phase wraps the old random value goes to OSC1 + SL_PREV and the voice's noise generator (DFLAGS + 3) gives a new
@@ -315,7 +348,13 @@ def code(base, tabs, premix, ret_old):
             L(p + "e3"); e("move %s,x0" % X(SUSF), "move x0,%s" % X(ENV))
         L(p + "ee")
         # ---- LFO (reverse sawtooth only): PH += TLFO[LRATE]; LV = -PH
-        e("move %s,a" % X(P_LRATE)); ld_tab("TLFO", "a", "x0")
+        if LFOSYNC:                                                               # < 0: the ARM's increment; >= 0: TLFO[2 v]
+            e("move %s,a" % X(P_LRATE), "tst a"); a.emit(J("ge"), p + "lfr")
+            e("move r6,b", "sub #>%d,b" % (VB0 - OS2B0 - LFS_INC), "move b,r0"); a.emit(D.NOP); e("move x:(r0),x0"); a.emit(J("al"), p + "lfi")
+            L(p + "lfr"); e("asl a"); ld_tab("TLFO", "a", "x0")
+            L(p + "lfi")
+        else:
+            e("move %s,a" % X(P_LRATE)); ld_tab("TLFO", "a", "x0")
         if LFOSHAPE:                                                              # the shape from DFLAGS bits 5-7 (r7 = DFLAGS)
             e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH))
             e("move x:(r7),b", "lsr #5,b", "and #>7,b", "tst b"); a.emit(J("eq"), p + "l0")
@@ -353,7 +392,7 @@ def code(base, tabs, premix, ret_old):
             L(p + "vd")
             for par, off in ((P_SUS, 2), (P_REL, 1)):                            # the decays of the pitch and the filter envelopes
                 e("move %s,b" % X(par), "asr b", "add #>64,b"); ld_tab("TDEC", "b", "x0"); e("mpy x0,x0,a", "move a,x0", "move x:(r7+%d),y0" % off, "mpy y0,x0,a", "move a,x:(r7+%d)" % off)   # (the coefficient squared: twice as fast as the VCA table, 20 ms at 0)
-            e("move %s,a" % X(P_LRATE), "asl #15,a,a", "move a,x:(r7+4)")        # the noise level (LRATE 127 = 0.5, the level of the oscillator)
+            e("move %s,a" % X(P_LRATE), *(("add #>64,a",) if LFOSYNC else ()), "asl #15,a,a", "move a,x:(r7+4)")        # the noise level (LRATE 127 = 0.5, the level of the oscillator; LFOSYNC: v + 64)
             e("move x:(r7+3),x0", "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)", "move b1,%s" % X(LV))   # LV = a random value per block
             L(p + "vx2")
         # ---- filter: type 0 (DJ) = FILT bipolar, low-pass left / high-pass right, centre off; types 1 band-pass, 2 notch, 3 tilt EQ: FILT = the cutoff (tilt: the direction),
@@ -469,7 +508,14 @@ def code(base, tabs, premix, ret_old):
                 modterm(7, X(LV), 0x7fffff); e("add b,a")
                 e("move a,x0", "tst a"); a.emit(J("ge"), p + "w0" + lab); e("clr a")
                 L(p + "w0" + lab); e("move a,y1", "move #>$6e147b,y0", "mpy y1,y0,b", "move #>$100000,a", "add b,a", "move a,%s" % ox(OW, 12))
-                e("move x0,%s" % ox(OW, 13), "move #>$7851ec,y0", "mpy y0,x0,b", "move b,%s" % ox(OW, 14))
+                if not SUPERSAW: e("move x0,%s" % ox(OW, 13), "move #>$7851ec,y0", "mpy y0,x0,b", "move b,%s" % ox(OW, 14))
+                else:
+                    e("move #>$7851ec,y0", "mpy y0,x0,b", "move b,%s" % ox(OW, 14))                     # the pulse threshold 0.94 m
+                    e("move x0,b", "neg b", "tst b"); a.emit(J("ge"), p + "tc" + lab); e("clr b")
+                    L(p + "tc" + lab); e("asr b", "move b,%s" % ox(OW, 13))                             # the triangle's curve c / 2 = max(-m, 0) / 2
+                    e("move x0,b", "asr b", "add #>$400000,b", "move b,%s" % ox(OW, SS_W))            # s = (m + 1) / 2 (kept in +42 until the weights)
+                    e("move b,y0", "move %s,x0" % ox(OW, inc_off), "mpy y0,x0,b", "move b,x0", "move #>$%x,y0" % int(round(SS_D1 * (1 << 23))), "mpy y0,x0,b")
+                    e("move b,%s" % ox(OW, SS_D), "move b,a", "asl a", "add b,a", "move a,%s" % ox(OW, SS_D + 1), "asl a", "move a,%s" % ox(OW, SS_D + 2))   # D, 3 D, 6 D
                 # the morph position q = WAVE x 0x10410 (126 -> 0x7ffffc) + ENVM x ENV + LFOM x LV, clamped to 0..1; 3 q = i + f: the weights (1 - f) of wave i and f of wave i + 1
                 e("move %s,a" % ox(OW, 2), "asl #16,a,a", "move %s,b" % ox(OW, 2), "asl #10,b,b", "add b,a", "move %s,b" % ox(OW, 2), "asl #4,b,b", "add b,a")
                 modterm(8, X(ENV), 0x7fffff); e("add b,a")
@@ -481,6 +527,9 @@ def code(base, tabs, premix, ret_old):
                 e("clr a", "move a,%s" % ox(OW, 15), "move a,%s" % ox(OW, 16), "move a,%s" % ox(OW, 17), "move a,%s" % ox(OW, 18))
                 e("move %s,a" % OW, "add #>15,a", "add b,a", "move a,r0"); a.emit(D.NOP)
                 e("move #>$7fffff,a", "move y1,x0", "sub x0,a", "move a,x:(r0)+", "move y1,x:(r0)")
+                if SUPERSAW:                                                              # the saw's weight w: the centre w (1 - s / 2) / 2, each side w s / 16
+                    e("move %s,x0" % ox(OW, SS_W), "move %s,y0" % ox(OW, 17), "mpy y0,x0,b", "move y0,a", "asr b", "sub b,a", "asr a", "move a,%s" % ox(OW, 17),
+                      "asr #3,b,b", "move b,%s" % ox(OW, SS_W))
             osc_ctrl("r3", X(NOTE), "", 11)
             if DUAL:                                                                  # the second oscillator: its pitch (own note, tune, fine; the shared vibrato / envelope), shape, morph, and the interaction amounts
                 e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("eq"), p + "oi")
@@ -598,24 +647,43 @@ def code(base, tabs, premix, ret_old):
                 else:
                     e("move x1,b", "abs b", "move b,y0", "move #>$7fffff,b", "sub y0,b", "move b,y0", "mpy x1,y0,b", "move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #4,b,b"); fold()
                 e("move b1,y1", "move x:(%s+15),y0" % OW, "mac y1,y0,a")                  # 0 sine (wavefold)
-                e("move x1,b", "abs b", "asl b", "sub #>$7fffff,b", "move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #2,b,b"); fold()
+                e("move x1,b", "abs b", "asl b", "sub #>$7fffff,b")
+                if SUPERSAW:                                                              # t' = t - c / 2 (1 - t^2): the exponential ramps left of the centre
+                    e("move b,y1", "move b,y0", "mpy y0,y0,b", "move b,x0", "move #>$7fffff,b", "sub x0,b", "move b,x0", "move x:(%s+13),y0" % OW, "mpy y0,x0,b",
+                      "move b,x0", "move y1,b", "sub x0,b")
+                e("move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #2,b,b"); fold()
                 e("move b1,y1", "move x:(%s+16),y0" % OW, "mac y1,y0,a")                  # 1 triangle (wavefold)
-                e("move x1,b", "asr b", "add #>$400000,b", "move b,y0", "mpy y0,y0,b", "sub y0,b", "move b,y1", "move x:(%s+13),x0" % OW, "mpy x0,y1,b", "add y0,b", "sub #>$400000,b")
-                e("move b1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a")                  # 2 saw (slope)
+                if not SUPERSAW:
+                    e("move x1,b", "asr b", "add #>$400000,b", "move b,y0", "mpy y0,y0,b", "sub y0,b", "move b,y1", "move x:(%s+13),x0" % OW, "mpy x0,y1,b", "add y0,b", "sub #>$400000,b")
+                    e("move b1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a")              # 2 saw (slope)
+                else:                                                                     # 2 the supersaw: the centre (the phase) and six detuned ones
+                    e("move x1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a", "move x:(%s+%d),y1" % (OW, SS_W), "move x:(%s+11),x0" % OW)
+                    for k in range(6):
+                        e("move x:(%s+%d),b" % (OW, SS_PH + k), "add x0,b", "move x:(%s+%d),y0" % (OW, SS_D + k // 2), "add y0,b" if k % 2 == 0 else "sub y0,b",
+                          "move b1,x:(%s+%d)" % (OW, SS_PH + k), "move b1,y0", "mac y1,y0,a")
                 e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
                 e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")                  # 3 pulse (width)
+            def wcall(OW):                                                        # (SUPERSAW) the four waves as a subroutine with OW = r4
+                if not SUPERSAW: waves(OW); return
+                if OW == "r3": e("move r4,n4", "move r3,r4")
+                a.emit(lambda t: [0x0BF080, t], p + "wv")
+                if OW == "r3": e("move n4,r4")
+            if SUPERSAW: e("move r3,r4")
             a.emit(D.do_x, 0x3A, p + "o3e")
             e("move x:(r3+11),x0", "move x:(r3+10),a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1", "clr a")
-            waves("r3")
+            if SUPERSAW: a.emit(lambda t: [0x0BF080, t], p + "wv")
+            else: waves("r3")
             L(p + "o3e"); e("move a,%s:(r0)+n0" % sp)
             if DUAL:
                 a.emit(J("al"), p + "o3f")
+                if SUPERSAW:
+                    L(p + "wv"); waves("r4"); a.emit(D.RTS)
                 # ---- two oscillators: OSC2 (the FM modulator and the slave of the soft sync) first, then OSC1 (phase modulated by OSC2), then the interactions
                 L(p + "dual")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
                 a.emit(D.do_x, 0x3A, p + "d3e")
                 e("move x:(r4+11),x0", "move x:(r4+10),a", "add x0,a", "move a1,x:(r4+10)", "move a1,x1", "clr a")
-                waves("r4")
+                wcall("r4")
                 e("move a,x:(r4+23)")                                              # o2
                 e("move x:(r3+10),y1", "move x:(r3+11),x0", "move y1,a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1")
                 e("move x1,a", "cmp y1,a"); a.emit(J("ge"), p + "ns")              # OSC1 wrapped (the new phase is below the old one): a master cycle
@@ -625,7 +693,7 @@ def code(base, tabs, premix, ret_old):
                 L(p + "sk"); e("move a,x:(r4+22)")
                 L(p + "ns")
                 e("move x:(r4+23),y0", "move x:(r4+24),x0", "mpy y0,x0,b", "asl #3,b,b", "move x1,a", "add b,a", "move a1,x1", "clr a")      # FM: the phase of OSC1 + 8 x FM x o2
-                waves("r3")
+                wcall("r3")
                 e("move a,x1", "move x:(r4+23),y0")                                # x1 = o1, y0 = o2
                 e("move y0,b", "sub x1,b", "move b,y1", "move x:(r4+25),x0", "mpy x0,y1,b", "move x1,a", "add b,a")                   # mix = o1 + MIX (o2 - o1)
                 e("move x:(r4+7),b", "tst b"); a.emit(J("eq"), p + "nr")

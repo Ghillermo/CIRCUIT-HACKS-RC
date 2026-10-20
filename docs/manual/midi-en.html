@@ -55,14 +55,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>26</td><td>LFO → morph (granular: note mode)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2 (granular: LFO → size)</td><td>CC 37</td><td>3 / K1</td></tr>
 <tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: pitch spread)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: pitch spread; Beta 3.11: stereo)</td><td>CC 30</td><td>3 / K7</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: window)</td><td>CC 31</td><td>3 / K2</td></tr>
 <tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2)</td></tr>
 <tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2)</td></tr>
 <tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)</td></tr>
-<tr><td>34</td><td>RING (granular: reverse)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
+<tr><td>34</td><td>RING (granular: reverse; Beta 3.11: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
 </tbody></table>
-<p><strong>Page 4</strong> (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect.</p></section>
+<p><strong>Page 4</strong> (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. <em>Beta 3.11 only:</em> the eight destinations are chosen with Shift + knob.</p></section>
 <section class="feat"><h3>Drums</h3><p>The drums channel (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = value</strong>. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs.</p>
 <table><thead><tr><th>LSB</th><th>Parameter</th><th>Values</th></tr></thead><tbody>
 <tr><td>1</td><td>Envelope → pitch</td><td>0-127, 64 = 0</td></tr>

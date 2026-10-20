@@ -595,6 +595,40 @@ def use_v2save():
     V2SAVE = True
 
 
+P4DEST = False                                     # SC44.9 (see use_p4dest)
+P4RAM = 0                                          # (P4DEST) 8 codes per track (the lanes' destinations), then "P4D1"
+P4SIG = 0x31443450
+
+
+def use_p4dest(ram):
+    """SC44.9 (the user, 2026-10-19: «permite reasignar los destinos de la vista de secuenciables (mismo layout que mod matrix)», «guardados por
+    parche»): page 4 of the MIDI tracks' knobs (KNOB_CODES_D = the lanes) reads its 8 codes from RAM per track (ram + 8 t; default LANE_TAB,
+    put there the first time with the signature at ram + 16), and so do the lanes: recording (c_vcc_rec) and playback (c_vapply) look up the
+    track's row, Clear + a knob to the left finds the lane by the code (c_vlane).  Every read of the knob table goes through c_vkc(track, index).
+    p4dest.py: Shift + a knob of page 4 = its destination, saved with the own-synth patches."""
+    global P4DEST, P4RAM
+    P4DEST, P4RAM = True, ram
+    import thumb
+    thumb.NOPOOL["c_sdmark"] = 8                       # (its head and the bx lr after it: sdpv copies / checks them)
+
+
+def use_lfosync():
+    """SC44.8 (vcf21_dsp.use_lfosync, lfosync.py): LRATE (code 11) bipolar -64..63 (its LED dim at the centre, brighter to both sides): right = the
+    free LFO (TLFO[2 v]), left = synced to the tempo.  The default 40 becomes 20 (the same free speed, TLFO[40]).  Call it after the whole chain of
+    builders is imported (use_neutral sets DEFAULTS again)."""
+    global BIPOLAR_MASK, DEFAULTS
+    BIPOLAR_MASK |= 1 << (11 - 1)
+    DEFAULTS = tuple(DEFAULTS[:10]) + (20,) + tuple(DEFAULTS[11:])
+
+
+def use_grbip():
+    """SC44.7 (granular_dsp.use_stereo): Shift + K3 of the granular page (code 34) bipolar -64..63, its LED bipolar (dim at the centre): left = the chance
+    of a reversed grain, right = the pitch spray; the default 0 (RING's) = the centre, nothing.  Shift + K4 (code 29) keeps its range (the stereo spread)."""
+    global GR_TAB
+    GR_TAB = tuple((34, -64, 63, 0) if (c, lo, hi, f) == (34, 0, 127, 1 << 1) else (c, lo, hi, f) for c, lo, hi, f in GR_TAB)
+    assert (34, -64, 63, 0) in GR_TAB
+
+
 def use_grsrc():
     """SC39.1 (the user, 2026-10-11: «el selector de sample (Shift + K8) selecciona entre el sample capturado (izquierda, rojo) y el sample de banco
     seleccionado actualmente por drum 1 (naranja), 2 (amarillo), 3 (purple) o 4 (derecha, teal). Haz el recorrido largo y cambia de color. Al soltar Shift,
@@ -1313,6 +1347,31 @@ def edv2_routines(a, L, t_ft, tail, bc):
 
 
 
+def p4_routines(a, base):
+    """SC44.9: c_vrow(r0 = track) -> r0 = the track's row of 8 lane codes in RAM (put to LANE_TAB, both tracks, the first time); clobbers r1-r3.
+    c_vkc(r0 = track, r1 = index into the knob table) -> r0 = the code (page 4's plain layer from the row); clobbers r1-r3.
+    c_vlane(r0 = track, r1 = code) -> r0 = its lane 0..7, or 0xFF; clobbers r1-r3."""
+    E = a.emit
+    def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
+    a.label("c_vrow")
+    E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+    imm32(1, P4RAM); E(ldr_imm, 2, 1, 16); imm32(3, P4SIG); E(cmp_reg, 2, 3); E(b_cond, "vr_ok", "eq")
+    E(str_imm, 3, 1, 16)
+    for t in range(2):
+        for k, c in enumerate(LANE_TAB): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
+    a.label("vr_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
+    a.label("c_vkc")
+    E(push_list, [4], lr=True); E(mov_reg, 4, 1)
+    E(cmp_imm, 1, 48); E(b_cond, "kc_t", "lo"); E(cmp_imm, 1, 56); E(b_cond, "kc_t", "hs")
+    E(bl, "c_vrow"); E(subs_imm8, 4, 48); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
+    a.label("kc_t"); imm32(0, base); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
+    a.label("c_vlane")
+    E(push_list, [4], lr=True); E(mov_reg, 4, 1); E(bl, "c_vrow"); E(movs_imm, 1, 0)
+    a.label("vl_l"); E(ldrb_reg, 2, 0, 1); E(cmp_reg, 2, 4); E(b_cond, "vl_f", "eq"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 8); E(b_cond, "vl_l", "lo")
+    E(movs_imm, 0, 0xFF); E(pop_list, [4], pc=True)
+    a.label("vl_f"); E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
+
+
 def clrauto_routine(a, base, bc):
     """SC42.4: c_vclrauto, emitted at the end (out of the way of the short branches of the clear routines)."""
     if CLRAUTO:
@@ -1323,13 +1382,18 @@ def clrauto_routine(a, base, bc):
         a.emit(mov_reg, 0, 7); a.emit(bl, "c_vpage"); a.emit(lsls_imm, 0, 0, 4); a.emit(adds_reg, 5, 5, 0)                   # r5 = page x 16 + knob
         a.emit(movs_imm, 0, 0x2A); a.emit(adds_reg, 1, 4, 6); a.emit(raw, strb_w(0, 1, 0x40))                              # the mark: red
         for layer in (0, 8):
-            a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(adds_reg, 3, 3, 5)
-            a.emit(ldrb_imm, 0, 3, layer); a.emit(cmp_imm, 0, 0); bc(f"va_n{layer}", "eq")                                  # r0 = the code
-            a.emit(movs_imm, 1, 0)
-            for k_, code in enumerate(LANE_TAB):
-                a.emit(cmp_imm, 0, code); a.emit(b_cond, f"va_f{layer}_{k_}", "ne"); a.emit(movs_imm, 1, k_ + 1); a.label(f"va_f{layer}_{k_}")
-            a.emit(cmp_imm, 1, 0); bc(f"va_n{layer}", "eq")
-            a.emit(subs_imm8, 1, 1)                                                                                       # r1 = the lane
+            if P4DEST:                                                                                                    # SC44.9: the track's lanes
+                a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(adds_imm8, 1, layer); a.emit(bl, "c_vkc"); a.emit(cmp_imm, 0, 0); bc(f"va_n{layer}", "eq")
+                a.emit(mov_reg, 1, 0); a.emit(mov_reg, 0, 7); a.emit(bl, "c_vlane"); a.emit(cmp_imm, 0, 0xFF); bc(f"va_n{layer}", "eq")
+                a.emit(mov_reg, 1, 0)                                                                                     # r1 = the lane
+            else:
+                a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(adds_reg, 3, 3, 5)
+                a.emit(ldrb_imm, 0, 3, layer); a.emit(cmp_imm, 0, 0); bc(f"va_n{layer}", "eq")                              # r0 = the code
+                a.emit(movs_imm, 1, 0)
+                for k_, code in enumerate(LANE_TAB):
+                    a.emit(cmp_imm, 0, code); a.emit(b_cond, f"va_f{layer}_{k_}", "ne"); a.emit(movs_imm, 1, k_ + 1); a.label(f"va_f{layer}_{k_}")
+                a.emit(cmp_imm, 1, 0); bc(f"va_n{layer}", "eq")
+                a.emit(subs_imm8, 1, 1)                                                                                   # r1 = the lane
             a.emit(movw, 0, EDITOR_SZ); a.emit(mov_reg, 2, 7); a.emit(adds_imm8, 2, 2); a.emit(muls, 0, 2)
             a.emit(movw, 2, EDITOR0 & 0xFFFF); a.emit(movt, 2, EDITOR0 >> 16); a.emit(adds_reg, 0, 0, 2)
             a.emit(bl, LANE_CLEAR)
@@ -1363,7 +1427,8 @@ def clear_routines(a, L, base, t_def, tail, mulstride, bc):
         a.label("c_vclr1")
         a.emit(push_list, [4, 5], lr=True)
         a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
-        a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 0, 3, 5); a.emit(cmp_imm, 0, 0); bc("c1_x", "eq")
+        if P4DEST: a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vkc"); a.emit(cmp_imm, 0, 0); bc("c1_x", "eq")
+        else: a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 0, 3, 5); a.emit(cmp_imm, 0, 0); bc("c1_x", "eq")
         a.emit(mov_reg, 5, 0)
         a.label("c1_code")                                                        # (r4 = track, r5 = code: c_vclrcode of SC39.1 enters here)
         a.emit(movw, 3, t_def & 0xFFFF); a.emit(movt, 3, t_def >> 16); a.emit(ldrb_reg, 0, 3, 5); a.emit(raw, sxtb(0, 0))
@@ -1410,7 +1475,8 @@ def clear_routines(a, L, base, t_def, tail, mulstride, bc):
         tail(2); a.emit(ldrb_w, 3, 2, O_FLAGS); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 4); a.emit(lsrs_reg, 3, 1); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 3, 1)
         a.emit(cmp_imm, 3, 0); a.emit(b_cond, "vc_np", "eq"); a.emit(adds_imm8, 5, 16)
         a.label("vc_np")
-        a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 5, 3, 5)                       # r5 = the code of the knob (0 = no function)
+        if P4DEST: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vkc"); a.emit(mov_reg, 5, 0)
+        else: a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 5, 3, 5)                 # r5 = the code of the knob (0 = no function)
         a.emit(cmp_imm, 5, 0); bc("vc_done", "eq")
         a.emit(movs_imm, 0, 0x28); a.emit(adds_reg, 1, 4, 6); a.emit(raw, strb_w(0, 1, 0x40))                         # the mark of the cleared knob
         a.emit(movw, 3, t_def & 0xFFFF); a.emit(movt, 3, t_def >> 16); a.emit(ldrb_reg, 0, 3, 5); a.emit(raw, sxtb(0, 0))
@@ -2692,7 +2758,8 @@ def ccio_routines(a, tail, bc, movmask, t_cc, t_ln, stk_emit, stk_mid):
     a.label("c_vcc_rec")                                                          # r0 = track, r1 = code, r2 = value (signed): record it in its lane (the stock automation gate: nothing unless the unit records)
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
-    E(movw, 3, t_ln & 0xFFFF); E(movt, 3, t_ln >> 16); E(movs_imm, 7, 0)
+    if P4DEST: E(mov_reg, 0, 4); E(bl, "c_vrow"); E(mov_reg, 3, 0); E(movs_imm, 7, 0)                          # (SC44.9) the track's row
+    else: E(movw, 3, t_ln & 0xFFFF); E(movt, 3, t_ln >> 16); E(movs_imm, 7, 0)
     a.label("cr_l"); E(ldrb_reg, 0, 3, 7); E(cmp_reg, 0, 5); E(b_cond, "cr_f", "eq"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "cr_l", "lo"); E(b, "cr_x")
     a.label("cr_f")
     if SDRUM:
@@ -2728,7 +2795,8 @@ def ccio_routines(a, tail, bc, movmask, t_cc, t_ln, stk_emit, stk_mid):
     a.label("c_vapply")                                                           # r0 = track, r1 = lane 0..7, r2 = the lane value 0..127 (the sequencer played it): set the value and send it out
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(mov_reg, 5, 2)
-    E(movw, 3, t_ln & 0xFFFF); E(movt, 3, t_ln >> 16); E(ldrb_reg, 6, 3, 1)       # r6 = the code of the lane
+    if P4DEST: E(push_list, [1]); E(mov_reg, 0, 4); E(bl, "c_vrow"); E(pop_list, [1]); E(ldrb_reg, 6, 0, 1)   # (SC44.9) r6 = the code of the track's lane
+    else: E(movw, 3, t_ln & 0xFFFF); E(movt, 3, t_ln >> 16); E(ldrb_reg, 6, 3, 1)  # r6 = the code of the lane
     E(mov_reg, 0, 6); E(mov_reg, 1, 5); E(bl, "c_vfromu"); E(mov_reg, 7, 0)       # r7 = the stored value
     E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(mov_reg, 2, 7); E(bl, "c_vstore"); E(cmp_imm, 0, 0); E(b_cond, "ap_x", "eq")
     E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(mov_reg, 2, 7); E(bl, "c_vcc_emit")
@@ -2817,6 +2885,7 @@ def arm_code(base, L):
     t_def = ktab + (56 if CCED else 0)
     if CLEARK:                                                                    # default value of each code (index = code, 1..26; index 0 unused), signed bytes
         ndef = 36 if DUALUI else 28
+        if P4DEST: a.label("t_def")                                               # (SC44.9: recinst reads it)
         dtab = bytes([0] + [v & 0xFF for v in DEFAULTS] + ([v & 0xFF for v in DEFAULTS_V2] if DUALUI else []) + [0] * (ndef - 1 - len(DEFAULTS) - (len(DEFAULTS_V2) if DUALUI else 0)))
         assert len(dtab) == ndef
         for i in range(0, ndef, 2): a.emit(raw, dtab[i:i + 2])
@@ -3034,7 +3103,8 @@ def arm_code(base, L):
         tail(2); a.emit(ldrb_w, 3, 2, O_FLAGS); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 4); a.emit(lsrs_reg, 3, 1); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 3, 1)
         a.emit(cmp_imm, 3, 0); a.emit(b_cond, "vk_np", "eq"); a.emit(adds_imm8, 5, 16)
         a.label("vk_np")
-    a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 5, 3, 5)                                                              # r5 = code 1..16 (..24), r7 = track, r6 = delta
+    if P4DEST: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vkc"); a.emit(mov_reg, 5, 0)                                          # (SC44.9)
+    else: a.emit(movw, 3, base & 0xFFFF); a.emit(movt, 3, base >> 16); a.emit(ldrb_reg, 5, 3, 5)                                                    # r5 = code 1..16 (..24), r7 = track, r6 = delta
     if OSC: a.emit(cmp_imm, 5, 0); a.emit(b_cond, "vk_done", "eq")                # no function on this page
     if DUALUI: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vvaddr"); a.emit(raw, ldrsb_w(4, 0, 0))                 # r4 = old value
     else:
@@ -3134,7 +3204,8 @@ def arm_code(base, L):
         else:
             tail(2); a.emit(ldrb_w, 3, 2, O_FLAGS); a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 4); a.emit(lsrs_reg, 3, 0); a.emit(movs_imm, 0, 1); a.emit(ands_reg, 3, 0)
             a.emit(lsls_imm, 3, 3, 4); a.emit(adds_reg, 3, 3, 4)                      # r3 = index + 16 * page
-        a.emit(movw, 1, base & 0xFFFF); a.emit(movt, 1, base >> 16); a.emit(ldrb_reg, 1, 1, 3)
+        if P4DEST: a.emit(mov_reg, 0, 7); a.emit(mov_reg, 1, 3); a.emit(bl, "c_vkc"); a.emit(mov_reg, 1, 0)                    # (SC44.9)
+        else: a.emit(movw, 1, base & 0xFFFF); a.emit(movt, 1, base >> 16); a.emit(ldrb_reg, 1, 1, 3)
         if TYPEZONE:
             if DUALUI:
                 a.emit(cmp_imm, 1, 13); bc("vk2_tz", "eq"); a.emit(cmp_imm, 1, 16); bc("vk2_tz", "eq"); a.emit(cmp_imm, 1, 19); bc("vk2_tz", "eq")
@@ -3802,6 +3873,7 @@ def arm_code(base, L):
     if EDV2: edv2_routines(a, L, t_ft, tail, bc)
     if CLEARK: clear_routines(a, L, base, t_def, tail, mulstride, bc)
     if CLRAUTO: clrauto_routine(a, base, bc)
+    if P4DEST: p4_routines(a, base)
     if DUALUI: dualui_routines(a, L, tail, mulstride, bc)
     if GRAN: gran_routines(a, tail, bc, t_gr, t_st)
     if GRSRC: grsrc_routines(a, L, t_gr)

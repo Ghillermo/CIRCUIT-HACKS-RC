@@ -603,6 +603,30 @@ run python3 tools/emu_mfbyp.py firmware/b3.2/circuittracks-4486-B3.2.bin firmwar
 run python3 tools/emu_mfhold.py firmware/sc44.6/circuittracks-4486-SC44.6.bin firmware/sc44.6/manifest.json firmware/sc44.5/circuittracks-4486-SC44.5.bin
 run python3 tools/emu_mfhold.py firmware/b3.3/circuittracks-4486-B3.3.bin firmware/b3.3/manifest.json firmware/b3.2/circuittracks-4486-B3.2.bin
 run python3 tools/emu_fxres.py firmware/sc44.6/circuittracks-4486-SC44.6.bin firmware/sc44.6/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
+run python3 tools/emu_gst_core1.py
+run python3 tools/emu_gst_arm.py firmware/sc44.7/circuittracks-4486-SC44.7.bin firmware/sc44.7/manifest.json firmware/sc44.6/circuittracks-4486-SC44.6.bin
+run python3 tools/emu_gst_arm.py firmware/b3.4/circuittracks-4486-B3.4.bin firmware/b3.4/manifest.json firmware/b3.3/circuittracks-4486-B3.3.bin
+run python3 tools/emu_gstereo_dsp.py firmware/sc44.7/circuittracks-4486-SC44.7.bin firmware/sc44.7/manifest.json firmware/sc44.6/circuittracks-4486-SC44.6.bin firmware/sc44.6/manifest.json
+run python3 tools/emu_mfhold.py firmware/sc44.7/circuittracks-4486-SC44.7.bin firmware/sc44.7/manifest.json firmware/sc44.5/circuittracks-4486-SC44.5.bin
+run python3 tools/emu_lfosync.py firmware/sc44.8/circuittracks-4486-SC44.8.bin firmware/sc44.8/manifest.json
+run python3 tools/emu_lfosync.py firmware/b3.5/circuittracks-4486-B3.5.bin firmware/b3.5/manifest.json
+run python3 tools/emu_lfosync_dsp.py firmware/sc44.8/circuittracks-4486-SC44.8.bin firmware/sc44.8/manifest.json firmware/sc44.7/circuittracks-4486-SC44.7.bin firmware/sc44.7/manifest.json
+run python3 tools/emu_sc44_2.py firmware/sc44.8/circuittracks-4486-SC44.8.bin firmware/sc44.8/manifest.json
+run python3 tools/emu_countin_bpm.py firmware/r203/circuittracks-4486-R203.bin firmware/r203/manifest.json firmware/r202/circuittracks-4486-R202.bin firmware/r202/manifest.json
+run python3 tools/emu_countin_bpm.py firmware/sc44.8/circuittracks-4486-SC44.8.bin firmware/sc44.8/manifest.json firmware/sc44.7/circuittracks-4486-SC44.7.bin firmware/sc44.7/manifest.json
+run python3 tools/emu_p4dest.py firmware/sc44.9/circuittracks-4486-SC44.9.bin firmware/sc44.9/manifest.json
+run python3 tools/emu_p4dest.py firmware/b3.6/circuittracks-4486-B3.6.bin firmware/b3.6/manifest.json
+run python3 tools/emu_sc44_2.py firmware/sc44.9/circuittracks-4486-SC44.9.bin firmware/sc44.9/manifest.json
+run python3 tools/emu_autorel.py firmware/sc45/circuittracks-4486-SC45.bin firmware/sc45/manifest.json
+run python3 tools/emu_autorel.py firmware/b3.7/circuittracks-4486-B3.7.bin firmware/b3.7/manifest.json
+run python3 tools/emu_p4dest.py firmware/sc45/circuittracks-4486-SC45.bin firmware/sc45/manifest.json
+run python3 tools/emu_mutebank.py firmware/sc45.1/circuittracks-4486-SC45.1.bin firmware/sc45.1/manifest.json firmware/sc45/circuittracks-4486-SC45.bin firmware/sc45/manifest.json
+run python3 tools/emu_mutebank.py firmware/b3.8/circuittracks-4486-B3.8.bin firmware/b3.8/manifest.json firmware/sc45/circuittracks-4486-SC45.bin firmware/sc45/manifest.json
+run python3 tools/emu_autorel.py firmware/sc45.1/circuittracks-4486-SC45.1.bin firmware/sc45.1/manifest.json
+run python3 tools/emu_iterled.py firmware/sc45.2/circuittracks-4486-SC45.2.bin firmware/sc45.2/manifest.json firmware/sc45.1/circuittracks-4486-SC45.1.bin firmware/sc45.1/manifest.json
+run python3 tools/emu_iterled.py firmware/b3.9/circuittracks-4486-B3.9.bin firmware/b3.9/manifest.json firmware/b3.8/circuittracks-4486-B3.8.bin firmware/b3.8/manifest.json
+run python3 tools/emu_mutebank.py firmware/sc45.2/circuittracks-4486-SC45.2.bin firmware/sc45.2/manifest.json firmware/sc45/circuittracks-4486-SC45.bin firmware/sc45/manifest.json
+run python3 tools/emu_countin.py firmware/r203/circuittracks-4486-R203.bin firmware/r203/manifest.json
 run python3 tools/emu_fxres.py firmware/sc44.5/circuittracks-4486-SC44.5.bin firmware/sc44.5/manifest.json firmware/sc44.3/circuittracks-4486-SC44.3.bin stock/circuittracks-firmware-4486-STOCK.bin
 run python3 tools/emu_sc44.py firmware/sc44/circuittracks-4486-SC44.bin firmware/sc44/manifest.json
 run python3 tools/emu_sc44.py firmware/rc2/circuittracks-4486-RC2.bin firmware/rc2/manifest.json
@@ -721,3 +745,12 @@ if [ "${1:-quick}" = full ]; then
 fi
 echo; [ $fails -eq 0 ] && echo "TODO OK" || echo "$fails conjuntos de pruebas fallan"
 exit $fails
+run python3 tools/emu_sc45_3.py firmware/sc45.3/circuittracks-4486-SC45.3.bin firmware/sc45.3/manifest.json
+run python3 tools/emu_sc45_3.py firmware/b3.10/circuittracks-4486-B3.10.bin firmware/b3.10/manifest.json
+run python3 tools/emu_sc45_3.py firmware/r204/circuittracks-4486-R204.bin firmware/r204/manifest.json
+run python3 tools/emu_sc45_3.py firmware/r204s/circuittracks-4486-R204S.bin firmware/r204s/manifest.json
+run python3 tools/emu_sc45_3.py firmware/sc45.4/circuittracks-4486-SC45.4.bin firmware/sc45.4/manifest.json
+run python3 tools/emu_sc45_3.py firmware/b3.11/circuittracks-4486-B3.11.bin firmware/b3.11/manifest.json
+run python3 tools/emu_sc45_3.py firmware/sc45.5/circuittracks-4486-SC45.5.bin firmware/sc45.5/manifest.json
+run python3 tools/emu_sc45_5_dsp.py firmware/sc45.5/circuittracks-4486-SC45.5.bin firmware/sc45.5/manifest.json firmware/sc45.4/circuittracks-4486-SC45.4.bin firmware/sc45.4/manifest.json
+run python3 tools/emu_sc45_5_dsp.py firmware/b3.12/circuittracks-4486-B3.12.bin firmware/b3.12/manifest.json firmware/b3.11/circuittracks-4486-B3.11.bin firmware/b3.11/manifest.json

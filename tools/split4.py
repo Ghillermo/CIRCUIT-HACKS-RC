@@ -178,7 +178,7 @@ def install(img, report, base_addr):
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    assert len(img) <= 0x70000
+    assert len(img) <= 0x70000 or base_addr < 0x08018800          # in the hole: hole.add moves it back
     assert SPR + 16 <= 0x2004FE00 - 0x1000
     img[SV.BTN - BASE:SV.BTN - BASE + 4] = b_w(SV.BTN, labels["c_s4btn"])
     img[SV.BTN_REL - BASE:SV.BTN_REL - BASE + 4] = b_w(SV.BTN_REL, labels["c_s4rel"])

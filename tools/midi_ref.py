@@ -20,9 +20,9 @@ ENGINE = [
     (23, "Envolvente → forma (granular: zona)", "Envelope → shape (granular: zone)", "2 / K4"), (24, "LFO → forma (granular: LFO → posición)", "LFO → shape (granular: LFO → position)", "2 / K6"),
     (25, "Envolvente → morph (granular: fuente)", "Envelope → morph (granular: source)", "2 / Shift + K8"), (26, "LFO → morph (granular: modo de nota)", "LFO → morph (granular: note mode)", "2 / K8"),
     (27, "TUNE 2 (granular: LFO → tamaño)", "TUNE 2 (granular: LFO → size)", "3 / K1"), (28, "FINE 2 (granular: fino)", "FINE 2 (granular: fine)", "3 / K5 (RC2) · 3 / Shift + K1 (RC0.9)"),
-    (29, "WAVE 2 (granular: dispersión del tono)", "WAVE 2 (granular: pitch spread)", "3 / K7"), (30, "SHAPE 2 (granular: ventana)", "SHAPE 2 (granular: window)", "3 / K2"),
+    (29, "WAVE 2 (granular: dispersión del tono; Beta 3.11: estéreo)", "WAVE 2 (granular: pitch spread; Beta 3.11: stereo)", "3 / K7"), (30, "SHAPE 2 (granular: ventana)", "SHAPE 2 (granular: window)", "3 / K2"),
     (31, "MIX OSC 1 ↔ OSC 2", "MIX OSC 1 ↔ OSC 2", "2 / Shift + K2 · 3 / K3 (RC2)"), (32, "BITSYNC", "BITSYNC", "2 / Shift + K3 · 3 / K6 (RC2)"),
-    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)"), (34, "RING (granular: reverso)", "RING (granular: reverse)", "3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)")]
+    (33, "FM (granular: dispersión de la posición)", "FM (granular: position spread)", "3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)"), (34, "RING (granular: reverso; Beta 3.11: bipolar, reverso / dispersión del tono)", "RING (granular: reverse; Beta 3.11: bipolar, reverse / pitch spread)", "3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)")]
 DRUMS = [  # lsb, es, en, values es, values en
     (1, "Envolvente → tono", "Envelope → pitch", "0-127, 64 = 0", "0-127, 64 = 0"), (2, "Ring mod: frecuencia", "Ring mod: frequency", "0-127", "0-127"),
     (3, "LFO: cantidad", "LFO: amount", "0-127, 64 = 0", "0-127, 64 = 0"), (4, "LFO: velocidad", "LFO: speed", "0-127, 64 = centro", "0-127, 64 = centre"),
@@ -44,7 +44,7 @@ UI = dict(
             sel=("Seleccionar un NRPN", "Manda **CC 99** (MSB), **CC 98** (LSB) y **CC 6** (valor), en ese orden. El aparato recuerda el NRPN elegido hasta el siguiente CC 99 / 98."),
             eng=("Motor de las pistas MIDI (MIDI 1 / 2)", "Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar el knob (también con Clear) y entra por el mismo número. «Página / knob» = dónde está en la vista Preset con el motor encendido (pads 1-5 = páginas). En el motor granular la página 2 usa los mismos números con otro significado (entre paréntesis)."),
             eng_cols=("Código", "Parámetro", "Mensaje", "Página / knob"),
-            auto="**Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto.",
+            auto="**Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. *Solo Beta 3.11:* los ocho destinos se eligen con Shift + knob.",
             drum=("Drums", "Canal de drums (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = valor**. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales."),
             drum_cols=("LSB", "Parámetro", "Valores"),
             gfx=("Master FX", "Canal 16. **CC 99 = 9**, **CC 98 = 4 × efecto + knob** (knob 0-3 = K1-K4), **CC 6 = valor**."), gfx_cols=("LSB", "Efecto", "K1-K4"),
@@ -55,7 +55,7 @@ UI = dict(
             sel=("Selecting an NRPN", "Send **CC 99** (MSB), **CC 98** (LSB) and **CC 6** (value), in that order. The device remembers the chosen NRPN until the next CC 99 / 98."),
             eng=("MIDI track engine (MIDI 1 / 2)", "The MIDI track's channel. Values 0-127; bipolar ones, 64 = centre. Sent when the knob turns (also with Clear) and received on the same number. «Page / knob» = where it is in the Preset view with the engine on (pads 1-5 = pages). In the granular engine page 2 uses the same numbers with another meaning (in brackets)."),
             eng_cols=("Code", "Parameter", "Message", "Page / knob"),
-            auto="**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect.",
+            auto="**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.11 only:* the eight destinations are chosen with Shift + knob.",
             drum=("Drums", "The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs."),
             drum_cols=("LSB", "Parameter", "Values"),
             gfx=("Master FX", "Channel 16. **CC 99 = 9**, **CC 98 = 4 × effect + knob** (knob 0-3 = K1-K4), **CC 6 = value**."), gfx_cols=("LSB", "Effect", "K1-K4"),

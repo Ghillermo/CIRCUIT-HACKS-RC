@@ -4,6 +4,20 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 3.12 — 2026-10-20
+
+**Beta 3.12** (marca `B3.12`; = SC45.5) = RC2.02 + funciones nuevas sin probar en el aparato (reúne las betas 3.3-3.11; de ellas solo se publicó la 3.3, su entrada abajo):
+- **Granular en estéreo:** Shift + K4 = dispersión estéreo de los granos, el panorama de la pista = la proporción izquierda / derecha; Shift + K3 bipolar: izquierda reverso, derecha dispersión del tono ±24.
+- **LFO a tempo:** los knobs de velocidad de LFO (motor de MIDI 1 / 2, LFO 2 de la matriz, drums, Auto-Filter y Phaser de Master FX) son bipolares: derecha = libre, izquierda = a tempo, con el ciclo en el primer tiempo del compás.
+- **Página 4 del motor de MIDI 1 / 2 (los carriles de automatización): Shift + knob = el destino de ese carril** (los 33 parámetros, en el orden y los colores de la matriz; Clear mantenido y luego Shift + knob = el de fábrica), guardado con los patches del sinte propio. **Record mantenido + un paso** = los valores que no están en su inicial, escritos en los carriles de ese paso (reasignando carriles si hace falta).
+- **Vista Velocity: Shift + pad de paso = ese paso suelta la automatización** (Synth 1 / 2, MIDI 1 / 2): ningún carril suena y lo automatizado vuelve a la posición de su knob.
+- **Pad 27 de la vista Preset de MIDI 1 / 2 = la fila de motores** en los pads 17-23 (pad 27 otra vez = la lista de patches).
+- **Banco de acordes:** con Record de Setup en amarillo (grabar los ruteos internos), nada se graba en una pista de notas silenciada en el Mixer; sus pasos suenan y se graban solo en el sinte del canal compartido.
+- **Mixer con Shift:** la repetición de escena que suena, en blanco, mientras suena una escena con 2 repeticiones o más.
+- **Arpegiador:** en el orden en que se pulsan las notas (una nota soltada deja su hueco y la siguiente lo ocupa), y con el random-mutate del paso del acorde, también en vivo.
+- **Motor de MIDI 1 / 2, SHAPE:** en la sierra, de sierra normal (izquierda del todo) a **supersaw** de 7 sierras (derecha del todo); en el triángulo, a la izquierda del centro, **rampas exponenciales**.
+- **Arreglos** (también en RC2.03 / RC2.04, sin publicar): la cuenta atrás sigue el tempo del proyecto; las notas grabadas de 16 pasos o más ya no se cortan a 16 pasos; en el selector de samples del modo muestra, sample mantenido + paso = flip.
+
 ## Beta 3.3 — 2026-10-19
 
 **Beta 3.3** (marca `B3.3`; = SC44.6) = RC2.02 + funciones nuevas sin probar en el aparato (reúne Beta 3.1 / 3.2, que no se publicaron):
@@ -411,6 +425,20 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 3.12 — 2026-10-20
+
+**Beta 3.12** (marker `B3.12`; = SC45.5) = RC2.02 + new features not yet tested on the device (it gathers betas 3.3-3.11; of those only 3.3 was published, its entry below):
+- **Stereo granular:** Shift + K4 = the grains' stereo spread, the track's pan = the left / right proportion; Shift + K3 bipolar: left reverse, right pitch spread ±24.
+- **Tempo-synced LFO:** the LFO speed knobs (MIDI 1 / 2 engine, the matrix's LFO 2, drums, Master FX Auto-Filter and Phaser) are bipolar: right = free, left = synced to the tempo, the cycle starting on the bar's first beat.
+- **Page 4 of the MIDI 1 / 2 engine (the automation lanes): Shift + knob = that lane's destination** (the 33 parameters, in the matrix's order and colours; hold Clear, then Shift + knob = the factory one), saved with the own synth's patches. **Hold Record + a step** = the values that are not at their initial one, written to that step's lanes (reassigning lanes if needed).
+- **Velocity view: Shift + step pad = that step releases the automation** (Synth 1 / 2, MIDI 1 / 2): no lane plays and what was automated goes back to its knob's position.
+- **Pad 27 of the MIDI 1 / 2 Preset view = the engine row** on pads 17-23 (pad 27 again = the patch list).
+- **Chord bank:** with the Setup Record yellow (recording the internal routings), nothing is recorded on a note track muted in the Mixer; its steps play and are recorded only into the synth on the shared channel.
+- **Mixer with Shift:** the scene repetition that is playing, in white, while a scene with 2 or more repetitions plays.
+- **Arpeggiator:** in the order the notes are pressed (a released note leaves its slot and the next one takes it), and with the random-mutate of the chord's step, live too.
+- **MIDI 1 / 2 engine, SHAPE:** on the saw, from a plain saw (fully left) to a **supersaw** of 7 saws (fully right); on the triangle, left of centre, **exponential ramps**.
+- **Fixes** (also in RC2.03 / RC2.04, unpublished): the count-in follows the project's tempo; recorded notes of 16 steps or more are no longer cut to 16 steps; in the sample mode's sample picker, held sample + step = flip.
 
 ## Beta 3.3 — 2026-10-19
 

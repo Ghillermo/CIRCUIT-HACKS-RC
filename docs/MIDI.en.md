@@ -39,14 +39,14 @@ The MIDI track's channel. Values 0-127; bipolar ones, 64 = centre. Sent when the
 | 26 | LFO → morph (granular: note mode) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → size) | CC 37 | 3 / K1 |
 | 28 | FINE 2 (granular: fine) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
-| 29 | WAVE 2 (granular: pitch spread) | CC 30 | 3 / K7 |
+| 29 | WAVE 2 (granular: pitch spread; Beta 3.11: stereo) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: window) | CC 31 | 3 / K2 |
 | 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
 | 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
 | 33 | FM (granular: position spread) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
-| 34 | RING (granular: reverse) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
+| 34 | RING (granular: reverse; Beta 3.11: bipolar, reverse / pitch spread) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
 
-**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect.
+**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.11 only:* the eight destinations are chosen with Shift + knob.
 
 ## Drums
 

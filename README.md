@@ -16,7 +16,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - No trabajes con proyectos importantes guardados en el aparato mientras lo pruebas.
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
 > - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.02S](firmware/r202s/PRUEBA.md)**: es RC2.02 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
-> - **[B3.3](firmware/b3.3/PRUEBA.md)** es una versión beta: RC2.02 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
+> - **[B3.12](firmware/b3.12/PRUEBA.md)** es una versión beta: RC2.02 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -39,7 +39,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC2.02, la versión más segura RC2.02S, la beta B3.3 (o las anteriores), u «Oficial» para volver atrás.
+3. **Elige el `.syx` oficial y la versión**: RC2.02, la versión más segura RC2.02S, la beta B3.12 (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -52,7 +52,7 @@ La página no contiene código de Novation: solo los bytes del mod y las instruc
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R202`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R202S`. La beta: `--version B3.3`.
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R202`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R202S`. La beta: `--version B3.12`.
 4. Envía `firmware/r202/circuittracks-4486-R202.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
@@ -60,7 +60,7 @@ La herramienta comprueba que el firmware oficial es el correcto y que el resulta
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.02**; **más segura: RC2.02S** (sin escrituras propias en la SD); **beta: B3.3** (funciones nuevas sin probar). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.02**; **más segura: RC2.02S** (sin escrituras propias en la SD); **beta: B3.12** (funciones nuevas sin probar). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -77,7 +77,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R202
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R202S` = la versión más segura; `--version B3.3` = la beta; `--list` enseña todas; `--all` las construye todas.
+- `--version R202S` = la versión más segura; `--version B3.12` = la beta; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -96,7 +96,7 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 ### A. Accesos directos y usabilidad
 - **[A1 Mapa de atajos](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a1-atajos)** — Todos los atajos del mod en un dibujo del aparato: botones dobles, Shift + botón, Clear + knob y los pads especiales de cada vista.
 - **[A2 Master FX en el botón Mixer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a2-master-fx-acceso)** — Desde el Mixer, **Mixer otra vez** abre Master FX; cualquier otro botón de vista sale.
-- **[A3 Teclas de la vista FX](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a3-vista-fx)** — **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay. **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.3; en RC2.02, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.3).
+- **[A3 Teclas de la vista FX](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a3-vista-fx)** — **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay. **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.12; en RC2.02, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.12).
 - **[A4 Clear + knob = valor por defecto](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a4-clear-knob)** — Mantén **Clear** y gira un knob a la derecha: vuelve a su valor por defecto. En drums (LED azul), a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en **Master FX**.
 - **[A5 Apagar efectos fijados (pad 8 de Master FX)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a5-pad8)** — **Pad 8** apaga todo lo fijado con Shift (efectos y song pointer) y hace bypass de los FX; tocar un efecto fijado lo suelta.
 - **[A6 Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a6-fuente-sinte)** — Con Synth 1 / 2 en pantalla, **pulsa su botón otra vez**: pads 25-29 eligen la fuente (ruido, entradas, invertidas), pad 30 = step-drummer.
@@ -106,13 +106,14 @@ Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUITS-HACKS-RC/
 - **[A10 Editor de CC de los macros MIDI](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a10-editor-cc)** — Vista Preset de MIDI 1 / 2, **pad 25**: mueve un knob y cambia su CC / NRPN desde el aparato; pad 26 = guardar.
 - **[A11 Mixer: Shift + knob = nivel a 100 / 0](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a11-mixer-shift)** — Vista Mixer: **Shift + girar un knob a la derecha** pone el nivel de esa pista a **100**; **a la izquierda**, a **0**.
 - **[A12 Modo cue, mutes al compás y cuantizar (desde RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a12-mixer-cue)** — **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
-- **[A13 Teclado partido Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a13-teclado-partido)** — **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
-- **[A14 Patches de sinte por modo de voz](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a14-colores-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
-- **[A15 Patches del sinte propio (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a15-patches-midi)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
-- **[A16 Guardar el patch del sinte en el pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a16-guardar-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
-- **[A17 Destinos de los macro knobs](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a17-destinos-macro)** — **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
-- **[A18 Copiar proyectos a otro hueco o a otro pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a18-copiar-proyectos)** — **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
-- **[A19 Patches del sinte propio a otro pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a19-patches-entre-packs)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
+- **[A13 LFO a tempo (solo Beta 3.12)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a13-lfo-sync)** — **Solo Beta 3.12.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
+- **[A14 Teclado partido Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a14-teclado-partido)** — **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
+- **[A15 Patches de sinte por modo de voz](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a15-colores-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
+- **[A16 Patches del sinte propio (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a16-patches-midi)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
+- **[A17 Guardar el patch del sinte en el pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a17-guardar-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
+- **[A18 Destinos de los macro knobs](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a18-destinos-macro)** — **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
+- **[A19 Copiar proyectos a otro hueco o a otro pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a19-copiar-proyectos)** — **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
+- **[A20 Patches del sinte propio a otro pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#a20-patches-entre-packs)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 ### B. Controles expuestos
 - **[B1 Knobs de los drums según el panel](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html#b1-knobs-drums)** — Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb, tilt), LFO, start point, bitcrush y distorsión.
@@ -184,7 +185,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - Do not work on important projects stored on the device while you test it.
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
 > - If you would rather not risk the card, use the **safer build, [RC2.02S](firmware/r202s/PRUEBA.md)**: RC2.02 without any feature that creates, changes or deletes files on the SD card on its own.
-> - **[B3.3](firmware/b3.3/PRUEBA.md)** is a beta: RC2.02 + new features not yet tested on the device. Use it only with a backup of the SD card.
+> - **[B3.12](firmware/b3.12/PRUEBA.md)** is a beta: RC2.02 + new features not yet tested on the device. Use it only with a backup of the SD card.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUITS-HACKS-RC>.
@@ -205,7 +206,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC2.02, the safer RC2.02S, the beta B3.3 (or the earlier ones), or “Official” to go back.
+3. **Pick the official `.syx` and the version**: RC2.02, the safer RC2.02S, the beta B3.12 (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -223,7 +224,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R202
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R202S` = the safer build; `--version B3.3` = the beta; `--list` shows them all; `--all` builds them all.
+- `--version R202S` = the safer build; `--version B3.12` = the beta; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -239,7 +240,7 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.02**; **safer: RC2.02S**; **beta: B3.3** (new features not yet tested).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.02**; **safer: RC2.02S**; **beta: B3.12** (new features not yet tested).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).
@@ -253,7 +254,7 @@ User manual: [guide by views](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guid
 ### A. Shortcuts and usability
 - **[A1 Shortcut map](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a1-atajos)** — Every shortcut of the mod on a drawing of the device: double presses, Shift + button, Clear + knob and the special pads of each view.
 - **[A2 Master FX on the Mixer button](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a2-master-fx-acceso)** — From the Mixer, **Mixer again** opens Master FX; any other view button leaves it.
-- **[A3 Keys of the FX view](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a3-vista-fx)** — **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters. **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.3 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.3 only).
+- **[A3 Keys of the FX view](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a3-vista-fx)** — **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters. **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only).
 - **[A4 Clear + knob = default value](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a4-clear-knob)** — Hold **Clear** and turn a knob right: it goes back to its default. On the drums (blue LED), turned left it deletes the automation of the stock knobs (red LED), as on the original. Also on the MIDI track engine and in **Master FX**.
 - **[A5 Switch off latched effects (Master FX pad 8)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a5-pad8)** — **Pad 8** switches off everything latched with Shift (effects and song pointer) and bypasses the FX; touching a latched effect releases it.
 - **[A6 Synth source view](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a6-fuente-sinte)** — With Synth 1 / 2 on screen, **press its button again**: pads 25-29 pick the source (noise, inputs, inverted inputs), pad 30 = step-drummer.
@@ -263,13 +264,14 @@ User manual: [guide by views](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guid
 - **[A10 CC editor of the MIDI macros](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a10-editor-cc)** — MIDI 1 / 2 Preset view, **pad 25**: move a knob and change its CC / NRPN on the device; pad 26 = save.
 - **[A11 Mixer: Shift + knob = level to 100 / 0](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a11-mixer-shift)** — Mixer view: **Shift + a knob turned right** sets that track’s level to **100**; **turned left**, to **0**.
 - **[A12 Cue mode, mutes on the bar and quantize (since RC2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a12-mixer-cue)** — **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track.
-- **[A13 Split keyboard Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a13-teclado-partido)** — **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
-- **[A14 Synth patches by voice mode](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a14-colores-patch)** — **Since RC2.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
-- **[A15 Patches of the own synth (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a15-patches-midi)** — **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
-- **[A16 Saving the synth’s patch into the pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a16-guardar-patch)** — **Since RC2.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
-- **[A17 Macro knob destinations](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a17-destinos-macro)** — **Since RC2.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
-- **[A18 Copying projects to another slot or another pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a18-copiar-proyectos)** — **Since RC2.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
-- **[A19 Own-synth patches to another pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a19-patches-entre-packs)** — **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
+- **[A13 LFO synced to the tempo (Beta 3.12 only)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a13-lfo-sync)** — **Beta 3.12 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
+- **[A14 Split keyboard Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a14-teclado-partido)** — **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
+- **[A15 Synth patches by voice mode](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a15-colores-patch)** — **Since RC2.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
+- **[A16 Patches of the own synth (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a16-patches-midi)** — **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
+- **[A17 Saving the synth’s patch into the pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a17-guardar-patch)** — **Since RC2.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
+- **[A18 Macro knob destinations](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a18-destinos-macro)** — **Since RC2.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
+- **[A19 Copying projects to another slot or another pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a19-copiar-proyectos)** — **Since RC2.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
+- **[A20 Own-synth patches to another pack](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#a20-patches-entre-packs)** — **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
 
 ### B. Exposed controls
 - **[B1 Drum knobs as printed on the panel](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html#b1-knobs-drums)** — Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb, tilt), LFO, start point, bitcrush and distortion.

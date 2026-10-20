@@ -82,6 +82,8 @@ PLAY_STORE = 0x20011034                                       # the transport (m
 V2 = False
 V3 = False                                                    # SC40.9: one chain mode for the whole project (see use_v3)
 RULECHK = False                                               # SC41.2: c_pcrule refuses a track or a pattern out of 0..7 (see use_rulecheck)
+ITERLED = False                                               # SC45.2: the repeat now playing in the Mixer's Shift row (see use_iterled)
+COL_ITER = 0x01                                               # (white)
 
 
 def use_v2():
@@ -95,6 +97,15 @@ def use_rulecheck():
     a pattern outside 0..7.  Its callers already treat 0 as «the stock's»: the chains, the play orders, the Patterns view's LEDs."""
     global RULECHK
     RULECHK = True
+
+
+def use_iterled():
+    """SC45.2 (the user, 2026-10-20, on the Circuit Rhythm port, RH29: «during scene repeat, i want a led to point the current iteration
+    inside shift view», then «port this feature back to tracks»): in the Mixer view with Shift held, while the transport runs a scene with 2
+    repeats or more, the pad of the repeat now playing (pad 9 = the first time; the counter S_REPC of the running part) is white, and on the
+    last one the green pad blinks white / green; stopped, or a scene that plays once, as before."""
+    global ITERLED
+    ITERLED = True
 
 
 def use_v3():
@@ -603,6 +614,12 @@ def arm_code(base, L, prev):
         a.label("mr_l"); E(movs_imm, 2, COL_SHIFT); E(cmp_reg, 4, 7); E(b_cond, "mr_w", "ne"); E(movs_imm, 2, COL_SEL)
         a.label("mr_w"); E(mov_reg, 0, 4); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
         E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "mr_l", "lo")
+        if ITERLED:                                                                        # the repeat now playing: pad 9 + n white, the last
+            E(cmp_imm, 7, 0); bc("lt_x", "eq")                                             # one blinking white / green; only running, 2+ repeats
+            imm32(0, PLAY_STORE); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("lt_x", "eq")
+            E(ldrb_imm, 4, 6, S_REPC); E(cmp_reg, 4, 7); bc("lt_x", "hi"); E(b_cond, "mi_w", "ne")
+            imm32(0, PK.HAL_TICK); E(ldr_imm, 0, 0, 0); E(lsls_imm, 0, 0, 23); bc("lt_x", "pl")
+            a.label("mi_w"); E(movs_imm, 2, COL_ITER); E(mov_reg, 0, 4); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
         a.label("lt_x"); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], pc=True))
 
         # ---- c_pcchained (r0 = the tail, r1 = scene) -> r0 = 1 when a track of that scene runs a rule: its flag there and a rule on the first

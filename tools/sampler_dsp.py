@@ -76,6 +76,7 @@ def use_prefilter():
 SAMPLE_TAB = 0x1D8D
 TAIL = None                                          # SC36: a callable (a, e) emitting code at the end of smp_post, before M4 / M5 / R2 come back
 TAIL_TABLE = None                                    #   and (a) emitting its data after the code (granular_dsp.core0_tail / core0_table)
+PRE_HOOK = None                                      # SC44.7 (FILT): a callable (a, e, pf_l, pf_r) emitting code on the mix arrays before the master filter (granular_dsp.core0_sides)
 ZERO = 0x3BFE                                        # Y: a word kept at 0
 NSTATE = 0x20
 FRAMES = 0x3A                                        # X:$3A = frames per block (masterfx_dsp uses `do x:$3a`)
@@ -215,6 +216,7 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
         L("sm_ncp")
         e("move x:>$%x,m5" % SAVM5)
     if TAIL and not FILT: TAIL(a, e)
+    if FILT and PRE_HOOK: PRE_HOOK(a, e, PF_L, PF_R)
     e("move x:>$%x,m4" % SAVM4)
     if FILT:
         e("move x:>$%x,r4" % SAVF4, "move x:>$%x,r5" % SAVF5, "move x:>$%x,r6" % SAVF6)

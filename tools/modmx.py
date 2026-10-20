@@ -68,6 +68,21 @@ PAR_MAX2 = (5 * 32 - 1, 127, 127, 127)      # (V2) LFO 2: 5 shapes x 32 rates
 B_SHP = 54                            # (V2) the slewed S&H's last value
 
 
+SYNC = False                          # SC44.8 (use_sync)
+SYNC_RAM = MXR + 0x100                # (SYNC) the last sequencer tick seen by each track's LFO 2 (u32 x 2)
+
+
+def use_sync():
+    """SC44.8 (lfosync.py; the user, 2026-10-19: «en los lfo rate, hazlo bipolar … derecha libre, izquierda a tempo con sync en beat 1»; the LFO 2
+    of the matrix «por forma»): in each shape's zone of 32 (Shift + K4), the lower half 0..15 = synced to the tempo, the division
+    lfosync.DIVS[15 - r] (the centre of the zone = 1/16T, its start = 8 bars), the upper half 16..31 = free, the rate lfoinc[2 (r - 16) + 1];
+    synced: the phase moves BPM x 2^16 x 24 / (60000 d) a ms and, on every new sequencer tick, is set to (tick mod d) / d; the LED with Shift
+    dim at the zone's centre, brighter to both sides.  The default 24 (about the 1 Hz of before)."""
+    global SYNC, PAR_DEF
+    SYNC = True
+    PAR_DEF = (24,) + tuple(PAR_DEF[1:])
+
+
 def use_v2():
     """SC44.3 (the user, 2026-10-18: «add s&h (stepped random) and slewed s&h (glided random) as waveshapes»): LFO 2 (K4) gets a fifth shape, slewed
     sample & hold (a glide from the last random value to a new one over each cycle; violet), its Shift + K4 range 5 zones x 32; its colours are
@@ -145,6 +160,11 @@ def arm_code(base, L, prev):
     if V2: put("zcol", bytes(LFO_COL + ATK_COL + (0,) + DRM_COL + (0,))); put("pmx", bytes(PAR_MAX2))
     else: put("zcol", bytes(LFO_COL + ATK_COL + DRM_COL + SRN_COL[:4]))
     put("scol", bytes(SRN_COL)); put("srn", bytes(SRN_STEPS))
+    if SYNC:
+        import lfosync as LF
+        while (base + len(data)) % 4: data.append(0)
+        put("ldiv", struct.pack("<16I", *LF.DIVS))
+        put("lk2", struct.pack("<16I", *(round((1 << 16) * 24 * 4096 / (60000 * d)) for d in LF.DIVS)))
     while len(data) % 4: data.append(0)
     E(raw, bytes(data))
     PMAX = len(D) * ZONE
@@ -248,6 +268,20 @@ def arm_code(base, L, prev):
     E(movs_imm, 2, 127); E(muls, 0, 2); E(raw, udiv(0, 0, 1)); E(movs_imm, 2, 127); E(subs_reg, 0, 2, 0); E(raw, h(0x4770))
     a.label("dy_0"); E(movs_imm, 0, 0); E(raw, h(0x4770))
 
+    if SYNC:
+        import lfosync as LF
+        # ---- c_mxsync(r0 = track, r1 = the division's index, r2 = dt ms, r3 = the block) -> r1 = the phase's advance; a new tick sets the phase
+        a.label("c_mxsync")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(mov_reg, 4, 3); E(lsls_imm, 5, 1, 2); E(mov_reg, 6, 2); E(mov_reg, 7, 0)
+        imm32(0, LF.TEMPO); E(movs_imm, 1, 0); E(bl, LF.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+        imm32(1, T["lk2"]); E(adds_reg, 1, 1, 5); E(ldr_imm, 1, 1, 0); E(muls, 0, 1); E(muls, 0, 6); E(lsrs_imm, 6, 0, 12)   # r6 = the advance
+        imm32(0, LF.ENG + 0x90); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); E(bl, LF.PARAM_GET); E(ldr_imm, 0, 0, 0)          # r0 = the tick
+        imm32(1, SYNC_RAM); E(lsls_imm, 2, 7, 2); E(adds_reg, 1, 1, 2); E(ldr_imm, 2, 1, 0); E(cmp_reg, 2, 0); E(b_cond, "sy_x", "eq"); E(str_imm, 0, 1, 0)
+        imm32(1, T["ldiv"]); E(adds_reg, 1, 1, 5); E(ldr_imm, 1, 1, 0)
+        E(raw, udiv(2, 0, 1)); E(muls, 2, 1); E(subs_reg, 0, 0, 2); E(lsls_imm, 0, 0, 16); E(raw, udiv(0, 0, 1)); E(strh_imm, 0, 4, B_PH)
+        a.label("sy_x"); E(mov_reg, 1, 6); E(pop_list, [4, 5, 6, 7], pc=True)
+
     # ---- c_mxupd(r0 = track, r1 = now): the sources every UPD_MS; one changed destination marked (round robin)
     a.label("c_mxupd")
     E(push_list, [4, 5, 6, 7], lr=True)
@@ -264,8 +298,15 @@ def arm_code(base, L, prev):
     a.label("up_n2"); E(strb_imm, 0, 4, B_SRC + 1)
     E(ldrb_imm, 0, 4, B_RND); E(strb_imm, 0, 4, B_SRC + 2)
     # LFO 2: the phase += inc x dt; a wrap = a new sample-and-hold value
-    E(ldrb_imm, 0, 4, B_PAR + 0); E(movs_imm, 1, 31); E(ands_reg, 1, 0); E(lsls_imm, 1, 1, 1); imm32(2, T["lfoinc"]); E(ldrh_reg, 1, 2, 1)
-    E(muls, 1, 5); E(ldrh_imm, 2, 4, B_PH); E(adds_reg, 2, 2, 1); E(strh_imm, 2, 4, B_PH)
+    if SYNC:                                                                            # r1 = the phase's advance
+        E(ldrb_imm, 0, 4, B_PAR + 0); E(movs_imm, 1, 31); E(ands_reg, 1, 0); E(cmp_imm, 1, 16); E(b_cond, "up_ls", "lo")
+        E(subs_imm8, 1, 16); E(lsls_imm, 1, 1, 1); E(adds_imm8, 1, 1); E(lsls_imm, 1, 1, 1); imm32(2, T["lfoinc"]); E(ldrh_reg, 1, 2, 1); E(muls, 1, 5); E(b, "up_la")
+        a.label("up_ls"); E(movs_imm, 2, 15); E(subs_reg, 1, 2, 1); E(mov_reg, 0, 6); E(mov_reg, 2, 5); E(mov_reg, 3, 4); E(bl, "c_mxsync")
+        a.label("up_la")
+    else:
+        E(ldrb_imm, 0, 4, B_PAR + 0); E(movs_imm, 1, 31); E(ands_reg, 1, 0); E(lsls_imm, 1, 1, 1); imm32(2, T["lfoinc"]); E(ldrh_reg, 1, 2, 1)
+        E(muls, 1, 5)
+    E(ldrh_imm, 2, 4, B_PH); E(adds_reg, 2, 2, 1); E(strh_imm, 2, 4, B_PH)
     E(lsrs_imm, 2, 2, 16); E(cmp_imm, 2, 0); E(b_cond, "up_l1", "eq")
     if V2: E(ldrb_w, 0, 4, B_SH); E(strb_w, 0, 4, B_SHP)
     E(bl, "c_mxrnd"); E(strb_w, 0, 4, B_SH)
@@ -458,7 +499,13 @@ def arm_code(base, L, prev):
     a.label("kl_z4")
     if V2: E(lsrs_imm, 1, 0, 5); E(movs_imm, 3, 5); E(muls, 3, 2); E(adds_reg, 1, 1, 3); imm32(3, T["zcol"]); E(ldrb_reg, 1, 3, 1)
     else: E(lsrs_imm, 1, 0, 5); E(lsls_imm, 3, 2, 2); E(adds_reg, 1, 1, 3); imm32(3, T["zcol"]); E(ldrb_reg, 1, 3, 1)
-    E(movs_imm, 3, 31); E(ands_reg, 0, 3); E(lsls_imm, 0, 0, 2); E(adds_imm8, 0, 3)
+    if SYNC:                                                                            # LFO 2 (index 0): |2 r - 31| x 4, dim at the zone's centre
+        E(movs_imm, 3, 31); E(ands_reg, 0, 3); E(cmp_imm, 2, 0); E(b_cond, "kl_np", "ne")
+        E(lsls_imm, 0, 0, 1); E(subs_imm8, 0, 31); E(b_cond, "kl_ab", "pl"); E(raw, h(0x4240))      # rsbs r0, r0, #0
+        a.label("kl_ab"); E(lsls_imm, 0, 0, 2); E(b, "kl_put")
+        a.label("kl_np"); E(lsls_imm, 0, 0, 2); E(adds_imm8, 0, 3)
+    else:
+        E(movs_imm, 3, 31); E(ands_reg, 0, 3); E(lsls_imm, 0, 0, 2); E(adds_imm8, 0, 3)
     a.label("kl_put"); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 1); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1); E(b, "kl_n")
     a.label("kl_dk"); E(movs_imm, 0, 0); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1)
     a.label("kl_n"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "kl_l", "lo")
@@ -599,12 +646,13 @@ def install(img, report, base_addr):
     prev = dict(svc=MP.bw_target(img, S14.SVC_HOOK, BASE), non=u(NOTE_VT) & ~1, trig=MP.bw_target(img, TRIG_TAIL, BASE),
                 knob=u(KN + 16) & ~1, kleds=u(KN + 28) & ~1, pad=u(TP) & ~1, leds=u(TP + 28) & ~1)
     (code, labels), T, pmax = arm_code(base_addr, L, prev)
+    end0 = BASE + len(img)                               # the code before ours (hole.add: base_addr is below it)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    assert len(img) <= 0x70000
+    assert len(img) <= 0x70000 or base_addr < 0x08018800          # in the hole: hole.add moves it back
     # vcf21: both calls of c_sdfx (the values and the sweep) -> c_mxfx
-    sites = bl_sites(img, BASE + 0x4CDDC, base_addr, L["c_sdfx"], BASE)
+    sites = bl_sites(img, BASE + 0x4CDDC, end0, L["c_sdfx"], BASE)
     assert len(sites) == 2, [hex(s) for s in sites]
     for s in sites: img[s - BASE:s - BASE + 4] = bl(s, labels["c_mxfx"])
     # vp_row: pad 6 (index 5) is a page too
@@ -616,7 +664,7 @@ def install(img, report, base_addr):
         s = bl_sites(img, site_of, site_of + 0x120, orig, BASE)
         assert len(s) == 1, (hex(site_of), [hex(x) for x in s])
         img[s[0] - BASE:s[0] - BASE + 4] = bl(s[0], labels[ours])
-    assert len(bl_sites(img, BASE + 0x4CDDC, base_addr, L["c_mpapply"], BASE)) == 0       # nobody else applies a patch
+    assert len(bl_sites(img, BASE + 0x4CDDC, end0, L["c_mpapply"], BASE)) == 0       # nobody else applies a patch
     # the heads
     img[S14.SVC_HOOK - BASE:S14.SVC_HOOK - BASE + 4] = b_w(S14.SVC_HOOK, labels["c_mxtick"])
     img[TRIG_TAIL - BASE:TRIG_TAIL - BASE + 4] = b_w(TRIG_TAIL, labels["c_mxtrig"])

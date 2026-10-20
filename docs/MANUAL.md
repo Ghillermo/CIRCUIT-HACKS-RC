@@ -20,13 +20,14 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A10 Editor de CC de los macros MIDI](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = nivel a 100 / 0](#a11-mixer-shift)
 - [A12 Modo cue, mutes al compás y cuantizar (desde RC2)](#a12-mixer-cue)
-- [A13 Teclado partido Synth 1 + Synth 2](#a13-teclado-partido)
-- [A14 Patches de sinte por modo de voz](#a14-colores-patch)
-- [A15 Patches del sinte propio (MIDI 1 / 2)](#a15-patches-midi)
-- [A16 Guardar el patch del sinte en el pack](#a16-guardar-patch)
-- [A17 Destinos de los macro knobs](#a17-destinos-macro)
-- [A18 Copiar proyectos a otro hueco o a otro pack](#a18-copiar-proyectos)
-- [A19 Patches del sinte propio a otro pack](#a19-patches-entre-packs)
+- [A13 LFO a tempo (solo Beta 3.12)](#a13-lfo-sync)
+- [A14 Teclado partido Synth 1 + Synth 2](#a14-teclado-partido)
+- [A15 Patches de sinte por modo de voz](#a15-colores-patch)
+- [A16 Patches del sinte propio (MIDI 1 / 2)](#a16-patches-midi)
+- [A17 Guardar el patch del sinte en el pack](#a17-guardar-patch)
+- [A18 Destinos de los macro knobs](#a18-destinos-macro)
+- [A19 Copiar proyectos a otro hueco o a otro pack](#a19-copiar-proyectos)
+- [A20 Patches del sinte propio a otro pack](#a20-patches-entre-packs)
 
 **B. Controles expuestos**
 
@@ -91,7 +92,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="a3-vista-fx"></a>
 ### A3. Teclas de la vista FX
 - **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay.
-- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.3; en RC2.02, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.3).
+- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.12; en RC2.02, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.12).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = valor por defecto
@@ -130,32 +131,36 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 ### A12. Modo cue, mutes al compás y cuantizar (desde RC2)
 - **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
 
-<a id="a13-teclado-partido"></a>
-### A13. Teclado partido Synth 1 + Synth 2
+<a id="a13-lfo-sync"></a>
+### A13. LFO a tempo (solo Beta 3.12)
+- **Solo Beta 3.12.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
+
+<a id="a14-teclado-partido"></a>
+### A14. Teclado partido Synth 1 + Synth 2
 - **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
 
-<a id="a14-colores-patch"></a>
-### A14. Patches de sinte por modo de voz
+<a id="a15-colores-patch"></a>
+### A15. Patches de sinte por modo de voz
 - **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
 
-<a id="a15-patches-midi"></a>
-### A15. Patches del sinte propio (MIDI 1 / 2)
+<a id="a16-patches-midi"></a>
+### A16. Patches del sinte propio (MIDI 1 / 2)
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
 
-<a id="a16-guardar-patch"></a>
-### A16. Guardar el patch del sinte en el pack
+<a id="a17-guardar-patch"></a>
+### A17. Guardar el patch del sinte en el pack
 - **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
 
-<a id="a17-destinos-macro"></a>
-### A17. Destinos de los macro knobs
+<a id="a18-destinos-macro"></a>
+### A18. Destinos de los macro knobs
 - **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
 
-<a id="a18-copiar-proyectos"></a>
-### A18. Copiar proyectos a otro hueco o a otro pack
+<a id="a19-copiar-proyectos"></a>
+### A19. Copiar proyectos a otro hueco o a otro pack
 - **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
 
-<a id="a19-patches-entre-packs"></a>
-### A19. Patches del sinte propio a otro pack
+<a id="a20-patches-entre-packs"></a>
+### A20. Patches del sinte propio a otro pack
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 ## B. Controles expuestos

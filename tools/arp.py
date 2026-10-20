@@ -71,6 +71,40 @@ REC_OFF = 0x0802E5CC                                          # the recorder's n
 VIEWOFF = False                                               # SC43.7 (use_viewoff)
 VIEW_IFC0, VIEW_SZ = 0x200413F0, 0x2F4                        # the note-on interface of track t's view (embedded at view + 0x110)
 RATEFLIP = False                                              # SC43.7 (use_rateflip)
+PRESSORD = False                                              # SC45.3 (use_pressord)
+MUTARP = False                                                # SC45.3 (use_mutarp)
+MUTLIVE = False                                               # SC45.4 (use_mutlive)
+D_POS, D_MUT = D_EXT + 8, D_EXT + 14                          # (PRESSORD) + 8..13 the notes' places; (MUTARP) + 14 the chord step's mutate level
+
+
+def use_pressord():
+    """SC45.3 (the user, 2026-10-20: «el orden de reproducción es el orden pulsado. Cuando una pulsación se retira, el slot de esa nota queda
+    vacío, al volver a introducir una nota nueva, ocupa esa misma posición (y todas las posiciones vacías libres para notas sucesivas) antes de
+    ir a una posición posterior»; an empty place is skipped; the orders walk the places): the list is no longer sorted by pitch: each note keeps
+    the place it took (a byte per entry in the state's extension, + 8..13), a new note takes the lowest free place; the list stays in place
+    order, so up / down / ping-pong / random / fractal / deconstructed walk the places and skip the empty ones.  A step's chord: its units in
+    their order (the recorder's: the order they were pressed in)."""
+    global PRESSORD
+    assert RATE, "use_rate() first"
+    PRESSORD = True
+
+
+def use_mutarp():
+    """SC45.3 (the user, 2026-10-20: «los modos mutates también afectan al arpegio si están activados»): a step's chord with a random-mutate
+    level (byte [2] of the step) plays each note of its arpeggio through the same chances as the stock-played notes (mutate39: another degree of
+    the scale, an octave up / down; the custom scale too); nothing is written back."""
+    global MUTARP
+    assert RATE, "use_rate() first"
+    MUTARP = True
+
+
+def use_mutlive():
+    """SC45.4 (the user, 2026-10-20: «Random-mutate: afecta también al nivel en vivo»): the input's arpeggio (the notes held) through the
+    random-mutate level of the step the track is on (the engine's step of the track: playing, the step that plays; stopped, where it stands), each
+    note as it is played (c_arnext: the note after the order, before it sounds and becomes the last one); nothing is written."""
+    global MUTLIVE
+    assert MUTARP, "use_mutarp() first"
+    MUTLIVE = True
 
 
 def use_viewoff():
@@ -248,8 +282,30 @@ def arm_code(base, L, prev):
         E(mov_reg, 4, 0); E(bl, "c_artrk"); E(cmp_imm, 0, 3); E(b_cond, "rp_s", "hi"); E(bl, "c_arRt"); E(pop_list, [4], pc=True)
         a.label("rp_s"); E(mov_reg, 0, 4); E(bl, "c_artps"); E(pop_list, [4], pc=True)
 
+    if PRESSORD:
+        # ---- c_arins(r0 = state, r1 = note, r2 = velocity, r3 = the gate): a note there: its velocity / gate; else the lowest free place
+        a.label("c_arins")
+        E(push_list, [3, 4, 5, 6, 7], lr=True)
+        E(mov_reg, 4, 0); E(ldrb_imm, 5, 4, S_N); E(movs_imm, 3, 0)
+        a.label("ip_f"); E(cmp_reg, 3, 5); E(b_cond, "ip_n", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES); E(cmp_reg, 6, 1); E(b_cond, "ip_u", "eq")
+        E(adds_imm8, 3, 1); E(b, "ip_f")
+        a.label("ip_u"); E(strb_imm, 2, 0, S_VELS); E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT)); E(b, "ip_x")
+        a.label("ip_n"); E(cmp_imm, 5, 6); E(b_cond, "ip_x", "hs"); E(movs_imm, 3, 0)
+        a.label("ip_p"); E(cmp_reg, 3, 5); E(b_cond, "ip_s", "hs"); E(adds_reg, 0, 4, 3); E(raw, ldrb_w_(6, 0, D_POS)); E(cmp_reg, 6, 3); E(b_cond, "ip_s", "ne")
+        E(adds_imm8, 3, 1); E(b, "ip_p")
+        a.label("ip_s"); E(mov_reg, 7, 5)                                                  # r3 = the place = the index; move up the ones from there
+        a.label("ip_m"); E(cmp_reg, 7, 3); E(b_cond, "ip_w", "ls")
+        E(adds_reg, 0, 4, 7); E(subs_imm8, 0, 1); E(ldrb_imm, 6, 0, S_NOTES); E(strb_imm, 6, 0, S_NOTES + 1)
+        E(ldrb_imm, 6, 0, S_VELS); E(strb_imm, 6, 0, S_VELS + 1)
+        E(raw, ldrb_w_(6, 0, D_EXT)); E(raw, strb_w_(6, 0, D_EXT + 1)); E(raw, ldrb_w_(6, 0, D_POS)); E(raw, strb_w_(6, 0, D_POS + 1))
+        E(subs_imm8, 7, 1); E(b, "ip_m")
+        a.label("ip_w"); E(adds_reg, 0, 4, 3); E(strb_imm, 1, 0, S_NOTES); E(strb_imm, 2, 0, S_VELS)
+        E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT)); E(raw, strb_w_(3, 0, D_POS))
+        E(adds_imm8, 5, 1); E(strb_imm, 5, 4, S_N)
+        a.label("ip_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+
     # ---- c_arins(r0 = state, r1 = note, r2 = velocity): into the sorted list (a note there: its velocity); at most 6
-    a.label("c_arins")
+    a.label("c_arins" if not PRESSORD else "c_arins_old")
     E(push_list, [3, 4, 5, 6, 7] if RATE else [4, 5, 6, 7], lr=True)                  # (RATE: [sp] = the gate)
     E(mov_reg, 4, 0); E(ldrb_imm, 5, 4, S_N); E(movs_imm, 3, 0)
     a.label("in_f"); E(cmp_reg, 3, 5); E(b_cond, "in_p", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES)
@@ -281,6 +337,7 @@ def arm_code(base, L, prev):
     a.label("de_s"); E(cmp_reg, 3, 5); E(b_cond, "de_x", "hs")
     E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES + 1); E(strb_imm, 6, 0, S_NOTES); E(ldrb_imm, 6, 0, S_VELS + 1); E(strb_imm, 6, 0, S_VELS)
     if RATE: E(raw, ldrb_w_(6, 0, D_EXT + 1)); E(raw, strb_w_(6, 0, D_EXT))
+    if PRESSORD: E(raw, ldrb_w_(6, 0, D_POS + 1)); E(raw, strb_w_(6, 0, D_POS))
     E(adds_imm8, 3, 1); E(b, "de_s")
     a.label("de_x"); E(pop_list, [4, 5, 6], pc=True)
 
@@ -369,7 +426,9 @@ def arm_code(base, L, prev):
     a.label("nx_n")
     E(ldrb_imm, 0, 4, S_N); E(cmp_imm, 0, 0); E(b_cond, "nx_x", "eq")
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arord")
-    E(adds_reg, 0, 0, 4); E(ldrb_imm, 7, 0, S_NOTES); E(ldrb_imm, 5, 0, S_VELS); E(strb_imm, 7, 4, S_LAST)
+    E(adds_reg, 0, 0, 4); E(ldrb_imm, 7, 0, S_NOTES); E(ldrb_imm, 5, 0, S_VELS)
+    if MUTLIVE: E(mov_reg, 0, 6); E(mov_reg, 1, 7); E(bl, "c_armutL"); E(mov_reg, 7, 1)          # the input's note: the track's step's mutate level
+    E(strb_imm, 7, 4, S_LAST)
     E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "nx_h", "eq")
     E(mov_reg, 0, 6); E(bl, "c_arRp" if RATE else "c_artps"); E(mov_reg, 3, 0)
     E(mov_reg, 0, 6); E(mov_reg, 1, 7); E(mov_reg, 2, 5); E(bl, "c_arnote"); E(b, "nx_x")
@@ -401,6 +460,46 @@ def arm_code(base, L, prev):
         if not RATE: E(b_cond, target, cond); return
         zc[0] += 1; n_ = f"_ps{zc[0]}"; E(b_cond, n_, INVC[cond]); E(b, target); a.label(n_)
 
+    if MUTARP:
+        # ---- c_armut(r1 = a note; r6 = the sequence state) -> r1 = the note through the chord step's mutate level (mutate39's chances)
+        import mutate39 as MU
+        a.label("c_armut")
+        E(push_list, [0, 2, 3, 4, 5, 6, 7], lr=True)
+        if not MUTLIVE: E(raw, ldrb_w_(7, 6, D_MUT)); E(cmp_imm, 7, 0); E(b_cond, "mu_x", "eq"); E(mov_reg, 5, 1)
+        else:
+            E(raw, ldrb_w_(7, 6, D_MUT)); E(b, "mu_k")
+            # ---- c_armutk(r0 = a level, r1 = a note) -> r1 = the note through that level
+            a.label("c_armutk")
+            E(push_list, [0, 2, 3, 4, 5, 6, 7], lr=True); E(mov_reg, 7, 0)
+            a.label("mu_k"); E(movs_imm, 0, 7); E(raw, h(0x4007)); E(cmp_imm, 7, 0); E(b_cond, "mu_x", "eq"); E(mov_reg, 5, 1)   # ands r7, r0
+        E(bl, RANDOM); E(lsrs_imm, 6, 0, 6)                                                # r6 = 24 random bits
+        E(movw, 0, MU.CHANCE[0] | MU.CHANCE[1] << 8); E(movt, 0, MU.CHANCE[2] | MU.CHANCE[3] << 8)
+        E(cmp_imm, 7, 4); E(b_cond, "mu_c", "lo")
+        E(movw, 0, MU.CHANCE[4] | MU.CHANCE[5] << 8); E(movt, 0, MU.CHANCE[6] | MU.CHANCE[7] << 8)
+        a.label("mu_c")
+        E(movs_imm, 1, 3); E(raw, h(0x4039)); E(lsls_imm, 1, 1, 3); E(raw, h(0x40C8)); E(movs_imm, 1, 0xFF); E(raw, h(0x4008)); E(mov_reg, 7, 0)   # ands r1, r7; lsrs r0, r1; ands r0, r1
+        E(lsrs_imm, 0, 7, 4); E(movs_imm, 1, 15); E(raw, h(0x4031)); E(lsrs_imm, 6, 6, 4); E(cmp_reg, 1, 0); E(b_cond, "mu_o", "hs")      # ands r1, r6
+        E(mov_reg, 0, 5); E(mov_reg, 1, 6); E(bl, L["c_mutscale"]); E(mov_reg, 5, 0); E(lsrs_imm, 6, 6, 8)
+        a.label("mu_o")
+        E(movs_imm, 0, 15); E(raw, h(0x4038)); E(movs_imm, 1, 15); E(raw, h(0x4031)); E(lsrs_imm, 6, 6, 4); E(cmp_reg, 1, 0); E(b_cond, "mu_e", "hs")   # ands r0, r7; ands r1, r6
+        E(lsls_imm, 0, 6, 31); E(b_cond, "mu_d", "mi")
+        E(adds_imm8, 5, 12); E(cmp_imm, 5, 127); E(b_cond, "mu_e", "ls"); E(subs_imm8, 5, 24); E(b, "mu_e")
+        a.label("mu_d"); E(subs_imm8, 5, 12); E(b_cond, "mu_e", "pl"); E(adds_imm8, 5, 24)
+        a.label("mu_e"); E(mov_reg, 1, 5)
+        a.label("mu_x"); E(pop_list, [0, 2, 3, 4, 5, 6, 7], pc=True)
+        if MUTLIVE:
+            # ---- c_armutL(r0 = a player, r1 = a note) -> r1 = the note through the level of the step its track is on; clobbers r0
+            a.label("c_armutL")
+            E(push_list, [2, 3, 4, 5, 6, 7], lr=True)
+            E(mov_reg, 4, 1); E(bl, "c_artrk"); E(cmp_imm, 0, 3); E(b_cond, "ml_x", "hi"); E(mov_reg, 5, 0)
+            E(bl, "c_arpat"); E(mov_reg, 6, 0)                                                 # r6 = the pattern
+            E(lsls_imm, 0, 5, 2); imm32(1, ENG + 0x30); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 1); E(bl, PARAM_GET)
+            E(ldrb_imm, 7, 0, 0); E(cmp_imm, 7, 31); E(b_cond, "ml_x", "hi")                    # r7 = the step
+            E(mov_reg, 0, 5); E(bl, "c_arply"); E(ldr_imm, 0, 0, 0x48); imm32(1, 0xCA8); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
+            E(movs_imm, 1, 28); E(muls, 1, 7); E(adds_reg, 0, 0, 1); E(ldrb_imm, 0, 0, 2)      # the step's byte [2]
+            E(mov_reg, 1, 4); E(bl, "c_armutk"); E(pop_list, [2, 3, 4, 5, 6, 7], pc=True)
+            a.label("ml_x"); E(mov_reg, 1, 4); E(pop_list, [2, 3, 4, 5, 6, 7], pc=True)
+
     a.label("c_arplay")
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
     E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 3, 12)
@@ -431,6 +530,7 @@ def arm_code(base, L, prev):
     E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_N); E(strb_imm, 0, 6, S_C); E(strb_imm, 0, 6, S_K); E(strb_imm, 0, 6, S_FG); E(strb_imm, 0, 6, S_FP)
     E(strb_imm, 0, 6, S_SUB); E(strb_imm, 0, 6, S_LEN); E(movs_imm, 0, 1); E(strb_imm, 0, 6, S_FL); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 6, S_PEND)
     E(ldr_sp, 0, 12); E(strb_imm, 0, 6, S_M)
+    if MUTARP: E(ldrb_imm, 0, 3, 2); E(movs_imm, 1, 7); E(raw, h(0x4008)); E(raw, strb_w_(0, 6, D_MUT))      # ands r0, r1: the step's level
     E(movs_imm, 4, 0)
     a.label("py_u")
     E(ldrb_imm, 1, 3, 0); E(mov_reg, 0, 4); E(raw, h(0x40C1)); E(lsls_imm, 1, 1, 31); E(b_cond, "py_un", "pl")      # lsrs r1, r0
@@ -473,7 +573,9 @@ def arm_code(base, L, prev):
         E(subs_reg, 0, 0, 4); E(raw, strb_w_(0, 6, D_EXT + 6))
         # a note of the chord: its own gate, at most what is left of the chord
         E(mov_reg, 0, 6); E(movs_imm, 1, 7); E(raw, h(0x4029)); E(bl, "c_arord")           # ands r1, r5
-        E(adds_reg, 0, 0, 6); E(ldrb_imm, 1, 0, S_NOTES); E(ldrb_imm, 2, 0, S_VELS); E(raw, ldrb_w_(3, 0, D_EXT)); E(push_list, [1, 2, 3])
+        E(adds_reg, 0, 0, 6); E(ldrb_imm, 1, 0, S_NOTES)
+        if MUTARP: E(bl, "c_armut")
+        E(ldrb_imm, 2, 0, S_VELS); E(raw, ldrb_w_(3, 0, D_EXT)); E(push_list, [1, 2, 3])
         E(ldr_sp, 3, 8); E(cmp_imm, 3, 0); E(b_cond, "pg_1", "ne"); E(movs_imm, 3, 6)
         a.label("pg_1"); E(ldrb_imm, 0, 6, S_LEN); E(ldrb_imm, 1, 6, S_C); E(subs_reg, 0, 0, 1); E(cmp_reg, 0, 3); E(b_cond, "pg_2", "ls"); E(mov_reg, 0, 3)
         a.label("pg_2"); E(cmp_imm, 0, 0); E(b_cond, "pg_3", "ne"); E(movs_imm, 0, 1)
@@ -668,6 +770,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda sec, n: int(report[sec]["labels"][n], 16)
     L = dict(c_shift=lab("sc15", "c_shift"), c_rfnt=lab("stepmod", "c_rfnt"), c_pmtp=lab("playmode", "c_pmtp"))
+    if MUTARP: L["c_mutscale"] = lab("mutate39", "c_mutscale")
     prev = dict(pspad=u(SM.PS_VT) & ~1, psbuf=u(SM.PS_VT + 28) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE),
                 load=MP.bw_target(img, P19.LOAD_END, BASE), new=MP.bw_target(img, P19.NEW_TAIL, BASE))
     assert u(PLAYER_VT + 8) == PLAY_STOCK | 1
