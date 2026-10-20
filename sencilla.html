@@ -32,7 +32,7 @@ header.cover a { color:#ffb38a; }
 }
 @page { size:A4; margin:14mm 12mm; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Una guía en palabras sencillas, ilustrada</p><p>RC2.02 · RC2.02S</p><p>Primer borrador: <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Una guía en palabras sencillas, ilustrada</p><p>RC2.04 · RC2.04S</p><p>Primer borrador: <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></p><div class="bar"></div></header><main>
 <p class="lang"><a href="plain.html">English</a> · <a href="sencilla.pdf">PDF</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>
 <p>Primer borrador de <a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a>, a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de <strong><a href="https://www.reddit.com/user/luxurysoft1337/">reddit.com/u/luxurysoft1337</a></strong>, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para <strong>RC2.01</strong> y <strong>RC2.01S</strong>, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la <a href="guia.html">guía por vistas</a> y la <a href="index.html">lista de características</a>.</p>
 <p>Nada de esto está probado en un aparato real salvo que lo diga el <a href="https://github.com/Ghillermo/CIRCUITS-HACKS-RC/blob/main/CHANGELOG.md">CHANGELOG</a>. El mod no tiene relación con Novation.</p>
@@ -60,7 +60,7 @@ header.cover a { color:#ffb38a; }
 <p>El mod es el propio firmware del Circuit Tracks de Novation (1.2.1, build 4486) con funciones añadidas. Lo que esta guía no menciona funciona exactamente igual que en un aparato de stock, así que <strong>la guía de usuario de Novation sigue valiendo</strong>.</p>
 <ul>
 <li>Lo que no lleva marca está en todas las versiones.</li>
-<li>Lo marcado <strong><em>(desde RC2)</strong></em> es nuevo respecto a RC0.9; <em>(desde RC2.02)</em>, respecto a RC2.01; <em>solo Beta 3.12</em>, solo en la beta con las funciones nuevas (no en RC2.02). Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.</li>
+<li>Lo marcado <strong><em>(desde RC2)</strong></em> es nuevo respecto a RC0.9; <em>(desde RC2.02)</em>, respecto a RC2.01; <em>solo Beta 3.12</em>, solo en la beta con las funciones nuevas (no en RC2.04). Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.</li>
 <li>El bootloader de Novation (la parte que instala el firmware) nunca se modifica, así que siempre se puede volver atrás.</li>
 </ul>
 </section>
@@ -71,10 +71,10 @@ header.cover a { color:#ffb38a; }
 <li>3. Elige una versión:</li>
 </ol>
 <table><thead><tr><th>Versión</th><th>Qué es</th></tr></thead><tbody>
-<tr><td><strong>RC2.02</strong></td><td>La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO).</td></tr>
-<tr><td><strong>RC2.02S</strong></td><td>La versión <em>más segura</em>: RC2.02, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo).</td></tr>
+<tr><td><strong>RC2.04</strong></td><td>La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO, y los arreglos de RC2.03 / RC2.04).</td></tr>
+<tr><td><strong>RC2.04S</strong></td><td>La versión <em>más segura</em>: RC2.04, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo).</td></tr>
 <tr><td><strong>RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S</strong></td><td>Las anteriores: RC2.01 sin lo marcado <em>(desde RC2.02)</em>; RC2 con el sample tras el filtro master; RC0.9 sin lo marcado <em>(desde RC2)</em>.</td></tr>
-<tr><td><strong>Beta 3.12</strong></td><td>La versión de prueba: RC2.02 + las funciones nuevas marcadas <em>solo Beta 3.12</em>, sin probar en un aparato. Escribe en la tarjeta como RC2.02.</td></tr>
+<tr><td><strong>Beta 3.12</strong></td><td>La versión de prueba: RC2.04 + las funciones nuevas marcadas <em>solo Beta 3.12</em>, sin probar en un aparato. Escribe en la tarjeta como RC2.04.</td></tr>
 </tbody></table>
 <h4>Instalar</h4>
 <ol>
@@ -457,7 +457,7 @@ header.cover a { color:#ffb38a; }
 <tr><td><strong>Octave ▲ / ▼</strong></td><td>Los 8 knobs = los envíos de delay / de reverb, uno por pista.</td></tr>
 <tr><td><strong>Shift + knob</strong></td><td>El propio efecto, para todas las pistas: reverb K1 tipo, K2 decay, K3 amortiguación; delay K1 tiempo, K2 sincronía, K3 realimentación, K4 anchura, K5 proporción, K6 slew. Se guarda con el proyecto.</td></tr>
 <tr><td><strong>Duplicate</strong></td><td>Reset: envíos a 0, filtro master centrado, Master FX apagado.</td></tr>
-<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><em>Solo Beta 3.12:</em> resonancia del filtro master, 16 más / 16 menos; se para arriba y abajo. En RC2.02 va en <strong>1-16 / 17-32</strong> (LED verde).</td></tr>
+<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><em>Solo Beta 3.12:</em> resonancia del filtro master, 16 más / 16 menos; se para arriba y abajo. En RC2.04 va en <strong>1-16 / 17-32</strong> (LED verde).</td></tr>
 <tr><td><strong>Shift + pad 25</strong></td><td><em>Solo Beta 3.12:</em> apaga el filtro master: suena como con el filtro al centro aunque muevas su knob; otra vez, lo enciende donde esté el knob en ese momento. Apagado, la luz del knob del filtro se pone roja.</td></tr>
 <tr><td>Fila inferior</td><td>Lo mismo que en Master FX: huecos, gesto mecánico, grabar la captura.</td></tr>
 </tbody></table>
