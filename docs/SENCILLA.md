@@ -32,7 +32,7 @@ Nada de esto está probado en un aparato real salvo que lo diga el [CHANGELOG](h
 El mod es el propio firmware del Circuit Tracks de Novation (1.2.1, build 4486) con funciones añadidas. Lo que esta guía no menciona funciona exactamente igual que en un aparato de stock, así que **la guía de usuario de Novation sigue valiendo**.
 
 - Lo que no lleva marca está en todas las versiones.
-- Lo marcado ***(desde RC2)*** es nuevo respecto a RC0.9; *(desde RC2.02)*, respecto a RC2.01; *solo Beta 3.12*, solo en la beta con las funciones nuevas (no en RC2.02). Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.
+- Lo marcado ***(desde RC2)*** es nuevo respecto a RC0.9; *(desde RC2.02)*, respecto a RC2.01; *solo Beta 3.12*, solo en la beta con las funciones nuevas (no en RC2.04). Mucho de ello no se ha probado aún en un aparato real: guarda una copia de la tarjeta.
 - El bootloader de Novation (la parte que instala el firmware) nunca se modifica, así que siempre se puede volver atrás.
 
 <a id="install"></a>
@@ -44,10 +44,10 @@ El mod es el propio firmware del Circuit Tracks de Novation (1.2.1, build 4486) 
 
 | Versión | Qué es |
 |---|---|
-| **RC2.02** | La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO). |
-| **RC2.02S** | La versión *más segura*: RC2.02, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
+| **RC2.04** | La versión candidata: todo lo de esta guía (RC2.01 + la matriz de modulación, el teclado partido con cualquier par y las formas nuevas del LFO, y los arreglos de RC2.03 / RC2.04). |
+| **RC2.04S** | La versión *más segura*: RC2.04, pero nada del mod escribe ficheros en la tarjeta por su cuenta: guardar capturas en el pack, copiar samples, patches o proyectos entre packs, los patches propios y borrar packs no hacen nada (el LED de Save se pone rojo). |
 | **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | Las anteriores: RC2.01 sin lo marcado *(desde RC2.02)*; RC2 con el sample tras el filtro master; RC0.9 sin lo marcado *(desde RC2)*. |
-| **Beta 3.12** | La versión de prueba: RC2.02 + las funciones nuevas marcadas *solo Beta 3.12*, sin probar en un aparato. Escribe en la tarjeta como RC2.02. |
+| **Beta 3.12** | La versión de prueba: RC2.04 + las funciones nuevas marcadas *solo Beta 3.12*, sin probar en un aparato. Escribe en la tarjeta como RC2.04. |
 
 ### Instalar
 1. Descarga el firmware oficial 1.2.1 de Novation (el fichero de actualización de Components).
@@ -129,7 +129,7 @@ Pulsa **FX** para abrir la vista FX:
 | **Octave ▲ / ▼** | Los 8 knobs = los envíos de delay / de reverb, uno por pista. |
 | **Shift + knob** | El propio efecto, para todas las pistas: reverb K1 tipo, K2 decay, K3 amortiguación; delay K1 tiempo, K2 sincronía, K3 realimentación, K4 anchura, K5 proporción, K6 slew. Se guarda con el proyecto. |
 | **Duplicate** | Reset: envíos a 0, filtro master centrado, Master FX apagado. |
-| **Shift + Octave ▲ / ▼** | *Solo Beta 3.12:* resonancia del filtro master, 16 más / 16 menos; se para arriba y abajo. En RC2.02 va en **1-16 / 17-32** (LED verde). |
+| **Shift + Octave ▲ / ▼** | *Solo Beta 3.12:* resonancia del filtro master, 16 más / 16 menos; se para arriba y abajo. En RC2.04 va en **1-16 / 17-32** (LED verde). |
 | **Shift + pad 25** | *Solo Beta 3.12:* apaga el filtro master: suena como con el filtro al centro aunque muevas su knob; otra vez, lo enciende donde esté el knob en ese momento. Apagado, la luz del knob del filtro se pone roja. |
 | Fila inferior | Lo mismo que en Master FX: huecos, gesto mecánico, grabar la captura. |
 

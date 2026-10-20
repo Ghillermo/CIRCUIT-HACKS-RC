@@ -32,7 +32,7 @@ Nothing here has been tested on a real unit unless the [CHANGELOG](https://githu
 The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra features patched in. Whatever this guide does not mention works exactly as on a stock unit, so **Novation's user guide still applies**.
 
 - Features with no mark are in every build.
-- Features marked ***(since RC2)*** are new compared with RC0.9; *(since RC2.02)*, compared with RC2.01; *Beta 3.12 only*, only in the beta with the new features (not in RC2.02). Many of them have not been tried on a real unit yet: keep a copy of your card.
+- Features marked ***(since RC2)*** are new compared with RC0.9; *(since RC2.02)*, compared with RC2.01; *Beta 3.12 only*, only in the beta with the new features (not in RC2.04). Many of them have not been tried on a real unit yet: keep a copy of your card.
 - Novation's bootloader (the part that installs firmware) is never modified, so you can always go back.
 
 <a id="install"></a>
@@ -44,10 +44,10 @@ The mod is Novation's own Circuit Tracks firmware (1.2.1, build 4486) with extra
 
 | Build | What it is |
 |---|---|
-| **RC2.02** | The release candidate: everything in this guide (RC2.01 + the mod matrix, the split keyboard with any pair and the new LFO shapes). |
-| **RC2.02S** | The *safer* build: RC2.02, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
+| **RC2.04** | The release candidate: everything in this guide (RC2.01 + the mod matrix, the split keyboard with any pair and the new LFO shapes, and the fixes of RC2.03 / RC2.04). |
+| **RC2.04S** | The *safer* build: RC2.04, but nothing of the mod writes files to the card on its own: saving captures into the pack, copying samples, patches or projects between packs, the own-synth patches and deleting packs do nothing (the Save LED turns red). |
 | **RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S** | The earlier ones: RC2.01 without what is marked *(since RC2.02)*; RC2 with the sample after the master filter; RC0.9 without what is marked *(since RC2)*. |
-| **Beta 3.12** | The test build: RC2.02 + the new features marked *Beta 3.12 only*, not tried on a unit. It writes to the card like RC2.02. |
+| **Beta 3.12** | The test build: RC2.04 + the new features marked *Beta 3.12 only*, not tried on a unit. It writes to the card like RC2.04. |
 
 ### Installing
 1. Download Novation's official firmware 1.2.1 (the update file from Components).
@@ -129,7 +129,7 @@ Press **FX** to open the FX view:
 | **Octave ▲ / ▼** | The 8 knobs = the delay sends / the reverb sends, one per track. |
 | **Shift + knob** | The effect itself, for every track: reverb K1 type, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Saved with the project. |
 | **Duplicate** | Reset: sends to 0, master filter centred, Master FX off. |
-| **Shift + Octave ▲ / ▼** | *Beta 3.12 only:* master filter resonance, 16 up / 16 down; it stops at the top and the bottom. In RC2.02 it is on **1-16 / 17-32** (green LED). |
+| **Shift + Octave ▲ / ▼** | *Beta 3.12 only:* master filter resonance, 16 up / 16 down; it stops at the top and the bottom. In RC2.04 it is on **1-16 / 17-32** (green LED). |
 | **Shift + pad 25** | *Beta 3.12 only:* switches the master filter off: it sounds as with the filter at the centre even if you move its knob; again, it switches it on wherever the knob is at that moment. While off, the filter knob's light is red. |
 | Bottom row | The same as in Master FX: slots, mechanical gesture, recording the capture. |
 

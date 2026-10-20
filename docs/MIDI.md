@@ -1,4 +1,4 @@
-# Referencia MIDI de las funciones nuevas — CIRCUIT-HACKS (RC2.02)
+# Referencia MIDI de las funciones nuevas — CIRCUIT-HACKS (RC2.04)
 
 Los CC / NRPN que añade el mod. Los parámetros del aparato original (sintes, drums, mixer, FX) siguen con los números de la *Programmer’s Reference Guide* de Novation. Todo respeta los filtros CC Tx / CC Rx de la vista Setup.
 

@@ -1,4 +1,4 @@
-# Feature list — CIRCUIT-HACKS (RC2.02)
+# Feature list — CIRCUIT-HACKS (RC2.04)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Every feature in one line, by topic. **The user manual is the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html)); the CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Illustrated version of this list: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 
@@ -92,7 +92,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="a3-vista-fx"></a>
 ### A3. Keys of the FX view
 - **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.
-- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only).
+- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.04, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = default value

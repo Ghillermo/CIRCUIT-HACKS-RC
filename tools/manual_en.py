@@ -53,7 +53,7 @@ sec("atajos", "Shortcut map",
 | 3 | **Shift + Preset** with a drum | Chromatic / scale view (A7) |
 | 4 | **Clear + knob** | Default value of the knob, also in Master FX; on the drums, turned left it deletes the automation (A4) |
 | 5 | **Octave ▲ / ▼** in the FX view | Delay / reverb sends; **Shift + knob** = their parameters (A3, B2) |
-| 6 | **Duplicate** / **Shift + Octave ▲ / ▼** (Beta 3.12 only; in RC2.02 **1-16 / 17-32**) in the FX view | Reset of sends and Master FX / master filter resonance (A3) |
+| 6 | **Duplicate** / **Shift + Octave ▲ / ▼** (Beta 3.12 only; in RC2.04 **1-16 / 17-32**) in the FX view | Reset of sends and Master FX / master filter resonance (A3) |
 | 7 | **Shift + FX**, then **Octave ▼**, with the drums | Sidechain between drums (D7) |
 | 8 | **MIDI 1 / 2**, **Preset** | Pad 27 engine, 25 CC editor, 26 patch flip, 30 step-drummer (C1) |
 | 9 | Master FX: **pad 8** | Switch off everything latched (A5) |
@@ -103,7 +103,7 @@ Master FX is a performance view with effects on the master output, a song pointe
 
 sec("vista-fx", "Keys of the FX view",
     ["**Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.",
-     "**Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.02, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only)."],
+     "**Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.04, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only)."],
     """
 | Control | Function |
 |---|---|
@@ -113,7 +113,7 @@ sec("vista-fx", "Keys of the FX view",
 | **Duplicate** | Reset: sends to 0, master filter centred (resonance untouched), Master FX off |
 | **Shift + Octave ▲ / ▼** | **Beta 3.12 only.** Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow) |
 | **Shift + pad 25** | **Beta 3.12 only.** Master filter off (it sounds centred even if the knob moves) / on (at the knob's current position). While off: the filter knob's LED red; with Shift, pad 25 yellow / red |
-| **1-16 / 17-32** | In RC2.02: raises the master filter resonance (green LED); in Beta 3.12 it does what it always did |
+| **1-16 / 17-32** | In RC2.04: raises the master filter resonance (green LED); in Beta 3.12 it does what it always did |
 
 - The bottom row (pads 25-32) is the same as in Master FX: assignable slots, the mechanical gesture (31) and record (32).
 - If Setup routes the reverb / delay return to strip 3 / 4, the sends of those strips stop at half range and move at half speed.
@@ -873,8 +873,8 @@ sec("granular", "Granular synth",
 |---|---|---|
 | K1 | Pitch, ±24 semitones | Fine, ±1 semitone |
 | K2 | Position in the sample | Position spray |
-| K3 | Scan: centre = frozen, right moves forward, left backwards | Beta 3.12 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.02: probability of a reversed grain |
-| K4 | Grain size, 5-500 ms | Beta 3.12 only: stereo spread (each grain to one side; the track's pan sets the proportion). In RC2.02: pitch spray (±12 st) |
+| K3 | Scan: centre = frozen, right moves forward, left backwards | Beta 3.12 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.04: probability of a reversed grain |
+| K4 | Grain size, 5-500 ms | Beta 3.12 only: stereo spread (each grain to one side; the track's pan sets the proportion). In RC2.04: pitch spray (±12 st) |
 | K5 | Density, 1-16 overlapping grains | Window: rectangular → triangular → percussive |
 | K6 | Length of the scan zone | Note mode: pitch / slicer / stretch (stretch since RC2) |
 | K7 | LFO → position | LFO → size |
@@ -937,17 +937,18 @@ sec("pack-interno", "The internal memory pack: read only",
 sec("instalar", "Installing and going back",
     ["`tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on."],
     """
-0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.02, RC2.02S (or the earlier RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.
+0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.04, RC2.04S (or the earlier RC2.02 / RC2.02S, RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.
 1. Open `tools/ct_uploader.html` in Chrome and connect the Circuit Tracks over USB.
 2. Pick the `.syx` from `firmware/<version>/`: the uploader checks its SHA-256.
 3. Send. Novation’s bootloader is not modified.
 - **Going back:** send another version or the official firmware. If the device does not start: hold **Scales + Preset + Note** at power-on (bootloader recovery mode).
 - The RC branch does not publish `.syx` files: they are generated with `tools/patch_official.py` from the official firmware.
+- **RC2.04** (files and marker `R204`) = RC2.02 + three fixes: the count-in follows the project's tempo (RC2.03, not published on its own); recorded notes of 16 steps or more are no longer cut to 16 steps (they stay tied until released, the arpeggiator's too); in the sample mode's sample picker, holding a sample and tapping steps = those steps' flip.
 - **RC2.02** (files and marker `R202`) = RC2.01 + everything marked **since RC2.02**: the mod matrix of the own synth, the split keyboard with any pair of note tracks and the LFO with a triangle by default and slewed sample & hold (what Beta 3.0 had).
 - **RC2.01** (files and marker `R201`) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).
 - **RC2** (release candidate 2, marker `RC2`) = SC44 = RC0.9 + everything this manual marks **since RC2**: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.
 - **RC0.9** (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
-- **Safer build:** RC2.02S (files `R202S`; before, RC2.01S, RC2S) = RC2.02, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
+- **Safer build:** RC2.04S (files `R204S`; before, RC2.02S, RC2.01S, RC2S) = RC2.04, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
 - New features and fixes of every version: `CHANGELOG.md`.
 """)
 

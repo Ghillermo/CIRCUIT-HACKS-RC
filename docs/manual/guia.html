@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2.02)</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Guía por vistas — CIRCUIT-HACKS (RC2.04)</title>
 <style>
 :root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2.02</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Guía de uso por vistas</p><p>RC2.04</p><div class="bar"></div></header><main>
 <p class="lang"><a href="guide.html">English version</a> · <a href="index.html">Lista de características</a> · <a href="midi.html">Referencia MIDI</a></p>
 <p>Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía recorre las vistas del aparato y explica todo lo que se puede hacer en cada una. La </p>
 <nav class="toc"><h2>Vistas</h2>
@@ -88,9 +88,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Pads 1-32</strong> de arriba-izquierda a abajo-derecha: fila 1 = 1-8, fila 2 = 9-16, fila 3 = 17-24, fila 4 = 25-32.</li>
 <li><strong>Knobs K1-K4</strong> arriba, <strong>K5-K8</strong> abajo. «<strong>Shift + X</strong>» = mantener Shift mientras se usa X; lo mismo con Clear y Duplicate.</li>
 <li>Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).</li>
-<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.02S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
+<li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.04S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
 <li><em>(desde RC2.02)</em> = nuevo en RC2.02 (no está en RC2.01).</li>
-<li><em>(solo Beta 3.12)</em> = solo en la <strong>Beta 3.12</strong>, la versión de prueba con las funciones nuevas (no está en RC2.02).</li>
+<li><em>(solo Beta 3.12)</em> = solo en la <strong>Beta 3.12</strong>, la versión de prueba con las funciones nuevas (no está en RC2.04).</li>
 <li>La <strong>lista de características</strong> (el manual anterior) resume cada función en una línea, por temas.</li>
 </ul>
 </section>
@@ -1611,7 +1611,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ul>
 <h4>Los motores (pad 27)</h4>
 <ul>
-<li><strong>Elegir el motor</strong> <em>(solo Beta 3.12)</em>: un toque al <strong>pad 27</strong> abre la <strong>fila de motores</strong> en los <strong>pads 17-23</strong>: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. Tocar uno lo elige y la fila sigue abierta; <strong>pad 27 otra vez</strong> la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (en RC2.02, cada toque del pad 27).</li>
+<li><strong>Elegir el motor</strong> <em>(solo Beta 3.12)</em>: un toque al <strong>pad 27</strong> abre la <strong>fila de motores</strong> en los <strong>pads 17-23</strong>: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. Tocar uno lo elige y la fila sigue abierta; <strong>pad 27 otra vez</strong> la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (en RC2.04, cada toque del pad 27).</li>
 <li><strong>Entrada de línea</strong> (amarillo): la entrada de audio de la pista (línea 1 en MIDI 1, línea 2 en MIDI 2) pasa por el VCA-VCF; las notas de la pista lo disparan.</li>
 <li><strong>Oscilador</strong> (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, <em>(desde RC2)</em>: la última nota manda y al soltarla vuelve la anterior).</li>
 <li><strong>VA-drum</strong> (rojo): VCA de un disparo, envolventes de decay para pitch (knob Sustain) y filtro (knob Release), ruido blanco (velocidad del LFO) y valores aleatorios en lugar del LFO.</li>
@@ -1802,17 +1802,17 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <p><strong>Qué hace SHAPE en cada forma de onda</strong> (K2; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra <em>(solo Beta 3.12)</em>, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:</p>
 <table><thead><tr><th>Forma (WAVE)</th><th>SHAPE a la izquierda del centro</th><th>Centro</th><th>SHAPE a la derecha del centro</th></tr></thead><tbody>
 <tr><td>Seno (0)</td><td>Nada: la forma pura</td><td>Pura</td><td><strong>Wavefold</strong>: la onda se amplifica (hasta unas 8 veces a la derecha del todo) y se pliega sobre sí misma: más armónicos cuanto más a la derecha</td></tr>
-<tr><td>Triángulo (42)</td><td><em>(solo Beta 3.12)</em> <strong>Rampas exponenciales</strong>: picos afilados y valles anchos, más armónicos cuanto más a la izquierda (en RC2.02, nada)</td><td>Puro</td><td><strong>Wavefold</strong>, como el seno</td></tr>
+<tr><td>Triángulo (42)</td><td><em>(solo Beta 3.12)</em> <strong>Rampas exponenciales</strong>: picos afilados y valles anchos, más armónicos cuanto más a la izquierda (en RC2.04, nada)</td><td>Puro</td><td><strong>Wavefold</strong>, como el seno</td></tr>
 <tr><td>Sierra (84)</td><td><em>(solo Beta 3.12)</em> Todo el recorrido: a la izquierda del todo una sierra normal; hacia la derecha, <strong>supersaw</strong> de 7 sierras (la central y 6 desafinadas que suben de nivel y se separan; a la derecha del todo, la supersaw entera)</td><td>Media supersaw</td><td>Supersaw entera a la derecha del todo</td></tr>
-<tr><td>Sierra en RC2.02</td><td>La rampa se curva hacia arriba (sube rápido al principio y se aplana)</td><td>Rampa recta</td><td>La rampa se curva hacia abajo (empieza plana y sube al final)</td></tr>
+<tr><td>Sierra en RC2.04</td><td>La rampa se curva hacia arriba (sube rápido al principio y se aplana)</td><td>Rampa recta</td><td>La rampa se curva hacia abajo (empieza plana y sube al final)</td></tr>
 <tr><td>Cuadrada (126)</td><td>Pulso cada vez más estrecho (hasta un 3 % aprox.)</td><td>Cuadrada (50 %)</td><td>Pulso cada vez más estrecho por el otro lado (hasta un 97 % aprox.; suena igual que el de la izquierda)</td></tr>
 </tbody></table>
 <h4>Página 2 — granular</h4>
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Tono ±24 st</td><td>Fino ±1 st</td></tr>
 <tr><td>K2</td><td>Posición en el sample</td><td>Dispersión de la posición</td></tr>
-<tr><td>K3</td><td>Scan (centro congelado)</td><td><em>(solo Beta 3.12)</em> <strong>Bipolar</strong>: a la izquierda, probabilidad de grano al revés (hasta 100 %); a la derecha, dispersión del tono (hasta ±24 st). En RC2.02: probabilidad de grano al revés</td></tr>
-<tr><td>K4</td><td>Tamaño del grano 5-500 ms</td><td><em>(solo Beta 3.12)</em> <strong>Dispersión estéreo</strong> (ver abajo). En RC2.02: dispersión del tono</td></tr>
+<tr><td>K3</td><td>Scan (centro congelado)</td><td><em>(solo Beta 3.12)</em> <strong>Bipolar</strong>: a la izquierda, probabilidad de grano al revés (hasta 100 %); a la derecha, dispersión del tono (hasta ±24 st). En RC2.04: probabilidad de grano al revés</td></tr>
+<tr><td>K4</td><td>Tamaño del grano 5-500 ms</td><td><em>(solo Beta 3.12)</em> <strong>Dispersión estéreo</strong> (ver abajo). En RC2.04: dispersión del tono</td></tr>
 <tr><td>K5</td><td>Densidad 1-16 granos</td><td>Ventana</td></tr>
 <tr><td>K6</td><td>Zona del scan</td><td>Modo de nota: tono / slicer / stretch <em>(desde RC2)</em></td></tr>
 <tr><td>K7</td><td>LFO → posición</td><td>LFO → tamaño</td></tr>
@@ -3513,7 +3513,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <div class="summary"><p><strong>Cómo se llega:</strong> Botón <strong>FX</strong>: envíos a reverb y delay por pista, como siempre, más:</p><p class="about-h"><strong>En esta vista</strong></p><ul>
 <li><strong>La reverb y el delay desde el aparato</strong> — tipo, decay, tiempo, feedback…, guardados con el proyecto.</li>
 <li><strong>Reset rápido</strong> — Duplicate deja los envíos y los efectos a cero.</li>
-<li><strong>Resonancia del filtro master</strong> — en Shift + Octave ▲ / ▼, de 16 en 16 <em>(solo Beta 3.12; en RC2.02, 1-16 / 17-32)</em>.</li>
+<li><strong>Resonancia del filtro master</strong> — en Shift + Octave ▲ / ▼, de 16 en 16 <em>(solo Beta 3.12; en RC2.04, 1-16 / 17-32)</em>.</li>
 <li><strong>Filtro master apagado / encendido</strong> — Shift + pad 25, sin perder su posición <em>(solo Beta 3.12)</em>.</li>
 </ul></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista FX: Octave elige delay / reverb; la fila inferior es la de Master FX.">
@@ -3669,7 +3669,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Octave ▲ / ▼</strong></td><td>Los knobs = envíos de delay / de reverb.</td></tr>
 <tr><td><strong>Shift + knob</strong></td><td>Parámetros globales: reverb K1 tipo, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Se guardan con el proyecto.</td></tr>
 <tr><td><strong>Duplicate</strong></td><td>Reset: envíos a 0, filtro master al centro, Master FX apagado.</td></tr>
-<tr><td><strong>Shift + Octave ▲ / ▼</strong> <em>(solo Beta 3.12)</em></td><td>Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). En RC2.02: <strong>1-16 / 17-32</strong> (LED verde).</td></tr>
+<tr><td><strong>Shift + Octave ▲ / ▼</strong> <em>(solo Beta 3.12)</em></td><td>Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). En RC2.04: <strong>1-16 / 17-32</strong> (LED verde).</td></tr>
 <tr><td><strong>Shift + pad 25</strong> <em>(solo Beta 3.12)</em></td><td>Filtro master apagado / encendido: apagado, suena como con el filtro al centro aunque muevas su knob (el knob sigue cambiando su posición); otra vez, el filtro vuelve en la posición actual del knob. Apagado, el LED del knob del filtro se ve rojo; con Shift, el pad 25 en amarillo (rojo si está apagado). Sin Shift, el pad 25 es el de stock.</td></tr>
 <tr><td>Fila inferior</td><td>La misma que en Master FX: huecos (26-30), gesto mecánico (31), grabar (32).</td></tr>
 </tbody></table>
@@ -4072,11 +4072,11 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <div class="summary"><p><strong>Cómo se llega:</strong> <code>tools/rc_uploader.html</code> parchea el firmware oficial en el navegador y lo envía por Web MIDI.</p></div>
 <ol>
 <li>1. Descarga el firmware oficial 1.2.1 de Novation, abre <code>tools/rc_uploader.html</code> en Chrome y conecta el Circuit Tracks por USB.</li>
-<li>2. Elige la versión (RC2.02, la más segura RC2.02S, la Beta 3.12 con las funciones nuevas sin probar, o una anterior) y envía. El bootloader de Novation no se toca.</li>
+<li>2. Elige la versión (RC2.04, la más segura RC2.04S, la Beta 3.12 con las funciones nuevas sin probar, o una anterior) y envía. El bootloader de Novation no se toca.</li>
 <li>3. <strong>Haz antes una copia de la tarjeta.</strong> Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.</li>
 </ol>
 <ul>
 <li><strong>Volver atrás:</strong> envía otra versión o el firmware oficial. Si no arranca: <strong>Scales + Preset + Note</strong> al encender.</li>
 </ul>
 </section>
-<footer>CIRCUIT-HACKS RC2.02 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.04 · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.</footer></main></body></html>

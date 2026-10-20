@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2.02</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Feature list of the Circuit Tracks mod</p><p>Official firmware 1.2.1 (build 4486) + RC2.04</p><div class="bar"></div></header><main>
 <p class="lang"><a href="index.html">Versión en español</a> · <a href="guide.html"><strong>Guide by views (user manual)</strong></a> · <a href="midi-en.html">MIDI reference</a></p>
 <p><strong>Conventions.</strong> Pads 1-32 from top left to bottom right (row 1 = 1-8 … row 4 = 25-32). Knobs K1-K4 on top and K5-K8 at the bottom. “Shift + X” = hold Shift while using X. The colours of the diagrams are approximate; a dim pad is drawn translucent. Anything not described here works as on the original device (see Novation’s official user guide).</p>
 <nav class="toc"><h2>Feature index</h2>
@@ -286,7 +286,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>3</td><td><strong>Shift + Preset</strong> with a drum</td><td>Chromatic / scale view (A7)</td></tr>
 <tr><td>4</td><td><strong>Clear + knob</strong></td><td>Default value of the knob, also in Master FX; on the drums, turned left it deletes the automation (A4)</td></tr>
 <tr><td>5</td><td><strong>Octave ▲ / ▼</strong> in the FX view</td><td>Delay / reverb sends; <strong>Shift + knob</strong> = their parameters (A3, B2)</td></tr>
-<tr><td>6</td><td><strong>Duplicate</strong> / <strong>Shift + Octave ▲ / ▼</strong> (Beta 3.12 only; in RC2.02 <strong>1-16 / 17-32</strong>) in the FX view</td><td>Reset of sends and Master FX / master filter resonance (A3)</td></tr>
+<tr><td>6</td><td><strong>Duplicate</strong> / <strong>Shift + Octave ▲ / ▼</strong> (Beta 3.12 only; in RC2.04 <strong>1-16 / 17-32</strong>) in the FX view</td><td>Reset of sends and Master FX / master filter resonance (A3)</td></tr>
 <tr><td>7</td><td><strong>Shift + FX</strong>, then <strong>Octave ▼</strong>, with the drums</td><td>Sidechain between drums (D7)</td></tr>
 <tr><td>8</td><td><strong>MIDI 1 / 2</strong>, <strong>Preset</strong></td><td>Pad 27 engine, 25 CC editor, 26 patch flip, 30 step-drummer (C1)</td></tr>
 <tr><td>9</td><td>Master FX: <strong>pad 8</strong></td><td>Switch off everything latched (A5)</td></tr>
@@ -525,7 +525,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ol>
 </section>
 <section class="feat" id="a3-vista-fx"><h3><span class="code">A3</span>Keys of the FX view</h3>
-<div class="summary"><p><strong>Octave ▲ / ▼</strong> = delay / reverb sends; <strong>Shift + knob</strong> = reverb and delay parameters.</p><p><strong>Duplicate</strong> = reset (sends to 0, master filter centred, Master FX off); <strong>Shift + Octave ▲ / ▼</strong> = master filter resonance ±16 (Beta 3.12 only; in RC2.02, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = master filter off / on (Beta 3.12 only).</p></div>
+<div class="summary"><p><strong>Octave ▲ / ▼</strong> = delay / reverb sends; <strong>Shift + knob</strong> = reverb and delay parameters.</p><p><strong>Duplicate</strong> = reset (sends to 0, master filter centred, Master FX off); <strong>Shift + Octave ▲ / ▼</strong> = master filter resonance ±16 (Beta 3.12 only; in RC2.04, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = master filter off / on (Beta 3.12 only).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FX view: Octave picks delay / reverb; the bottom row is the Master FX one.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -682,7 +682,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Duplicate</strong></td><td>Reset: sends to 0, master filter centred (resonance untouched), Master FX off</td></tr>
 <tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Beta 3.12 only.</strong> Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow)</td></tr>
 <tr><td><strong>Shift + pad 25</strong></td><td><strong>Beta 3.12 only.</strong> Master filter off (it sounds centred even if the knob moves) / on (at the knob&#x27;s current position). While off: the filter knob&#x27;s LED red; with Shift, pad 25 yellow / red</td></tr>
-<tr><td><strong>1-16 / 17-32</strong></td><td>In RC2.02: raises the master filter resonance (green LED); in Beta 3.12 it does what it always did</td></tr>
+<tr><td><strong>1-16 / 17-32</strong></td><td>In RC2.04: raises the master filter resonance (green LED); in Beta 3.12 it does what it always did</td></tr>
 </tbody></table>
 <ul>
 <li>The bottom row (pads 25-32) is the same as in Master FX: assignable slots, the mechanical gesture (31) and record (32).</li>
@@ -4480,8 +4480,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Pitch, ±24 semitones</td><td>Fine, ±1 semitone</td></tr>
 <tr><td>K2</td><td>Position in the sample</td><td>Position spray</td></tr>
-<tr><td>K3</td><td>Scan: centre = frozen, right moves forward, left backwards</td><td>Beta 3.12 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.02: probability of a reversed grain</td></tr>
-<tr><td>K4</td><td>Grain size, 5-500 ms</td><td>Beta 3.12 only: stereo spread (each grain to one side; the track&#x27;s pan sets the proportion). In RC2.02: pitch spray (±12 st)</td></tr>
+<tr><td>K3</td><td>Scan: centre = frozen, right moves forward, left backwards</td><td>Beta 3.12 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.04: probability of a reversed grain</td></tr>
+<tr><td>K4</td><td>Grain size, 5-500 ms</td><td>Beta 3.12 only: stereo spread (each grain to one side; the track&#x27;s pan sets the proportion). In RC2.04: pitch spray (±12 st)</td></tr>
 <tr><td>K5</td><td>Density, 1-16 overlapping grains</td><td>Window: rectangular → triangular → percussive</td></tr>
 <tr><td>K6</td><td>Length of the scan zone</td><td>Note mode: pitch / slicer / stretch (stretch since RC2)</td></tr>
 <tr><td>K7</td><td>LFO → position</td><td>LFO → size</td></tr>
@@ -4543,7 +4543,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="e3-instalar"><h3><span class="code">E3</span>Installing and going back</h3>
 <div class="summary"><p><code>tools/ct_uploader.html</code> sends the <code>.syx</code> over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.</p></div>
 <ol>
-<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.02, RC2.02S (or the earlier RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.</li>
+<li>0. <strong>Without building:</strong> <code>tools/rc_uploader.html</code> patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.04, RC2.04S (or the earlier RC2.02 / RC2.02S, RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.</li>
 <li>1. Open <code>tools/ct_uploader.html</code> in Chrome and connect the Circuit Tracks over USB.</li>
 <li>2. Pick the <code>.syx</code> from <code>firmware/&lt;version&gt;/</code>: the uploader checks its SHA-256.</li>
 <li>3. Send. Novation’s bootloader is not modified.</li>
@@ -4551,11 +4551,12 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <ul>
 <li><strong>Going back:</strong> send another version or the official firmware. If the device does not start: hold <strong>Scales + Preset + Note</strong> at power-on (bootloader recovery mode).</li>
 <li>The RC branch does not publish <code>.syx</code> files: they are generated with <code>tools/patch_official.py</code> from the official firmware.</li>
+<li><strong>RC2.04</strong> (files and marker <code>R204</code>) = RC2.02 + three fixes: the count-in follows the project&#x27;s tempo (RC2.03, not published on its own); recorded notes of 16 steps or more are no longer cut to 16 steps (they stay tied until released, the arpeggiator&#x27;s too); in the sample mode&#x27;s sample picker, holding a sample and tapping steps = those steps&#x27; flip.</li>
 <li><strong>RC2.02</strong> (files and marker <code>R202</code>) = RC2.01 + everything marked <strong>since RC2.02</strong>: the mod matrix of the own synth, the split keyboard with any pair of note tracks and the LFO with a triangle by default and slewed sample &amp; hold (what Beta 3.0 had).</li>
 <li><strong>RC2.01</strong> (files and marker <code>R201</code>) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).</li>
 <li><strong>RC2</strong> (release candidate 2, marker <code>RC2</code>) = SC44 = RC0.9 + everything this manual marks <strong>since RC2</strong>: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.</li>
 <li><strong>RC0.9</strong> (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.</li>
-<li><strong>Safer build:</strong> RC2.02S (files <code>R202S</code>; before, RC2.01S, RC2S) = RC2.02, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
+<li><strong>Safer build:</strong> RC2.04S (files <code>R204S</code>; before, RC2.02S, RC2.01S, RC2S) = RC2.04, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original&#x27;s saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. <strong>Back up the SD card before installing</strong> any version.</li>
 <li>New features and fixes of every version: <code>CHANGELOG.md</code>.</li>
 </ul>
 </section>
@@ -4589,4 +4590,4 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <h4>Master FX — channel 16, NRPN MSB 9</h4>
 <p>LSB = 4 × set + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Glitch 16-19 (in RC0.9, Vinyl).</p>
 </section>
-<footer>CIRCUIT-HACKS RC2.02 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
+<footer>CIRCUIT-HACKS RC2.04 · This mod is not affiliated with Novation. Circuit Tracks is a trademark of Focusrite Audio Engineering Ltd.</footer></main></body></html>
