@@ -39,13 +39,14 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><a href="#a10-editor-cc">A10 Editor de CC de los macros MIDI</a></li>
 <li><a href="#a11-mixer-shift">A11 Mixer: Shift + knob = nivel a 100 / 0</a></li>
 <li><a href="#a12-mixer-cue">A12 Modo cue, mutes al compás y cuantizar (desde RC2)</a></li>
-<li><a href="#a13-teclado-partido">A13 Teclado partido Synth 1 + Synth 2</a></li>
-<li><a href="#a14-colores-patch">A14 Patches de sinte por modo de voz</a></li>
-<li><a href="#a15-patches-midi">A15 Patches del sinte propio (MIDI 1 / 2)</a></li>
-<li><a href="#a16-guardar-patch">A16 Guardar el patch del sinte en el pack</a></li>
-<li><a href="#a17-destinos-macro">A17 Destinos de los macro knobs</a></li>
-<li><a href="#a18-copiar-proyectos">A18 Copiar proyectos a otro hueco o a otro pack</a></li>
-<li><a href="#a19-patches-entre-packs">A19 Patches del sinte propio a otro pack</a></li>
+<li><a href="#a13-lfo-sync">A13 LFO a tempo (solo Beta 3.12)</a></li>
+<li><a href="#a14-teclado-partido">A14 Teclado partido Synth 1 + Synth 2</a></li>
+<li><a href="#a15-colores-patch">A15 Patches de sinte por modo de voz</a></li>
+<li><a href="#a16-patches-midi">A16 Patches del sinte propio (MIDI 1 / 2)</a></li>
+<li><a href="#a17-guardar-patch">A17 Guardar el patch del sinte en el pack</a></li>
+<li><a href="#a18-destinos-macro">A18 Destinos de los macro knobs</a></li>
+<li><a href="#a19-copiar-proyectos">A19 Copiar proyectos a otro hueco o a otro pack</a></li>
+<li><a href="#a20-patches-entre-packs">A20 Patches del sinte propio a otro pack</a></li>
 </ol>
 <h3>B. Controles expuestos</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Knobs de los drums según el panel</a></li>
@@ -285,7 +286,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>3</td><td><strong>Shift + Preset</strong> con un drum</td><td>Vista cromática / de escala (A7)</td></tr>
 <tr><td>4</td><td><strong>Clear + knob</strong></td><td>Valor por defecto del knob, también en Master FX; en drums, a la izquierda borra la automatización (A4)</td></tr>
 <tr><td>5</td><td><strong>Octave ▲ / ▼</strong> en la vista FX</td><td>Envíos de delay / reverb; <strong>Shift + knob</strong> = sus parámetros (A3, B2)</td></tr>
-<tr><td>6</td><td><strong>Duplicate</strong> / <strong>Shift + Octave ▲ / ▼</strong> (solo Beta 3.3; en RC2.02 <strong>1-16 / 17-32</strong>) en la vista FX</td><td>Reset de envíos y Master FX / resonancia del filtro master (A3)</td></tr>
+<tr><td>6</td><td><strong>Duplicate</strong> / <strong>Shift + Octave ▲ / ▼</strong> (solo Beta 3.12; en RC2.02 <strong>1-16 / 17-32</strong>) en la vista FX</td><td>Reset de envíos y Master FX / resonancia del filtro master (A3)</td></tr>
 <tr><td>7</td><td><strong>Shift + FX</strong>, luego <strong>Octave ▼</strong>, con los drums</td><td>Sidechain entre drums (D7)</td></tr>
 <tr><td>8</td><td><strong>MIDI 1 / 2</strong>, <strong>Preset</strong></td><td>Pad 27 motor, 25 editor de CC, 26 patch flip, 30 step-drummer (C1)</td></tr>
 <tr><td>9</td><td>Master FX: <strong>pad 8</strong></td><td>Apagar todo lo fijado (A5)</td></tr>
@@ -524,7 +525,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </ol>
 </section>
 <section class="feat" id="a3-vista-fx"><h3><span class="code">A3</span>Teclas de la vista FX</h3>
-<div class="summary"><p><strong>Octave ▲ / ▼</strong> = envíos de delay / reverb; <strong>Shift + knob</strong> = parámetros de reverb y delay.</p><p><strong>Duplicate</strong> = reset (envíos a 0, filtro master al centro, Master FX apagado); <strong>Shift + Octave ▲ / ▼</strong> = resonancia del filtro master ±16 (solo Beta 3.3; en RC2.02, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = filtro master apagado / encendido (solo Beta 3.3).</p></div>
+<div class="summary"><p><strong>Octave ▲ / ▼</strong> = envíos de delay / reverb; <strong>Shift + knob</strong> = parámetros de reverb y delay.</p><p><strong>Duplicate</strong> = reset (envíos a 0, filtro master al centro, Master FX apagado); <strong>Shift + Octave ▲ / ▼</strong> = resonancia del filtro master ±16 (solo Beta 3.12; en RC2.02, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = filtro master apagado / encendido (solo Beta 3.12).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista FX: Octave elige delay / reverb; la fila inferior es la de Master FX.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -679,9 +680,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td><strong>Octave ▼</strong></td><td>Los knobs controlan los <strong>envíos de reverb</strong> (color del pad 17)</td></tr>
 <tr><td><strong>Shift + knob</strong></td><td><strong>Parámetros del efecto</strong>. Reverb: tipo, decay, damping. Delay: time, sync, feedback, width, ratio, slew. Se guardan con el proyecto</td></tr>
 <tr><td><strong>Duplicate</strong></td><td>Reset: envíos a 0, filtro master al centro (sin tocar la resonancia), Master FX apagado</td></tr>
-<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Solo Beta 3.3.</strong> Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo)</td></tr>
-<tr><td><strong>Shift + pad 25</strong></td><td><strong>Solo Beta 3.3.</strong> Filtro master apagado (suena al centro aunque se mueva el knob) / encendido (en la posición actual del knob). Apagado: LED del knob del filtro en rojo; con Shift, pad 25 amarillo / rojo</td></tr>
-<tr><td><strong>1-16 / 17-32</strong></td><td>En RC2.02: sube la resonancia del filtro master (LED verde); en la Beta 3.3 hace lo de siempre</td></tr>
+<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Solo Beta 3.12.</strong> Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo)</td></tr>
+<tr><td><strong>Shift + pad 25</strong></td><td><strong>Solo Beta 3.12.</strong> Filtro master apagado (suena al centro aunque se mueva el knob) / encendido (en la posición actual del knob). Apagado: LED del knob del filtro en rojo; con Shift, pad 25 amarillo / rojo</td></tr>
+<tr><td><strong>1-16 / 17-32</strong></td><td>En RC2.02: sube la resonancia del filtro master (LED verde); en la Beta 3.12 hace lo de siempre</td></tr>
 </tbody></table>
 <ul>
 <li>La fila inferior (pads 25-32) es la misma que la de Master FX: huecos asignables, el gesto mecánico (31) y grabar (32).</li>
@@ -1394,7 +1395,17 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Detalle en la guía por vistas (Mixer y botones de todas las vistas).</li>
 </ul>
 </section>
-<section class="feat" id="a13-teclado-partido"><h3><span class="code">A13</span>Teclado partido Synth 1 + Synth 2</h3>
+<section class="feat" id="a13-lfo-sync"><h3><span class="code">A13</span>LFO a tempo (solo Beta 3.12)</h3>
+<div class="summary"><p><strong>Solo Beta 3.12.</strong> Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.</p></div>
+<ul>
+<li><strong>Dónde:</strong> K7 de la página VCA-VCF del motor de MIDI 1 / 2, Shift + K4 de la matriz de modulación (en cada forma, la mitad izquierda de su tramo), Shift + K7 de los drums, K1 del Auto-Filter y del Phaser (Master FX).</li>
+<li><strong>Al centro</strong> el LED tenue; más brillante hacia los dos lados.</li>
+<li><strong>A la izquierda</strong>, del centro hacia fuera: 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4, 1/2T, 1/2, 1 compás T, 1 compás, 2T, 2, 4T, 4, 8T y 8 compases (4 clics cada una). El ciclo se recoloca en cada tick del secuenciador para empezar en el primer tiempo del compás; parado, sigue al tempo.</li>
+<li><strong>A la derecha</strong>, el LFO libre de siempre (más rápido cuanto más a la derecha).</li>
+<li>Lo guardado antes con otra velocidad puede sonar distinto.</li>
+</ul>
+</section>
+<section class="feat" id="a14-teclado-partido"><h3><span class="code">A14</span>Teclado partido Synth 1 + Synth 2</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> Mantén <strong>Synth 1</strong> y pulsa <strong>Synth 2</strong> (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1543,7 +1554,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Desde RC2.02: cualquier par de pistas de notas</strong> (Synth 1, Synth 2, MIDI 1, MIDI 2): mantén un botón y pulsa otro; las filas de arriba tocan la que mantuviste primero (en RC2, arriba siempre Synth 1). Los botones de drum no lo abren.</li>
 </ul>
 </section>
-<section class="feat" id="a14-colores-patch"><h3><span class="code">A14</span>Patches de sinte por modo de voz</h3>
+<section class="feat" id="a15-colores-patch"><h3><span class="code">A15</span>Patches de sinte por modo de voz</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: <strong>mono azul oscuro</strong>, <strong>glide lavanda</strong>, <strong>poly como siempre</strong>.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1694,7 +1705,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En Advanced Setup los pads 22 / 23 ya no se encienden (allí nunca hacían nada).</li>
 </ul>
 </section>
-<section class="feat" id="a15-patches-midi"><h3><span class="code">A15</span>Patches del sinte propio (MIDI 1 / 2)</h3>
+<section class="feat" id="a16-patches-midi"><h3><span class="code">A16</span>Patches del sinte propio (MIDI 1 / 2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), <strong>Clear + pad</strong> dos veces = guardar, <strong>Duplicate + A + B</strong> = intercambiar; <strong>Octave ▼ / ▲</strong> = 4 páginas (64 huecos por pack).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -1853,7 +1864,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a16-guardar-patch"><h3><span class="code">A16</span>Guardar el patch del sinte en el pack</h3>
+<section class="feat" id="a17-guardar-patch"><h3><span class="code">A17</span>Guardar el patch del sinte en el pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de Synth 1 / 2: <strong>Clear + pad</strong> pregunta (parpadea en blanco) y <strong>Clear + el mismo pad otra vez</strong> guarda en ese hueco el patch tal como suena.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2005,7 +2016,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a17-destinos-macro"><h3><span class="code">A17</span>Destinos de los macro knobs</h3>
+<section class="feat" id="a18-destinos-macro"><h3><span class="code">A18</span>Destinos de los macro knobs</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista de la fuente del sinte (A6) el <strong>pad 32</strong> abre el editor: un knob elige su macro, <strong>Octave ▼ / ▲</strong> pasa de campo y los pads dibujan el número.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de la fuente con el editor de macros: pad 32 encendido, el knob elegido en blanco.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2170,7 +2181,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Los cambios se oyen al momento y van en el patch del proyecto. Para dejarlos en el pack, guarda el patch (A15).</li>
 </ul>
 </section>
-<section class="feat" id="a18-copiar-proyectos"><h3><span class="code">A18</span>Copiar proyectos a otro hueco o a otro pack</h3>
+<section class="feat" id="a19-copiar-proyectos"><h3><span class="code">A19</span>Copiar proyectos a otro hueco o a otro pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Projects: <strong>Duplicate + pad A</strong> elige el proyecto (parpadea en amarillo) y <strong>Duplicate + pad B</strong> lo copia a ese hueco, del mismo pack o de otro.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2323,7 +2334,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a19-patches-entre-packs"><h3><span class="code">A19</span>Patches del sinte propio a otro pack</h3>
+<section class="feat" id="a20-patches-entre-packs"><h3><span class="code">A20</span>Patches del sinte propio a otro pack</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Preset de MIDI 1 / 2: <strong>Duplicate + hueco A</strong>, carga otro pack y <strong>Duplicate + hueco B</strong> copia el patch (motor, parámetros y nombre).</p></div>
 <ul>
 <li><strong>Duplicate + hueco A</strong> con el pack de origen cargado: el patch queda recordado.</li>
@@ -2522,6 +2533,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Cuando MIDI 1 / 2 comparte canal con Synth 1 / 2, lo que tocas o giras en la pista MIDI suena en el sinte sin cable. Por defecto eso <strong>no</strong> se graba en el patrón del sinte, solo en el de la pista MIDI.</li>
 <li>Con <strong>Record en amarillo</strong> (vista Setup, no Advanced Setup) se graba también en el sinte, como si llegara por MIDI externo: sirve para grabar en tiempo real cambios de escala u octava hechos desde la pista MIDI.</li>
 <li>Se desactiva al apagar el aparato. Con el toggle activado también se graban las escuchas del step-drummer de Synth 1 / 2.</li>
+<li><strong>Solo Beta 3.12 — banco de acordes:</strong> con Record en amarillo, <strong>nada se graba en una pista de notas silenciada en el Mixer</strong> (su pad de pista apagado). Los pasos que tocas en ella suenan y salen por su canal, y se graban solo en el sinte que comparte el canal: la pista silenciada queda como un banco de acordes sin que se escriba nada en él.</li>
 </ul>
 </section>
 <section class="feat" id="b5-midi-io"><h3><span class="code">B5</span>MIDI para todo lo nuevo</h3>
@@ -2539,6 +2551,9 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Página 4 del motor (pad 4 de la fila de páginas): TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Cantidad de efecto.</li>
 <li>Grabando, mover esos knobs graba su movimiento; al reproducir, el patrón los mueve.</li>
 <li>Con el step-drummer activado, el carril de TUNE lo usa la fila de pitch.</li>
+<li><strong>Solo Beta 3.12 — soltar la automatización:</strong> vista Velocity, Shift + pad de paso (Synth 1 / 2 y MIDI 1 / 2) = en ese paso no suena ningún carril y lo que la automatización había movido vuelve a la posición de su knob; se guarda con el patrón.</li>
+<li><strong>Solo Beta 3.12 — destinos:</strong> Shift + knob de la página 4 = el destino de ese carril (los 33 parámetros, orden y colores de la matriz, 4 clics cada uno); Clear mantenido antes de Shift = el de fábrica; se guardan con los patches del sinte propio.</li>
+<li><strong>Solo Beta 3.12 — foto en un paso:</strong> Record mantenido + pad de paso (vista de pista) = los parámetros que no están en su valor inicial, escritos en los carriles de ese paso; los que no tienen carril toman uno cuyo parámetro está en el inicial (borrado antes); Record queda como estaba.</li>
 </ul>
 </section>
 <section class="feat" id="b7-setup"><h3><span class="code">B7</span>Setup y MIDI del aparato</h3>
@@ -2916,6 +2931,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Vista Preset de MIDI 1 con el oscilador (pad 27 verde): fila de páginas y pads del motor; el pad 28 solo se ve con oscilador o VA-drum.</figcaption></figure>
 <p>Cada pista MIDI tiene un «sinte» propio: la <strong>entrada de audio</strong> de la pista (línea 1 para MIDI 1, línea 2 para MIDI 2) o un <strong>motor interno</strong> pasa por VCA, efecto y filtro, con envolvente y LFO, antes de la tira 3 / 4 del mixer. Lo disparan las notas de la pista. La pista sigue mandando su MIDI.</p>
+<p><strong>Solo Beta 3.12:</strong> un toque al pad 27 abre los motores en los pads 17-23 (en sus colores, el actual brillante); tocar uno lo elige; el pad 27 otra vez vuelve a la lista de patches. Shift + pad 27 pasa al siguiente.</p>
 <h4>Estados del pad 27</h4>
 <table><thead><tr><th>Color</th><th>Motor</th></tr></thead><tbody>
 <tr><td>apagado</td><td>los knobs son los macros MIDI normales</td></tr>
@@ -4045,7 +4061,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li><strong>Con el modo desactivado</strong> las reglas siguen guardadas pero no se aplican: los patrones suenan como en el aparato original.</li>
 <li><strong>Escenas</strong> (vista Mixer): una escena guardada con el modo cadena activo lo recuerda y se ve en <strong>melocotón</strong>; al cargarla vuelve el modo, y al cargar una escena normal se desactiva. Así se mezclan escenas con cadenas y escenas normales. Las pistas que están siguiendo una regla <strong>parpadean</strong> en el Mixer.</li>
 <li>Una escena termina cuando termina su cadena más larga (al volver de C, o de B si no hay C).</li>
-<li><strong>Repeticiones de escena:</strong> en el Mixer, <strong>Shift + pads 9-16</strong> fijan 1-8 repeticiones de la escena actual (con Shift la fila se ve en amarillo y la elegida en verde). Durante las repeticiones los mutes son los que hayas dejado y las cadenas siguen por donde iban.</li>
+<li><strong>Repeticiones de escena:</strong> en el Mixer, <strong>Shift + pads 9-16</strong> fijan 1-8 repeticiones de la escena actual (con Shift la fila se ve en amarillo y la elegida en verde). <strong>Solo Beta 3.12:</strong> sonando, con Shift, la repetición que suena se ve en blanco (pad 9 = la primera vez; en la última, el pad verde parpadea blanco / verde). Durante las repeticiones los mutes son los que hayas dejado y las cadenas siguen por donde iban.</li>
 <li>Las reglas se guardan con el patrón (viajan al duplicarlo); el modo y lo de las escenas, con el proyecto.</li>
 </ul>
 </section>
@@ -4066,6 +4082,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <li>Con Shift, el pad 25 y los pads 27-32 se ven en amarillo y lo elegido en verde; sin Shift, el pad 25 se ve verde mientras el arpegiador está encendido.</li>
 <li><strong>Secuencia:</strong> cuando en un paso empiezan dos notas o más, suenan una por paso (al sync rate del patrón) en el orden elegido, sobre las notas ordenadas por altura, mientras dura la nota más larga del acorde. Cada nota dura un paso y lleva su velocity. El random-mutate y las dinámicas del paso no se aplican a esas notas.</li>
 <li><strong>Entrada:</strong> la primera nota suena como siempre; al mantener otra a la vez empieza el arpegio de las notas mantenidas, una por paso (parado, al tempo del proyecto y al sync rate de la pista), hasta soltarlas todas. <strong>Con Record se graba el acorde</strong>: el arpegio lo toca después la secuencia.</li>
+<li><strong>Solo Beta 3.12 — orden pulsado:</strong> las notas van en el orden en que se pulsaron, no por altura (los órdenes recorren ese orden); una nota soltada deja su hueco vacío (se salta) y la siguiente ocupa el primer hueco libre. <strong>Random-mutate:</strong> el nivel del paso del acorde se aplica a cada nota del arpegio; en vivo, el del paso en que está la pista.</li>
+<li><strong>Desde RC2.04:</strong> una nota o un acorde mantenido más de 16 pasos al grabar sigue, ligado, 16 pasos después (el stock lo cortaba en el paso 16).</li>
 <li>Se guarda con el proyecto, por pista y patrón.</li>
 <li><strong>Shift + pads 17-24</strong> = resolución propia del arpegio (1/4 … 1/32T, en el orden del sync rate; el mismo pad otra vez = la de la pista). Cada nota del acorde dura su propio gate.</li>
 <li><strong>Drums</strong> (desde RC2): los mismos gestos en el Pattern Settings de un drum; en su vista Preset, mantener varios samples = el arpegio de los samples (el drum salta de uno a otro), a la rejilla del drum en marcha y al tempo parado; con Record se graba (micropaso y sample flip).</li>
@@ -4233,7 +4251,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 </svg><figcaption>Vista Note ampliada de MIDI 1 en modo muestra: pasos arriba, samples abajo.</figcaption></figure>
 <ul>
 <li><strong>Elegir el sample:</strong> en la vista Note ampliada, filas 3-4 = 16 samples del pack; <strong>Octave ▼</strong> = página siguiente, <strong>▲</strong> = anterior (4 páginas, los 64 samples; el botón se enciende si hay más páginas en ese sentido). Tocar un sample = el de la pista (cian) y suena (nota 60). Es el mismo valor que la fuente del granular (Shift + K8 en su página): cambiar uno cambia el otro; la captura se elige desde allí.</li>
-<li><strong>Sample flip:</strong> filas 1-2 = los 16 pasos de la mitad mostrada (<strong>1-16 / 17-32</strong> = la otra mitad). <strong>Mantén un paso y toca un sample</strong> = ese paso toca ese sample (melocotón; el paso mantenido verde, su sample amarillo); <strong>Clear + paso</strong> = sin flip (cian tenue, el fondo de las filas 1-2). El paso que suena, blanco. Un flip en un paso sin nota no hace nada.</li>
+<li><strong>Sample flip:</strong> filas 1-2 = los 16 pasos de la mitad mostrada (<strong>1-16 / 17-32</strong> = la otra mitad). <strong>Mantén un paso y toca un sample</strong> = ese paso toca ese sample (melocotón; el paso mantenido verde, su sample amarillo); desde RC2.04 también <strong>mantén un sample y toca pasos</strong>; <strong>Clear + paso</strong> = sin flip (cian tenue, el fondo de las filas 1-2). El paso que suena, blanco. Un flip en un paso sin nota no hace nada.</li>
 <li><strong>En vivo:</strong> con <strong>Record + Play</strong>, tocar un sample graba una nota 60 en el paso que suena y su flip.</li>
 <li><strong>La altura</strong> la dan las notas de la pista (la vista Note normal, el step-drummer, el MIDI de entrada): C3 = como se grabó, una octava arriba = el doble de rápido. Una voz por pista, como un drum: cada nota vuelve a empezar el sample; el note-off no lo corta, suena hasta el final.</li>
 <li><strong>El VCA abierto:</strong> en este modo la envolvente no cierra el VCA (ganancia, velocity y LFO → nivel siguen); los demás motores, como antes.</li>
@@ -4288,7 +4306,7 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <section class="feat" id="d3-osciladores"><h3><span class="code">D3</span>Osciladores y parafonía</h3>
 <div class="summary"><p>Morph continuo seno → triángulo → sierra → cuadrada, wavefold / pendiente / ancho, segundo oscilador con FM, ring, sync suave y modos bit a bit; dos notas parafónicas.</p></div>
 <ul>
-<li><strong>OSC 1:</strong> WAVE es un morph continuo (0 seno, 42 triángulo, 84 sierra, 126 cuadrada); SHAPE pliega el seno / triángulo, curva la sierra o cambia el ancho de la cuadrada. Envolvente y LFO mueven tono, forma y morph.</li>
+<li><strong>OSC 1:</strong> WAVE es un morph continuo (0 seno, 42 triángulo, 84 sierra, 126 cuadrada); SHAPE (centro = la forma pura): en el seno y el triángulo, a la derecha del centro los pliega (wavefold, hasta ×8; a la izquierda nada); en la sierra curva la rampa (izquierda: sube rápido y se aplana; derecha: empieza plana y sube al final; <strong>solo Beta 3.12:</strong> de sierra normal a la izquierda del todo a <strong>supersaw</strong> de 7 sierras a la derecha del todo, y en el triángulo, a la izquierda del centro, <strong>rampas exponenciales</strong>); en la cuadrada cambia el ancho del pulso (centro 50 %, hacia los extremos un pulso estrecho, del 3 % al 97 %). Con WAVE entre dos formas actúa sobre las dos. Envolvente y LFO mueven tono, forma y morph.</li>
 <li><strong>OSC 2 (pad 28):</strong> su propio TUNE / FINE / WAVE / SHAPE; MIX, FM (OSC 2 → fase de OSC 1), RING y BITSYNC (sync suave cada N ciclos, xor, or, nor, and, nand).</li>
 <li><strong>Parafonía:</strong> una nota = unísono; dos = una por oscilador (<strong>desde RC2</strong>: con un oscilador la última nota manda; al soltarla vuelve la anterior).</li>
 </ul>
@@ -4462,8 +4480,8 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Tono, ±24 semitonos</td><td>Fino, ±1 semitono</td></tr>
 <tr><td>K2</td><td>Posición en el sample</td><td>Dispersión de la posición</td></tr>
-<tr><td>K3</td><td>Scan: centro = congelado, derecha avanza, izquierda retrocede</td><td>Probabilidad de grano al revés</td></tr>
-<tr><td>K4</td><td>Tamaño del grano, 5-500 ms</td><td>Dispersión del tono (±12 st)</td></tr>
+<tr><td>K3</td><td>Scan: centro = congelado, derecha avanza, izquierda retrocede</td><td>Solo Beta 3.12: bipolar, izquierda = probabilidad de grano al revés, derecha = dispersión del tono (±24 st). En RC2.02: probabilidad de grano al revés</td></tr>
+<tr><td>K4</td><td>Tamaño del grano, 5-500 ms</td><td>Solo Beta 3.12: dispersión estéreo (cada grano a un lado; el panorama de la pista decide la proporción). En RC2.02: dispersión del tono (±12 st)</td></tr>
 <tr><td>K5</td><td>Densidad, 1-16 granos solapados</td><td>Ventana: rectangular → triangular → percusiva</td></tr>
 <tr><td>K6</td><td>Longitud de la zona del scan</td><td>Modo de nota: tono / slicer / stretch (stretch desde RC2)</td></tr>
 <tr><td>K7</td><td>LFO → posición</td><td>LFO → tamaño</td></tr>
