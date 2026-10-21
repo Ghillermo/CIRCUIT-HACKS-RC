@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC2.06 / RC2.06S — 2026-10-21
+
+**RC2.06** (ficheros y marca `R206`; = RC2.05 + un arreglo) / **RC2.06S** (`R206S`; sin escrituras propias en la SD, como RC2.05S). El mismo arreglo va en la Beta 3.15.
+- **Dos pads de la misma nota mantenidos a la vez** (en el teclado de una pista de notas la última nota de una fila es la primera de la de arriba: los pads 17 y 32, el mismo do) **dejaban la nota sonando** hasta volver a tocarla: el original mandaba dos note-on y un solo note-off (viene del firmware original). Ahora el segundo pad la vuelve a atacar (note-off y note-on) y se para al soltar el último.
+
+## Beta 3.15 — 2026-10-21
+
+**Beta 3.15** (marca `B3.15`; = SC45.8) = RC2.06 + lo de la Beta 3.14 + lo siguiente, sin probar en el aparato:
+- **Teclado partido: mantén un botón de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4): mientras lo mantienes, los 8 knobs (y sus luces) son los de esa pista; al soltarlo vuelven a la primera. Un toque corto (sin girar un knob) lo cierra, como antes.
+- **Arreglo** (el de RC2.06): dos pads de la misma nota mantenidos a la vez ya no dejan la nota colgada.
+
 ## RC2.05 / RC2.05S — 2026-10-21
 
 **RC2.05** (ficheros y marca `R205`; = RC2.04 + un arreglo) / **RC2.05S** (`R205S`; sin escrituras propias en la SD, como RC2.04S). El mismo arreglo va en la Beta 3.14.
@@ -443,6 +454,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC2.06 / RC2.06S — 2026-10-21
+
+**RC2.06** (files and marker `R206`; = RC2.05 + a fix) / **RC2.06S** (`R206S`; no writes of its own to the SD card, as RC2.05S). Beta 3.15 has the same fix.
+- **Two pads of the same note held together** (on a note track's keyboard the last note of a row is the first of the row above: pads 17 and 32, the same C) **left the note sounding** until touched again: the original sent two note-ons and a single note-off (it comes from the original firmware). Now the second pad strikes it again (note-off and note-on) and it stops when the last one is let go.
+
+## Beta 3.15 — 2026-10-21
+
+**Beta 3.15** (marker `B3.15`; = SC45.8) = RC2.06 + what Beta 3.14 has + the following, not yet tested on the device:
+- **Split keyboard: hold a track button** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4): while you hold it, the 8 knobs (and their lights) are that track's; let go and they go back to the first one. A short tap (no knob turned) closes it, as before.
+- **Fix** (RC2.06's): two pads of the same note held together no longer leave the note hanging.
 
 ## RC2.05 / RC2.05S — 2026-10-21
 

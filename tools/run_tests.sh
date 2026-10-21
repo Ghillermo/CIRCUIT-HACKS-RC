@@ -764,3 +764,9 @@ run python3 tools/emu_kbguard.py firmware/r205/circuittracks-4486-R205.bin firmw
 run python3 tools/emu_kbguard.py firmware/r205s/circuittracks-4486-R205S.bin firmware/r205s/manifest.json firmware/r204s/circuittracks-4486-R204S.bin firmware/r204s/manifest.json
 run python3 tools/emu_cscale.py firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json
 run python3 tools/emu_cscale.py firmware/r205/circuittracks-4486-R205.bin firmware/r205/manifest.json
+run python3 tools/emu_dupnote.py firmware/r206/circuittracks-4486-R206.bin firmware/r206/manifest.json firmware/r205/circuittracks-4486-R205.bin firmware/r205/manifest.json
+run python3 tools/emu_dupnote.py firmware/r206s/circuittracks-4486-R206S.bin firmware/r206s/manifest.json
+run python3 tools/emu_dupnote.py firmware/sc45.8/circuittracks-4486-SC45.8.bin firmware/sc45.8/manifest.json firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json
+run python3 tools/emu_dupnote.py firmware/b3.15/circuittracks-4486-B3.15.bin firmware/b3.15/manifest.json
+run python3 tools/emu_splitknob.py firmware/sc45.8/circuittracks-4486-SC45.8.bin firmware/sc45.8/manifest.json firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json
+run python3 tools/emu_splitknob.py firmware/b3.15/circuittracks-4486-B3.15.bin firmware/b3.15/manifest.json

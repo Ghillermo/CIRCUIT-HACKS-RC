@@ -31,6 +31,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC45 (2026-10-19):** zona libre + `autorel` (704 B) + `modesel` (404 B): **26 754 B libres**. RAM `MXR + 0x1A0..0x1A7` (modesel), `+ 0x1B0..0x1DB` (autorel). Bit 7 del byte [3] de cada paso de las pistas de notas (se guarda con el patrón).
 > **SC45.1 (2026-10-20):** zona libre + `mutebank` (160 B): **26 594 B libres**. Sin RAM nueva.
+> **SC45.8 / RC2.06 (2026-10-21):** zona libre + `dupnote` (12 B) + `splitknob` (SC45.8, ≈ 350 B): SC45.8 hasta `0x08012AA0`, RC2.06 hasta `0x080103B4`; RAM `modmx.MXR + 0x2A0..0x2AB` (`splitknob`); imágenes sin cambio de tamaño.
+
 > **SC45.7 / RC2.05 (2026-10-21):** zona libre + `kbguard` (16 B): SC45.7 hasta `0x08012938`, RC2.05 hasta `0x080103A8`; imágenes sin cambio de tamaño.
 
 > **SC45.6 (2026-10-21):** FM de 4 operadores: **núcleo 0 hasta `P:$3FF8` (7 palabras libres)**; X:`$3E00–$3E5F` (los operadores de las dos voces) y la palabra `OSC1 + 27` de cada voz. **CPU del núcleo 0 ≈ + 4 000 instrucciones por bloque y voz en FM** (≈ 5 400 la voz FM contra ≈ 1 400 del oscilador; las dos pistas ≈ 5 %; estimación: el intérprete no cuenta bien los bucles anidados). ARM: `fmeng` en la zona libre, 2 564 B (zona libre hasta `0x08012924`); RAM `modmx.MXR + 0x200..0x28F`; escrituras al DSP ≈ 9 por milisegundo y voz en FM (R y AMP de cada operador, el ruido) y 21 cada 64 ms. Guardado: 21 B del relleno de los patches propios (+ 100..120). Imagen `0x6F5BC`.
