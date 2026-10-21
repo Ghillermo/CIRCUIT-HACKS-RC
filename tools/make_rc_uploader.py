@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R206 R206S B3.15 R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R206 R206S B3.17 R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -83,6 +83,8 @@ DESC = {"R206": ("RC2.06 — la versión candidata 2.06: RC2.05 + un arreglo (do
                   "RC2.06S — safer build: RC2.06, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
         "B3.15": ("Beta 3.15 — beta (= SC45.8): RC2.06 + lo de la Beta 3.14 (FM de 4 operadores…) + en el teclado partido, un botón de pista mantenido = sus knobs; sin probar en el aparato",
                   "Beta 3.15 — beta (= SC45.8): RC2.06 + what Beta 3.14 has (4-operator FM…) + on the split keyboard, a track button held = its knobs; not tested on the device"),
+        "B3.17": ("Beta 3.17 — beta (= SC46): RC2.06 + lo de la Beta 3.15 + el sinte propio de MIDI 1 / 2 guardado con el proyecto + los destinos de la página 4 en los pads; sin probar en el aparato",
+                  "Beta 3.17 — beta (= SC46): RC2.06 + what Beta 3.15 has + the MIDI 1 / 2 own synth saved with the project + the page 4 destinations on the pads; not tested on the device"),
         "R205": ("RC2.05 — la versión candidata 2.05: RC2.04 + un arreglo (cambiar la escala propia con el transporte en marcha ya no cuelga el aparato)",
                  "RC2.05 — release candidate 2.05: RC2.04 + a fix (changing the custom scale with the transport running no longer hangs the device)"),
         "R205S": ("RC2.05S — versión más segura: RC2.05, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
@@ -534,4 +536,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R206", "R206S", "B3.15", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R206", "R206S", "B3.17", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

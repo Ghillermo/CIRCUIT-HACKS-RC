@@ -16,7 +16,7 @@ BETA = "RC2"                           # the version the «desde» marks refer t
 B = f"*(desde {BETA})*"
 NBETA = "RC2.02"                    # the newest release: its own «desde» marks (2026-10-18: Beta 3.0 went out as RC2.04; the {B} ones are RC2's)
 NB = f"*(desde {NBETA})*"
-XBETA = "Beta 3.15"                   # the beta after it (private): «solo Beta 3.15»
+XBETA = "Beta 3.17"                   # the beta after it (private): «solo Beta 3.17»
 XB = f"*(solo {XBETA})*"
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("A", "Apéndice")]
@@ -41,7 +41,7 @@ view("convenciones", "I", "Cómo leer esta guía",
 - Lo que no aparece aquí funciona como en el aparato original (manual oficial de Novation).
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC2.06S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
-- {XB} = solo en la **Beta 3.15**, la versión de prueba con las funciones nuevas (no está en RC2.06).
+- {XB} = solo en la **Beta 3.17**, la versión de prueba con las funciones nuevas (no está en RC2.06).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -204,13 +204,13 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 | K7 | WAVE (morph) | — |
 | K8 | LFO → morph | Envolvente → morph |
 
-**Qué hace SHAPE en cada forma de onda** (K2; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra *(solo Beta 3.15)*, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:
+**Qué hace SHAPE en cada forma de onda** (K2; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra *(solo Beta 3.17)*, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:
 
 | Forma (WAVE) | SHAPE a la izquierda del centro | Centro | SHAPE a la derecha del centro |
 |---|---|---|---|
 | Seno (0) | Nada: la forma pura | Pura | **Wavefold**: la onda se amplifica (hasta unas 8 veces a la derecha del todo) y se pliega sobre sí misma: más armónicos cuanto más a la derecha |
-| Triángulo (42) | *(solo Beta 3.15)* **Rampas exponenciales**: picos afilados y valles anchos, más armónicos cuanto más a la izquierda (en RC2.06, nada) | Puro | **Wavefold**, como el seno |
-| Sierra (84) | *(solo Beta 3.15)* Todo el recorrido: a la izquierda del todo una sierra normal; hacia la derecha, **supersaw** de 7 sierras (la central y 6 desafinadas que suben de nivel y se separan; a la derecha del todo, la supersaw entera) | Media supersaw | Supersaw entera a la derecha del todo |
+| Triángulo (42) | *(solo Beta 3.17)* **Rampas exponenciales**: picos afilados y valles anchos, más armónicos cuanto más a la izquierda (en RC2.06, nada) | Puro | **Wavefold**, como el seno |
+| Sierra (84) | *(solo Beta 3.17)* Todo el recorrido: a la izquierda del todo una sierra normal; hacia la derecha, **supersaw** de 7 sierras (la central y 6 desafinadas que suben de nivel y se separan; a la derecha del todo, la supersaw entera) | Media supersaw | Supersaw entera a la derecha del todo |
 | Sierra en RC2.06 | La rampa se curva hacia arriba (sube rápido al principio y se aplana) | Rampa recta | La rampa se curva hacia abajo (empieza plana y sube al final) |
 | Cuadrada (126) | Pulso cada vez más estrecho (hasta un 3 % aprox.) | Cuadrada (50 %) | Pulso cada vez más estrecho por el otro lado (hasta un 97 % aprox.; suena igual que el de la izquierda) |
 
@@ -232,7 +232,7 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 
 ### Páginas 3-5
 - **Página 3 (OSC 2):** {B}: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
-- **Página 4:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica.
+- **Página 4:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica.
 - **Foto de los valores en un paso** {XB}: con la vista de pista de MIDI 1 / 2 (motor encendido), **Record mantenido + un pad de paso** (pads 1-16; con 17-32, los pasos 17-32) escribe en los carriles de ese paso los parámetros que **no están en su valor inicial** (el de Clear + knob a la derecha), y solo esos. Un parámetro que no tiene carril toma uno cuyo parámetro sí está en el inicial (en orden de carril), y ese carril se borra antes en el patrón; si no caben, los primeros en el orden de la matriz. El paso no cambia sus notas y Record queda como estaba.
 - **Página 5:** ADSR arriba, LFO abajo. {B}: **Shift + K8 = forma del LFO**: diente de sierra inverso (naranja, la de siempre), diente de sierra (magenta), triángulo (verde), cuadrada (roja), seno (cian), sample & hold (blanco: un valor al azar en cada vuelta); {NB}: **sample & hold suavizado** (violeta: se desliza de un valor al azar al siguiente durante cada vuelta), y **sin forma guardada (un proyecto nuevo o de antes) el triángulo** (en RC2: el diente de sierra inverso; un patch propio de antes de las formas sigue cargando el diente de sierra inverso). Un paso cada 4 clics, el LED de K8 con Shift en su color. Se guarda con el proyecto y en el patch propio; con el VA-drum el LFO sigue siendo su ruido.
 - **Página 6** {NB}: la matriz de modulación (capítulo siguiente).
@@ -261,7 +261,7 @@ view("midi-matriz", "III", "Matriz de modulación",
 - **Cantidad entera** = la fuente entera recorre todo el rango del parámetro. Las fuentes bipolares (nota, azar, LFO 2, azar por pasos) suben y bajan; las demás solo suben. El valor guardado del parámetro no cambia: la matriz se suma al enviarlo.
 - Varias fuentes pueden ir al mismo destino (se suman). TUNE se mueve en semitonos y FINE en fracciones; con el motor granular, sus rangos; en el modo muestra el parámetro del sample elige sample (de la captura al 64) y solo TUNE cambia la altura.
 - **Clear + knob** = esa fuente apagada; **Clear + Shift + knob** = su parámetro al valor inicial; **Clear + pad 6** = todas apagadas.
-- **Se guarda con los patches del sinte propio** (pads 9-24: Clear + pad dos veces, también al intercambiarlos o copiarlos entre packs); un patch guardado antes la carga apagada. No se guarda con el proyecto ni al apagar el aparato. No tiene CC / NRPN.
+- **Se guarda con los patches del sinte propio** (pads 9-24: Clear + pad dos veces, también al intercambiarlos o copiarlos entre packs); un patch guardado antes la carga apagada. {XB} también **se guarda con el proyecto** (con el resto del sinte propio); antes no se guardaba con el proyecto ni al apagar el aparato. No tiene CC / NRPN.
 - Las modulaciones llegan al motor unas 100-250 veces por segundo, repartidas entre todo lo que se mueve en la pista: varias fuentes rápidas a la vez se actualizan más despacio.
 """, [])
 
@@ -576,8 +576,8 @@ view("vista-fx", "VI", "Vista FX",
 | **Octave ▲ / ▼** | Los knobs = envíos de delay / de reverb. |
 | **Shift + knob** | Parámetros globales: reverb K1 tipo, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Se guardan con el proyecto. |
 | **Duplicate** | Reset: envíos a 0, filtro master al centro, Master FX apagado. |
-| **Shift + Octave ▲ / ▼** *(solo Beta 3.15)* | Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). En RC2.06: **1-16 / 17-32** (LED verde). |
-| **Shift + pad 25** *(solo Beta 3.15)* | Filtro master apagado / encendido: apagado, suena como con el filtro al centro aunque muevas su knob (el knob sigue cambiando su posición); otra vez, el filtro vuelve en la posición actual del knob. Apagado, el LED del knob del filtro se ve rojo; con Shift, el pad 25 en amarillo (rojo si está apagado). Sin Shift, el pad 25 es el de stock. |
+| **Shift + Octave ▲ / ▼** *(solo Beta 3.17)* | Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). En RC2.06: **1-16 / 17-32** (LED verde). |
+| **Shift + pad 25** *(solo Beta 3.17)* | Filtro master apagado / encendido: apagado, suena como con el filtro al centro aunque muevas su knob (el knob sigue cambiando su posición); otra vez, el filtro vuelve en la posición actual del knob. Apagado, el LED del knob del filtro se ve rojo; con Shift, el pad 25 en amarillo (rojo si está apagado). Sin Shift, el pad 25 es el de stock. |
 | Fila inferior | La misma que en Master FX: huecos (26-30), gesto mecánico (31), grabar (32). |
 
 - Si en Setup los retornos van por las tiras 3 / 4, sus envíos tienen tope a la mitad.
@@ -649,7 +649,8 @@ view("guardado", "VIII", "Qué se guarda y dónde",
 | Notas del step-drummer, valores del secuenciador de efectos, random-mutate, frecuencia, dinámicas, reglas de cadena, orden de reproducción, sample flips del modo muestra {B} | El patrón |
 | Patches de sinte guardados, patches del sinte propio (con su matriz de modulación {NB}), capturas usadas como samples | El pack *(escribe en la tarjeta)* |
 | Motor de las pistas MIDI (estado y valores; {B}: también OSC 2, los knobs con Shift del granular y del oscilador y los pads 28 / 29), modo de MIDI Thru, canales de PGM | Ajustes del aparato |
-| Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums, la matriz de modulación fuera de un patch {NB} (se apaga al apagar el aparato) | No se guardan |
+| {XB} **El sinte propio de MIDI 1 / 2 entero** (motor, valores, matriz, página 4, FM): al guardar el proyecto va con él y vuelve al cargarlo (un proyecto de antes no lo lleva: el sonido se queda como estaba) | El proyecto (en los patrones 1-5 de MIDI 1 / 2, sin cambiar lo que suenan) |
+| Efectos fijados, song pointer, toggle de Record del Setup, presets y disparos del sidechain entre drums, la matriz de modulación fuera de un patch {NB} (se apaga al apagar el aparato; {XB} va con el proyecto) | No se guardan |
 """)
 
 view("midi", "VIII", "MIDI de las funciones nuevas",
@@ -665,7 +666,7 @@ view("instalar", "VIII", "Instalar y volver atrás",
      "`tools/rc_uploader.html` parchea el firmware oficial en el navegador y lo envía por Web MIDI.",
      """
 1. Descarga el firmware oficial 1.2.1 de Novation, abre `tools/rc_uploader.html` en Chrome y conecta el Circuit Tracks por USB.
-2. Elige la versión (RC2.06, la más segura RC2.06S, la Beta 3.15 con las funciones nuevas sin probar, o una anterior) y envía. El bootloader de Novation no se toca.
+2. Elige la versión (RC2.06, la más segura RC2.06S, la Beta 3.17 con las funciones nuevas sin probar, o una anterior) y envía. El bootloader de Novation no se toca.
 3. **Haz antes una copia de la tarjeta.** Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si no arranca: **Scales + Preset + Note** al encender.
 """)
@@ -777,8 +778,8 @@ ABOUT = dict(
        "vista-fx": """
 - **La reverb y el delay desde el aparato** — tipo, decay, tiempo, feedback…, guardados con el proyecto.
 - **Reset rápido** — Duplicate deja los envíos y los efectos a cero.
-- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(solo Beta 3.15; en RC2.06, 1-16 / 17-32)*.
-- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(solo Beta 3.15)*.
+- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(solo Beta 3.17; en RC2.06, 1-16 / 17-32)*.
+- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(solo Beta 3.17)*.
 """},
     sidechain=f"""
 - **El sidechain con knobs** {B} — ataque, hold, decay y profundidad del ducking de cada pista, más allá de los presets.

@@ -20,7 +20,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A10 Editor de CC de los macros MIDI](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = nivel a 100 / 0](#a11-mixer-shift)
 - [A12 Modo cue, mutes al compás y cuantizar (desde RC2)](#a12-mixer-cue)
-- [A13 LFO a tempo (solo Beta 3.15)](#a13-lfo-sync)
+- [A13 LFO a tempo (solo Beta 3.17)](#a13-lfo-sync)
 - [A14 Teclado partido Synth 1 + Synth 2](#a14-teclado-partido)
 - [A15 Patches de sinte por modo de voz](#a15-colores-patch)
 - [A16 Patches del sinte propio (MIDI 1 / 2)](#a16-patches-midi)
@@ -58,7 +58,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C14 Escala propia (desde RC2)](#c14-escala-propia)
 - [C15 Modo muestra de las pistas MIDI (desde RC2)](#c15-modo-muestra)
 - [C16 Matriz de modulación del sinte propio (desde RC2.02)](#c16-matriz-mod)
-- [C17 FM de 4 operadores (solo Beta 3.15)](#c17-fm4)
+- [C17 FM de 4 operadores (solo Beta 3.17)](#c17-fm4)
 - [C18 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c18-master-fx-beta)
 
 **D. DSP**
@@ -93,7 +93,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 <a id="a3-vista-fx"></a>
 ### A3. Teclas de la vista FX
 - **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay.
-- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.15; en RC2.06, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.15).
+- **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (solo Beta 3.17; en RC2.06, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (solo Beta 3.17).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = valor por defecto
@@ -133,8 +133,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
 
 <a id="a13-lfo-sync"></a>
-### A13. LFO a tempo (solo Beta 3.15)
-- **Solo Beta 3.15.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
+### A13. LFO a tempo (solo Beta 3.17)
+- **Solo Beta 3.17.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
 
 <a id="a14-teclado-partido"></a>
 ### A14. Teclado partido Synth 1 + Synth 2
@@ -276,8 +276,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
 
 <a id="c17-fm4"></a>
-### C17. FM de 4 operadores (solo Beta 3.15)
-- **Solo Beta 3.15.** Una variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (un toque al pad 27), violeta; sus knobs en el **pad 7**.
+### C17. FM de 4 operadores (solo Beta 3.17)
+- **Solo Beta 3.17.** Una variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (un toque al pad 27), violeta; sus knobs en el **pad 7**.
 - **K1-K4** = ratio de los operadores 1-4, **K5-K8** = su nivel; **Shift + K1-K4** = su ataque, **Shift + K5** = el **algoritmo** (16), **Shift + K6** feedback, **Shift + K7** ruido, **Shift + K8** release (más largo con más velocity).
 
 <a id="c18-master-fx-beta"></a>

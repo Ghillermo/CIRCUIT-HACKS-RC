@@ -770,3 +770,7 @@ run python3 tools/emu_dupnote.py firmware/sc45.8/circuittracks-4486-SC45.8.bin f
 run python3 tools/emu_dupnote.py firmware/b3.15/circuittracks-4486-B3.15.bin firmware/b3.15/manifest.json
 run python3 tools/emu_splitknob.py firmware/sc45.8/circuittracks-4486-SC45.8.bin firmware/sc45.8/manifest.json firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json
 run python3 tools/emu_splitknob.py firmware/b3.15/circuittracks-4486-B3.15.bin firmware/b3.15/manifest.json
+run python3 tools/emu_p4ovl.py firmware/sc45.9/circuittracks-4486-SC45.9.bin firmware/sc45.9/manifest.json firmware/sc45.8/circuittracks-4486-SC45.8.bin firmware/sc45.8/manifest.json
+run python3 tools/emu_p4ovl.py firmware/b3.16/circuittracks-4486-B3.16.bin firmware/b3.16/manifest.json
+run python3 tools/emu_projsyn.py firmware/sc46/circuittracks-4486-SC46.bin firmware/sc46/manifest.json
+run python3 tools/emu_projsyn.py firmware/b3.17/circuittracks-4486-B3.17.bin firmware/b3.17/manifest.json

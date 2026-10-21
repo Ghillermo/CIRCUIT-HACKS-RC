@@ -31,6 +31,10 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC45 (2026-10-19):** zona libre + `autorel` (704 B) + `modesel` (404 B): **26 754 B libres**. RAM `MXR + 0x1A0..0x1A7` (modesel), `+ 0x1B0..0x1DB` (autorel). Bit 7 del byte [3] de cada paso de las pistas de notas (se guarda con el patrón).
 > **SC45.1 (2026-10-20):** zona libre + `mutebank` (160 B): **26 594 B libres**. Sin RAM nueva.
+> **SC46 (2026-10-21):** zona libre + `projsyn` (≈ 650 B) hasta `0x08012E54`; RAM `modmx.MXR + 0x300..0x46F` (estado con firma + dos imágenes de 176 B); guardado: bytes 8..39 de los ajustes de los patrones 0..4 de MIDI 1 / 2 (320 B del registro de sesión, antes sin usar); CPU: un guardado de `mpatch` en RAM por pista cada 256 ms desde la tarea de LEDs.
+
+> **SC45.9 (2026-10-21):** zona libre + `p4ovl` (≈ 300 B) hasta `0x08012BD0`; RAM `modmx.MXR + 0x17A..0x17F`.
+
 > **SC45.8 / RC2.06 (2026-10-21):** zona libre + `dupnote` (12 B) + `splitknob` (SC45.8, ≈ 350 B): SC45.8 hasta `0x08012AA0`, RC2.06 hasta `0x080103B4`; RAM `modmx.MXR + 0x2A0..0x2AB` (`splitknob`); imágenes sin cambio de tamaño.
 
 > **SC45.7 / RC2.05 (2026-10-21):** zona libre + `kbguard` (16 B): SC45.7 hasta `0x08012938`, RC2.05 hasta `0x080103A8`; imágenes sin cambio de tamaño.

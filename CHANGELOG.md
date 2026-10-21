@@ -4,6 +4,12 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## Beta 3.17 — 2026-10-21
+
+**Beta 3.17** (marca `B3.17`; = SC46) = RC2.06 + lo de la Beta 3.15 + lo siguiente, sin probar en el aparato (reúne la Beta 3.16, que no se publicó):
+- **El sinte propio de MIDI 1 / 2 se guarda con el proyecto:** al guardar, el motor, sus valores, la matriz de modulación, los destinos de la página 4 y la FM de las dos pistas van con el proyecto; al cargarlo vuelven como sonaban (antes eran globales: cargar otro proyecto dejaba el sonido del anterior). Van en bytes que el original no usa de los patrones 1-5 de MIDI 1 / 2 (no cambian lo que suenan); un proyecto de antes no lo lleva y el sonido se queda como estaba.
+- **Página 4 del motor (los carriles): con Shift + knob, los pads 9-24 enseñan dónde está el destino** elegido, como la matriz de modulación (su página y su knob); mientras se ve, esos pads no cargan patches.
+
 ## RC2.06 / RC2.06S — 2026-10-21
 
 **RC2.06** (ficheros y marca `R206`; = RC2.05 + un arreglo) / **RC2.06S** (`R206S`; sin escrituras propias en la SD, como RC2.05S). El mismo arreglo va en la Beta 3.15.
@@ -454,6 +460,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## Beta 3.17 — 2026-10-21
+
+**Beta 3.17** (marker `B3.17`; = SC46) = RC2.06 + what Beta 3.15 has + the following, not yet tested on the device (it gathers Beta 3.16, which was not published):
+- **The MIDI 1 / 2 own synth is saved with the project:** saving takes both tracks' engine, values, mod matrix, page 4 destinations and FM along with the project; loading it brings them back as they sounded (before they were global: loading another project kept the sound of the one before). They go into bytes of MIDI 1 / 2's patterns 1-5 the original does not use (what those patterns play does not change); an older project does not carry it and the sound stays as it was.
+- **Engine page 4 (the lanes): with Shift + knob, pads 9-24 show where the chosen destination lives**, as the mod matrix does (its page and its knob); meanwhile those pads do not load patches.
 
 ## RC2.06 / RC2.06S — 2026-10-21
 
