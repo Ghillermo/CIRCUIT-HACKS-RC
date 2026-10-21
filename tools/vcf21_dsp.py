@@ -140,6 +140,26 @@ def use_supersaw():
     SUPERSAW = True
 
 
+FM = False                                      # SC45.6 (use_fm)
+FMB0, FM_FLAG, FMS = 0x3E00, 27, 12             # (FM) the operator blocks at X:$3E00 + 48 t (the voices' stride; X:$3D00-$3FFF is free), the flag word of the OSC1 block, the operator stride
+F_OUT, F_PH, F_R, F_AMP, F_K, F_M, F_NZ = 0, 1, 2, 3, 4, 5, 9                     # words of an operator block (F_NZ: operator 1's block only)
+
+
+def use_fm():
+    """SC45.6 (the user, 2026-10-21: «can we have FM as another variant for osc?», «4op, A/R with fixed sustain», «include some kick/noise
+    percussive algos, some bell and some strings along with the typical algorithms»): a 4-operator FM variant of the oscillator, chosen by the ARM
+    (fmeng.py): with the word FM_FLAG of the OSC1 block not 0 (the ARM writes it, only in the plain oscillator mode) the oscillator's samples are the
+    FM voice's.  Each sample, for the operators 1..4 in their blocks (X:FMB0 + 48 t + 12 k): the phase += the oscillator's increment (OSC1 + 11:
+    the note, TUNE / FINE, the pitch envelope and the vibrato as before) x R (the ratio / 16, from the ARM), the phase modulation 4 x sum(M_kj x
+    OUT_j) (the routing matrix from the ARM: the algorithm; M_kk = feedback; the outputs of the previous sample for the operators not yet
+    computed), OUT_k = AMP_k x sine (the parabola 4 u (1 - |u|)), the sample = sum(K_k x OUT_k) (the carriers' weights).  AMP_k (the operator's
+    envelope x its level), R_k (with the algorithm's detune and the pitch drop) and the noise level (F_NZ, into VD_NL: the VA-drum's noise loop
+    adds it) come from the ARM every millisecond: no envelope code here.  Two nested do loops (the system stack two levels deeper)."""
+    global FM
+    assert OSC3 and DUAL and VADRUM and SUPERSAW
+    FM = True
+
+
 def use_lfoshape2():
     """SC44.3 (the user, 2026-10-18: «add s&h (stepped random) and slewed s&h (glided random) as waveshapes»): shape 6 of the own engine's LFO =
     slewed sample & hold: when the phase wraps the old random value goes to OSC1 + SL_PREV and the voice's noise generator (DFLAGS + 3) gives a new
@@ -637,6 +657,7 @@ def code(base, tabs, premix, ret_old):
                 L(p + "gre"); e("move a,%s:(r0)+n0" % sp)
                 e("move r1,r0"); a.emit(J("al"), p + "nosc")
                 L(p + "ngr")
+            if FM: e("move x:(r3+%d),a" % FM_FLAG, "tst a"); a.emit(J("ne"), p + "fm")
             if DUAL: e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("ne"), p + "dual")
             def fold():                                                           # b = p (4 g s) -> (1 - 2 |wrap(p - 0.5)|) / 2; x0 is the scratch (x1 keeps the phase)
                 e("move b1,x0", "move x0,b", "sub #>$400000,b", "move b1,x0", "move x0,b", "abs b", "asl b", "neg b", "add #>$7fffff,b", "asr b")
@@ -678,6 +699,21 @@ def code(base, tabs, premix, ret_old):
                 a.emit(J("al"), p + "o3f")
                 if SUPERSAW:
                     L(p + "wv"); waves("r4"); a.emit(D.RTS)
+                if FM:                                                                # ---- the FM voice (r2 = its operator blocks, y1 = the base increment, r4 / n4 = the outputs)
+                    L(p + "fm")
+                    e("move r6,a", "add #>$%x,a" % (FMB0 - VB0), "move a,r2", "move #%d,n4" % FMS, "move x:(r3+11),y1", "move #>$ffffff,m4")
+                    a.emit(D.do_x, 0x3A, p + "fms")
+                    e("move r2,r3", "clr b")
+                    a.emit(lambda t: [0x060480, t], p + "fmo")                     # do #4 (the operators)
+                    e("move x:(r3+%d),x0" % F_R, "mpy x0,y1,a", "asl #4,a,a", "move x:(r3+%d),x0" % F_PH, "add x0,a", "move a1,x:(r3+%d)" % F_PH, "move a1,x1", "move r2,r4", "clr a")
+                    for j in range(4): e("move x:(r3+%d),x0" % (F_M + j), "move x:(r4)+n4,y0", "mac y0,x0,a")
+                    e("asl #2,a,a", "add x1,a", "move a1,x1")                      # u = the phase + 4 x the modulation
+                    e("move x1,a", "abs a", "move a,y0", "move #>$7fffff,a", "sub y0,a", "move a,y0", "mpy x1,y0,a", "asl #2,a,a")      # 4 u (1 - |u|)
+                    e("move a,x0", "move x:(r3+%d),y0" % F_AMP, "mpy y0,x0,a", "move a,x:(r3)", "move a,x0", "move x:(r3+%d),y0" % F_K, "lua (r3+%d),r3" % FMS)
+                    L(p + "fmo"); e("mac y0,x0,b")
+                    L(p + "fms"); e("move b,%s:(r0)+n0" % sp)
+                    e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3", "move x:(r2+%d),x0" % F_NZ, "move x0,x:(r3+%d)" % VD_NL)
+                    a.emit(J("al"), p + "o3f")
                 # ---- two oscillators: OSC2 (the FM modulator and the slave of the soft sync) first, then OSC1 (phase modulated by OSC2), then the interactions
                 L(p + "dual")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)

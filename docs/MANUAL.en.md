@@ -1,4 +1,4 @@
-# Feature list — CIRCUIT-HACKS (RC2.04)
+# Feature list — CIRCUIT-HACKS (RC2.05)
 
 Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Every feature in one line, by topic. **The user manual is the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/guide.html)); the CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Illustrated version of this list: [https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 
@@ -20,7 +20,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A10 CC editor of the MIDI macros](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = level to 100 / 0](#a11-mixer-shift)
 - [A12 Cue mode, mutes on the bar and quantize (since RC2)](#a12-mixer-cue)
-- [A13 LFO synced to the tempo (Beta 3.12 only)](#a13-lfo-sync)
+- [A13 LFO synced to the tempo (Beta 3.14 only)](#a13-lfo-sync)
 - [A14 Split keyboard Synth 1 + Synth 2](#a14-teclado-partido)
 - [A15 Synth patches by voice mode](#a15-colores-patch)
 - [A16 Patches of the own synth (MIDI 1 / 2)](#a16-patches-midi)
@@ -58,7 +58,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [C14 Custom scale (since RC2)](#c14-escala-propia)
 - [C15 Sample mode of the MIDI tracks (since RC2)](#c15-modo-muestra)
 - [C16 Mod matrix of the own synth (since RC2.02)](#c16-matriz-mod)
-- [C17 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c17-master-fx-beta)
+- [C17 4-operator FM (Beta 3.14 only)](#c17-fm4)
+- [C18 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c18-master-fx-beta)
 
 **D. DSP**
 
@@ -92,7 +93,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="a3-vista-fx"></a>
 ### A3. Keys of the FX view
 - **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.
-- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.04, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only).
+- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.14 only; in RC2.05, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.14 only).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = default value
@@ -132,8 +133,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track.
 
 <a id="a13-lfo-sync"></a>
-### A13. LFO synced to the tempo (Beta 3.12 only)
-- **Beta 3.12 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
+### A13. LFO synced to the tempo (Beta 3.14 only)
+- **Beta 3.14 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
 
 <a id="a14-teclado-partido"></a>
 ### A14. Split keyboard Synth 1 + Synth 2
@@ -274,8 +275,13 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
 - Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
 
-<a id="c17-master-fx-beta"></a>
-### C17. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
+<a id="c17-fm4"></a>
+### C17. 4-operator FM (Beta 3.14 only)
+- **Beta 3.14 only.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
+- **K1-K4** = the ratio of operators 1-4, **K5-K8** = their level; **Shift + K1-K4** = their attack, **Shift + K5** = the **algorithm** (16), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
+
+<a id="c18-master-fx-beta"></a>
+### C18. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
 - **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP

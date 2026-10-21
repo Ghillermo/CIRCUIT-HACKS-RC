@@ -754,3 +754,13 @@ run python3 tools/emu_sc45_3.py firmware/b3.11/circuittracks-4486-B3.11.bin firm
 run python3 tools/emu_sc45_3.py firmware/sc45.5/circuittracks-4486-SC45.5.bin firmware/sc45.5/manifest.json
 run python3 tools/emu_sc45_5_dsp.py firmware/sc45.5/circuittracks-4486-SC45.5.bin firmware/sc45.5/manifest.json firmware/sc45.4/circuittracks-4486-SC45.4.bin firmware/sc45.4/manifest.json
 run python3 tools/emu_sc45_5_dsp.py firmware/b3.12/circuittracks-4486-B3.12.bin firmware/b3.12/manifest.json firmware/b3.11/circuittracks-4486-B3.11.bin firmware/b3.11/manifest.json
+run python3 tools/emu_fm_dsp.py firmware/sc45.6/circuittracks-4486-SC45.6.bin firmware/sc45.6/manifest.json firmware/sc45.5/circuittracks-4486-SC45.5.bin firmware/sc45.5/manifest.json
+run python3 tools/emu_fm_dsp.py firmware/b3.13/circuittracks-4486-B3.13.bin firmware/b3.13/manifest.json firmware/b3.12/circuittracks-4486-B3.12.bin firmware/b3.12/manifest.json
+run python3 tools/emu_fmeng.py firmware/sc45.6/circuittracks-4486-SC45.6.bin firmware/sc45.6/manifest.json
+run python3 tools/emu_fmeng.py firmware/b3.13/circuittracks-4486-B3.13.bin firmware/b3.13/manifest.json
+run python3 tools/emu_kbguard.py firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json firmware/sc45.6/circuittracks-4486-SC45.6.bin firmware/sc45.6/manifest.json
+run python3 tools/emu_kbguard.py firmware/b3.14/circuittracks-4486-B3.14.bin firmware/b3.14/manifest.json
+run python3 tools/emu_kbguard.py firmware/r205/circuittracks-4486-R205.bin firmware/r205/manifest.json firmware/r204/circuittracks-4486-R204.bin firmware/r204/manifest.json
+run python3 tools/emu_kbguard.py firmware/r205s/circuittracks-4486-R205S.bin firmware/r205s/manifest.json firmware/r204s/circuittracks-4486-R204S.bin firmware/r204s/manifest.json
+run python3 tools/emu_cscale.py firmware/sc45.7/circuittracks-4486-SC45.7.bin firmware/sc45.7/manifest.json
+run python3 tools/emu_cscale.py firmware/r205/circuittracks-4486-R205.bin firmware/r205/manifest.json

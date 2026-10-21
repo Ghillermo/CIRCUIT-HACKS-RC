@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R204 R204S B3.12 R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R205 R205S B3.14 R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,13 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R204": ("RC2.04 — la versión candidata 2.04: RC2.02 + arreglos (la cuenta atrás al tempo del proyecto, notas grabadas de más de 16 pasos sin cortar, sample mantenido + paso en el selector de samples)",
+DESC = {"R205": ("RC2.05 — la versión candidata 2.05: RC2.04 + un arreglo (cambiar la escala propia con el transporte en marcha ya no cuelga el aparato)",
+                 "RC2.05 — release candidate 2.05: RC2.04 + a fix (changing the custom scale with the transport running no longer hangs the device)"),
+        "R205S": ("RC2.05S — versión más segura: RC2.05, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC2.05S — safer build: RC2.05, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.14": ("Beta 3.14 — beta (= SC45.7): RC2.05 + lo de la Beta 3.12 + FM de 4 operadores en el sinte propio de MIDI 1 / 2 (16 algoritmos: clásicos, percusivos, campanas, cuerdas), sin probar en el aparato",
+                  "Beta 3.14 — beta (= SC45.7): RC2.05 + what Beta 3.12 has + 4-operator FM in the MIDI 1 / 2 own synth (16 algorithms: classic, percussive, bells, strings), not tested on the device"),
+        "R204": ("RC2.04 — la versión candidata 2.04: RC2.02 + arreglos (la cuenta atrás al tempo del proyecto, notas grabadas de más de 16 pasos sin cortar, sample mantenido + paso en el selector de samples)",
                  "RC2.04 — release candidate 2.04: RC2.02 + fixes (the count-in at the project tempo, recorded notes longer than 16 steps not cut, held sample + step in the sample picker)"),
         "R204S": ("RC2.04S — versión más segura: RC2.04, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.04S — safer build: RC2.04, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
@@ -522,4 +528,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R204", "R204S", "B3.12", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R205", "R205S", "B3.14", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

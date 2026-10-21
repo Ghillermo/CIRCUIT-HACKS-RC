@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
 
+## RC2.05 / RC2.05S — 2026-10-21
+
+**RC2.05** (ficheros y marca `R205`; = RC2.04 + un arreglo) / **RC2.05S** (`R205S`; sin escrituras propias en la SD, como RC2.04S). El mismo arreglo va en la Beta 3.14.
+- **Cambiar la escala propia con el transporte en marcha podía colgar el aparato:** una nota que no estaba en el teclado de la vista Note (justo después de cambiar la escala, o con un periodo corto que no cubre todas las notas) escribía la luz de su pad fuera de su sitio, dentro de los datos de otra pista. Ahora esas notas no encienden pad.
+
+## Beta 3.14 — 2026-10-21
+
+**Beta 3.14** (marca `B3.14`; = SC45.7) = RC2.05 + lo de la Beta 3.12 + lo siguiente, sin probar en el aparato (reúne la Beta 3.13, que no se publicó):
+- **FM de 4 operadores** como variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (violeta); sus knobs en el **pad 7**: K1-K4 ratio de cada operador, K5-K8 nivel; Shift + K1-K4 ataque, Shift + K5 algoritmo, Shift + K6 feedback, Shift + K7 ruido, Shift + K8 release (más largo con más velocity). Envolventes A/R con sustain fijo por operador. **16 algoritmos:** los clásicos (pila, ramas, órgano…), percusivos (bombo con caída de tono, caja con ruido, metal / charles, tom), campanas (campana, tubular) y cuerdas (cuerdas, ensemble). Se guarda con los patches del sinte propio.
+- **Arreglo** (el de RC2.05): cambiar la escala propia con el transporte en marcha ya no puede colgar el aparato.
+
 ## RC2.04 / RC2.04S — 2026-10-21
 
 **RC2.04** (ficheros y marca `R204`; = RC2.02 + arreglos) / **RC2.04S** (`R204S`; sin escrituras propias en la SD, como RC2.02S). Reúne RC2.03, que no se publicó aparte. Los mismos arreglos van en la Beta 3.12.
@@ -432,6 +443,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+
+## RC2.05 / RC2.05S — 2026-10-21
+
+**RC2.05** (files and marker `R205`; = RC2.04 + a fix) / **RC2.05S** (`R205S`; no writes of its own to the SD card, as RC2.04S). Beta 3.14 has the same fix.
+- **Changing the custom scale with the transport running could hang the device:** a note not on the Note view's keyboard (right after changing the scale, or with a short period that does not cover every note) wrote its pad's light out of place, into another track's data. Now those notes light no pad.
+
+## Beta 3.14 — 2026-10-21
+
+**Beta 3.14** (marker `B3.14`; = SC45.7) = RC2.05 + what Beta 3.12 has + the following, not yet tested on the device (it gathers Beta 3.13, which was not published):
+- **4-operator FM** as a variant of the MIDI 1 / 2 own synth's oscillator: **pad 24** of the engine row (violet); its knobs on **pad 7**: K1-K4 each operator's ratio, K5-K8 level; Shift + K1-K4 attack, Shift + K5 algorithm, Shift + K6 feedback, Shift + K7 noise, Shift + K8 release (longer with more velocity). A/R envelopes with a fixed sustain per operator. **16 algorithms:** the classic ones (stack, branches, organ…), percussive (kick with a pitch drop, snare with noise, metal / hi-hat, tom), bells (bell, tubular) and strings (strings, ensemble). Saved with the own-synth patches.
+- **Fix** (RC2.05's): changing the custom scale with the transport running can no longer hang the device.
 
 ## RC2.04 / RC2.04S — 2026-10-21
 

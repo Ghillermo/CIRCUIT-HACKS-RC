@@ -53,7 +53,7 @@ sec("atajos", "Shortcut map",
 | 3 | **Shift + Preset** with a drum | Chromatic / scale view (A7) |
 | 4 | **Clear + knob** | Default value of the knob, also in Master FX; on the drums, turned left it deletes the automation (A4) |
 | 5 | **Octave ▲ / ▼** in the FX view | Delay / reverb sends; **Shift + knob** = their parameters (A3, B2) |
-| 6 | **Duplicate** / **Shift + Octave ▲ / ▼** (Beta 3.12 only; in RC2.04 **1-16 / 17-32**) in the FX view | Reset of sends and Master FX / master filter resonance (A3) |
+| 6 | **Duplicate** / **Shift + Octave ▲ / ▼** (Beta 3.14 only; in RC2.05 **1-16 / 17-32**) in the FX view | Reset of sends and Master FX / master filter resonance (A3) |
 | 7 | **Shift + FX**, then **Octave ▼**, with the drums | Sidechain between drums (D7) |
 | 8 | **MIDI 1 / 2**, **Preset** | Pad 27 engine, 25 CC editor, 26 patch flip, 30 step-drummer (C1) |
 | 9 | Master FX: **pad 8** | Switch off everything latched (A5) |
@@ -103,7 +103,7 @@ Master FX is a performance view with effects on the master output, a song pointe
 
 sec("vista-fx", "Keys of the FX view",
     ["**Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.",
-     "**Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.12 only; in RC2.04, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.12 only)."],
+     "**Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.14 only; in RC2.05, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.14 only)."],
     """
 | Control | Function |
 |---|---|
@@ -111,9 +111,9 @@ sec("vista-fx", "Keys of the FX view",
 | **Octave ▼** | The knobs control the **reverb sends** (colour of pad 17) |
 | **Shift + knob** | **Effect parameters**. Reverb: type, decay, damping. Delay: time, sync, feedback, width, ratio, slew. Saved with the project |
 | **Duplicate** | Reset: sends to 0, master filter centred (resonance untouched), Master FX off |
-| **Shift + Octave ▲ / ▼** | **Beta 3.12 only.** Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow) |
-| **Shift + pad 25** | **Beta 3.12 only.** Master filter off (it sounds centred even if the knob moves) / on (at the knob's current position). While off: the filter knob's LED red; with Shift, pad 25 yellow / red |
-| **1-16 / 17-32** | In RC2.04: raises the master filter resonance (green LED); in Beta 3.12 it does what it always did |
+| **Shift + Octave ▲ / ▼** | **Beta 3.14 only.** Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow) |
+| **Shift + pad 25** | **Beta 3.14 only.** Master filter off (it sounds centred even if the knob moves) / on (at the knob's current position). While off: the filter knob's LED red; with Shift, pad 25 yellow / red |
+| **1-16 / 17-32** | In RC2.05: raises the master filter resonance (green LED); in Beta 3.14 it does what it always did |
 
 - The bottom row (pads 25-32) is the same as in Master FX: assignable slots, the mechanical gesture (31) and record (32).
 - If Setup routes the reverb / delay return to strip 3 / 4, the sends of those strips stop at half range and move at half speed.
@@ -252,8 +252,8 @@ sec("mixer-cue", "Cue mode, mutes on the bar and quantize (since RC2)",
 - Details in the guide by views (Mixer and buttons of every view).
 """)
 
-sec("lfo-sync", "LFO synced to the tempo (Beta 3.12 only)",
-    ["**Beta 3.12 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat."],
+sec("lfo-sync", "LFO synced to the tempo (Beta 3.14 only)",
+    ["**Beta 3.14 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat."],
     """
 - **Where:** K7 of the VCA-VCF page of the MIDI 1 / 2 engine, Shift + K4 of the modulation matrix (in each shape, the left half of its stretch), Shift + K7 of the drums, K1 of the Auto-Filter and of the Phaser (Master FX).
 - **At the centre** the LED is dim; brighter towards both sides.
@@ -397,7 +397,7 @@ sec("grabar-interno", "Recording the internal MIDI routes",
 - When MIDI 1 / 2 shares a channel with Synth 1 / 2, what you play or turn on the MIDI track sounds on the synth without a cable. By default that is **not** recorded into the synth’s pattern, only into the MIDI track’s.
 - With **Record yellow** (Setup view, not Advanced Setup) it is recorded into the synth too, as if it came from external MIDI: useful to record scale or octave changes made from the MIDI track in real time.
 - It switches off at power-off. With the toggle on, the auditions of the step-drummer of Synth 1 / 2 are recorded as well.
-- **Beta 3.12 only — chord bank:** with Record yellow, **nothing is recorded into a note track muted in the Mixer** (its track pad off). The steps you play on it sound and go out on its channel, and are recorded only into the synth sharing the channel: the muted track stays a chord bank that nothing writes into.
+- **Beta 3.14 only — chord bank:** with Record yellow, **nothing is recorded into a note track muted in the Mixer** (its track pad off). The steps you play on it sound and go out on its channel, and are recorded only into the synth sharing the channel: the muted track stays a chord bank that nothing writes into.
 """, [])
 
 sec("midi-io", "MIDI for everything new",
@@ -415,9 +415,9 @@ sec("automatizacion", "Automation of the MIDI engine",
 - Engine page 4 (pad 4 of the page row): TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect amount.
 - While recording, moving those knobs records the movement; on playback the pattern moves them.
 - With the step-drummer on, the TUNE lane is used by the pitch row.
-- **Beta 3.12 only — letting go of the automation:** Velocity view, Shift + a step pad (Synth 1 / 2 and MIDI 1 / 2) = no lane plays at that step and what the automation had moved goes back to its knob's position; saved with the pattern.
-- **Beta 3.12 only — destinations:** Shift + a knob of page 4 = that lane's destination (the 33 parameters, the matrix's order and colours, 4 clicks each); Clear held before Shift = the factory one; saved with the own-synth patches.
-- **Beta 3.12 only — snapshot into a step:** Record held + a step pad (track view) = the parameters not at their initial value, written into that step's lanes; those without a lane take one whose parameter is at its initial value (cleared first); Record stays as it was.
+- **Beta 3.14 only — letting go of the automation:** Velocity view, Shift + a step pad (Synth 1 / 2 and MIDI 1 / 2) = no lane plays at that step and what the automation had moved goes back to its knob's position; saved with the pattern.
+- **Beta 3.14 only — destinations:** Shift + a knob of page 4 = that lane's destination (the 33 parameters, the matrix's order and colours, 4 clicks each); Clear held before Shift = the factory one; saved with the own-synth patches.
+- **Beta 3.14 only — snapshot into a step:** Record held + a step pad (track view) = the parameters not at their initial value, written into that step's lanes; those without a lane take one whose parameter is at its initial value (cleared first); Record stays as it was.
 """)
 
 sec("setup", "Setup and device MIDI",
@@ -498,7 +498,7 @@ sec("motor-midi", "Engine of the MIDI tracks (pad 27)",
     """
 Each MIDI track gets its own “synth”: the track’s **audio input** (line 1 for MIDI 1, line 2 for MIDI 2) or an **internal engine** goes through VCA, effect and filter, with envelope and LFO, before mixer strip 3 / 4. The notes of the track trigger it. The track still sends its MIDI.
 
-**Beta 3.12 only:** a tap on pad 27 opens the engines on pads 17-23 (in their colours, the current one bright); tapping one picks it; pad 27 again brings the patch list back. Shift + pad 27 steps to the next.
+**Beta 3.14 only:** a tap on pad 27 opens the engines on pads 17-23 (in their colours, the current one bright); tapping one picks it; pad 27 again brings the patch list back. Shift + pad 27 steps to the next.
 
 ### States of pad 27
 
@@ -739,7 +739,7 @@ sec("cadenas", "Pattern chains and scenes",
 - **With the mode off** the rules stay stored but are not followed: patterns play as on the original device.
 - **Scenes** (Mixer view): a scene saved with the chain mode on remembers it and shows in **peach**; loading it brings the mode back, and loading a normal scene switches it off. That is how chained and normal scenes mix. Tracks that are following a rule **blink** in the Mixer.
 - A scene ends when its longest chain ends (on the return from C, or from B when there is no C).
-- **Scene repeats:** in the Mixer, **Shift + pads 9-16** set 1-8 repeats of the current scene (with Shift the row is yellow and the chosen one green). **Beta 3.12 only:** while playing, with Shift, the repeat now playing is white (pad 9 = the first time; on the last one the green pad blinks white / green). During the repeats the mutes are the ones you left and the chains go on where they were.
+- **Scene repeats:** in the Mixer, **Shift + pads 9-16** set 1-8 repeats of the current scene (with Shift the row is yellow and the chosen one green). **Beta 3.14 only:** while playing, with Shift, the repeat now playing is white (pad 9 = the first time; on the last one the green pad blinks white / green). During the repeats the mutes are the ones you left and the chains go on where they were.
 - The rules are saved with the pattern (they travel when it is duplicated); the mode and the scene data, with the project.
 """, [])
 
@@ -760,7 +760,7 @@ sec("arpegiador", "Arpeggiator (since RC2)",
 - With Shift, pad 25 and pads 27-32 show yellow and the chosen ones green; without Shift, pad 25 shows green while the arpeggiator is on.
 - **Sequence:** when two or more notes start on a step, they play one a step (at the pattern's sync rate) in the chosen order, over the notes sorted by pitch, for as long as the chord's longest note. Each note lasts a step and keeps its velocity. The step's random-mutate and dynamics do not apply to them.
 - **Input:** the first note sounds as always; holding another one with it starts the arpeggio of the held notes, one a step (stopped: at the project's tempo and the track's sync rate), until all are let go. **With Record the chord is recorded**: the sequence plays the arpeggio afterwards.
-- **Beta 3.12 only — pressed order:** the notes go in the order they were pressed, not by pitch (the orders walk that order); a note let go leaves its place empty (skipped) and the next one takes the first free place. **Random-mutate:** the level of the chord's step applies to each note of the arpeggio; live, that of the step the track is on.
+- **Beta 3.14 only — pressed order:** the notes go in the order they were pressed, not by pitch (the orders walk that order); a note let go leaves its place empty (skipped) and the next one takes the first free place. **Random-mutate:** the level of the chord's step applies to each note of the arpeggio; live, that of the step the track is on.
 - **Since RC2.04:** a note or chord held longer than 16 steps while recording goes on, tied, 16 steps later (the stock cut it at step 16).
 - Saved with the project, per track and pattern.
 - **Shift + pads 17-24** = the arpeggio's own resolution (1/4 … 1/32T, in the sync rate's order; the same pad again = the track's). Each note of the chord lasts its own gate.
@@ -807,6 +807,16 @@ sec("matriz-mod", "Mod matrix of the own synth (since RC2.02)",
 - **Saved with the own-synth patches** (A14); not with the project nor across a power-down. No CC / NRPN. Some 100-250 updates a second, shared by what moves on the track.
 """, [])
 
+sec("fm4", "4-operator FM (Beta 3.14 only)",
+    ["**Beta 3.14 only.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.",
+     "**K1-K4** = the ratio of operators 1-4, **K5-K8** = their level; **Shift + K1-K4** = their attack, **Shift + K5** = the **algorithm** (16), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity)."],
+    """
+- **A/R envelopes with a fixed sustain:** the sustained operators stay up while the note is held; the percussive ones (by the algorithm) fall with the release even while it is held.
+- **16 algorithms:** 8 classic (stack, branches, two stacks, organ…), 4 percussive (kick and snare with a pitch drop, inharmonic metal / hi-hat, tom / zap), 2 bells (inharmonic ratios) and 2 strings (detuned carriers). The LED of Shift + K5 in the family's colour.
+- **White noise** with one operator's envelope, in any algorithm. The note, TUNE / FINE, the pitch envelope and the vibrato of the oscillator, the VCA-VCF, the effect and the matrix still apply.
+- **Clear + knob** = its initial value; **Clear + pad 7** = all of them. Saved with the own-synth patches (A14). No CC / NRPN.
+""")
+
 sec("master-fx-beta", "Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session",
     ["**Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**."],
     """
@@ -843,7 +853,7 @@ sec("vca-vcf", "VCA-VCF of the MIDI tracks",
 sec("osciladores", "Oscillators and paraphony",
     ["Continuous morph sine → triangle → saw → square, wavefold / slope / width, second oscillator with FM, ring, soft sync and bitwise modes; two paraphonic notes."],
     """
-- **OSC 1:** WAVE is a continuous morph (0 sine, 42 triangle, 84 saw, 126 square); SHAPE (centre = the pure wave): on the sine and the triangle, right of centre it folds them (wavefold, up to x8; left of centre nothing); on the saw it bends the ramp (left: rises fast and flattens; right: starts flat and rises at the end; **Beta 3.12 only:** from a plain saw fully left to a **supersaw** of 7 saws fully right, and on the triangle, left of centre, **exponential ramps**); on the square it changes the pulse width (centre 50 %, towards either end a narrow pulse, 3 % to 97 %). With WAVE between two waves it acts on both. Envelope and LFO move pitch, shape and morph.
+- **OSC 1:** WAVE is a continuous morph (0 sine, 42 triangle, 84 saw, 126 square); SHAPE (centre = the pure wave): on the sine and the triangle, right of centre it folds them (wavefold, up to x8; left of centre nothing); on the saw it bends the ramp (left: rises fast and flattens; right: starts flat and rises at the end; **Beta 3.14 only:** from a plain saw fully left to a **supersaw** of 7 saws fully right, and on the triangle, left of centre, **exponential ramps**); on the square it changes the pulse width (centre 50 %, towards either end a narrow pulse, 3 % to 97 %). With WAVE between two waves it acts on both. Envelope and LFO move pitch, shape and morph.
 - **OSC 2 (pad 28):** its own TUNE / FINE / WAVE / SHAPE; MIX, FM (OSC 2 → OSC 1 phase), RING and BITSYNC (soft sync every N cycles, xor, or, nor, and, nand).
 - **Paraphony:** one note = unison; two = one per oscillator (**since RC2**: with one oscillator the last note has priority; releasing it goes back to the previous one).
 """)
@@ -873,8 +883,8 @@ sec("granular", "Granular synth",
 |---|---|---|
 | K1 | Pitch, ±24 semitones | Fine, ±1 semitone |
 | K2 | Position in the sample | Position spray |
-| K3 | Scan: centre = frozen, right moves forward, left backwards | Beta 3.12 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.04: probability of a reversed grain |
-| K4 | Grain size, 5-500 ms | Beta 3.12 only: stereo spread (each grain to one side; the track's pan sets the proportion). In RC2.04: pitch spray (±12 st) |
+| K3 | Scan: centre = frozen, right moves forward, left backwards | Beta 3.14 only: bipolar, left = probability of a reversed grain, right = pitch spray (±24 st). In RC2.05: probability of a reversed grain |
+| K4 | Grain size, 5-500 ms | Beta 3.14 only: stereo spread (each grain to one side; the track's pan sets the proportion). In RC2.05: pitch spray (±12 st) |
 | K5 | Density, 1-16 overlapping grains | Window: rectangular → triangular → percussive |
 | K6 | Length of the scan zone | Note mode: pitch / slicer / stretch (stretch since RC2) |
 | K7 | LFO → position | LFO → size |
@@ -937,18 +947,19 @@ sec("pack-interno", "The internal memory pack: read only",
 sec("instalar", "Installing and going back",
     ["`tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on."],
     """
-0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.04, RC2.04S (or the earlier RC2.02 / RC2.02S, RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.
+0. **Without building:** `tools/rc_uploader.html` patches the official firmware ([Novation download](https://components.novationmusic.com/api/v2/firmwares/168/file)) in the browser and sends it. Pick RC2.05, RC2.05S (or the earlier RC2.04 / RC2.04S, RC2.02 / RC2.02S, RC2.01 / RC2.01S, RC2 / RC2S, RC0.9 / RC0.9S) or “Official”.
 1. Open `tools/ct_uploader.html` in Chrome and connect the Circuit Tracks over USB.
 2. Pick the `.syx` from `firmware/<version>/`: the uploader checks its SHA-256.
 3. Send. Novation’s bootloader is not modified.
 - **Going back:** send another version or the official firmware. If the device does not start: hold **Scales + Preset + Note** at power-on (bootloader recovery mode).
 - The RC branch does not publish `.syx` files: they are generated with `tools/patch_official.py` from the official firmware.
+- **RC2.05** (files and marker `R205`) = RC2.04 + a fix: changing the custom scale with the transport running could hang the device (a note not on the keyboard wrote its pad's light out of place); now those notes light no pad.
 - **RC2.04** (files and marker `R204`) = RC2.02 + three fixes: the count-in follows the project's tempo (RC2.03, not published on its own); recorded notes of 16 steps or more are no longer cut to 16 steps (they stay tied until released, the arpeggiator's too); in the sample mode's sample picker, holding a sample and tapping steps = those steps' flip.
 - **RC2.02** (files and marker `R202`) = RC2.01 + everything marked **since RC2.02**: the mod matrix of the own synth, the split keyboard with any pair of note tracks and the LFO with a triangle by default and slewed sample & hold (what Beta 3.0 had).
 - **RC2.01** (files and marker `R201`) = RC2 + the captured sample before the master filter (the filter acts on it as it plays; the capture records the mix without the filter).
 - **RC2** (release candidate 2, marker `RC2`) = SC44 = RC0.9 + everything this manual marks **since RC2**: what betas 1.0-1.30 had (mechanical gesture and Glitch on pad 6, Digitise K3 / K4, Master FX per session, side-chain and compressor knobs, step frequency, dynamics and random-mutate, pattern chains and scenes, Nudge and play orders, own-synth patches, arpeggiators, rollers, custom scale, count-in, cue mode, side-chain from the note tracks, quantize, LFO shapes, sample mode…) and their fixes. Much of it is untested on the device: use it with a backup of the SD card.
 - **RC0.9** (tenth release candidate) = RC0.8 + the internal memory pack, read only for the mod; RC0.8 = RC0.7 + one fix (the pitch knobs of the step-drummer keep their value: since RC0 every turn wrote only its own delta); RC0.7 = RC0.6 + two fixes (the step-drummer, the FX sequencer and the stretch follow the pattern of their own track, not another one’s; the selector knob of the FX sequencer is slower); RC0.6 = RC0.5 + two fixes (the LFO of the Auto-Filter and of the Phaser starts when the effect comes on; the dim white of Clear no longer pulses); RC0.5 = RC0.4 + the captured sample in front of the Master FX effects; RC0.4 = RC0.3 + the fixes of SC38.2-SC38.6; RC0.3 = SC38, RC0.2 = SC37.5, RC0.1 = SC37.4, RC0 = SC36.2.
-- **Safer build:** RC2.04S (files `R204S`; before, RC2.02S, RC2.01S, RC2S) = RC2.04, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
+- **Safer build:** RC2.05S (files `R205S`; before, RC2.04S, RC2.02S, RC2.01S, RC2S) = RC2.05, but everything the mod would ask to write or delete on the card or in the internal memory is refused (the Save LED turns red): saving the capture with the project (A8), exchanges and copies of samples and patches between packs, the own-synth patches, saving the synth patch, copying projects and deleting packs do nothing; the original's saves (projects, patches, settings) work. The earlier ones: RC0.9S = RC0.9 without those features. **Back up the SD card before installing** any version.
 - New features and fixes of every version: `CHANGELOG.md`.
 """)
 
