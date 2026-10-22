@@ -1,5 +1,7 @@
 # CIRCUIT-HACKS
 
+Help me pay for tools and mantain the project: https://PayPal.me/ghillermo
+
 > 📢 **Ya está aquí RC2.06**: RC2.02 (todo lo de las betas hasta la 3.0: matriz de modulación del sinte propio de MIDI 1 / 2, teclado partido con cualquier par de pistas de notas, nuevas formas del LFO) + los arreglos de RC2.04 (la cuenta atrás al tempo del proyecto, las notas grabadas de más de 16 pasos sin cortar, sample mantenido + paso en el selector de samples), el de RC2.05 (cambiar la escala propia con el transporte en marcha ya no cuelga el aparato) y uno nuevo: dos pads de la misma nota mantenidos a la vez ya no dejan la nota colgada. Al lado, la **Beta 3.17** con las funciones nuevas sin probar (entre ellas, FM de 4 operadores en el sinte propio, el sinte propio guardado con cada proyecto y los knobs de otra pista en el teclado partido). **[Descarga el instalador](https://ghillermo.github.io/CIRCUITS-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades: [`CHANGELOG.md`](CHANGELOG.md).
 
 Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo.
