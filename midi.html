@@ -22,7 +22,7 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 </style></head><body>
-<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Referencia MIDI de las funciones nuevas</p><p>RC2.08</p><div class="bar"></div></header><main>
+<header class="cover"><h1>CIRCUIT-HACKS</h1><p>Referencia MIDI de las funciones nuevas</p><p>RC2.09</p><div class="bar"></div></header><main>
 <p class="lang"><a href="midi-en.html">English version</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>
 <p>Los CC / NRPN que añade el mod. Los parámetros del aparato original (sintes, drums, mixer, FX) siguen con los números de la <em>Programmer’s Reference Guide</em> de Novation. Todo respeta los filtros CC Tx / CC Rx de la vista Setup.</p>
 <section class="feat"><h3>Seleccionar un NRPN</h3><p>Manda <strong>CC 99</strong> (MSB), <strong>CC 98</strong> (LSB) y <strong>CC 6</strong> (valor), en ese orden. El aparato recuerda el NRPN elegido hasta el siguiente CC 99 / 98.</p></section>
@@ -55,26 +55,26 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>26</td><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2 (granular: LFO → tamaño)</td><td>CC 37</td><td>3 / K1</td></tr>
 <tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; Beta 3.21: estéreo)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; Beta 3.22: estéreo)</td><td>CC 30</td><td>3 / K7</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
 <tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2)</td></tr>
 <tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2)</td></tr>
 <tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)</td></tr>
-<tr><td>34</td><td>RING (granular: reverso; Beta 3.21: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
+<tr><td>34</td><td>RING (granular: reverso; Beta 3.22: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
 </tbody></table>
-<p><strong>Página 4</strong> (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. <em>Solo Beta 3.21:</em> los ocho destinos se eligen con Shift + knob.</p></section>
-<section class="feat"><h3>Drums</h3><p>Canal de drums (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = valor</strong>. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales. <em>Solo Beta 3.21:</em> con el <strong>modo General MIDI</strong> (vista Setup, K4) las notas de Drum 1-4 salen con la nota GM de cada uno (K5-K8, 35-81; de fábrica 36 / 38 / 42 / 46) en lugar de 60 / 62 / 64 / 65.</p>
+<p><strong>Página 4</strong> (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. <em>Solo Beta 3.22:</em> los ocho destinos se eligen con Shift + knob.</p></section>
+<section class="feat"><h3>Drums</h3><p>Canal de drums (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = valor</strong>. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales. <em>Solo Beta 3.22:</em> con el <strong>modo General MIDI</strong> (vista Setup, K4) las notas de Drum 1-4 salen con la nota GM de cada uno (K5-K8, 35-81; de fábrica 36 / 38 / 42 / 46) en lugar de 60 / 62 / 64 / 65.</p>
 <table><thead><tr><th>LSB</th><th>Parámetro</th><th>Valores</th></tr></thead><tbody>
 <tr><td>1</td><td>Envolvente → tono</td><td>0-127, 64 = 0</td></tr>
 <tr><td>2</td><td>Ring mod: frecuencia</td><td>0-127</td></tr>
-<tr><td>3</td><td>LFO: cantidad</td><td>0-127, 64 = 0</td></tr>
+<tr><td>3</td><td>LFO: cantidad (&gt; 64 trémolo; &lt; 64 vibrato, solo Beta 3.22: scan del inicio)</td><td>0-127, 64 = 0</td></tr>
 <tr><td>4</td><td>LFO: velocidad</td><td>0-127, 64 = centro</td></tr>
 <tr><td>5</td><td>Envolvente → corte</td><td>0-127, 64 = 0</td></tr>
 <tr><td>6</td><td>Resonancia</td><td>0-127</td></tr>
 <tr><td>7</td><td>Forma de la envolvente</td><td>0-127, 64 = centro</td></tr>
 <tr><td>8</td><td>Ring mod: cantidad</td><td>0-127</td></tr>
 <tr><td>9</td><td>Modo de filtro</td><td>0 EQ tilt de stock, 1 paso banda, 2 notch, 3 comb, 4 DJ</td></tr>
-<tr><td>10</td><td>Inicio del sample</td><td>RC2: 0-120 (/128); RC0.9: 0-15 (/64)</td></tr>
+<tr><td>10</td><td>Inicio del sample</td><td>0-120 (/128; desde RC2.09 todo el sample, antes el final llegaba en 32); RC0.9: 0-15 (/64)</td></tr>
 <tr><td>11</td><td>Bitcrush</td><td>0-15</td></tr>
 <tr><td>12</td><td>Tipo de distorsión</td><td>0 stock, 1 suave, 2 dura, 3 plegada</td></tr>
 <tr><td>13</td><td>Corte desde el final (desde RC2)</td><td>0-120 (/128)</td></tr>
@@ -88,5 +88,5 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>12-15</td><td>Phaser</td><td>velocidad, profundidad, realimentación, mezcla</td></tr>
 <tr><td>16-19</td><td>Glitch (RC0.9: Vinyl)</td><td>velocidad, repetición, retraso, caos / sobrecarga (RC0.9: crackle, siseo, tono, desgaste)</td></tr>
 </tbody></table></section>
-<section class="feat"><h3>Program Change</h3><p><strong>Proyecto:</strong> canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. <strong>Patch flip:</strong> cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26). <strong>Notas de entrada (desde RC2.08):</strong> las notas que llegan por el canal de MIDI 1 / 2 tocan su sinte propio y se graban; no se reenvían a la salida. <em>Solo Beta 3.21:</em> con la <strong>fusión USB</strong> (Advanced Setup, pad 23) todo lo que entra por el DIN In sale también por USB (sin su reloj con Clock Tx, sin SysEx).</p></section>
+<section class="feat"><h3>Program Change</h3><p><strong>Proyecto:</strong> canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. <strong>Patch flip:</strong> cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26). <strong>Notas de entrada (desde RC2.08):</strong> las notas que llegan por el canal de MIDI 1 / 2 tocan su sinte propio y se graban; no se reenvían a la salida. <em>Solo Beta 3.22:</em> con la <strong>fusión USB</strong> (Advanced Setup, pad 23) todo lo que entra por el DIN In sale también por USB (sin su reloj con Clock Tx, sin SysEx).</p></section>
 </main></body></html>
