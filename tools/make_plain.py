@@ -52,7 +52,9 @@ def write(lang):
     for n, s in secs:
         md += [f'<a id="{s["id"]}"></a>', f"## {n}. {s['title']}", "", s["body"], ""]
     md += ['<a id="edition"></a>', f"## {len(secs) + 1}. {T.CHANGES_TITLE}", "", T.CHANGES, ""]
-    (ROOT / U["md"]).write_text("\n".join(md), encoding="utf-8", newline="")
+    md = re.sub(r"\]\(((?:guia|guide|index|en|midi|midi-en|sencilla|plain)\.(?:html|pdf)(?:#[^)]*)?)\)", lambda m: "](" + M.PAGES + m.group(1) + ")",
+                "\n".join(md))                                                   # (the pages' sibling links: on Pages from the .md in docs/)
+    (ROOT / U["md"]).write_text(md, encoding="utf-8", newline="")
     # html
     h = [f'<!doctype html><html lang="{U["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(U["title"])}</title>',
          f"<style>{M.CSS}{PRINT_CSS}</style></head><body>",

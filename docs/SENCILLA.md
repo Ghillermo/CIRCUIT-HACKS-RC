@@ -1,6 +1,6 @@
 # Guía del mod del Circuit Tracks, en palabras sencillas
 
-Primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC2.01** y **RC2.01S**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](guia.html) y la [lista de características](index.html).
+Primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), a quien damos las gracias. Esta guía explica el mod CIRCUIT-HACKS en palabras sencillas, vista por vista, con dibujos del panel. Sigue la estructura y el estilo llano de la guía de la comunidad «Circuit Tracks mod manual, in plain English» de **[reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/)**, escrita para RC0.9 y Beta 1.3. Esta edición está reescrita para **RC2.01** y **RC2.01S**, conserva los nombres del manual del mod (captura, step-drummer, huecos…), corrige lo que aquella guía tenía mal o dejaba abierto y añade todas las funciones posteriores a Beta 1.3. Las referencias detalladas son la [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html) y la [lista de características](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html).
 
 Nada de esto está probado en un aparato real salvo que lo diga el [CHANGELOG](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md). El mod no tiene relación con Novation.
 
@@ -418,7 +418,7 @@ En la vista de packs (**Shift + Projects**) toca **Clear**: durante ~5 s parpade
 <a id="midiref"></a>
 ## 18. Referencia MIDI
 
-Todo lo nuevo sale y entra por CC / NRPN, según los filtros CC Tx / Rx del Setup. Tablas completas: la [referencia MIDI](midi.html).
+Todo lo nuevo sale y entra por CC / NRPN, según los filtros CC Tx / Rx del Setup. Tablas completas: la [referencia MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/midi.html).
 - **Drums** (canal de drums): NRPN MSB 5-8 = Drums 1-4; LSB 1 envolvente de tono, 2 frecuencia del ring, 3 LFO, 4 velocidad del LFO, 5 envolvente → corte, 6 resonancia, 7 forma de la envolvente, 8 cantidad del ring, 9 modo del filtro, 10 punto de inicio, 11 bitcrush, 12 tipo de distorsión; *(desde RC2)* 13 corte, 14 ataque.
 - **Master FX** (canal 16): NRPN MSB 9, LSB = 4 × efecto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12-15, Glitch 16-19 (en RC0.9, Vinyl).
 - **Motor de las pistas MIDI** (canal de la pista): filtro CC 74, resonancia 71, envolvente → filtro 79, ataque 73, decay 75, sustain 70, release 72, efecto 91, ganancia 59, afinación 26, fina 27, wave 20, shape 21, afinación 2 37, fina 2 39, wave 2 30, shape 2 31, mezcla 52, ring 54, velocidad del LFO NRPN 0:76; el resto NRPN MSB 4.
