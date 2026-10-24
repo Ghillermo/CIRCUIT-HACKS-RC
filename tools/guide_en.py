@@ -18,9 +18,9 @@ VIEWS = {
 - **Pads 1-32** from top-left to bottom-right: row 1 = 1-8, row 2 = 9-16, row 3 = 17-24, row 4 = 25-32.
 - **Knobs K1-K4** on top, **K5-K8** below. «**Shift + X**» = hold Shift while using X; the same with Clear and Duplicate.
 - Anything not described here works as on the original device (Novation's official manual).
-- {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2.06S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
+- {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC2.08S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
-- {XB} = only in **Beta 3.17**, the test build with the new features (not in RC2.06).
+- {XB} = only in **Beta 3.20**, the test build with the new features (not in RC2.08).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -56,6 +56,8 @@ VIEWS = {
 | **Pad 29 (PGM Rx)** {B} | First touch: pads 1-16 show the **listen channel** of the project's Program Changes (white); a pad picks it; again = on / off. |
 | **Pad 30 (PGM Tx)** {B} | The same with the **output channel**. Both are 16 by default. What arrives on the listen channel is sent again on the output one. |
 | **Record** {B} | Yellow = what a MIDI track sends to a synth over the shared channel is also recorded into that synth (scale or octave changes in real time). Off by default; off again after a restart. {XB}: while yellow, nothing is recorded into a note track muted in the Mixer: its steps sound and are recorded only into the synth on the shared channel (a chord bank). |
+| **K4** {XB} | **General MIDI** mode of the drums: to the right on (green), to the left off (dim): **turning it off closes the number** and the drums go out as on stock again. While on, every hit of Drum 1-4 goes out over MIDI with **its GM note** instead of the stock one (60 / 62 / 64 / 65), on the drums' channel (10 by default, the one you pick here). Inside the device it sounds the same. |
+| **K5-K8** {XB} | With the mode on, the GM note of Drum 1-4 (the knobs over the drum tracks; off, they do nothing): 35-81, two clicks a note; by default 36 kick, 38 snare, 42 closed hat, 46 open hat. **Every new note sounds** once on the drums' channel and **its number shows on the pads**, in the drum's colour; **Shift** or leaving Setup confirms it (saved in the settings) and the Setup pads come back. While the number shows, the Setup pads do nothing. LEDs: each drum's colour, brighter for a higher note (dark with the mode off). |
 
 - Patch flip always goes out on its MIDI track's channel.
 """),
@@ -75,6 +77,22 @@ VIEWS = {
 - any track button ({XB} a short tap, no knob turned) or view button closes it (held notes are released); Play, Record, Octave and Shift do not.
 - The macro knobs work as always; their destinations can be edited on the device (source view, pad 32).
 - **Velocity view, Shift + a step pad** {XB} (Synth 1 / 2 and MIDI 1 / 2): that step **lets go of the automation**: no lane plays there and the parameters the automation had moved go back to their knob's position (the one before the automation; turning the knob by hand changes it). Again = off. With Shift, in the Velocity view, the step pads are yellow and the marked ones red; on the 17-32 page, steps 17-32. Saved with the pattern.
+- **Chord screen** {XB} (Synth 1 / 2 and MIDI 1 / 2, only in the **expanded Note view**: Note twice): **Shift + pad 8** turns it on and off (with Shift pad 8 is yellow, green with the screen on).
+
+| Pads | What they do |
+|---|---|
+| Row 1 | The chord type: major, minor, 7, m7, maj7, sus4, dim, aug. **Shift + pads 1-7**: sus2, 6, m6, add9, 9, 7sus4, fifth (with Shift the row yellow; the chosen one white) |
+| Pads 9-12 | The inversion: root position, 1st, 2nd, 3rd (orange; the same again = root position) |
+| Pad 13 | Open voicing: the second note an octave up |
+| Pad 14 | The root added an octave down |
+| Pad 15 | Diatonic: the chord made of thirds of the project's scale (the custom one and Jankó too): 3 notes, 4 when the type has 4 or more |
+| Pad 16 | Latch: the chord keeps sounding after the pad is let go, until the next root (or until latch or the screen is turned off) |
+| Rows 3-4 | The roots: the same notes as the Note view's keyboard (scale, root, Octave, Jankó). While you hold the pad its chord sounds, up to 6 notes, with the pad's velocity |
+
+- Pads 13-16 green on, dim off.
+- What you play sounds and is recorded with Record as **plain notes of the pattern**: it plays back the same without the chord screen. With the **arpeggiator** on, the chord is arpeggiated from one finger.
+- Each track's type and modifiers are **not saved** (lost at power-off).
+- On MIDI 1 / 2 in the sample mode, the expanded Note view stays the sample picker.
 """),
 "escalas": ("Scales view and custom scale",
     "Press **Scales** as always (root and stock scale); **Shift + Scales** for the custom scale.", f"""
@@ -85,6 +103,7 @@ VIEWS = {
 - The custom scale also drives **which notes of the sequence light up**, the quantising and **random-mutate** (another note of the same iteration).
 - **Picking a stock scale** (pads 17-32 out of the editor) switches the custom scale off; the keys are kept: going back to the editor switches it on again. While it is on, no stock scale shows as selected.
 - Saved **with the project**; a new project starts without a custom scale.
+- **Jankó** {XB}: in the editor, **Shift + pad 8** (top right; yellow with Shift) turns on the **isomorphic Jankó layout** (pad 8 cyan while on): on the note tracks every row goes up a **semitone** and every column a **whole tone**, and the bottom-left pad is the Scales view's **root**. Every chord type has the same shape in any key (in the expanded Note view, with four rows, every triad and seventh chord fits). All 12 notes are there: the notes that sound light on their pads and random-mutate picks any of the 12 of its octave. **Octave ▼ / ▲ = a semitone** (Shift + Octave still transposes the pattern an octave). Shift + pad 8 again, a key of the editor or a stock scale turn it off. Saved with the project.
 """),
 "synth-fuente": ("Synth source view",
     "With the Synth 1 / 2 view on screen, **press its button again**. Any button closes it.", f"""
@@ -127,6 +146,7 @@ The step-drummer view is the MIDI tracks' one (3.5): pads 1-16 steps, 17-24 = **
 """),
 "midi-preset": ("MIDI 1 / 2 Preset view",
     "Press **MIDI 1** or **MIDI 2**, then **Preset**. Besides the stock templates, the track's own synth lives here.", f"""
+- **External keyboard** *(since RC2.08)*: notes coming in over MIDI (USB or DIN) on the channel of MIDI 1 / 2 **play its own synth** (before, they were only recorded); they are not sent again to the MIDI out.
 ### Pads
 | Pad | Function |
 |---|---|
@@ -150,7 +170,7 @@ The step-drummer view is the MIDI tracks' one (3.5): pads 1-16 steps, 17-24 = **
 - **Clear + the track button** {B} puts every engine value back to its default (the chosen engine stays).
 
 ### The engines (pad 27)
-- **Choosing the engine** {XB}: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (in RC2.06, every tap of pad 27).
+- **Choosing the engine** {XB}: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (in RC2.08, every tap of pad 27).
 - **Line input** (yellow): the track's audio input (line 1 on MIDI 1, line 2 on MIDI 2) goes through the VCA-VCF; the track's notes trigger it.
 - **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony (with one oscillator, {B}: the last note has priority and releasing it goes back to the previous one).
 - **VA-drum** (red): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
@@ -185,14 +205,14 @@ The step-drummer view is the MIDI tracks' one (3.5): pads 1-16 steps, 17-24 = **
 | K7 | WAVE (morph) | — |
 | K8 | LFO → morph | Envelope → morph |
 
-**What SHAPE does on each waveform** (K2; SHAPE 2 on OSC 2, the same). The knob's centre is the pure wave (on the saw *(Beta 3.17 only)*, fully left); the envelope (K4) and the LFO (K6) move SHAPE from the knob's position. With WAVE between two waves, SHAPE acts on both at once, each in its own way:
+**What SHAPE does on each waveform** (K2; SHAPE 2 on OSC 2, the same). The knob's centre is the pure wave (on the saw *(Beta 3.20 only)*, fully left); the envelope (K4) and the LFO (K6) move SHAPE from the knob's position. With WAVE between two waves, SHAPE acts on both at once, each in its own way:
 
 | Wave (WAVE) | SHAPE left of centre | Centre | SHAPE right of centre |
 |---|---|---|---|
 | Sine (0) | Nothing: the pure wave | Pure | **Wavefold**: the wave is amplified (up to about 8 times fully right) and folds back on itself: more harmonics the further right |
-| Triangle (42) | *(Beta 3.17 only)* **Exponential ramps**: sharp peaks and wide valleys, more harmonics the further left (in RC2.06, nothing) | Pure | **Wavefold**, as the sine |
-| Saw (84) | *(Beta 3.17 only)* The whole travel: fully left a plain saw; towards the right, a **supersaw** of 7 saws (the centre one and 6 detuned ones that get louder and spread apart; fully right, the full supersaw) | Half a supersaw | The full supersaw fully right |
-| Saw in RC2.06 | The ramp bends upwards (rises fast at first, then flattens) | Straight ramp | The ramp bends downwards (starts flat, rises at the end) |
+| Triangle (42) | *(Beta 3.20 only)* **Exponential ramps**: sharp peaks and wide valleys, more harmonics the further left (in RC2.08, nothing) | Pure | **Wavefold**, as the sine |
+| Saw (84) | *(Beta 3.20 only)* The whole travel: fully left a plain saw; towards the right, a **supersaw** of 7 saws (the centre one and 6 detuned ones that get louder and spread apart; fully right, the full supersaw) | Half a supersaw | The full supersaw fully right |
+| Saw in RC2.08 | The ramp bends upwards (rises fast at first, then flattens) | Straight ramp | The ramp bends downwards (starts flat, rises at the end) |
 | Square (126) | An ever narrower pulse (down to about 3 %) | Square (50 %) | An ever narrower pulse the other way (up to about 97 %; it sounds like the left one) |
 
 ### Page 2 — granular
@@ -200,8 +220,8 @@ The step-drummer view is the MIDI tracks' one (3.5): pads 1-16 steps, 17-24 = **
 |---|---|---|
 | K1 | Pitch ±24 st | Fine ±1 st |
 | K2 | Position in the sample | Position spread |
-| K3 | Scan (centre frozen) | {XB} **Bipolar**: to the left, the chance of a reversed grain (up to 100 %); to the right, the pitch spread (up to ±24 st). In RC2.06: reverse grain probability |
-| K4 | Grain size 5-500 ms | {XB} **Stereo spread** (see below). In RC2.06: pitch spread |
+| K3 | Scan (centre frozen) | {XB} **Bipolar**: to the left, the chance of a reversed grain (up to 100 %); to the right, the pitch spread (up to ±24 st). In RC2.08: reverse grain probability |
+| K4 | Grain size 5-500 ms | {XB} **Stereo spread** (see below). In RC2.08: pitch spread |
 | K5 | Density 1-16 grains | Window |
 | K6 | Scan zone | Note mode: pitch / slicer / stretch {B} |
 | K7 | LFO → position | LFO → size |
@@ -350,7 +370,7 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 - **One micro step per note (stock):** each note stores a single position, so touching another micro step moves the chosen note; two cannot be lit at once. For several in the same step, enter several notes. Drums can light several micro steps (repeats).
 - **Gate once** is the Gate view (pads 17-32 = the length): there pads 31 / 32 are the stock's.
 - **Pad 32 = gate by holding** {B} for the track (green = on, dim = off; saved with the project): when **entering notes by hand** (a step held + a note pad, or a note held + a step pad), **how long you hold the pad is the note's gate**, at the project's tempo and the track's sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock's gate.
-- **Pad 31 = fixed length** {B} for the track (orange = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate.
+- **Pad 31 = fixed length** {B} for the track (orange = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate, all of a chord's notes too, whichever pad you let go first (since RC2.08: before, only when the note pad was let go first).
 - **The two toggles** {B}: with one on, **pressing it again turns it off** (nothing opens); **pressing the other one** turns the first off and the new one on (pad 31 by opening its selector).
 - The arpeggiator uses those gates too: each note of the chord lasts its own.
 """),
@@ -495,8 +515,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Octave ▲ / ▼** | The knobs = delay / reverb sends. |
 | **Shift + knob** | Global parameters: reverb K1 type, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Saved with the project. |
 | **Duplicate** | Reset: sends to 0, master filter centred, Master FX off. |
-| **Shift + Octave ▲ / ▼** *(Beta 3.17 only)* | Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow). In RC2.06: **1-16 / 17-32** (green LED). |
-| **Shift + pad 25** *(Beta 3.17 only)* | Master filter off / on: while off, it sounds as with the filter at the centre even if you move its knob (the knob still changes its position); again, the filter comes back at the knob's current position. While off, the filter knob's LED is red; with Shift, pad 25 lights yellow (red while off). Without Shift, pad 25 is the stock one. |
+| **Shift + Octave ▲ / ▼** *(Beta 3.20 only)* | Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow). In RC2.08: **1-16 / 17-32** (green LED). |
+| **Shift + pad 25** *(Beta 3.20 only)* | Master filter off / on: while off, it sounds as with the filter at the centre even if you move its knob (the knob still changes its position); again, the filter comes back at the knob's current position. While off, the filter knob's LED is red; with Shift, pad 25 lights yellow (red while off). Without Shift, pad 25 is the stock one. |
 | Bottom row | The same as in Master FX: slots (26-30), mechanical gesture (31), record (32). |
 
 - If Setup routes the returns through strips 3 / 4, their sends are capped at half.
@@ -563,21 +583,21 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | New drum knobs (attack, start and cut included), synth source, reverb / delay, Master FX slots and knobs, compressor, chain mode and scenes, count-in, arpeggiator (with its resolution), custom scale, gate by holding, the own synth's gate retrigger and LFO shape {B} | The project |
 | Step-drummer notes, FX sequencer values, random-mutate, frequency, dynamics, chain rules, play order, the sample mode's sample flips {B} | The pattern |
 | Saved synth patches, own-synth patches (with their mod matrix {NB}), captures used as samples | The pack *(writes to the card)* |
-| MIDI track engine (state and values; {B}: also OSC 2, the Shift knobs of the granular and the oscillator and pads 28 / 29), MIDI Thru mode, PGM channels | Device settings |
+| MIDI track engine (state and values; {B}: also OSC 2, the Shift knobs of the granular and the oscillator and pads 28 / 29), MIDI Thru mode, PGM channels, {XB} the drums' GM mode and its notes | Device settings |
 | {XB} **The whole MIDI 1 / 2 own synth** (engine, values, matrix, page 4, FM): saving the project takes it along and loading it brings it back (an older project does not carry it: the sound stays as it was) | The project (in MIDI 1 / 2's patterns 1-5, without changing what they play) |
 | Latched effects, song pointer, Setup's Record toggle, presets and triggers of the side-chain between drums, the mod matrix outside a patch {NB} (off at power-up; {XB} it goes with the project) | Not saved |
 """),
 "midi": ("MIDI of the new features",
     "Everything new goes out and comes in over CC / NRPN, following the Setup's CC Tx / Rx filters.", """
 - **MIDI track engine** (the track's channel): Filter CC 74, Resonance 71, Env → filter 79, Attack 73, Decay 75, Sustain 70, Release 72, Effect 91, Gain 59, TUNE 26, FINE 27, WAVE 20, SHAPE 21, TUNE 2 37, FINE 2 39, WAVE 2 30, SHAPE 2 31, MIX 52, RING 54, LFO speed NRPN 0:76; the rest NRPN MSB 4 with LSB = code.
-- **Drums** (the drums channel): NRPN MSB 5-8 = Drum 1-4; LSB 1 pitch env., 2 ring (frequency), 3 LFO, 4 LFO speed, 5 env → cutoff, 6 resonance, 7 envelope shape, 8 ring (amount), 9 filter mode, 10 start, 11 bitcrush, 12 distortion type, 13 cut, 14 attack.
+- **Drums** (the drums channel): NRPN MSB 5-8 = Drum 1-4; LSB 1 pitch env., 2 ring (frequency), 3 LFO, 4 LFO speed, 5 env → cutoff, 6 resonance, 7 envelope shape, 8 ring (amount), 9 filter mode, 10 start, 11 bitcrush, 12 distortion type, 13 cut, 14 attack. {XB}: with the GM mode (Setup, K4) the notes of Drum 1-4 go out as the GM notes picked (K5-K8).
 - **Master FX** (channel 16): NRPN MSB 9, LSB = 4 × effect + knob.
 - Full tables: the MIDI reference (`docs/MIDI.en.md`).
 """),
 "instalar": ("Installing and going back",
     "`tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.", """
 1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
-2. Pick the version (RC2.06, the safer RC2.06S, Beta 3.17 with the new untested features, or an earlier one) and send. Novation's bootloader is not touched.
+2. Pick the version (RC2.08, the safer RC2.08S, Beta 3.20 with the new untested features, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
 """),
@@ -689,8 +709,8 @@ ABOUT = {
     "vista-fx": """
 - **The reverb and delay from the unit** — type, decay, time, feedback…, saved with the project.
 - **Quick reset** — Duplicate puts the sends and the effects back to zero.
-- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(Beta 3.17 only; in RC2.06, 1-16 / 17-32)*.
-- **Master filter off / on** — Shift + pad 25, keeping its position *(Beta 3.17 only)*.
+- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(Beta 3.20 only; in RC2.08, 1-16 / 17-32)*.
+- **Master filter off / on** — Shift + pad 25, keeping its position *(Beta 3.20 only)*.
 """,
     "sidechain": f"""
 - **Sidechain with knobs** {B} — attack, hold, decay and depth of each track's ducking, beyond the presets.

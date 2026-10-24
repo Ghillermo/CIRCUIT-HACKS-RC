@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, lsls_imm, lsrs_imm, mov_reg,  # noqa: E402
-                   movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, strb_imm, subs_imm8, subs_reg)
+                   movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, str_sp, strb_imm, subs_imm8, subs_reg)
 from build_sc14 import udiv  # noqa: E402
 
 ADDNOTE, ADD_OLD, ADD_BACK = 0x0804B094, bytes.fromhex("2de9f84f"), 0x0804B098       # push.w {r3-fp, lr}
@@ -71,6 +71,29 @@ def use_v3():
     gate by holding off); a length chosen = the fixed length on.  Pad 32: as before (on = the fixed length off).  No long press any more."""
     global V3
     V3 = True
+
+
+V4 = False                                                                              # SC46.1 / RC2.07 (use_v4)
+MS_DRAW = 0x0804CB30                                                                    # the Micro Step / Gate view's own redraw (view): its LED buffer
+STEP_VT, STEP_OBJ0, STEP_SZ = 0x0805ADB4, 0x20041EB0, 0x170                            # the step pads' objects (slot 1 = a step pad let go)
+VIEW0, VIEW_SZ = 0x200412E0, 0x2F4                                                      # the note tracks' views (0x0805A064)
+
+
+def use_v4():
+    """SC46.1 / RC2.07 (a fix; the user, 2026-10-24: «en la funcion de fixed length, cambiar el length no actualiza los leds ni cierra la vista.
+    ademas el length no se aplica a todos los pasos, especialmente el paso 1 o los pasos que han sido previamente escritos y borrados»):
+      * the Micro Step view's LED buffer ([[view + 4]]) is the stock's and is drawn only when the stock changes something (MS_DRAW, 0x0804CB30:
+        its constructor, its pad handler and its store listener); the selector writes over it, so once closed (a length chosen, pad 31 / 32, or
+        the view left) its pads stayed as they were: every press of ours now ends with MS_DRAW(view), and so does the LED task when it closes the
+        selector;
+      * the length was set when the first pad was let go, through the note tracks' views' slot 1, which only hears the note pads: the step pads
+        are objects of their own (0x0805ADB4); a step pad let go first (or a note held first and then a step) left the note at the stock's gate,
+        and of a chord only the last note got it.  Now the fixed length is set as each note is added: 0x0804B094 is run as a subroutine from its
+        head (c_sgadd) and the unit of that note in the held step's store gets 6 x the length (its tie kept), then the commit; the gate by
+        holding keeps the pending note, ended by the first pad let go, the step pads too (the head of their slot 1, c_sgsrel)."""
+    global V4
+    assert V3
+    V4 = True
 
 
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -181,7 +204,9 @@ def arm_code(base, prev):
     a.label("mp_t"); E(cmp_imm, 5, PAD_TOG); E(b_cond, "mp_s", "ne")
     E(mov_reg, 0, 4); E(bl, "c_sgtog"); E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq")
     E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(movs_imm, 2, 0x7F); E(raw, h(0x4010)); E(strb_imm, 0, 1, 2)   # the fixed length off
-    a.label("mp_c"); E(pop_list, [0, 1, 2, 4, 5, 6], pc=True)
+    a.label("mp_c")
+    if V4: E(ldr_sp, 0, 0); E(bl, MS_DRAW)                                                            # the stock's LEDs back under ours
+    E(pop_list, [0, 1, 2, 4, 5, 6], pc=True)
     a.label("mp_s"); E(raw, popw([0, 1, 2, 4, 5, 6], lr=True)); E(b_w, MS_PAD)
 
     # ---- c_sgmrel (the Micro Step view's slot 1: view, pad): pad 31 let go after a press while on: short = the selector, long = off
@@ -238,11 +263,39 @@ def arm_code(base, prev):
         E(raw, h(0xF890) + h(2 << 12 | 0x152))                                                          # ldrb.w r2, [r0, #0x152]
         E(cmp_reg, 1, 2); E(b_cond, "lt_z", "ne")
         E(ldr_imm, 2, 0, 0x6C); imm32(1, CONT); E(cmp_reg, 1, 2); E(b_cond, "lt_x", "eq")
-    a.label("lt_z"); E(movs_imm, 0, 0); E(strb_imm, 0, 4, 6)
+    a.label("lt_z")
+    if V4:                                                                                              # its view redrawn by the stock
+        E(ldrb_imm, 0, 4, 6); E(subs_imm8, 0, 1); E(movs_imm, 1, MS_SZ); E(muls, 0, 1); imm32(1, MS_OBJ0); E(adds_reg, 0, 0, 1); E(bl, MS_DRAW)
+    E(movs_imm, 0, 0); E(strb_imm, 0, 4, 6)
     a.label("lt_x"); E(pop_list, [3, 4], pc=True)
 
+    if V4:
+        # ---- c_sgadd (0x0804B094's first 4 bytes: view, note, velocity): the fixed length (the gate by holding off): the stock's add as a
+        #      subroutine, then the unit of that note in the held step's store at 6 x the length (its tie kept) and the commit; else as before
+        a.label("c_sgadd")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        E(ldr_imm, 1, 0, 0x18); E(ldrb_imm, 4, 1, 0xC); E(cmp_imm, 4, 3); bcl("sv_x", "hi")                    # r4 = the track
+        E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); bcl("sv_x", "ne")                                # the gate by holding: as before
+        E(mov_reg, 0, 4); E(bl, "c_sgfget"); E(lsls_imm, 1, 0, 24); bcl("sv_x", "pl")
+        E(movs_imm, 1, 0x1F); E(raw, h(0x4008)); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 6, 0)           # ands r0, r1: r6 = the gate
+        E(ldr_sp, 5, 0); E(ldr_sp, 7, 4)                                                                    # r5 = the view, r7 = the note
+        E(ldr_sp, 0, 0); E(ldr_sp, 1, 4); E(ldr_sp, 2, 8); E(ldr_sp, 3, 12); E(bl, "sv_stock")               # the stock's add
+        E(str_sp, 0, 0)                                                                                     # (its r0 returned)
+        E(ldr_imm, 5, 5, 0x24)                                                                              # r5 = the held step's store
+        E(mov_reg, 0, 5); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 4, 0, 0)                         # r4 = the units' mask
+        E(movs_imm, 0, 0); E(str_sp, 0, 8)                                                                  # [sp + 8] = the unit
+        a.label("sv_u")
+        E(ldr_sp, 1, 8); E(movs_imm, 0, 1); E(raw, h(0x4088)); E(raw, h(0x4220)); E(b_cond, "sv_n", "eq")   # lsls r0, r1; tst r0, r4
+        E(mov_reg, 0, 5); E(adds_imm8, 1, 1); E(bl, PARAM_WPTR)
+        E(ldrb_imm, 1, 0, 0); E(cmp_reg, 1, 7); E(b_cond, "sv_n", "ne")
+        E(ldrb_imm, 1, 0, 1); E(movs_imm, 2, 0x80); E(raw, h(0x4011)); E(raw, h(0x4331)); E(strb_imm, 1, 0, 1)   # ands r1, r2; orrs r1, r6
+        a.label("sv_n"); E(ldr_sp, 1, 8); E(adds_imm8, 1, 1); E(str_sp, 1, 8); E(cmp_imm, 1, 6); E(b_cond, "sv_u", "lo")
+        E(mov_reg, 0, 5); E(bl, COMMIT)
+        E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(raw, h(0x4770))
+        a.label("sv_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b, "c_sgadd_old")
+        a.label("sv_stock"); E(raw, ADD_OLD); E(b_w, ADD_BACK)                                               # 0x0804B094 called: returns here
     # ---- c_sgadd (0x0804B094's first 4 bytes: view, note, velocity): the note and the time
-    a.label("c_sgadd")
+    a.label("c_sgadd_old" if V4 else "c_sgadd")
     E(raw, pushw([0, 1, 2, 3], lr=True))
     E(ldr_imm, 1, 0, 0x18); E(ldrb_imm, 0, 1, 0xC); E(cmp_imm, 0, 3); E(b_cond, "sa_x", "hi")
     E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "sa_p", "ne")
@@ -255,7 +308,16 @@ def arm_code(base, prev):
     E(raw, ADD_OLD); E(b_w, ADD_BACK)
 
     # ---- c_sgrel (the views' slot 1: view, pad): a pending note with a step still held: its gate = the time held
-    a.label("c_sgrel")
+    if V4:
+        # ---- c_sgrel (the views' slot 1: view, pad) / c_sgsrel (the step pads' slot 1: obj, ...): c_sgend(view), then the slot as before
+        a.label("c_sgrel")
+        E(push_list, [0, 1, 2, 3], lr=True); E(bl, "c_sgend"); E(pop_list, [0, 1, 2, 3]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, REL_STOCK)
+        a.label("c_sgsrel")
+        E(push_list, [0, 1, 2, 3], lr=True)
+        imm32(1, STEP_OBJ0); E(subs_reg, 0, 0, 1); E(b_cond, "ss_s", "lo"); imm32(1, STEP_SZ); E(raw, udiv(0, 0, 1)); E(cmp_imm, 0, 3); E(b_cond, "ss_s", "hi")
+        imm32(1, VIEW_SZ); E(muls, 0, 1); imm32(1, VIEW0); E(adds_reg, 0, 0, 1); E(bl, "c_sgend")
+        a.label("ss_s"); E(pop_list, [0, 1, 2, 3]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, prev["srel"])
+    a.label("c_sgend" if V4 else "c_sgrel")
     E(push_list, [0, 1, 4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0)
     E(bl, "c_sgslot"); E(cmp_imm, 0, 0); bcl("sr_s", "eq"); E(mov_reg, 5, 0); E(mov_reg, 7, 1)   # r5 = the slot, r7 = the track
@@ -292,8 +354,10 @@ def arm_code(base, prev):
     a.label("sr_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 6); E(b_cond, "sr_u", "lo")
     E(ldr_imm, 0, 4, 0x24); E(bl, COMMIT)
     a.label("sr_s")
-    E(pop_list, [0, 1, 4, 5, 6, 7]); E(raw, h(0xF85D) + h(0xEB04))                                    # pop {lr}
-    E(b_w, REL_STOCK)
+    if V4: E(pop_list, [0, 1, 4, 5, 6, 7], pc=True)
+    else:
+        E(pop_list, [0, 1, 4, 5, 6, 7]); E(raw, h(0xF85D) + h(0xEB04))                                # pop {lr}
+        E(b_w, REL_STOCK)
 
     # ---- c_sgnote(r2 = the view) -> r2 = the pending note of its track (read before the slot was freed: the byte stays); clobbers r3
     a.label("c_sgnote")
@@ -315,6 +379,7 @@ def install(img, report, base_addr):
     import packio as PK, fxdiag as FD
     from thumb import bl as bl_enc
     prev = dict(rel=REL_STOCK, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
+    if V4: prev["srel"] = u(STEP_VT + 4) & ~1
     code, labels = arm_code(base_addr, prev)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
@@ -325,6 +390,7 @@ def install(img, report, base_addr):
     struct.pack_into("<I", img, MS_VT - BASE, labels["c_sgmpad"] | 1)
     struct.pack_into("<I", img, MS_VT + 4 - BASE, labels["c_sgmrel"] | 1)
     struct.pack_into("<I", img, MS_VT + 28 - BASE, labels["c_sgmled"] | 1)
+    if V4: struct.pack_into("<I", img, STEP_VT + 4 - BASE, labels["c_sgsrel"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)
         img[c - BASE:c - BASE + 4] = bl_enc(c, labels["c_sgledtask"])

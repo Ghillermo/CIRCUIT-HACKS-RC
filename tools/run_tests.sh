@@ -774,3 +774,15 @@ run python3 tools/emu_p4ovl.py firmware/sc45.9/circuittracks-4486-SC45.9.bin fir
 run python3 tools/emu_p4ovl.py firmware/b3.16/circuittracks-4486-B3.16.bin firmware/b3.16/manifest.json
 run python3 tools/emu_projsyn.py firmware/sc46/circuittracks-4486-SC46.bin firmware/sc46/manifest.json
 run python3 tools/emu_projsyn.py firmware/b3.17/circuittracks-4486-B3.17.bin firmware/b3.17/manifest.json
+run python3 tools/emu_sc46_1.py firmware/sc46.1/circuittracks-4486-SC46.1.bin firmware/sc46.1/manifest.json
+run python3 tools/emu_sc46_1.py firmware/b3.18/circuittracks-4486-B3.18.bin firmware/b3.18/manifest.json
+run python3 tools/emu_sc46_1.py firmware/r207/circuittracks-4486-R207.bin firmware/r207/manifest.json
+run python3 tools/emu_sc46_1.py firmware/r207s/circuittracks-4486-R207S.bin firmware/r207s/manifest.json
+run python3 tools/emu_shsync.py firmware/sc46.1/circuittracks-4486-SC46.1.bin firmware/sc46.1/manifest.json firmware/sc46/circuittracks-4486-SC46.bin firmware/sc46/manifest.json
+run python3 tools/emu_gmdrum.py firmware/sc46.2/circuittracks-4486-SC46.2.bin firmware/sc46.2/manifest.json firmware/sc46.1/circuittracks-4486-SC46.1.bin firmware/sc46.1/manifest.json
+run python3 tools/emu_gmdrum.py firmware/b3.19/circuittracks-4486-B3.19.bin firmware/b3.19/manifest.json
+run python3 tools/emu_sc46_3.py firmware/sc46.3/circuittracks-4486-SC46.3.bin firmware/sc46.3/manifest.json firmware/sc46.2/circuittracks-4486-SC46.2.bin firmware/sc46.2/manifest.json
+run python3 tools/emu_sc46_3.py firmware/b3.20/circuittracks-4486-B3.20.bin firmware/b3.20/manifest.json
+run python3 tools/emu_kbin.py firmware/r208/circuittracks-4486-R208.bin firmware/r208/manifest.json firmware/r207/circuittracks-4486-R207.bin firmware/r207/manifest.json
+run python3 tools/emu_kbin.py firmware/r208s/circuittracks-4486-R208S.bin firmware/r208s/manifest.json firmware/r207s/circuittracks-4486-R207S.bin firmware/r207s/manifest.json
+run python3 tools/emu_kbin.py firmware/sc46.3/circuittracks-4486-SC46.3.bin firmware/sc46.3/manifest.json

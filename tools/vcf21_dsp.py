@@ -120,6 +120,18 @@ def use_lfosync():
     LFOSYNC = True
 
 
+SHSYNC = False                                  # SC46.1 (use_shsync)
+
+
+def use_shsync():
+    """SC46.1 (a fix of the beta; the user, 2026-10-24: «lfo s&h (random) no funciona»): the sample & hold shapes (5, and 6 slewed) take a new
+    value when the phase wraps, seen as p < 0 and p - inc < -1; with the LFO synced (the left half of LRATE, lfosync.py) and the transport running
+    the ARM sets the phase to exactly -1 ($800000) at every cycle's start, so p - inc = -1 and the value never changed.  Now p - inc <= -1."""
+    global SHSYNC
+    assert LFOSYNC
+    SHSYNC = True
+
+
 SUPERSAW = False                                # SC45.5 (use_supersaw)
 SS_PH, SS_D, SS_W = 28, 35, 42                  # (SUPERSAW) words of each oscillator block: the six side phases (+28..+33), the detune steps D, 3 D, 6 D (+35..+37),
                                                 # the side saws' weight (+42; OSC1: the sampler's words are +40, +41, +44..+47; OSC2: +40 is lfosync's)
@@ -388,13 +400,13 @@ def code(base, tabs, premix, ret_old):
             L(p + "l4"); e("move a1,x0", "abs a", "move #>$7fffff,b", "sub a,b", "move b1,y0", "mpy y0,x0,a", "asl #2,a,a"); a.emit(J("al"), p + "lw")   # sine
             L(p + "l5")                                                           # sample & hold: a new value when the phase wraps (p < 0 and p - inc < -1)
             e("tst a"); a.emit(J("ge"), p + "le")
-            e("sub x0,a", "cmp #>$800000,a"); a.emit(J("ge"), p + "le")
+            e("sub x0,a", "cmp #>$800000,a"); a.emit(J("gt" if SHSYNC else "ge"), p + "le")
             e("move x:(r7+3),x0", "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)", "move b1,a")
             a.emit(J("al"), p + "lw")
             if LS_SLEW:
                 L(p + "l6")                                                       # slewed sample & hold: y1 = p; at a wrap prev = the old value, a new one
                 e("move a,y1", "tst a"); a.emit(J("ge"), p + "l6v")
-                e("sub x0,a", "cmp #>$800000,a"); a.emit(J("ge"), p + "l6v")
+                e("sub x0,a", "cmp #>$800000,a"); a.emit(J("gt" if SHSYNC else "ge"), p + "l6v")
                 e("move x:(r7+3),x0", "move x0,x:(r7+%d)" % (SL_PREV - DFLAGS_OFF), "move #>$%x,y0" % LCG_K, "mpy y0,x0,a", "asr a", "move a0,b", "add #>$%x,b" % LCG_C, "move b1,x:(r7+3)")
                 L(p + "l6v")                                                      # LV = prev + (new - prev) x (p + 1) / 2 (the halves keep it in range)
                 e("move y1,a", "asr a", "add #>$400000,a", "move a1,x0")

@@ -28,7 +28,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version RC0.5
 | Sending a `.syx` to the device | Only Chrome or Edge and `tools/ct_uploader.html`, on any system |
 | Building and testing | Linux, macOS or **WSL2** on Windows, with Python 3.10+, git, cmake ≥ 3.20, a C++17 compiler (g++ or clang) and ~1 GB free |
 
-On Windows: do all the building and testing inside WSL2 (Ubuntu). Open the uploader in Windows Chrome (`\\wsl$\Ubuntu\home\<you>\CIRCUITS-HACKS-RC\tools\ct_uploader.html`, or copy the file).
+On Windows: do all the building and testing inside WSL2 (Ubuntu). Open the uploader in Windows Chrome (`\\wsl$\Ubuntu\home\<you>\CIRCUIT-HACKS-RC\tools\ct_uploader.html`, or copy the file).
 
 ### Windows without WSL2 (virtualisation disabled in the BIOS)
 With WinLibs installed (step 1), `python tools/setup_dev.py` does steps 2-6 by itself. What it does:
@@ -46,8 +46,8 @@ Tested on Windows 10 with Git Bash and Python 3.14; the builds come out identica
 
 ## 2. Clone and install
 ```bash
-git clone https://github.com/Ghillermo/CIRCUITS-HACKS-RC.git
-cd CIRCUITS-HACKS-RC
+git clone https://github.com/Ghillermo/CIRCUIT-HACKS-RC.git
+cd CIRCUIT-HACKS-RC
 python tools/setup_dev.py                   # 10–20 min the first time (or: bash tools/setup_local.sh)
 ```
 `setup_dev.py` downloads every dependency from its original source (list, versions and licences in [`DEPENDENCIAS.md`](DEPENDENCIAS.md)) and creates `ext/`, `stock/` and `re/`, which git ignores. `--check` only reports; `--no-dsptool` skips the DSP emulator; `--official FILE` uses your copy of the official firmware instead of downloading it. On Windows without WSL it also applies `tools/dsptool/dsp56300-mingw.patch` (the fixes of step 4 above) and builds with MinGW:

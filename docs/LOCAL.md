@@ -10,7 +10,7 @@ La rama **RC** no incluye código ni binarios de Novation. Para obtener un `.syx
 
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R206
+python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R208
 ```
 
 - Comprueba que el fichero es el oficial (SHA-256 de `stock/SHA256SUMS.txt`) y lo guarda en `stock/`.
@@ -20,7 +20,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R206
 - No hace falta compilar nada: el ensamblado del DSP sale de la caché `tools/dsp_asm_cache.json`.
 - Envía el `.syx` con `tools/ct_uploader.html`.
 
-**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R206S`. La beta (funciones nuevas sin probar): `--version B3.17`.
+**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R208S`. La beta (funciones nuevas sin probar): `--version B3.20`.
 
 ## 1. Requisitos
 | Para | Necesitas |
@@ -46,8 +46,8 @@ Probado en Windows 10 con Git Bash y Python 3.14; los 24 builds salen idénticos
 
 ## 2. Clonar e instalar
 ```bash
-git clone https://github.com/Ghillermo/CIRCUITS-HACKS-RC.git
-cd CIRCUITS-HACKS-RC
+git clone https://github.com/Ghillermo/CIRCUIT-HACKS-RC.git
+cd CIRCUIT-HACKS-RC
 python tools/setup_dev.py                   # 10–20 min la primera vez (o: bash tools/setup_local.sh)
 ```
 `setup_dev.py` descarga cada dependencia de su fuente original (lista, versiones y licencias en [`DEPENDENCIAS.md`](DEPENDENCIAS.md)) y crea `ext/`, `stock/` y `re/`, que git ignora. `--check` solo informa; `--no-dsptool` omite el emulador del DSP; `--official FICHERO` usa tu copia del firmware oficial en vez de descargarlo. En Windows sin WSL aplica también `tools/dsptool/dsp56300-mingw.patch` (los arreglos del paso 4 de abajo) y compila con MinGW:

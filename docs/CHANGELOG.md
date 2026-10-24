@@ -2,7 +2,22 @@
 
 *English version below: [Changelog](#changelog).*
 
-Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](docs/NOTAS.md).
+Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](NOTAS.md).
+
+## Beta 3.20 — 2026-10-24
+
+**Beta 3.20** (marca `B3.20`; = SC46.3) = RC2.08 + lo de la Beta 3.17 + lo siguiente, sin probar en el aparato (reúne las Betas 3.18 y 3.19, que no se publicaron):
+- **Modo General MIDI de los drums** (vista Setup): **K4** lo enciende (a la derecha, verde) y lo apaga (a la izquierda); **K5-K8**, los knobs sobre las pistas de drums, eligen la nota GM de Drum 1-4 (35-81; de fábrica 36 bombo, 38 caja, 42 y 46 charles). Encendido, cada golpe de Drum 1-4 sale por MIDI con su nota GM en lugar de 60 / 62 / 64 / 65, por el canal de drums del Setup (10 de fábrica). Cada nota nueva suena una vez y su número se ve en los pads; **Shift** o salir de Setup lo confirma; apagar K4 cierra el número y los drums vuelven a salir como en stock. Se guarda en los ajustes del aparato.
+- **Disposición isomórfica Jankó** (un caso de la escala propia): en el editor (Shift + Scales), **Shift + pad 8** la enciende. Cada fila sube un semitono y cada columna un tono desde la tónica de stock: cada tipo de acorde tiene la misma forma en cualquier tono. **Octave = medio tono**. Se guarda con el proyecto.
+- **Pantalla de acordes** (Note ampliada de Synth 1 / 2 y MIDI 1 / 2, **Shift + pad 8**): fila 1 el tipo (mayor, menor, 7, m7, maj7, sus4, dim, aum; con Shift sus2, 6, m6, add9, 9, 7sus4, quinta), fila 2 la inversión, voicing abierto, la fundamental una octava abajo, diatónico y latch; las filas 3-4 son las fundamentales y tocan su acorde mientras se mantienen. Se graba como notas normales del patrón; el arpegiador arpegia el acorde. El tipo no se guarda.
+- **Arreglo (solo beta):** el sample & hold del LFO a tempo (motor del sinte propio y LFO 2 de la matriz) no cambiaba de valor con el transporte en marcha.
+- Los arreglos de RC2.08.
+
+## RC2.08 / RC2.08S — 2026-10-24
+
+**RC2.08** (ficheros y marca `R208`; = RC2.06 + dos arreglos; RC2.07 no se publicó aparte) / **RC2.08S** (`R208S`; sin escrituras propias en la SD, como RC2.06S). Los mismos arreglos van en la Beta 3.20.
+- **Longitud fija** (vista Micro Step, pad 31): elegir una longitud no redibujaba la vista (los pads se quedaban con las luces del selector) y la longitud no llegaba a todas las notas (al soltar antes el paso que la nota, en el paso 1 o en pasos borrados, y en los acordes solo a la última). Ahora la vista se redibuja y la longitud se pone en cada nota al introducirla.
+- **Teclado externo:** las notas que entran por MIDI (USB o DIN) en el canal de MIDI 1 / 2 se grababan pero no tocaban su sinte propio (el original no reenvía esas notas, y el motor las coge en la salida). Ahora lo tocan; siguen sin reenviarse a la salida MIDI.
 
 ## Beta 3.17 — 2026-10-21
 
@@ -459,7 +474,22 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="changelog"></a>
 # Changelog — CIRCUIT-HACKS
 
-New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUITS-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](docs/NOTAS.md) (Spanish).
+New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](NOTAS.md) (Spanish).
+
+## Beta 3.20 — 2026-10-24
+
+**Beta 3.20** (marker `B3.20`; = SC46.3) = RC2.08 + what Beta 3.17 has + the following, not yet tested on the device (it gathers Betas 3.18 and 3.19, which were not published):
+- **General MIDI mode of the drums** (Setup view): **K4** turns it on (to the right, green) and off (to the left); **K5-K8**, the knobs over the drum tracks, pick the GM note of Drum 1-4 (35-81; by default 36 kick, 38 snare, 42 and 46 hats). While on, every hit of Drum 1-4 goes out over MIDI with its GM note instead of 60 / 62 / 64 / 65, on the Setup's drums channel (10 by default). Every new note sounds once and its number shows on the pads; **Shift** or leaving Setup confirms it; turning K4 off closes the number and the drums go out as on stock again. Saved in the device settings.
+- **Isomorphic Jankó layout** (a case of the custom scale): in the editor (Shift + Scales), **Shift + pad 8** turns it on. Every row goes up a semitone and every column a whole tone from the stock root: every chord type has the same shape in any key. **Octave = a semitone**. Saved with the project.
+- **Chord screen** (expanded Note view of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8**): row 1 the type (major, minor, 7, m7, maj7, sus4, dim, aug; with Shift sus2, 6, m6, add9, 9, 7sus4, fifth), row 2 the inversion, open voicing, the root an octave down, diatonic and latch; rows 3-4 are the roots and play their chord while held. Recorded as plain notes of the pattern; the arpeggiator arpeggiates the chord. The type is not saved.
+- **Fix (beta only):** the sample & hold of the synced LFO (the own synth's engine and the mod matrix's LFO 2) never changed value with the transport running.
+- RC2.08's fixes.
+
+## RC2.08 / RC2.08S — 2026-10-24
+
+**RC2.08** (files and marker `R208`; = RC2.06 + two fixes; RC2.07 was not published on its own) / **RC2.08S** (`R208S`; no writes of its own to the SD card, as RC2.06S). Beta 3.20 has the same fixes.
+- **Fixed length** (Micro Step view, pad 31): picking a length did not redraw the view (the pads kept the selector's lights) and the length did not reach every note (with the step let go before the note, on step 1 or on cleared steps, and in chords only the last note got it). Now the view is redrawn and the length goes to every note as it is entered.
+- **External keyboard:** notes coming in over MIDI (USB or DIN) on the channel of MIDI 1 / 2 were recorded but did not play its own synth (the original does not send those notes on, and the engine takes its notes at the output). Now they play it; they are still not sent again to the MIDI out.
 
 ## Beta 3.17 — 2026-10-21
 

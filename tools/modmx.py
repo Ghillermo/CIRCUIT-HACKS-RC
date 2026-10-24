@@ -72,6 +72,19 @@ SYNC = False                          # SC44.8 (use_sync)
 SYNC_RAM = MXR + 0x100                # (SYNC) the last sequencer tick seen by each track's LFO 2 (u32 x 2)
 
 
+SHSYNC = False                        # SC46.1 (use_shsync)
+
+
+def use_shsync():
+    """SC46.1 (a fix of the beta; «lfo s&h (random) no funciona»): LFO 2's sample & hold takes a new value when its 16-bit phase overflows; synced
+    (the lower half of each shape's zone), c_mxsync sets the phase on every new sequencer tick and the cycle's start (the phase back to 0) never
+    overflowed: the value stayed.  Now a new tick that sets the phase more than half a cycle back stores it less the advance about to be added, so
+    the add overflows (a new value) and lands on it."""
+    global SHSYNC
+    assert SYNC
+    SHSYNC = True
+
+
 def use_sync():
     """SC44.8 (lfosync.py; the user, 2026-10-19: «en los lfo rate, hazlo bipolar … derecha libre, izquierda a tempo con sync en beat 1»; the LFO 2
     of the matrix «por forma»): in each shape's zone of 32 (Shift + K4), the lower half 0..15 = synced to the tempo, the division
@@ -279,7 +292,11 @@ def arm_code(base, L, prev):
         imm32(0, LF.ENG + 0x90); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); E(bl, LF.PARAM_GET); E(ldr_imm, 0, 0, 0)          # r0 = the tick
         imm32(1, SYNC_RAM); E(lsls_imm, 2, 7, 2); E(adds_reg, 1, 1, 2); E(ldr_imm, 2, 1, 0); E(cmp_reg, 2, 0); E(b_cond, "sy_x", "eq"); E(str_imm, 0, 1, 0)
         imm32(1, T["ldiv"]); E(adds_reg, 1, 1, 5); E(ldr_imm, 1, 1, 0)
-        E(raw, udiv(2, 0, 1)); E(muls, 2, 1); E(subs_reg, 0, 0, 2); E(lsls_imm, 0, 0, 16); E(raw, udiv(0, 0, 1)); E(strh_imm, 0, 4, B_PH)
+        E(raw, udiv(2, 0, 1)); E(muls, 2, 1); E(subs_reg, 0, 0, 2); E(lsls_imm, 0, 0, 16); E(raw, udiv(0, 0, 1))
+        if SHSYNC:                                                                      # the cycle's start (more than half a cycle back): an overflow to come
+            E(ldrh_imm, 2, 4, B_PH); E(subs_reg, 2, 2, 0); E(b_cond, "sy_w", "mi"); E(lsrs_imm, 3, 2, 15); E(b_cond, "sy_w", "eq"); E(subs_reg, 0, 0, 6)
+            a.label("sy_w")
+        E(strh_imm, 0, 4, B_PH)
         a.label("sy_x"); E(mov_reg, 1, 6); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_mxupd(r0 = track, r1 = now): the sources every UPD_MS; one changed destination marked (round robin)
