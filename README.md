@@ -1,6 +1,9 @@
 # CIRCUIT-HACKS
 
 Help me pay for tools and mantain the project: https://PayPal.me/ghillermo
+Contributors:
+https://www.reddit.com/user/No_Grand_9136/
+
 
 > 📢 **Ya están aquí RC2.08 y la Beta 3.21.** RC2.08 = RC2.06 + dos arreglos (la longitud fija de la vista Micro Step; un teclado externo toca el sinte propio de MIDI 1 / 2). La Beta 3.21 añade, sin probar en el aparato, el modo General MIDI de los drums, la disposición isomórfica Jankó, la pantalla de acordes y el DIN In mezclado en la salida USB. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md).
 
