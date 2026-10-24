@@ -4,6 +4,11 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](NOTAS.md).
 
+## Beta 3.21 — 2026-10-24
+
+**Beta 3.21** (marca `B3.21`; = SC46.4) = la Beta 3.20 + lo siguiente, sin probar en el aparato:
+- **Fusión USB** (petición del issue #10): en Advanced Setup, el **pad 23** hace que lo que entra por el **DIN In** (un teclado conectado con cable MIDI) salga también por **USB** hacia el ordenador, junto al MIDI del propio aparato. Verde encendida; se guarda en los ajustes. Con Clock Tx encendido no se copian el reloj ni el transporte del DIN In; el SysEx no se copia; lo que entra por USB no se reenvía.
+
 ## Beta 3.20 — 2026-10-24
 
 **Beta 3.20** (marca `B3.20`; = SC46.3) = RC2.08 + lo de la Beta 3.17 + lo siguiente, sin probar en el aparato (reúne las Betas 3.18 y 3.19, que no se publicaron):
@@ -475,6 +480,11 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](NOTAS.md) (Spanish).
+
+## Beta 3.21 — 2026-10-24
+
+**Beta 3.21** (marker `B3.21`; = SC46.4) = Beta 3.20 + the following, not yet tested on the device:
+- **USB merge** (the request of issue #10): in Advanced Setup, **pad 23** makes what comes in on the **DIN In** (a keyboard on a MIDI cable) also go out over **USB** to the computer, together with the device's own MIDI. Green on; saved in the settings. With Clock Tx on, the DIN In's clock and transport are not copied; SysEx is not copied; what comes in over USB is not sent on.
 
 ## Beta 3.20 — 2026-10-24
 

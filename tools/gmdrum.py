@@ -51,6 +51,13 @@ COL_ON, COL_OFF = 0x17, 0x02
 O_EDIT = 12
 PREVIEW_VEL = 100
 V2 = False                                               # SC46.3 (use_v2)
+V3 = False                                               # SC46.4 (use_v3)
+
+
+def use_v3():
+    """SC46.4: K4 changes only bit 0 of the flags byte (usbmerge keeps its bit 1 there)."""
+    global V3
+    V3 = True
 
 
 def use_v2():
@@ -187,6 +194,11 @@ def arm_code(base, prev, L, DC):
     a.label("gk_t")
     E(push_list, [1]); E(bl, "c_gmon_q"); E(pop_list, [1]); E(cmp_reg, 0, 1); E(b_cond, "gk_x", "eq")
     if V2: E(mov_reg, 4, 1)
+    if V3:                                                                                         # the other bits of the flags kept
+        E(push_list, [1]); E(bl, "c_gmsig"); E(pop_list, [1]); E(cmp_imm, 0, 0); E(b_cond, "gk_v", "eq")
+        E(push_list, [1]); E(movs_imm, 0, P0); E(movs_imm, 1, 0); E(bl, "c_gmp"); E(ldrb_imm, 0, 0, B_FLAGS); E(pop_list, [1])
+        E(movs_imm, 2, 0xFE); E(raw, h(0x4010)); E(orrs_reg, 1, 0)                                 # ands r0, r2
+        a.label("gk_v")
     E(movs_imm, 0, B_FLAGS); E(bl, "c_gmput")
     if V2:                                                                                         # off: the number view closed
         E(cmp_imm, 4, 0); E(b_cond, "gk_s", "ne"); E(bl, "c_gmram"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, O_EDIT)

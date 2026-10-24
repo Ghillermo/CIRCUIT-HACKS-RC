@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R208 R208S B3.20 R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R208 R208S B3.21 R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -81,6 +81,8 @@ DESC = {"R208": ("RC2.08 — la versión candidata 2.08: RC2.06 + dos arreglos (
                  "RC2.08 — release candidate 2.08: RC2.06 + two fixes (the Micro Step view's fixed length; an external keyboard plays the MIDI 1 / 2 own synth)"),
         "R208S": ("RC2.08S — versión más segura: RC2.08, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.08S — safer build: RC2.08, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.21": ("Beta 3.21 — beta (= SC46.4): RC2.08 + lo de la Beta 3.20 (modo GM de los drums, Jankó, pantalla de acordes…) + el DIN In mezclado en la salida USB; sin probar en el aparato",
+                  "Beta 3.21 — beta (= SC46.4): RC2.08 + what Beta 3.20 has (GM mode of the drums, Jankó, chord screen…) + the DIN In merged into the USB out; not tested on the device"),
         "B3.20": ("Beta 3.20 — beta (= SC46.3): RC2.08 + lo de la Beta 3.17 + modo General MIDI de los drums, disposición Jankó, pantalla de acordes y el S&H del LFO a tempo arreglado; sin probar en el aparato",
                   "Beta 3.20 — beta (= SC46.3): RC2.08 + what Beta 3.17 has + General MIDI mode of the drums, Jankó layout, chord screen and the synced LFO's S&H fixed; not tested on the device"),
         "R206": ("RC2.06 — la versión candidata 2.06: RC2.05 + un arreglo (dos pads de la misma nota mantenidos a la vez ya no dejan la nota colgada)",
@@ -542,4 +544,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R208", "R208S", "B3.20", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R208", "R208S", "B3.21", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

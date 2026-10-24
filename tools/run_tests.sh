@@ -786,3 +786,5 @@ run python3 tools/emu_sc46_3.py firmware/b3.20/circuittracks-4486-B3.20.bin firm
 run python3 tools/emu_kbin.py firmware/r208/circuittracks-4486-R208.bin firmware/r208/manifest.json firmware/r207/circuittracks-4486-R207.bin firmware/r207/manifest.json
 run python3 tools/emu_kbin.py firmware/r208s/circuittracks-4486-R208S.bin firmware/r208s/manifest.json firmware/r207s/circuittracks-4486-R207S.bin firmware/r207s/manifest.json
 run python3 tools/emu_kbin.py firmware/sc46.3/circuittracks-4486-SC46.3.bin firmware/sc46.3/manifest.json
+run python3 tools/emu_usbmerge.py firmware/sc46.4/circuittracks-4486-SC46.4.bin firmware/sc46.4/manifest.json firmware/sc46.3/circuittracks-4486-SC46.3.bin firmware/sc46.3/manifest.json
+run python3 tools/emu_usbmerge.py firmware/b3.21/circuittracks-4486-B3.21.bin firmware/b3.21/manifest.json
