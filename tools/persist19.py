@@ -103,6 +103,19 @@ K3_COL_WHITE = 0x01                   # the K3 LED: the attack (and, with Shift,
 
 
 CLRBC = False                         # SC43.4 (use_clrbc)
+STARTFIX = False                      # RC2.09 / SC46.5 (use_startfix)
+
+
+def use_startfix():
+    """RC2.09 / SC46.5 (a fix; found while studying the LFO scan, 2026-10-24; the user chose «A»): Shift + K3's start point covered the whole sample by S = 32
+    and S = 33..120 left the hit silent (one block past the cut): the DSP's position counts 4 samples a unit, so STARTF = S << 16 was S / 32 of the sample.
+    Now STARTF = S << 14 = S / 128, the whole travel of the knob (up to 120 / 128) as documented; the start of a project saved since SC41.7 moves 4 times
+    closer to the beginning (the user's choice).  The old nibble (before SC41.7, s / 16 of the sample) is taken over as S = 8 s (it kept its sound with
+    S = 2 s only because both were off by the same factor).  Probably the «fallo en la fracción izquierda del knob de envelope (sample start)» reported
+    after SC41.3."""
+    global STARTFIX
+    assert SPLIT3
+    STARTFIX = True
 
 
 def use_clrbc():
@@ -804,7 +817,7 @@ def k3_code(a, DB, SH, L):
     a.label("ki_l")
     E(movs_imm, 7, 0)
     E(cmp_imm, 5, 0); E(b_cond, "ki_z", "eq")
-    E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, "c_dnib_get"); E(lsls_imm, 7, 0, 1)            # S = 2 x the nibble (s / 64 = 2 s / 128)
+    E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, "c_dnib_get"); E(lsls_imm, 7, 0, 3 if STARTFIX else 1)   # S = 8 x the nibble (STARTFIX; before 2 x)
     a.label("ki_z")
     E(lsls_imm, 1, 6, 1); E(adds_reg, 1, 1, 6); E(adds_imm8, 1, 5); E(movs_imm, 0, 0)
     E(strb_reg, 0, 4, 1); E(adds_imm8, 1, 1); E(strb_reg, 7, 4, 1); E(adds_imm8, 1, 1); E(strb_reg, 0, 4, 1)
@@ -891,7 +904,8 @@ def k3_code(a, DB, SH, L):
     imm32(0, 0x7FFFFF); E(cmp_reg, 1, 0); E(b_cond, "kw_a", "ls"); E(mov_reg, 1, 0)
     a.label("kw_a"); E(lsls_imm, 1, 1, 8); E(mov_reg, 2, 5); E(adds_imm8, 2, DD.AINC); E(movs_imm, 0, 0); E(bl, DSP_WRITE)
     for which, word in ((1, DD.STARTF), (2, DD.ENDC)):
-        E(mov_reg, 0, 4); E(movs_imm, 1, which); E(bl, "c_k3get"); E(lsls_imm, 1, 0, 24); E(mov_reg, 2, 5); E(adds_imm8, 2, word); E(movs_imm, 0, 0); E(bl, DSP_WRITE)
+        sh = 22 if STARTFIX and which == 1 else 24                               # (STARTFIX) the start in quarter-word units: S << 14
+        E(mov_reg, 0, 4); E(movs_imm, 1, which); E(bl, "c_k3get"); E(lsls_imm, 1, 0, sh); E(mov_reg, 2, 5); E(adds_imm8, 2, word); E(movs_imm, 0, 0); E(bl, DSP_WRITE)
     E(pop_list, [4, 5], pc=True)
 
 

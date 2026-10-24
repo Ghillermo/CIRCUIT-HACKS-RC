@@ -150,6 +150,13 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 - **Pruebas:** `emu_rc0_6.py` (sobre el arnés publicado, sin depender de las pruebas de las builds privadas) y `emu_sc38_5.py`, en las dos.
 - **Publicación:** el árbol público sale de la última fuente publicada (`67893da`, BETA5) más solo esto, para no sacar las builds privadas SC39.7-SC40.5: rama `pub-rc0.6`.
 
+### SC46.5 / Beta 3.22 / RC2.09 / RC2.09S (SC46.5 / B3.22 / R209 / R209S) — ⏳ pendientes de probar, sin publicar
+
+- **La posición que devuelve `dtrig` (en `a`) cuenta 4 muestras por unidad de `a1`**: la voz de stock hace `tfr a,b` (`$20E9`) y en el bucle `asl #2,b,b` (`$20EC`); la dirección de lectura es `b1 + n4` y el final compara `4 a1 + (a0 >> 22)` con `x:(r3+1)` = L en muestras. El corte (`ENDC`, aplicado a L) estaba bien; el inicio (`a = L × STARTF`) no: `STARTF = S << 16` = S / 128 en esas unidades = S / 32 del sample.
+- **`persist19.use_startfix()` (arreglo, RC y beta):** `c_k3w` escribe `STARTF = S << 14` (desplazamiento 22 en lugar de 24 para el inicio) y la conversión del nibble antiguo `S = 8 s` (era `2 s`, que acertaba por el mismo error). Los proyectos con el inicio guardado desde SC41.7 lo oyen 4 veces más cerca (decisión del usuario, «A»). Prueba `emu_startfix.py` (el fallo reproducido con el valor viejo).
+- **`drums2_dsp.use_lfoscan()` (beta):** `pmod` sin el vibrato (las dos copias, −18 palabras; la de `dtrig` era muerta: `TRI = 0` antes); la cabeza de `dt_e` no reinicia la fase con LFO < 0 (+2); el final de `dtrig` con LFO < 0: `a = STARTF + (−LFO << 14)(1 − TRI)` (`mac -y1,x1,a`), limitado a `($780000 − ENDC) / 4`, después `a = L × a` (+15). Inmediatos cortos de una palabra (`move #0,x0`, `move #$40,b`, `move #$78,b`: el inmediato de 8 bits va a los bits altos). Núcleo 0 hasta `P:$3FF7` (9 libres). Las líneas nuevas entraron en `dsp_asm_cache.json` con `DSP_ASM_CACHE_UPDATE=1`. Prueba `emu_lfoscan_dsp.py`.
+- Estudio con verificación adversarial (2 verificadores encontraron el error de unidades del primer diseño y el fallo del inicio).
+
 ### SC46.4 / Beta 3.21 (SC46.4 / B3.21) = SC46.3 + `tools/usbmerge.py` + `gmdrum.use_v3()` — ⏳ pendientes de probar
 
 - Issue #10 del repositorio público (ledlaux, 2026-10-24): «Is there a way that midi merge works when device is connected to usb? … i connect midi keyboard to CT using midi cable, i want then that device is outputting both midi combined to a computer»; el usuario: «compruébalo y si es correcto y seguro, súbelo junto a la versión». Función nueva: solo beta.

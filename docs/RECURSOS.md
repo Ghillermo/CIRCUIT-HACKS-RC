@@ -31,6 +31,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC45 (2026-10-19):** zona libre + `autorel` (704 B) + `modesel` (404 B): **26 754 B libres**. RAM `MXR + 0x1A0..0x1A7` (modesel), `+ 0x1B0..0x1DB` (autorel). Bit 7 del byte [3] de cada paso de las pistas de notas (se guarda con el patrón).
 > **SC45.1 (2026-10-20):** zona libre + `mutebank` (160 B): **26 594 B libres**. Sin RAM nueva.
+> **SC46.5 / RC2.09 (2026-10-25):** DSP núcleo 0 de SC46.5 hasta `P:$3FF7` (**9 palabras libres**; el scan del inicio: −18 + 2 + 15 = −1); RC2.09 igual que RC2.08 (hasta `P:$3F8B`). ARM: 3 bytes cambiados (`persist19`). Sin RAM nueva.
+
 > **SC46.4 (2026-10-24):** zona libre + `usbmerge` (228 B) hasta `0x8013c6c` (**18670 B libres**). Sin RAM nueva; ajustes: bit 1 del byte de banderas de `gmdrum`.
 
 > **SC46.2 / SC46.3 / RC2.08 (2026-10-24):** zona libre + `gmdrum` (956 B, SC46.2) + `kbin` (256 B, también RC2.08) + `janko` (944 B) + `chords` (1180 B): SC46.3 hasta `0x8013b68` (**18930 B libres**), RC2.08 hasta `0x80104b4`. RAM `modmx.MXR + 0x4A0..0x4AF` (`gmdrum`), `+ 0x4B0` (`kbin`, la marca), `+ 0x500..0x50F` (`janko`), `+ 0x520..0x5BF` (`chords`). Ajustes: bytes 1-3 de los parámetros 4-7 (`gmdrum`). Imágenes sin cambio de tamaño.

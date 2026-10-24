@@ -39,6 +39,7 @@ K3SPLIT = False                               # SC41.7 (use_k3split): the amp at
 AINC, AENV, STARTF, ENDC = 46, 47, 48, 49     # (block words past the 46 above; sc_init clears them: 0 = none)
 LFOSYNC = False                               # SC44.8 (use_lfosync)
 LINC = 50                                     # (LFOSYNC) the ARM's increment of the synced LFO (lfosync.py)
+LFOSCAN = False                               # SC46.5 (use_lfoscan)
 
 
 def use_lfosync():
@@ -47,6 +48,17 @@ def use_lfosync():
     also sets the phase on every sequencer tick)."""
     global LFOSYNC
     LFOSYNC = True
+
+
+def use_lfoscan():
+    """SC46.5 (the user, 2026-10-24: «LFO amount afecta al sample start, no al pitch (como un scan)»; «solo modo Drums»): K7 to the left (LFO < 0) moves the
+    start of each hit along the drum's LFO instead of the vibrato on the pitch: a scan.  dtrig: with LFO < 0 the LFO's phase is not restarted by the hit
+    (it runs on, or lfosync places it on the tempo) and the start (in quarter-word units: the playback index is 4 x a1) = STARTF + (-LFO / 512) x (1 - TRI),
+    at most (120 / 128 - ENDC) / 4, so the depth reaches |LFO| / 64 of the sample and the start never passes the cut; with LFO >= 0 everything as before
+    (the tremolo on the right).  pmod: the vibrato is gone (both copies; the one of dtrig was dead code, TRI = 0 there).  Net -1 word of core 0."""
+    global LFOSCAN
+    assert K3SPLIT
+    LFOSCAN = True
 
 
 def use_k3split():
@@ -115,9 +127,10 @@ def code(base):
         e("move %s,x1" % X(BASE), "move x1,a", "tst a"); a.emit(J("eq"), "pm_x" + t)
         e("move %s,a" % X(PE), "move a,b", "asl #6,a,a", "asl #5,b,b", "add b,a")
         e("move a,x0", "move %s,y0" % X(ENV), "mpy y0,x0,a")
-        e("move %s,b" % X(LFO), "tst b"); a.emit(J("ge"), "pm_nv" + t)
-        e("neg b", "asl #3,b,b", "move b,x0", "move %s,y0" % X(TRI), "mac y0,x0,a")
-        L("pm_nv" + t)
+        if not LFOSCAN:
+            e("move %s,b" % X(LFO), "tst b"); a.emit(J("ge"), "pm_nv" + t)
+            e("neg b", "asl #3,b,b", "move b,x0", "move %s,y0" % X(TRI), "mac y0,x0,a")
+            L("pm_nv" + t)
         e("add #>$%x,a" % (24 * 256))
         e("tst a"); a.emit(J("ge"), "pm_c1" + t); e("move #>0,a")
         L("pm_c1" + t); e("cmp #>$%x,a" % (48 * 256 - 1)); a.emit(J("le"), "pm_c2" + t); e("move #>$%x,a" % (48 * 256 - 1))
@@ -263,7 +276,12 @@ def code(base):
     e("move #>$7fffff,x0", "move x0,%s" % X(ENV), "move #>0,x0", "move x0,%s" % X(EPH)); a.emit(J("al"), "dt_e")
     L("dt_a"); e("move #>0,x0", "move x0,%s" % X(ENV), "move #>1,x0", "move x0,%s" % X(EPH))
     L("dt_e")
-    e("move #>$400000,x0", "move x0,%s" % X(PH), "move #>0,x0", "move x0,%s" % X(TRI), "move x0,%s" % X(CRC))
+    if LFOSCAN:                                                                  # LFO < 0 (the scan): its phase runs on (x0 = 0 in both paths)
+        e("move #0,x0"); a.emit(sx("b", LFO)); e("tst b"); a.emit(J("lt"), "dt_kp")
+        a.emit(sx("x0", TRI, True)); e("move #$40,b"); a.emit(sx("b", PH, True))
+        L("dt_kp"); a.emit(sx("x0", CRC, True))
+    else:
+        e("move #>$400000,x0", "move x0,%s" % X(PH), "move #>0,x0", "move x0,%s" % X(TRI), "move x0,%s" % X(CRC))
     if K3SPLIT:                                                                  # an amp attack: the hit starts silent (x0 = 0 here)
         a.emit(sx("b", AINC)); e("tst b"); a.emit(J("eq"), "dt_na")
         a.emit(sx("x0", AENV, True)); a.emit(sx("x0", TG, True)); a.emit(sx("x0", TGN, True))
@@ -272,7 +290,13 @@ def code(base):
     pmod("t")
     if K3SPLIT:                                                                  # length L - L x ENDC, position L x STARTF
         a.emit(sx("x0", 1, rn=3)); a.emit(sx("y0", ENDC)); e("mpy y0,x0,a", "tfr x0,b", "sub a,b"); a.emit(sx("b", 1, True, rn=3))
-        a.emit(sx("y0", STARTF)); e("mpy y0,x0,a")
+        if LFOSCAN:                                                              # LFO < 0: STARTF + (-LFO / 512)(1 - TRI), at most (15/16 - ENDC) / 4
+            a.emit(sx("a", STARTF)); a.emit(sx("b", LFO)); e("neg b"); a.emit(J("le"), "dt_go")
+            e("asl #14,b,b", "move b,y1", "add y1,a"); a.emit(sx("x1", TRI)); e("mac -y1,x1,a")
+            e("move #$78,b", "sub y0,b", "asr #2,b,b", "cmp b,a", "tfr b,a ifgt")
+            L("dt_go"); e("move a,y0", "mpy y0,x0,a")
+        else:
+            a.emit(sx("y0", STARTF)); e("mpy y0,x0,a")
         a.emit(D.RTS)
     else:
         e("move %s,b" % X(EXT), "and #>$f,b", "tst b"); a.emit(J("eq"), "dt_z")

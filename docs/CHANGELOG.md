@@ -4,6 +4,17 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](NOTAS.md).
 
+## Beta 3.22 — 2026-10-25
+
+**Beta 3.22** (marca `B3.22`; = SC46.5) = RC2.09 + lo de la Beta 3.21 + lo siguiente, sin probar en el aparato:
+- **Drums, K7 a la izquierda = scan del inicio:** en lugar del vibrato, cada golpe empieza donde está el LFO del drum, desde el inicio de Shift + K3 hasta |valor| / 64 del sample más allá (sin pasar nunca el corte). El LFO ya no vuelve a empezar con cada golpe; con el LFO a tempo, el primer tiempo cae en el inicio. A la derecha, el trémolo de siempre.
+- El arreglo de RC2.09.
+
+## RC2.09 / RC2.09S — 2026-10-25
+
+**RC2.09** (ficheros y marca `R209`; = RC2.08 + un arreglo) / **RC2.09S** (`R209S`). El mismo arreglo va en la Beta 3.22.
+- **El inicio del sample de los drums** (Shift + K3 a la izquierda) llegaba al final del sample a un cuarto del recorrido del knob, y más allá el golpe sonaba un instante y se callaba (el DSP cuenta la posición en unidades de 4 muestras). Ahora el knob recorre todo el sample (hasta 120/128), como dice el manual. Los proyectos guardados desde RC2 que ya usaban el inicio lo tienen 4 veces más cerca del principio.
+
 ## Beta 3.21 — 2026-10-24
 
 **Beta 3.21** (marca `B3.21`; = SC46.4) = la Beta 3.20 + lo siguiente, sin probar en el aparato:
@@ -480,6 +491,17 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 # Changelog — CIRCUIT-HACKS
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](NOTAS.md) (Spanish).
+
+## Beta 3.22 — 2026-10-25
+
+**Beta 3.22** (marker `B3.22`; = SC46.5) = RC2.09 + what Beta 3.21 has + the following, not yet tested on the device:
+- **Drums, K7 to the left = start scan:** instead of the vibrato, every hit starts where the drum's LFO is, from the Shift + K3 start up to |value| / 64 of the sample further (never past the cut). The LFO no longer restarts with each hit; with the synced LFO, the first beat falls on the start. To the right, the usual tremolo.
+- RC2.09's fix.
+
+## RC2.09 / RC2.09S — 2026-10-25
+
+**RC2.09** (files and marker `R209`; = RC2.08 + a fix) / **RC2.09S** (`R209S`). Beta 3.22 has the same fix.
+- **The drums' sample start** (Shift + K3 to the left) reached the end of the sample at a quarter of the knob's travel, and beyond that the hit sounded for an instant and went silent (the DSP counts the position in units of 4 samples). Now the knob covers the whole sample (up to 120/128), as the manual says. Projects saved since RC2 that already used the start have it 4 times closer to the beginning.
 
 ## Beta 3.21 — 2026-10-24
 

@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R208 R208S B3.21 R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R209 R209S B3.22 R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,13 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R208": ("RC2.08 — la versión candidata 2.08: RC2.06 + dos arreglos (la longitud fija de la vista Micro Step; un teclado externo toca el sinte propio de MIDI 1 / 2)",
+DESC = {"R209": ("RC2.09 — la versión candidata 2.09: RC2.08 + un arreglo (el inicio del sample de los drums recorre todo el sample)",
+                 "RC2.09 — release candidate 2.09: RC2.08 + a fix (the drums' sample start covers the whole sample)"),
+        "R209S": ("RC2.09S — versión más segura: RC2.09, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC2.09S — safer build: RC2.09, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.22": ("Beta 3.22 — beta (= SC46.5): RC2.09 + lo de la Beta 3.21 + el K7 de los drums a la izquierda = scan del inicio; sin probar en el aparato",
+                  "Beta 3.22 — beta (= SC46.5): RC2.09 + what Beta 3.21 has + the drums' K7 to the left = start scan; not tested on the device"),
+        "R208": ("RC2.08 — la versión candidata 2.08: RC2.06 + dos arreglos (la longitud fija de la vista Micro Step; un teclado externo toca el sinte propio de MIDI 1 / 2)",
                  "RC2.08 — release candidate 2.08: RC2.06 + two fixes (the Micro Step view's fixed length; an external keyboard plays the MIDI 1 / 2 own synth)"),
         "R208S": ("RC2.08S — versión más segura: RC2.08, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.08S — safer build: RC2.08, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
@@ -544,4 +550,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R208", "R208S", "B3.21", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R209", "R209S", "B3.22", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
