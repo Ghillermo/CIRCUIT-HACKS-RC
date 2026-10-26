@@ -4,6 +4,12 @@
 
 Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versión más segura** (sufijo **S**) sin las funciones que escriben en la tarjeta SD por su cuenta (gestión del pack, A8). Las referencias (A4, C6…) son las secciones del [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html). El detalle técnico está en [`docs/NOTAS.md`](NOTAS.md).
 
+## Beta 3.35 — 2026-10-26
+
+**Beta 3.35** (marca `B3.35`; = SC47.8) = RC2.10 + lo de la Beta 3.34 + lo siguiente; **probada en el aparato** (2026-10-26):
+- **Menos aliasing en el oscilador del sinte propio de MIDI 1 / 2:** la sierra, las siete sierras de la supersaw y la cuadrada / el pulso se generan con PolyBLEP. En las notas agudas desaparecen los tonos metálicos que no pertenecen a la nota (unos 40 dB menos: en el do 7, de −18 a −60 dB por debajo de 8 kHz); en las graves suenan igual.
+- **El wavefold limita su amplificación en las notas agudas** (unas 6,7 veces en la nota 72, 3,9 una octava más arriba, 2,4 dos), para no llenar el sonido de aliasing; en las graves y medias, como antes. El seno y el triángulo sin pliegue no cambian.
+
 ## Beta 3.34 — 2026-10-26
 
 **Beta 3.34** (marca `B3.34`; = SC47.7) = RC2.09 + lo de la Beta 3.22 + funciones nuevas sin probar en el aparato (reúne las betas 3.23-3.33, que no se publicaron):
@@ -13,9 +19,9 @@ Novedades y arreglos de cada versión candidata (RC). Cada RC tiene una **versi�
 - **Modo muestra en estéreo:** el **K7 de la página OSC 1** (WAVE) es la anchura: a la izquierda mono; al girarlo, el sample elegido a la izquierda y el segundo a la derecha (de fábrica el siguiente del pack: un sample estéreo = dos huecos seguidos). En el selector, **Shift + el sample ya elegido** pasa a elegir el segundo (parpadea en cian) y **Shift + el segundo** vuelve al primero; al cambiar el primero el segundo lo sigue; **Shift + sample** = elegirlo sin que suene. Dura lo del sample más largo. La parte estéreo pasa por el filtro del motor y sigue el VCA, el nivel, el panorama, el mute y el sidechain de la pista (también la del granular con Shift + K4, que salía casi mono).
 - **Arpegiador** (issues #13 y #14): **el paso mantenido** con el transporte parado se arpegia (antes sus notas sonaban a la vez); **teclado externo al arpegiador** (Advanced Setup, **pad 22**; apagado de fábrica): las notas que llegan por MIDI al canal de Synth 1 / 2 o MIDI 1 / 2 se arpegian como los pads; **Shift + tecla = latch** en la vista Note de las pistas de notas, hasta la siguiente pulsación de esa nota (con Shift, las teclas en amarillo y las fijadas en verde).
 - **Shift + pad de un patch** del sinte propio = cargarlo sin la nota de escucha. **Matriz:** el primer paso de cada destino = cantidad 0; **Clear + MIDI 1 / 2** pone a cero las cantidades sin borrar los destinos.
-- **Arreglos:** el reloj se volvía inestable con FM poly (demasiadas escrituras al DSP: ahora solo lo que cambia); la introducción manual de notas en MIDI 1 / 2 no funcionaba hasta usar Record; el FM con clics y notas cortísimas tras instalar sin apagar; el arpegiador con el transporte parado iba siempre a unos 120 BPM (el arreglo de RC2.10, abajo).
+- **Arreglos:** el reloj se volvía inestable con FM poly (demasiadas escrituras al DSP: ahora solo lo que cambia); la introducción manual de notas en MIDI 1 / 2 no funcionaba hasta usar Record; el FM con clics y notas cortísimas tras instalar sin apagar; el arpegiador con el transporte parado iba siempre a unos 120 BPM (el arreglo de RC2.10).
 
-## RC2.10 / RC2.10S — sin publicar
+## RC2.10 / RC2.10S — 2026-10-26
 
 **RC2.10** (ficheros y marca `R210`; = RC2.09 + un arreglo) / **RC2.10S** (`R210S`). El mismo arreglo va en la Beta 3.29.
 - **El arpegiador con el transporte parado** (las notas mantenidas) iba siempre a unos 120 BPM: leía otro valor en lugar del tempo. Ahora sigue el tempo del proyecto.
@@ -508,6 +514,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 
 New features and fixes of every release candidate (RC). Every RC has a **safer build** (suffix **S**) without the features that write to the SD card on their own (pack management, A8). The references (A4, C6…) are the sections of the [manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). The technical detail is in [`docs/NOTAS.md`](NOTAS.md) (Spanish).
 
+## Beta 3.35 — 2026-10-26
+
+**Beta 3.35** (marker `B3.35`; = SC47.8) = RC2.10 + what Beta 3.34 has + the following; **tested on the device** (2026-10-26):
+- **Less aliasing in the MIDI 1 / 2 own synth's oscillator:** the saw, the supersaw's seven saws and the square / pulse are made with PolyBLEP. On high notes the metallic tones that do not belong to the note are gone (about 40 dB less: at C7, from −18 to −60 dB below 8 kHz); low notes sound the same.
+- **The wavefold limits its gain on high notes** (about 6.7 times at note 72, 3.9 an octave higher, 2.4 two), so as not to fill the sound with aliasing; on low and middle notes, as before. The sine and the triangle without folding do not change.
+
 ## Beta 3.34 — 2026-10-26
 
 **Beta 3.34** (marker `B3.34`; = SC47.7) = RC2.09 + what Beta 3.22 has + new features not yet tested on the device (gathers betas 3.23-3.33, which were not published):
@@ -517,9 +529,9 @@ New features and fixes of every release candidate (RC). Every RC has a **safer b
 - **Sample mode in stereo:** **K7 of the OSC 1 page** (WAVE) is the width: fully left mono; turned up, the chosen sample on the left and the second on the right (by default the pack's next one: a stereo sample = two slots in a row). In the picker, **Shift + the sample already chosen** switches to picking the second (it blinks cyan) and **Shift + the second** goes back to the first; when the first changes the second follows; **Shift + sample** = pick it silently. It lasts as long as the longer sample. The stereo part goes through the engine's filter and follows the track's VCA, level, pan, mute and sidechain (the granular's with Shift + K4 too, which came out nearly mono).
 - **Arpeggiator** (issues #13 and #14): **the held step** with the transport stopped is arpeggiated (its notes sounded at once before); **external keyboard to the arpeggiator** (Advanced Setup, **pad 22**; off by default): the notes coming in over MIDI on the channel of Synth 1 / 2 or MIDI 1 / 2 are arpeggiated like the pads; **Shift + a key = latch** in the note tracks' Note view, until the next press of that note (with Shift the keys light yellow and the latched ones green).
 - **Shift + an own-synth patch pad** = load it without the audition note. **Matrix:** the first step of each destination = amount 0; **Clear + MIDI 1 / 2** zeroes the amounts and keeps the destinations.
-- **Fixes:** the clock became unstable with FM poly (too many writes to the DSP: now only what changes); manual note input on MIDI 1 / 2 did not work until Record was used; FM clicking with very short notes after installing without switching off; the arpeggiator with the transport stopped always ran at about 120 BPM (RC2.10's fix, below).
+- **Fixes:** the clock became unstable with FM poly (too many writes to the DSP: now only what changes); manual note input on MIDI 1 / 2 did not work until Record was used; FM clicking with very short notes after installing without switching off; the arpeggiator with the transport stopped always ran at about 120 BPM (RC2.10's fix).
 
-## RC2.10 / RC2.10S — not published
+## RC2.10 / RC2.10S — 2026-10-26
 
 **RC2.10** (files and marker `R210`; = RC2.09 + a fix) / **RC2.10S** (`R210S`). Beta 3.29 has the same fix.
 - **The arpeggiator with the transport stopped** (the held notes) always ran at about 120 BPM: it read another value instead of the tempo. It now follows the project's tempo.

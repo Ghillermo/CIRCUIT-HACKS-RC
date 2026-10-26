@@ -90,6 +90,16 @@ def use_shortbr():
     SHORTBR = True
 
 
+SHORTBS = False                    # (use_shortbs)
+
+
+def use_shortbs():
+    """(vcf21_dsp.use_blep) with use_shortbr, a jscc xxxx (0BF0A0 | cc) near enough becomes the one-word bscc xxx (0000 0101 CCCC 00aa aa0a aaaa,
+    checked with dsptool's disassembler: bses)."""
+    global SHORTBS
+    SHORTBS = True
+
+
 def br_short(w0, at, t):
     """the one-word relative form of the absolute jump (w0, t) at `at`, or None"""
     d = t - at
@@ -98,6 +108,7 @@ def br_short(w0, at, t):
     if w0 == 0x0AF080: return 0x050C00 | disp
     if w0 == 0x0BF080: return 0x050800 | disp
     if w0 & 0xFFFFF0 == 0x0AF0A0: return 0x050400 | (w0 & 0xF) << 12 | disp
+    if SHORTBS and w0 & 0xFFFFF0 == 0x0BF0A0: return 0x050000 | (w0 & 0xF) << 12 | disp
     return None
 
 

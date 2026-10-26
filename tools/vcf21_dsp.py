@@ -328,6 +328,34 @@ def use_glide2():
     GLIDE2 = True
 
 
+BLEP = False                                    # (use_blep)
+
+
+def use_blep():
+    """Study (2026-10-26, «Estudia cómo reducir el aliasing y el ruido»): 2-sample polyBLEP on the oscillator's discontinuous waves (needs SUPERSAW: the
+    waves subroutine).  Every saw of the supersaw (the centre = the phase, the six sides) and the pulse's two edges: a check per sample (|u| + inc >= 1:
+    the accumulator's extension flag) calls bs (short bscc es), which adds -sgn(u) w r^2 (r = (|u| + inc - 1) / inc, one 24-step division).  The pulse
+    = the saw residuals of v = wrap(u - thr) at -w / 2 and of v + 1 at +w / 2.  Only a positive increment is corrected (OSC2 reversed by the soft sync
+    stays naive)."""
+    global BLEP
+    assert SUPERSAW
+    BLEP = True
+    D.use_shortbs()
+
+
+FOLDLIM = False                                 # (use_foldlim)
+FOLD_K = 0x020000                               # (FOLDLIM) the extra fold drive / 8 allowed = FOLD_K / the increment (a one-word immediate: $hh0000)
+
+
+def use_foldlim():
+    """Study (2026-10-26, the user: «Ok a todo»: the wavefold's drive limited by the pitch, a -30 dB target): the fold drive / 8 = 0.125 + min(0.86 m,
+    E) with E = FOLD_K / the increment (one 24-step division a block, only when FOLD_K < the increment): the extra drive halves an octave up; with
+    FOLD_K = $20000 the drive at most x6.7 at note 72, x3.9 at 84, x2.4 at 96, x1.7 at 108 (no limit below about note 66); never below x1 (no fold)."""
+    global FOLDLIM
+    assert SUPERSAW
+    FOLDLIM = True
+
+
 def use_poly6():
     """SC47.6 (the user, 2026-10-26: «increase FM polyphony to six shared voices if possible»): six voice records a track (PV_N; X:$3E60 + 168 t +
     28 v, up to $3FAF; their DSP-only extensions in Y:$3C00..$3D4F), the scratch words moved after them (X:$3FE4..), six FM voices' operator blocks
@@ -841,7 +869,12 @@ def code(base, tabs, premix, ret_old):
                 modterm(6, X(ENV), 0x7fffff); e("add b,a")
                 modterm(7, X(LV), 0x7fffff); e("add b,a")
                 e("move a,x0", "tst a"); a.emit(J("ge"), p + "w0" + lab); e("clr a")
-                L(p + "w0" + lab); e("move a,y1", "move #>$6e147b,y0", "mpy y1,y0,b", "move #>$100000,a", "add b,a", "move a,%s" % ox(OW, 12))
+                L(p + "w0" + lab); e("move a,y1", "move #>$6e147b,y0", "mpy y1,y0,b")
+                if FOLDLIM:                                                           # the extra drive at most FOLD_K / the increment (keeps x0 = m)
+                    e("move %s,y1" % ox(OW, inc_off), "move #>$%x,a" % FOLD_K, "cmp y1,a"); a.emit(J("ge"), p + "fl" + lab)
+                    e("andi #$fe,ccr", "rep #24", "div y1,a", "move a0,a", "cmp a,b", "tgt a,b")
+                    L(p + "fl" + lab)
+                e("move #>$100000,a", "add b,a", "move a,%s" % ox(OW, 12))
                 if not SUPERSAW: e("move x0,%s" % ox(OW, 13), "move #>$7851ec,y0", "mpy y0,x0,b", "move b,%s" % ox(OW, 14))
                 else:
                     e("move #>$7851ec,y0", "mpy y0,x0,b", "move b,%s" % ox(OW, 14))                     # the pulse threshold 0.94 m
@@ -1080,13 +1113,26 @@ def code(base, tabs, premix, ret_old):
                 if not SUPERSAW:
                     e("move x1,b", "asr b", "add #>$400000,b", "move b,y0", "mpy y0,y0,b", "sub y0,b", "move b,y1", "move x:(%s+13),x0" % OW, "mpy x0,y1,b", "add y0,b", "sub #>$400000,b")
                     e("move b1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a")              # 2 saw (slope)
+                elif BLEP:                                                                # 2 the supersaw with the polyBLEP: y0 = the phase, y1 = the weight, x0 = the increment
+                    def chk(): e("move y0,b", "abs b", "add x0,b"); a.emit(lambda t: [0x0BF0AD, t], p + "bs")      # bses: |u| + inc >= 1
+                    e("move x:(%s+11),x0" % OW, "move x1,y0", "move x:(%s+17),y1" % OW, "mac y1,y0,a"); chk()
+                    e("move x:(%s+%d),y1" % (OW, SS_W))
+                    for k in range(6):
+                        e("move x:(%s+%d),b" % (OW, SS_PH + k), "add x0,b", "move x:(%s+%d),y0" % (OW, SS_D + k // 2), "add y0,b" if k % 2 == 0 else "sub y0,b",
+                          "move b1,x:(%s+%d)" % (OW, SS_PH + k), "move b1,y0", "mac y1,y0,a"); chk()
                 else:                                                                     # 2 the supersaw: the centre (the phase) and six detuned ones
                     e("move x1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a", "move x:(%s+%d),y1" % (OW, SS_W), "move x:(%s+11),x0" % OW)
                     for k in range(6):
                         e("move x:(%s+%d),b" % (OW, SS_PH + k), "add x0,b", "move x:(%s+%d),y0" % (OW, SS_D + k // 2), "add y0,b" if k % 2 == 0 else "sub y0,b",
                           "move b1,x:(%s+%d)" % (OW, SS_PH + k), "move b1,y0", "mac y1,y0,a")
-                e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
-                e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")                  # 3 pulse (width)
+                if BLEP:                                                                  # 3 pulse: v = wrap(u - thr) in x1 (the phase is not needed any more)
+                    e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "move b1,x1", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
+                    e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")
+                    e("move y0,b", "asr b", "move b,y1", "move x1,b", "neg b", "move b,y0"); chk()   # -v at +w / 2 = v at -w / 2 (the jump up; the move limits +1.0)
+                    e("bchg #23,x1", "move x1,y0"); chk()                                           # wrap(v + 1) (the sign bit flipped) at +w / 2 (the jump down)
+                else:
+                    e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
+                    e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")                  # 3 pulse (width)
             def wcall(OW):                                                        # (SUPERSAW) the four waves as a subroutine with OW = r4
                 if not SUPERSAW: waves(OW); return
                 if OW == "r3": e("move r4,n4", "move r3,r4")
@@ -1107,6 +1153,10 @@ def code(base, tabs, premix, ret_old):
                 if not POLY: a.emit(J("al"), p + "o3f")
                 if SUPERSAW:
                     L(p + "wv"); waves("r4"); a.emit(D.RTS)
+                if BLEP:                                                                  # bs: a += -sgn(y0) y1 r^2, r = (b - 1) / x0 (b = |u| + inc >= 1); keeps x0, x1, y1
+                    L(p + "bs"); e("bclr #23,b1", "andi #$fe,ccr", "rep #24", "div x0,b", "btst #23,y0", "move b0,y0", "mpy y0,y0,b", "move b,y0")
+                    a.emit(lambda t: [0x0AF0A8, t], p + "bln"); e("mac -y1,y0,a"); a.emit(D.RTS)       # jcs: u < 0
+                    L(p + "bln"); e("mac y1,y0,a"); a.emit(D.RTS)
                 if FM and FMCOMPACT:                                                  # ---- the FM voice, compact (r2 = the operator, r4 / n4 = the outputs, r3 = OSC1)
                     L(p + "fm")
                     if POLY3:                                                         # the voices (pvl); one voice: fmb with the track's operator blocks
