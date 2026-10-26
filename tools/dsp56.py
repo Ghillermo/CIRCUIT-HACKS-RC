@@ -75,6 +75,32 @@ def use_shortx():
     SHORTX = True
 
 
+SHORTBR = False                    # SC47.3 (use_shortbr)
+
+
+def use_shortbr():
+    """SC47.3 (room on core 0 for the polyphony of FM / two oscillators / VA-drum, the user, 2026-10-26: «add polyphony to the remaing voices»):
+    a two-word absolute jump emitted by a callable (jcc xxxx 0AF0Ac, jmp xxxx 0AF080, jsr xxxx 0BF080: the J / jsr lambdas with a label) whose
+    target lies within -256..+255 words of it becomes the one-word PC-relative form (bcc / bra / bsr xxx: 0000 0101 CCCC 01aa aa0a aaaa, 0000 0101
+    0000 11.., 0000 0101 0000 10..; the 9-bit displacement from the branch itself, the same condition codes; checked with dsptool's disassembler).
+    Decided on the layout with every jump long; shrinking only brings code closer, so a jump chosen short stays in range (asserted).  Only in the
+    blocks based at or after the end of the stock program, like use_shortx; plain word lists (data, tables, the jumps written as lists) are left
+    alone.  Labels follow: every block after a shorter one moves down."""
+    global SHORTBR
+    SHORTBR = True
+
+
+def br_short(w0, at, t):
+    """the one-word relative form of the absolute jump (w0, t) at `at`, or None"""
+    d = t - at
+    if not -256 <= d <= 255: return None
+    disp = ((d >> 5) & 0xF) << 6 | (d & 0x1F)
+    if w0 == 0x0AF080: return 0x050C00 | disp
+    if w0 == 0x0BF080: return 0x050800 | disp
+    if w0 & 0xFFFFF0 == 0x0AF0A0: return 0x050400 | (w0 & 0xF) << 12 | disp
+    return None
+
+
 class Marked(list):
     """words assembled from text, with .lx = the offsets of the two-word moves x:(Rn+xxxx) among them"""
     lx = ()
@@ -124,17 +150,34 @@ class Asm:
     def assemble(self):
         sx = SHORTX and (self.base >= SHORTX_MIN or getattr(self, "force_sx", False))   # (force_sx: granular_dsp.use_stereo, core 1)
         labels, addr = {}, self.base
+        sizes = []
         for it in self.items:
             if it[0] == 'L': labels[it[1]] = addr
             else:
                 args = [0 if isinstance(x, str) and x not in KEEP else x for x in it[2]]
-                addr += len(it[1](*args) if callable(it[1]) else shorten(it[1]) if sx else it[1])
-        out, addr = [], self.base
+                n = len(it[1](*args) if callable(it[1]) else shorten(it[1]) if sx else it[1])
+                sizes.append(n); addr += n
+        short = set()
+        if SHORTBR and self.base >= SHORTX_MIN:                                  # (use_shortbr) the jumps near enough, on the long layout
+            addr, k = self.base, 0
+            for it in self.items:
+                if it[0] == 'L': continue
+                if callable(it[1]):
+                    ws = it[1](*[labels[x] if isinstance(x, str) and x in labels else x for x in it[2]])
+                    if len(ws) == 2 and br_short(ws[0], addr, ws[1]) is not None: short.add(k)
+                addr += sizes[k]; k += 1
+            labels, addr, k = {}, self.base, 0
+            for it in self.items:
+                if it[0] == 'L': labels[it[1]] = addr
+                else: addr += 1 if k in short else sizes[k]; k += 1
+        out, addr, k = [], self.base, 0
         for it in self.items:
             if it[0] == 'L': continue
             fn, args = it[1], [labels[x] if isinstance(x, str) and x in labels else x for x in it[2]]
             ws = fn(*args) if callable(fn) else shorten(fn) if sx else fn
-            out += ws; addr += len(ws)
+            if k in short:
+                s_ = br_short(ws[0], addr, ws[1]); assert s_ is not None, (hex(addr), [hex(w) for w in ws]); ws = [s_]
+            out += ws; addr += len(ws); k += 1
         return out, labels
 
 

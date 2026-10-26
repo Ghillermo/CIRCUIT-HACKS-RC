@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R209 R209S B3.22 R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R209 R209S B3.34 R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,10 +77,38 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R209": ("RC2.09 — la versión candidata 2.09: RC2.08 + un arreglo (el inicio del sample de los drums recorre todo el sample)",
+DESC = {"R210": ("RC2.10 — la versión candidata 2.10: RC2.09 + un arreglo (el arpegiador con el transporte parado sigue el tempo del proyecto)",
+                 "RC2.10 — release candidate 2.10: RC2.09 + a fix (the arpeggiator with the transport stopped follows the project's tempo)"),
+        "R210S": ("RC2.10S — versión más segura: RC2.10, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC2.10S — safer build: RC2.10, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "R209": ("RC2.09 — la versión candidata 2.09: RC2.08 + un arreglo (el inicio del sample de los drums recorre todo el sample)",
                  "RC2.09 — release candidate 2.09: RC2.08 + a fix (the drums' sample start covers the whole sample)"),
         "R209S": ("RC2.09S — versión más segura: RC2.09, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.09S — safer build: RC2.09, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.34": ("Beta 3.34 — beta (= SC47.7): RC2.09 + polifonía del sinte propio de MIDI 1 / 2 (todos los motores salvo el granular), modo de voz en el pad 32 (retrigger, legato, glide, unísonos, poly), FM mejorado, modo muestra en estéreo y el arpegiador con el paso mantenido, el teclado externo y el latch; sin probar en el aparato",
+                  "Beta 3.34 — beta (= SC47.7): RC2.09 + polyphony for the MIDI 1 / 2 own synth (every engine but the granular), voice mode on pad 32 (retrigger, legato, glide, unisons, poly), improved FM, sample mode in stereo and the arpeggiator with the held step, the external keyboard and latch; not tested on the device"),
+        "B3.33": ("Beta 3.33 — beta (= SC47.6): la Beta 3.32 + uni retrig, uni portamento y uni glide en el modo de voz, y 6 voces FM compartidas entre MIDI 1 y MIDI 2; sin probar en el aparato",
+                  "Beta 3.33 — beta (= SC47.6): Beta 3.32 + uni retrig, uni portamento and uni glide in the voice mode, and 6 FM voices shared by MIDI 1 and MIDI 2; not tested on the device"),
+        "B3.32": ("Beta 3.32 — beta (= SC47.5): la Beta 3.31 + modo de voz en el pad 32 de MIDI 1 / 2 (retrigger, legato, portamento, poly, unísono) y el arreglo del reloj inestable con FM poly; sin probar en el aparato",
+                  "Beta 3.32 — beta (= SC47.5): Beta 3.31 + the voice mode on pad 32 of MIDI 1 / 2 (retrigger, legato, portamento, poly, unison) and the fix of the clock unstable with FM poly; not tested on the device"),
+        "B3.31": ("Beta 3.31 — beta (= SC47.4): la Beta 3.30 + polifonía también en FM (4 voces FM entre MIDI 1 y MIDI 2, cada nota con sus operadores y su release); sin probar en el aparato",
+                  "Beta 3.31 — beta (= SC47.4): Beta 3.30 + polyphony in FM too (4 FM voices between MIDI 1 and MIDI 2, each note with its own operators and release); not tested on the device"),
+        "B3.30": ("Beta 3.30 — beta (= SC47.3): la Beta 3.29 + polifonía también con dos osciladores y en el VA-drum (cada golpe con su envolvente); sin probar en el aparato",
+                  "Beta 3.30 — beta (= SC47.3): Beta 3.29 + polyphony with two oscillators and in the VA-drum too (each hit its own envelope); not tested on the device"),
+        "B3.29": ("Beta 3.29 — beta (= SC47.2): la Beta 3.28 + el paso mantenido y un teclado externo (Advanced Setup pad 22) por el arpegiador, Shift + tecla = latch, y el arreglo de RC2.10; sin probar en el aparato",
+                  "Beta 3.29 — beta (= SC47.2): Beta 3.28 + the held step and an external keyboard (Advanced Setup pad 22) through the arpeggiator, Shift + a key = latch, and RC2.10's fix; not tested on the device"),
+        "B3.28": ("Beta 3.28 — beta (= SC47.1): la Beta 3.27 + un arreglo: el estéreo (modo muestra y granular) salía casi mono; sin probar en el aparato",
+                  "Beta 3.28 — beta (= SC47.1): Beta 3.27 + a fix: the stereo (sample mode and granular) came out nearly mono; not tested on the device"),
+        "B3.27": ("Beta 3.27 — beta (= SC47): la Beta 3.26 + polifonía del sinte propio de MIDI 1 / 2 (oscilador y modo muestra, 4 voces; Shift + pad 29); sin probar en el aparato",
+                  "Beta 3.27 — beta (= SC47): Beta 3.26 + polyphony of the own synth of MIDI 1 / 2 (oscillator and sample mode, 4 voices; Shift + pad 29); not tested on the device"),
+        "B3.26": ("Beta 3.26 — beta (= SC46.9): la Beta 3.25 + dos arreglos: la introducción manual de notas en MIDI 1 / 2 (no iba hasta pulsar Record) y el FM con clics tras instalar sin apagar; sin probar en el aparato",
+                  "Beta 3.26 — beta (= SC46.9): Beta 3.25 + two fixes: manual note input on MIDI 1 / 2 (dead until Record was pressed) and the FM clicking after an install without a power cycle; not tested on the device"),
+        "B3.25": ("Beta 3.25 — beta (= SC46.8): RC2.09 + lo de la Beta 3.24 (el motor FM mejorado, el modo muestra estéreo…) + el segundo sample del estéreo en el selector y la duración del más largo; sin probar en el aparato",
+                  "Beta 3.25 — beta (= SC46.8): RC2.09 + what Beta 3.24 has (the improved FM engine, the stereo sample mode…) + the stereo's second sample in the picker and the longer length; not tested on the device"),
+        "B3.24": ("Beta 3.24 — beta (= SC46.7): RC2.09 + lo de la Beta 3.23 (el motor FM mejorado…) + el modo muestra de MIDI 1 / 2 en estéreo; sin probar en el aparato",
+                  "Beta 3.24 — beta (= SC46.7): RC2.09 + what Beta 3.23 has (the improved FM engine…) + the MIDI 1 / 2 sample mode in stereo; not tested on the device"),
+        "B3.23": ("Beta 3.23 — beta (= SC46.6): RC2.09 + lo de la Beta 3.22 + el motor FM mejorado (arreglos, brillo, voces por algoritmo, algoritmos en los pads, desafinación fina) + Shift + pad de patch sin escucha; sin probar en el aparato",
+                  "Beta 3.23 — beta (= SC46.6): RC2.09 + what Beta 3.22 has + the improved FM engine (fixes, brightness, a voice per algorithm, the algorithms on the pads, fine detune) + Shift + a patch pad without the audition; not tested on the device"),
         "B3.22": ("Beta 3.22 — beta (= SC46.5): RC2.09 + lo de la Beta 3.21 + el K7 de los drums a la izquierda = scan del inicio; sin probar en el aparato",
                   "Beta 3.22 — beta (= SC46.5): RC2.09 + what Beta 3.21 has + the drums' K7 to the left = start scan; not tested on the device"),
         "R208": ("RC2.08 — la versión candidata 2.08: RC2.06 + dos arreglos (la longitud fija de la vista Micro Step; un teclado externo toca el sinte propio de MIDI 1 / 2)",
@@ -550,4 +578,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R209", "R209S", "B3.22", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R209", "R209S", "B3.34", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

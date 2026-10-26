@@ -31,6 +31,28 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC45 (2026-10-19):** zona libre + `autorel` (704 B) + `modesel` (404 B): **26 754 B libres**. RAM `MXR + 0x1A0..0x1A7` (modesel), `+ 0x1B0..0x1DB` (autorel). Bit 7 del byte [3] de cada paso de las pistas de notas (se guarda con el patrón).
 > **SC45.1 (2026-10-20):** zona libre + `mutebank` (160 B): **26 594 B libres**. Sin RAM nueva.
+> **SC47 / Beta 3.27 (2026-10-26):** DSP núcleo 0 hasta `P:$3FF9` (**6 palabras libres**: la polifonía +130, `use_scalemac` −16, `use_smswap` +4). DSP X: `$3E60-$3F3F` (los 8 registros de voz), `$3F40` (el comienzo del anillo); Y: `$33B0-$33EF` (una voz izquierda / derecha); `OSC2 + 38` de cada pista. CPU del núcleo 0 por voz sonando ≈ la de una voz de antes + ≈ 500 instrucciones por bloque (el intercambio, `osc_ctrl` otra vez, la suma con su rampa): 8 voces de supersaw ≈ 28 000 (≈ 17 %). Zona libre: `poly` 1 436 B (sigue libre hasta `0x0801855A` desde `0x08014C38`). RAM: `modmx.MXR + 0x640..0x6C3`. Escrituras al DSP: ≈ 7 por tick y pista con poly (el refresco) + 4 por nota.
+
+> **SC47.1 / Beta 3.28 (2026-10-26):** DSP núcleo 0 + 2 palabras (`granular_dsp.use_stripgain`): **4 palabras libres**. Sin RAM ni flash nueva del ARM.
+
+> **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
+
+> **SC47.6 / Beta 3.33 (2026-10-26):** DSP núcleo 0 hasta `P:$3FB4` (**76 palabras libres**). X: los registros de voz `$3E60–$3FAF` (6 por pista), los bloques de la 5.ª / 6.ª voz FM `$3CC0–$3CEF` / `$3FB4–$3FE3`, las palabras de trabajo `$3FE4–$3FE7` (**X `$3FE8–$3FFF` libre**); Y `$3C00–$3D4F` (extensión de los registros); `OSC2 + 41`, `+ 46`, `+ 47` (el glide de la pista, el salto). RAM: `modmx.MXR + 0x1800..0x1903` (los bloques de pista de poly, 128 B), `+ 0xA00..0x153F` (la caché de 720 palabras), `+ 0x800..0x97F` (6 voces FM), `+ 0x9AC` (su firma). CPU: 6 voces FM ≈ 40 000 instrucciones por bloque (estimación).
+
+> **SC47.5 / Beta 3.32 (2026-10-26):** DSP núcleo 0 hasta `P:$3F97` (**104 palabras libres**); `OSC1 + 34` (el desplazamiento de altura; en el modo muestra sigue siendo SM_L2), `OSC2 + 44` / `+ 45` (el coeficiente del glide, la última nota). RAM: `modmx.MXR + 0x980..0x99F` (vmode), `+ 0x9A0..0x9AB` (la forma leída, el índice del refresco y la firma), `+ 0xA00..0x11FF` (la caché de 512 palabras). **Tráfico SPI al DSP con FM poly** (`emu_fmspi.py`, por tick de 1 ms): sostenido 1,3 escrituras (antes 28,7), release 5,3 (18,5), silencio ~1 (8,8), un acorde de 4 notas 35 (201; el primero tras encender, 189).
+
+> **SC47.4 / Beta 3.31 (2026-10-26):** DSP núcleo 0 hasta `P:$3F84` (**124 palabras libres**); X `$3C00–$3CBF` (los bloques de operadores de las 4 voces FM), X `$3F43`. Zona libre: `poly` +1 368 B, `fmeng` +88 B: **11 614 B libres**. RAM: `modmx.MXR + 0x800..0x903` (las voces FM, firma `FPV1`), `FMR + 0x90..0x9F` (el contexto de `c_fmsend`, firma `FCTX`). CPU: una voz FM ≈ 6 600 instrucciones por bloque (4 voces ≈ 26 400). Escrituras ARM → DSP: las de antes (2 voces FM por ms).
+
+> **SC47.3 / Beta 3.30 (2026-10-26):** DSP núcleo 0: los saltos cortos (`dsp56.use_shortbr`) −331 palabras, la polifonía de dos osciladores / VA-drum +184: el programa hasta `P:$3F68` (**151 palabras libres**). Y `$3C00–$3CDF` (la extensión de los registros de voz), X `$3F41` / `$3F42`. Y libre comprobado: `$3BFF–$3FFF` (1 025 palabras, antes de esta build). CPU: una voz de dos osciladores ≈ dos osciladores + 500; una de VA-drum ≈ oscilador + ruido + 60.
+
+> **SC46.9 / Beta 3.26 (2026-10-26):** DSP sin cambios. Zona libre: `recinst` +52 B (de 992 a 1 044). RAM: `modmx.MXR + 0x184` (la firma de `recinst`). Imagen `0x6F54C`.
+
+> **SC46.8 / Beta 3.25 (2026-10-25):** DSP núcleo 0 hasta `P:$3F84` (**124 palabras libres**; +28). Zona libre: `smst` 768 B. RAM: `modmx.MXR + 0x600..0x60B`. Guardado: relleno + 121..123 de los patches propios (y el proyecto).
+
+> **SC46.7 / Beta 3.24 (2026-10-25):** DSP núcleo 0 hasta `P:$3F68` (**152 palabras libres**: `osc_ctrl` como subrutina −174, el modo muestra estéreo +126). X / Y `$3340..$33A1` (los lados de las dos voces y el estado de su filtro), palabras 28..32 del bloque OSC1 en el modo muestra. CPU ≈ +1 000 instrucciones por bloque y voz en estéreo.
+
+> **SC46.6 / Beta 3.23 (2026-10-25):** DSP núcleo 0 hasta `P:$3F98` (**104 palabras libres**: los inmediatos en una palabra −106, el bucle FM compacto −11 + m2 +2, el VCA abierto +4, el seno +6, el AMP suavizado +6, el feedback promediado +4); CPU del FM +36 instrucciones por muestra y voz FM (≈ +1 150 por bloque). DSP X: +9..+11 de cada operador (`X:$3E00-$3E5F`) y OSC1 + 38. Zona libre: `fmeng` +1 740 B, `modmx` +44 B (quedan 16 886 B). RAM: bytes 36..47 de los bloques de `fmeng`.
+
 > **SC46.5 / RC2.09 (2026-10-25):** DSP núcleo 0 de SC46.5 hasta `P:$3FF7` (**9 palabras libres**; el scan del inicio: −18 + 2 + 15 = −1); RC2.09 igual que RC2.08 (hasta `P:$3F8B`). ARM: 3 bytes cambiados (`persist19`). Sin RAM nueva.
 
 > **SC46.4 (2026-10-24):** zona libre + `usbmerge` (228 B) hasta `0x8013c6c` (**18670 B libres**). Sin RAM nueva; ajustes: bit 1 del byte de banderas de `gmdrum`.

@@ -582,6 +582,26 @@ def core0_tail(a, e):
     e("add #>1,a", "and #>1,a", "asl #6,a,a", "move a1,x:>$%x" % RDOFS)
 
 
+STRIPG = False                                   # SC47.1 (see use_stripgain)
+STRIP = (0x20C, 0x24C)                           # (STRIPG) the stock strips of MIDI 1 / 2: 32 pairs gL, gR (func_0013a3: Y:$2068 / $2088 x Y:$5B..$5E)
+SG_SHIFT = 4                                     # (STRIPG) the sides = S x GCUR x gL (gR) x 2^SG_SHIFT (-S_COEF x level / gL at the old calibration = 15.98)
+
+
+def use_stripgain():
+    """SC47.1 (the user, 2026-10-26, on the device: the stereo sample «sigue mezclando los dos samples a los dos canales por igual», the granular's
+    width «tampoco se aprecia gran diferencia»; S469D / S469D2 read on the device: the sides reach the mix, ~4.5 x weaker than the mid): S_COEF was
+    measured 15 blocks after forcing the level, with the stock mixer's ramp at 0x16459 of its 0x63FBF (the ramp from 0 takes > 250 blocks in the
+    emulation; on the device it is settled): 4.49 x too small.  core0_sides takes the strip's own gains instead of the level x S_COEF: the first pair
+    of the block in X:$20C / $24C (what func_0013a3 multiplies the track's input by: level, pan law, mute, the sidechain's duck, ramped), x 16
+    (asl), L += S x g x gL, R -= S x g x gR: the sides follow the mid in every mixer state, the pan included (+ 2 words)."""
+    global STRIPG
+    STRIPG = True
+
+
+DIAG_RING = False                                # (S469D2) + 9 = MIDI 1's ring frame 0
+DIAG_SIDES = None                                # (S469D) X address of 9 words: SOUT's address, g, SOUT[0], mix L / R before, CNT, mix L / R after, blocks
+
+
 def core0_sides(a, e, pf_l, pf_r):
     """(STEREO) Before the master filter (sampler_dsp.PRE_HOOK, m4 linear): per voice t, g = GCUR x level (GCUR = unity with the VCA off), and for each
     frame L -= S x g x S_COEF, R += S x g x S_COEF, S = SOUT[RDOFS] + 32 t.  Two straight copies (no nested do: the stack).  Uses r0, r1, r4, a, b, x0,
@@ -590,12 +610,28 @@ def core0_sides(a, e, pf_l, pf_r):
     for t in range(2):
         vb = V.VB0 + V.VBS * t
         e("move x:>$%x,b" % (vb + GCUR_OFF), "move x:>$%x,a" % (vb + VCAON_OFF), "tst a", "move #>$100000,x0", "teq x0,b", "move b1,x1")
-        e("move x:>$%x,y1" % (MIXLP + 2 * t), "mpy y1,x1,a", "move a,x1", "move #>$%x,y1" % (round(S_COEF * (1 << 23)) & 0xFFFFFF), "mpy y1,x1,a", "move a,y1")
+        if STRIPG:                                                                # y1 / y0 = g x gL / gR x 16 (the sign of S_COEF in the loop)
+            e("move x:>$%x,x0" % STRIP[t], "mpy x1,x0,a", "asl #%d,a,a" % SG_SHIFT, "move x:>$%x,x0" % (STRIP[t] + 1), "mpy x1,x0,b",
+              "asl #%d,b,b" % SG_SHIFT, "move a,y1", "move b,y0")
+        else:
+            e("move x:>$%x,y1" % (MIXLP + 2 * t), "mpy y1,x1,a", "move a,x1", "move #>$%x,y1" % (round(S_COEF * (1 << 23)) & 0xFFFFFF), "mpy y1,x1,a", "move a,y1")
         e("move x:>$%x,a" % RDOFS, "add #>$%x,a" % (SOUT + 32 * t), "move a1,r4", "move #>$%x,r0" % pf_l, "move #>$%x,r1" % pf_r); a.emit(D.NOP)
+        if DIAG_SIDES and t == 0:                                                 # (S469D) what the device sees: SOUT's address, g, SOUT[0], the mix before
+            D0 = DIAG_SIDES
+            e("move r4,x:>$%x" % D0, "move y1,x:>$%x" % (D0 + 1), "move x:(r4),x0", "move x0,x:>$%x" % (D0 + 2), "move x:>$%x,x0" % pf_l, "move x0,x:>$%x" % (D0 + 3),
+              "move x:>$%x,x0" % pf_r, "move x0,x:>$%x" % (D0 + 4), "move x:>$%x,x0" % CNT, "move x0,x:>$%x" % (D0 + 5), "move x:>$%x,a" % (D0 + 8), "add #>1,a",
+              "move a1,x:>$%x" % (D0 + 8))
+            if DIAG_RING: e("move y:>$ffd,r4"); a.emit(D.NOP); e("move y:(r4),x0", "move x0,x:>$%x" % (D0 + 9))   # (S469D2) MIDI 1's ring frame 0 (the mid after the chain)
+            e("move x:>$%x,a" % RDOFS)
+            e("add #>$%x,a" % (SOUT + 32 * t), "move a1,r4"); a.emit(D.NOP)
         a.emit(lambda tt: T("do #32,$%x" % (tt + 1)), "gs_%d" % t)
-        e("move x:(r4)+,x0", "mpy x0,y1,a")
-        e("move x:(r0),b", "sub a,b", "move b,x:(r0)+", "move x:(r1),b", "add a,b")
+        if STRIPG:
+            e("move x:(r4)+,x0", "mpy x0,y1,a x:(r0),b", "add a,b", "move b,x:(r0)+", "mpy y0,x0,a x:(r1),b", "sub a,b")
+        else:
+            e("move x:(r4)+,x0", "mpy x0,y1,a")
+            e("move x:(r0),b", "sub a,b", "move b,x:(r0)+", "move x:(r1),b", "add a,b")
         a.label("gs_%d" % t); e("move b,x:(r1)+")
+        if DIAG_SIDES and t == 0: e("move x:>$%x,x0" % pf_l, "move x0,x:>$%x" % (DIAG_SIDES + 6), "move x:>$%x,x0" % pf_r, "move x0,x:>$%x" % (DIAG_SIDES + 7))
 
 
 def core0_table(a):

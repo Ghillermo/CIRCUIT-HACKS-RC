@@ -73,6 +73,15 @@ SYNC_RAM = MXR + 0x100                # (SYNC) the last sequencer tick seen by e
 
 
 SHSYNC = False                        # SC46.1 (use_shsync)
+ZERO = False                          # SC46.6 (use_zero)
+
+
+def use_zero():
+    """SC46.6 (the user, 2026-10-25: Clear + MIDI 1 / 2 «sólo pone a cero la cantidad de modulación / envío, sin borrar destino»): the first step of
+    each destination's zone = amount 0 (the zone's 16 steps 0, 1, ..., 16 / 16: amount = 35 s >> 5, s = 0..15), the LED the destination's colour
+    at 17 s / 2 (dim there, 127 at the top); c_mxzero(track) puts every source with a destination on its zone's first step (destination kept, amount 0)."""
+    global ZERO
+    ZERO = True
 
 
 def use_shsync():
@@ -224,6 +233,17 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 6); E(bl, "c_mxcode"); E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_mxmark")
     a.label("se_x"); E(pop_list, [4, 5, 6, 7], pc=True)
 
+    if ZERO:
+        # ---- c_mxzero(r0 = track): every source with a destination to its zone's first step (amount 0); clobbers r0-r3
+        a.label("c_mxzero")
+        E(push_list, [4, 5, 6], lr=True); E(mov_reg, 4, 0); E(movs_imm, 5, 0)
+        a.label("mz_l")
+        E(mov_reg, 0, 4); E(bl, "c_mxblk"); E(lsls_imm, 1, 5, 1); E(ldrh_reg, 2, 0, 1); E(cmp_imm, 2, 0); E(b_cond, "mz_n", "eq")
+        E(subs_imm8, 2, 1); E(lsrs_imm, 2, 2, 4); E(lsls_imm, 2, 2, 4); E(adds_imm8, 2, 1)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_mxset")
+        a.label("mz_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 8); E(b_cond, "mz_l", "lo")
+        E(pop_list, [4, 5, 6], pc=True)
+
     # ---- c_mxrnd() -> r0 = a random value -127..127; clobbers r1-r3
     a.label("c_mxrnd")
     E(push_list, [4], lr=True)
@@ -251,7 +271,8 @@ def arm_code(base, L, prev):
     a.label("of_l")
     E(lsls_imm, 1, 7, 1); E(ldrh_reg, 0, 4, 1); E(cmp_imm, 0, 0); E(b_cond, "of_n", "eq")
     E(subs_imm8, 0, 1); E(lsrs_imm, 1, 0, 4); imm32(2, T["dcode"]); E(ldrb_reg, 2, 2, 1); E(cmp_reg, 2, 5); E(b_cond, "of_n", "ne")
-    E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(adds_imm8, 0, 1)                          # the amount 1..16
+    if ZERO: E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(movs_imm, 1, 35); E(muls, 0, 1); E(lsrs_imm, 0, 0, 5)      # the amount 0..16
+    else: E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(adds_imm8, 0, 1)                    # the amount 1..16
     E(movs_imm, 1, B_SRC); E(adds_reg, 1, 1, 7); E(raw, ldrsb_reg(1, 4, 1)); E(muls, 0, 1)
     imm32(2, T["span"]); E(ldrb_reg, 1, 2, 5); E(muls, 0, 1)
     E(raw, asrs_imm(0, 0, 11)); E(adds_reg, 6, 6, 0)
@@ -506,7 +527,8 @@ def arm_code(base, L, prev):
     E(cmp_imm, 7, 0); E(b_cond, "kl_sh", "ne")
     E(lsls_imm, 1, 6, 1); E(ldrh_reg, 0, 4, 1); E(cmp_imm, 0, 0); E(b_cond, "kl_dk", "eq")
     E(subs_imm8, 0, 1); E(lsrs_imm, 1, 0, 4); imm32(2, T["dcol"]); E(ldrb_reg, 1, 2, 1)   # r1 = the colour
-    E(movs_imm, 2, 15); E(ands_reg, 0, 2); E(adds_imm8, 0, 1); E(lsls_imm, 0, 0, 3); E(subs_imm8, 0, 1)   # r0 = 8 x amount - 1
+    if ZERO: E(movs_imm, 2, 15); E(ands_reg, 0, 2); E(movs_imm, 2, 17); E(muls, 0, 2); E(lsrs_imm, 0, 0, 1)   # r0 = 17 x the step / 2 (0: dim, 127 full)
+    else: E(movs_imm, 2, 15); E(ands_reg, 0, 2); E(adds_imm8, 0, 1); E(lsls_imm, 0, 0, 3); E(subs_imm8, 0, 1)   # r0 = 8 x amount - 1
     E(b, "kl_put")
     a.label("kl_sh")                                                                    # Shift: the parameter's zone colour, the position's brightness
     imm32(1, T["pk"]); E(ldrb_reg, 2, 1, 6); E(cmp_imm, 2, 0xFF); E(b_cond, "kl_dk", "eq")

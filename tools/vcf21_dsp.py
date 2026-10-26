@@ -172,6 +172,277 @@ def use_fm():
     FM = True
 
 
+SHORTIMM = False                                # SC46.6 (use_shortimm)
+FMVCA = FMWIDE = FMCOMPACT = FMORDER = FMSINE = FMSMOOTH = FBAVG = False       # SC46.6 (use_fmvca ... use_fbavg)
+NZ_OFF = 38                                     # (FMCOMPACT) the FM noise level: a word of the OSC1 block (34, 38 and 39 are free)
+F_AS, F_O2, F_HC = 9, 10, 11                    # (FMSMOOTH / FBAVG) words of each operator block: the smoothed AMP, the output two samples back, half the feedback
+
+
+def use_shortimm():
+    """SC46.6: room on core 0 with nothing changed: in code()'s text lines the small immediates take their one-word forms (the same operand bit for
+    bit): `add / sub / cmp / and / or / eor #>N,a|b` with 0 <= N <= 63 -> `#<N` (6 bits, zero-extended into D1); `move #>V,x0|x1|y0|y1|a|b` with
+    V & $FFFF = 0 -> `move #$hh,D` (the fraction in the 8 MSBs, sign-extended, the rest 0: an integer such as #>1 keeps the long form); `move #>N,rn|nn`
+    with N < 256 -> `move #N,D`.  Only e()'s lines: the lambdas (sized with 0 in the first pass) and the other modules keep theirs."""
+    global SHORTIMM
+    SHORTIMM = True
+
+
+def use_fmvca():
+    """SC46.6 (arreglo del FM): with the FM flag the VCA's envelope term is 1.0, as in the sample mode: the engine's envelope (the neutral REL 0 = 2 ms)
+    cut the FM release about 2 ms after the note-off and the VCA opened only when the GATE message came (4-6 ms after the note): in FM the level is the
+    operators' envelopes; the engine's ADSR shapes the filter and the pitch (and, with fmeng.use_bright, the brightness)."""
+    global FMVCA
+    assert FM and SAMPLER
+    FMVCA = True
+
+
+def use_fmwide():
+    """SC46.6: R = ratio / 128 (the phase step x 128, was x 16): up to 128 x the note, the detune at full resolution (fmeng.use_wide writes it)."""
+    global FMWIDE
+    assert FM
+    FMWIDE = True
+
+
+def use_fmcompact():
+    """SC46.6: the FM loop compacted (r2 walks the operators, r3 stays the OSC1 block, the four outputs read with parallel moves, the parabola
+    4 (u - u |u|)); the noise level at OSC1 + NZ_OFF (operator 1's + 9 is free)."""
+    global FMCOMPACT
+    assert FM
+    FMCOMPACT = True
+
+
+def use_fmorder():
+    """SC46.6: the operators computed 4 to 1: every modulator of every algorithm (a higher operator on a lower one) is the same sample's, as on the
+    DX7 (the feedback stays one sample back): the timbre no longer changes along the keyboard."""
+    global FMORDER
+    assert FMCOMPACT
+    FMORDER = True
+
+
+def use_fmsine():
+    """SC46.6: each operator's parabola P refined to 0.75 P + 0.25 P |P| (the 3rd harmonic from -28.6 to -47 dB, THD 3.8 % -> 0.5 %)."""
+    global FMSINE
+    assert FMCOMPACT
+    FMSINE = True
+
+
+def use_fmsmooth():
+    """SC46.6: each operator's AMP smoothed sample by sample (one pole, 32 samples): no 1 kHz staircase from the ARM's 1 ms envelope steps."""
+    global FMSMOOTH
+    assert FMCOMPACT
+    FMSMOOTH = True
+
+
+def use_fbavg():
+    """SC46.6: the feedback as on the DX7: the average of the last two outputs (M_kk / 2 x (y[n-1] + y[n-2])): a clean saw over a wider range."""
+    global FBAVG
+    assert FMCOMPACT
+    FBAVG = True
+
+
+POLY = False                                    # SC46.9 (use_poly)
+PV_OFF = 38                                     # (POLY) the word of the OSC2 block (free in every mode) = the base of the track's voice records (0 = one voice)
+PV_REC0, PV_RS, PV_N = 0x3E60, 28, 4            # the records: X:PV_REC0 + PV_RS x PV_N x t + PV_RS x v (written by the ARM's poly.py)
+PV_NOTE, PV_TGT, PV_TRIG, PV_SEEN, PV_G, PV_TV = 21, 22, 23, 24, 25, 26    # a record: +0..19 = OSC1 + 28..47, +20 = OSC1 + 10 (exchanged), then these
+PV_SCR = 0x3F40                                 # X: the ring's first sample
+PV_TEMP, PV_SB = 0x33B0, 0x33D0                 # Y: one voice's left / right (32 words each)
+POLY2 = False                                   # SC47.3 (use_poly2)
+PV_Y0 = 0x3C00                                  # (POLY2) Y: each record's DSP-only extension at Y:PV_Y0 + (the record - PV_REC0) (free: never written, 2026-10-26 probe)
+YX_EP, YX_ENV, YX_STG, YX_O2 = 0, 1, 2, 3       #   + 0 OSC1 + 23 (VA-drum pitch envelope, exchanged), + 1 / + 2 the VA-drum amplitude envelope and its stage,
+                                                #   + 3..5 OSC2 + 10 / + 20 / + 22, + 6..11 OSC2 + 28..33 (exchanged: the second oscillator's phases, sync state)
+PV_PC, PV_EFF = 0x3F41, 0x3F42                  # (POLY2) X: the VA-drum pitch envelope's coefficient this block; a voice's effective target
+POLY3 = False                                   # SC47.4 (use_poly3)
+PV_FMB = 27                                     # (POLY3) a record's word: the X address of the voice's four FM operator blocks (the ARM's; 0 = none)
+FV0, FV_N = 0x3C00, 4                           # (POLY3) X: the FM voices' operator blocks, 48 words each (4 voices in all: free, the 2026-10-26 probe)
+PV_R2 = 0x3F43                                  # (POLY3) X: the record pointer kept around a voice's body (the FM loop uses r2)
+GLIDE = False                                   # SC47.5 (use_glide)
+GO_OFF = 34                                     # (GLIDE) the OSC1 block's pitch offset (1 semitone = 65536): the glide's (one voice) / the unison's detune (a
+                                                # voice: record word 6, exchanged); free with the oscillator (the sample mode's SM_L2: never read there)
+GK_OFF, LN_OFF = 44, 45                         # (GLIDE) words of the OSC2 block (free): the glide's coefficient a block (the ARM's; 0 = off), the last note
+GLIDE2 = False                                  # SC47.6 (use_glide2)
+GT_OFF, JMP_OFF, JSN_OFF = 46, 47, 41           # (GLIDE2) words of the OSC2 block (free): the track's glide offset, the ARM's jump counter, the one seen
+POLY6 = False                                   # SC47.6 (use_poly6)
+FV_ADDRS = [0x3C00 + 48 * s_ for s_ in range(4)]    # (POLY3) the FM voices' operator blocks by slot (POLY6: six)
+
+
+def use_poly():
+    """SC46.9 (the user, 2026-10-25: «Polifonía: todos los modos de MIDI, 4 voces si es posible. Voice stealing idealmente en la más antigua de su
+    propio canal. En caso de vcavcf compartidos, nueva nota abre Gate de nuevo. Noteoff desactiva el pitch correspondiente y cierra Gate cuando no
+    quedan pitchs activos»), phase 1: the oscillator (one oscillator: the morph, the supersaw) and the sample mode (and its stereo) with 4 voices per
+    track; the envelope, the filter, the VCA and the effect stay the track's (one chain).  With OSC2 + PV_OFF not 0 (the ARM's poly.py writes the
+    base of the track's 4 records there, only in those two modes) the channel's source runs once per voice instead of once:
+      * the voice's own state (the oscillator's phase OSC1 + 10 and its six supersaw phases, the sample's start / length / position / stereo, OSC1
+        + 28..47) is exchanged with its record around it (pvx: the same code both ways); the note is read at r2 + PV_NOTE (one voice: r2 = r6 - 2,
+        X(NOTE); the voices: the record);
+      * a new note = the record's TRIG word changed (a counter the ARM steps: TSEEN keeps the last one seen): TV goes to SM_N (the sample's TRIG
+        value: 1 or $100 | a flip; the oscillator ignores it);
+      * the voice renders into Y:PV_TEMP (and the stereo's right into Y:PV_SB), then is added to the ring (left) and to the side buffer (right; a
+        mono voice adds its left there) x a gain that goes linearly over the block from G to the record's target (the ARM writes 0 or the
+        velocity's level): a voice switched off or on fades over one block (0.67 ms); G = target = 0 = silent, skipped;
+      * after the voices: the oscillator goes on at o3f; the sample to the stereo's mid / side (SR = WAVE > 0), the side filter and the granular's
+        side buffer, as with one voice.
+    The mono path is as before (the same output): the sample's body and the oscillator's loop become subroutines (smb / ovb), the stereo's right
+    goes to r7 (the side buffer) and its mid / side after the body.  The note's pitch, the shape and the supersaw detune are computed per voice
+    (osc0: osc_ctrl with the voice's note).  4 do levels deep at most in the oscillator (the system stack: do #4, jsr, do, jsr)."""
+    global POLY
+    assert OSCSUB and SMST2 and SUPERSAW and SAMPLER and SHORTIMM
+    POLY = True
+
+
+def use_poly2():
+    """SC47.3 (the user, 2026-10-26: «add polyphony to the remaing voices»; «VA-drum: por voz»): the two oscillators and the VA-drum polyphonic too.
+      * the records get a DSP-only extension in Y (PV_Y0, the same offset as the record; the ARM writes nothing there): the exchange (pvx) also
+        swaps OSC1 + 23 (the VA-drum pitch envelope) and the second oscillator's state (OSC2 + 10 phase, + 20 direction, + 22 the sync counter,
+        + 28..33 the supersaw phases); its increment, D and the shape are worked out per voice;
+      * two oscillators: the voice's body = osc0 (OSC1, the voice's note), OSC2's control with the voice's note (n4 = 19, the direction's sign to
+        + 11), then the two-oscillator loop (now a subroutine, dvb; one voice: jsr dvb);
+      * the VA-drum: each voice its own pitch envelope (from the top, or its velocity with DFLAGS bit 3, x the block's coefficient TDEC[SUS]^2)
+        and amplitude envelope (the track's attack increment, then x the decay coefficient down to 0: one-shot), its own noise (added to the voice
+        before its gain); the voice's gain goes to target x envelope; the VCA's envelope term is 1.0 (as the sample and FM); the filter and its
+        envelope stay the track's (one filter a track)."""
+    global POLY2
+    assert POLY and VADRUM and DUAL
+    POLY2 = True
+
+
+def use_glide():
+    """SC47.5 (the user, 2026-10-26: «implementa portamento»; the voice modes retrig / legato / portamento / poly / unison on pad 32): the oscillator's
+    pitch (osc_ctrl, both oscillators, so osc0 and with it FM, the supersaw's detune, the VA-drum) gets the OSC1 block's GO_OFF word added (65536 a
+    semitone).  Each block (the oscillator modes, ACT = 2, before the voices): a new note moves the offset by (the last note - the note) << 16, then
+    it is scaled by the coefficient the ARM writes at OSC2 + GK_OFF (exp(-block / tau); 0 = no glide: the offset stays 0): the pitch glides
+    exponentially to the note.  In poly the word is exchanged with the voice records (record word 6): there it is the voice's own offset, the
+    unison's detune (the ARM writes it; the track's copy goes back after the voices)."""
+    global GLIDE
+    assert OSC3 and OSCSUB and POLY
+    GLIDE = True
+
+
+def use_glide2():
+    """SC47.6 (the user, 2026-10-26: «Add uni retrig, uni portamento and uni glide»): the glide also under the unison's voices.  The track's glide
+    offset moves to OSC2 + GT_OFF (not exchanged with the records): osc_ctrl adds it and the OSC1 word (now only a voice's own offset: the unison's
+    detune; cleared each block for the one voice).  The note it follows: the first record's (the unison's note) when the records are on, else the
+    track's.  A note change with the ARM's jump counter (OSC2 + JMP_OFF) ahead of the one seen (OSC2 + JSN_OFF) jumps (the offset 0: the unison's
+    glide only between held notes); else the offset moves by (the last - the note) << 16; then x GK, towards 0."""
+    global GLIDE2
+    assert GLIDE
+    GLIDE2 = True
+
+
+def use_poly6():
+    """SC47.6 (the user, 2026-10-26: «increase FM polyphony to six shared voices if possible»): six voice records a track (PV_N; X:$3E60 + 168 t +
+    28 v, up to $3FAF; their DSP-only extensions in Y:$3C00..$3D4F), the scratch words moved after them (X:$3FE4..), six FM voices' operator blocks
+    (X:$3C00 + 48 s for s 0..4, the sixth at $3FB4: free, the 2026-10-26 probe).  poly.use_v5 allows six FM voices to one track (3 + 3 with both)."""
+    global POLY6, PV_N, PV_SCR, PV_PC, PV_EFF, PV_R2, FV_ADDRS
+    assert POLY3
+    POLY6 = True
+    PV_N = 6
+    PV_SCR, PV_PC, PV_EFF, PV_R2 = 0x3FE4, 0x3FE5, 0x3FE6, 0x3FE7
+    FV_ADDRS = [0x3C00 + 48 * s_ for s_ in range(5)] + [0x3FB4]
+    assert PV_REC0 + 2 * PV_RS * PV_N <= FV_ADDRS[5] and FV_ADDRS[5] + 48 <= PV_SCR
+
+
+def use_poly3():
+    """SC47.4 (the user, 2026-10-26: «add polyphony to the remaing voices»; «FM: 4 voces en total»): FM polyphonic too.  Each FM voice has its own
+    four operator blocks (X:FV0 + 48 s, the ARM's slot s: the phases, outputs, smoothed AMP, y[n - 2] stay there, no exchange) which the ARM fills
+    as the track's (R / AMP per voice, the routing K / M / HC copied); the record's PV_FMB = their address.  The voice's body = osc0 (its increment,
+    the FM's base) + the FM loop (now a subroutine, fmb, entered with a = the blocks' address; one voice: the track's FMB0 + 48 t), then its noise
+    (pvz2, at the level the FM loop copied from OSC1 + NZ_OFF: the record's + 10, the ARM's per voice).  r2 is kept around the body (PV_R2)."""
+    global POLY3
+    assert POLY2 and FM and FMCOMPACT and FMORDER
+    POLY3 = True
+
+
+SCALEMAC = False                                # SC46.9 (use_scalemac)
+
+
+def use_scalemac():
+    """SC46.9: room on core 0 with nothing changed (the FM study's reserve, «dsp-scale-by-mac»): v x $10410 (0..127 -> 0..$7FFFF0: the morph position, MIX,
+    FM, RING, BITSYNC) was v << 16 + v << 10 + v << 4 in 8-9 words; now a = v << 16, x0 = a, mac x0,y1,a with y1 = $020800 (exact: (v << 16) x
+    $020800 x 2 >> 24 = v << 10 + v << 4, a0 = 0).  -16 words."""
+    global SCALEMAC
+    assert OSC3
+    SCALEMAC = True
+
+
+OSCSUB = False                                  # SC46.7 (use_oscsub)
+
+
+def use_oscsub():
+    """SC46.7: room on core 0 with nothing changed (the FM study's reserve, «dsp-oscctrl-subroutine»): osc_ctrl (the oscillator's pitch, shape and
+    morph weights, ~190 words) was expanded twice, for OSC1 and OSC2; now one subroutine with OW = r4 and the increment's slot at x:(r4+n4)
+    (n4 = 11 / 19; m4 linear first): the caller loads the note into a.  -181 words, the same output (the SC45.5 wcall precedent)."""
+    global OSCSUB
+    assert OSC3
+    OSCSUB = True
+
+
+SMSTEREO = False                                # SC46.7 (use_smstereo)
+SM_S2, SM_SR, SM_T0, SM_T1, SM_T2 = 28, 29, 30, 31, 32   # (SMSTEREO) words of the OSC1 block (the supersaw's, free in the sample mode): the right sample's start,
+                                                #   stereo this note, the position / fraction at the block's start, the ring's pointer
+SIDE0 = 0x3340                                  # (SMSTEREO) Y: the side of voice t at SIDE0 + 48 t (32 words); X: its filter's state (2 words) at the same address
+
+
+def use_smstereo():
+    """SC46.7 (the user, 2026-10-25: «haz midi 1_2 stereo»): the sample mode (ACT = 3) of MIDI 1 / 2 in stereo: with WAVE (OSC 1 page, K7: in the
+    sample mode it did nothing) above 0 when a note starts, the track's sample N is the left and N + 1 (63 -> 0) the right (the pack's samples are
+    mono: a stereo sample = two slots in a row; the length = the shorter of the two; the capture stays mono).  Each block the right is read with the
+    left's positions (the same pitch), then mid / side: the mid (L + R) / 2 goes the track's way (the VCA, the effect, the filter, the mixer strip:
+    level, pan, sends); the side (L - R) / 2 x the width (WAVE << 16) goes through the engine's filter too (its 12 dB stage, a state of its own) and
+    into the granular's side buffer (granular_dsp.SOUT, its half RDOFS): core0_sides adds it before the master filter with the VCA gain and the track
+    level (the granular's mid / side).  The filter becomes a subroutine (blk_filter) for that second call."""
+    global SMSTEREO
+    assert SAMPLER and SLOPES
+    SMSTEREO = True
+
+
+SMSWAP = False                                  # SC47 (use_smswap)
+
+
+def use_smswap():
+    """SC47 (the user, 2026-10-26, on Beta 3.26: «con wave a la derecha completamente, dos samples por los dos canales … puede que su rango no esté
+    llegando a 127?»): measured on the whole core 0 (the mix arrays after smp_post, steady state, DC to Nyquist): the separation was right but the
+    sides the other way round (the granular's sides are + right: a side (L - R) / 2 put the first sample on the RIGHT), and WAVE stops at 126 (the
+    oscillator's morph), so the width topped at 0.98.  Now the side = -(L - R) / 2 x WAVE x $10410: the first sample on the left, 126 = the whole
+    width.  (The negation is in the multiply, mpy -x0,y1: «mpy y1,x0» is not a legal pair and its long form takes x0 unsigned, so a negative width
+    there came out positive.)"""
+    global SMSWAP
+    assert SMSTEREO
+    SMSWAP = True
+
+
+SMST2 = False                                   # SC46.8 (use_smstereo2)
+SM_K, SM_L2, SM_FAR = 43, 34, 39                # (SMST2) words of the OSC1 block: the right's distance (the ARM writes it; free in every mode), the right's length,
+                                                #   the furthest position of the block (the sample mode's)
+
+
+def use_smstereo2():
+    """SC46.8 (the user, 2026-10-25: «duración ajustada a sample más largo (pausar reproducción del corto al final para no pisar fuera)» · «shift+sample
+    ya seleccionado, manteniendo la distancia en caso de que se cambie el primero»): the right sample = (N + K) & 63, K from OSC1 + SM_K (smst.py
+    writes it: Shift + a sample in the picker); the note lasts as long as the longer of the two: each side's length is its own, a side whose block
+    would pass its end plays silence from that block on (its reads are discarded), the note ends when both have."""
+    global SMST2
+    assert SMSTEREO
+    SMST2 = True
+
+
+import re as _re
+_SI_ALU = _re.compile(r"^(add|sub|cmp|and|or|eor) #>(\$[0-9a-fA-F]+|\d+),(a|b)$")
+_SI_MV = _re.compile(r"^move #>(\$[0-9a-fA-F]+|\d+),(x0|x1|y0|y1|a|b)$")
+_SI_MR = _re.compile(r"^move #>(\$[0-9a-fA-F]+|\d+),([rn][0-7])$")
+
+
+def short_imm(l):
+    """(SHORTIMM) the one-word form of a text line, or the line itself"""
+    num = lambda s: int(s[1:], 16) if s[0] == "$" else int(s)
+    m = _SI_ALU.match(l)
+    if m and 0 <= num(m.group(2)) <= 63: return "%s #<$%x,%s" % (m.group(1), num(m.group(2)), m.group(3))
+    m = _SI_MV.match(l)
+    if m and num(m.group(1)) <= 0xFFFFFF and num(m.group(1)) & 0xFFFF == 0: return "move #$%02x,%s" % (num(m.group(1)) >> 16, m.group(2))
+    m = _SI_MR.match(l)
+    if m and num(m.group(1)) < 256: return "move #%d,%s" % (num(m.group(1)), m.group(2))
+    return l
+
+
 def use_lfoshape2():
     """SC44.3 (the user, 2026-10-18: «add s&h (stepped random) and slewed s&h (glided random) as waveshapes»): shape 6 of the own engine's LFO =
     slewed sample & hold: when the phase wraps the old random value goes to OSC1 + SL_PREV and the voice's noise generator (DFLAGS + 3) gives a new
@@ -261,7 +532,7 @@ def code(base, tabs, premix, ret_old):
     a = D.Asm(base)
     L = a.label
     def e(*lines):
-        for l in lines: a.emit(T(l))
+        for l in lines: a.emit(T(short_imm(l) if SHORTIMM else l))
     def X(off): return "x:(r6+$%x)" % off
     def ld_tab(name, idx_reg, dst):           # dst = TABLE[idx_reg] (idx_reg is a or b, clobbered; uses r0)
         e("add #>$%x,%s" % (tabs[name], idx_reg), "move %s,r0" % idx_reg); a.emit(D.NOP); e("move p:(r0),%s" % dst)
@@ -316,6 +587,8 @@ def code(base, tabs, premix, ret_old):
                 e("move y0,a", "move a,x:(r0)")
                 a.emit(J("al"), p + "mbd")
         L(p + "mbd")
+
+    subs = []                                                                     # (OSCSUB) subroutines emitted after vpre's end
 
     def control(p):
         # ---- voice switched on: restart
@@ -486,6 +759,11 @@ def code(base, tabs, premix, ret_old):
         L(p + "gx")                                                              # a = T0 (kept in a: the next lines use b, x0, y0 only)
         if SAMPLER:                                                              # the sample: the envelope term at 1.0 (the VCA open for the one-shot)
             e("move %s,b" % X(P_ENVA), "asl #%d,b,b" % (17 if BISEND else 16), "move b,x0", "move %s,b" % X(ACT), "move #>$7fffff,y0", "cmp #>3,b"); a.emit(J("eq"), p + "vso")
+            if FMVCA: e("move x:(r7+%d),b" % (FM_FLAG - DFLAGS_OFF), "tst b"); a.emit(J("ne"), p + "vso")      # (FMVCA) FM: open too (r7 = DFLAGS)
+            if POLY2:                                                                 # (POLY2) the VA-drum in poly: open (each voice its envelope)
+                e("move x:(r7),b", "and #>4,b"); a.emit(J("eq"), p + "vsp")
+                e("move x:(r7+%d),b" % (OS2B0 + PV_OFF - OSB0 - DFLAGS_OFF), "tst b"); a.emit(J("ne"), p + "vso")
+                L(p + "vsp")
             e("move %s,y0" % X(ENV))
             L(p + "vso"); e("mpy x0,y0,b")
         else:
@@ -519,12 +797,36 @@ def code(base, tabs, premix, ret_old):
             # ---- oscillator v3: the pitch (as OSC2), the shape parameters of the three families, the morph weights of the four waves
             e("move %s,a" % X(ACT), "cmp #>2,a"); a.emit(J("ne"), p + "oi")
             e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
+            if GLIDE2:                                                                # the glide (GLIDE2): the track's offset in OSC2 + GT_OFF
+                G2 = OS2B0 - OSB0
+                e("move #0,x0", "move x0,x:(r3+%d)" % GO_OFF)                           # one voice: no own offset
+                e("move x:(r3+%d),a" % (G2 + PV_OFF), "tst a"); a.emit(J("eq"), p + "gnm")   # the records on: the first one's note (the unison's)
+                e("move a1,r4"); a.emit(D.NOP); e("move x:(r4+%d),a" % PV_NOTE); a.emit(J("al"), p + "gnn")
+                L(p + "gnm"); e("move %s,a" % X(NOTE))
+                L(p + "gnn"); e("move x:(r3+%d),x0" % (G2 + LN_OFF), "move a,x:(r3+%d)" % (G2 + LN_OFF), "sub x0,a"); a.emit(J("eq"), p + "gls")
+                e("move x:(r3+%d),b" % (G2 + JMP_OFF), "move x:(r3+%d),x0" % (G2 + JSN_OFF), "cmp x0,b"); a.emit(J("eq"), p + "glg")
+                e("move b,x:(r3+%d)" % (G2 + JSN_OFF), "clr b"); a.emit(J("al"), p + "glm")          # a jump: the offset 0
+                L(p + "glg"); e("asl #16,a,a", "move x:(r3+%d),b" % (G2 + GT_OFF), "sub a,b")
+                L(p + "glm"); e("move b,x0"); a.emit(J("al"), p + "glk")
+                L(p + "gls"); e("move x:(r3+%d),x0" % (G2 + GT_OFF))
+                L(p + "glk"); e("move x:(r3+%d),y0" % (G2 + GK_OFF), "mpy y0,x0,b", "tst b"); a.emit(J("ge"), p + "glp")
+                e("add #>1,b")
+                L(p + "glp"); e("move b,x:(r3+%d)" % (G2 + GT_OFF))
+            elif GLIDE:                                                               # the glide: GO = (GO - (the note - the last) << 16) x GK
+                G2 = OS2B0 - OSB0
+                e("move %s,a" % X(NOTE), "move x:(r3+%d),x0" % (G2 + LN_OFF), "move a,x:(r3+%d)" % (G2 + LN_OFF), "sub x0,a", "asl #16,a,a")
+                e("move x:(r3+%d),b" % GO_OFF, "sub a,b", "move b,x0", "move x:(r3+%d),y0" % (G2 + GK_OFF), "mpy y0,x0,b", "tst b"); a.emit(J("ge"), p + "glp")
+                e("add #>1,b")                                                            # (towards 0: the floor of a negative would stay a few units flat)
+                L(p + "glp"); e("move b,x:(r3+%d)" % GO_OFF)
             def modterm(off, src, scale):                                             # the modulation depths are the OSC1 block's (shared by both oscillators)
                 e("move x:(r3+%d),b" % off, "asl #17,b,b", "move b,x0", "move %s,y0" % src, "mpy y0,x0,b")
                 if scale != 0x7fffff: e("move b,x0", "move #>$%x,y0" % scale, "mpy y0,x0,b")
-            def ox(OW, k): return "x:(%s)" % OW if k == 0 else "x:(%s+%d)" % (OW, k)
+            def ox(OW, k): return "x:(%s+n4)" % OW if k == "n4" else "x:(%s)" % OW if k == 0 else "x:(%s+%d)" % (OW, k)
             def osc_ctrl(OW, note, lab, inc_off):                                       # OW = the block of the oscillator (r3 = OSC1, r4 = OSC2), note = the operand of its note
-                e("move %s,a" % note, "move %s,x0" % ox(OW, 0), "add x0,a", "asl #16,a,a")
+                if note: e("move %s,a" % note)                                           # (OSCSUB: the caller loads it)
+                e("move %s,x0" % ox(OW, 0), "add x0,a", "asl #16,a,a")
+                if GLIDE: e("move x:(r3+%d),x0" % GO_OFF, "add x0,a")                     # the glide / the unison's detune (OSC1's word for both oscillators)
+                if GLIDE2: e("move x:(r3+%d),x0" % (OS2B0 - OSB0 + GT_OFF), "add x0,a")    # (GLIDE2) the track's glide
                 e("move %s,b" % ox(OW, 1), "asl #9,b,b", "add b,a")
                 modterm(5, "x:(r3+%d)" % VD_EP if VADRUM else X(ENV), 0x180000); e("add b,a")
                 modterm(4, X(LV), 0x060000); e("add b,a")
@@ -549,7 +851,8 @@ def code(base, tabs, premix, ret_old):
                     e("move b,y0", "move %s,x0" % ox(OW, inc_off), "mpy y0,x0,b", "move b,x0", "move #>$%x,y0" % int(round(SS_D1 * (1 << 23))), "mpy y0,x0,b")
                     e("move b,%s" % ox(OW, SS_D), "move b,a", "asl a", "add b,a", "move a,%s" % ox(OW, SS_D + 1), "asl a", "move a,%s" % ox(OW, SS_D + 2))   # D, 3 D, 6 D
                 # the morph position q = WAVE x 0x10410 (126 -> 0x7ffffc) + ENVM x ENV + LFOM x LV, clamped to 0..1; 3 q = i + f: the weights (1 - f) of wave i and f of wave i + 1
-                e("move %s,a" % ox(OW, 2), "asl #16,a,a", "move %s,b" % ox(OW, 2), "asl #10,b,b", "add b,a", "move %s,b" % ox(OW, 2), "asl #4,b,b", "add b,a")
+                if SCALEMAC: e("move #>$20800,y1", "move %s,a" % ox(OW, 2), "asl #16,a,a", "move a,x0", "mac x0,y1,a")
+                else: e("move %s,a" % ox(OW, 2), "asl #16,a,a", "move %s,b" % ox(OW, 2), "asl #10,b,b", "add b,a", "move %s,b" % ox(OW, 2), "asl #4,b,b", "add b,a")
                 modterm(8, X(ENV), 0x7fffff); e("add b,a")
                 modterm(9, X(LV), 0x7fffff); e("add b,a")
                 e("tst a"); a.emit(J("ge"), p + "m1" + lab); e("clr a")
@@ -562,17 +865,27 @@ def code(base, tabs, premix, ret_old):
                 if SUPERSAW:                                                              # the saw's weight w: the centre w (1 - s / 2) / 2, each side w s / 16
                     e("move %s,x0" % ox(OW, SS_W), "move %s,y0" % ox(OW, 17), "mpy y0,x0,b", "move y0,a", "asr b", "sub b,a", "asr a", "move a,%s" % ox(OW, 17),
                       "asr #3,b,b", "move b,%s" % ox(OW, SS_W))
-            osc_ctrl("r3", X(NOTE), "", 11)
+            if OSCSUB and POLY:                                                       # (POLY) the set-up in the subroutine too: osc0 = OSC1 with the note at r2 + PV_NOTE
+                e("lua (r6-%d),r2" % (PV_NOTE - NOTE)); a.emit(lambda t: [0x0BF080, t], p + "osc0")          # one voice: r2 + PV_NOTE = X(NOTE)
+                subs.append(lambda: (L(p + "osc0"), e("move #>$ffffff,m4", "move r3,r4", "move #11,n4", "move x:(r2+%d),a" % PV_NOTE),
+                                     L(p + "osc"), osc_ctrl("r4", None, "", "n4"), a.emit(D.RTS)))
+            elif OSCSUB:                                                              # one subroutine: OW = r4, the increment at x:(r4+n4)
+                e("move #>$ffffff,m4", "move r3,r4", "move #11,n4", "move %s,a" % X(NOTE)); a.emit(lambda t: [0x0BF080, t], p + "osc")
+                subs.append(lambda: (L(p + "osc"), osc_ctrl("r4", None, "", "n4"), a.emit(D.RTS)))
+            else: osc_ctrl("r3", X(NOTE), "", 11)
             if DUAL:                                                                  # the second oscillator: its pitch (own note, tune, fine; the shared vibrato / envelope), shape, morph, and the interaction amounts
                 e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("eq"), p + "oi")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
-                osc_ctrl("r4", "x:(r3+%d)" % NOTE2_OFF, "b", 19)
+                if OSCSUB: e("move #19,n4", "move x:(r3+%d),a" % NOTE2_OFF); a.emit(lambda t: [0x0BF080, t], p + "osc")
+                else: osc_ctrl("r4", "x:(r3+%d)" % NOTE2_OFF, "b", 19)
                 e("move x:(r4+20),a", "tst a"); a.emit(J("eq"), p + "i2p")                  # the signed increment: the direction flag (soft sync) reverses it
                 e("move x:(r4+19),a", "neg a", "move a,x:(r4+11)"); a.emit(J("al"), p + "i2d")
                 L(p + "i2p"); e("move x:(r4+19),a", "move a,x:(r4+11)")
                 L(p + "i2d")
+                if SCALEMAC: e("move #>$20800,y1")
                 for srcoff, dstoff in ((4, 25), (6, 24), (7, 27), (8, 26)):                  # MIX, FM, RING, BITSYNC position: 0..127 -> 0..0x7ffff0
-                    e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move x:(r4+%d),b" % srcoff, "asl #10,b,b", "add b,a", "move x:(r4+%d),b" % srcoff, "asl #4,b,b", "add b,a", "move a,x:(r4+%d)" % dstoff)
+                    if SCALEMAC: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move a,x0", "mac x0,y1,a", "move a,x:(r4+%d)" % dstoff)
+                    else: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move x:(r4+%d),b" % srcoff, "asl #10,b,b", "add b,a", "move x:(r4+%d),b" % srcoff, "asl #4,b,b", "add b,a", "move a,x:(r4+%d)" % dstoff)
                 e("move x:(r4+8),a", "lsr #4,a", "add #>1,a", "move a,x:(r4+21)")              # the sync period: every 1 .. 8 master cycles
             L(p + "oi")
         elif OSC2:
@@ -616,6 +929,27 @@ def code(base, tabs, premix, ret_old):
 
     # ================================================================ one channel in place: r0 = first sample, n0 = 2, r6 = block, r7 = filter state (LOW, BAND)
     def channel(p, sp):
+        def sm_finish():                                                          # (SMSTEREO) mid (L + R) / 2 to the ring, side (L - R) / 2 x the width, its filter, to the granular
+            if POLY: e("move x:(r3+%d),a" % SM_SR, "tst a"); a.emit(J("eq"), p + "smd")
+            e("move r1,r4", "move #2,n4", "move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r0", "move x:(r3+2),a", "asl #16,a,a")
+            if SMSWAP: e("move a,x0", "move #>$20800,y1", "mac x0,y1,a")              # (SMSWAP) the width WAVE x $10410 (126 = all of it)
+            e("move a,x0")
+            a.emit(D.do_x, 0x3A, p + "smm")                                       # mid (L + R) / 2 to the ring, side (L - R) / 2 x the width
+            e("move y:(r4),a", "move y:(r0),y0", "tfr a,b", "add y0,a", "sub y0,b", "asr a", "asr b", "move a,y:(r4)+n4", "move b,y1",
+              "mpy -x0,y1,b" if SMSWAP else "mpy y1,x0,b")                         # (SMSWAP) negated: the granular's sides are + right
+            L(p + "smm"); e("move b,y:(r0)+")
+            e("move %s,a" % X(FMODE), "tst a"); a.emit(J("eq"), p + "smf")      # the engine's filter on the side too (its 12 dB stage, its own state)
+            e("move r1,x:(r3+%d)" % SM_T2, "move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r0", "move a1,r7", "move #1,n0", "move #1,r2")
+            a.emit(lambda t: [0x0BF080, t], p + "ps")
+            e("move x:(r3+%d),r1" % SM_T2, "move #2,n0")
+            if not POLY: e("move r6,a", "add #>%d,a" % LOW0, "move a,r7")         # (POLY: at smd)
+            L(p + "smf")                                                          # the side to the granular's buffer (the half core 0 reads this block)
+            import granular_dsp as GD
+            e("move #>$%x,b" % GD.SOUT, "move #>$%x,x0" % (GD.SOUT + 32), "move r6,a", "cmp #>$%x,a" % VB0, "tne x0,b", "move x:>$%x,x0" % GD.RDOFS, "add x0,b",
+              "move b1,r4", "move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r0")
+            a.emit(D.do_x, 0x3A, p + "smo")
+            e("move y:(r0)+,x0")
+            L(p + "smo"); e("move x0,x:(r4)+")
         if OSC3:
             # ---- oscillator v3 (vpre only, ACT = 2): the four waves of the shape family mixed with the morph weights; the phase lives in the block (X + 10)
             e("move x:>$%x,a" % RMODE, "tst a"); a.emit(J("ne"), p + "nosc")
@@ -624,38 +958,95 @@ def code(base, tabs, premix, ret_old):
                 e("move %s,a" % X(ACT), "cmp #>3,a"); a.emit(J("ne"), p + "nsm")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
                 e("move r0,r1")
+                if POLY:                                                                  # the voices (pvl); one voice: the body (smb), then the stereo's finishing
+                    e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                    e("lua (r6-%d),r2" % (PV_NOTE - NOTE), "move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r7")   # the note at r2 + PV_NOTE; the right's target: the side buffer
+                    a.emit(lambda t: [0x0BF080, t], p + "smb")
+                    L(p + "smfin"); sm_finish()
+                    L(p + "smd"); e("move r6,a", "add #>%d,a" % LOW0, "move a,r7", "move r1,r0"); a.emit(J("al"), p + "nosc")
+                    L(p + "smb")
                 e("move x:(r3+%d),a" % SM_N, "tst a"); a.emit(J("eq"), p + "smr")            # a new note: which sample, from its start
                 e("move #>0,x0", "move x0,x:(r3+%d)" % SM_N, "move a1,b", "and #>$100,b"); a.emit(J("ne"), p + "smx")
                 e("move x:(r3+8),a")                                                         # code 25: the track's sample
                 L(p + "smx"); e("tst a"); a.emit(J("lt"), p + "smc")
-                e("and #>63,a", "asl #2,a,a", "add #>$%x,a" % SM_TAB, "move a1,r4"); a.emit(D.NOP)
-                e("move x:(r4)+,x0", "move x:(r4),a"); a.emit(J("al"), p + "sms")
-                L(p + "smc"); e("move #>$%x,x0" % SM_CAP, "move x:>$%x,a" % SM_CAPLEN)
-                L(p + "sms")
-                e("move x0,x:(r3+%d)" % SM_S, "move a1,x:(r3+%d)" % SM_L, "move #>0,x0", "move x0,x:(r3+%d)" % SM_P, "move x0,x:(r3+%d)" % SM_F,
-                  "move #>1,x0", "move x0,x:(r3+%d)" % SM_ON)
+                if SMSTEREO:                                                              # the left N, and with WAVE > 0 the right N + 1 (the shorter length)
+                    e("and #>63,a", "move a1,y1", "asl #2,a,a", "add #>$%x,a" % SM_TAB, "move a1,r4"); a.emit(D.NOP)
+                    e("move x:(r4)+,x0", "move x:(r4),a", "move x0,x:(r3+%d)" % SM_S, "move a1,x:(r3+%d)" % SM_L, "move #>0,x0", "move x0,x:(r3+%d)" % SM_SR)
+                    e("move x:(r3+2),b", "tst b"); a.emit(J("eq"), p + "smt")
+                    if SMST2:                                                             # the right = N + K (the ARM's distance), its own length
+                        e("move y1,b", "move x:(r3+%d),x0" % SM_K, "add x0,b", "and #>63,b", "asl #2,b,b", "add #>$%x,b" % SM_TAB, "move b1,r4"); a.emit(D.NOP)
+                        e("move x:(r4)+,x0", "move x0,x:(r3+%d)" % SM_S2, "move x:(r4),b", "move b1,x:(r3+%d)" % SM_L2,
+                          "move #>1,x0", "move x0,x:(r3+%d)" % SM_SR); a.emit(J("al"), p + "smt")
+                    else:
+                        e("move y1,b", "add #>1,b", "and #>63,b", "asl #2,b,b", "add #>$%x,b" % SM_TAB, "move b1,r4"); a.emit(D.NOP)
+                        e("move x:(r4)+,x0", "move x0,x:(r3+%d)" % SM_S2, "move x:(r4),b", "cmp a,b", "tgt a,b", "move b1,x:(r3+%d)" % SM_L,
+                          "move #>1,x0", "move x0,x:(r3+%d)" % SM_SR); a.emit(J("al"), p + "smt")
+                    L(p + "smc"); e("move #>$%x,x0" % SM_CAP, "move x:>$%x,a" % SM_CAPLEN, "move x0,x:(r3+%d)" % SM_S, "move a1,x:(r3+%d)" % SM_L,
+                                    "move #>0,x0", "move x0,x:(r3+%d)" % SM_SR)
+                    L(p + "smt")
+                    e("move #>0,x0", "move x0,x:(r3+%d)" % SM_P, "move x0,x:(r3+%d)" % SM_F, "move #>1,x0", "move x0,x:(r3+%d)" % SM_ON)
+                else:
+                    e("and #>63,a", "asl #2,a,a", "add #>$%x,a" % SM_TAB, "move a1,r4"); a.emit(D.NOP)
+                    e("move x:(r4)+,x0", "move x:(r4),a"); a.emit(J("al"), p + "sms")
+                    L(p + "smc"); e("move #>$%x,x0" % SM_CAP, "move x:>$%x,a" % SM_CAPLEN)
+                    L(p + "sms")
+                    e("move x0,x:(r3+%d)" % SM_S, "move a1,x:(r3+%d)" % SM_L, "move #>0,x0", "move x0,x:(r3+%d)" % SM_P, "move x0,x:(r3+%d)" % SM_F,
+                      "move #>1,x0", "move x0,x:(r3+%d)" % SM_ON)
                 L(p + "smr")
                 e("move x:(r3+%d),a" % SM_ON, "tst a"); a.emit(J("eq"), p + "smz")
-                e("move %s,a" % X(NOTE), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "sm1"); e("clr a")
+                e("move %s,a" % ("x:(r2+%d)" % PV_NOTE if POLY else X(NOTE)), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "sm1"); e("clr a")
                 L(p + "sm1"); e("cmp #>127,a"); a.emit(J("le"), p + "sm2"); e("move #>127,a")
                 L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), "TINC"); e("move a,r4"); a.emit(D.NOP); e("move p:(r4),x0")
                 e("move #>$%x,y0" % y0k, "mpy y0,x0,a")                                     # a1 = the ratio in 9.15
                 e("move a1,b", "asr #15,b,b", "move b1,n4", "and #>$7fff,a", "asl #8,a,a", "move a1,y1")   # n4 = its integer part, y1 = the fraction (1.23)
-                e("move n4,b", "add #>1,b", "asl #6,b,b", "move x:(r3+%d),x0" % SM_P, "add x0,b", "add #>1,b", "move x:(r3+%d),x0" % SM_L, "cmp x0,b"); a.emit(J("ge"), p + "sme")
+                if SMST2:                                                                 # the furthest position of the block: the left's end, then (stereo) the right's
+                    e("move n4,b", "add #>1,b", "asl #6,b,b", "move x:(r3+%d),x0" % SM_P, "add x0,b", "add #>1,b", "move b,x:(r3+%d)" % SM_FAR,
+                      "move x:(r3+%d),x0" % SM_L, "cmp x0,b"); a.emit(J("lt"), p + "smg")
+                    e("move x:(r3+%d),a" % SM_SR, "tst a"); a.emit(J("eq"), p + "sme")
+                    e("move x:(r3+%d),x0" % SM_L2, "cmp x0,b"); a.emit(J("ge"), p + "sme")
+                    L(p + "smg")
+                else:
+                    e("move n4,b", "add #>1,b", "asl #6,b,b", "move x:(r3+%d),x0" % SM_P, "add x0,b", "add #>1,b", "move x:(r3+%d),x0" % SM_L, "cmp x0,b"); a.emit(J("ge"), p + "sme")
                 e("move x:(r3+%d),b" % SM_S, "move x:(r3+%d),x0" % SM_P, "add x0,b", "move b1,r4", "move #>$ffffff,m4", "move x:(r3+%d),x1" % SM_F)
-                a.emit(D.do_x, 0x3A, p + "sml")
-                e("move y:(r4)+,a", "move y:(r4)-,b", "sub a,b", "move b,y0", "move x1,x0", "mac y0,x0,a", "move a,%s:(r0)+n0" % sp, "move x1,b", "add y1,b")
-                a.emit(lambda t: T("jclr #23,b1,$%x" % t), p + "smn")
-                e("bclr #23,b1", "move (r4)+")
-                L(p + "smn"); e("move b1,x1")
-                L(p + "sml"); e("move (r4)+n4")
+                if SMSTEREO: e("move x0,x:(r3+%d)" % SM_T0, "move x1,x:(r3+%d)" % SM_T1)
+                def smloop(dst, lab, nl):                                                 # 32 samples interpolated from r4 (x1 the fraction, n4 / y1 the step)
+                    a.emit(D.do_x, 0x3A, p + lab)
+                    e("move y:(r4)+,a", "move y:(r4)-,b", "sub a,b", "move b,y0", "move x1,x0", "mac y0,x0,a", "move a,%s" % dst, "move x1,b", "add y1,b")
+                    a.emit(lambda t: T("jclr #23,b1,$%x" % t), p + nl)
+                    e("bclr #23,b1", "move (r4)+")
+                    L(p + nl); e("move b1,x1")
+                    L(p + lab); e("move (r4)+n4")
+                smloop("%s:(r0)+n0" % sp, "sml", "smn")
                 e("move r4,b", "move x:(r3+%d),x0" % SM_S, "sub x0,b", "move b1,x:(r3+%d)" % SM_P, "move x1,x:(r3+%d)" % SM_F)
-                e("move r1,r0"); a.emit(J("al"), p + "nosc")
+                if SMST2:                                                                 # the left past its end: silence (the right still plays)
+                    e("move x:(r3+%d),b" % SM_FAR, "move x:(r3+%d),x0" % SM_L, "cmp x0,b"); a.emit(J("lt"), p + "slk")
+                    e("clr a", "move r1,r0")
+                    a.emit(D.do_x, 0x3A, p + "slz")
+                    L(p + "slz"); e("move a,%s:(r0)+n0" % sp)
+                    L(p + "slk")
+                if SMSTEREO:
+                    e("move x:(r3+%d),a" % SM_SR, "tst a"); a.emit(J("eq"), p + ("smd2" if POLY else "smd"))
+                    if POLY: e("move r7,r0")                                              # the right's target (one voice: the side buffer; the voices: PV_SB)
+                    else: e("move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r0")
+                    e("move x:(r3+%d),b" % SM_S2, "move x:(r3+%d),x0" % SM_T0, "add x0,b", "move b1,r4", "move x:(r3+%d),x1" % SM_T1)
+                    smloop("y:(r0)+", "smq", "smqn")                                      # the right into the side buffer
+                    if SMST2:                                                             # the right past its end: silence
+                        e("move x:(r3+%d),b" % SM_FAR, "move x:(r3+%d),x0" % SM_L2, "cmp x0,b"); a.emit(J("lt"), p + "srk")
+                        e("clr a", "lua (r0-32),r0")
+                        a.emit(D.do_x, 0x3A, p + "srz")
+                        L(p + "srz"); e("move a,y:(r0)+")
+                        L(p + "srk")
+                    if POLY: L(p + "smd2")
+                    else: sm_finish(); L(p + "smd")
+                if POLY: e("move r1,r0"); a.emit(D.RTS)
+                else: e("move r1,r0"); a.emit(J("al"), p + "nosc")
                 L(p + "sme"); e("move #>0,x0", "move x0,x:(r3+%d)" % SM_ON)
                 L(p + "smz"); e("clr a")
+                if POLY: e("move a,x:(r3+%d)" % SM_SR)                                    # (silent: no stereo finishing)
                 a.emit(D.do_x, 0x3A, p + "smzl")
                 L(p + "smzl"); e("move a,%s:(r0)+n0" % sp)
-                e("move r1,r0"); a.emit(J("al"), p + "nosc")
+                if POLY: e("move r1,r0"); a.emit(D.RTS)
+                else: e("move r1,r0"); a.emit(J("al"), p + "nosc")
                 L(p + "nsm")
             e("move %s,a" % X(ACT), "cmp #>2,a"); a.emit(J("ne"), p + "nosc")
             e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
@@ -701,23 +1092,69 @@ def code(base, tabs, premix, ret_old):
                 if OW == "r3": e("move r4,n4", "move r3,r4")
                 a.emit(lambda t: [0x0BF080, t], p + "wv")
                 if OW == "r3": e("move n4,r4")
+            if POLY:                                                              # the voices (pvl); one voice: the loop (ovb)
+                e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                a.emit(lambda t: [0x0BF080, t], p + "ovb"); a.emit(J("al"), p + "o3f")
+                L(p + "ovb")
             if SUPERSAW: e("move r3,r4")
             a.emit(D.do_x, 0x3A, p + "o3e")
             e("move x:(r3+11),x0", "move x:(r3+10),a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1", "clr a")
             if SUPERSAW: a.emit(lambda t: [0x0BF080, t], p + "wv")
             else: waves("r3")
             L(p + "o3e"); e("move a,%s:(r0)+n0" % sp)
+            if POLY: a.emit(D.RTS)
             if DUAL:
-                a.emit(J("al"), p + "o3f")
+                if not POLY: a.emit(J("al"), p + "o3f")
                 if SUPERSAW:
                     L(p + "wv"); waves("r4"); a.emit(D.RTS)
-                if FM:                                                                # ---- the FM voice (r2 = its operator blocks, y1 = the base increment, r4 / n4 = the outputs)
+                if FM and FMCOMPACT:                                                  # ---- the FM voice, compact (r2 = the operator, r4 / n4 = the outputs, r3 = OSC1)
+                    L(p + "fm")
+                    if POLY3:                                                         # the voices (pvl); one voice: fmb with the track's operator blocks
+                        e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                        e("move r6,a", "add #>$%x,a" % (FMB0 - VB0)); a.emit(lambda t: [0x0BF080, t], p + "fmb"); a.emit(J("al"), p + "o3f")
+                        L(p + "fmb"); e("move a,r4", "move #>$ffffff,m4", "move #>$ffffff,m2", "move #%d,n4" % FMS)
+                    else:
+                        e("move r6,a", "add #>$%x,a" % (FMB0 - VB0), "move a,r4", "move #>$ffffff,m4", "move #>$ffffff,m2", "move #%d,n4" % FMS)
+                    if FMORDER: e("lua (r4+%d),r2" % (3 * FMS))                           # operator 4 first
+                    else: e("move a,r2")
+                    e("move x:(r3+11),y1")
+                    a.emit(D.do_x, 0x3A, p + "fms")
+                    e("clr b")
+                    a.emit(lambda t: [0x060480, t], p + "fmo")                         # do #4 (the operators)
+                    amp = F_AMP
+                    if FMSMOOTH:                                                      # the AMP the ARM wrote, smoothed: s += (AMP - s) / 32
+                        e("move x:(r2+%d),a" % F_AMP, "move x:(r2+%d),x0" % F_AS, "sub x0,a", "asr #5,a,a", "add x0,a", "move a,x:(r2+%d)" % F_AS); amp = F_AS
+                    e("move x:(r2+%d),x0" % F_R, "mpy x0,y1,a", "asl #%d,a,a" % (7 if FMWIDE else 4), "move x:(r2+%d),x0" % F_PH, "add x0,a",
+                      "move a1,x:(r2+%d)" % F_PH, "move a1,x1")
+                    e("move x:(r2+%d),x0" % F_M, "move x:(r4)+n4,y0")
+                    a.emit([0x46CCD0])                                                 # mpy y0,x0,a x:(r4)+n4,y0
+                    e("move x:(r2+%d),x0" % (F_M + 1)); a.emit([0x46CCD2])            # mac y0,x0,a x:(r4)+n4,y0
+                    e("move x:(r2+%d),x0" % (F_M + 2)); a.emit([0x46CCD2])
+                    e("move x:(r2+%d),x0" % (F_M + 3), "mac y0,x0,a", "lua (r4-%d),r4" % (4 * FMS))
+                    if FBAVG: e("move x:(r2+%d),x0" % F_HC, "move x:(r2+%d),y0" % F_O2, "mac y0,x0,a")     # + M_kk / 2 x y[n-2]
+                    e("asl #2,a,a", "add x1,a", "move a1,x1")                          # u = the phase + 4 x the modulation
+                    e("move x1,a", "abs a", "move a,y0", "mpy -x1,y0,a", "add x1,a", "asl #2,a,a")      # P = 4 (u - u |u|)
+                    if FMSINE: e("abs a a,x0", "move a,y0", "mpy y0,x0,a", "sub x0,a", "asr #2,a,a", "add x0,a", "move a,x0")    # 0.75 P + 0.25 P |P|
+                    else: e("move a,x0")
+                    e("move x:(r2+%d),y0" % amp)
+                    if FBAVG: a.emit([0x45E2D0])                                        # mpy y0,x0,a x:(r2),x1 (x1 = y[n-1])
+                    else: e("mpy y0,x0,a")
+                    a.emit([0x182200])                                                 # move a,x:(r2) a,y0
+                    if FBAVG: e("move x1,x:(r2+%d)" % F_O2)
+                    e("move x:(r2+%d),x0" % F_K, "lua (r2%+d),r2" % (-FMS if FMORDER else FMS))
+                    L(p + "fmo"); e("mac y0,x0,b")
+                    e("lua (r2%+d),r2" % (4 * FMS if FMORDER else -4 * FMS))
+                    L(p + "fms"); e("move b,%s:(r0)+n0" % sp)
+                    e("move x:(r3+%d),x0" % NZ_OFF, "move x0,x:(r3+%d)" % VD_NL)
+                    if POLY3: a.emit(D.RTS)
+                    else: a.emit(J("al"), p + "o3f")
+                elif FM:                                                              # ---- the FM voice (r2 = its operator blocks, y1 = the base increment, r4 / n4 = the outputs)
                     L(p + "fm")
                     e("move r6,a", "add #>$%x,a" % (FMB0 - VB0), "move a,r2", "move #%d,n4" % FMS, "move x:(r3+11),y1", "move #>$ffffff,m4")
                     a.emit(D.do_x, 0x3A, p + "fms")
                     e("move r2,r3", "clr b")
                     a.emit(lambda t: [0x060480, t], p + "fmo")                     # do #4 (the operators)
-                    e("move x:(r3+%d),x0" % F_R, "mpy x0,y1,a", "asl #4,a,a", "move x:(r3+%d),x0" % F_PH, "add x0,a", "move a1,x:(r3+%d)" % F_PH, "move a1,x1", "move r2,r4", "clr a")
+                    e("move x:(r3+%d),x0" % F_R, "mpy x0,y1,a", "asl #%d,a,a" % (7 if FMWIDE else 4), "move x:(r3+%d),x0" % F_PH, "add x0,a", "move a1,x:(r3+%d)" % F_PH, "move a1,x1", "move r2,r4", "clr a")
                     for j in range(4): e("move x:(r3+%d),x0" % (F_M + j), "move x:(r4)+n4,y0", "mac y0,x0,a")
                     e("asl #2,a,a", "add x1,a", "move a1,x1")                      # u = the phase + 4 x the modulation
                     e("move x1,a", "abs a", "move a,y0", "move #>$7fffff,a", "sub y0,a", "move a,y0", "mpy x1,y0,a", "asl #2,a,a")      # 4 u (1 - |u|)
@@ -728,6 +1165,10 @@ def code(base, tabs, premix, ret_old):
                     a.emit(J("al"), p + "o3f")
                 # ---- two oscillators: OSC2 (the FM modulator and the slave of the soft sync) first, then OSC1 (phase modulated by OSC2), then the interactions
                 L(p + "dual")
+                if POLY2:                                                         # the voices (pvl); one voice: the loop (dvb)
+                    e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                    a.emit(lambda t: [0x0BF080, t], p + "dvb"); a.emit(J("al"), p + "o3f")
+                    L(p + "dvb")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
                 a.emit(D.do_x, 0x3A, p + "d3e")
                 e("move x:(r4+11),x0", "move x:(r4+10),a", "add x0,a", "move a1,x:(r4+10)", "move a1,x1", "clr a")
@@ -761,6 +1202,7 @@ def code(base, tabs, premix, ret_old):
                 e("move x0,a", "move y1,b", "sub b,a", "move a,x0", "move x:(r4+26),y0", "mpy y0,x0,a", "move y1,b", "add b,a")            # result = base + w (bitwise - base)
                 L(p + "nb")
                 L(p + "d3e"); e("move a,%s:(r0)+n0" % sp)
+                if POLY2: a.emit(D.RTS)
                 L(p + "o3f")
             e("move r1,r0")
             if VADRUM:                                                            # the noise: one generator step per sample, added at its level
@@ -950,6 +1392,9 @@ def code(base, tabs, premix, ret_old):
                 e("move r2,a", "tst a"); a.emit(J("ne"), p + "p2")
                 e("move r7,a", "sub #>$%x,a" % (VB0 + LOW0 - S2BASE), "move a,r2"); a.emit(D.NOP); e("move r2,r7"); a.emit(D.NOP); a.emit(J("al"), p + "ps")
             L(p + "p2")
+        def fcall():                                                              # (SMSTEREO) the filter is a subroutine (the side calls it too)
+            if SMSTEREO: a.emit(lambda t: [0x0BF080, t], p + "vfilt")
+            else: blk_filter()
         if ROUTE:                                                                 # per voice (DFLAGS bit 0): 0 = VCA, FX, filter; 1 = filter, VCA, FX
             def rt_test(target):
                 e("move r6,a", "sub #>%d,a" % (VB0 - OSB0 - DFLAGS_OFF), "move a,r4"); a.emit(D.NOP)
@@ -957,11 +1402,12 @@ def code(base, tabs, premix, ret_old):
             rt_test(p + "rtf")
             L(p + "rtv"); blk_vca(); blk_fx()
             rt_test(p + "rtx")
-            L(p + "rtf"); blk_filter()
+            L(p + "rtf"); fcall()
             rt_test(p + "rtv")
             L(p + "rtx")
-        elif VFF: blk_vca(); blk_fx(); blk_filter()
-        else: blk_filter(); blk_fx(); blk_vca()
+        elif VFF: blk_vca(); blk_fx(); fcall()
+        else: fcall(); blk_fx(); blk_vca()
+        return blk_filter
 
     REGS = ["x0", "x1", "y0", "y1", "r0", "r1", "r6", "r7", "n0", "m0"] + (["r2"] if SLOPES else []) + (["r3", "r4", "m2", "m4"] if FXMORE else []) + (["n4"] if SAMPLER else [])
     SAVB = SAVX if FXMORE else SAV
@@ -1005,6 +1451,7 @@ def code(base, tabs, premix, ret_old):
     restore_regs()
     if FB: a.emit(J("al"), "pmfb")
     else: a.emit(D.jmp(premix))
+    for sub in subs: sub()
 
     # ================================================================ vret (from the end of fx_cap, P:$D21 chain): the FX returns of the voices whose strip takes them
     L("vret")
@@ -1038,8 +1485,118 @@ def code(base, tabs, premix, ret_old):
 
     # ================================================================ the channel (shared): r0 = first sample, n0 = 2, r6 = block, r7 = filter state; back to vpre / vret by RMODE
     L("vchan")
-    channel("vc2_", "y")
+    filt = channel("vc2_", "y")
     ld(RMODE, "a"); e("tst a"); a.emit(J("eq"), "vp_cont"); a.emit(J("al"), "vq_cont")
+    if SMSTEREO: L("vc2_vfilt"); filt(); a.emit(D.RTS)
+    if POLY:
+        # ================================================================ pvl: the voices of a track (r2 = its records, r3 = OSC1, r0 = r1 = the ring's first sample, n0 = 2)
+        do_n = lambda n: (lambda t: [0x060080 | n << 8, t])
+        L("pvl")
+        if POLY2:                                                                 # the VA-drum: this block's pitch-envelope coefficient (as the track's)
+            e("move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b"); a.emit(J("eq"), "pvp0")
+            e("move %s,b" % X(P_SUS), "asr b", "add #>64,b"); ld_tab("TDEC", "b", "x0"); e("mpy x0,x0,a", "move a,x:>$%x" % PV_PC, "move r1,r0")
+            L("pvp0")
+        e("move r1,x:>$%x" % PV_SCR, "move m0,x0", "move x0,m4", "move x0,m2")   # (m0 = $ffff: linear here)
+        e("move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r4", "clr a")
+        a.emit(D.do_x, 0x3A, "pvz")                                               # the ring (the left) and the side buffer (the right) from 0
+        e("move a,y:(r0)+n0")
+        L("pvz"); e("move a,y:(r4)+")
+        e("move #1,n0")
+        a.emit(do_n(PV_N), "pve")
+        a.emit(lambda t: [0x0BF080, t], "pvx")                                    # the voice's state in
+        e("move x:(r2+%d),a" % PV_TRIG, "move x:(r2+%d),x0" % PV_SEEN, "cmp x0,a"); a.emit(J("eq"), "pvt")
+        e("move a,x:(r2+%d)" % PV_SEEN, "move x:(r2+%d),x0" % PV_TV, "move x0,x:(r3+%d)" % SM_N)      # a new note: the sample's TRIG value
+        if POLY2:                                                                 # the VA-drum: the voice's envelopes from the top
+            e("move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b"); a.emit(J("eq"), "pvt")
+            e("move r2,b", "sub #>$%x,b" % (PV_REC0 - PV_Y0), "move b1,r0", "move #>$7fffff,x0", "move x:(r3+%d),b" % DFLAGS_OFF, "and #>8,b"); a.emit(J("eq"), "pvi1")
+            e("move x:(r2+%d),x0" % PV_TGT)                                       # (DFLAGS bit 3: from the velocity)
+            L("pvi1"); e("move x0,x:(r3+%d)" % VD_EP, "move %s,b" % X(P_ATK), "move #>$7fffff,x0", "move #>2,y0", "tst b"); a.emit(J("eq"), "pvi2")
+            e("move #>0,x0", "move #>1,y0")                                       # (#> : integers, not the short fraction form)
+            L("pvi2"); e("move x0,y:(r0+%d)" % YX_ENV, "move y0,y:(r0+%d)" % YX_STG)
+        L("pvt")
+        if POLY2:                                                                 # the VA-drum: the envelopes' step; the effective target = target x amplitude
+            e("move x:(r2+%d),x0" % PV_TGT, "move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b"); a.emit(J("eq"), "pvn")
+            e("move r2,b", "sub #>$%x,b" % (PV_REC0 - PV_Y0), "move b1,r0", "move x:(r3+%d),x0" % VD_EP, "move x:>$%x,y0" % PV_PC, "mpy y0,x0,a", "move a,x:(r3+%d)" % VD_EP)
+            e("move y:(r0+%d),a" % YX_STG, "cmp #>1,a"); a.emit(J("ne"), "pvdk")
+            e("move y:(r0+%d),a" % YX_ENV, "move %s,x0" % X(ATKINC), "add x0,a", "cmp #>$7fffff,a"); a.emit(J("lt"), "pvat")
+            e("move #>$7fffff,a", "move #>2,x0", "move x0,y:(r0+%d)" % YX_STG)
+            L("pvat"); e("move a,y:(r0+%d)" % YX_ENV); a.emit(J("al"), "pvev")
+            L("pvdk"); e("move y:(r0+%d),x0" % YX_ENV, "move %s,y0" % X(DKC), "mpy y0,x0,a", "move a,y:(r0+%d)" % YX_ENV)
+            L("pvev"); e("move y:(r0+%d),x0" % YX_ENV, "move x:(r2+%d),y0" % PV_TGT, "mpy y0,x0,a", "move a,x0")
+            L("pvn"); e("move x0,x:>$%x" % PV_EFF)
+            e("move x:(r2+%d),a" % PV_G, "add x0,a"); a.emit(J("eq"), "pvs")      # silent: skipped
+        else:
+            e("move x:(r2+%d),a" % PV_G, "move x:(r2+%d),x0" % PV_TGT, "add x0,a"); a.emit(J("eq"), "pvs")  # silent: skipped
+        e("move #>$%x,r0" % PV_TEMP, "move r0,r1", "lua (r0+%d),r7" % (PV_SB - PV_TEMP))
+        if POLY3: e("move r2,x:>$%x" % PV_R2)
+        a.emit(lambda t: [0x0BF080, t], "pvb")
+        if POLY3: e("move x:>$%x,r2" % PV_R2)
+        e("move r1,r0")
+        if POLY2:                                                                 # the VA-drum (POLY3: and FM): the voice's noise, before its gain
+            e("move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b")
+            if POLY3: a.emit(J("ne"), "pvzc"); e("move x:(r3+%d),b" % FM_FLAG, "tst b")
+            a.emit(J("eq"), "pvnz")
+            if POLY3: L("pvzc")
+            a.emit(lambda t: [0x0BF080, t], "pvz2"); e("move r1,r0")
+            L("pvnz")
+            e("move x:(r2+%d),b" % PV_G, "move x:>$%x,a" % PV_EFF, "move a,x:(r2+%d)" % PV_G, "sub b,a", "asr #5,a,a", "move a,y1")   # the gain G -> the effective target
+        else:
+            e("move x:(r2+%d),b" % PV_G, "move x:(r2+%d),a" % PV_TGT, "move a,x:(r2+%d)" % PV_G, "sub b,a", "asr #5,a,a", "move a,y1")   # the gain G -> the target over the block
+        e("move x:(r3+%d),a" % SM_SR, "tst a", "teq x0,a r0,r7")                  # no right (the oscillator, a mono sample): the left again
+        e("move x:>$%x,r4" % PV_SCR, "move #2,n4", "move r6,a", "sub #>$%x,a" % (VB0 - SIDE0), "move a1,r1")
+        a.emit(D.do_x, 0x3A, "pvm")
+        e("add y1,b", "move b,x1", "move y:(r0)+,x0", "move y:(r4),a", "mac x1,x0,a", "move a,y:(r4)+n4", "move y:(r7)+,x0", "move y:(r1),a", "mac x1,x0,a")
+        L("pvm"); e("move a,y:(r1)+")
+        L("pvs")
+        a.emit(lambda t: [0x0BF080, t], "pvx")                                    # the voice's state out
+        e("lua (r2+%d),r2" % PV_RS)
+        L("pve"); a.emit(D.NOP)
+        e("move x:>$%x,r1" % PV_SCR, "move #2,n0")
+        e("move %s,a" % X(ACT), "cmp #>3,a"); a.emit(J("ne"), "vc2_smd")          # the oscillator: on (smd: r7, r0 = r1; no VA-drum noise here)
+        e("move x:(r3+2),a", "move a,x:(r3+%d)" % SM_SR); a.emit(J("al"), "vc2_smfin")      # the sample: the stereo's finishing with WAVE > 0
+        L("pvb")                                                                  # the body of one voice: the sample (smb) or the oscillator (osc0, ovb)
+        e("move %s,a" % X(ACT), "cmp #>3,a"); a.emit(J("eq"), "vc2_smb")
+        if POLY3:                                                                 # an FM voice: its increment (osc0), then the FM loop on its own operator blocks
+            e("move x:(r3+%d),a" % FM_FLAG, "tst a"); a.emit(J("eq"), "pvbf")
+            e("move x:(r2+%d),a" % PV_FMB, "tst a"); a.emit(J("eq"), "pvbf")      # no blocks yet (the ARM writes them at the start / refresh): the oscillator
+            a.emit(lambda t: [0x0BF080, t], "vc_osc0")
+            e("move x:(r2+%d),a" % PV_FMB, "move r1,r0"); a.emit(J("al"), "vc2_fmb")
+            L("pvbf")
+        a.emit(lambda t: [0x0BF080, t], "vc_osc0")
+        if POLY2:                                                                 # two oscillators: OSC2 with the voice's note too, then their loop
+            e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("eq"), "pvbo")
+            e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4", "move #19,n4", "move x:(r2+%d),a" % PV_NOTE)
+            a.emit(lambda t: [0x0BF080, t], "vc_osc")
+            e("move x:(r4+19),a", "move x:(r4+20),b", "tst b"); a.emit(J("eq"), "pvb2"); e("neg a")
+            L("pvb2"); e("move a,x:(r4+11)", "move r1,r0"); a.emit(J("al"), "vc2_dvb")
+            L("pvbo")
+        e("move r1,r0"); a.emit(J("al"), "vc2_ovb")          # (osc_ctrl takes r0)
+        if POLY2:                                                                 # the VA-drum noise of a voice (r0 = its buffer, n0 = 1, r3 = OSC1): as the track's
+            L("pvz2")
+            e("move x:(r3+%d),a" % VD_NL, "tst a"); a.emit(J("eq"), "pvzx")
+            e("move a,y1", "move x:(r3+%d),x0" % VD_NS, "move #>$%x,y0" % LCG_K, "move #>$%x,x1" % LCG_C)
+            a.emit(D.do_x, 0x3A, "pvze")
+            e("mpy y0,x0,a", "asr a", "move a0,b", "add x1,b", "move b1,x0", "move y:(r0),a", "mac x0,y1,a")
+            L("pvze"); e("move a,y:(r0)+n0")
+            e("move x0,x:(r3+%d)" % VD_NS)
+            L("pvzx"); a.emit(D.RTS)
+        L("pvx")                                                                  # exchange OSC1 + 28..47 and + 10 with the record at r2
+        e("lua (r3+28),r4", "move r2,r0")
+        a.emit(do_n(20), "pvxe")
+        e("move x:(r4),x0", "move x:(r0),y0", "move x0,x:(r0)+")
+        L("pvxe"); e("move y0,x:(r4)+")
+        e("move x:(r3+10),x0", "move x:(r0),y0", "move x0,x:(r0)", "move y0,x:(r3+10)")
+        if POLY2:                                                                 # the extension in Y: OSC1 + 23, OSC2 + 10 / + 20 / + 22, OSC2 + 28..33
+            e("move r2,a", "sub #>$%x,a" % (PV_REC0 - PV_Y0), "move a1,r0", "move r3,a", "add #>$%x,a" % (OS2B0 - OSB0), "move a1,r4")
+            e("move x:(r3+%d),x0" % VD_EP, "move y:(r0),y0", "move x0,y:(r0)+", "move y0,x:(r3+%d)" % VD_EP)
+            e("lua (r0+%d),r0" % (YX_O2 - 1))
+            for xo in (10, 20, 22):
+                e("move x:(r4+%d),x0" % xo, "move y:(r0),y0", "move x0,y:(r0)+", "move y0,x:(r4+%d)" % xo)
+            e("lua (r4+28),r4")
+            a.emit(do_n(6), "pvye")
+            e("move x:(r4),x0", "move y:(r0),y0", "move x0,y:(r0)+")
+            L("pvye"); e("move y0,x:(r4)+")
+        a.emit(D.RTS)
     if FB:
         # ================================================================ pmfb: SC10's premix with feedback (vpre ends here; its rts returns to the caller of P:$23C)
         # SC10: with the Setup flag (X:$3A00 bit 0 reverb -> strip 3 = input 1, bit 1 delay -> strip 4 = input 2) the ring samples of that input are zeroed (the strip would hear the

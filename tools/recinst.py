@@ -13,7 +13,12 @@ lane: «Reasignar carriles»): Record held + a step pad of MIDI 1 / 2's track vi
   * Record (button 16) is not one of the stock's held buttons: heads of the button press 0x08033320 and release 0x0803381A keep a flag (not with
     Shift); the press arms / disarms recording as always (the transport's p1, saved first) and, when a snapshot was taken, the release puts p1
     back: Record held for a snapshot leaves the recording state as it was.
-RAM: modmx.MXR + 0x180: + 0 Record held, + 1 a snapshot taken, + 2 p1 at the press, + 3 the swallowed pad + 1."""
+RAM: modmx.MXR + 0x180: + 0 Record held, + 1 a snapshot taken, + 2 p1 at the press, + 3 the swallowed pad + 1 (use_sig: + 4 "RIN1").
+
+SC46.9 (use_sig; the user, 2026-10-26: «Manual note input doesnt work until somthing is recorded in realtime with rec on MIDI tracks» · «with all
+sound sources»): that RAM holds the power-up pattern (nothing clears it): a byte + 0 not 0 = «Record held», and every step pad of MIDI 1 / 2
+with the engine on was taken for a snapshot (swallowed, nothing written: the engine at its defaults) until Record was pressed and let go.  Now
+the four bytes count only with the signature at + 4; c_rist (first use: the signature, + 0..3 = 0)."""
 from __future__ import annotations
 import struct
 import sys
@@ -32,6 +37,13 @@ STEP_VT, STEP_OBJ0, STEP_SZ, STEP_PAGE = 0x0805ADB4, 0x20041EB0, 0x170, 0xC4
 TRANSPORT, PARAM_WPTR, COMMIT = 0x20011034, 0x080354FA, 0x080353C0
 LANES, LANE_BYTES = 0x3A8, 192
 INV = V.INV
+SIG = 0x314E4952                          # (use_sig) "RIN1"
+SIGOK = False
+
+
+def use_sig():
+    global SIGOK
+    SIGOK = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -54,18 +66,28 @@ def arm_code(base, L, prev, nd):
     E(push_list, [0, 1, 2, 3, 4], lr=True)
     E(cmp_imm, 1, REC_ID); E(b_cond, "rp_x", "ne")
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "rp_x", "ne")
-    p1(4); imm32(0, RAM); E(strb_imm, 4, 0, 2); E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
+    p1(4)
+    if SIGOK: E(bl, "c_rist")
+    else: imm32(0, RAM)
+    E(strb_imm, 4, 0, 2); E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
     a.label("rp_x"); E(raw, popw([0, 1, 2, 3, 4], lr=True)); E(b_w, prev["press"])
 
     # ---- c_rirel (the head of the button release: ctrl, id): Record let go; after a snapshot p1 back to what it was before the press
     a.label("c_rirel")
     E(push_list, [0, 1, 2, 3, 4], lr=True)
     E(cmp_imm, 1, REC_ID); E(b_cond, "rr_x", "ne")
-    imm32(4, RAM); E(ldrb_imm, 0, 4, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 4, 0); E(cmp_imm, 0, 0); E(b_cond, "rr_x", "eq")
+    if SIGOK: E(bl, "c_rist"); E(mov_reg, 4, 0)
+    else: imm32(4, RAM)
+    E(ldrb_imm, 0, 4, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 4, 0); E(cmp_imm, 0, 0); E(b_cond, "rr_x", "eq")
     E(ldrb_imm, 0, 4, 1); E(cmp_imm, 0, 0); E(b_cond, "rr_x", "eq"); E(movs_imm, 1, 0); E(strb_imm, 1, 4, 1)
     imm32(0, TRANSPORT); E(movs_imm, 1, 1); E(bl, PARAM_WPTR); E(ldrb_imm, 1, 4, 2); E(strb_imm, 1, 0, 0)
     imm32(0, TRANSPORT); E(bl, COMMIT)
     a.label("rr_x"); E(raw, popw([0, 1, 2, 3, 4], lr=True)); E(b_w, prev["release"])
+
+    if SIGOK:                                                                      # ---- c_rist() -> r0 = RAM, its four bytes 0 at the first use; clobbers r1, r2
+        a.label("c_rist")
+        imm32(0, RAM); E(raw, h(0x6841)); imm32(2, SIG); E(cmp_reg, 1, 2); E(b_cond, "rs_i", "ne"); E(raw, h(0x4770))     # ldr r1, [r0, #4]
+        a.label("rs_i"); E(raw, h(0x6042)); E(movs_imm, 1, 0); E(raw, h(0x6001)); E(raw, h(0x4770))                       # str r2, [r0, #4]; str r1, [r0]
 
     # ---- c_ristrk(r0 = step object) -> r0 = MIDI 1 / 2 = 0 / 1, else 0xFF
     a.label("c_ristrk")
@@ -78,7 +100,8 @@ def arm_code(base, L, prev, nd):
     # ---- c_ripad (slot 0 of the step objects: obj, pad, velocity): Record held + a step of MIDI 1 / 2 with the engine on = the snapshot
     a.label("c_ripad")
     E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
-    imm32(3, RAM); E(ldrb_imm, 3, 3, 0); E(cmp_imm, 3, 0); bc("rd_prev", "eq")
+    if SIGOK: E(bl, "c_rist"); E(ldrb_imm, 3, 0, 0); E(raw, h(0x9800)); E(raw, h(0x9901)); E(cmp_imm, 3, 0); bc("rd_prev", "eq")   # ldr r0, [sp]; ldr r1, [sp, #4]
+    else: imm32(3, RAM); E(ldrb_imm, 3, 3, 0); E(cmp_imm, 3, 0); bc("rd_prev", "eq")
     E(cmp_imm, 1, 15); bc("rd_prev", "hi"); E(mov_reg, 5, 1); E(mov_reg, 6, 0)
     E(bl, "c_ristrk"); E(cmp_imm, 0, 1); bc("rd_prev", "hi"); E(mov_reg, 4, 0)
     E(bl, L["c_von"]); E(cmp_imm, 0, 0); bc("rd_prev", "eq")
@@ -94,7 +117,10 @@ def arm_code(base, L, prev, nd):
 
     # ---- c_rirelp (slot 1 of the step objects: obj, pad): the release of a swallowed press swallowed too
     a.label("c_rirelp")
-    imm32(3, RAM); E(ldrb_imm, 2, 3, 3); E(cmp_imm, 2, 0); E(b_cond, "rl_prev", "eq")
+    if SIGOK:
+        E(push_list, [0, 1], lr=True); E(bl, "c_rist"); E(mov_reg, 3, 0); E(pop_list, [0, 1]); E(raw, h(0xBC04)); E(mov_reg, 14, 2)    # pop {r2}; mov lr, r2
+    else: imm32(3, RAM)
+    E(ldrb_imm, 2, 3, 3); E(cmp_imm, 2, 0); E(b_cond, "rl_prev", "eq")
     E(subs_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "rl_prev", "ne")
     E(movs_imm, 2, 0); E(strb_imm, 2, 3, 3); E(raw, h(0x4770))
     a.label("rl_prev"); E(b_w, prev["srel"])

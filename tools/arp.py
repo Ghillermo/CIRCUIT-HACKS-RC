@@ -74,6 +74,15 @@ RATEFLIP = False                                              # SC43.7 (use_rate
 PRESSORD = False                                              # SC45.3 (use_pressord)
 MUTARP = False                                                # SC45.3 (use_mutarp)
 MUTLIVE = False                                               # SC45.4 (use_mutlive)
+BPM0 = False                                                  # SC47.2 / RC2.10 (use_bpm0)
+
+
+def use_bpm0():
+    """SC47.2 / RC2.10 (a fix, for the RC too; seen while studying issue #13): stopped, the input's arpeggio stepped from the LED task at
+    2500 x ticks / p1 of the tempo store 0x20011404, which is not the tempo (countin.use_bpm0: p1 = 120 with the project at 94): it always ran at
+    about 120 BPM.  Now p0, the project's BPM."""
+    global BPM0
+    BPM0 = True
 D_POS, D_MUT = D_EXT + 8, D_EXT + 14                          # (PRESSORD) + 8..13 the notes' places; (MUTARP) + 14 the chord step's mutate level
 
 
@@ -736,7 +745,7 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 7); E(movs_imm, 1, 0); E(bl, "c_arlstep")
     if RATE: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(mov_reg, 6, 0)
     else: E(mov_reg, 0, 7); E(bl, "c_arply"); E(bl, "c_artps"); E(mov_reg, 6, 0)
-    imm32(0, TEMPO); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "lt_b", "hs"); E(movs_imm, 1, 120)
+    imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "lt_b", "hs"); E(movs_imm, 1, 120)
     a.label("lt_b"); imm32(0, 2500); E(muls, 0, 6); E(raw, udiv(0, 0, 1)); E(adds_reg, 0, 0, 5); E(raw, str_w_(0, 4, S_NEXT))
     a.label("lt_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 4); E(b_cond, "lt_l", "lo")
     a.label("lt_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
