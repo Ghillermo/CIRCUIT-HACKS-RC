@@ -21,6 +21,7 @@ body { overflow-x:hidden; } th, td { border:1px solid var(--line); padding:6px 8
 th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15); padding:1px 4px; border-radius:4px; }
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
+section.feat a { color:var(--accent); text-underline-offset:2px; }
 </style></head><body>
 <header class="cover"><h1>CIRCUIT-HACKS</h1><p>MIDI reference of the new features</p><p>RC2.10</p><div class="bar"></div></header><main>
 <p class="lang"><a href="midi.html">Versión en español</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>
@@ -55,19 +56,19 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>26</td><td>LFO → morph (granular: note mode)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2 (granular: LFO → size)</td><td>CC 37</td><td>3 / K1</td></tr>
 <tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: pitch spread; Beta 3.34: stereo)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: pitch spread; Beta 3.36: stereo)</td><td>CC 30</td><td>3 / K7</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: window)</td><td>CC 31</td><td>3 / K2</td></tr>
 <tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2)</td></tr>
 <tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2)</td></tr>
 <tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9)</td></tr>
-<tr><td>34</td><td>RING (granular: reverse; Beta 3.34: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
+<tr><td>34</td><td>RING (granular: reverse; Beta 3.36: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9)</td></tr>
 </tbody></table>
-<p><strong>Page 4</strong> (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. <em>Beta 3.34 only:</em> the eight destinations are chosen with Shift + knob.</p></section>
-<section class="feat"><h3>Drums</h3><p>The drums channel (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = value</strong>. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. <em>Beta 3.34 only:</em> with the <strong>General MIDI mode</strong> (Setup view, K4) the notes of Drum 1-4 go out as each one&#x27;s GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.</p>
+<p><strong>Page 4</strong> (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. <em>Beta 3.36 only:</em> the eight destinations are chosen with Shift + knob.</p></section>
+<section class="feat"><h3>Drums</h3><p>The drums channel (Setup). <strong>CC 99 = 5, 6, 7, 8</strong> (Drum 1-4), <strong>CC 98 = LSB</strong>, <strong>CC 6 = value</strong>. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. <em>Beta 3.36 only:</em> with the <strong>General MIDI mode</strong> (Setup view, K4) the notes of Drum 1-4 go out as each one&#x27;s GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.</p>
 <table><thead><tr><th>LSB</th><th>Parameter</th><th>Values</th></tr></thead><tbody>
 <tr><td>1</td><td>Envelope → pitch</td><td>0-127, 64 = 0</td></tr>
 <tr><td>2</td><td>Ring mod: frequency</td><td>0-127</td></tr>
-<tr><td>3</td><td>LFO: amount (&gt; 64 tremolo; &lt; 64 vibrato, Beta 3.34 only: start scan)</td><td>0-127, 64 = 0</td></tr>
+<tr><td>3</td><td>LFO: amount (&gt; 64 tremolo; &lt; 64 vibrato, Beta 3.36 only: start scan)</td><td>0-127, 64 = 0</td></tr>
 <tr><td>4</td><td>LFO: speed</td><td>0-127, 64 = centre</td></tr>
 <tr><td>5</td><td>Envelope → cutoff</td><td>0-127, 64 = 0</td></tr>
 <tr><td>6</td><td>Resonance</td><td>0-127</td></tr>
@@ -88,5 +89,5 @@ p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); fon
 <tr><td>12-15</td><td>Phaser</td><td>speed, depth, feedback, mix</td></tr>
 <tr><td>16-19</td><td>Glitch (RC0.9: Vinyl)</td><td>speed, repeat, delay, chaos / overload (RC0.9: crackle, hiss, tone, wear)</td></tr>
 </tbody></table></section>
-<section class="feat"><h3>Program Change</h3><p><strong>Project:</strong> listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. <strong>Patch flip:</strong> every note of MIDI 1 / 2 goes out as a Program Change on the track&#x27;s channel (MIDI Preset view, pad 26). <strong>Notes coming in (since RC2.08):</strong> notes arriving on the channel of MIDI 1 / 2 play its own synth and are recorded; they are not sent again to the output. <em>Beta 3.34 only:</em> with the <strong>USB merge</strong> (Advanced Setup, pad 23) everything coming in on the DIN In also goes out over USB (without its clock with Clock Tx, without SysEx).</p></section>
+<section class="feat"><h3>Program Change</h3><p><strong>Project:</strong> listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. <strong>Patch flip:</strong> every note of MIDI 1 / 2 goes out as a Program Change on the track&#x27;s channel (MIDI Preset view, pad 26). <strong>Notes coming in (since RC2.08):</strong> notes arriving on the channel of MIDI 1 / 2 play its own synth and are recorded; they are not sent again to the output. <em>Beta 3.36 only:</em> with the <strong>USB merge</strong> (Advanced Setup, pad 23) everything coming in on the DIN In also goes out over USB (without its clock with Clock Tx, without SysEx).</p></section>
 </main></body></html>
