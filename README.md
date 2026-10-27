@@ -4,11 +4,11 @@ Help me pay for tools and mantain the project: https://PayPal.me/ghillermo
 
 Contributors:
 
-AlesJanda
+Aleš Janda: https://alesjanda.cz, https://github.com/kybl 
 
-No_Grand_9136
+No_Grand_9136: https://Reddit.com/user/No_Grand_9136
 
-If you want your name or website in this list, add it on your message when you send your contribution 
+If you want your name or website in this list, add it on your message when you send your contribution or send me a DM.
 
 
 > 📢 **Ya están aquí RC2.10 y la Beta 3.35.** RC2.10 = RC2.09 + un arreglo (el arpegiador con el transporte parado sigue el tempo del proyecto). La Beta 3.35, probada en el aparato, añade la **polifonía del sinte propio de MIDI 1 / 2** (todos los motores salvo el granular; 6 voces FM compartidas), el **modo de voz en el pad 32** (retrigger, legato, glide, cuatro unísonos y poly), el **FM mejorado**, el **modo muestra en estéreo**, en el **arpegiador** el paso mantenido, el teclado externo y el latch (issues #13 y #14) y **menos aliasing** en el oscilador (sierra, supersaw y cuadrada en las notas agudas). **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md).
