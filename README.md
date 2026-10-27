@@ -16,6 +16,8 @@ Parches de firmware para el **Novation Circuit Tracks** (firmware de referencia 
 
 **Solo para Circuit Tracks.** Para el **Circuit Rhythm** hay un proyecto aparte: [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX).
 
+**Chuleta de las pistas MIDI** (Beta 3.17), de u/macmax777 en Reddit: [synthmagazine.com/resources/circuithacks](https://synthmagazine.com/resources/circuithacks/).
+
 Proyecto desarrollado usando Claude (Anthropic).
 
 > ⚠️ **Antes de instalar: copia de seguridad de la tarjeta SD.**
@@ -118,6 +120,8 @@ La **lista de características** está en [`docs/CARACTERISTICAS.md`](docs/CARAC
 Firmware patches for the **Novation Circuit Tracks** (reference firmware 1.2.1 build 4486). The project was developed using Claude (Anthropic).
 
 **For Circuit Tracks only.** A project for the **Circuit Rhythm** is available: [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX).
+
+**MIDI tracks cheat sheet** (Beta 3.17) by u/macmax777 on Reddit: [synthmagazine.com/resources/circuithacks](https://synthmagazine.com/resources/circuithacks/).
 
 Legal Notice: Code sourced by Novation is propietary. Don't install it on a device other than Circuit Tracks. This installer checos for a Circuit Tracks specifically, and won't allow you to use it on any other device.
 
