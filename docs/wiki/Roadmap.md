@@ -2,13 +2,13 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-10-27. Current versions: **RC2.10 / RC2.10S** and **Beta 3.35**.
+Updated 2026-10-27. Current versions: **RC2.10 / RC2.10S** and **Beta 3.37**.
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 
 ## In progress
 
-- **Stereo drum pairs** (Beta): hold Drum 1 and press Drum 2 (or Drum 3 + Drum 4). Drum 1 / 3 plays its sample on the left and Drum 2 / 4 plays the next sample on the right, both driven by Drum 1 / 3's controls and pattern. Drum 2 / 4's knobs set the pan spread, the detune and small deviations. Saved with the project; the same gesture goes back to two separate drums.
+- **Stereo drum pairs** (Beta 3.36 / 3.37, to be tested on the device): hold Drum 1 and press Drum 2 (or Drum 3 + Drum 4). Drum 1 / 3 plays its sample on the left and Drum 2 / 4 plays the next sample on the right, both driven by Drum 1 / 3's controls and pattern. Drum 2 / 4's knobs set the pan spread, the detune and small deviations. Saved with the project; the same gesture goes back to two separate drums.
 
 ## Now
 
@@ -42,6 +42,7 @@ The mod has grown fast. The next stage is about **quality rather than quantity**
 None of these is decided: comments are welcome in [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions).
 
 ### Control and usability
+- **Pattern transpose over MIDI:** notes coming in on a synth track's channel transpose its playing pattern (keyboard-driven transpose, like an arpeggiator's key input), instead of playing the synth.
 - **Value readout:** while a knob turns, its exact value as a number on the pads (the mod already shows numbers this way in a few places), as an option.
 - **Undo the last destructive edit** (quantize, Nudge, Clear of a pattern, the snapshot of Record + step): one level.
 - **"Unsaved changes" on the Save LED,** so you know when Save twice is needed.

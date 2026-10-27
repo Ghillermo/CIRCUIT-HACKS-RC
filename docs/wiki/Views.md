@@ -22,6 +22,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 *How to get there:* Open it as on the original. Besides its stock settings (master compressor, etc.):
 
 - **MIDI Thru, Merge and Filter** *(since RC2)* — the Thru jack can merge the incoming MIDI with the unit's own, or filter it.
+- **Velocity curve** *(Beta 3.37 only)* — K1 makes the pads more sensitive or harder.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#advanced-setup)
 
@@ -68,9 +69,9 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### MIDI 1 / 2 Preset view
 
-*How to get there:* Press **MIDI 1** or **MIDI 2**, then **Preset**. Besides the stock templates, the track's own synth lives here.
+*How to get there:* Press **MIDI 1** or **MIDI 2**, then **Preset** (*Beta 3.37 only*: or **MIDI 1 / MIDI 2 twice in a row**). Besides the stock templates, the track's own synth lives here.
 
-- **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, two oscillators, VA-drum, granular, sample mode; *(Beta 3.36 only)* FM) and still send MIDI.
+- **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, two oscillators, VA-drum, granular, sample mode; *(Beta 3.37 only)* FM) and still send MIDI.
 - **FX sequencer** — an engine with no sound: it triggers Master FX effects on the steps you choose.
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
@@ -86,7 +87,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **VCA-VCF** — level and filter with their envelope and LFO; with Shift, the filter type and the effect type.
 - **Oscillators** — a waveform that morphs from sine to square, and a second oscillator with FM, ring and sync.
 - **Granular** — turns a sample into textures: grains that read it at another place, speed or direction, to freeze, stretch or slice it.
-- **Page 4** — the 8 parameters that can be recorded as automation (*(Beta 3.36 only)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
+- **Page 4** — the 8 parameters that can be recorded as automation (*(Beta 3.37 only)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
 
@@ -98,7 +99,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### 4-operator FM
 
-*How to get there:* *(Beta 3.36 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet). **Pad 7** opens its knob page (bright violet on it).
+*How to get there:* *(Beta 3.37 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet). **Pad 7** opens its knob page (bright violet on it).
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-fm)
 
@@ -112,7 +113,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### Step-drummer view
 
-*How to get there:* MIDI 1 / 2: Preset view with the engine on, **pad 30**. Synth 1 / 2: source view, **pad 30**. Sequencing by step pairs over the pattern.
+*How to get there:* MIDI 1 / 2: Preset view with the engine on, **pad 30** (*Beta 3.37 only*: with the step-drummer on, **Note** goes Note → expanded Note → step-drummer). Synth 1 / 2: source view, **pad 30**. Sequencing by step pairs over the pattern.
 
 - **Parameters by pairs of steps** — the 8 knobs are 8 pairs of steps of the pattern: each one moves a destination (pitch, shape, FM, filter…) on those steps only, for melodies, accents or timbre changes without drawing automation.
 - **The LED tells how much** *(since RC2)* — dim with no modulation, brighter the further it goes.
@@ -175,7 +176,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Shape each drum** — exact pitch, ring mod, attack and decay, sample start and cut, a filter with several modes, LFO and several kinds of distortion: many sounds from one sample.
 - **All neutral = the original** — with the new knobs at their neutral point, the sample sounds as on the original Circuit.
 - **Start over** *(since RC2)* — Clear + the drum's button puts all its knobs back to their defaults.
-- **Stereo pair** *(Beta 3.36 only)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
+- **Stereo pair** *(Beta 3.37 only)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista)
 
@@ -220,8 +221,8 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 - **The reverb and delay from the unit** — type, decay, time, feedback…, saved with the project.
 - **Quick reset** — Duplicate puts the sends and the effects back to zero.
-- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(Beta 3.36 only; in RC2.10, 1-16 / 17-32)*.
-- **Master filter off / on** — Shift + pad 25, keeping its position *(Beta 3.36 only)*.
+- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(Beta 3.37 only; in RC2.10, 1-16 / 17-32)*.
+- **Master filter off / on** — Shift + pad 25, keeping its position *(Beta 3.37 only)*.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#vista-fx)
 

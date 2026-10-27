@@ -7,6 +7,18 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 3.37 — 2026-10-27
+
+**Beta 3.37** (marca `B3.37`; = SC48) = Beta 3.36 + lo siguiente, sin probar en el aparato:
+
+- **Sonidos de partida del FM:** con el FM encendido, **mantén el pad 8**: los pads 9-24 son 16 instrumentos listos para tocar (piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja, hi-hat), en el color de su familia. Pulsar uno carga todo el FM de ese sonido y suena la tónica (con Shift, sin sonar). El pad 7 mantenido sigue enseñando los 16 algoritmos. → [Guía: FM de 4 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-fm)
+- **MIDI 1 / MIDI 2 dos veces** = su vista Preset (la del sinte propio), como el botón Preset; ahí, con el motor apagado, el pad 27 se ve gris. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Teclado externo al arpegiador en el botón Note de la vista Setup** (verde encendido, rojo tenue apagado); antes era el pad 22 de Advanced Setup. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#setup)
+- **Note con el step-drummer:** en MIDI 1 / 2 con el step-drummer encendido, **Note** pasa por Note → Note ampliada → step-drummer. → [Guía: Vista del step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer)
+- **Secuenciador de efectos:** un hueco de la fila inferior sin efecto asignado toca el efecto de arriba de su columna (pad 26 = pad 1 … pad 30 = pad 5). → [Guía: Vista del step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer)
+- **Escucha previa en el cue:** con el modo cue, elegir un patch de sinte (toque o Shift) y **Shift + sample** de un drum se oyen solo en el cue; un golpe en vivo de ese drum vuelve a la mezcla. → [Guía: Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
+- **Curva de velocity de los pads:** en **Advanced Setup, K1** = −8 … +8 (el centro es el original): a la derecha los pads son más sensibles, a la izquierda más duros. Al girarlo, el número en los pads y Velocity encendido. Vale para todas las vistas y se guarda en los ajustes. → [Guía: Vista Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#advanced-setup)
+
 ### Beta 3.36 — 2026-10-27
 
 **Beta 3.36** (marca `B3.36`; = SC47.9) = Beta 3.35 + lo siguiente, sin probar en el aparato. **Beta 3.36S** (marca `B3.36S`) = la Beta 3.36 sin escrituras propias en la SD (como RC2.10S): lo que el mod escribiría en la tarjeta no hace nada.
@@ -396,6 +408,11 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 3.37 — 2026-10-27
+
+- **Polifonía del sinte propio (poly):** con 4 notas o más la suma de las voces recortaba (chasquidos, sobre todo con FM fuertes). Ahora cada voz baja según cuántas suenan (una nota, igual que antes; cuatro, a la mitad). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Selector de samples del sinte propio:** la nota que añade un flip se ve al momento en la vista Note (antes solo al dar Play) y los pasos con nota y flip se ven en melocotón. → [Guía: Modo muestra y selector de samples](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-muestra)
+
 ### Beta 3.34 — 2026-10-26
 
 **Beta 3.34** (marca `B3.34`; = SC47.7) = RC2.09 + lo de la Beta 3.22 + funciones nuevas sin probar en el aparato (reúne las betas 3.23-3.33, que no se publicaron):
@@ -624,6 +641,18 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 3.37 — 2026-10-27
+
+**Beta 3.37** (marker `B3.37`; = SC48) = Beta 3.36 + the following, not tested on the device:
+
+- **FM starter sounds:** with FM on, **hold pad 8**: pads 9-24 are 16 ready-to-play instruments (piano, electric piano, organ, pluck, harp, marimba, bass, bell, strings, pad, flute, clarinet, brass, kick, snare, hi-hat), in their family's colour. Pressing one loads that sound's whole FM and plays the tonic (with Shift, silently). Pad 7 held still shows the 16 algorithms. → [Guide: 4-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-fm)
+- **MIDI 1 / MIDI 2 twice** = their Preset view (the own synth's), like the Preset button; there, with the engine off, pad 27 shows grey. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **External keyboard to the arpeggiator on the Setup view's Note button** (green on, dim red off); it was Advanced Setup's pad 22. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#setup)
+- **Note with the step-drummer:** on MIDI 1 / 2 with the step-drummer on, **Note** goes Note → expanded Note → step-drummer. → [Guide: Step-drummer view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer)
+- **FX sequencer:** a bottom-row slot with no effect assigned plays the effect at the top of its column (pad 26 = pad 1 … pad 30 = pad 5). → [Guide: Step-drummer view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer)
+- **Cue preview:** with the cue mode, choosing a synth patch (a press or Shift) and a drum's **Shift + sample** are heard in the cue only; a live hit of that drum goes back to the mix. → [Guide: Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+- **The pads' velocity curve:** in **Advanced Setup, K1** = −8 … +8 (the centre is the original): to the right the pads are more sensitive, to the left harder. While turning it, the number on the pads and Velocity lit. It applies to every view and is saved in the settings. → [Guide: Advanced Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#advanced-setup)
 
 ### Beta 3.36 — 2026-10-27
 
@@ -1013,6 +1042,11 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 3.37 — 2026-10-27
+
+- **The own synth's polyphony (poly):** with 4 or more notes the voices' sum clipped (crackles, mostly with loud FM). Now each voice is turned down by how many are sounding (one note as before; four, at half). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **The own synth's sample picker:** the note a flip adds shows at once in the Note view (before, only after Play) and steps with a note and a flip show peach. → [Guide: Sample mode and sample picker](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-muestra)
 
 ### Beta 3.34 — 2026-10-26
 

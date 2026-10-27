@@ -401,6 +401,18 @@ def use_ledbuf():
     LEDBUF = True
 
 
+FSQDEF = False                        # SC48 (use_fsqdef)
+
+
+def use_fsqdef():
+    """SC48 (the user, 2026-10-27: «y fx step seq, cuando no hay efectos asignados al bottom row, usa los efectos por defecto»): the FX step
+    sequencer of the MIDI tracks: a bottom-row slot with nothing assigned (c_stype 0xFF) plays its default effect, the top pad of its column
+    (slot 26 -> pad 1 … slot 30 -> pad 5) with that effect's live knobs; slot 31 is the Glitch as before.  The random value (7) counts them; the
+    sequencer's LEDs (c_slotcol, only vcf21 calls it) show that effect's colour.  Master FX's own bottom row is unchanged."""
+    global FSQDEF
+    FSQDEF = True
+
+
 def use_fxseqrand():
     """SC41.1 (the user, 2026-10-14: «en el secuenciador de efectos master, añade una opción random: activa un efecto de la lista al azar»): value 7 of
     the FX sequencer (vcf21.use_fxseqrand) = one of the bottom-row slots that plays something, drawn for every occurrence of the step (the seed comes
@@ -1199,7 +1211,9 @@ def glitch_code(a, L, bc, zjmp):
             a.emit(movs_imm, 6, 0); a.emit(movs_imm, 7, 0)
             a.label("fr_l")
             a.emit(cmp_imm, 7, GL_SLOT); bc("fr_y", "eq")
-            a.emit(mov_reg, 0, 7); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, GL_SEL); bc("fr_y", "eq"); a.emit(cmp_imm, 0, N_FX); bc("fr_n", "hs")
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, GL_SEL); bc("fr_y", "eq")
+            if FSQDEF: a.emit(cmp_imm, 0, 0xFF); bc("fr_y", "eq")                # (FSQDEF) an empty slot plays its default effect
+            a.emit(cmp_imm, 0, N_FX); bc("fr_n", "hs")
             a.label("fr_y"); a.emit(movs_imm, 0, 1); a.emit(lsls_reg, 0, 7); a.emit(orrs_reg, 6, 0)
             a.label("fr_n"); a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 6); bc("fr_l", "lo")
             a.emit(movs_imm, 1, 0); a.emit(movs_imm, 7, 0)                     # r1 = how many
@@ -1220,6 +1234,10 @@ def glitch_code(a, L, bc, zjmp):
         a.emit(movs_imm, 0, 1); a.emit(lsls_reg, 0, 7); a.emit(tst_reg, 5, 0); bc("fq_n", "eq")
         a.emit(cmp_imm, 7, GL_SLOT); bc("fq_g", "eq")                          # pad 31 itself: the Glitch
         a.emit(mov_reg, 0, 7); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, GL_SEL); bc("fq_ga", "eq")
+        if FSQDEF:                                                             # (FSQDEF) unassigned: the top pad of its column, its live knobs
+            a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, "fq_t", "ne")
+            a.emit(movs_imm, 1, 1); a.emit(lsls_reg, 1, 7); a.emit(orrs_reg, 6, 1); a.emit(b, "fq_n")
+            a.label("fq_t")
         a.emit(cmp_imm, 0, N_FX); bc("fq_n", "hs")                             # unassigned / the sample: nothing
         a.emit(movs_imm, 1, 1); a.emit(lsls_reg, 1, 0); a.emit(orrs_reg, 6, 1)
         a.emit(mov_reg, 1, 0); a.emit(mov_reg, 0, 7); a.emit(bl, "c_sldif"); a.emit(b, "fq_n")
@@ -1254,6 +1272,7 @@ def glitch_code(a, L, bc, zjmp):
         a.emit(mov_reg, 5, 0); a.emit(bl, "c_gfst"); a.emit(mov_reg, 4, 0); a.emit(movs_imm, 0, 0x03); a.emit(cmp_imm, 4, 0); bc("sc_x", "eq")
         a.emit(movs_imm, 0, GL_ON); a.emit(cmp_imm, 5, GL_SLOT); bc("sc_x", "eq")
         a.emit(mov_reg, 0, 5); a.emit(bl, "c_stype")
+        if FSQDEF: a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, "sc_t", "ne"); a.emit(mov_reg, 0, 5); a.label("sc_t")   # (FSQDEF) its default effect's colour
         for kk, (on, dim) in enumerate(L["pal_codes"]):
             a.emit(cmp_imm, 0, kk); a.emit(b_cond, f"sc_c{kk}", "ne"); a.emit(movs_imm, 0, on); a.emit(b, "sc_x")
             a.label(f"sc_c{kk}")

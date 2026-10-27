@@ -576,6 +576,45 @@ VOICINGS = [
     (R1, R1, R1, R1, 110, 110, 110, 40, atk(21), atk(21), atk(21), atk(18), 15 << 3, 0, 0, 90),             # ensemble
 ]
 assert len(VOICINGS) == 16 and all(len(v) == 16 and max(v) <= 127 and v[P_ALG] == i << 3 for i, v in enumerate(VOICINGS))
+# SC48 (use_starters): pad 7 held + pads 9-24 = 16 instrument starters (every FM parameter), coloured by family; left of the centre of Shift + K1-K4
+# = the operator's decay index (tau 3 ms .. 8 s: 40 = 0.45 s, 50 = 1.6 s), right = atk(i)
+STARTERS = [
+    ("piano", (R1, R1, R1 + 1, rpos(3), 127, 70, 110, 52, 52, 44, 50, 30, 4 << 3, 0, 0, 50)),
+    ("e-piano", (R1, R1, R1, rpos(14), 127, 56, 28, 36, 54, 40, CENTRE, 22, 2 << 3, 0, 0, 70)),
+    ("organ", VOICINGS[7]),
+    ("pluck", (R1, R1, rpos(3), R1, 127, 96, 34, 0, 42, 28, 24, CENTRE, 0, 0, 0, 30)),
+    ("harp", (R1, rpos(2), R1, R1, 127, 34, 24, 0, 52, 38, 44, CENTRE, 3 << 3, 0, 0, 56)),
+    ("marimba", (R1, rpos(4), rpos(4), R1, 127, 60, 40, 0, 38, 18, 28, CENTRE, 4 << 3, 0, 0, 30)),
+    ("bass", VOICINGS[3]),
+    ("bell", VOICINGS[12]),
+    ("strings", VOICINGS[14]),
+    ("pad", (rpos(0.5), R1 + 1, rpos(2), R1, 100, 100, 80, 36, atk(24), atk(24), atk(26), atk(26), 5 << 3, 8, 0, 100)),
+    ("flute", (R1, R1, R1, R1, 127, 26, 0, 0, atk(16), atk(18), CENTRE, CENTRE, 0, 0, 22, 44)),
+    ("clarinet", (R1, rpos(2), R1, R1, 127, 60, 0, 0, atk(14), atk(15), CENTRE, CENTRE, 0, 0, 4, 40)),
+    ("brass", VOICINGS[1]),
+    ("kick", VOICINGS[8]),
+    ("snare", VOICINGS[9]),
+    ("hat", VOICINGS[10]),
+]
+ST_FAM = {"keys": (0x01, 0x02), "plucked": (0x49, 0x4A), "bass": (0x2B, 0x2C), "bell": (0x4D, 0x4E), "strings": (0x17, 0x18),
+          "winds": (0x13, 0x14), "drums": (0x45, 0x46)}
+ST_OF = ("keys", "keys", "keys", "plucked", "plucked", "plucked", "bass", "bell", "strings", "strings", "winds", "winds", "winds", "drums", "drums", "drums")
+assert len(STARTERS) == 16 and all(len(v) == 16 and max(v) <= 127 and v[P_ALG] % 8 == 0 for _, v in STARTERS)
+assert len({v for _, v in STARTERS}) == 16                              # (the LED shows the starter whose values the track has)
+STARTER = False                                                         # SC48 (use_starters)
+
+
+def use_starters():
+    """SC48 (the user, 2026-10-27: «los parches de FM de la fila superior suenan todos muy parecidos, reduce el número de sintes demasiado iguales y
+    añade sonidos más de tipo "instrumento" como starters (piano, pluck, cuerdas, vientos)»): pad 7 held on the FM page = pads 9-24 show 16
+    instrument starters (an algorithm alone changes only the routing: with the same knobs most sounded alike); then (the user: «añade los
+    parches nuevos en otra página (pad 8) y deja en 7 algos por defecto») on their own pad: with FM on, pad 8 (free there: vcf21's page row
+    swallows it) = tap: the FM page, held: pads 9-24 show the starters (B_P7 = 2; pad 7 held = 1, the algorithms as before); a press loads every FM
+    parameter of that starter (as Clear + pad 7 loads a voicing) and plays the tonic while held (Shift: no sound).  Colours by family (keys
+    white, plucked violet, bass blue, bell teal, strings / pad green, winds light blue, drums red); the starter whose values the track has now is
+    bright.  Pad 8 dim white with FM on, bright while held."""
+    global STARTER
+    STARTER = True
 BEXP = [round(256 * 2 ** ((i - 32) / 16)) for i in range(64)]           # the brightness: x 2^(2 w), w = 0.94 m of the oscillator's shape (OSC1 + 14)
 
 
@@ -653,6 +692,9 @@ def arm_code2(base, L, prev):
     put("famc", bytes(c for pair in FAMC for c in pair))
     put("pcol", bytes((0, 0, 0, 0, COL_LEV, COL_LEV, COL_LEV, COL_LEV, COL_ATK, COL_ATK, COL_ATK, COL_ATK, 0, COL_FB, COL_NZ, COL_REL)))
     put("bexp", struct.pack("<64H", *BEXP))
+    if STARTER:
+        put("strt", bytes(v for _, row in STARTERS for v in row))
+        put("stc", bytes(c for f in ST_OF for c in ST_FAM[f]))
     while len(data) % 4: data.append(0)
     E(raw, bytes(data))
 
@@ -1138,6 +1180,13 @@ def arm_code2(base, L, prev):
     E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
     E(mov_reg, 5, 1)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("pd_prev", "hi"); E(mov_reg, 4, 0)            # r4 = the track
+    if STARTER:                                                                             # pad 8: the FM page, held = the starters
+        E(cmp_imm, 5, PADNO + 1); E(b_cond, "pd_n8", "ne")
+        E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
+        E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("pd_prev", "ne")
+        E(mov_reg, 0, 4); E(movs_imm, 1, PAGE); E(bl, L["c_vsetpage"])
+        E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 2); E(strb_w, 1, 0, B_P7); E(b, "pd_x")
+        a.label("pd_n8")
     E(cmp_imm, 5, PADNO); bc("pd_n7", "ne")
     E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("pd_prev", "ne")
@@ -1151,7 +1200,14 @@ def arm_code2(base, L, prev):
     E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(mov_reg, 6, 0)
     E(ldrb_w, 0, 6, B_P7); E(cmp_imm, 0, 0); E(b_cond, "pd_ov", "eq")
     E(cmp_imm, 5, 23); bc("pd_row", "hi")
+    if STARTER:                                                                             # pad 8 + pad: the starter's every parameter
+        E(cmp_imm, 0, 2); E(b_cond, "pd_alg", "ne")
+        E(mov_reg, 0, 5); E(subs_imm8, 0, 8); E(lsls_imm, 0, 0, 4); imm32(1, T["strt"]); E(adds_reg, 1, 1, 0); E(movs_imm, 3, 0)
+        a.label("pd_sl"); E(ldrb_reg, 2, 1, 3); E(strb_reg, 2, 6, 3); E(adds_imm8, 3, 1); E(cmp_imm, 3, 16); E(b_cond, "pd_sl", "lo")
+        E(movs_imm, 0, 1); E(strb_w, 0, 6, B_DIRTY); E(b, "pd_au")
+        a.label("pd_alg")
     E(mov_reg, 0, 5); E(subs_imm8, 0, 8); E(lsls_imm, 0, 0, 3); E(strb_imm, 0, 6, P_ALG); E(movs_imm, 0, 1); E(strb_w, 0, 6, B_DIRTY)   # pad 7 + pad: the algorithm
+    if STARTER: a.label("pd_au")
     E(mov_reg, 0, 4); E(bl, "c_fmaud"); E(b, "pd_x")
     a.label("pd_ov")
     E(mov_reg, 0, 6); E(bl, "c_fmovk"); E(cmp_imm, 0, 0); bc("pd_row", "eq")
@@ -1171,7 +1227,8 @@ def arm_code2(base, L, prev):
 
     # ---- c_fmrel (slot 1 of the template view: view, pad): pad 7 let go = the algorithms off the pads
     a.label("c_fmrel")
-    E(cmp_imm, 1, PADNO); E(b_cond, "rl_p", "ne")
+    if STARTER: E(cmp_imm, 1, PADNO); E(b_cond, "rl_g", "eq"); E(cmp_imm, 1, PADNO + 1); E(b_cond, "rl_p", "ne"); a.label("rl_g")
+    else: E(cmp_imm, 1, PADNO); E(b_cond, "rl_p", "ne")
     E(push_list, [0, 1, 2, 4], lr=True)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); E(b_cond, "rl_x", "hi")
     E(bl, "c_fmblk"); E(movs_imm, 1, 0); E(strb_w, 1, 0, B_P7)
@@ -1206,8 +1263,12 @@ def arm_code2(base, L, prev):
     now(0); E(ldr_imm, 1, 4, B_LEDT); E(str_imm, 0, 4, B_LEDT); E(subs_reg, 0, 0, 1); E(cmp_imm, 0, STALE_MS); E(b_cond, "le_f", "ls")
     E(movs_imm, 0, 0); E(strb_w, 0, 4, B_P7)
     a.label("le_f")
+    if STARTER:                                                                           # pad 8: dim white, bright while held
+        E(ldrb_w, 0, 4, B_P7); E(movs_imm, 1, 0x02); E(cmp_imm, 0, 2); E(b_cond, "le_8", "ne"); E(movs_imm, 1, 0x01)
+        a.label("le_8"); E(strh_imm, 1, 5, 2 * (PADNO + 1))
     E(mov_reg, 0, 6); E(bl, "c_fmpg"); E(cmp_imm, 0, 0); bc("le_x", "eq")
-    E(movs_imm, 7, 5); E(ldrb_w, 0, 4, B_P7); E(cmp_imm, 0, 0); E(b_cond, "le_al", "ne")
+    if STARTER: E(movs_imm, 7, 5); E(ldrb_w, 0, 4, B_P7); E(cmp_imm, 0, 2); bc("le_st", "eq"); E(cmp_imm, 0, 0); E(b_cond, "le_al", "ne")
+    else: E(movs_imm, 7, 5); E(ldrb_w, 0, 4, B_P7); E(cmp_imm, 0, 0); E(b_cond, "le_al", "ne")
     E(mov_reg, 0, 4); E(bl, "c_fmovk"); E(mov_reg, 7, 0); E(cmp_imm, 7, 0); bc("le_x", "eq")
     E(cmp_imm, 7, 5); E(b_cond, "le_al", "eq")
     # the ratios of operator kind - 1 on pads 9-32: the current one bright (white when detuned), the others dim
@@ -1225,6 +1286,19 @@ def arm_code2(base, L, prev):
     a.label("le_ab"); imm32(2, T["famc"]); E(ldrb_reg, 1, 2, 1)
     E(mov_reg, 0, 6); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
     E(adds_imm8, 6, 1); E(cmp_imm, 6, 16); E(b_cond, "le_ap", "lo")
+    if STARTER:
+        E(b, "le_x")
+        a.label("le_st")                                                                  # the starters on pads 9-24: the family's colour, bright = the track's values
+        E(movs_imm, 6, 0)
+        a.label("le_sl")
+        imm32(0, T["strt"]); E(lsls_imm, 1, 6, 4); E(adds_reg, 0, 0, 1); E(movs_imm, 2, 0)
+        a.label("le_sc"); E(ldrb_reg, 1, 0, 2); E(ldrb_reg, 3, 4, 2); E(cmp_reg, 1, 3); E(b_cond, "le_sn", "ne")
+        E(adds_imm8, 2, 1); E(cmp_imm, 2, 16); E(b_cond, "le_sc", "lo")
+        E(movs_imm, 2, 0); E(b, "le_sk")                                                   # equal: the bright colour
+        a.label("le_sn"); E(movs_imm, 2, 1)
+        a.label("le_sk"); E(lsls_imm, 1, 6, 1); E(adds_reg, 1, 1, 2); imm32(2, T["stc"]); E(ldrb_reg, 1, 2, 1)
+        E(mov_reg, 0, 6); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
+        E(adds_imm8, 6, 1); E(cmp_imm, 6, 16); E(b_cond, "le_sl", "lo")
     a.label("le_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_fmsum(r0 = 21 bytes) -> r0 = 0x5A + the first 20, & 0xFF; clobbers r1, r2

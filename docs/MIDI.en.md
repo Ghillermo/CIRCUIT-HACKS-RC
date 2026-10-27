@@ -39,24 +39,24 @@ The MIDI track's channel. Values 0-127; bipolar ones, 64 = centre. Sent when the
 | 26 | LFO → morph (granular: note mode) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → size) | CC 37 | 3 / K1 |
 | 28 | FINE 2 (granular: fine) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
-| 29 | WAVE 2 (granular: pitch spread; Beta 3.36: stereo) | CC 30 | 3 / K7 |
+| 29 | WAVE 2 (granular: pitch spread; Beta 3.37: stereo) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: window) | CC 31 | 3 / K2 |
 | 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
 | 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
 | 33 | FM (granular: position spread) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
-| 34 | RING (granular: reverse; Beta 3.36: bipolar, reverse / pitch spread) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
+| 34 | RING (granular: reverse; Beta 3.37: bipolar, reverse / pitch spread) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
 
-**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.36 only:* the eight destinations are chosen with Shift + knob.
+**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.37 only:* the eight destinations are chosen with Shift + knob.
 
 ## Drums
 
-The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. *Beta 3.36 only:* with the **General MIDI mode** (Setup view, K4) the notes of Drum 1-4 go out as each one's GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.
+The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. *Beta 3.37 only:* with the **General MIDI mode** (Setup view, K4) the notes of Drum 1-4 go out as each one's GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.
 
 | LSB | Parameter | Values |
 |---|---|---|
 | 1 | Envelope → pitch | 0-127, 64 = 0 |
 | 2 | Ring mod: frequency | 0-127 |
-| 3 | LFO: amount (> 64 tremolo; < 64 vibrato, Beta 3.36 only: start scan) | 0-127, 64 = 0 |
+| 3 | LFO: amount (> 64 tremolo; < 64 vibrato, Beta 3.37 only: start scan) | 0-127, 64 = 0 |
 | 4 | LFO: speed | 0-127, 64 = centre |
 | 5 | Envelope → cutoff | 0-127, 64 = 0 |
 | 6 | Resonance | 0-127 |
@@ -83,4 +83,4 @@ Channel 16. **CC 99 = 9**, **CC 98 = 4 × effect + knob** (knob 0-3 = K1-K4), **
 
 ## Program Change
 
-**Project:** listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. **Patch flip:** every note of MIDI 1 / 2 goes out as a Program Change on the track's channel (MIDI Preset view, pad 26). **Notes coming in (since RC2.08):** notes arriving on the channel of MIDI 1 / 2 play its own synth and are recorded; they are not sent again to the output. *Beta 3.36 only:* with the **USB merge** (Advanced Setup, pad 23) everything coming in on the DIN In also goes out over USB (without its clock with Clock Tx, without SysEx).
+**Project:** listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. **Patch flip:** every note of MIDI 1 / 2 goes out as a Program Change on the track's channel (MIDI Preset view, pad 26). **Notes coming in (since RC2.08):** notes arriving on the channel of MIDI 1 / 2 play its own synth and are recorded; they are not sent again to the output. *Beta 3.37 only:* with the **USB merge** (Advanced Setup, pad 23) everything coming in on the DIN In also goes out over USB (without its clock with Clock Tx, without SysEx).

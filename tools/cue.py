@@ -61,6 +61,19 @@ PINK, WHITE = 0x5F, 0x01
 LED_OCT, LED_KNOB0 = 51, 60
 
 
+PREV = False                                                                  # SC48 (use_preview)
+PVR, PVSIG = 0x20045000 + 0x1AB0, 0x31505143                                  # (PREV) cueprev's RAM: + 0 "CQP1", + 4 the tracks previewing (bit t)
+
+
+def use_preview():
+    """SC48 (the user, 2026-10-27: «only when a cue listen is active, synth patch selection goes to the Cue Channel only.  Sample patch with shift
+    (silent selection) now goes to the Cue»; «Track to cue while previewing»; «Do both for synth patch selection»): c_cqg, in the cue mode, gives
+    a track whose bit is set in cueprev's mask (a patch / sample preview sounding) no main: L = 0, R = max(its cue send, its level), and its
+    reverb / delay sends 0 (the returns go to both sides).  cueprev.py sets / clears the bits and marks the groups."""
+    global PREV
+    PREV = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -166,12 +179,18 @@ def arm_code(base, L, prev):
     E(cmp_imm, 5, 27); E(b_cond, "g_r", "hi"); E(movs_imm, 0, 7); E(raw, udiv(7, 5, 0)); E(muls, 0, 7); E(subs_reg, 0, 5, 0)   # r7 = drum, r0 = index % 7
     E(adds_imm8, 7, 4); E(movs_imm, 4, 1); E(cmp_imm, 0, 1); E(b_cond, "g_c", "eq"); E(movs_imm, 4, 2); E(cmp_imm, 0, 6); E(b_cond, "g_c", "eq"); E(b, "g_r")
     a.label("g_s")                                                                     # a send: 0 for a cued muted track
+    if PREV: E(mov_reg, 0, 7); E(bl, "c_cqpv"); E(cmp_imm, 0, 0); E(b_cond, "g_sp", "eq"); E(movs_imm, 6, 0); E(b, "g_r"); a.label("g_sp")   # (PREV) previewing: no sends
     E(mov_reg, 0, 7); E(bl, "c_cqcued"); E(cmp_imm, 0, 0); E(b_cond, "g_r", "eq")
     E(mov_reg, 0, 7); E(bl, "c_cqbit"); E(cmp_imm, 0, 0); E(b_cond, "g_r", "eq"); E(movs_imm, 6, 0); E(b, "g_r")
     a.label("g_c")                                                                     # L = the level (0 when muted and cued), R = c
     E(mov_reg, 5, 6); E(cmp_imm, 4, 1); E(b_cond, "g_l", "eq"); E(mov_reg, 0, 7); E(bl, "c_cqlev"); E(mov_reg, 5, 0)   # r5 = L
     a.label("g_l")
     E(mov_reg, 0, 7); E(bl, "c_cqcued"); E(mov_reg, 6, 0)                               # r6 = R
+    if PREV:                                                                           # (PREV) previewing: L = 0, R = max(c, the level)
+        E(mov_reg, 0, 7); E(bl, "c_cqpv"); E(cmp_imm, 0, 0); E(b_cond, "g_np", "eq")
+        E(cmp_reg, 6, 5); E(b_cond, "g_pz", "hs"); E(mov_reg, 6, 5)
+        a.label("g_pz"); E(movs_imm, 5, 0); E(b, "g_m")
+        a.label("g_np")
     E(cmp_imm, 6, 0); E(b_cond, "g_m", "eq"); E(mov_reg, 0, 7); E(bl, "c_cqbit"); E(cmp_imm, 0, 0); E(b_cond, "g_m", "eq"); E(movs_imm, 5, 0)
     a.label("g_m")
     E(cmp_reg, 5, 6); E(b_cond, "g_rr", "lo")
@@ -183,6 +202,12 @@ def arm_code(base, L, prev):
     E(cmp_imm, 4, 1); E(b_cond, "g_r", "eq")
     E(movs_imm, 0, 63); E(muls, 0, 5); E(lsrs_imm, 1, 6, 1); E(adds_reg, 0, 0, 1); E(raw, udiv(0, 0, 6)); E(movs_imm, 6, 127); E(subs_reg, 6, 6, 0)
     a.label("g_r"); E(mov_reg, 0, 6); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    if PREV:                                                                           # (PREV) c_cqpv(r0 = track) -> r0 = its preview bit; clobbers r1, r2
+        a.label("c_cqpv")
+        imm32(1, PVR); E(ldr_imm, 2, 1, 0); E(push_list, [3]); imm32(3, PVSIG); E(cmp_reg, 2, 3); E(pop_list, [3]); E(b_cond, "pv_0", "ne")
+        E(ldrb_imm, 1, 1, 4); E(raw, h(0x40C1)); E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(raw, RET)   # lsrs r1, r0
+        a.label("pv_0"); E(movs_imm, 0, 0); E(raw, RET)
 
     # ---- c_cqput(r0 = track, r1 = c 0..127): its cue send; starting / leaving the cue moves its mute; marked; clobbers r0-r3
     a.label("c_cqput")

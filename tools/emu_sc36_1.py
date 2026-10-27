@@ -131,8 +131,14 @@ def main(img, man):
     check(gm == [] or gm[-1] == GD.GMAGIC, "value 6: pad 31 = the Glitch (still on)")
     setstep(5, 0, 6 * U); w = fxt(); gm = [v for a, v in w if a == GD.GARM]
     check(gm and gm[-1] == 0, "no note: off")
+    fsqdef = "fq_t" in man["report"]["sc17"]["labels"]                             # SC48 (build_sc17.use_fsqdef): an empty slot = its default effect
+    if fsqdef:
+        setstep(5, 1, 3 * U); w = fxt(); fx = [v for a, v in w if a == G.FX_ON]
+        check(fx and fx[-1] == B.FXBITS[2], f"(SC48) value 3: the empty slot 2 = the top pad of its column, Digitise (FX_ON {fx})")
+        setstep(5, 0, 3 * U); fxt()
     cols = [r0(L17["c_slotcol"], j) for j in range(6)]
-    check(cols[0] == pal[0][0] and cols[1] == B.GL_ON and cols[2] == 0x03 and cols[5] == B.GL_ON, f"c_slotcol: Gater {cols[0]:#x}, the Glitch {cols[1]:#x}, empty {cols[2]:#x}, pad 31 {cols[5]:#x}")
+    check(cols[0] == pal[0][0] and cols[1] == B.GL_ON and cols[2] == (pal[2][0] if fsqdef else 0x03) and cols[5] == B.GL_ON,
+          f"c_slotcol: Gater {cols[0]:#x}, the Glitch {cols[1]:#x}, empty {cols[2]:#x}{' (its default effect)' if fsqdef else ''}, pad 31 {cols[5]:#x}")
     if v3:                                                                         # the knob LEDs (c_sdkleds): pair 0 = slot 0 (the Gater), pair 1 = slot 1 (the Glitch), pair 2 empty
         for st, v in ((r0(e.vl["c_sdhalf"], 0), 16), (r0(e.vl["c_sdhalf"], 2), 30), (r0(e.vl["c_sdhalf"], 4), 0xFF)):
             for k in (0, 1): e.uc.mem_write(r0(e.vl["c_sdlna"], pat, st + k), bytes([v]))

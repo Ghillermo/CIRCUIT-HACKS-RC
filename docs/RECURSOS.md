@@ -37,6 +37,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC48 / Beta 3.37 (2026-10-27):** zona libre + `velcurve` (420 B) hasta `0x8017240`; `fmeng` + las tablas `STARTERS` (256 B) y sus colores (32 B): **4 890 B libres** en el hueco. RAM `modmx.MXR + 0x1A90..0x1A9F` (16 B, firma `VCV1`). Ajustes: byte 2 del parámetro 5 (la curva).
+
 > **SC47.9 / Beta 3.36 (2026-10-27):** zona libre + `stpair` (2 920 B) + `smnote` (328 B) hasta `0x8016ed0`: **5770 B libres** en el hueco. RAM `modmx.MXR + 0x1A00..0x1A47` (72 B, firma `STP1`) y `+ 0x1A80..0x1A87` (`smnote`, firma `SNT1`). Guardado: los bytes 8..39 de los ajustes de los patrones 5 / 6 de MIDI 1 (un bloque por pareja, con firma). Sin DSP nuevo. **SPI:** un golpe del maestro emparejado = 3 escrituras más; el flush de su grupo, el doble.
 
 > **SC47.8 / Beta 3.35 (2026-10-26):** DSP núcleo 0 hasta `P:$3FFA` (**6 palabras hasta `$4000`; `sampler_dsp` exige `sm_se` + 16 ≤ `$4000`: 2 libres**): el PolyBLEP 61 palabras (la subrutina de corrección 13, las comprobaciones 4 por sierra), el límite del wavefold 10. **CPU del núcleo 0: +1 540 instrucciones por bloque y voz con un oscilador (las comprobaciones, siempre), hasta +2 320 en la nota 96 (las divisiones de 27 ciclos); 12 voces ≈ +28 000 (≈ 17 %).** Sin RAM nueva. Pila del sistema igual con el tráfico del motor (6).

@@ -2,13 +2,13 @@
 
 *[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Cambios](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Actualizada el 2026-10-27. Versiones actuales: **RC2.10 / RC2.10S** y **Beta 3.35**.
+Actualizada el 2026-10-27. Versiones actuales: **RC2.10 / RC2.10S** y **Beta 3.37**.
 
 El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantidad**: que lo que ya existe suene mejor, sea más fácil de usar, sea sólido y esté bien documentado. Las funciones nuevas grandes esperan hasta entonces.
 
 ## En marcha
 
-- **Parejas estéreo de drums** (beta): mantén Drum 1 y pulsa Drum 2 (o Drum 3 + Drum 4). Drum 1 / 3 toca su sample a la izquierda y Drum 2 / 4 el sample siguiente a la derecha, los dos con los controles y el patrón de Drum 1 / 3. Los knobs de Drum 2 / 4 ajustan la apertura estéreo, la desafinación y pequeñas desviaciones. Se guarda con el proyecto; el mismo gesto vuelve a dos drums separados.
+- **Parejas estéreo de drums** (Betas 3.36 / 3.37, por probar en el aparato): mantén Drum 1 y pulsa Drum 2 (o Drum 3 + Drum 4). Drum 1 / 3 toca su sample a la izquierda y Drum 2 / 4 el sample siguiente a la derecha, los dos con los controles y el patrón de Drum 1 / 3. Los knobs de Drum 2 / 4 ajustan la apertura estéreo, la desafinación y pequeñas desviaciones. Se guarda con el proyecto; el mismo gesto vuelve a dos drums separados.
 
 ## Ahora
 
@@ -42,6 +42,7 @@ El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantid
 Nada de esto está decidido: los comentarios son bienvenidos en [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions).
 
 ### Control y usabilidad
+- **Transponer el patrón por MIDI:** las notas que llegan por el canal de una pista de sinte transponen el patrón que suena (transposición desde un teclado, como la entrada de un arpegiador), en vez de tocar el sinte.
 - **Lectura del valor:** mientras gira un knob, su valor exacto como número en los pads (el mod ya enseña números así en algunos sitios), como opción.
 - **Deshacer la última edición destructiva** (cuantizar, Nudge, Clear de un patrón, la foto de Record + paso): un nivel.
 - **«Cambios sin guardar» en el LED de Save,** para saber cuándo hace falta Save dos veces.

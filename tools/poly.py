@@ -99,6 +99,23 @@ O_JPEND, O_JCNT = 123, 124            # (V5) a track block's bytes: a jump to se
 V6 = False                            # SC47.7 (use_v6)
 
 
+V7 = False                                                                      # SC48 (use_v7)
+O_NCNT = 125                                                                    # (V7) a track block's byte: the voices counted at the last tick
+G7 = (181, 148, 128, 114, 105)                                                  # (V7) 256 / sqrt(n) for 2..6 voices
+
+
+def use_v7():
+    """SC48 (the user, 2026-10-27: «se oye crackling en algunos fm al tocar muchas 4 notas o más»; the choice «1.B»: the level by the size of the
+    chord): in the poly mode (not unison) a voice's target = velocity << 16 x 256 / sqrt(n) / 256, n = the track's voices sounding or about to
+    start (1: as before; 2: 0.71, 3: 0.58, 4: 0.5, 5: 0.45, 6: 0.41).  Measured on the emulated core 0: one FM voice peaks at 0.37 of full scale,
+    three at 0.95 and from four the sum clips (study_fmcpu / the session's fmclip), the crackle.  Every tick the count is compared with the last
+    one (O_NCNT); a change marks every sounding voice's target to be written again (DIRTY): the DSP ramps each voice's gain to it within a block.
+    FM and the oscillator alike; mono / legato / glide and the unison modes unchanged."""
+    global V7
+    assert V4
+    V7 = True
+
+
 def use_v6():
     """SC47.7 (the user, 2026-10-26: «modes and order: retrigger (gate signal resets whith each new note) legato (no gate reset, change to new pitch
     when two keys are held) glide: same as legato, but notes glide continuosuly into the next (optional param: amount) uni retrig/legato/glide:
@@ -449,7 +466,18 @@ def arm_code(base, L, prev, head_on, head_off):
         E(lsrs_imm, 0, 3, 2); E(subs_reg, 3, 3, 0); E(b, "tg_w")
         a.label("tg_h"); E(lsrs_imm, 3, 3, 1); E(b, "tg_w")
         a.label("tg_p"); E(pop_list, [3])
+        if V7:                                                                   # (V7) poly: x 1 / sqrt(the voices)
+            E(push_list, [3]); E(bl, "c_pycnt"); E(pop_list, [3]); E(cmp_imm, 0, 1); E(b_cond, "tg_w", "ls")
+            E(movs_imm, 1, G7[-1])
+            for n_, g_ in zip(range(2, 6), G7):
+                E(cmp_imm, 0, n_); E(b_cond, f"tg_{n_}", "ne"); E(movs_imm, 1, g_); E(b, "tg_m"); a.label(f"tg_{n_}")
+            a.label("tg_m"); E(lsrs_imm, 3, 3, 8); E(muls, 3, 1)
     a.label("tg_w"); wf(VD.PV_TGT); E(pop_list, [], pc=True)
+    if V7:                                                                       # (V7) c_pycnt(r5 = the track block) -> r0 = its voices sounding or about to start; clobbers r1-r3
+        a.label("c_pycnt")
+        E(movs_imm, 0, 0); E(movs_imm, 2, 0)
+        a.label("pc_l"); vptr(1, 2); E(ldrb_imm, 1, 1, VS); E(movs_imm, 3, SND | PEND); E(tst_reg, 1, 3); E(b_cond, "pc_n", "eq"); E(adds_imm8, 0, 1)
+        a.label("pc_n"); E(adds_imm8, 2, 1); E(cmp_imm, 2, NV); E(b_cond, "pc_l", "lo"); E(raw, RET)
 
     # ---- c_pytick: a head of the DSP service chain (RAM and DSP writes only)
     a.label("c_pytick")
@@ -487,6 +515,13 @@ def arm_code(base, L, prev, head_on, head_off):
         E(ldrb_w, 1, 5, O_JCNT); E(adds_imm8, 1, 1); E(strb_w, 1, 5, O_JCNT)
         E(movs_imm, 0, 48); E(muls, 0, 4); imm32(2, VD.OS2B0 + VD.JMP_OFF); E(adds_reg, 0, 0, 2); E(bl, "c_pyw")
         a.label("tk_nj")
+    if V7:                                                                       # (V7) the count changed: every sounding voice's target again
+        E(bl, "c_pycnt"); E(ldrb_w, 1, 5, O_NCNT); E(cmp_reg, 0, 1); E(b_cond, "tk_gs", "eq"); E(strb_w, 0, 5, O_NCNT)
+        E(movs_imm, 6, 0)
+        a.label("tk_gd"); vptr(1, 6); E(raw, MRS7); E(raw, CPSID)
+        E(ldrb_imm, 0, 1, VS); E(movs_imm, 3, SND); E(tst_reg, 0, 3); E(b_cond, "tk_gn", "eq"); E(movs_imm, 3, DIRTY); E(orrs_reg, 0, 3); E(strb_imm, 0, 1, VS)
+        a.label("tk_gn"); E(raw, MSR7); E(adds_imm8, 6, 1); E(cmp_imm, 6, NV); E(b_cond, "tk_gd", "lo")
+        a.label("tk_gs")
     E(movs_imm, 6, 0)                                                            # the voices: the targets to write, the starts
     a.label("tk_v")
     vptr(1, 6); E(mov_reg, 10, 1)

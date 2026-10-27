@@ -23,7 +23,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrh_reg, lsls_imm, lsrs_imm,  # noqa: E402
-                   mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, strb_imm, strh_reg, subs_imm8, subs_reg, ands_reg)
+                   mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, strb_imm, strh_reg, subs_imm8, subs_reg, ands_reg,
+                   ldrb_reg, ldrb_w)
 import modmx as MX  # noqa: E402
 import mpatch as MP  # noqa: E402
 import fxdiag as FD  # noqa: E402
@@ -38,6 +39,24 @@ SIG = 0x31544E53
 GATE, VEL = V.SD_LEN, 100             # one step (6 ticks)
 COL_NOTE, COL_FONLY = 0x4D, 0x49      # a note without a flip: cyan; a flip without a note: violet (a flip with its note: smpick's peach)
 INV = V.INV
+V2 = False                            # SC48 (use_v2)
+EDITOR, ED_SZ = 0x20039E50, 0x3A0     # (V2) the note tracks' step editors (track id 0..3): [+ 0x18] the pattern store (p0 = the edited pattern)
+STEPOBJ, SO_SZ = 0x20041EB0, 0x170    # (V2) the step pads' objects (track id): [+ 0xC4] p0 = the page of 16 steps shown
+STORE_W, COMMIT = 0x08035456, 0x080353C0
+NV_NOTE = 0x13                        # (V2) the stock's colour of a step with notes in the Note view of MIDI 1 / 2
+NV_CUR = (19, 28)                     # (V2) the controller's subview of MIDI 1 / 2's Note view
+
+
+def use_v2():
+    """SC48 (the user, 2026-10-27, on SC47.9: «al poner un flip se ve de color, pero al volver a pitch el paso no aparece.  Sólo se genera el paso
+    al activar el transporte, con el mismo color cyan que cualquier paso de pitch, aunque tiene flip en el mismo paso»):
+      * the note written by c_snset is told to the stock as its own step edits do (0x0803D1D4: the pattern store's 0x08035456 + commit
+        0x080353C0, on the track's step editor 0x20039E50 + 0x3A0 x id): the Note view (its step pads) shows it at once, not at the next Play;
+      * the Note view of MIDI 1 / 2 in the sample mode (the container's slot 7, c_snled): a step with notes and a flip in the edited pattern
+        (the editor's pattern, the page the step pads show) = smpick's peach instead of the stock's 0x13; a flip without notes is not shown
+        there (only in the picker)."""
+    global V2
+    V2 = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -77,13 +96,16 @@ def arm_code(base, L, prev):
     E(bl, "c_snst"); E(adds_reg, 0, 0, 4); E(ldrb_imm, 0, 0, 4)
     E(strb_imm, 0, 5, 4); E(movs_imm, 0, GATE); E(strb_imm, 0, 5, 5); E(movs_imm, 0, 0); E(strb_imm, 0, 5, 6); E(movs_imm, 0, VEL); E(strb_imm, 0, 5, 7)
     E(movs_imm, 0, 1); E(strb_imm, 0, 5, 0)
+    if V2:                                                                                                   # the stock told: its step pads
+        imm32(5, EDITOR + 2 * ED_SZ); E(movw, 0, ED_SZ); E(muls, 0, 4); E(adds_reg, 5, 5, 0); E(ldr_imm, 5, 5, 0x18)
+        E(mov_reg, 0, 5); E(bl, STORE_W); E(mov_reg, 0, 5); E(bl, COMMIT)
     a.label("st_x"); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_snled (the tracks' container slot 7: obj -> its LED buffer): the chain; the picker's steps: note / flip / both
     a.label("c_snled")
     E(push_list, [4, 5, 6, 7], lr=True)
     E(bl, prev["led"]); E(mov_reg, 5, 0)
-    E(bl, L["c_spk"]); E(cmp_imm, 0, 0xFF); E(b_cond, "ld_x", "eq"); E(mov_reg, 7, 0)                        # r7 = the track
+    E(bl, L["c_spk"]); E(cmp_imm, 0, 0xFF); E(b_cond, "ld_nv" if V2 else "ld_x", "eq"); E(mov_reg, 7, 0)     # r7 = the track
     E(bl, L["c_spst"]); E(cmp_imm, 0, 0); E(b_cond, "ld_x", "eq"); E(ldrb_imm, 6, 0, 0)                      # r6 = the state byte
     E(lsrs_imm, 6, 6, 2); E(movs_imm, 0, 1); E(ands_reg, 6, 0); E(lsls_imm, 6, 6, 4)                          # r6 = 16 x the half
     E(movs_imm, 4, 0)
@@ -100,6 +122,24 @@ def arm_code(base, L, prev):
     a.label("ld_w"); E(lsls_imm, 0, 4, 1); E(strh_reg, 1, 5, 0)
     a.label("ld_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 16); E(b_cond, "ld_l", "lo")
     a.label("ld_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
+    if V2:                                                                        # the Note view of MIDI 1 / 2 in the sample mode: note + flip = peach
+        a.label("ld_nv")
+        imm32(0, SP.MGR); E(ldrb_w, 0, 0, SP.S_CUR)
+        E(movs_imm, 7, 0); E(cmp_imm, 0, NV_CUR[0]); E(b_cond, "nv_t", "eq"); E(movs_imm, 7, 1); E(cmp_imm, 0, NV_CUR[1]); E(b_cond, "ld_x", "ne")
+        a.label("nv_t")
+        E(mov_reg, 0, 7); E(bl, L["c_vsmode"]); E(cmp_imm, 0, 0); E(b_cond, "ld_x", "eq")
+        imm32(0, STEPOBJ + 2 * SO_SZ); E(movw, 1, SO_SZ); E(muls, 1, 7); E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 0xC4); E(ldr_imm, 0, 0, 0)
+        E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 6, 0, 0); E(lsls_imm, 6, 6, 4)                      # r6 = 16 x the page
+        imm32(0, EDITOR + 2 * ED_SZ); E(movw, 1, ED_SZ); E(muls, 1, 7); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0x18)
+        E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldr_imm, 7, 0, 0)                                              # r7 = the edited pattern
+        E(movs_imm, 4, 0)
+        a.label("nv_l")
+        E(lsls_imm, 0, 4, 1); E(raw, h(0x5A28)); E(cmp_imm, 0, NV_NOTE); E(b_cond, "nv_n", "ne")             # ldrh r0, [r5, r0]
+        E(adds_reg, 1, 6, 4); E(movs_imm, 0, 28); E(muls, 0, 1); E(ldrb_reg, 0, 7, 0); E(cmp_imm, 0, 0); E(b_cond, "nv_n", "eq")   # its notes
+        E(movs_imm, 0, 6); E(muls, 0, 1); imm32(1, SP.LANE); E(adds_reg, 0, 0, 1); E(ldrb_reg, 0, 7, 0)     # its flip
+        E(cmp_imm, 0, SP.FLIP); E(b_cond, "nv_n", "lo"); E(cmp_imm, 0, 0xFF); E(b_cond, "nv_n", "eq")
+        E(movs_imm, 0, SP.COL_FLIP); E(lsls_imm, 1, 4, 1); E(strh_reg, 0, 5, 1)
+        a.label("nv_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 16); E(b_cond, "nv_l", "lo"); E(b, "ld_x")
     # ---- c_snclr (the head of the stock's step clear: this): the step's flip kept
     a.label("c_snclr")
     E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
@@ -124,6 +164,7 @@ def install(img, report, base_addr):
     SPL = {k: int(v, 16) for k, v in report["smpick"]["labels"].items()}
     SHL = {k: int(v, 16) for k, v in report["smhold"]["labels"].items()}
     L = {k: SPL[k] for k in ("c_spset", "c_splb", "c_spk", "c_spst")}
+    if V2: L["c_vsmode"] = int(report["vcf20"]["labels"]["c_vsmode"], 16)
     prev = dict(lon=MP.bw_target(img, LIVE_ON, BASE), led=u(SP.CONT_VT + 28) & ~1)
     sites = (SPL["pp_sel"] - 6, SHL["hp_f"] - 4)                                   # a step held + a sample (c_sppad), a sample held + a step (c_shpad)
     for s in sites: assert FD.bl_target(img, s, BASE) == L["c_spset"], hex(s)

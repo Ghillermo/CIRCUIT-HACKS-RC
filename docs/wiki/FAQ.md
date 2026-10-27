@@ -2,7 +2,7 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog)*
 
-Current versions (2026-10-27): **RC2.10**, **RC2.10S** and **Beta 3.35**.
+Current versions (2026-10-27): **RC2.10**, **RC2.10S** and **Beta 3.37**.
 
 ## Installing
 
@@ -15,7 +15,7 @@ Novation's bootloader is never touched, so you can always send the official firm
 **3. RC, RC "S" or Beta: which one should I install?**
 - **RC** (release candidate, now RC2.10): the features that have been tested together.
 - **RC S** (RC2.10S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
-- **Beta** (now Beta 3.35): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
+- **Beta** (now Beta 3.37): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
 
 **4. Does it work on the original Circuit or the Circuit Rhythm?**
 No: CIRCUIT-HACKS is for the **Circuit Tracks** (firmware 1.2.1, build 4486) only. For the **Circuit Rhythm** there is a separate project, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), which ports these features and adds its own.
@@ -79,7 +79,7 @@ Beta 3.35: up to 4 notes per track; with FM, 6 voices shared between the two tra
 See [MIDI: own behaviours, new CCs and NRPNs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi) and the [MIDI reference](https://ghillermo.github.io/CIRCUIT-HACKS-RC/midi-en.html). The stock parameters keep the numbers of Novation's [Programmer's Reference Guide](https://fael-downloads-prod.focusrite.com/customer/prod/downloads/circuit_tracks_programmer_s_reference_guide_v3.pdf).
 
 **20. My external keyboard does not play the MIDI 1 / 2 synth or the arpeggiator.** ([#13](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues/13), [#14](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues/14))
-Since RC2.08, notes arriving on the channel of MIDI 1 / 2 play its synth. To send them through the arpeggiator, turn on **pad 22 of Advanced Setup** (Beta 3.35; off by default, so a keyboard with its own arpeggiator does not clash). See [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#advanced-setup).
+Since RC2.08, notes arriving on the channel of MIDI 1 / 2 play its synth. To send them through the arpeggiator, turn on the **Note button of the Setup view** (Beta 3.37; on Betas 3.35 / 3.36, pad 22 of Advanced Setup; off by default, so a keyboard with its own arpeggiator does not clash). See [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#setup).
 
 **21. Can I get the DIN MIDI input on my computer over USB?** ([#10](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues/10))
 Yes: **pad 23 of Advanced Setup** (USB merge, Beta 3.35). Without the DIN clock when Clock Tx is on, and without SysEx.

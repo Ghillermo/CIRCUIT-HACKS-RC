@@ -15,14 +15,14 @@ Synth 1 = channel 1, Synth 2 = channel 2, drums = channel 10, project and Master
 | What | How |
 |---|---|
 | **External keyboard on MIDI 1 / 2** *(since RC2)* | Notes coming in on the channel of MIDI 1 / 2 (USB or DIN) play its own synth and are recorded; they are not sent on to the output. |
-| **External keyboard to the arpeggiator** *(Beta 3.36 only)* | Advanced Setup, pad 22: notes coming in on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator. |
+| **External keyboard to the arpeggiator** *(Beta 3.37 only)* | Setup, Note button: notes coming in on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator. |
 | **Patch flip** | MIDI 1 / 2 Preset view, pad 26: every note of the track goes out as a Program Change on the track's channel. |
 | **The project's Program Change** *(since RC2)* | Setup, pads 29 / 30: listen channel and output channel (16 by default); what arrives on the listen one is sent again on the output one. |
 | **MIDI Thru: Merge and Filter** | Advanced Setup, Duplicate: Thru (hardware), Out 2, Merge (DIN In + the device's MIDI), Filter (DIN In without the device's channels). No SysEx. |
-| **USB merge** *(Beta 3.36 only)* | Advanced Setup, pad 23: what comes in on the DIN In also goes out over USB (without the clock with Clock Tx, without SysEx). |
-| **General MIDI mode of the drums** *(Beta 3.36 only)* | Setup, K4 / K5-K8: the hits of Drum 1-4 go out as the GM note chosen instead of 60 / 62 / 64 / 65. Inside, the sound is the same. |
-| **Stereo drum pair** *(Beta 3.36 only)* | Drum 2 / 4's notes play it alone, on the right; its pattern neither sounds nor goes out over MIDI while the pair lasts. |
-| **Record the internal routings** *(since RC2)* | Setup, Record: what a MIDI track sends to a synth on the same channel is also recorded in the synth; *(Beta 3.36 only)* nothing is recorded in a track muted in the Mixer. |
+| **USB merge** *(Beta 3.37 only)* | Advanced Setup, pad 23: what comes in on the DIN In also goes out over USB (without the clock with Clock Tx, without SysEx). |
+| **General MIDI mode of the drums** *(Beta 3.37 only)* | Setup, K4 / K5-K8: the hits of Drum 1-4 go out as the GM note chosen instead of 60 / 62 / 64 / 65. Inside, the sound is the same. |
+| **Stereo drum pair** *(Beta 3.37 only)* | Drum 2 / 4's notes play it alone, on the right; its pattern neither sounds nor goes out over MIDI while the pair lasts. |
+| **Record the internal routings** *(since RC2)* | Setup, Record: what a MIDI track sends to a synth on the same channel is also recorded in the synth; *(Beta 3.37 only)* nothing is recorded in a track muted in the Mixer. |
 | **New knobs** | Turning them (also with Clear) sends their CC / NRPN; receiving it moves the knob. The Mixer's level to 100 / 0 (Shift + knob) goes out as a turn. |
 | **No MIDI** | The own synth's mod matrix, the FM, the voice mode and the page 4 destinations have no CC / NRPN: they are saved in the own patches. |
 | **Selecting an NRPN** | CC 99 (MSB), CC 98 (LSB), CC 6 (value), in that order; the device remembers the chosen NRPN until the next CC 99 / 98. |
@@ -60,24 +60,24 @@ The MIDI track's channel. Values 0-127; bipolar ones, 64 = centre. Sent when the
 | 26 | LFO → morph (granular: note mode) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → size) | CC 37 | 3 / K1 |
 | 28 | FINE 2 (granular: fine) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
-| 29 | WAVE 2 (granular: pitch spread; Beta 3.36: stereo) | CC 30 | 3 / K7 |
+| 29 | WAVE 2 (granular: pitch spread; Beta 3.37: stereo) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: window) | CC 31 | 3 / K2 |
 | 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
 | 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
 | 33 | FM (granular: position spread) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
-| 34 | RING (granular: reverse; Beta 3.36: bipolar, reverse / pitch spread) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
+| 34 | RING (granular: reverse; Beta 3.37: bipolar, reverse / pitch spread) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
 
-**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.36 only:* the eight destinations are chosen with Shift + knob.
+**Page 4** (sequenceable: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. *Beta 3.37 only:* the eight destinations are chosen with Shift + knob.
 
 ### Drums
 
-The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. *Beta 3.36 only:* with the **General MIDI mode** (Setup view, K4) the notes of Drum 1-4 go out as each one's GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.
+The drums channel (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = value**. The stock knobs (pitch, decay, distortion, EQ) keep their original CCs. *Beta 3.37 only:* with the **General MIDI mode** (Setup view, K4) the notes of Drum 1-4 go out as each one's GM note (K5-K8, 35-81; by default 36 / 38 / 42 / 46) instead of 60 / 62 / 64 / 65.
 
 | LSB | Parameter | Values |
 |---|---|---|
 | 1 | Envelope → pitch | 0-127, 64 = 0 |
 | 2 | Ring mod: frequency | 0-127 |
-| 3 | LFO: amount (> 64 tremolo; < 64 vibrato, Beta 3.36 only: start scan) | 0-127, 64 = 0 |
+| 3 | LFO: amount (> 64 tremolo; < 64 vibrato, Beta 3.37 only: start scan) | 0-127, 64 = 0 |
 | 4 | LFO: speed | 0-127, 64 = centre |
 | 5 | Envelope → cutoff | 0-127, 64 = 0 |
 | 6 | Resonance | 0-127 |
@@ -120,11 +120,11 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 - The editor's knob walks the destinations with a CC first (by CC number), then the NRPN-only ones; on the pads, white = CC, light blue / magenta / violet = NRPN of banks 0 / 1 / 2.
 
 ### The MIDI 1 / 2 own synth's matrix (own) *(since RC2.02)*
-- [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) with the engine on, **pad 6**: the 8 knobs are 8 **sources**: K1 velocity, K2 note, K3 random per note, K4 LFO 2, K5 envelope 2, K6 a drum's hit, K7 position in the pattern, K8 stepped random (*(Beta 3.36 only)* LFO 2 also synced to tempo).
+- [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) with the engine on, **pad 6**: the 8 knobs are 8 **sources**: K1 velocity, K2 note, K3 random per note, K4 LFO 2, K5 envelope 2, K6 a drum's hit, K7 position in the pattern, K8 stepped random (*(Beta 3.37 only)* LFO 2 also synced to tempo).
 - **The knob's position is the destination and the amount:** left = off; turning right walks every parameter of the knob pages (page 1's, then page 2, page 3 and those of page 5 not met before), 16 steps per destination, the amount growing inside each stretch. LED = the colour of the destination's page; brightness = amount.
 - Several sources on the same destination add up; the parameter's stored value does not change. Details: [Mod matrix](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-matriz).
 
-### The own synth's lane destinations (page 4) *(Beta 3.36 only)*
+### The own synth's lane destinations (page 4) *(Beta 3.37 only)*
 - The 8 knobs of page 4 are the automation lanes (by default: TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect). **Shift + knob** = its destination, among the same parameters and colours as the matrix; **Clear held, then Shift + knob** = the default one. Saved with the own patch and with the project. Details: [Knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs).
 
 ### Step-drummer destinations

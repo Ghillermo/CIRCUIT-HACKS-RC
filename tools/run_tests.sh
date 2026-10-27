@@ -866,5 +866,14 @@ run python3 tools/emu_kbin.py firmware/sc47.8/circuittracks-4486-SC47.8.bin firm
 run python3 tools/emu_stpair.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json firmware/sc47.8/circuittracks-4486-SC47.8.bin firmware/sc47.8/manifest.json
 run python3 tools/emu_stpair.py firmware/b3.36/circuittracks-4486-B3.36.bin firmware/b3.36/manifest.json
 run python3 tools/emu_rodisk.py firmware/b3.36s/circuittracks-4486-B3.36S.bin firmware/b3.36s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_fmstart.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_velcurve.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_midipre.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_notearp.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_smnote2.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_notecyc.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_fsqdef.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
+run python3 tools/emu_polygain.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
+run python3 tools/emu_cueprev.py firmware/sc48/circuittracks-4486-SC48.bin firmware/sc48/manifest.json
 run python3 tools/emu_smnote.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
 run python3 tools/emu_splitknob.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
