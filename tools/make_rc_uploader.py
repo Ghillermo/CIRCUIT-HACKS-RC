@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R210 R210S B3.36 B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R210 R210S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -87,6 +87,8 @@ DESC = {"R210": ("RC2.10 — la versión candidata 2.10: RC2.09 + un arreglo (el
                   "RC2.09S — safer build: RC2.09, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
         "B3.36": ("Beta 3.36 — beta (= SC47.9): la Beta 3.35 + pareja estéreo de drums (Drum 1 + 2 / 3 + 4: un sample en estéreo con anchura) y notas automáticas en el selector de samples del sinte propio (un paso con flip recibe la última nota tocada); sin probar en el aparato",
                   "Beta 3.36 — beta (= SC47.9): Beta 3.35 + stereo drum pairs (Drum 1 + 2 / 3 + 4: one sample in stereo with width) and automatic notes in the own synth's sample picker (a step given a flip gets the last played note); not tested on the device"),
+        "B3.36S": ("Beta 3.36S — versión más segura de la beta: Beta 3.36, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                   "Beta 3.36S — safer build of the beta: Beta 3.36, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
         "B3.35": ("Beta 3.35 — beta (= SC47.8): RC2.10 + lo de la Beta 3.34 + menos aliasing en el oscilador del sinte propio (PolyBLEP en la sierra, la supersaw y la cuadrada; el wavefold limitado en las notas agudas); probada en el aparato",
                   "Beta 3.35 — beta (= SC47.8): RC2.10 + what Beta 3.34 has + less aliasing in the own synth's oscillator (PolyBLEP on the saw, the supersaw and the square; the wavefold limited on high notes); tested on the device"),
         "B3.34": ("Beta 3.34 — beta (= SC47.7): RC2.09 + polifonía del sinte propio de MIDI 1 / 2 (todos los motores salvo el granular), modo de voz en el pad 32 (retrigger, legato, glide, unísonos, poly), FM mejorado, modo muestra en estéreo y el arpegiador con el paso mantenido, el teclado externo y el latch; sin probar en el aparato",
@@ -582,4 +584,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R210", "R210S", "B3.36", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R210", "R210S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

@@ -24,6 +24,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
 > - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.10S](firmware/r210s/PRUEBA.md)**: es RC2.10 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
 > - **[B3.36](firmware/b3.36/PRUEBA.md)** es una versión beta: RC2.10 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
+> - **[B3.36S](firmware/b3.36s/PRUEBA.md)** es la beta sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta (como RC2.10S).
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -46,7 +47,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC2.10, la versión más segura RC2.10S (o las anteriores), la beta B3.36 (o las anteriores), u «Oficial» para volver atrás.
+3. **Elige el `.syx` oficial y la versión**: RC2.10, la versión más segura RC2.10S (o las anteriores), la beta B3.36, su versión más segura B3.36S (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -59,7 +60,7 @@ La página no contiene código de Novation: solo los bytes del mod y las instruc
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R210`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R210S`. La beta: `--version B3.36`.
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R210`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R210S`. La beta: `--version B3.36` (sin escrituras propias en la SD: `--version B3.36S`).
 4. Envía `firmware/r210/circuittracks-4486-R210.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
@@ -84,7 +85,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R210
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R210S` = la versión más segura; `--version B3.36` = la beta; `--list` enseña todas; `--all` las construye todas.
+- `--version R210S` = la versión más segura; `--version B3.36` = la beta; `--version B3.36S` = la beta más segura; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -126,6 +127,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
 > - If you would rather not risk the card, use the **safer build, [RC2.10S](firmware/r210s/PRUEBA.md)**: RC2.10 without any feature that creates, changes or deletes files on the SD card on its own.
 > - **[B3.36](firmware/b3.36/PRUEBA.md)** is a beta: RC2.10 + new features not yet tested on the device. Use it only with a backup of the SD card.
+> - **[B3.36S](firmware/b3.36s/PRUEBA.md)** is the beta without any feature that creates, changes or deletes files on the SD card on its own (like RC2.10S).
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUIT-HACKS-RC>.
@@ -146,7 +148,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC2.10, the safer RC2.10S (or the earlier ones), the beta B3.36 (or the earlier ones), or “Official” to go back.
+3. **Pick the official `.syx` and the version**: RC2.10, the safer RC2.10S (or the earlier ones), the beta B3.36, its safer build B3.36S (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -164,7 +166,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R210
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R210S` = the safer build; `--version B3.36` = the beta; `--list` shows them all; `--all` builds them all.
+- `--version R210S` = the safer build; `--version B3.36` = the beta; `--version B3.36S` = the safer beta; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):

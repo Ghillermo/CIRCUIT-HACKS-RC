@@ -1264,6 +1264,6 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 *How to get there:* `tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.
 
 1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
-2. Pick the version (RC2.10, the safer RC2.10S, Beta 3.36 with the new features, or an earlier one) and send. Novation's bootloader is not touched.
+2. Pick the version (RC2.10, the safer RC2.10S, Beta 3.36 with the new features, its safer build Beta 3.36S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
