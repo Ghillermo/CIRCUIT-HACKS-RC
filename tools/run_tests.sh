@@ -863,3 +863,7 @@ run python3 tools/emu_vorder.py firmware/b3.35/circuittracks-4486-B3.35.bin firm
 run python3 tools/emu_poly3.py firmware/sc47.8/circuittracks-4486-SC47.8.bin firmware/sc47.8/manifest.json
 run python3 tools/emu_fmspi.py firmware/sc47.8/circuittracks-4486-SC47.8.bin firmware/sc47.8/manifest.json firmware/sc47.4/circuittracks-4486-SC47.4.bin firmware/sc47.4/manifest.json
 run python3 tools/emu_kbin.py firmware/sc47.8/circuittracks-4486-SC47.8.bin firmware/sc47.8/manifest.json
+run python3 tools/emu_stpair.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json firmware/sc47.8/circuittracks-4486-SC47.8.bin firmware/sc47.8/manifest.json
+run python3 tools/emu_stpair.py firmware/b3.36/circuittracks-4486-B3.36.bin firmware/b3.36/manifest.json
+run python3 tools/emu_smnote.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
+run python3 tools/emu_splitknob.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json

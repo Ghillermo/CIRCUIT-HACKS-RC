@@ -72,8 +72,10 @@ def sections(lang):
         eng.append(f"| {code} | {n_es if es else n_en} | {'CC %d' % n if t == 0 else 'NRPN %d:%d' % (t & 0x7F, n)} | {where} |")
     drum = ["| " + " | ".join(U["drum_cols"]) + " |", "|---|---|---|"] + [f"| {l} | {a if es else b} | {c if es else d} |" for l, a, b, c, d in DRUMS]
     gfx = ["| " + " | ".join(U["gfx_cols"]) + " |", "|---|---|---|"] + [f"| {4 * i}-{4 * i + 3} | {n} | {a if es else b} |" for i, (n, a, b) in enumerate(GFX)]
-    return [(U["sel"][0], U["sel"][1]), (U["eng"][0], U["eng"][1] + "\n\n" + "\n".join(eng) + "\n\n" + U["auto"]),
-            (U["drum"][0], U["drum"][1] + "\n\n" + "\n".join(drum)), (U["gfx"][0], U["gfx"][1] + "\n\n" + "\n".join(gfx)), (U["pgm"][0], U["pgm"][1])]
+    from make_guide import XBETA          # the texts say «Beta 3.34»: the current beta
+    out = [(U["sel"][0], U["sel"][1]), (U["eng"][0], U["eng"][1] + "\n\n" + "\n".join(eng) + "\n\n" + U["auto"]),
+           (U["drum"][0], U["drum"][1] + "\n\n" + "\n".join(drum)), (U["gfx"][0], U["gfx"][1] + "\n\n" + "\n".join(gfx)), (U["pgm"][0], U["pgm"][1])]
+    return [(h, t.replace("Beta 3.34", XBETA)) for h, t in out]
 
 
 def write(lang, version, M):

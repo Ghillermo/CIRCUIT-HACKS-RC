@@ -20,7 +20,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A10 CC editor of the MIDI macros](#a10-editor-cc)
 - [A11 Mixer: Shift + knob = level to 100 / 0](#a11-mixer-shift)
 - [A12 Cue mode, mutes on the bar and quantize (since RC2)](#a12-mixer-cue)
-- [A13 LFO synced to the tempo (Beta 3.35 only)](#a13-lfo-sync)
+- [A13 LFO synced to the tempo (Beta 3.36 only)](#a13-lfo-sync)
 - [A14 Split keyboard Synth 1 + Synth 2](#a14-teclado-partido)
 - [A15 Synth patches by voice mode](#a15-colores-patch)
 - [A16 Patches of the own synth (MIDI 1 / 2)](#a16-patches-midi)
@@ -56,11 +56,12 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [C12 Arpeggiator (since RC2)](#c12-arpegiador)
 - [C13 Drums micro-step rollers (since RC2)](#c13-rollers)
 - [C14 Custom scale (since RC2)](#c14-escala-propia)
-- [C15 Chord screen (Beta 3.35 only)](#c15-acordes)
-- [C16 Sample mode of the MIDI tracks (since RC2)](#c16-modo-muestra)
-- [C17 Mod matrix of the own synth (since RC2.02)](#c17-matriz-mod)
-- [C18 4-operator FM (Beta 3.35 only)](#c18-fm4)
-- [C19 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c19-master-fx-beta)
+- [C15 Chord screen (Beta 3.36 only)](#c15-acordes)
+- [C16 Stereo drum pairs (Beta 3.36 only)](#c16-pareja-estereo)
+- [C17 Sample mode of the MIDI tracks (since RC2)](#c17-modo-muestra)
+- [C18 Mod matrix of the own synth (since RC2.02)](#c18-matriz-mod)
+- [C19 4-operator FM (Beta 3.36 only)](#c19-fm4)
+- [C20 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c20-master-fx-beta)
 
 **D. DSP**
 
@@ -94,7 +95,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 <a id="a3-vista-fx"></a>
 ### A3. Keys of the FX view
 - **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.
-- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.35 only; in RC2.10, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.35 only).
+- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (Beta 3.36 only; in RC2.10, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (Beta 3.36 only).
 
 <a id="a4-clear-knob"></a>
 ### A4. Clear + knob = default value
@@ -134,8 +135,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track.
 
 <a id="a13-lfo-sync"></a>
-### A13. LFO synced to the tempo (Beta 3.35 only)
-- **Beta 3.35 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
+### A13. LFO synced to the tempo (Beta 3.36 only)
+- **Beta 3.36 only.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
 
 <a id="a14-teclado-partido"></a>
 ### A14. Split keyboard Synth 1 + Synth 2
@@ -197,7 +198,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **since RC2:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
 - **since RC2:** own **Program Change** channels: pads 29 / 30 show and pick the listen / output channel (16 by default); what is received is forwarded on the output one.
 - **since RC2:** **metronome with count-in**: Shift + Clear walks no metronome, metronome, count-in only and both; the count-in is one bar before recording.
-- **Beta 3.35 only:** **General MIDI mode of the drums**: in Setup, K4 turns it on; K5-K8 = the GM note of Drum 1-4 (35-81), sent on the drums' channel instead of 60 / 62 / 64 / 65.
+- **Beta 3.36 only:** **General MIDI mode of the drums**: in Setup, K4 turns it on; K5-K8 = the GM note of Drum 1-4 (35-81), sent on the drums' channel instead of 60 / 62 / 64 / 65.
 
 <a id="b8-patch-flip"></a>
 ### B8. Patch flip on MIDI 1 / 2
@@ -269,26 +270,30 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** **Shift + Scales** = an editor of a custom scale for the note tracks: up to 7 notes over the root and any **period** (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.
 
 <a id="c15-acordes"></a>
-### C15. Chord screen (Beta 3.35 only)
-- **Beta 3.35 only.** In the **expanded Note view** of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8** opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.
+### C15. Chord screen (Beta 3.36 only)
+- **Beta 3.36 only.** In the **expanded Note view** of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8** opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.
 
-<a id="c16-modo-muestra"></a>
-### C16. Sample mode of the MIDI tracks (since RC2)
+<a id="c16-pareja-estereo"></a>
+### C16. Stereo drum pairs (Beta 3.36 only)
+- **Beta 3.36 only.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.
+
+<a id="c17-modo-muestra"></a>
+### C17. Sample mode of the MIDI tracks (since RC2)
 - **Since RC2.** A new state of pad 27 (cyan, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
 - The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
 
-<a id="c17-matriz-mod"></a>
-### C17. Mod matrix of the own synth (since RC2.02)
+<a id="c18-matriz-mod"></a>
+### C18. Mod matrix of the own synth (since RC2.02)
 - **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
 - Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
 
-<a id="c18-fm4"></a>
-### C18. 4-operator FM (Beta 3.35 only)
-- **Beta 3.35 only.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
+<a id="c19-fm4"></a>
+### C19. 4-operator FM (Beta 3.36 only)
+- **Beta 3.36 only.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
 - **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
 
-<a id="c19-master-fx-beta"></a>
-### C19. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
+<a id="c20-master-fx-beta"></a>
+### C20. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
 - **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP
@@ -311,12 +316,12 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="d5-granular"></a>
 ### D5. Granular synth
-- Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window; on the second DSP core.
+- Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window.
 - K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, since RC2), LFO → size, source.
 
 <a id="d6-glitch-dsp"></a>
 ### D6. Glitch engine
-- A tape head over a stereo circular buffer of the master (2.7 s) in the external DSP memory: variable speed, repeats with fades, chaos.
+- A tape head over a stereo circular buffer of the master (2.7 s): variable speed, repeats with fades, chaos.
 
 <a id="d7-drums-dsp"></a>
 ### D7. Drum DSP
@@ -330,7 +335,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="e1-guardado"></a>
 ### E1. What is saved and where
-- Project: drums, Master FX slots, synth source, reverb / delay parameters. Device: MIDI track engine. Volatile: OSC 2, latched effects.
+- Pattern, project, pack and device settings: what goes where, how to make sure it is saved and what is lost at power-off, in the «Data» chapter of the guide by views.
 
 <a id="e2-pack-interno"></a>
 ### E2. The internal memory pack: read only
@@ -338,7 +343,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="e3-instalar"></a>
 ### E3. Installing and going back
-- `tools/ct_uploader.html` sends the `.syx` over Web MIDI; it only accepts verified firmwares. Recovery: Scales + Preset + Note at power-on.
+- `rc_uploader.html` patches Novation's official firmware in the browser and sends it over Web MIDI; it only accepts the official firmware 1.2.1. Recovery: Scales + Preset + Note at power-on.
 
 <a id="e4-herramientas"></a>
 ### E4. Development and diagnostic tools

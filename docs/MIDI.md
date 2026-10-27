@@ -39,24 +39,24 @@ Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar
 | 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 |
 | 27 | TUNE 2 (granular: LFO → tamaño) | CC 37 | 3 / K1 |
 | 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
-| 29 | WAVE 2 (granular: dispersión del tono; Beta 3.34: estéreo) | CC 30 | 3 / K7 |
+| 29 | WAVE 2 (granular: dispersión del tono; Beta 3.36: estéreo) | CC 30 | 3 / K7 |
 | 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 |
 | 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
 | 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
 | 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
-| 34 | RING (granular: reverso; Beta 3.34: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
+| 34 | RING (granular: reverso; Beta 3.36: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
 
-**Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. *Solo Beta 3.34:* los ocho destinos se eligen con Shift + knob.
+**Página 4** (secuenciables: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. *Solo Beta 3.36:* los ocho destinos se eligen con Shift + knob.
 
 ## Drums
 
-Canal de drums (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = valor**. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales. *Solo Beta 3.34:* con el **modo General MIDI** (vista Setup, K4) las notas de Drum 1-4 salen con la nota GM de cada uno (K5-K8, 35-81; de fábrica 36 / 38 / 42 / 46) en lugar de 60 / 62 / 64 / 65.
+Canal de drums (Setup). **CC 99 = 5, 6, 7, 8** (Drum 1-4), **CC 98 = LSB**, **CC 6 = valor**. Los knobs de stock (pitch, decay, distortion, EQ) siguen con sus CC originales. *Solo Beta 3.36:* con el **modo General MIDI** (vista Setup, K4) las notas de Drum 1-4 salen con la nota GM de cada uno (K5-K8, 35-81; de fábrica 36 / 38 / 42 / 46) en lugar de 60 / 62 / 64 / 65.
 
 | LSB | Parámetro | Valores |
 |---|---|---|
 | 1 | Envolvente → tono | 0-127, 64 = 0 |
 | 2 | Ring mod: frecuencia | 0-127 |
-| 3 | LFO: cantidad (> 64 trémolo; < 64 vibrato, solo Beta 3.34: scan del inicio) | 0-127, 64 = 0 |
+| 3 | LFO: cantidad (> 64 trémolo; < 64 vibrato, solo Beta 3.36: scan del inicio) | 0-127, 64 = 0 |
 | 4 | LFO: velocidad | 0-127, 64 = centro |
 | 5 | Envolvente → corte | 0-127, 64 = 0 |
 | 6 | Resonancia | 0-127 |
@@ -83,4 +83,4 @@ Canal 16. **CC 99 = 9**, **CC 98 = 4 × efecto + knob** (knob 0-3 = K1-K4), **CC
 
 ## Program Change
 
-**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26). **Notas de entrada (desde RC2.08):** las notas que llegan por el canal de MIDI 1 / 2 tocan su sinte propio y se graban; no se reenvían a la salida. *Solo Beta 3.34:* con la **fusión USB** (Advanced Setup, pad 23) todo lo que entra por el DIN In sale también por USB (sin su reloj con Clock Tx, sin SysEx).
+**Proyecto:** canal de escucha y canal de salida en la vista Setup, pads 29 / 30 (16 por defecto; desde RC2); lo recibido en el de escucha se reenvía por el de salida. **Patch flip:** cada nota de MIDI 1 / 2 sale como Program Change por el canal de la pista (vista Preset de MIDI, pad 26). **Notas de entrada (desde RC2.08):** las notas que llegan por el canal de MIDI 1 / 2 tocan su sinte propio y se graban; no se reenvían a la salida. *Solo Beta 3.36:* con la **fusión USB** (Advanced Setup, pad 23) todo lo que entra por el DIN In sale también por USB (sin su reloj con Clock Tx, sin SysEx).

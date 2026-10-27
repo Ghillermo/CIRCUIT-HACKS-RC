@@ -38,6 +38,14 @@ def add(img, report, name, mod):
                         listing=sc.disasm(bytes(code), at), hole=True)
 
 
+def rehash(img, report, at):
+    """A later module patched (on purpose) the block in the hole that holds address at: its recorded hash follows."""
+    import hashlib
+    for name, (a, b, sha) in report.get("hole", {}).get("blocks", {}).items():
+        a, b = int(a, 16), int(b, 16)
+        if a <= at < b: report["hole"]["blocks"][name][2] = hashlib.sha256(bytes(img[a - BASE:b - BASE])).hexdigest()
+
+
 def check(img, report):
     """At the very end of a build: every block placed in the hole is still there (nothing patched the old DSP blocks after it)."""
     h = report.get("hole")
