@@ -1,6 +1,6 @@
 # CIRCUIT-HACKS
 
-Help me pay for tools and mantain the project: https://PayPal.me/ghillermo
+Help me pay for tools and mantain this project and CIRCUIT REMIX: https://PayPal.me/ghillermo
 
 Contributors:
 
