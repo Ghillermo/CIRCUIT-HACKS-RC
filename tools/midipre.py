@@ -9,13 +9,19 @@ view (where the own synth lives) one gesture away.
   * the head of slot 7 of the template view (the MIDI Preset view): with the track's engine off (no CC editor, no step-drummer view on the screen)
     an unlit pad 27 = dim white 0x02 (the "off" colour of modesel's engine row).
 RAM: modmx.MXR + 0x1AA0 (12 B, signed "MPV1": + 4 the last id, + 8 its time).  In the hole (no card).
+
+SC48.5 / Beta 3.42 (NOTEVIEW, use_v2(); the user, 2026-10-28: «midi second press is not working. it activates on a short double tap, but i want
+the view to open if the midi note view is opened and we tap midi once again»): no time window; MIDI 1 / 2 pressed while its own Note view is on
+the screen (the controller's sub-mode [ctrl + 0x152] = 9 id + 1: 19 / 28; the Mixer, FX ... views have their own sub-modes) = the Preset view,
+as srcview does for Synth 1 / 2.  The stock takes a track button pressed in any other view of that track (Velocity, Gate, Preset, the expanded
+Note view) to its Note view, so two taps from anywhere still end in the Preset view.  The same exclusions; the RAM is not used.
 """
 from __future__ import annotations
 import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldrb_imm, mov_reg, movs_imm, movt, movw,  # noqa: E402
+from thumb import (Asm, adds_imm8, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldrb_imm, mov_reg, movs_imm, movt, movw, muls,  # noqa: E402
                    pop_list, push_list, raw, str_imm, strb_imm, strh_imm, subs_imm8, subs_reg, tst_reg)
 import modmx as MX  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -31,6 +37,14 @@ DOUBLE_MS = 400
 PAD = 26                                # pad 27
 COL_OFF = 0x02
 PARAM_GET = 0x0803542C
+NOTEVIEW = False                        # SC48.5: the second press = the track's Note view on the screen (no time window; use_v2)
+S_CUR = 0x152                           # the controller's sub-mode: 9 x track + 0 (Preset) / 1 (Note view)
+
+
+def use_v2():
+    """SC48.5 / Beta 3.42: MIDI 1 / 2 pressed with its own Note view on the screen = its Preset view (no double-tap window)."""
+    global NOTEVIEW
+    NOTEVIEW = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -59,8 +73,12 @@ def arm_code(base, L, prev):
     E(ldr_imm, 0, 4, 0x20); E(ldr_imm, 0, 0, 0xC); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0)
     E(movs_imm, 1, 3); E(tst_reg, 0, 1); E(b_cond, "mb_no", "ne")                                                  # Clear / Duplicate
     E(mov_reg, 0, 5); E(subs_imm8, 0, IDS[0]); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); E(b_cond, "mb_no", "ne")    # its CC editor
-    E(ldr_imm, 0, 6, 4); E(cmp_reg, 0, 5); E(b_cond, "mb_first", "ne")
-    now(0); E(ldr_imm, 1, 6, 8); E(subs_reg, 0, 0, 1); E(movw, 1, DOUBLE_MS); E(cmp_reg, 0, 1); E(b_cond, "mb_first", "hi")
+    if NOTEVIEW:                                                                                                   # its Note view on the screen
+        E(raw, h(0xF894) + h(S_CUR)); E(movs_imm, 1, 9); E(muls, 1, 5); E(adds_imm8, 1, 1)                         # ldrb.w r0, [r4, #0x152]
+        E(cmp_reg, 0, 1); E(b_cond, "mb_p", "ne")
+    else:
+        E(ldr_imm, 0, 6, 4); E(cmp_reg, 0, 5); E(b_cond, "mb_first", "ne")
+        now(0); E(ldr_imm, 1, 6, 8); E(subs_reg, 0, 0, 1); E(movw, 1, DOUBLE_MS); E(cmp_reg, 0, 1); E(b_cond, "mb_first", "hi")
     E(movs_imm, 0, 0xFF); E(str_imm, 0, 6, 4)                                                                      # the second press
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, prev["btn"])
     E(mov_reg, 0, 4); E(movs_imm, 1, PRESET); E(bl, SV.BTN)
@@ -101,5 +119,6 @@ def install(img, report, base_addr):
         img += bytes([0xFF])
     img[SV.BTN - BASE:SV.BTN - BASE + 4] = bw_enc(SV.BTN, labels["c_mqbtn"])
     struct.pack_into("<I", img, MP.TMPL_VT + 28 - BASE, labels["c_mqled"] | 1)
+    if NOTEVIEW: prev["v2"] = 1                                                    # (the tests: the Note view rule)
     assert RAM + 12 <= MX.MXR + 0x1B00
     return labels, code, prev

@@ -2,7 +2,7 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog)*
 
-Current versions (2026-10-28): **RC2.11**, **RC2.11S**, **Beta 3.41** and **Beta 3.41S**.
+Current versions (2026-10-28): **RC4** and **RC4S** (they gather everything from the betas up to 3.43).
 
 ## Installing
 
@@ -13,9 +13,9 @@ A set of patches for the official **Novation Circuit Tracks** firmware 1.2.1 (bu
 Novation's bootloader is never touched, so you can always send the official firmware again. If the device does not boot, hold **Scales + Preset + Note** while switching it on: that is Novation's bootloader mode, and from there you can send any firmware. **Back up your SD card before installing** any version. See [Installing and going back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#instalar).
 
 **3. RC, RC "S" or Beta: which one should I install?**
-- **RC** (release candidate, now RC2.11): the features that have been tested together.
-- **RC S** (RC2.11S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
-- **Beta** (now Beta 3.41; its safer twin Beta 3.41S writes nothing of its own to the SD card): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
+- **RC** (release candidate, now RC4): the features that have been tested together.
+- **RC S** (RC4S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
+- **Beta** (none right now: everything from the betas is in RC4; the next beta will carry the new features): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
 
 **4. Does it work on the original Circuit or the Circuit Rhythm?**
 No: CIRCUIT-HACKS is for the **Circuit Tracks** (firmware 1.2.1, build 4486) only. For the **Circuit Rhythm** there is a separate project, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), which ports these features and adds its own.
@@ -90,7 +90,7 @@ See [Mod matrix and macro destinations](https://ghillermo.github.io/CIRCUIT-HACK
 ## The project
 
 **23. How do I report a bug?**
-Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC2.11 or Beta 3.41), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording.
+Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC4 or RC4S), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording.
 
 **24. How do I suggest a feature?**
 Use [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) or an issue. Check the [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) first: suggestions on control, usability and on how the data is saved are especially welcome.
@@ -98,5 +98,8 @@ Use [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) or 
 **25. Is this affiliated with Novation?**
 No. It is an independent project. The firmware it patches is Novation's and is proprietary: the installer only installs on a Circuit Tracks.
 
-**26. How can I support the project?**
+**26. Is this a decompilation?**
+No, it is not a decompilation: no source code is rebuilt or published. The code written so far is ours and does not rely on decompilation processes or tools: it is written for this project with its own assemblers for the ARM processor and the DSP. It goes into free space in the firmware image and connects to the stock firmware through a few small hooks (short jumps at chosen places). **Novation's code is never exposed, revealed or shared:** the repository, the installer and the documentation contain no firmware image, no copy of its code and no decompiled or disassembled listing of it. The documentation only says where the patches connect and what the device does there. The installer patches the official firmware that you download from Novation yourself, in your browser, and the patched firmware goes only to your Circuit Tracks.
+
+**27. How can I support the project?**
 [PayPal](https://PayPal.me/ghillermo), bug reports with clear steps, and testing the betas.

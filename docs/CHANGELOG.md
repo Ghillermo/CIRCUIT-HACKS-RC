@@ -7,6 +7,17 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### RC4 / RC4S — 2026-10-28
+
+**RC4** (marca `RC4`; = SC48.6) = RC2.11 + **todas las funciones de las betas**: las publicadas hasta la Beta 3.41 (abajo) + las de la Beta 3.42 + un arreglo (ver [Arreglos](#arreglos)); la Beta 3.43 (= RC4) no se publicó aparte. El limitador de voces y el arreglo, probados en el aparato; muchas funciones de las betas, todavía no: usa una copia de la SD. **RC4S** (`RC4S`): la misma, sin escrituras propias en la SD ni en la memoria interna. La guía explica ahora cómo se comportan las voces del sinte propio (cuántas, el volumen de los acordes, el límite de voces). → [Guía: Voces del sinte propio](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-voces)
+
+### Beta 3.42 — no publicada (incluida en RC4)
+
+- **MIDI 1 / 2 otra vez = su vista Preset:** con la vista Note de MIDI 1 / 2 en pantalla, pulsar su botón otra vez abre su vista Preset, sin prisa (ya no hay que pulsar dos veces seguidas). Desde las demás vistas de la pista el botón lleva a su Note, como siempre. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Limitador de voces del sinte propio:** si el DSP se va a quedar sin tiempo (muchas voces con releases largos, sobre todo en FM), se apaga la voz soltándose más baja (o, si no hay, la nota mantenida más antigua) antes de que se oiga un traqueteo; después el sinte toca con las voces que caben y cada 2 s prueba con una más. También en los unísonos. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Acordes más fuertes:** en poly y en los unísonos cada voz baja menos según cuántas suenan (una o dos notas, igual; cuatro, a 0,71; seis, a 0,58). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Poly por defecto:** un proyecto que nunca eligió modo de voz toca MIDI 1 / 2 en poly. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+
 ### Beta 3.41 / Beta 3.41S — 2026-10-28
 
 **Beta 3.41** (marca `B3.41`; = SC48.4) = Beta 3.40 (y con ella las 3.38-3.40, que no se publicaron) + lo siguiente, sin probar en el aparato. **Beta 3.41S** (`B3.41S`): la misma, sin escrituras propias en la SD ni en la memoria interna.
@@ -442,6 +453,10 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4 / RC4S — 2026-10-28
+
+- **Synth 1 / 2 callaban con un acorde poly del sinte propio:** con 4 notas o más del sinte propio de MIDI 1 / 2 en poly (oscilador, VA-drum o FM), Synth 1 / 2 dejaban de sonar a veces y volvían al soltar el acorde. El aparato tiene su propio limitador de voces para Synth 1 / 2: cuando le sobra poco tiempo al DSP, apaga sus voces; las del sinte propio le quitaban ese tiempo. Ahora, mientras suenan dos voces propias o más, el aparato no apaga voces de Synth 1 / 2; si de verdad falta tiempo, se apagan las del sinte propio. Mientras el DSP va justo, una nota nueva de Synth 1 / 2 puede reusar una voz de su sinte (lo que hace el aparato con carga).
+
 ### RC2.11 / RC2.11S / Beta 3.40 — 2026-10-28 (con la Beta 3.41)
 
 - **Editor de CC de los macros MIDI (pad 25):** salir con un cambio sin guardar (pad 25 o un botón de vista) dejaba sin función varios knobs de la plantilla (LED apagado, sin CC; en una prueba solo seguían K4 y K5): la copia que se devuelve al descartar se guardaba en una memoria que usan también otras funciones (patches del sinte propio, cadenas de patrones, contadores de pasos), que la pisaban; al copiarla, además, pisaba lo de ellas. Ahora va en su propia memoria. Si ya te pasó: apaga y enciende el aparato (vuelve la plantilla guardada), salvo que guardaras después. Además, **al guardar sales del editor** a la vista Preset (antes te quedabas en él sin knob elegido). → [Guía: Editor de CC de los macros MIDI (pad 25)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-cc)
@@ -679,6 +694,17 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### RC4 / RC4S — 2026-10-28
+
+**RC4** (marker `RC4`; = SC48.6) = RC2.11 + **every feature of the betas**: the ones released up to Beta 3.41 (below) + Beta 3.42's + a fix (see [Fixes](#fixes)); Beta 3.43 (= RC4) was not released on its own. The voice limiter and the fix were tried on the device; many beta features have not been yet: use a copy of the SD card. **RC4S** (`RC4S`): the same, without the mod's own writes to the SD card or the internal memory. The guide now explains how the own synth's voices behave (how many, the chord level, the voice limiter). → [Guide: Own-synth voices](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-voces)
+
+### Beta 3.42 — not released (included in RC4)
+
+- **MIDI 1 / 2 again = its Preset view:** with the Note view of MIDI 1 / 2 on the screen, pressing its button again opens its Preset view, with no hurry (no more double press in a row). From the track's other views the button goes to its Note, as always. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Voice limiter of the own synth:** when the DSP is about to run out of time (many voices with long releases, above all in FM), the quietest voice ringing out (or, with none, the oldest held note) is switched off before any rattle is heard; then the synth plays with the voices that fit and tries one more every 2 s. The unison modes too. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Louder chords:** in poly and the unison modes each voice is turned down less by how many are sounding (one or two notes, the same; four, at 0.71; six, at 0.58). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Poly by default:** a project that never chose a voice mode plays MIDI 1 / 2 in poly. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
 
 ### Beta 3.41 / Beta 3.41S — 2026-10-28
 
@@ -1114,6 +1140,10 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4 / RC4S — 2026-10-28
+
+- **Synth 1 / 2 went silent under a poly chord of the own synth:** with 4 or more notes of the MIDI 1 / 2 own synth in poly (oscillator, VA-drum or FM), Synth 1 / 2 sometimes stopped and came back when the chord was let go. The device has its own voice limiter for Synth 1 / 2: when the DSP has little time to spare, it switches their voices off; the own synth's voices took that time. Now, while two or more own voices sound, the device does not switch Synth 1 / 2 voices off; when time really runs out, the own synth's voices go. While the DSP is short, a new Synth 1 / 2 note may reuse a voice of its synth (what the device does under load).
 
 ### RC2.11 / RC2.11S / Beta 3.40 — 2026-10-28 (with Beta 3.41)
 

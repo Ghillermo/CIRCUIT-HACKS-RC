@@ -102,6 +102,10 @@ V6 = False                            # SC47.7 (use_v6)
 V7 = False                                                                      # SC48 (use_v7)
 O_NCNT = 125                                                                    # (V7) a track block's byte: the voices counted at the last tick
 G7 = (181, 148, 128, 114, 105)                                                  # (V7) 256 / sqrt(n) for 2..6 voices
+GN0 = 1                                                                         # (V7) the voices at full level (G7 from GN0 + 1; the last for more)
+DEFMODE = 0                                                                     # (V4) the voice mode of a project that never set one (use_polydef: poly)
+V8 = False                                                                      # SC48.5 (use_v8)
+V9 = False                                                                      # SC48.5 (use_v9)
 
 
 def use_v7():
@@ -114,6 +118,40 @@ def use_v7():
     global V7
     assert V4
     V7 = True
+
+
+def use_v8():
+    """SC48.5 / Beta 3.42 (the user, 2026-10-28, S484D on the device: «the clear button only ever reaches green, so you can relax the volume
+    limiter»: the own synth's peak never past 1/2 of full scale): the poly level rule relaxed to sqrt(2 / n): two voices at full level, then
+    0.82 / 0.71 / 0.63 / 0.58 for 3..6 (was 0.71 / 0.58 / 0.5 / 0.45 / 0.41 for 2..6)."""
+    global G7, GN0, V8
+    assert V7
+    G7 = tuple(round(256 * (2 / n) ** 0.5) for n in range(3, 7))
+    GN0 = 2
+    V8 = True
+
+
+def use_v9():
+    """SC48.5 / Beta 3.42 (vguard, the voice limiter; the user: «also extend your findings and voice limiting to unison»):
+      * the unison's level by the same sqrt(2 / n) of its voices (was 2 x 3/4, 3+ x 1/2);
+      * c_pyshed: the voice to free when the DSP runs short of time, over both tracks: a released one still ringing, the quietest (FM: the least sum
+        of its four envelopes), FM before the other engines; with none, the oldest held one (FM first); freed as an FM voice whose envelopes are
+        down (sounding / held / pending off, its target 0 to write, off from now).  vguard calls it and then sets the cap (vguard.RAM + O_CAP, 0 =
+        none) to the voices left;
+      * the cap: a poly note-on with the voices sounding / starting (both tracks, c_pytot) at the cap frees one first (c_pyshed: the quietest
+        ringing, so the new note does not take a held one's voice); the unison's voices = the cap at most (the others off, as above the allowance)."""
+    global V9
+    assert V8
+    V9 = True
+
+
+def use_polydef():
+    """SC48.5 / Beta 3.42 (the user, 2026-10-28: «also polyphony shold be default mode»): a project whose byte holds no voice mode (a new one, or
+    one saved before the modes) = poly in both tracks (was retrigger); the engines without voices play it as retrigger.  A mode set and saved
+    stays, and so does a patch's (vmode)."""
+    global DEFMODE
+    assert V4
+    DEFMODE = 3
 
 
 def use_v6():
@@ -219,7 +257,7 @@ def arm_code(base, L, prev, head_on, head_off):
         E(ldrb_imm, 1, 0, 0); E(lsrs_imm, 2, 1, 6); E(cmp_imm, 2, 3); E(b_cond, "vg_o", "ne")
         E(lsls_imm, 2, 4, 1); E(adds_reg, 2, 2, 4); E(lsrs_reg, 1, 2); E(movs_imm, 0, 7); E(ands_reg, 0, 1)      # (b >> 3 t) & 7
         E(cmp_imm, 0, MODE_N - 1); E(b_cond, "vg_x", "ls")
-        a.label("vg_0"); E(movs_imm, 0, 0)
+        a.label("vg_0"); E(movs_imm, 0, DEFMODE)
         a.label("vg_x"); E(pop_list, [4], pc=True)
         a.label("vg_o"); E(lsrs_imm, 2, 1, 4); E(cmp_imm, 2, 0xA); E(b_cond, "vg_0", "ne")                       # the old form
         E(adds_imm3, 2, 4, 2); E(mov_reg, 3, 1); E(lsrs_reg, 3, 2); E(movs_imm, 0, 1); E(tst_reg, 3, 0); E(b_cond, "vg_l", "eq")
@@ -263,7 +301,12 @@ def arm_code(base, L, prev, head_on, head_off):
         a.label("c_pyun")
         E(push_list, [], lr=True); E(mov_reg, 0, 4); E(bl, L["c_msmode"]); E(cmp_imm, 0, 5); E(movs_imm, 0, 1); E(b_cond, "un_x", "eq")
         E(ldrb_w, 0, 5, O_VMAX); E(cmp_imm, 0, 0); E(b_cond, "un_x", "ne"); E(movs_imm, 0, 4)
-        a.label("un_x"); E(pop_list, [], pc=True)
+        a.label("un_x")
+        if V9:                                                                   # (V9) the limiter's cap
+            E(push_list, [0]); E(bl, "c_pycap"); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "un_c", "eq")
+            E(cmp_reg, 0, 1); E(b_cond, "un_c", "ls"); E(mov_reg, 0, 1)
+            a.label("un_c")
+        E(pop_list, [], pc=True)
 
         # ---- c_pydt(r4 = track, r5 = block, r6 = voice) -> r0 = 1 and r3 = the voice's pitch offset in the oscillator modes, else r0 = 0; clobbers r1-r3
         a.label("c_pydt")
@@ -366,6 +409,11 @@ def arm_code(base, L, prev, head_on, head_off):
     if V3:                                                                       # (V3) r12 = the voices allowed
         E(ldrb_w, 0, 5, O_VMAX); E(cmp_imm, 0, 0); E(b_cond, "al_vm", "ne"); E(movs_imm, 0, 4)
         a.label("al_vm"); E(mov_reg, 12, 0)
+    if V9:                                                                       # (V9) at the limiter's cap: the quietest voice freed first
+        E(bl, "c_pycap"); E(cmp_imm, 0, 0); E(b_cond, "al_nc", "eq"); E(push_list, [0])
+        E(bl, "c_pytot"); E(pop_list, [1]); E(cmp_reg, 0, 1); E(b_cond, "al_nc", "lo")
+        E(mov_reg, 0, 12); E(push_list, [0]); E(bl, "c_pyshed"); E(pop_list, [0]); E(mov_reg, 12, 0)
+        a.label("al_nc")
     E(raw, MRS7); E(raw, CPSID)
     E(movs_imm, 0, 0); E(movs_imm, 6, 0)                                        # r0 = the notes held
     a.label("al_h"); vptr(1, 6); E(ldrb_imm, 2, 1, VS); E(lsrs_imm, 2, 2, 2); E(b_cond, "al_h2", "lo"); E(adds_imm8, 0, 1)
@@ -462,14 +510,18 @@ def arm_code(base, L, prev, head_on, head_off):
     E(movs_imm, 3, 0); E(mov_reg, 0, 9); E(lsrs_imm, 0, 0, 1); E(b_cond, "tg_w", "lo"); E(mov_reg, 1, 10); E(ldrb_imm, 3, 1, VV); E(lsls_imm, 3, 3, 16)
     if V4:                                                                       # (V4) unison: 4 voices x 1/2, 2 x 3/4
         E(push_list, [3]); E(mov_reg, 0, 4); E(bl, "c_pyuni"); E(cmp_imm, 0, 0); E(b_cond, "tg_p", "eq")
-        E(bl, "c_pyun"); E(pop_list, [3]); E(cmp_imm, 0, 2); E(b_cond, "tg_w", "lo"); E(b_cond, "tg_h", "ne")
-        E(lsrs_imm, 0, 3, 2); E(subs_reg, 3, 3, 0); E(b, "tg_w")
-        a.label("tg_h"); E(lsrs_imm, 3, 3, 1); E(b, "tg_w")
+        if V9: E(bl, "c_pyun"); E(pop_list, [3]); E(b, "tg_g")                   # (V9) the unison: the poly's rule on its voices
+        else:
+            E(bl, "c_pyun"); E(pop_list, [3]); E(cmp_imm, 0, 2); E(b_cond, "tg_w", "lo"); E(b_cond, "tg_h", "ne")
+            E(lsrs_imm, 0, 3, 2); E(subs_reg, 3, 3, 0); E(b, "tg_w")
+            a.label("tg_h"); E(lsrs_imm, 3, 3, 1); E(b, "tg_w")
         a.label("tg_p"); E(pop_list, [3])
         if V7:                                                                   # (V7) poly: x 1 / sqrt(the voices)
-            E(push_list, [3]); E(bl, "c_pycnt"); E(pop_list, [3]); E(cmp_imm, 0, 1); E(b_cond, "tg_w", "ls")
+            E(push_list, [3]); E(bl, "c_pycnt"); E(pop_list, [3])
+            if V9: a.label("tg_g")
+            E(cmp_imm, 0, GN0); E(b_cond, "tg_w", "ls")
             E(movs_imm, 1, G7[-1])
-            for n_, g_ in zip(range(2, 6), G7):
+            for n_, g_ in zip(range(GN0 + 1, GN0 + len(G7)), G7):
                 E(cmp_imm, 0, n_); E(b_cond, f"tg_{n_}", "ne"); E(movs_imm, 1, g_); E(b, "tg_m"); a.label(f"tg_{n_}")
             a.label("tg_m"); E(lsrs_imm, 3, 3, 8); E(muls, 3, 1)
     a.label("tg_w"); wf(VD.PV_TGT); E(pop_list, [], pc=True)
@@ -478,6 +530,62 @@ def arm_code(base, L, prev, head_on, head_off):
         E(movs_imm, 0, 0); E(movs_imm, 2, 0)
         a.label("pc_l"); vptr(1, 2); E(ldrb_imm, 1, 1, VS); E(movs_imm, 3, SND | PEND); E(tst_reg, 1, 3); E(b_cond, "pc_n", "eq"); E(adds_imm8, 0, 1)
         a.label("pc_n"); E(adds_imm8, 2, 1); E(cmp_imm, 2, NV); E(b_cond, "pc_l", "lo"); E(raw, RET)
+
+    if V9:
+        import vguard as GD
+        TSH = TBS.bit_length() - 1
+        # ---- c_pycap() -> r0 = the limiter's cap (0 = none); clobbers r1, r2
+        a.label("c_pycap")
+        imm32(0, GD.RAM); E(ldr_imm, 1, 0, 0); imm32(2, GD.SIG); E(cmp_reg, 1, 2); E(b_cond, "cp_0", "ne")
+        E(ldrb_imm, 0, 0, GD.O_CAP); E(raw, RET)
+        a.label("cp_0"); E(movs_imm, 0, 0); E(raw, RET)
+
+        # ---- c_pytot() -> r0 = the voices sounding or about to start, both tracks; clobbers r1-r3
+        a.label("c_pytot")
+        E(push_list, [4, 5], lr=True); E(movs_imm, 4, 0); E(movs_imm, 5, 0)
+        a.label("pt_t"); imm32(1, PY + 4); E(lsls_imm, 0, 5, TSH); E(adds_reg, 1, 1, 0); E(ldrb_imm, 0, 1, O_ACT); E(cmp_imm, 0, 0); E(b_cond, "pt_n", "eq")
+        E(movs_imm, 2, 0)
+        a.label("pt_v"); E(movs_imm, 3, VS_); E(muls, 3, 2); E(adds_reg, 3, 3, 1); E(adds_imm8, 3, 4)
+        E(ldrb_imm, 0, 3, VS); E(movs_imm, 3, SND | PEND); E(tst_reg, 0, 3); E(b_cond, "pt_v2", "eq"); E(adds_imm8, 4, 1)
+        a.label("pt_v2"); E(adds_imm8, 2, 1); E(cmp_imm, 2, NV); E(b_cond, "pt_v", "lo")
+        a.label("pt_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 2); E(b_cond, "pt_t", "lo")
+        E(mov_reg, 0, 4); E(pop_list, [4, 5], pc=True)
+
+        # ---- c_pyshed() -> r0 = 1: a voice freed (the quietest ringing, else the oldest held; FM first); r4-r12 kept
+        #      r6 = track, r7 = its block, r8 = its first FM slot, r11 = FM, r2 = voice, r3 = its RAM, r9 = the least score, r10 = its voice's RAM
+        a.label("c_pyshed")
+        E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
+        E(movs_imm, 0, 0); E(mov_reg, 10, 0); E(subs_imm8, 0, 1); E(mov_reg, 9, 0)
+        E(movs_imm, 6, 0)
+        a.label("sh_t"); imm32(7, PY + 4); E(lsls_imm, 0, 6, TSH); E(adds_reg, 7, 7, 0)
+        E(ldrb_imm, 0, 7, O_ACT); E(cmp_imm, 0, 0); bc("sh_tn", "eq")
+        E(mov_reg, 0, 6); E(bl, L["c_fmact"]); E(mov_reg, 11, 0)
+        E(movs_imm, 0, 0); E(ldrb_w, 1, 7, O_VMAX); E(cmp_imm, 1, NV // 2); E(b_cond, "sh_s", "ne"); E(lsls_imm, 0, 6, 1); E(adds_reg, 0, 0, 6)
+        a.label("sh_s"); E(mov_reg, 8, 0)
+        E(movs_imm, 2, 0)
+        a.label("sh_v"); E(movs_imm, 3, VS_); E(muls, 3, 2); E(adds_reg, 3, 3, 7); E(adds_imm8, 3, 4)
+        E(ldrb_imm, 0, 3, VS); E(movs_imm, 1, SND); E(tst_reg, 0, 1); E(b_cond, "sh_n", "eq")                # sounding,
+        E(movs_imm, 1, PEND); E(tst_reg, 0, 1); E(b_cond, "sh_n", "ne")                                      # not about to start
+        E(movs_imm, 1, HELD); E(tst_reg, 0, 1); E(b_cond, "sh_h", "ne")
+        E(mov_reg, 1, 11); E(cmp_imm, 1, 0); E(b_cond, "sh_ro", "eq")                                        # ringing, FM: its envelopes
+        E(mov_reg, 1, 8); E(adds_reg, 1, 1, 2); E(lsls_imm, 1, 1, 6); imm32(5, FVB + GD.FE.B_ENV); E(adds_reg, 5, 5, 1)
+        E(ldrh_imm, 1, 5, 0); E(ldrh_imm, 0, 5, 2); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 4); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 6); E(adds_reg, 1, 1, 0)
+        E(b, "sh_c")
+        a.label("sh_ro"); E(movs_imm, 1, GD.S_REL_OTHER >> 16); E(lsls_imm, 1, 1, 16); E(b, "sh_c")
+        a.label("sh_h")                                                          # held: the oldest (the counter - its age), FM first
+        E(ldrb_imm, 0, 7, O_CNT); E(ldrb_imm, 1, 3, VA); E(subs_reg, 0, 0, 1); E(lsls_imm, 0, 0, 24); E(lsrs_imm, 0, 0, 24)
+        E(movs_imm, 1, 255); E(subs_reg, 1, 1, 0)
+        E(mov_reg, 0, 11); E(cmp_imm, 0, 0); E(b_cond, "sh_hf", "ne"); E(adds_imm8, 1, 255); E(adds_imm8, 1, 1)
+        a.label("sh_hf"); E(movs_imm, 0, GD.S_HELD >> 16); E(lsls_imm, 0, 0, 16); E(adds_reg, 1, 1, 0)
+        a.label("sh_c"); E(mov_reg, 0, 9); E(cmp_reg, 1, 0); E(b_cond, "sh_n", "hs"); E(mov_reg, 9, 1); E(mov_reg, 10, 3)
+        a.label("sh_n"); E(adds_imm8, 2, 1); E(cmp_imm, 2, NV); E(b_cond, "sh_v", "lo")
+        a.label("sh_tn"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 2); bc("sh_t", "lo")
+        E(mov_reg, 3, 10); E(movs_imm, 0, 0); E(cmp_imm, 3, 0); E(b_cond, "sh_x", "eq")
+        E(raw, MRS7); E(raw, CPSID)
+        E(ldrb_imm, 0, 3, VS); E(movs_imm, 1, SND | HELD | PEND | NPEND); E(bics_reg, 0, 1); E(movs_imm, 1, DIRTY); E(orrs_reg, 0, 1)
+        E(strb_imm, 0, 3, VS); E(movs_imm, 0, 0); E(strb_imm, 0, 3, VO)
+        E(raw, MSR7); E(movs_imm, 0, 1)
+        a.label("sh_x"); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, RET)
 
     # ---- c_pytick: a head of the DSP service chain (RAM and DSP writes only)
     a.label("c_pytick")

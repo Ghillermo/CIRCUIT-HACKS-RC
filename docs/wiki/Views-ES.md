@@ -13,7 +13,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **Canales compartidos (loopback interno)** — una pista MIDI toca un sinte o los drums del propio aparato.
 - **Retornos por las tiras 3 / 4** — la reverb y el delay como canales del mixer.
 - **Canales de Program Change** *(desde RC2)* — escucha y manda cambios de programa por canales propios.
-- **Grabar los ruteos internos** *(desde RC2)* — lo que la pista MIDI toca en un sinte se graba también en él; *(solo Beta 3.41)* una pista silenciada en el Mixer no se graba (banco de acordes).
+- **Grabar los ruteos internos** *(desde RC2)* — lo que la pista MIDI toca en un sinte se graba también en él; *(desde RC4)* una pista silenciada en el Mixer no se graba (banco de acordes).
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#setup)
 
@@ -22,7 +22,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 *Cómo se llega:* Ábrela como en el original. Además de sus ajustes de stock (compresor master, etc.):
 
 - **MIDI Thru, Merge y Filter** *(desde RC2)* — el jack Thru puede mezclar el MIDI de entrada con el del aparato o filtrarlo.
-- **Curva de velocity** *(solo Beta 3.41)* — K1 hace los pads más sensibles o más duros.
+- **Curva de velocity** *(desde RC4)* — K1 hace los pads más sensibles o más duros.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#advanced-setup)
 
@@ -47,7 +47,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Vista de la fuente del sinte
 
-*Cómo se llega:* Con la vista de Synth 1 / 2 en pantalla, **pulsa su botón otra vez** (*solo Beta 3.41*: o **Shift + Synth 1 / 2** desde cualquier vista). Cualquier botón la cierra.
+*Cómo se llega:* Con la vista de Synth 1 / 2 en pantalla, **pulsa su botón otra vez** (*desde RC4*: o **Shift + Synth 1 / 2** desde cualquier vista). Cualquier botón la cierra.
 
 - **Fuente del ruido** — cambia el ruido del patch por la entrada de audio 1 o 2 (normal o invertida): el filtro, las envolventes y los efectos del sinte procesan tu señal externa al ritmo de las notas.
 - **Destinos de los macros** *(desde RC2)* — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
@@ -69,9 +69,9 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Vista Preset de MIDI 1 / 2
 
-*Cómo se llega:* Pulsa **MIDI 1** o **MIDI 2** y luego **Preset** (*solo Beta 3.41*: o **MIDI 1 / MIDI 2 dos veces seguidas**, o **Shift + MIDI 1 / 2**). Además de las plantillas de stock, aquí vive el sinte propio de la pista.
+*Cómo se llega:* Pulsa **MIDI 1** o **MIDI 2** y luego **Preset** (*desde RC4*: o **MIDI 1 / MIDI 2 otra vez** con su vista Note en pantalla, o **Shift + MIDI 1 / 2**). Además de las plantillas de stock, aquí vive el sinte propio de la pista.
 
-- **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, dos osciladores, VA-drum, granular, modo muestra; *(solo Beta 3.41)* FM) y siguen mandando MIDI.
+- **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, dos osciladores, VA-drum, granular, modo muestra; *(desde RC4)* FM) y siguen mandando MIDI.
 - **Secuenciador de efectos** — un motor que no suena: dispara efectos de Master FX en los pasos que elijas.
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
@@ -80,6 +80,12 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
 
+### Voces del sinte propio: polifonía y límite de voces
+
+*Cómo se llega:* Con el sinte propio de MIDI 1 / 2 encendido, el **pad 32** de su [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) elige el modo de voz *(desde RC4)*. Aquí, cuántas voces da cada modo y cada motor, cómo suenan los acordes y qué hace el aparato cuando el DSP va justo de tiempo.
+
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-voces)
+
 ### Páginas de knobs del motor de MIDI 1 / 2
 
 *Cómo se llega:* Con el motor encendido, los pads 1-5 de la vista Preset eligen qué hacen los 8 knobs; Shift da una segunda capa.
@@ -87,8 +93,8 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **VCA-VCF** — volumen y filtro con su envolvente y su LFO; con Shift, el tipo de filtro y el tipo de efecto.
 - **Osciladores** — una forma de onda continua de seno a cuadrada y un segundo oscilador con FM, ring y sync.
 - **Granular** — convierte un sample en texturas: granos que lo leen en otra posición, velocidad o dirección para congelarlo, estirarlo o trocearlo.
-- **Página 4, knobs secuenciables** — los 8 parámetros que se graban como automatización (*(solo Beta 3.41)*: con Shift + knob, cualquiera de los 33; Record + paso = foto de los valores).
-- *(solo Beta 3.41)* **Shift + pad 4, knobs no secuenciables** — 8 knobs de destino asignable que no se graban.
+- **Página 4, knobs secuenciables** — los 8 parámetros que se graban como automatización (*(desde RC4)*: con Shift + knob, cualquiera de los 33; Record + paso = foto de los valores).
+- *(desde RC4)* **Shift + pad 4, knobs no secuenciables** — 8 knobs de destino asignable que no se graban.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs)
 
@@ -100,7 +106,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### FM de 4 operadores
 
-*Cómo se llega:* *(solo Beta 3.41)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta). El **pad 7** abre su página de knobs (violeta brillante en ella).
+*Cómo se llega:* *(desde RC4)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta). El **pad 7** abre su página de knobs (violeta brillante en ella).
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-fm)
 
@@ -114,7 +120,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Vista del step-drummer
 
-*Cómo se llega:* MIDI 1 / 2: vista Preset con el motor encendido, **pad 30** (*solo Beta 3.41*: con el step-drummer encendido, **Note** pasa por Note → Note ampliada → step-drummer). Synth 1 / 2: vista de la fuente, **pad 30**. Secuencia por pares de pasos sobre el patrón.
+*Cómo se llega:* MIDI 1 / 2: vista Preset con el motor encendido, **pad 30** (*desde RC4*: con el step-drummer encendido, **Note** pasa por Note → Note ampliada → step-drummer). Synth 1 / 2: vista de la fuente, **pad 30**. Secuencia por pares de pasos sobre el patrón.
 
 - **Parámetros por pares de pasos** — los 8 knobs son 8 pares de pasos del patrón: cada uno mueve un destino (tono, forma, FM, filtro…) solo en esos pasos, para melodías, acentos o cambios de timbre sin automatizar a mano.
 - **El LED dice cuánto** *(desde RC2)* — tenue sin modulación, más brillante cuanto más se aleja.
@@ -177,7 +183,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **Moldear cada drum** — tono exacto, ring mod, ataque y decay, inicio y corte del sample, filtro con varios modos, LFO y distorsión de varios tipos: de un sample salen muchos sonidos.
 - **Todo neutro = el original** — con los knobs nuevos en su punto neutro, el sample suena como en el Circuit original.
 - **Volver a empezar** *(desde RC2)* — Clear + el botón del drum deja todos sus knobs por defecto.
-- **Pareja estéreo** *(solo Beta 3.41)* — Drum 1 + Drum 2 (o 3 + 4) tocan un sample estéreo: el de la izquierda manda en los dos y el de la derecha solo matiza.
+- **Pareja estéreo** *(desde RC4)* — Drum 1 + Drum 2 (o 3 + 4) tocan un sample estéreo: el de la izquierda manda en los dos y el de la derecha solo matiza.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista)
 
@@ -222,8 +228,8 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 - **La reverb y el delay desde el aparato** — tipo, decay, tiempo, feedback…, guardados con el proyecto.
 - **Reset rápido** — Duplicate deja los envíos y los efectos a cero.
-- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(solo Beta 3.41; en RC2.11, 1-16 / 17-32)*.
-- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(solo Beta 3.41)*.
+- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(desde RC4; antes, 1-16 / 17-32)*.
+- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(desde RC4)*.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#vista-fx)
 

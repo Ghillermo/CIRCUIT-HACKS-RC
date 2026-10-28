@@ -15,9 +15,9 @@ master compressor settings.
 
 ## MIDI 1 / 2 Preset view
 
-*How to get there:* Press **MIDI 1** or **MIDI 2**, then **Preset** (*Beta 3.41 only*: or **MIDI 1 / MIDI 2 twice in a row**, or **Shift + MIDI 1 / 2**). Besides the stock templates, the track's own synth lives here.
+*How to get there:* Press **MIDI 1** or **MIDI 2**, then **Preset** (*since RC4*: or **MIDI 1 / MIDI 2 again** with its Note view on the screen, or **Shift + MIDI 1 / 2**). Besides the stock templates, the track's own synth lives here.
 
-- **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, two oscillators, VA-drum, granular, sample mode; *(Beta 3.41 only)* FM) and still send MIDI.
+- **A synth on each MIDI track** — MIDI 1 and 2 sound on the unit itself with their engine (processed line input, oscillator, two oscillators, VA-drum, granular, sample mode; *(since RC4)* FM) and still send MIDI.
 - **FX sequencer** — an engine with no sound: it triggers Master FX effects on the steps you choose.
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
@@ -33,14 +33,14 @@ master compressor settings.
 - **VCA-VCF** — level and filter with their envelope and LFO; with Shift, the filter type and the effect type.
 - **Oscillators** — a waveform that morphs from sine to square, and a second oscillator with FM, ring and sync.
 - **Granular** — turns a sample into textures: grains that read it at another place, speed or direction, to freeze, stretch or slice it.
-- **Page 4, sequenceable knobs** — the 8 parameters that can be recorded as automation (*(Beta 3.41 only)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
-- *(Beta 3.41 only)* **Shift + pad 4, non-sequenceable knobs** — 8 knobs with an assignable destination that are not recorded.
+- **Page 4, sequenceable knobs** — the 8 parameters that can be recorded as automation (*(since RC4)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
+- *(since RC4)* **Shift + pad 4, non-sequenceable knobs** — 8 knobs with an assignable destination that are not recorded.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
 
 ## 4-operator FM
 
-*How to get there:* *(Beta 3.41 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet). **Pad 7** opens its knob page (bright violet on it).
+*How to get there:* *(since RC4)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet). **Pad 7** opens its knob page (bright violet on it).
 
 | Knob | Alone | With Shift |
 |---|---|---|
@@ -51,7 +51,7 @@ master compressor settings.
 | K8 | Level of operator 4 | Release (blue) |
 
 - **Choosing the algorithm with the pads:** on the FM page, **hold pad 7**: pads 9-24 show the 16 algorithms (their family's colour; the current one bright). **Press one**: it is chosen and the tonic sounds while you hold it (**Shift + pad**: no sound). Letting go of pad 7 brings the patches back.
-- **Starter sounds** *(Beta 3.41 only)*: with FM on, **a tap on pad 8** opens the FM page (like pad 7) and **holding pad 8** shows **16 ready-to-play instruments** on pads 9-24, in their family's colour: **row 2** piano, electric piano, organ (keys, white), pluck, harp, marimba (plucked, violet), bass (blue), bell (teal); **row 3** strings, pad (green), flute, clarinet, brass (winds, light blue), kick, snare, hi-hat (drums, red). **Press one**: it loads whole (algorithm, ratios, levels, envelopes, feedback, noise and release) and the tonic sounds while you hold it (**Shift + pad**: no sound); the one matching what plays shows bright. They are starting points: tweak them with the knobs and save them like any patch. Pad 8 shows dim white with FM on and bright while held.
+- **Starter sounds** *(since RC4)*: with FM on, **a tap on pad 8** opens the FM page (like pad 7) and **holding pad 8** shows **16 ready-to-play instruments** on pads 9-24, in their family's colour: **row 2** piano, electric piano, organ (keys, white), pluck, harp, marimba (plucked, violet), bass (blue), bell (teal); **row 3** strings, pad (green), flute, clarinet, brass (winds, light blue), kick, snare, hi-hat (drums, red). **Press one**: it loads whole (algorithm, ratios, levels, envelopes, feedback, noise and release) and the tonic sounds while you hold it (**Shift + pad**: no sound); the one matching what plays shows bright. They are starting points: tweak them with the knobs and save them like any patch. Pad 8 shows dim white with FM on and bright while held.
 - **While a ratio turns** (K1-K4) pads 9-32 show the 24 ratios for 1.5 s (the current one bright, white when detuned); while the algorithm turns (Shift + K5), pads 9-24 show the algorithms. Meanwhile those pads load no patch.
 - **It is a variant of the oscillator:** the note, TUNE / FINE, the pitch envelope and the vibrato of page 2 still apply; after it, the filter, the effect and the matrix as with the oscillator. One note at a time (the last one wins); with the retrigger off (Shift + pad 29) a legato note does not restart the attacks.
 - **The loudness comes from the operators' envelopes**: the engine's VCA stays open (velocity still sets the level) and page 1's ADSR moves the filter, the pitch and the brightness.
@@ -102,25 +102,25 @@ master compressor settings.
 | K1 | The note's velocity | — |
 | K2 | The note (C3 = 0; one octave = a quarter of the travel) | — |
 | K3 | Random: a new value at each note | — |
-| K4 | LFO 2 | Shape × rate: triangle (green, the initial one), saw (magenta), square (red), sample & hold (white: steps), slewed sample & hold (violet: gliding); the engine LFO's colours; in each shape, 0.05 to 20 Hz ; *(Beta 3.41 only)*: in each shape, the left half of its stretch synced and the right half free (0.2) |
+| K4 | LFO 2 | Shape × rate: triangle (green, the initial one), saw (magenta), square (red), sample & hold (white: steps), slewed sample & hold (violet: gliding); the engine LFO's colours; in each shape, 0.05 to 20 Hz ; *(since RC4)*: in each shape, the left half of its stretch synced and the right half free (0.2) |
 | K5 | Envelope 2: attack and decay from each note | Attack × decay: attack 0 (white), short (light blue), medium (teal), long (blue); in each, the decay from 20 ms to 4 s |
 | K6 | A drum hit: a decay from each hit | Drum 1-4 (orange, yellow, violet, teal) × its decay |
 | K7 | The pattern position: from 0 on the first step to full on the last | — |
 | K8 | Stepped random: a new value every N sequencer steps | N = 1, 2, 4, 8 or 16 steps |
 
-- **The knob's position is the destination and the amount.** Fully left = off. Turning right goes through **every parameter of the knob pages** (33: page 1's, then page 2's, page 3's and the page 5 ones not seen before), one stretch each: inside a stretch the amount grows from 1/16 to full (*(Beta 3.41 only)*: from 0 to full: the stretch's first step is the destination with no amount, its LED dim); into the next stretch the destination changes and the amount starts again.
+- **The knob's position is the destination and the amount.** Fully left = off. Turning right goes through **every parameter of the knob pages** (33: page 1's, then page 2's, page 3's and the page 5 ones not seen before), one stretch each: inside a stretch the amount grows from 1/16 to full (*(since RC4)*: from 0 to full: the stretch's first step is the destination with no amount, its LED dim); into the next stretch the destination changes and the amount starts again.
 - **Slow knobs:** two clicks a step, 16 steps a destination.
 - **The LED's colour is the destination page's** (the colours of pads 1-5: orange VCA-VCF, green OSC 1, teal OSC 2), its **brightness** the amount; dark = no destination.
 - **While you turn a source** (and 1.5 s after), the pads show where its destination lives: its page pad lights up and pads 9-16 / 17-24 are that page's K1-K8 / Shift + K1-K8 (dim the ones with a parameter, bright the destination). While they show, pads 9-24 do not load patches.
 - **Full amount** = the whole source sweeps the parameter's whole range. The bipolar sources (note, random, LFO 2, stepped random) go up and down; the others only up. The parameter's stored value does not change: the matrix is added when it is sent.
 - Several sources can share a destination (they add up). TUNE moves in semitones and FINE in fractions; with the granular engine, its ranges; in sample mode the sample parameter picks the sample (from the capture to 64) and only TUNE changes the pitch.
 - **Clear + knob** = that source off; **Clear + Shift + knob** = its parameter back to the default; **Clear + pad 6** = all off.
-- **Saved with the own-synth patches** (pads 9-24: Clear + pad twice, also when swapping them or copying them between packs); a patch saved before loads it off. *(Beta 3.41 only)* also **saved with the project** (with the rest of the own synth); before, it was not saved with the project nor across a power-down. No CC / NRPN.
+- **Saved with the own-synth patches** (pads 9-24: Clear + pad twice, also when swapping them or copying them between packs); a patch saved before loads it off. *(since RC4)* also **saved with the project** (with the rest of the own synth); before, it was not saved with the project nor across a power-down. No CC / NRPN.
 - The modulations reach the engine some 100-250 times a second, shared by everything that moves on the track: several fast sources at once update more slowly.
 
 ## Synth source view
 
-*How to get there:* With the Synth 1 / 2 view on screen, **press its button again** (*Beta 3.41 only*: or **Shift + Synth 1 / 2** from any view). Any button closes it.
+*How to get there:* With the Synth 1 / 2 view on screen, **press its button again** (*since RC4*: or **Shift + Synth 1 / 2** from any view). Any button closes it.
 
 - **Noise source** — replaces the patch's noise with audio input 1 or 2 (normal or inverted): the synth's filter, envelopes and effects process your outside signal in time with the notes.
 - **Macro destinations** *(since RC2)* — decide what each macro knob moves (up to 4 destinations a macro, with their range and depth) without Components.
@@ -135,7 +135,7 @@ master compressor settings.
 - **Shape each drum** — exact pitch, ring mod, attack and decay, sample start and cut, a filter with several modes, LFO and several kinds of distortion: many sounds from one sample.
 - **All neutral = the original** — with the new knobs at their neutral point, the sample sounds as on the original Circuit.
 - **Start over** *(since RC2)* — Clear + the drum's button puts all its knobs back to their defaults.
-- **Stereo pair** *(Beta 3.41 only)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
+- **Stereo pair** *(since RC4)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista)
 
@@ -166,8 +166,8 @@ master compressor settings.
 
 - **The reverb and delay from the unit** — type, decay, time, feedback…, saved with the project.
 - **Quick reset** — Duplicate puts the sends and the effects back to zero.
-- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(Beta 3.41 only; in RC2.11, 1-16 / 17-32)*.
-- **Master filter off / on** — Shift + pad 25, keeping its position *(Beta 3.41 only)*.
+- **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(since RC4; before, 1-16 / 17-32)*.
+- **Master filter off / on** — Shift + pad 25, keeping its position *(since RC4)*.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#vista-fx)
 

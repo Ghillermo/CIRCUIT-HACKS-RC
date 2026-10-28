@@ -15,9 +15,9 @@ sidechain y el compresor master.
 
 ## Vista Preset de MIDI 1 / 2
 
-*Cómo se llega:* Pulsa **MIDI 1** o **MIDI 2** y luego **Preset** (*solo Beta 3.41*: o **MIDI 1 / MIDI 2 dos veces seguidas**, o **Shift + MIDI 1 / 2**). Además de las plantillas de stock, aquí vive el sinte propio de la pista.
+*Cómo se llega:* Pulsa **MIDI 1** o **MIDI 2** y luego **Preset** (*desde RC4*: o **MIDI 1 / MIDI 2 otra vez** con su vista Note en pantalla, o **Shift + MIDI 1 / 2**). Además de las plantillas de stock, aquí vive el sinte propio de la pista.
 
-- **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, dos osciladores, VA-drum, granular, modo muestra; *(solo Beta 3.41)* FM) y siguen mandando MIDI.
+- **Un sinte en cada pista MIDI** — MIDI 1 y 2 suenan en el propio aparato con su motor (entrada de línea procesada, oscilador, dos osciladores, VA-drum, granular, modo muestra; *(desde RC4)* FM) y siguen mandando MIDI.
 - **Secuenciador de efectos** — un motor que no suena: dispara efectos de Master FX en los pasos que elijas.
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
@@ -33,14 +33,14 @@ sidechain y el compresor master.
 - **VCA-VCF** — volumen y filtro con su envolvente y su LFO; con Shift, el tipo de filtro y el tipo de efecto.
 - **Osciladores** — una forma de onda continua de seno a cuadrada y un segundo oscilador con FM, ring y sync.
 - **Granular** — convierte un sample en texturas: granos que lo leen en otra posición, velocidad o dirección para congelarlo, estirarlo o trocearlo.
-- **Página 4, knobs secuenciables** — los 8 parámetros que se graban como automatización (*(solo Beta 3.41)*: con Shift + knob, cualquiera de los 33; Record + paso = foto de los valores).
-- *(solo Beta 3.41)* **Shift + pad 4, knobs no secuenciables** — 8 knobs de destino asignable que no se graban.
+- **Página 4, knobs secuenciables** — los 8 parámetros que se graban como automatización (*(desde RC4)*: con Shift + knob, cualquiera de los 33; Record + paso = foto de los valores).
+- *(desde RC4)* **Shift + pad 4, knobs no secuenciables** — 8 knobs de destino asignable que no se graban.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs)
 
 ## FM de 4 operadores
 
-*Cómo se llega:* *(solo Beta 3.41)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta). El **pad 7** abre su página de knobs (violeta brillante en ella).
+*Cómo se llega:* *(desde RC4)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta). El **pad 7** abre su página de knobs (violeta brillante en ella).
 
 | Knob | Solo | Con Shift |
 |---|---|---|
@@ -51,7 +51,7 @@ sidechain y el compresor master.
 | K8 | Nivel del operador 4 | Release (azul) |
 
 - **Elegir el algoritmo con los pads:** en la página FM, **mantén el pad 7**: los pads 9-24 enseñan los 16 algoritmos (el color de su familia; el actual brillante). **Pulsa uno**: queda elegido y suena la tónica mientras lo mantienes (**Shift + pad**: sin sonar). Al soltar el pad 7 vuelven los patches.
-- **Sonidos de partida** *(solo Beta 3.41)*: con el FM encendido, **un toque al pad 8** abre la página FM (como el pad 7) y **mantener el pad 8** enseña en los pads 9-24 **16 instrumentos** listos para tocar, en el color de su familia: **fila 2** piano, piano eléctrico, órgano (teclados, blanco), pluck, arpa, marimba (pulsados, violeta), bajo (azul), campana (verde azulado); **fila 3** cuerdas, pad (verde), flauta, clarinete, metales (vientos, azul claro), bombo, caja, hi-hat (percusión, rojo). **Pulsa uno**: se carga entero (algoritmo, ratios, niveles, envolventes, feedback, ruido y release) y suena la tónica mientras lo mantienes (**Shift + pad**: sin sonar); el que coincide con lo que suena se ve brillante. Son puntos de partida: luego se retocan con los knobs y se guardan como cualquier patch. El pad 8 se ve blanco tenue con el FM encendido y brillante mientras lo mantienes.
+- **Sonidos de partida** *(desde RC4)*: con el FM encendido, **un toque al pad 8** abre la página FM (como el pad 7) y **mantener el pad 8** enseña en los pads 9-24 **16 instrumentos** listos para tocar, en el color de su familia: **fila 2** piano, piano eléctrico, órgano (teclados, blanco), pluck, arpa, marimba (pulsados, violeta), bajo (azul), campana (verde azulado); **fila 3** cuerdas, pad (verde), flauta, clarinete, metales (vientos, azul claro), bombo, caja, hi-hat (percusión, rojo). **Pulsa uno**: se carga entero (algoritmo, ratios, niveles, envolventes, feedback, ruido y release) y suena la tónica mientras lo mantienes (**Shift + pad**: sin sonar); el que coincide con lo que suena se ve brillante. Son puntos de partida: luego se retocan con los knobs y se guardan como cualquier patch. El pad 8 se ve blanco tenue con el FM encendido y brillante mientras lo mantienes.
 - **Al girar un ratio** (K1-K4) los pads 9-32 enseñan los 24 ratios durante 1,5 s (el actual brillante, en blanco si está desafinado); al girar el algoritmo (Shift + K5), los pads 9-24 enseñan los algoritmos. Mientras se ven, esos pads no cargan patches.
 - **Es una variante del oscilador:** la nota, TUNE / FINE, la envolvente de pitch y el vibrato de la página 2 siguen valiendo; detrás, el filtro, el efecto y la matriz como con el oscilador. Una nota a la vez (la última manda); con el retrigger apagado (Shift + pad 29) una nota ligada no vuelve a disparar los ataques.
 - **El volumen lo dan las envolventes de los operadores**: el VCA del motor se queda abierto (la velocity sigue dando el volumen) y la ADSR de la página 1 mueve el filtro, el tono y el brillo.
@@ -102,25 +102,25 @@ sidechain y el compresor master.
 | K1 | Velocity de la nota | — |
 | K2 | Nota (C3 = 0; una octava = un cuarto del recorrido) | — |
 | K3 | Azar: un valor nuevo en cada nota | — |
-| K4 | LFO 2 | Forma × velocidad: triángulo (verde, la inicial), diente de sierra (magenta), cuadrada (rojo), sample & hold (blanco: escalones), sample & hold suavizado (violeta: deslizándose); los colores del LFO del motor; en cada forma, de 0,05 a 20 Hz ; *(solo Beta 3.41)*: en cada forma, la mitad izquierda de su tramo a tempo y la derecha libre (0.2) |
+| K4 | LFO 2 | Forma × velocidad: triángulo (verde, la inicial), diente de sierra (magenta), cuadrada (rojo), sample & hold (blanco: escalones), sample & hold suavizado (violeta: deslizándose); los colores del LFO del motor; en cada forma, de 0,05 a 20 Hz ; *(desde RC4)*: en cada forma, la mitad izquierda de su tramo a tempo y la derecha libre (0.2) |
 | K5 | Envolvente 2: ataque y caída desde cada nota | Ataque × caída: ataque 0 (blanco), corto (azul claro), medio (verde azulado), largo (azul); en cada uno, la caída de 20 ms a 4 s |
 | K6 | Golpe de un drum: una caída desde cada golpe | Drum 1-4 (naranja, amarillo, violeta, verde azulado) × su caída |
 | K7 | Posición en el patrón: de 0 en el primer paso al máximo en el último | — |
 | K8 | Azar por pasos: un valor nuevo cada N pasos del secuenciador | N = 1, 2, 4, 8 o 16 pasos |
 
-- **La posición del knob es el destino y la cantidad.** Del todo a la izquierda = apagado. Al girar a la derecha se pasa por **todos los parámetros de las páginas de knobs** (33: los de la página 1, luego los de la 2, la 3 y los de la 5 que no salen antes), cada uno con un tramo: dentro del tramo la cantidad crece de 1/16 a entera (*(solo Beta 3.41)*: de 0 a entera: el primer paso del tramo es el destino sin cantidad, con el LED tenue); al pasar al tramo siguiente cambia el destino y la cantidad vuelve a empezar.
+- **La posición del knob es el destino y la cantidad.** Del todo a la izquierda = apagado. Al girar a la derecha se pasa por **todos los parámetros de las páginas de knobs** (33: los de la página 1, luego los de la 2, la 3 y los de la 5 que no salen antes), cada uno con un tramo: dentro del tramo la cantidad crece de 1/16 a entera (*(desde RC4)*: de 0 a entera: el primer paso del tramo es el destino sin cantidad, con el LED tenue); al pasar al tramo siguiente cambia el destino y la cantidad vuelve a empezar.
 - **Knobs lentos:** dos clics por paso, 16 pasos por destino.
 - **El color del LED es el de la página del destino** (los colores de los pads 1-5: naranja VCA-VCF, verde OSC 1, verde azulado OSC 2), el **brillo** la cantidad; apagado = sin destino.
 - **Mientras giras una fuente** (y 1,5 s después), los pads enseñan dónde vive su destino: el pad de su página brilla y los pads 9-16 / 17-24 son los K1-K8 / Shift + K1-K8 de esa página (tenues los que tienen un parámetro, brillante el destino). Mientras se ven, los pads 9-24 no cargan patches.
 - **Cantidad entera** = la fuente entera recorre todo el rango del parámetro. Las fuentes bipolares (nota, azar, LFO 2, azar por pasos) suben y bajan; las demás solo suben. El valor guardado del parámetro no cambia: la matriz se suma al enviarlo.
 - Varias fuentes pueden ir al mismo destino (se suman). TUNE se mueve en semitonos y FINE en fracciones; con el motor granular, sus rangos; en el modo muestra el parámetro del sample elige sample (de la captura al 64) y solo TUNE cambia la altura.
 - **Clear + knob** = esa fuente apagada; **Clear + Shift + knob** = su parámetro al valor inicial; **Clear + pad 6** = todas apagadas.
-- **Se guarda con los patches del sinte propio** (pads 9-24: Clear + pad dos veces, también al intercambiarlos o copiarlos entre packs); un patch guardado antes la carga apagada. *(solo Beta 3.41)* también **se guarda con el proyecto** (con el resto del sinte propio); antes no se guardaba con el proyecto ni al apagar el aparato. No tiene CC / NRPN.
+- **Se guarda con los patches del sinte propio** (pads 9-24: Clear + pad dos veces, también al intercambiarlos o copiarlos entre packs); un patch guardado antes la carga apagada. *(desde RC4)* también **se guarda con el proyecto** (con el resto del sinte propio); antes no se guardaba con el proyecto ni al apagar el aparato. No tiene CC / NRPN.
 - Las modulaciones llegan al motor unas 100-250 veces por segundo, repartidas entre todo lo que se mueve en la pista: varias fuentes rápidas a la vez se actualizan más despacio.
 
 ## Vista de la fuente del sinte
 
-*Cómo se llega:* Con la vista de Synth 1 / 2 en pantalla, **pulsa su botón otra vez** (*solo Beta 3.41*: o **Shift + Synth 1 / 2** desde cualquier vista). Cualquier botón la cierra.
+*Cómo se llega:* Con la vista de Synth 1 / 2 en pantalla, **pulsa su botón otra vez** (*desde RC4*: o **Shift + Synth 1 / 2** desde cualquier vista). Cualquier botón la cierra.
 
 - **Fuente del ruido** — cambia el ruido del patch por la entrada de audio 1 o 2 (normal o invertida): el filtro, las envolventes y los efectos del sinte procesan tu señal externa al ritmo de las notas.
 - **Destinos de los macros** *(desde RC2)* — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
@@ -135,7 +135,7 @@ sidechain y el compresor master.
 - **Moldear cada drum** — tono exacto, ring mod, ataque y decay, inicio y corte del sample, filtro con varios modos, LFO y distorsión de varios tipos: de un sample salen muchos sonidos.
 - **Todo neutro = el original** — con los knobs nuevos en su punto neutro, el sample suena como en el Circuit original.
 - **Volver a empezar** *(desde RC2)* — Clear + el botón del drum deja todos sus knobs por defecto.
-- **Pareja estéreo** *(solo Beta 3.41)* — Drum 1 + Drum 2 (o 3 + 4) tocan un sample estéreo: el de la izquierda manda en los dos y el de la derecha solo matiza.
+- **Pareja estéreo** *(desde RC4)* — Drum 1 + Drum 2 (o 3 + 4) tocan un sample estéreo: el de la izquierda manda en los dos y el de la derecha solo matiza.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista)
 
@@ -166,8 +166,8 @@ sidechain y el compresor master.
 
 - **La reverb y el delay desde el aparato** — tipo, decay, tiempo, feedback…, guardados con el proyecto.
 - **Reset rápido** — Duplicate deja los envíos y los efectos a cero.
-- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(solo Beta 3.41; en RC2.11, 1-16 / 17-32)*.
-- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(solo Beta 3.41)*.
+- **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(desde RC4; antes, 1-16 / 17-32)*.
+- **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(desde RC4)*.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#vista-fx)
 

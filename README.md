@@ -11,7 +11,7 @@ No_Grand_9136: https://Reddit.com/user/No_Grand_9136
 If you want your name or website in this list, add it on your message when you send your contribution or send me a DM.
 
 
-> 📢 **Ya están aquí RC2.11 y la Beta 3.41.** RC2.11 = RC2.10 + un arreglo (el editor de CC de las pistas MIDI ya no deja knobs muertos al descartar un cambio, y al guardar sale a la vista Preset; issue #15). La Beta 3.41 (sin probar en el aparato) reúne las 3.38-3.41: el metrónomo solo en el cue, Jankó como el teclado cromático, 128 patches del sinte propio, knobs no secuenciables (Shift + pad 4), modificadores del arpegio, el Nudge nuevo, dobles pulsaciones = atajos con Shift, páginas de knobs mantenidas, el latch con las notas en cian y Shift + paso, y la pantalla de acordes que cambia al momento con su latch; la Beta 3.41S es la misma sin escrituras propias en la SD. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md).
+> 📢 **Ya está aquí RC4.** RC4 reúne en una versión candidata todo lo de las betas hasta la 3.43: polifonía y modos de voz del sinte propio de MIDI 1 / 2 con un limitador de voces (sin traqueteo, y Synth 1 / 2 ya no callan con un acorde poly), FM de 4 operadores, Jankó, pantalla de acordes, granular en estéreo, LFO a tempo, 128 patches propios y mucho más; la guía explica ahora cómo se comportan las voces del sinte propio. RC4S es la misma sin escrituras propias en la SD. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md).
 
 Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo.
 
@@ -30,8 +30,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - Haz una copia completa de la SD (proyectos, packs y samples) antes de enviar cualquier versión del mod.
 > - No trabajes con proyectos importantes guardados en el aparato mientras lo pruebas.
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
-> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC2.11S](firmware/r211s/PRUEBA.md)**: es RC2.11 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
-> - **[B3.41](firmware/b3.41/PRUEBA.md)** es una versión beta: RC2.11 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD. Su versión más segura, **[B3.41S](firmware/b3.41s/PRUEBA.md)**, no escribe nada propio en la SD.
+> - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC4S](firmware/rc4s/PRUEBA.md)**: es RC4 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -54,7 +53,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC2.11, la versión más segura RC2.11S (o las anteriores), la beta B3.41 (o las anteriores), u «Oficial» para volver atrás.
+3. **Elige el `.syx` oficial y la versión**: RC4, la versión más segura RC4S (o las anteriores), u «Oficial» para volver atrás.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -67,15 +66,15 @@ La página no contiene código de Novation: solo los bytes del mod y las instruc
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R211`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R211S`. La beta: `--version B3.41`.
-4. Envía `firmware/r211/circuittracks-4486-R211.syx` con `tools/ct_uploader.html` (Chrome / Edge).
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version RC4`. Para la versión más segura, sin escrituras propias en la SD, usa `--version RC4S`.
+4. Envía `firmware/rc4/circuittracks-4486-RC4.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
 
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC2.11**; **más segura: RC2.11S** (sin escrituras propias en la SD); **beta: B3.41** (funciones nuevas sin probar). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC4**; **más segura: RC4S** (sin escrituras propias en la SD). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -88,11 +87,11 @@ Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering 
 **Solo el firmware** (Python 3.10+; no hace falta compilar nada):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R211
+python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version RC4
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R211S` = la versión más segura; `--version B3.41` = la beta; `--list` enseña todas; `--all` las construye todas.
+- `--version RC4S` = la versión más segura; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -104,7 +103,7 @@ bash tools/run_tests.sh            # pruebas en emulación
 Windows sin WSL, flujo de un parche nuevo y detalles: [`docs/LOCAL.md`](docs/LOCAL.md). Dependencias, fuentes y licencias: [`docs/DEPENDENCIAS.md`](docs/DEPENDENCIAS.md). Manuales: [`docs/MANUAL.md`](docs/MANUAL.md) y [manual ilustrado en color](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html).
 
 <!-- FEATURES:BEGIN -->
-## Características (RC2.11)
+## Características (RC4)
 
 La **lista de características** está en [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md) (ilustrada en color: [index.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html)). Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · [guía en palabras sencillas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sencilla.html). Novedades y arreglos de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 <!-- FEATURES:END -->
@@ -118,7 +117,7 @@ La **lista de características** está en [`docs/CARACTERISTICAS.md`](docs/CARAC
 <a id="english"></a>
 # CIRCUIT-HACKS (English)
 
-> 📢 **RC2.11 and Beta 3.41 are out.** RC2.11 = RC2.10 + a fix (the CC editor of the MIDI tracks no longer leaves dead knobs when a change is discarded, and saving goes back to the Preset view; issue #15). Beta 3.41 (not tested on the device) gathers 3.38-3.41: the metronome on the cue only, Jankó as the chromatic keyboard, 128 own-synth patches, non-sequenceable knobs (Shift + pad 4), arpeggio modifiers, the new Nudge, double presses = Shift shortcuts, held knob pages, the latch with cyan notes and Shift + step, and the chord screen that changes at once with its latch; Beta 3.41S is the same without the mod's own writes to the SD card. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new in every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog) · feature list: [`docs/FEATURES.md`](docs/FEATURES.md).
+> 📢 **RC4 is out.** RC4 gathers in one release candidate everything from the betas up to 3.43: polyphony and voice modes for the MIDI 1 / 2 own synth with a voice limiter (no rattle, and Synth 1 / 2 no longer go silent under a poly chord), 4-operator FM, Jankó, the chord screen, stereo granular, tempo-synced LFOs, 128 own patches and much more; the guide now explains how the own synth's voices behave. RC4S is the same without the mod's own writes to the SD card. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new in every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog) · feature list: [`docs/FEATURES.md`](docs/FEATURES.md).
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
@@ -134,8 +133,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - Make a full copy of the SD card (projects, packs and samples) before sending any version of the mod.
 > - Do not work on important projects stored on the device while you test it.
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
-> - If you would rather not risk the card, use the **safer build, [RC2.11S](firmware/r211s/PRUEBA.md)**: RC2.11 without any feature that creates, changes or deletes files on the SD card on its own.
-> - **[B3.41](firmware/b3.41/PRUEBA.md)** is a beta: RC2.11 + new features not yet tested on the device. Use it only with a backup of the SD card. Its safer build, **[B3.41S](firmware/b3.41s/PRUEBA.md)**, writes nothing of its own to the SD card.
+> - If you would rather not risk the card, use the **safer build, [RC4S](firmware/rc4s/PRUEBA.md)**: RC4 without any feature that creates, changes or deletes files on the SD card on its own.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUIT-HACKS-RC>.
@@ -156,7 +154,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC2.11, the safer RC2.11S (or the earlier ones), the beta B3.41 (or the earlier ones), or “Official” to go back.
+3. **Pick the official `.syx` and the version**: RC4, the safer RC4S (or the earlier ones), or “Official” to go back.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -170,11 +168,11 @@ The page contains no Novation code: only the bytes of the mod and the instructio
 **Firmware only** (Python 3.10+; nothing to compile):
 ```bash
 python -m pip install -r tools/requirements.txt
-python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R211
+python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version RC4
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R211S` = the safer build; `--version B3.41` = the beta; `--list` shows them all; `--all` builds them all.
+- `--version RC4S` = the safer build; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -190,14 +188,14 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC2.11**; **safer: RC2.11S**; **beta: B3.41** (new features not yet tested).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC4**; **safer: RC4S**.
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).
 - [`CLAUDE.md`](CLAUDE.md) — context for Claude Code (Spanish).
 
 <!-- FEATURES-EN:BEGIN -->
-## Features (RC2.11)
+## Features (RC4)
 
 The **feature list** is in [`docs/FEATURES.md`](docs/FEATURES.md) (illustrated in colour: [en.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)). User manual: [guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)) · [MIDI reference](docs/MIDI.en.md) · [guide in plain words](https://ghillermo.github.io/CIRCUIT-HACKS-RC/plain.html). New features and fixes of every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog).
 <!-- FEATURES-EN:END -->

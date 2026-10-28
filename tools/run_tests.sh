@@ -903,6 +903,16 @@ run python3 tools/emu_arpmods.py firmware/sc48.4/circuittracks-4486-SC48.4.bin f
 run python3 tools/emu_latchclr.py firmware/sc48.4/circuittracks-4486-SC48.4.bin firmware/sc48.4/manifest.json
 run python3 tools/emu_dspload.py firmware/s484d/circuittracks-4486-S484D.bin firmware/s484d/manifest.json
 run python3 tools/emu_rodisk.py firmware/b3.41s/circuittracks-4486-B3.41S.bin firmware/b3.41s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_vguard.py firmware/sc48.5/circuittracks-4486-SC48.5.bin firmware/sc48.5/manifest.json
+run python3 tools/emu_vguard.py firmware/b3.42/circuittracks-4486-B3.42.bin firmware/b3.42/manifest.json
+run python3 tools/emu_midipre.py firmware/sc48.5/circuittracks-4486-SC48.5.bin firmware/sc48.5/manifest.json
+run python3 tools/emu_dspload.py firmware/s485d/circuittracks-4486-S485D.bin firmware/s485d/manifest.json
+run python3 tools/emu_vguard.py firmware/sc48.6/circuittracks-4486-SC48.6.bin firmware/sc48.6/manifest.json
+run python3 tools/emu_vguard.py firmware/b3.43/circuittracks-4486-B3.43.bin firmware/b3.43/manifest.json
+run python3 tools/emu_rodisk.py firmware/b3.43s/circuittracks-4486-B3.43S.bin firmware/b3.43s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_vguard.py firmware/rc4/circuittracks-4486-RC4.bin firmware/rc4/manifest.json
+run python3 tools/emu_rodisk.py firmware/rc4s/circuittracks-4486-RC4S.bin firmware/rc4s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+run python3 tools/emu_dspload.py firmware/s486d/circuittracks-4486-S486D.bin firmware/s486d/manifest.json
 run python3 tools/emu_edscratch.py firmware/r211/circuittracks-4486-R211.bin firmware/r211/manifest.json firmware/r210/circuittracks-4486-R210.bin firmware/r210/manifest.json
 run python3 tools/emu_edscratch.py firmware/r211s/circuittracks-4486-R211S.bin firmware/r211s/manifest.json firmware/r210s/circuittracks-4486-R210S.bin firmware/r210s/manifest.json
 run python3 tools/emu_smnote.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json

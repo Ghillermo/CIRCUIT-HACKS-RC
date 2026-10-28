@@ -411,7 +411,7 @@ def install(img, report, base_addr):
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    assert len(img) <= 0x70000
+    assert len(img) <= 0x70000 or base_addr < 0x0805CDDC          # (in the hole the code sits at the end only until hole.add moves it)
     img[HOOK - BASE:HOOK - BASE + 4] = b_w(HOOK, labels["c_rdin"])
     if WATCH:                                    # the app's DebugMonitor vector (the stock's default handler) -> c_dmon
         assert struct.unpack_from("<I", img, VEC_DEBUGMON - BASE)[0] == 0x0805998B

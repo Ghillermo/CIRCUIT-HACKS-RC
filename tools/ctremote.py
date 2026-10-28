@@ -6,6 +6,8 @@
     python tools/ctremote.py info KIND IDX [PACK]            kinds: 2 sessions, 3 patches, 4 pcm, 5 meta, 6 fx; PACK 127 (default) = the current pack
     python tools/ctremote.py read KIND IDX OFFSET LEN [PACK]
     python tools/ctremote.py dump KIND IDX FILE [PACK]       the whole item, 64 bytes per request, into FILE
+    python tools/ctremote.py scan [PACK] [KINDS]              every item that exists in the pack (kinds 2-6, indices 0-63) with its size
+                                                            (R211SD, 2026-10-28: what pack 0 holds when Components cannot read it)
     python tools/ctremote.py write KIND IDX OFFSET HEXBYTES [PACK] --yes   writes to the SD card (use only on a test pack)
     python tools/ctremote.py put KIND IDX FILE [PACK] --yes          writes FILE into the item from offset 0, 64 bytes per request (SC35D8+)
     python tools/ctremote.py del KIND IDX [PACK] --yes               deletes the item (op 5; SC35D9, kinds 2-6 only)
@@ -220,6 +222,17 @@ def main(argv):
         elif cmd == "info":
             k, i = kind_of(argv[1]), num(argv[2]); pk = num(argv[3]) if len(argv) > 3 else 0x7F
             print(dec_info(L.ask(lambda s: req_info(s, k, i, pk), 4)))
+        elif cmd == "scan":
+            pk = num(argv[1]) if len(argv) > 1 else 0x7F
+            kinds = [kind_of(x) for x in argv[2].split(",")] if len(argv) > 2 else [2, 3, 4, 5, 6]
+            names = {v: k for k, v in KINDS.items()}
+            for k in kinds:
+                found = []
+                for i in range(64):
+                    inf = dec_info(L.ask(lambda s, i=i: req_info(s, k, i, pk), 4))
+                    if inf["exists"]: found.append((i, inf["size"]))
+                print(f"{names.get(k, k)} ({k}): {len(found)} items, {sum(z for _, z in found)} bytes")
+                for i, z in found: print(f"  {i:2d}  {z:9d}")
         elif cmd == "read":
             k, i, off, n = kind_of(argv[1]), num(argv[2]), num(argv[3]), num(argv[4]); pk = num(argv[5]) if len(argv) > 5 else 0x7F
             d = dec_read(L.ask(lambda s: req_read(s, k, i, off, n, pk), 5)); print(dict(status=d["status"], done=d["done"]), d["data"].hex(" "))
