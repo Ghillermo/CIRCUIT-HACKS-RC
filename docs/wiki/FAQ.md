@@ -2,7 +2,7 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog)*
 
-Current versions (2026-10-27): **RC2.10**, **RC2.10S** and **Beta 3.37**.
+Current versions (2026-10-28): **RC2.11**, **RC2.11S**, **Beta 3.41** and **Beta 3.41S**.
 
 ## Installing
 
@@ -13,9 +13,9 @@ A set of patches for the official **Novation Circuit Tracks** firmware 1.2.1 (bu
 Novation's bootloader is never touched, so you can always send the official firmware again. If the device does not boot, hold **Scales + Preset + Note** while switching it on: that is Novation's bootloader mode, and from there you can send any firmware. **Back up your SD card before installing** any version. See [Installing and going back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#instalar).
 
 **3. RC, RC "S" or Beta: which one should I install?**
-- **RC** (release candidate, now RC2.10): the features that have been tested together.
-- **RC S** (RC2.10S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
-- **Beta** (now Beta 3.37): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
+- **RC** (release candidate, now RC2.11): the features that have been tested together.
+- **RC S** (RC2.11S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
+- **Beta** (now Beta 3.41; its safer twin Beta 3.41S writes nothing of its own to the SD card): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
 
 **4. Does it work on the original Circuit or the Circuit Rhythm?**
 No: CIRCUIT-HACKS is for the **Circuit Tracks** (firmware 1.2.1, build 4486) only. For the **Circuit Rhythm** there is a separate project, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), which ports these features and adds its own.
@@ -90,7 +90,7 @@ See [Mod matrix and macro destinations](https://ghillermo.github.io/CIRCUIT-HACK
 ## The project
 
 **23. How do I report a bug?**
-Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC2.10 or Beta 3.35), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording.
+Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC2.11 or Beta 3.41), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording.
 
 **24. How do I suggest a feature?**
 Use [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) or an issue. Check the [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) first: suggestions on control, usability and on how the data is saved are especially welcome.

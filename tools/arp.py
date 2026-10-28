@@ -25,9 +25,9 @@ import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
-                   mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, h, str_sp, strb_imm, strb_reg, sub_sp_imm, add_sp_imm,
-                   subs_imm8, subs_reg)
+from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bics_reg, bl, cmp_imm, cmp_reg, eors_reg, ldr_imm, ldr_sp, ldrb_imm,  # noqa: E402
+                   ldrb_reg, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, h, str_sp,
+                   strb_imm, strb_reg, strh_reg, sub_sp_imm, add_sp_imm, subs_imm8, subs_reg)
 import packio as PK  # noqa: E402
 import fxdiag as FD  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -75,6 +75,57 @@ PRESSORD = False                                              # SC45.3 (use_pres
 MUTARP = False                                                # SC45.3 (use_mutarp)
 MUTLIVE = False                                               # SC45.4 (use_mutlive)
 BPM0 = False                                                  # SC47.2 / RC2.10 (use_bpm0)
+RAMST = 0                                                     # SC48.3 (use_ramst): the running states' RAM (0: in the record's tail)
+MODS = False                                                  # SC48.3 (use_mods): the arpeggio's modifiers
+OCT_SCR = 0                                                   # (MODS) the octave of the note just picked (s8 semitones)
+O_MBLK, SIG_M = 320, 0x314D5241                               # (MODS) the modifiers' block in the tail: "ARM1", a checksum, 32 bytes
+SIG_S = 0x31535241                                            # (RAMST) "ARS1": the states' RAM is ours (else cleared on its first use)
+E_P, E_FL, E_RC, E_OI, E_OC, E_LP, E_G = 15, 16, 17, 18, 19, 20, 21   # (MODS) in a state's extension: the place in the iteration, flags
+#   (bit 0 a repeat next, 1 the groove's phase, 2 the first iteration done, 4 an iteration ended: the octave moves on), the notes after it, the
+#   octave's index and count, the last place, the groove's factor of the note just played (sixths of an arpeggio step; 0 = 6)
+OCT_UP = ((0,), (0, 1), (-1, 0, 1), (-1, 0, 1, 2))            # the octaves of the four spreads, low to high (the down order: high to low)
+OCT_T = (0, 1, 3, 4)                                          # the octave's position: after an iteration, every note, every 3, every 4
+GROOVE = ((6, 6), (6, 9), (8, 4), (6, 6))                     # none, note / dotted note, swing (2:1), every note twice (the steps' sixths)
+RESET_N = (0, 1, 3, 5)                                        # the reset: after the first iteration, back to the start after N notes
+MCOL = (0x13, 0x14, 0x13, 0x14, 0x51, 0x52, 0x5F, 0x60)        # (bright, dim) a group: spread / position sky (the stock's colour of these pads),
+#   groove amber (timing, the sync rate pads' colour), reset pink (the direction pads' colour)
+
+
+def use_sand():
+    """SC48.4 / Beta 3.41 (the user, 2026-10-28: «in arp mode settings, the whole top row is the same color, make pads 1-4 a different color
+    (suggestion: sand)»): the octave spread (pads 1-4) sand 0x6D (RGB 255, 217, 102 in the board's table, steady), dim 0x69 (41, 41, 16);
+    the octave position (pads 5-8) stays sky."""
+    global MCOL
+    MCOL = (0x6D, 0x69) + MCOL[2:]
+
+
+def use_ramst(base):
+    """SC48.3 / Beta 3.40: the running states (8 x 28 B) and their extensions (+ 360) move from the record's tail (+ 320..543, + 680..903, saved
+    with the project for nothing) to RAM at base (584 B, put to 0 by each load and new project as before, and the first time c_arst finds no
+    "ARS1" at base + 584: RAM read before it is written needs a signature): c_arst / c_arzero; the tail bytes are free (the modifiers' block
+    uses + 320..356)."""
+    global RAMST
+    RAMST = base
+
+
+def use_mods(scr):
+    """SC48.3 / Beta 3.40 (the user, 2026-10-28: «add arpeggiator modifiers: pads 1-4: octave spread (no spread, +1 octave up, + 1 up 1 down, +2
+    up 1 down) pads 5-8: octave shift position (after finish, interpolated, each 3 notes, each 4 notes). second row: pads 9-12 groove templates
+    (none, note-dotted note, swing, all notes twice) pads 13-16 arp reset (after a first iteration, arp resets after: No reset, 1 note, 3 notes,
+    5 notes, then start a whole iteration and reset count) Octave jumps are calculated after second row's output»; «all this belong to shift
+    view on pattern settings»; decisions: the spread follows the order (the down order high to low, the others low to high), interpolated =
+    every note, the groups' colours by meaning (chosen bright, the others dim), only while the pattern's arpeggiator is on (off: Shift + pads
+    1-16 = the stock's first step)).
+      * a byte per track and pattern in a block of the tail (+ 320: "ARM1", a checksum, 32 bytes): bits 0-1 the spread, 2-3 the octave's
+        position, 4-5 the groove, 6-7 the reset;
+      * every note of an arpeggio (the input's, stopped and playing, and a step's chord) through c_armo instead of c_arord: the reset (an
+        iteration, then N notes of the next, then from the start), the repeat of "twice", then the octave (spread, position) on what comes out;
+        the note moved by its octave (folded into 0..127); the groove's factor of the note decides the time to the next one (the accumulator's
+        step x 6 / 9 or 8 / 4 sixths; stopped, the ms the same);
+      * the Pattern Settings view, Shift held, the pattern's arpeggiator on: pads 1-16 = the four groups (the chosen one bright)."""
+    global MODS, OCT_SCR
+    assert RATE and RAMST
+    MODS, OCT_SCR = True, scr
 
 
 def use_bpm0():
@@ -195,6 +246,12 @@ def arm_code(base, L, prev):
     E = a.emit
     def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
     t_ord = base; E(raw, bytes(ORD_OF_PAD) + bytes([PS_PAD_ORD + ORD_OF_PAD.index(m) for m in range(6)]))   # mode of a pad; pad of a mode
+    if MODS:                                                                           # (SC48.3) the modifiers' tables
+        t_mcol = base + 12; E(raw, bytes(MCOL))
+        t_oct = base + 20; E(raw, bytes(b & 0xFF for o in OCT_UP for b in (o + (0,) * (4 - len(o)))))
+        t_pos = base + 36; E(raw, bytes(OCT_T))
+        t_gg = base + 40; E(raw, bytes(g for pair in GROOVE for g in pair))
+        t_rn = base + 48; E(raw, bytes(RESET_N))
 
     # ---- c_artail() -> r0 = the record's tail, or 0; clobbers r1
     a.label("c_artail")
@@ -245,7 +302,12 @@ def arm_code(base, L, prev):
     a.label("c_arst")
     E(push_list, [4, 5], lr=True)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(cmp_imm, 4, 3); E(b_cond, "sa_0", "hi")
-    E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "sa_x", "eq")
+    if RAMST:                                                                          # (SC48.3) the states in RAM, the same layout; "ARS1" after
+        imm32(0, RAMST + EXT_HI - O_SEQ); E(ldr_imm, 1, 0, 0); imm32(2, SIG_S); E(cmp_reg, 1, 2); E(b_cond, "sa_ok", "eq")   # them: cleared the first time
+        E(raw, h(0x6002)); imm32(0, RAMST); E(movs_imm, 1, 0); imm32(3, EXT_HI - O_SEQ); E(movs_imm, 2, 0)                    # str r2, [r0]
+        a.label("sa_z"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "sa_z", "lo")
+        a.label("sa_ok"); imm32(0, RAMST - O_SEQ)
+    else: E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "sa_x", "eq")
     E(movs_imm, 1, ST_SZ); E(muls, 1, 4); E(adds_reg, 0, 0, 1); imm32(1, O_SEQ)
     E(cmp_imm, 5, 0); E(b_cond, "sa_a", "eq"); imm32(1, O_LIVE)
     a.label("sa_a"); E(adds_reg, 0, 0, 1); E(pop_list, [4, 5], pc=True)
@@ -390,6 +452,127 @@ def arm_code(base, L, prev):
     a.label("or_0"); E(movs_imm, 0, 0)
     a.label("or_x"); E(pop_list, [4, 5, 6, 7], pc=True)
 
+    if MODS:
+        # ---- c_armblk / c_armcfg / c_armset: the modifiers' block (as c_arblk / c_arcfg / c_arset, at + O_MBLK, "ARM1")
+        a.label("c_armblk")
+        E(push_list, [4], lr=True)
+        E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "mk_x", "eq"); imm32(1, O_MBLK); E(adds_reg, 0, 0, 1)
+        E(mov_reg, 4, 0); E(ldr_imm, 1, 4, 0); imm32(2, SIG_M); E(cmp_reg, 1, 2); E(b_cond, "mk_0", "ne")
+        E(mov_reg, 0, 4); E(bl, "c_arsum"); E(ldrb_imm, 2, 4, 4); E(cmp_reg, 1, 2); E(b_cond, "mk_0", "ne")
+        E(mov_reg, 0, 4); E(pop_list, [4], pc=True)
+        a.label("mk_0"); E(movs_imm, 0, 0)
+        a.label("mk_x"); E(pop_list, [4], pc=True)
+        a.label("c_armcfg")                                                            # (r0 = track, r1 = pattern) -> r0 = its modifiers (0: none)
+        E(push_list, [4], lr=True)
+        E(cmp_imm, 0, 3); E(b_cond, "mc_0", "hi"); E(cmp_imm, 1, 7); E(b_cond, "mc_0", "hi")
+        E(lsls_imm, 4, 0, 3); E(adds_reg, 4, 4, 1)
+        E(bl, "c_armblk"); E(cmp_imm, 0, 0); E(b_cond, "mc_x", "eq")
+        E(adds_reg, 0, 0, 4); E(ldrb_imm, 0, 0, 5); E(pop_list, [4], pc=True)
+        a.label("mc_0"); E(movs_imm, 0, 0)
+        a.label("mc_x"); E(pop_list, [4], pc=True)
+        a.label("c_armset")                                                            # (r0 = track, r1 = pattern, r2 = the modifiers)
+        E(push_list, [4, 5, 6], lr=True)
+        E(lsls_imm, 4, 0, 3); E(adds_reg, 4, 4, 1); E(mov_reg, 5, 2)
+        E(bl, "c_armblk"); E(cmp_imm, 0, 0); E(b_cond, "ms_w", "ne")
+        E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "ms_x", "eq"); imm32(1, O_MBLK); E(adds_reg, 0, 0, 1)
+        imm32(1, SIG_M); E(raw, h(0x6001))                                              # str r1, [r0]
+        E(movs_imm, 1, 0); E(movs_imm, 2, 37)
+        a.label("ms_z"); E(subs_imm8, 2, 1); E(strb_reg, 1, 0, 2); E(cmp_imm, 2, 5); E(b_cond, "ms_z", "hi")
+        a.label("ms_w"); E(mov_reg, 6, 0); E(adds_reg, 0, 0, 4); E(strb_imm, 5, 0, 5)
+        E(mov_reg, 0, 6); E(bl, "c_arsum"); E(strb_imm, 1, 6, 4)
+        a.label("ms_x"); E(pop_list, [4, 5, 6], pc=True)
+
+        # ---- c_armM(r0 = a running state) -> r0 = the modifiers of its track's pattern; clobbers r1-r3
+        a.label("c_armM")
+        E(push_list, [4], lr=True)
+        imm32(1, RAMST); E(subs_reg, 0, 0, 1); E(cmp_imm, 0, O_LIVE - O_SEQ); E(b_cond, "mm_1", "lo"); E(subs_imm8, 0, O_LIVE - O_SEQ)
+        a.label("mm_1"); E(movs_imm, 1, ST_SZ); E(raw, udiv(0, 0, 1)); E(mov_reg, 4, 0)
+        E(bl, "c_arpat"); E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_armcfg")
+        E(pop_list, [4], pc=True)
+
+        # ---- c_arlen(r0 = n, r1 = the order) -> r0 = the notes of an iteration (ping-pong 2n - 2, fractal n (n + 1) / 2, else n); clobbers r1
+        a.label("c_arlen")
+        E(cmp_imm, 1, M_PP); E(b_cond, "ln_1", "ne"); E(cmp_imm, 0, 1); E(b_cond, "ln_x", "ls"); E(lsls_imm, 0, 0, 1); E(subs_imm8, 0, 2); E(raw, h(0x4770))
+        a.label("ln_1"); E(cmp_imm, 1, M_FRAC); E(b_cond, "ln_x", "ne"); E(mov_reg, 1, 0); E(adds_imm8, 1, 1); E(muls, 0, 1); E(lsrs_imm, 0, 0, 1)
+        a.label("ln_x"); E(raw, h(0x4770))
+
+        # ---- c_arG(r0 = a running state) -> r0 = the groove's factor of its last note (sixths of an arpeggio step)
+        a.label("c_arG")
+        E(raw, ldrb_w_(0, 0, D_EXT + E_G)); E(cmp_imm, 0, 0); E(b_cond, "gg_x", "ne"); E(movs_imm, 0, 6)
+        a.label("gg_x"); E(raw, h(0x4770))
+
+        # ---- c_aroct(r1 = a note) -> r1 = the note moved by the octave c_armo picked, folded into 0..127; keeps r0, r2, r3
+        a.label("c_aroct")
+        E(push_list, [0, 2], lr=True)
+        imm32(0, OCT_SCR); E(ldrb_imm, 2, 0, 0); E(raw, h(0xB252)); E(adds_reg, 1, 1, 2)   # sxtb r2, r2
+        a.label("ao_l"); E(cmp_imm, 1, 0); E(b_cond, "ao_h", "ge"); E(adds_imm8, 1, 12); E(b, "ao_l")
+        a.label("ao_h"); E(cmp_imm, 1, 127); E(b_cond, "ao_x", "le"); E(subs_imm8, 1, 12); E(b, "ao_h")
+        a.label("ao_x"); E(pop_list, [0, 2], pc=True)
+
+        # ---- c_armo(r0 = state, r1 = order) -> r0 = the place of the next note, through the modifiers (as c_arord with none); the octave in
+        #      OCT_SCR, the groove's factor in the extension.  r4 state, r5 order, r6 place, r7 the modifiers
+        a.label("c_armo")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(mov_reg, 4, 0); E(mov_reg, 5, 1)
+        E(bl, "c_armM"); E(mov_reg, 7, 0); E(cmp_imm, 7, 0); E(b_cond, "mo_on", "ne")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arord"); E(mov_reg, 6, 0)          # none: the order, the octave 0, a plain step
+        imm32(1, OCT_SCR); E(movs_imm, 0, 0); E(strb_imm, 0, 1, 0); E(movs_imm, 0, 6); E(raw, strb_w_(0, 4, D_EXT + E_G))
+        E(mov_reg, 0, 6); E(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("mo_on")
+        E(raw, ldrb_w_(0, 4, D_EXT + E_FL)); E(lsls_imm, 1, 0, 31); E(b_cond, "mo_fr", "pl")      # a repeat ("twice")
+        E(movs_imm, 1, 1); E(bics_reg, 0, 1); E(raw, strb_w_(0, 4, D_EXT + E_FL))
+        E(raw, ldrb_w_(6, 4, D_EXT + E_LP)); E(ldrb_imm, 1, 4, S_N); E(cmp_reg, 6, 1); E(b_cond, "mo_oc", "lo")
+        a.label("mo_fr")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arord"); E(mov_reg, 6, 0); E(raw, strb_w_(6, 4, D_EXT + E_LP))
+        # after an iteration (the position "after finish"): the octave moves on before this note
+        E(lsrs_imm, 0, 7, 2); E(movs_imm, 1, 3); E(ands_reg, 0, 1); E(cmp_imm, 0, 0); E(b_cond, "mo_ac", "ne")
+        E(raw, ldrb_w_(0, 4, D_EXT + E_FL)); E(lsls_imm, 1, 0, 27); E(b_cond, "mo_ac", "pl")
+        E(movs_imm, 1, 0x10); E(bics_reg, 0, 1); E(raw, strb_w_(0, 4, D_EXT + E_FL))
+        E(bl, "mo_inc")
+        a.label("mo_ac")                                                               # the iteration and the reset
+        E(ldrb_imm, 0, 4, S_N); E(mov_reg, 1, 5); E(bl, "c_arlen"); E(mov_reg, 3, 0)   # r3 = L
+        E(lsrs_imm, 0, 7, 6); imm32(1, t_rn); E(ldrb_reg, 2, 1, 0)                     # r2 = N
+        E(raw, ldrb_w_(0, 4, D_EXT + E_FL)); E(lsls_imm, 1, 0, 29); E(b_cond, "mo_it", "pl")
+        E(cmp_imm, 2, 0); E(b_cond, "mo_fd", "ne"); E(movs_imm, 1, 4); E(bics_reg, 0, 1); E(b, "mo_it")   # (the reset turned off meanwhile)
+        a.label("mo_fd")
+        E(raw, ldrb_w_(1, 4, D_EXT + E_RC)); E(adds_imm8, 1, 1); E(raw, strb_w_(1, 4, D_EXT + E_RC))   # after the first iteration: the notes
+        E(cmp_reg, 1, 2); E(b_cond, "mo_rp", "lo")
+        E(movs_imm, 1, 0); E(strb_imm, 1, 4, S_K); E(strb_imm, 1, 4, S_FG); E(strb_imm, 1, 4, S_FP)       # the reset: from the start
+        E(raw, strb_w_(1, 4, D_EXT + E_P)); E(raw, strb_w_(1, 4, D_EXT + E_RC))
+        E(movs_imm, 1, 4); E(bics_reg, 0, 1); E(movs_imm, 1, 0x10); E(orrs_reg, 0, 1); E(b, "mo_fw")
+        a.label("mo_it")
+        E(raw, ldrb_w_(1, 4, D_EXT + E_P)); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "mo_pw", "lo")
+        E(movs_imm, 1, 0); E(raw, strb_w_(1, 4, D_EXT + E_RC))                            # the iteration ends
+        E(cmp_imm, 2, 0); E(b_cond, "mo_nr", "eq"); E(movs_imm, 2, 4); E(orrs_reg, 0, 2); E(b, "mo_pw")
+        a.label("mo_nr"); E(movs_imm, 2, 0x10); E(orrs_reg, 0, 2)
+        a.label("mo_pw"); E(raw, strb_w_(1, 4, D_EXT + E_P))
+        a.label("mo_fw"); E(raw, strb_w_(0, 4, D_EXT + E_FL))
+        a.label("mo_rp")
+        E(lsrs_imm, 1, 7, 4); E(movs_imm, 2, 3); E(ands_reg, 1, 2); E(cmp_imm, 1, 3); E(b_cond, "mo_oc", "ne")   # "twice": a repeat next
+        E(raw, ldrb_w_(0, 4, D_EXT + E_FL)); E(movs_imm, 1, 1); E(orrs_reg, 0, 1); E(raw, strb_w_(0, 4, D_EXT + E_FL))
+        a.label("mo_oc")                                                               # the octave of this note
+        E(movs_imm, 0, 3); E(ands_reg, 0, 7); E(lsls_imm, 2, 0, 2); E(adds_imm8, 0, 1)  # r0 = the spread's length, r2 = 4 x the spread
+        E(raw, ldrb_w_(1, 4, D_EXT + E_OI)); E(cmp_reg, 1, 0); E(b_cond, "mo_o1", "lo"); E(movs_imm, 1, 0); E(raw, strb_w_(1, 4, D_EXT + E_OI))
+        a.label("mo_o1"); E(cmp_imm, 5, M_DOWN); E(b_cond, "mo_o2", "ne"); E(subs_reg, 1, 0, 1); E(subs_imm8, 1, 1)   # the down order: high to low
+        a.label("mo_o2"); E(adds_reg, 1, 1, 2); imm32(2, t_oct); E(ldrb_reg, 1, 2, 1); E(raw, h(0xB249))            # sxtb r1, r1
+        E(movs_imm, 2, 12); E(muls, 1, 2); imm32(2, OCT_SCR); E(strb_imm, 1, 2, 0)
+        E(lsrs_imm, 1, 7, 2); E(movs_imm, 2, 3); E(ands_reg, 1, 2); E(cmp_imm, 1, 0); E(b_cond, "mo_gr", "eq")      # every 1 / 3 / 4 notes
+        imm32(2, t_pos); E(ldrb_reg, 2, 2, 1)
+        E(raw, ldrb_w_(1, 4, D_EXT + E_OC)); E(adds_imm8, 1, 1); E(cmp_reg, 1, 2); E(b_cond, "mo_cw", "lo")
+        E(bl, "mo_inc"); E(movs_imm, 1, 0)
+        a.label("mo_cw"); E(raw, strb_w_(1, 4, D_EXT + E_OC))
+        a.label("mo_gr")                                                               # the groove's factor of this note, the phase on
+        E(lsrs_imm, 1, 7, 4); E(movs_imm, 2, 3); E(ands_reg, 1, 2); E(lsls_imm, 1, 1, 1)
+        E(raw, ldrb_w_(0, 4, D_EXT + E_FL)); E(lsrs_imm, 2, 0, 1); E(movs_imm, 3, 1); E(ands_reg, 2, 3); E(adds_reg, 1, 1, 2)
+        imm32(2, t_gg); E(ldrb_reg, 1, 2, 1); E(raw, strb_w_(1, 4, D_EXT + E_G))
+        E(movs_imm, 1, 2); E(eors_reg, 0, 1); E(raw, strb_w_(0, 4, D_EXT + E_FL))
+        E(mov_reg, 0, 6); E(pop_list, [4, 5, 6, 7], pc=True)
+        # (mo_inc: the octave's index + 1, wrapping at the spread's length; r4 = state, r7 = the modifiers; clobbers r0-r3)
+        a.label("mo_inc")
+        E(movs_imm, 0, 3); E(ands_reg, 0, 7); E(adds_imm8, 0, 1)
+        E(raw, ldrb_w_(1, 4, D_EXT + E_OI)); E(adds_imm8, 1, 1); E(cmp_reg, 1, 0); E(b_cond, "mi_w", "lo"); E(movs_imm, 1, 0)
+        a.label("mi_w"); E(raw, strb_w_(1, 4, D_EXT + E_OI)); E(raw, h(0x4770))
+
     # ---- c_arnote(r0 = player, r1 = note, r2 = velocity, r3 = ticks): the stock's note-on (a live same note freed first)
     a.label("c_arnote")
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
@@ -434,9 +617,10 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 4, S_FL); E(movs_imm, 1, 2); E(raw, h(0x4388)); E(strb_imm, 0, 4, S_FL)     # bics r0, r1
     a.label("nx_n")
     E(ldrb_imm, 0, 4, S_N); E(cmp_imm, 0, 0); E(b_cond, "nx_x", "eq")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arord")
+    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_armo" if MODS else "c_arord")
     E(adds_reg, 0, 0, 4); E(ldrb_imm, 7, 0, S_NOTES); E(ldrb_imm, 5, 0, S_VELS)
     if MUTLIVE: E(mov_reg, 0, 6); E(mov_reg, 1, 7); E(bl, "c_armutL"); E(mov_reg, 7, 1)          # the input's note: the track's step's mutate level
+    if MODS: E(mov_reg, 1, 7); E(bl, "c_aroct"); E(mov_reg, 7, 1)                        # (SC48.3) its octave
     E(strb_imm, 7, 4, S_LAST)
     E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "nx_h", "eq")
     E(mov_reg, 0, 6); E(bl, "c_arRp" if RATE else "c_artps"); E(mov_reg, 3, 0)
@@ -468,6 +652,7 @@ def arm_code(base, L, prev):
     def bcs(target, cond):                                                             # (RATE: the target can be far)
         if not RATE: E(b_cond, target, cond); return
         zc[0] += 1; n_ = f"_ps{zc[0]}"; E(b_cond, n_, INVC[cond]); E(b, target); a.label(n_)
+    bm = bcs if MODS else (lambda t_, c_: E(b_cond, t_, c_))                           # (SC48.3: the modifiers' code makes these far)
 
     if MUTARP:
         # ---- c_armut(r1 = a note; r6 = the sequence state) -> r1 = the note through the chord step's mutate level (mutate39's chances)
@@ -538,6 +723,9 @@ def arm_code(base, L, prev):
     # a chord: the units into the state, the stock's mask empty
     E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_N); E(strb_imm, 0, 6, S_C); E(strb_imm, 0, 6, S_K); E(strb_imm, 0, 6, S_FG); E(strb_imm, 0, 6, S_FP)
     E(strb_imm, 0, 6, S_SUB); E(strb_imm, 0, 6, S_LEN); E(movs_imm, 0, 1); E(strb_imm, 0, 6, S_FL); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 6, S_PEND)
+    if MODS:                                                                           # (SC48.3) the modifiers' running state from the start
+        E(movs_imm, 0, 0)
+        for j in range(E_P, E_G + 1): E(raw, strb_w_(0, 6, D_EXT + j))
     E(ldr_sp, 0, 12); E(strb_imm, 0, 6, S_M)
     if MUTARP: E(ldrb_imm, 0, 3, 2); E(movs_imm, 1, 7); E(raw, h(0x4008)); E(raw, strb_w_(0, 6, D_MUT))      # ands r0, r1: the step's level
     E(movs_imm, 4, 0)
@@ -556,9 +744,9 @@ def arm_code(base, L, prev):
     E(ldr_sp, 0, 0); E(ldr_sp, 1, 12); E(adds_reg, 4, 0, 1); E(movs_imm, 0, 0); E(raw, strb_w_(0, 4, 0x13C))
     a.label("py_s")
     E(ldr_sp, 0, 0); E(ldr_sp, 1, 4); E(ldr_sp, 2, 8); E(ldr_sp, 3, 12); E(bl, PLAY_STOCK)
-    E(cmp_imm, 7, 3); E(b_cond, "py_x", "hi")
-    E(cmp_imm, 6, 0); E(b_cond, "py_l", "eq")
-    E(ldrb_imm, 0, 6, S_FL); E(lsls_imm, 0, 0, 31); E(b_cond, "py_l", "pl")
+    E(cmp_imm, 7, 3); bm("py_x", "hi")
+    E(cmp_imm, 6, 0); bm("py_l", "eq")
+    E(ldrb_imm, 0, 6, S_FL); E(lsls_imm, 0, 0, 31); bm("py_l", "pl")
     if not RATE:
         E(ldrb_imm, 0, 6, S_SUB); E(cmp_imm, 0, 0); E(b_cond, "py_t", "ne")
         # a note of the chord: a step long, or what is left of the chord
@@ -577,13 +765,16 @@ def arm_code(base, L, prev):
         E(ldr_sp, 0, 12); E(cmp_imm, 0, 0); E(b_cond, "py_x", "ne")
         E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arlstep")
     else:
-        E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 4, 0)            # r4 = 6 x the arpeggio step
-        E(raw, ldrb_w_(0, 6, D_EXT + 6)); E(cmp_reg, 0, 4); E(b_cond, "py_t", "lo")
+        if MODS:                                                                       # (SC48.3) r4 = the groove's factor x the arpeggio step
+            E(mov_reg, 0, 6); E(bl, "c_arG"); E(push_list, [0]); E(mov_reg, 0, 7); E(bl, "c_arRt"); E(pop_list, [1]); E(muls, 0, 1); E(mov_reg, 4, 0)
+        else: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 4, 0)            # r4 = 6 x the arpeggio step
+        E(raw, ldrb_w_(0, 6, D_EXT + 6)); E(cmp_reg, 0, 4); bm("py_t", "lo")
         E(subs_reg, 0, 0, 4); E(raw, strb_w_(0, 6, D_EXT + 6))
         # a note of the chord: its own gate, at most what is left of the chord
-        E(mov_reg, 0, 6); E(movs_imm, 1, 7); E(raw, h(0x4029)); E(bl, "c_arord")           # ands r1, r5
+        E(mov_reg, 0, 6); E(movs_imm, 1, 7); E(raw, h(0x4029)); E(bl, "c_armo" if MODS else "c_arord")   # ands r1, r5
         E(adds_reg, 0, 0, 6); E(ldrb_imm, 1, 0, S_NOTES)
         if MUTARP: E(bl, "c_armut")
+        if MODS: E(bl, "c_aroct")                                                      # (SC48.3) its octave
         E(ldrb_imm, 2, 0, S_VELS); E(raw, ldrb_w_(3, 0, D_EXT)); E(push_list, [1, 2, 3])
         E(ldr_sp, 3, 8); E(cmp_imm, 3, 0); E(b_cond, "pg_1", "ne"); E(movs_imm, 3, 6)
         a.label("pg_1"); E(ldrb_imm, 0, 6, S_LEN); E(ldrb_imm, 1, 6, S_C); E(subs_reg, 0, 0, 1); E(cmp_reg, 0, 3); E(b_cond, "pg_2", "ls"); E(mov_reg, 0, 3)
@@ -603,7 +794,8 @@ def arm_code(base, L, prev):
         a.label("py_l")                                                                # the input's arpeggio on its accumulator
         E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arst"); E(cmp_imm, 0, 0); E(b_cond, "py_x", "eq"); E(mov_reg, 4, 0)
         E(ldrb_imm, 0, 4, S_FL); E(lsls_imm, 0, 0, 31); E(b_cond, "py_x", "pl")
-        E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 5, 0)
+        if MODS: E(mov_reg, 0, 4); E(bl, "c_arG"); E(push_list, [0]); E(mov_reg, 0, 7); E(bl, "c_arRt"); E(pop_list, [1]); E(muls, 0, 1); E(mov_reg, 5, 0)
+        else: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 5, 0)
         E(raw, ldrb_w_(0, 4, D_EXT + 6)); E(cmp_reg, 0, 5); E(b_cond, "pl_a", "lo")
         E(subs_reg, 0, 0, 5); E(raw, strb_w_(0, 4, D_EXT + 6))
         E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arlstep")
@@ -626,6 +818,8 @@ def arm_code(base, L, prev):
     a.label("lo_2")
     E(ldrb_imm, 0, 4, S_FL); E(lsls_imm, 0, 0, 31); E(b_cond, "lo_r", "mi")
     E(movs_imm, 0, 1); E(strb_imm, 0, 4, S_FL); E(movs_imm, 0, 0); E(strb_imm, 0, 4, S_K); E(strb_imm, 0, 4, S_FG); E(strb_imm, 0, 4, S_FP)
+    if MODS:                                                                           # (SC48.3) the modifiers' running state from the start
+        for j in range(E_P, E_G + 1): E(raw, strb_w_(0, 4, D_EXT + j))
     E(ldrb_imm, 0, 4, S_FIRST); E(strb_imm, 0, 4, S_PEND)
     imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(raw, str_w_(0, 4, S_NEXT))                # stopped: the first step now
     if RATE: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(raw, strb_w_(0, 4, D_EXT + 6))
@@ -662,6 +856,7 @@ def arm_code(base, L, prev):
 
     # ---- c_arpspad (the Pattern Settings view's pad press: view, pad, velocity): Shift + pad 25 / 27-32 on a note track
     a.label("c_arpspad")
+    if MODS: E(cmp_imm, 1, 16); E(b_cond, "pp_c", "lo")                                 # (SC48.3) pads 1-16: the modifiers (with the arpeggiator on)
     if RATE: E(cmp_imm, 1, PS_PAD_RATE); E(b_cond, "pp_r0", "lo"); E(cmp_imm, 1, PS_PAD_RATE + 7); E(b_cond, "pp_c", "ls"); a.label("pp_r0")
     E(cmp_imm, 1, PS_PAD_ARP); E(b_cond, "pp_c", "eq"); E(cmp_imm, 1, PS_PAD_ORD); E(b_cond, "pp_f", "lo"); E(cmp_imm, 1, 31); E(b_cond, "pp_f", "hi")
     a.label("pp_c")
@@ -670,6 +865,15 @@ def arm_code(base, L, prev):
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "pp_p", "eq")
     E(bl, L["c_rfnt"]); E(b_cond, "pp_p", "hs")
     E(bl, L["c_pmtp"]); E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(bl, "c_arcfg")
+    if MODS:                                                                           # (SC48.3) pads 1-16: a group's option; the arpeggiator off: the stock's
+        E(cmp_imm, 6, 16); E(b_cond, "pp_k0", "hs")
+        E(lsls_imm, 0, 0, 24); E(b_cond, "pp_mo", "mi"); E(b, "pp_p")
+        a.label("pp_mo"); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_armcfg")
+        E(lsrs_imm, 1, 6, 2); E(lsls_imm, 1, 1, 1); E(movs_imm, 2, 3); E(lsls_reg, 2, 1); E(bics_reg, 0, 2)
+        E(movs_imm, 2, 3); E(ands_reg, 2, 6); E(lsls_reg, 2, 1); E(orrs_reg, 0, 2)
+        E(mov_reg, 2, 0); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_armset")
+        E(pop_list, [0, 1, 2, 4, 5, 6], pc=True)
+        a.label("pp_k0")
     if RATE:                                                                           # pads 17-24: the resolution (the chosen one again: the track's)
         E(cmp_imm, 6, PS_PAD_ARP); E(b_cond, "pp_k", "hs")
         if RATEFLIP: E(movs_imm, 1, PS_PAD_RATE + 8); E(subs_reg, 6, 1, 6)                  # pad 17 = 8 (1/4) .. pad 24 = 1 (1/32T)
@@ -727,6 +931,15 @@ def arm_code(base, L, prev):
         E(raw, h(0x5229))                                                              # strh r1, [r5, r0]
         if COLS2: a.label("pb_rn2")
         E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "pb_r", "ls")
+    if MODS:                                                                           # (SC48.3) Shift, the arpeggiator on: pads 1-16 = the modifiers
+        E(lsls_imm, 0, 4, 24); E(b_cond, "pb_x", "pl")
+        E(bl, L["c_pmtp"]); E(bl, "c_armcfg"); E(mov_reg, 7, 0); E(movs_imm, 3, 0)
+        a.label("pb_m")
+        E(lsrs_imm, 0, 3, 2); E(lsls_imm, 1, 0, 1); E(mov_reg, 2, 7); E(lsrs_reg, 2, 1); E(movs_imm, 1, 3); E(ands_reg, 2, 1)   # r2 = the group's option
+        E(lsls_imm, 0, 0, 1); E(movs_imm, 1, 3); E(ands_reg, 1, 3); E(cmp_reg, 1, 2); E(b_cond, "pb_mb", "eq"); E(adds_imm8, 0, 1)
+        a.label("pb_mb"); imm32(1, t_mcol); E(ldrb_reg, 1, 1, 0)
+        E(lsls_imm, 0, 3, 1); E(raw, h(0x5229))                                        # strh r1, [r5, r0]
+        E(adds_imm8, 3, 1); E(cmp_imm, 3, 16); E(b_cond, "pb_m", "lo")
     a.label("pb_x"); E(mov_reg, 0, 6); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
     # ---- c_arledtask (the LED task calls: ctrl, frame): the chain; stopped: no sequence arpeggio, the input's one on the clock
@@ -743,16 +956,27 @@ def arm_code(base, L, prev):
     imm32(0, HAL_TICK); E(ldr_imm, 5, 0, 0); E(raw, ldr_w_(1, 4, S_NEXT)); E(subs_reg, 0, 5, 1); E(b_cond, "lt_n", "mi")
     # due: a step, then the next time = now + 2500 ticks-a-step / BPM ms
     E(mov_reg, 0, 7); E(movs_imm, 1, 0); E(bl, "c_arlstep")
-    if RATE: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(mov_reg, 6, 0)
+    if RATE:
+        E(mov_reg, 0, 7); E(bl, "c_arRt"); E(mov_reg, 6, 0)
+        if MODS: E(mov_reg, 0, 4); E(bl, "c_arG"); E(muls, 6, 0)                         # (SC48.3) x the groove's factor (sixths)
     else: E(mov_reg, 0, 7); E(bl, "c_arply"); E(bl, "c_artps"); E(mov_reg, 6, 0)
     imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "lt_b", "hs"); E(movs_imm, 1, 120)
-    a.label("lt_b"); imm32(0, 2500); E(muls, 0, 6); E(raw, udiv(0, 0, 1)); E(adds_reg, 0, 0, 5); E(raw, str_w_(0, 4, S_NEXT))
+    a.label("lt_b")
+    if MODS: E(movs_imm, 2, 6); E(muls, 1, 2)                                          # (SC48.3) the factor was in sixths
+    imm32(0, 2500); E(muls, 0, 6); E(raw, udiv(0, 0, 1)); E(adds_reg, 0, 0, 5); E(raw, str_w_(0, 4, S_NEXT))
     a.label("lt_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 4); E(b_cond, "lt_l", "lo")
     a.label("lt_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
     # ---- c_arzero(r0 = 1: the setting block too): the running states to 0; clobbers r1-r3
     a.label("c_arzero")
     E(push_list, [4], lr=True)
+    if RAMST:                                                                          # (SC48.3) the states in RAM; the tail's blocks for a new project
+        E(mov_reg, 4, 0); imm32(0, RAMST); E(movs_imm, 1, 0); imm32(3, EXT_HI - O_SEQ); E(movs_imm, 2, 0)
+        a.label("zr_r"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_r", "lo")
+        E(cmp_imm, 4, 0); E(b_cond, "zr_x", "eq")
+        E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq"); imm32(1, O_BLK); imm32(3, O_END); E(movs_imm, 2, 0)
+        a.label("zr_t"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_t", "lo")
+        E(b, "zr_x")
     E(mov_reg, 4, 0); E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq")
     imm32(1, O_SEQ); E(cmp_imm, 4, 0); E(b_cond, "zr_a", "eq"); imm32(1, O_BLK)
     a.label("zr_a"); imm32(3, O_END); E(movs_imm, 2, 0)

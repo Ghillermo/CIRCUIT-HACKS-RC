@@ -31,6 +31,8 @@ TB, TMAX = 0x40000, 0x400
 NF = 32
 T_ = G.T
 LOW_BASE = 0x40000                                    # (the whole-core runs: the capture moved here in the program copy)
+SHORT_FROM = None                                     # (SC48.1, dsp56.use_shortmsb) the sampler's code (smp_post): there the base is `move #$e8,D`
+SHORT_E8 = {0x24E800, 0x25E800, 0x26E800, 0x27E800, 0x2EE800, 0x2FE800}   # move #$e8,x0 / x1 / y0 / y1 / a / b
 
 
 def chain():
@@ -103,7 +105,10 @@ def whole(img, extra_blocks, blocks, dumps_at, spmax=False):
     p = bytearray(DS.dsp_program(img))
     for a_ in DS.SPIN_NOPS: p[3 * a_:3 * a_ + 3] = b'\0\0\0'
     for k in range(0x2A5E, len(p) // 3):                                     # the capture's base -> Y:LOW_BASE (the interpreter keeps no Y memory at $E80000)
-        if int.from_bytes(p[3 * k:3 * k + 3], 'big') == S.HIGH_BASE: p[3 * k:3 * k + 3] = LOW_BASE.to_bytes(3, 'big')
+        w = int.from_bytes(p[3 * k:3 * k + 3], 'big')
+        if w == S.HIGH_BASE: p[3 * k:3 * k + 3] = LOW_BASE.to_bytes(3, 'big')
+        elif SHORT_FROM is not None and k >= SHORT_FROM and w in SHORT_E8:                     # the one-word form: #$04 = $040000
+            p[3 * k:3 * k + 3] = (w & ~0xFF00 | (LOW_BASE >> 16) << 8).to_bytes(3, 'big')
     d = tempfile.mkdtemp(); pb = os.path.join(d, 'p.bin'); open(pb, 'wb').write(p)
     Ls = [f'LOADP {pb} 0', 'MAX 2000000000', 'PC 107', 'STOP 25f3', 'RUN'] + s._mem(s.init_writes) + ['PC 25f3', 'STOP 113', 'RUN']
     stub = [0x0BF080, 0x0001ED, 0x0C0000 | (DS.STUB + 2)]
@@ -136,6 +141,8 @@ def main(img=None, man=None, prev=None, pman=None):
     logic(check)
     if img is not None:
         dl = {k: int(v, 16) for k, v in man["report"]["sc16"]["dsp_labels"].items()}
+        global SHORT_FROM
+        SHORT_FROM = dl["smp_post"]
         P0 = prog(img)
         check(P0[S.PF_AT:S.PF_AT + 2] == D.jsr(dl["smp_post"]) and P0[dl["fx_hook"]:dl["fx_hook"] + 2] == D.jmp(dl["smp_tail"]),
               "P:$D53 = jsr smp_post, fx_hook = jmp smp_tail")

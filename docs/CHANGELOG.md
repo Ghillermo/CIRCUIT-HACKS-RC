@@ -7,16 +7,50 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 3.41 / Beta 3.41S — 2026-10-28
+
+**Beta 3.41** (marca `B3.41`; = SC48.4) = Beta 3.40 (y con ella las 3.38-3.40, que no se publicaron) + lo siguiente, sin probar en el aparato. **Beta 3.41S** (`B3.41S`): la misma, sin escrituras propias en la SD ni en la memoria interna.
+
+- **Notas fijadas en cian:** con Shift mantenido, las teclas de las notas fijadas (Shift + tecla) se ven **cian brillante**; las demás no cambian. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **Shift + paso = las notas fijadas en ese paso:** en la vista Note, con notas fijadas en la pista, **Shift + un paso** las escribe en él (las que ya están no se repiten; hasta 6; un paso de largo, velocity 100); con Shift mantenido y notas fijadas, los pads de paso en amarillo. Sin notas fijadas, Shift + paso es el de stock. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **Pantalla de acordes, cambio al momento:** cambiar el tipo, la inversión o un modificador con un acorde sonando (mantenido o fijado) cambia el acorde al instante, sin volver a pulsar la fundamental; las notas comunes siguen sonando y el **arpegiador** sigue con las notas nuevas. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **Latch de acordes:** en la pantalla de acordes, **Shift + fundamental** fija el acorde entero hasta volver a pulsar esa fundamental (o Clear + el botón de la pista); con Shift, su fundamental en cian. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **Modificadores del arpegio:** las octavas (Shift + pads 1-4) en **arena**, para distinguirlas de cuándo cambia la octava (pads 5-8, azul cielo). → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#pattern-settings)
+
+### Beta 3.40 — no publicada (incluida en la Beta 3.41)
+
+**Beta 3.40** (marca `B3.40`; = SC48.3) = Beta 3.39 + el arreglo de RC2.11 (el editor de CC ya no deja knobs muertos al descartar un cambio y al guardar sale a la vista Preset: ver [Arreglos](#arreglos)) + lo siguiente, sin probar en el aparato:
+
+- **128 patches del sinte propio:** la vista Preset de MIDI 1 / 2 tiene **8 páginas** de 16 huecos (Octave ▼ / ▲), en el relleno de los 128 registros de patch del pack (antes 4 páginas, 64). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Knobs no secuenciables:** la página 4 del sinte propio pasa a llamarse **knobs secuenciables**, y **Shift + pad 4** abre otra página de **8 knobs con destino asignable** igual (Shift + knob = el destino entre los 33 parámetros; Clear mantenido, luego Shift + knob = el de fábrica) que **no se graban** como automatización; de fábrica Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2 y Gain del VCA. Sus destinos se guardan con los patches propios (y con el proyecto). → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs)
+- **Modificadores del arpegio:** con el arpegiador del patrón encendido, **Shift + pads 1-16** de Pattern Settings: **octavas** (pads 1-4: sin ampliar, +1, +1 / -1, +2 / -1), **cuándo cambia la octava** (pads 5-8: al terminar la vuelta, en cada nota, cada 3, cada 4), **groove** (pads 9-12: ninguno, nota / nota con puntillo, swing, cada nota dos veces) y **reinicio** (pads 13-16: tras una vuelta entera, 1 / 3 / 5 notas más y vuelve al principio). Las octavas se cuentan sobre lo que sale del groove y del reinicio. Con el arpegiador apagado, Shift + pad sigue siendo el primer paso de stock. Se guardan con el proyecto. → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#pattern-settings)
+- **Nudge nuevo:** el pad 26 de Pattern Settings mueve el **tramo elegido** (del primer al último paso) **un paso atrás**, y **Shift + pad 26 un paso adelante**: el tramo mantiene su largo, el paso que ocupa pasa al hueco que deja, y si toca el paso 1 o el final (16 / 32) rota el patrón entero. En las pistas de notas y en los drums. → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#pattern-settings)
+- **Latch sin colores:** con Shift en la vista Note, las teclas ya no se ven en amarillo / verde; la nota que suena se ve blanca como siempre. **Clear + el botón de la pista** suelta todas sus notas fijadas.
+- **Dobles pulsaciones = atajos con Shift:** **Scales dos veces** = el editor de la escala propia (Shift + Scales); **Velocity dos veces** = velocity fija (Shift + Velocity); y al revés, **Shift + Synth 1 / 2** = la vista de la fuente y **Shift + MIDI 1 / 2** = su vista Preset (lo que da pulsarlos dos veces). → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#botones)
+- **Páginas de knobs de MIDI 1 / 2:** un toque deja la página; **mantener el pad ½ s o más** la enseña solo mientras lo mantienes. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+
+### Beta 3.39 — no publicada (incluida en la Beta 3.41)
+
+**Beta 3.39** (marca `B3.39`; = SC48.2) = Beta 3.38 + lo siguiente, sin probar en el aparato:
+
+- **Jankó como el teclado cromático:** **Shift + pad 8** del editor de la escala propia enciende ahora una disposición con las filas **por parejas**: la de abajo empieza en la tónica (C D E F♯ G♯ A♯ C D) y la de encima es **medio tono más grave** (B C♯ D♯ F G A B C♯), como en el teclado cromático de stock; en la Note ampliada la pareja de arriba es una octava más aguda. La disposición anterior (cada fila medio tono más aguda) pasa a **Shift + pad 24**; los proyectos guardados con ella la conservan. Con las dos, los pads de la **tónica** se ven en el color de la tónica. **Octave: un toque = medio tono, mantenido = una octava.** → [Guía: Vista Scales y escala propia](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#escalas)
+
+### Beta 3.38 — no publicada (incluida en la Beta 3.41)
+
+**Beta 3.38** (marca `B3.38`; = SC48.1) = Beta 3.37 + lo siguiente, sin probar en el aparato:
+
+- **Metrónomo en el cue:** con el modo cue del Mixer encendido, el clic del metrónomo y el de la cuenta atrás suenan **solo en el cue** (salida derecha): la mezcla de la izquierda sale sin clic. Sin el modo cue, por las dos salidas, como siempre. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
+
 ### Beta 3.37 — 2026-10-27
 
-**Beta 3.37** (marca `B3.37`; = SC48) = Beta 3.36 + lo siguiente, sin probar en el aparato:
+**Beta 3.37** (marca `B3.37`; = SC48) = Beta 3.36 + lo siguiente, sin probar en el aparato. **Beta 3.37S** (marca `B3.37S`) = la Beta 3.37 sin escrituras propias en la SD (como RC2.10S): lo que el mod escribiría en la tarjeta no hace nada.
 
 - **Sonidos de partida del FM:** con el FM encendido, **mantén el pad 8**: los pads 9-24 son 16 instrumentos listos para tocar (piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja, hi-hat), en el color de su familia. Pulsar uno carga todo el FM de ese sonido y suena la tónica (con Shift, sin sonar). El pad 7 mantenido sigue enseñando los 16 algoritmos. → [Guía: FM de 4 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-fm)
 - **MIDI 1 / MIDI 2 dos veces** = su vista Preset (la del sinte propio), como el botón Preset; ahí, con el motor apagado, el pad 27 se ve gris. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
 - **Teclado externo al arpegiador en el botón Note de la vista Setup** (verde encendido, rojo tenue apagado); antes era el pad 22 de Advanced Setup. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#setup)
 - **Note con el step-drummer:** en MIDI 1 / 2 con el step-drummer encendido, **Note** pasa por Note → Note ampliada → step-drummer. → [Guía: Vista del step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer)
 - **Secuenciador de efectos:** un hueco de la fila inferior sin efecto asignado toca el efecto de arriba de su columna (pad 26 = pad 1 … pad 30 = pad 5). → [Guía: Vista del step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer)
-- **Escucha previa en el cue:** con el modo cue, elegir un patch de sinte (toque o Shift) y **Shift + sample** de un drum se oyen solo en el cue; un golpe en vivo de ese drum vuelve a la mezcla. → [Guía: Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
+- **Escucha previa en el cue:** con el modo cue, elegir un patch de sinte (toque o Shift) y **Shift + sample** de un drum se oyen solo en el cue; un golpe en vivo de ese drum vuelve a la mezcla. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
 - **Curva de velocity de los pads:** en **Advanced Setup, K1** = −8 … +8 (el centro es el original): a la derecha los pads son más sensibles, a la izquierda más duros. Al girarlo, el número en los pads y Velocity encendido. Vale para todas las vistas y se guarda en los ajustes. → [Guía: Vista Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#advanced-setup)
 
 ### Beta 3.36 — 2026-10-27
@@ -408,6 +442,10 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC2.11 / RC2.11S / Beta 3.40 — 2026-10-28 (con la Beta 3.41)
+
+- **Editor de CC de los macros MIDI (pad 25):** salir con un cambio sin guardar (pad 25 o un botón de vista) dejaba sin función varios knobs de la plantilla (LED apagado, sin CC; en una prueba solo seguían K4 y K5): la copia que se devuelve al descartar se guardaba en una memoria que usan también otras funciones (patches del sinte propio, cadenas de patrones, contadores de pasos), que la pisaban; al copiarla, además, pisaba lo de ellas. Ahora va en su propia memoria. Si ya te pasó: apaga y enciende el aparato (vuelve la plantilla guardada), salvo que guardaras después. Además, **al guardar sales del editor** a la vista Preset (antes te quedabas en él sin knob elegido). → [Guía: Editor de CC de los macros MIDI (pad 25)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-cc)
+
 ### Beta 3.37 — 2026-10-27
 
 - **Polifonía del sinte propio (poly):** con 4 notas o más la suma de las voces recortaba (chasquidos, sobre todo con FM fuertes). Ahora cada voz baja según cuántas suenan (una nota, igual que antes; cuatro, a la mitad). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
@@ -642,16 +680,50 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 <a id="new-features"></a>
 ## New features
 
+### Beta 3.41 / Beta 3.41S — 2026-10-28
+
+**Beta 3.41** (marker `B3.41`; = SC48.4) = Beta 3.40 (and with it 3.38-3.40, which were not released) + the following, not tested on the device. **Beta 3.41S** (`B3.41S`): the same, without the mod's own writes to the SD card or the internal memory.
+
+- **Latched notes in cyan:** while Shift is held, the keys of the latched notes (Shift + key) light **bright cyan**; the others keep their colours. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Shift + step = the latched notes into that step:** in the Note view, with notes latched on the track, **Shift + a step** writes them into it (notes already there are not repeated; up to 6; one step long, velocity 100); while Shift is held with notes latched, the step pads light yellow. With nothing latched, Shift + step is the stock one. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Chord screen, changes at once:** changing the type, the inversion or a modifier while a chord sounds (held or latched) changes the chord at once, without pressing the root again; the common notes keep sounding and the **arpeggiator** goes on with the new notes. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Chord latch:** on the chord screen, **Shift + a root** latches the whole chord until that root is pressed again (or Clear + the track's button); with Shift, its root lights cyan. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Arpeggio modifiers:** the octaves (Shift + pads 1-4) in **sand**, to tell them from when the octave moves (pads 5-8, sky blue). → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#pattern-settings)
+
+### Beta 3.40 — not released (included in Beta 3.41)
+
+**Beta 3.40** (marker `B3.40`; = SC48.3) = Beta 3.39 + the fix of RC2.11 (the CC editor no longer leaves dead knobs when a change is discarded, and saving goes back to the Preset view: see [Fixes](#fixes)) + the following, not tested on the device:
+
+- **128 own-synth patches:** the Preset view of MIDI 1 / 2 has **8 pages** of 16 slots (Octave ▼ / ▲), in the padding of the pack's 128 synth patch records (before: 4 pages, 64). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Non-sequenceable knobs:** the own synth's page 4 is now called the **sequenceable knobs**, and **Shift + pad 4** opens another page of **8 knobs with an assignable destination** in the same way (Shift + knob = the destination among the 33 parameters; Clear held, then Shift + knob = the factory one) that are **not recorded** as automation; by default Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2 and VCA gain. Their destinations are saved with the own patches (and with the project). → [Guide: Knob pages of the MIDI 1 / 2 engine](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
+- **Arpeggio modifiers:** with the pattern's arpeggiator on, **Shift + pads 1-16** of Pattern Settings: **octaves** (pads 1-4: no spread, +1, +1 / -1, +2 / -1), **when the octave moves** (pads 5-8: after the pass, every note, every 3, every 4), **groove** (pads 9-12: none, note / dotted note, swing, every note twice) and **reset** (pads 13-16: after a whole pass, 1 / 3 / 5 more notes and back to the start). The octaves count what comes out of the groove and the reset. With the arpeggiator off, Shift + pad is still the stock's first step. Saved with the project. → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#pattern-settings)
+- **New Nudge:** pad 26 of Pattern Settings moves the **selected range** (first to last step) **one step back**, and **Shift + pad 26 one step forward**: the range keeps its length, the step it moves onto goes to the gap it leaves, and if it touches step 1 or the end (16 / 32) the whole pattern rotates. On note tracks and drums. → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#pattern-settings)
+- **Latch without colours:** with Shift in the Note view, the keys no longer light yellow / green; a sounding note lights white as always. **Clear + the track's button** lets go of all its latched notes.
+- **Double presses = Shift shortcuts:** **Scales twice** = the custom scale editor (Shift + Scales); **Velocity twice** = fixed velocity (Shift + Velocity); and the other way round, **Shift + Synth 1 / 2** = the source view and **Shift + MIDI 1 / 2** = its Preset view (what pressing them twice gives). → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#botones)
+- **MIDI 1 / 2 knob pages:** a tap keeps the page; **holding the pad ½ s or more** shows it only while held. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+
+### Beta 3.39 — not released (included in Beta 3.41)
+
+**Beta 3.39** (marker `B3.39`; = SC48.2) = Beta 3.38 + the following, not tested on the device:
+
+- **Jankó like the chromatic keyboard:** **Shift + pad 8** in the custom scale's editor now turns on a layout with the rows **in pairs**: the lower one starts on the root (C D E F♯ G♯ A♯ C D) and the one above is **a semitone lower** (B C♯ D♯ F G A B C♯), as on the stock's chromatic keyboard; in the expanded Note view the upper pair is an octave up. The earlier layout (every row a semitone higher) moves to **Shift + pad 24**; projects saved with it keep it. With both, the **root** pads show in the root colour. **Octave: a tap = a semitone, held = an octave.** → [Guide: Scales view and custom scale](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#escalas)
+
+### Beta 3.38 — not released (included in Beta 3.41)
+
+**Beta 3.38** (marker `B3.38`; = SC48.1) = Beta 3.37 + the following, not tested on the device:
+
+- **Metronome in the cue:** with the Mixer's cue mode on, the metronome's click and the count-in's sound **only in the cue** (right output): the mix on the left goes out without the click. Without the cue mode, on both outputs as always. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+
 ### Beta 3.37 — 2026-10-27
 
-**Beta 3.37** (marker `B3.37`; = SC48) = Beta 3.36 + the following, not tested on the device:
+**Beta 3.37** (marker `B3.37`; = SC48) = Beta 3.36 + the following, not tested on the device. **Beta 3.37S** (marker `B3.37S`) = Beta 3.37 with no writes of its own to the SD card (like RC2.10S): what the mod would write to the card does nothing.
 
 - **FM starter sounds:** with FM on, **hold pad 8**: pads 9-24 are 16 ready-to-play instruments (piano, electric piano, organ, pluck, harp, marimba, bass, bell, strings, pad, flute, clarinet, brass, kick, snare, hi-hat), in their family's colour. Pressing one loads that sound's whole FM and plays the tonic (with Shift, silently). Pad 7 held still shows the 16 algorithms. → [Guide: 4-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-fm)
 - **MIDI 1 / MIDI 2 twice** = their Preset view (the own synth's), like the Preset button; there, with the engine off, pad 27 shows grey. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
 - **External keyboard to the arpeggiator on the Setup view's Note button** (green on, dim red off); it was Advanced Setup's pad 22. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#setup)
 - **Note with the step-drummer:** on MIDI 1 / 2 with the step-drummer on, **Note** goes Note → expanded Note → step-drummer. → [Guide: Step-drummer view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer)
 - **FX sequencer:** a bottom-row slot with no effect assigned plays the effect at the top of its column (pad 26 = pad 1 … pad 30 = pad 5). → [Guide: Step-drummer view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer)
-- **Cue preview:** with the cue mode, choosing a synth patch (a press or Shift) and a drum's **Shift + sample** are heard in the cue only; a live hit of that drum goes back to the mix. → [Guide: Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+- **Cue preview:** with the cue mode, choosing a synth patch (a press or Shift) and a drum's **Shift + sample** are heard in the cue only; a live hit of that drum goes back to the mix. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
 - **The pads' velocity curve:** in **Advanced Setup, K1** = −8 … +8 (the centre is the original): to the right the pads are more sensitive, to the left harder. While turning it, the number on the pads and Velocity lit. It applies to every view and is saved in the settings. → [Guide: Advanced Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#advanced-setup)
 
 ### Beta 3.36 — 2026-10-27
@@ -1042,6 +1114,10 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC2.11 / RC2.11S / Beta 3.40 — 2026-10-28 (with Beta 3.41)
+
+- **CC editor of the MIDI macros (pad 25):** leaving it with an unsaved change (pad 25 or a view button) killed several knobs of the template (LED off, no CC; in one test only K4 and K5 kept working): the copy put back on a discard lived in memory that other features (own-synth patches, pattern chains, step counters) also use and overwrote; taking the copy also overwrote theirs. It now has its own memory. If it already happened: switch the unit off and on (the saved template comes back), unless you saved afterwards. Also, **saving leaves the editor**, back to the Preset view (before, you stayed in it with no knob selected). → [Guide: CC editor of the MIDI macros (pad 25)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-cc)
 
 ### Beta 3.37 — 2026-10-27
 

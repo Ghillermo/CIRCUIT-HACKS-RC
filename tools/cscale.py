@@ -64,6 +64,17 @@ COL_ROOT, COL_DEG, COL_PER, COL_FREE = 0x01, 0x17, 0x09, 0x02
 MUTROOT = False                                            # SC42.6 (use_mutroot): random-mutate counts the degrees from the root
 
 
+DBL = False                                                # SC48.3 (use_dbl): Scales pressed in the Scales view = Shift + Scales
+
+
+def use_dbl():
+    """SC48.3 / Beta 3.40 (the user, 2026-10-28: «double press on scale = shift+scale, make sure double presses match their shift shortcuts»):
+    Scales pressed while the Scales view is on the screen toggles the editor as Shift + Scales does (the stock's second press did nothing);
+    from another view Scales opens the stock's Scales view as before."""
+    global DBL
+    DBL = True
+
+
 def use_mutroot():
     """SC42.6: c_csmut took the step's note as if the root were C (the keyboard's values are above the root): with another root random-mutate
     picked degrees of a shifted scale.  The note above the root is used, as the stock's c_mutscale does."""
@@ -290,6 +301,8 @@ def arm_code(base, L, prev):
     E(cmp_imm, 1, ID_SCALES); bc("cb_f", "ne")
     E(bl, "c_csblk"); E(cmp_imm, 0, 0); bc("cb_f", "eq"); E(mov_reg, 4, 0)
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "cb_sh", "ne")
+    if DBL:                                                                            # (SC48.3) in the Scales view: as Shift + Scales
+        imm32(0, MGR); E(ldr_imm, 0, 0, 0x6C); imm32(1, SCALES_VIEW); E(cmp_reg, 0, 1); E(b_cond, "cb_sh", "eq")
     E(movs_imm, 0, 0); E(strb_imm, 0, 4, B_ED); E(b, "cb_f")                          # Scales alone: out of the editor, the stock's press
     a.label("cb_sh")
     E(ldrb_imm, 0, 4, B_ED); E(cmp_imm, 0, 0); E(b_cond, "cb_on", "eq")

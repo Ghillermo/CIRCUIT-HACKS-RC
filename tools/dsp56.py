@@ -90,6 +90,27 @@ def use_shortbr():
     SHORTBR = True
 
 
+SHORTMSB = False                   # SC48.1 (use_shortmsb)
+MSB_DDDDD = {0x04: 0x04, 0x05: 0x05, 0x06: 0x06, 0x07: 0x07, 0x16: 0x0E, 0x17: 0x0F}   # x0 x1 y0 y1 a b: the long form's register -> the short form's
+
+
+def use_shortmsb():
+    """SC48.1 (room on core 0 for the cue click, the user, 2026-10-27: «Add metronome on Cue listen only»): a two-word `move #>V,D` assembled from
+    a text line (44F400..47F400 / 56F400 / 57F400 + V) with D = x0 / x1 / y0 / y1 / a / b and V & $FFFF = 0 becomes the one-word `move #$hh,D`
+    (001d dddd iiii iiii 0000 0000: the 8 bits in the MSBs of D, the rest 0, a / b sign-extended: the same operand bit for bit; vcf21_dsp.use_shortimm
+    did it for its own lines only).  Like use_shortx: only lines marked by mark(), only in the blocks based at or after the end of the stock program
+    (not core 1); labels follow."""
+    global SHORTMSB
+    SHORTMSB = True
+
+
+def msb_of(w0, w1):
+    """the one-word form of a two-word move #>V,D, or None"""
+    if w0 & 0xC0FFFF != 0x40F400 or w1 & 0xFFFF: return None
+    d = MSB_DDDDD.get((w0 >> 16) & 0x3F)
+    return None if d is None else 0x200000 | d << 16 | (w1 >> 16) << 8
+
+
 SHORTBS = False                    # (use_shortbs)
 
 
@@ -113,21 +134,24 @@ def br_short(w0, at, t):
 
 
 class Marked(list):
-    """words assembled from text, with .lx = the offsets of the two-word moves x:(Rn+xxxx) among them"""
+    """words assembled from text, with .lx = the offsets of the two-word moves x:(Rn+xxxx) among them, .li = those of the moves #>V,D"""
     lx = ()
+    li = ()
 
 
 import re as _re
 _LX = _re.compile(r"^\s*move\s+(?:x:\(r[0-7]\+[^)]*\),\w+|\w+,x:\(r[0-7]\+[^)]*\))\s*$")
+_LI = _re.compile(r"^\s*move\s+#>[^,\s]+,(?:x0|x1|y0|y1|a|b)\s*$")
 
 
 def mark(pairs):
     """[(text, words)] -> one Marked list of all the words"""
-    out, lx = Marked(), []
+    out, lx, li = Marked(), [], []
     for t, ws in pairs:
         if len(ws) == 2 and _LX.match(t): lx.append(len(out))
+        if len(ws) == 2 and _LI.match(t): li.append(len(out))
         out += ws
-    out.lx = tuple(lx)
+    out.lx, out.li = tuple(lx), tuple(li)
     return out
 
 
@@ -139,12 +163,12 @@ def short_of(w0, w1):
     return 0x020080 | (w1 >> 6) << 16 | (w1 >> 1 & 0x1F) << 11 | rn << 8 | (w1 & 1) << 6 | wr << 4 | dd
 
 
-def shorten(ws):
-    if not isinstance(ws, Marked) or not ws.lx: return ws
-    out, i, lx = [], 0, set(ws.lx)
+def shorten(ws, msb=False, sx=True):
+    if not isinstance(ws, Marked) or not (sx and ws.lx or msb and ws.li): return ws
+    out, i, lx, li = [], 0, set(ws.lx) if sx else set(), set(ws.li) if msb else set()
     while i < len(ws):
-        if i in lx:
-            s_ = short_of(ws[i], ws[i + 1])
+        if i in lx or i in li:
+            s_ = short_of(ws[i], ws[i + 1]) if i in lx else msb_of(ws[i], ws[i + 1])
             if s_ is not None:
                 out.append(s_); i += 2; continue
         out.append(ws[i]); i += 1
@@ -160,13 +184,15 @@ class Asm:
 
     def assemble(self):
         sx = SHORTX and (self.base >= SHORTX_MIN or getattr(self, "force_sx", False))   # (force_sx: granular_dsp.use_stereo, core 1)
+        msb = SHORTMSB and self.base >= SHORTX_MIN                               # (use_shortmsb) core 0's appended code only
+        sh = lambda ws: shorten(ws, msb, sx) if sx or msb else ws
         labels, addr = {}, self.base
         sizes = []
         for it in self.items:
             if it[0] == 'L': labels[it[1]] = addr
             else:
                 args = [0 if isinstance(x, str) and x not in KEEP else x for x in it[2]]
-                n = len(it[1](*args) if callable(it[1]) else shorten(it[1]) if sx else it[1])
+                n = len(it[1](*args) if callable(it[1]) else sh(it[1]))
                 sizes.append(n); addr += n
         short = set()
         if SHORTBR and self.base >= SHORTX_MIN:                                  # (use_shortbr) the jumps near enough, on the long layout
@@ -185,7 +211,7 @@ class Asm:
         for it in self.items:
             if it[0] == 'L': continue
             fn, args = it[1], [labels[x] if isinstance(x, str) and x in labels else x for x in it[2]]
-            ws = fn(*args) if callable(fn) else shorten(fn) if sx else fn
+            ws = fn(*args) if callable(fn) else sh(fn)
             if k in short:
                 s_ = br_short(ws[0], addr, ws[1]); assert s_ is not None, (hex(addr), [hex(w) for w in ws]); ws = [s_]
             out += ws; addr += len(ws); k += 1

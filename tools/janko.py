@@ -15,14 +15,27 @@ note tracks' keyboard, a case of the custom scale (cscale).
   * the quantiser (in front of cscale's c_csq) = the note itself (all twelve notes are in the scale: the notes that sound light on their pads);
     random-mutate (in front of cscale's c_csmut) = another of the twelve notes of its octave (above the root).
 RAM: modmx.MXR + 0x500 (16 B with a signature).  In the hole (no card, no settings).
+
+SC48.2 / Beta 3.39 (use_v2; a tester, brought by the user, 2026-10-28: «I would prefer consistency, and since the chromatic scale is quite common
+(lower pitch on top), I would make Janko the same way … B0 C#1 D#1 F1 G1 A1 B1 C#2 / C1 D1 E1 F#1 G#1 A#1 C2 D2»; the user: «replace pad 8 with
+their implementation, and maybe add the old one … to pad 24. Root note is still the stock scale's root (with a different color)», and short press =
+semitone, long press = octave):
+  * B_ON = 3 = the new layout (Shift + pad 8 in the editor), B_ON = 2 = the old one (Shift + pad 24; projects saved with the old layout keep it):
+    rows in pairs, d = R - k: the row's base = 60 + w + 12 (d >> 1) - (d & 1) (the row above a semitone lower, the pair above an octave higher), + 2
+    a column; links (k, c) <-> (k - 2, c - 6) for c = 6, 7 (the same notes) on the screen's rows;
+  * the root's colour: the stock colours a pad with a link as a root (0x0804AD78: [keyboard + 0x180 + index] != 0xFF); with Jankó (either layout)
+    its ldrb.w at 0x0804AE1E -> c_jkroot: root = the value % 12 = 0 (the values are above the root, 60 = the root), whatever the links;
+  * Octave: the press = w ± 1 at once; still held HOLD_MS later (the LED task) = w0 ± 12 (an octave from where it started), clamped; the release
+    (the head of 0x0803381A) cancels it;
+  * RAM "JNK2": + 16 the press's time, + 20 its track, + 21 the w of the long press, + 22 its button (0 = none), + 23 the layout being built.
 """
 from __future__ import annotations
 import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, blx_reg, cmp_imm, cmp_reg, h, ldr_imm, ldrb_imm, ldrb_reg, lsls_imm,  # noqa: E402
-                   lsrs_imm, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm,
+from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bl, blx_reg, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg,  # noqa: E402
+                   lsls_imm, lsrs_imm, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm,
                    subs_imm3, subs_imm8, subs_reg)
 import modmx as MX  # noqa: E402
 import cscale as CS  # noqa: E402
@@ -47,6 +60,21 @@ PAD_JK = 7
 COL_ON, COL_SHIFT = 0x4D, 0x2D
 ROWS, VMAX = CS.ROWS, CS.VMAX
 INV = CS.INV
+V2 = False                                               # SC48.2 (use_v2): the new layout on pad 8, the old one on pad 24, root colour, long press
+JK3 = 3                                                  # (V2) B_ON = the new layout
+RSIG2 = 0x324B4E4A                                       # "JNK2"
+PAD_JK2 = 23                                             # (V2) pad 24 = the old layout
+HAL_TICK = 0x2000081C                                    # 1 ms
+HOLD_MS = 400
+BTN_REL = 0x0803381A                                     # the button release (ctrl, id): a b.w to the chain of heads
+COLOUR_AT, COLOUR_OLD = 0x0804AE1E, bytes.fromhex("91f88011")   # in 0x0804AD78: ldrb.w r1, [r1, #0x180] (the link: a root's colour)
+
+
+def use_v2():
+    """SC48.2: the tester's layout (the row above a semitone lower) on Shift + pad 8, the first one on Shift + pad 24, the root in its colour, a
+    long Octave press = an octave."""
+    global V2
+    V2 = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -66,8 +94,9 @@ def arm_code(base, L, prev, rowbase):
 
     # ---- c_jkram() -> r0 = our RAM (cleared the first time); clobbers r1, r2
     a.label("c_jkram")
-    imm32(0, RAM); E(ldr_imm, 1, 0, 0); imm32(2, RSIG); E(cmp_reg, 1, 2); E(b_cond, "jr_x", "eq")
+    imm32(0, RAM); E(ldr_imm, 1, 0, 0); imm32(2, RSIG2 if V2 else RSIG); E(cmp_reg, 1, 2); E(b_cond, "jr_x", "eq")
     E(str_imm, 2, 0, 0); E(movs_imm, 1, 0); E(str_imm, 1, 0, 4); E(str_imm, 1, 0, 8); E(str_imm, 1, 0, 12)
+    if V2: E(str_imm, 1, 0, 16); E(str_imm, 1, 0, 20)
     a.label("jr_x"); E(raw, RET)
 
     # ---- c_jkon() -> r0 = 1 with Jankó on (the custom scale's block valid, B_ON = 2); clobbers r1-r3
@@ -75,10 +104,14 @@ def arm_code(base, L, prev, rowbase):
     E(push_list, [4], lr=True)
     E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); E(b_cond, "jo_0", "eq"); E(mov_reg, 4, 0)
     E(ldr_imm, 1, 4, 0); imm32(2, CS.MAGIC); E(cmp_reg, 1, 2); E(b_cond, "jo_0", "ne")
-    E(ldrb_imm, 1, 4, CS.B_ON); E(cmp_imm, 1, JK); E(b_cond, "jo_0", "ne")
+    E(ldrb_imm, 1, 4, CS.B_ON); E(cmp_imm, 1, JK)
+    if V2: E(b_cond, "jo_2", "eq"); E(cmp_imm, 1, JK3)
+    E(b_cond, "jo_0", "ne")
+    if V2: a.label("jo_2")                                                             # (r1 = B_ON: the check byte holds it)
     for k in range(3): E(ldrb_imm, 2, 4, CS.B_KEYS + k); E(raw, h(0x4051))              # eors r1, r2
     E(movs_imm, 2, 0x5A); E(raw, h(0x4051)); E(ldrb_imm, 2, 4, CS.B_SUM); E(cmp_reg, 1, 2); E(b_cond, "jo_0", "ne")
-    E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
+    if V2: E(ldrb_imm, 0, 4, CS.B_ON); E(pop_list, [4], pc=True)                      # (V2) r0 = the layout, 2 or 3
+    else: E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
     a.label("jo_0"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
 
     # ---- c_jktrk() -> r0 = the note track 0..3 whose Note / expanded Note view is on the screen (not the sample picker, not the split), or 0xFF
@@ -107,13 +140,16 @@ def arm_code(base, L, prev, rowbase):
     a.label("c_jkbuild")
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(bl, KB_CLEAR)
+    if V2: E(bl, "c_jkon"); E(mov_reg, 5, 0); E(bl, "c_jkram"); E(strb_imm, 5, 0, 23)   # (V2) the layout being built
     E(bl, "c_jkram"); E(ldr_imm, 1, 0, 12); E(mov_reg, 7, 1); E(adds_reg, 0, 0, 1); E(ldrb_imm, 5, 0, 4)
     E(raw, h(0xB26D))                                                                  # sxtb r5, r5: w
     E(mov_reg, 0, 7); E(bl, "c_jkoct"); E(movs_imm, 6, rowbase + 3); E(subs_reg, 6, 6, 0)   # R = 69 - octave + 3
-    E(adds_imm8, 5, 60); E(adds_reg, 5, 5, 6)                                          # row 0's base
+    if V2: E(adds_imm8, 5, 60)                                                          # (V2) r5 = the bottom-left pad's value
+    else: E(adds_imm8, 5, 60); E(adds_reg, 5, 5, 6)                                    # row 0's base
     E(movs_imm, 7, 0)
     a.label("jb_r")
-    E(subs_reg, 0, 5, 7); E(movs_imm, 1, 0)                                            # r0 = the row's base, r1 = the column
+    if V2: E(subs_reg, 0, 6, 7); E(bl, "c_jkrowf"); E(adds_reg, 0, 0, 5); E(movs_imm, 1, 0)   # the row's base = r5 + f(R - k)
+    else: E(subs_reg, 0, 5, 7); E(movs_imm, 1, 0)                                      # r0 = the row's base, r1 = the column
     a.label("jb_c")
     E(cmp_imm, 0, 1); E(b_cond, "jb_n", "lt"); E(cmp_imm, 0, VMAX); E(b_cond, "jb_n", "gt")
     E(lsls_imm, 2, 7, 3); E(adds_reg, 2, 2, 1); E(adds_reg, 2, 2, 4); E(raw, h(0x7000 | 0x14 << 6 | 2 << 3 | 0))   # strb r0, [r2, #0x14]
@@ -135,22 +171,36 @@ def arm_code(base, L, prev, rowbase):
     a.label("jb_ix"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 8); E(b_cond, "jb_ic", "lo")
     a.label("jb_in"); E(adds_imm8, 7, 1); E(cmp_imm, 7, ROWS + 4); bc("jb_i", "lo")
     # the links: (R, c) <-> (R - 2, c - 1), (R - 1, c) <-> (R - 3, c - 1), both with a note
-    for dk in (0, 1):
-        E(subs_imm3, 0, 6, dk) if dk else E(mov_reg, 0, 6)
-        E(cmp_imm, 0, 3); bc(f"jb_le{dk}", "lt")
-        E(lsls_imm, 0, 0, 3); E(movs_imm, 1, 1)
-        a.label(f"jb_l{dk}")
-        E(adds_reg, 2, 0, 1); E(adds_reg, 3, 4, 2); E(raw, h(0x7800 | 0x14 << 6 | 3 << 3 | 3)); E(cmp_imm, 3, 0); E(b_cond, f"jb_ln{dk}", "eq")
-        E(mov_reg, 3, 2); E(subs_imm8, 3, 17)                                          # (k - 2, c - 1)
-        E(push_list, [0]); E(adds_reg, 0, 4, 3); E(raw, h(0x7800 | 0x14 << 6 | 0 << 3 | 0)); E(cmp_imm, 0, 0); E(pop_list, [0])   # ldrb r0, [r0, #0x14]
-        E(b_cond, f"jb_ln{dk}", "eq")
-        E(push_list, [0, 1]); E(movs_imm, 0, 0xC0); E(lsls_imm, 0, 0, 1); E(adds_reg, 0, 0, 4)    # + 0x180 = the links
-        E(strb_reg, 3, 0, 2); E(strb_reg, 2, 0, 3); E(pop_list, [0, 1])
-        a.label(f"jb_ln{dk}"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 8); E(b_cond, f"jb_l{dk}", "lo")
-        a.label(f"jb_le{dk}")
+    #   (V2: the old layout as before; the new one (R, c) <-> (R - 2, c - 6) and (R - 1, c) <-> (R - 3, c - 6), c = 6, 7)
+    for mode, co in (((JK, 1), (JK3, 6)) if V2 else ((None, 1),)):
+        sfx = f"m{mode}" if V2 else ""
+        if V2: imm32(0, RAM); E(ldrb_imm, 0, 0, 23); E(cmp_imm, 0, mode); bc(f"jb_lm{mode}", "ne")
+        for dk in (0, 1):
+            E(subs_imm3, 0, 6, dk) if dk else E(mov_reg, 0, 6)
+            E(cmp_imm, 0, 3); bc(f"jb_le{dk}{sfx}", "lt")
+            E(lsls_imm, 0, 0, 3); E(movs_imm, 1, co)
+            a.label(f"jb_l{dk}{sfx}")
+            E(adds_reg, 2, 0, 1); E(adds_reg, 3, 4, 2); E(raw, h(0x7800 | 0x14 << 6 | 3 << 3 | 3)); E(cmp_imm, 3, 0); E(b_cond, f"jb_ln{dk}{sfx}", "eq")
+            E(mov_reg, 3, 2); E(subs_imm8, 3, 16 + co)                                 # (k - 2, c - co)
+            E(push_list, [0]); E(adds_reg, 0, 4, 3); E(raw, h(0x7800 | 0x14 << 6 | 0 << 3 | 0)); E(cmp_imm, 0, 0); E(pop_list, [0])   # ldrb r0, [r0, #0x14]
+            E(b_cond, f"jb_ln{dk}{sfx}", "eq")
+            E(push_list, [0, 1]); E(movs_imm, 0, 0xC0); E(lsls_imm, 0, 0, 1); E(adds_reg, 0, 0, 4)    # + 0x180 = the links
+            E(strb_reg, 3, 0, 2); E(strb_reg, 2, 0, 3); E(pop_list, [0, 1])
+            a.label(f"jb_ln{dk}{sfx}"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 8); E(b_cond, f"jb_l{dk}{sfx}", "lo")
+            a.label(f"jb_le{dk}{sfx}")
+        if V2: a.label(f"jb_lm{mode}")
     E(movs_imm, 0, 0); E(movs_imm, 1, 0x98); E(lsls_imm, 1, 1, 2); E(adds_reg, 1, 4, 1); E(strb_imm, 0, 1, 0)   # + 0x260 = 0
     E(ldr_imm, 0, 4, 4); E(bl, COMMIT)
     E(pop_list, [4, 5, 6, 7], pc=True)
+
+    if V2:
+        # ---- c_jkrowf(r0 = d = R - k) -> r0 = the row's offset from the bottom-left pad: d (the old layout), 12 (d >> 1) - (d & 1) (the new);
+        #      clobbers r1, r2
+        a.label("c_jkrowf")
+        imm32(1, RAM); E(ldrb_imm, 1, 1, 23); E(cmp_imm, 1, JK3); E(b_cond, "jf_x", "ne")
+        E(raw, h(0x1041))                                                              # asrs r1, r0, #1
+        E(movs_imm, 2, 12); E(muls, 1, 2); E(movs_imm, 2, 1); E(ands_reg, 2, 0); E(subs_reg, 0, 1, 2)
+        a.label("jf_x"); E(raw, RET)
 
     # ---- c_jkslot0 (the keyboard's slot 0): Jankó when on, else the chain (cscale's / the stock's)
     a.label("c_jkslot0")
@@ -186,61 +236,155 @@ def arm_code(base, L, prev, rowbase):
     a.label("jm_r"); E(pop_list, [4, 5], pc=True)
     a.label("jm_f"); E(pop_list, [4, 5]); E(raw, POP_LR); E(b_w, prev["mut"])
 
-    # ---- c_jkbtn (the head of the button chain: ctrl, id): Octave in a note track's Note views with Jankó = its w - 1 / + 1
-    a.label("c_jkbtn")
-    E(cmp_imm, 1, ID_DOWN); E(b_cond, "jk_f", "lo"); E(cmp_imm, 1, ID_UP); E(b_cond, "jk_f", "hi")
-    E(push_list, [0, 1, 4, 5], lr=True); E(mov_reg, 5, 1)
-    E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "eq")
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "ne")
-    E(bl, "c_jktrk"); E(cmp_imm, 0, 0xFF); E(b_cond, "jk_p", "eq"); E(mov_reg, 4, 0)
-    E(bl, "c_jkram"); E(adds_reg, 0, 0, 4); E(ldrb_imm, 1, 0, 4); E(raw, h(0xB249))     # sxtb r1, r1
-    E(cmp_imm, 5, ID_UP); E(b_cond, "jk_d", "ne")
-    E(cmp_imm, 1, WMAX); E(b_cond, "jk_w", "ge"); E(adds_imm8, 1, 1); E(b, "jk_w")
-    a.label("jk_d"); E(movs_imm, 2, 0); E(subs_imm8, 2, WMAX); E(cmp_reg, 1, 2); E(b_cond, "jk_w", "le"); E(subs_imm8, 1, 1)
-    a.label("jk_w"); E(strb_imm, 1, 0, 4); E(pop_list, [0, 1, 4, 5], pc=True)
-    a.label("jk_p"); E(raw, popw([0, 1, 4, 5], lr=True))
-    a.label("jk_f"); E(b_w, prev["btn"])
+    if not V2:
+        # ---- c_jkbtn (the head of the button chain: ctrl, id): Octave in a note track's Note views with Jankó = its w - 1 / + 1
+        a.label("c_jkbtn")
+        E(cmp_imm, 1, ID_DOWN); E(b_cond, "jk_f", "lo"); E(cmp_imm, 1, ID_UP); E(b_cond, "jk_f", "hi")
+        E(push_list, [0, 1, 4, 5], lr=True); E(mov_reg, 5, 1)
+        E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "eq")
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "ne")
+        E(bl, "c_jktrk"); E(cmp_imm, 0, 0xFF); E(b_cond, "jk_p", "eq"); E(mov_reg, 4, 0)
+        E(bl, "c_jkram"); E(adds_reg, 0, 0, 4); E(ldrb_imm, 1, 0, 4); E(raw, h(0xB249))     # sxtb r1, r1
+        E(cmp_imm, 5, ID_UP); E(b_cond, "jk_d", "ne")
+        E(cmp_imm, 1, WMAX); E(b_cond, "jk_w", "ge"); E(adds_imm8, 1, 1); E(b, "jk_w")
+        a.label("jk_d"); E(movs_imm, 2, 0); E(subs_imm8, 2, WMAX); E(cmp_reg, 1, 2); E(b_cond, "jk_w", "le"); E(subs_imm8, 1, 1)
+        a.label("jk_w"); E(strb_imm, 1, 0, 4); E(pop_list, [0, 1, 4, 5], pc=True)
+        a.label("jk_p"); E(raw, popw([0, 1, 4, 5], lr=True))
+        a.label("jk_f"); E(b_w, prev["btn"])
 
-    # ---- c_jkpad (the Scales view's slot 0: view, pad, velocity): in the editor Shift + pad 8 = Jankó on / off
-    a.label("c_jkpad")
-    E(push_list, [0, 1, 2, 4, 5], lr=True)
-    E(cmp_imm, 1, PAD_JK); bc("jp_f", "ne")
-    E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); bc("jp_f", "eq"); E(mov_reg, 4, 0)
-    E(ldrb_imm, 0, 4, CS.B_ED); E(cmp_imm, 0, 0); bc("jp_f", "eq")
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("jp_f", "eq")
-    E(movs_imm, 5, 0)                                                                  # r5 = the keys (0 without a block)
-    E(ldr_imm, 1, 4, 0); imm32(2, CS.MAGIC); E(cmp_reg, 1, 2); E(b_cond, "jp_k", "ne")
-    E(mov_reg, 0, 4); E(bl, L["c_cskeys"]); E(mov_reg, 5, 0)
-    a.label("jp_k")
-    E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jp_on", "eq")
-    E(movs_imm, 0, 0); E(cmp_imm, 5, 0); E(b_cond, "jp_w", "eq"); E(movs_imm, 0, 1); E(b, "jp_w")    # off: the custom scale again (if any keys)
-    a.label("jp_on"); E(movs_imm, 0, JK)
-    a.label("jp_w"); E(mov_reg, 1, 5); E(bl, L["c_csput"])
-    E(pop_list, [0, 1, 2, 4, 5], pc=True)
-    a.label("jp_f"); E(raw, popw([0, 1, 2, 4, 5], lr=True)); E(b_w, prev["pad"])
+        # ---- c_jkpad (the Scales view's slot 0: view, pad, velocity): in the editor Shift + pad 8 = Jankó on / off
+        a.label("c_jkpad")
+        E(push_list, [0, 1, 2, 4, 5], lr=True)
+        E(cmp_imm, 1, PAD_JK); bc("jp_f", "ne")
+        E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); bc("jp_f", "eq"); E(mov_reg, 4, 0)
+        E(ldrb_imm, 0, 4, CS.B_ED); E(cmp_imm, 0, 0); bc("jp_f", "eq")
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("jp_f", "eq")
+        E(movs_imm, 5, 0)                                                                  # r5 = the keys (0 without a block)
+        E(ldr_imm, 1, 4, 0); imm32(2, CS.MAGIC); E(cmp_reg, 1, 2); E(b_cond, "jp_k", "ne")
+        E(mov_reg, 0, 4); E(bl, L["c_cskeys"]); E(mov_reg, 5, 0)
+        a.label("jp_k")
+        E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jp_on", "eq")
+        E(movs_imm, 0, 0); E(cmp_imm, 5, 0); E(b_cond, "jp_w", "eq"); E(movs_imm, 0, 1); E(b, "jp_w")    # off: the custom scale again (if any keys)
+        a.label("jp_on"); E(movs_imm, 0, JK)
+        a.label("jp_w"); E(mov_reg, 1, 5); E(bl, L["c_csput"])
+        E(pop_list, [0, 1, 2, 4, 5], pc=True)
+        a.label("jp_f"); E(raw, popw([0, 1, 2, 4, 5], lr=True)); E(b_w, prev["pad"])
 
-    # ---- c_jkleds (the Scales view's slot 7: view) -> r0 = its LED buffer: in the editor pad 8 cyan with Jankó, yellow with Shift
-    a.label("c_jkleds")
-    E(push_list, [4, 5], lr=True)
-    E(bl, prev["leds"]); E(mov_reg, 5, 0)
-    E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq"); E(ldrb_imm, 0, 0, CS.B_ED); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq")
-    E(movs_imm, 4, COL_ON); E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jl_w", "ne")
-    E(movs_imm, 4, 0); E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "jl_w", "eq"); E(movs_imm, 4, COL_SHIFT)
-    a.label("jl_w"); E(strh_imm, 4, 5, 2 * PAD_JK)
-    a.label("jl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5], pc=True)
+        # ---- c_jkleds (the Scales view's slot 7: view) -> r0 = its LED buffer: in the editor pad 8 cyan with Jankó, yellow with Shift
+        a.label("c_jkleds")
+        E(push_list, [4, 5], lr=True)
+        E(bl, prev["leds"]); E(mov_reg, 5, 0)
+        E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq"); E(ldrb_imm, 0, 0, CS.B_ED); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq")
+        E(movs_imm, 4, COL_ON); E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jl_w", "ne")
+        E(movs_imm, 4, 0); E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "jl_w", "eq"); E(movs_imm, 4, COL_SHIFT)
+        a.label("jl_w"); E(strh_imm, 4, 5, 2 * PAD_JK)
+        a.label("jl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5], pc=True)
+
+    else:
+        # ---- c_jkclamp(r0 = w) -> r0 within -WMAX..WMAX; clobbers r3
+        a.label("c_jkclamp")
+        E(cmp_imm, 0, WMAX); E(b_cond, "jc_l", "le"); E(movs_imm, 0, WMAX)
+        a.label("jc_l"); E(movs_imm, 3, 0); E(subs_imm8, 3, WMAX); E(cmp_reg, 0, 3); E(b_cond, "jc_x", "ge"); E(mov_reg, 0, 3)
+        a.label("jc_x"); E(raw, RET)
+
+        # ---- c_jkbtn (the head of the button chain: ctrl, id): Octave in a note track's Note views with Jankó = its w ± 1 now; the long press
+        #      (the LED task, HOLD_MS later) = the w of the press ± 12
+        a.label("c_jkbtn")
+        E(cmp_imm, 1, ID_DOWN); E(b_cond, "jk_f", "lo"); E(cmp_imm, 1, ID_UP); E(b_cond, "jk_f", "hi")
+        E(push_list, [0, 1, 4, 5, 6], lr=True); E(mov_reg, 5, 1)
+        E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "eq")
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "jk_p", "ne")
+        E(bl, "c_jktrk"); E(cmp_imm, 0, 0xFF); E(b_cond, "jk_p", "eq"); E(mov_reg, 4, 0)
+        E(bl, "c_jkram"); E(mov_reg, 6, 0); E(adds_reg, 0, 0, 4); E(ldrb_imm, 1, 0, 4); E(raw, h(0xB249))   # sxtb r1, r1: w0
+        E(movs_imm, 2, 1); E(cmp_imm, 5, ID_UP); E(b_cond, "jk_s", "eq"); E(movs_imm, 2, 0); E(subs_imm8, 2, 1)   # r2 = the step, +- 1
+        a.label("jk_s")
+        E(adds_reg, 0, 1, 2); E(bl, "c_jkclamp"); E(adds_reg, 3, 6, 4); E(strb_imm, 0, 3, 4)           # w = w0 +- 1
+        E(movs_imm, 0, 12); E(muls, 0, 2); E(adds_reg, 0, 0, 1); E(bl, "c_jkclamp"); E(strb_imm, 0, 6, 21)   # the long press's w0 +- 12
+        E(strb_imm, 4, 6, 20); E(strb_imm, 5, 6, 22)
+        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(str_imm, 0, 6, 16)
+        E(pop_list, [0, 1, 4, 5, 6], pc=True)
+        a.label("jk_p"); E(raw, popw([0, 1, 4, 5, 6], lr=True))
+        a.label("jk_f"); E(b_w, prev["btn"])
+
+        # ---- c_jkrel (the head of the button release: ctrl, id): the release of the Octave button pressed cancels its long press
+        a.label("c_jkrel")
+        E(push_list, [0, 1], lr=True)
+        E(bl, "c_jkram"); E(ldrb_imm, 2, 0, 22); E(ldr_sp, 1, 4); E(cmp_reg, 2, 1); E(b_cond, "jr2_x", "ne")
+        E(movs_imm, 2, 0); E(strb_imm, 2, 0, 22)
+        a.label("jr2_x"); E(pop_list, [0, 1]); E(raw, POP_LR); E(b_w, prev["rel"])
+
+        # ---- c_jkroot (0x0804AE1E in the pad colour 0x0804AD78: r1 = keyboard + index) -> r1 = its link (0xFF = not a root's colour); with
+        #      Jankó a root = the value % 12 = 0 (r1 = 0) whatever the links; clobbers r0, r2, r3
+        a.label("c_jkroot")
+        E(push_list, [1], lr=True)
+        E(bl, "c_jkon"); E(pop_list, [1]); E(cmp_imm, 0, 0); E(b_cond, "jo2_s", "eq")
+        E(raw, h(0x7800 | 0x14 << 6 | 1 << 3 | 0))                                     # ldrb r0, [r1, #0x14]: the value
+        E(movs_imm, 2, 12); E(raw, udiv(3, 0, 2)); E(muls, 3, 2); E(subs_reg, 0, 0, 3)
+        E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "jo2_x", "eq"); E(movs_imm, 1, 0xFF)
+        a.label("jo2_x"); E(raw, h(0xBD00))                                             # pop {pc}
+        a.label("jo2_s"); E(movs_imm, 0, 0xC0); E(lsls_imm, 0, 0, 1); E(ldrb_reg, 1, 1, 0); E(raw, h(0xBD00))   # the stock's link
+
+        # ---- c_jkpad (the Scales view's slot 0: view, pad, velocity): in the editor Shift + pad 8 = the new layout on / off, Shift + pad 24 =
+        #      the old one
+        a.label("c_jkpad")
+        E(push_list, [0, 1, 2, 4, 5], lr=True)
+        E(cmp_imm, 1, PAD_JK); E(b_cond, "jp_y", "eq"); E(cmp_imm, 1, PAD_JK2); bc("jp_f", "ne")
+        a.label("jp_y")
+        E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); bc("jp_f", "eq"); E(mov_reg, 4, 0)
+        E(ldrb_imm, 0, 4, CS.B_ED); E(cmp_imm, 0, 0); bc("jp_f", "eq")
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("jp_f", "eq")
+        E(movs_imm, 5, 0)                                                              # r5 = the keys (0 without a block)
+        E(ldr_imm, 1, 4, 0); imm32(2, CS.MAGIC); E(cmp_reg, 1, 2); E(b_cond, "jp_k", "ne")
+        E(mov_reg, 0, 4); E(bl, L["c_cskeys"]); E(mov_reg, 5, 0)
+        a.label("jp_k")
+        E(movs_imm, 4, JK3); E(ldr_sp, 1, 4); E(cmp_imm, 1, PAD_JK); E(b_cond, "jp_m", "eq"); E(movs_imm, 4, JK)   # r4 = the layout of the pad
+        a.label("jp_m")
+        E(bl, "c_jkon"); E(cmp_reg, 0, 4); E(b_cond, "jp_on", "ne")
+        E(movs_imm, 0, 0); E(cmp_imm, 5, 0); E(b_cond, "jp_w", "eq"); E(movs_imm, 0, 1); E(b, "jp_w")    # off: the custom scale again (if any keys)
+        a.label("jp_on"); E(mov_reg, 0, 4)
+        a.label("jp_w"); E(mov_reg, 1, 5); E(bl, L["c_csput"])
+        E(pop_list, [0, 1, 2, 4, 5], pc=True)
+        a.label("jp_f"); E(raw, popw([0, 1, 2, 4, 5], lr=True)); E(b_w, prev["pad"])
+
+        # ---- c_jkleds (the Scales view's slot 7: view) -> r0 = its LED buffer: in the editor pad 8 / 24 cyan with their layout, yellow with
+        #      Shift
+        a.label("c_jkleds")
+        E(push_list, [4, 5, 6], lr=True)
+        E(bl, prev["leds"]); E(mov_reg, 5, 0)
+        E(bl, L["c_csblk"]); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq"); E(ldrb_imm, 0, 0, CS.B_ED); E(cmp_imm, 0, 0); E(b_cond, "jl_x", "eq")
+        E(bl, "c_jkon"); E(mov_reg, 6, 0)
+        for pad, mode in ((PAD_JK, JK3), (PAD_JK2, JK)):
+            E(movs_imm, 4, COL_ON); E(cmp_imm, 6, mode); E(b_cond, f"jl_w{pad}", "eq")
+            E(movs_imm, 4, 0); E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, f"jl_w{pad}", "eq"); E(movs_imm, 4, COL_SHIFT)
+            a.label(f"jl_w{pad}"); E(strh_imm, 4, 5, 2 * pad)
+        a.label("jl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_jkledtask (the LED task calls: ctrl, frame): the chain; the tables rebuilt when Jankó / the track / its w / its octave change
     a.label("c_jkledtask")
     E(push_list, [3, 4, 5, 6], lr=True)
     E(bl, prev["ledtask"])
     E(bl, "c_jkram"); E(mov_reg, 4, 0)
+    if V2:
+        # a long press: HOLD_MS after it, still held = the w of the press +- 12
+        E(ldrb_imm, 0, 4, 22); E(cmp_imm, 0, 0); E(b_cond, "jh_x", "eq")
+        imm32(1, HAL_TICK); E(ldr_imm, 1, 1, 0); E(ldr_imm, 0, 4, 16); E(subs_reg, 1, 1, 0)
+        imm32(0, HOLD_MS); E(cmp_reg, 1, 0); E(b_cond, "jh_x", "lo")
+        E(ldrb_imm, 0, 4, 20); E(adds_reg, 0, 4, 0); E(ldrb_imm, 1, 4, 21); E(strb_imm, 1, 0, 4)
+        E(movs_imm, 0, 0); E(strb_imm, 0, 4, 22)
+        a.label("jh_x")
     imm32(0, CONT); E(bl, SEL_TRACK); E(cmp_imm, 0, 3); E(b_cond, "jx_t", "hi"); E(str_imm, 0, 4, 12)
     a.label("jx_t")
     E(movs_imm, 5, 0)                                                                  # r5 = the stamp wanted
     E(bl, "c_jkon"); E(cmp_imm, 0, 0); E(b_cond, "jx_c", "eq")
-    E(ldr_imm, 6, 4, 12); E(mov_reg, 0, 6); E(bl, "c_jkoct"); E(mov_reg, 5, 0)        # octave
-    E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, 4); E(lsls_imm, 0, 0, 8); E(orrs_reg, 5, 0)   # w << 8
-    E(lsls_imm, 0, 6, 16); E(orrs_reg, 5, 0); E(movs_imm, 0, 1); E(lsls_imm, 0, 0, 24); E(orrs_reg, 5, 0)
+    if V2:
+        E(lsls_imm, 5, 0, 24)                                                          # the layout << 24
+        E(ldr_imm, 6, 4, 12); E(mov_reg, 0, 6); E(bl, "c_jkoct"); E(orrs_reg, 5, 0)    # octave
+        E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, 4); E(lsls_imm, 0, 0, 8); E(orrs_reg, 5, 0)   # w << 8
+        E(lsls_imm, 0, 6, 16); E(orrs_reg, 5, 0)
+    else:
+        E(ldr_imm, 6, 4, 12); E(mov_reg, 0, 6); E(bl, "c_jkoct"); E(mov_reg, 5, 0)    # octave
+        E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, 4); E(lsls_imm, 0, 0, 8); E(orrs_reg, 5, 0)   # w << 8
+        E(lsls_imm, 0, 6, 16); E(orrs_reg, 5, 0); E(movs_imm, 0, 1); E(lsls_imm, 0, 0, 24); E(orrs_reg, 5, 0)
     a.label("jx_c")
     E(ldr_imm, 0, 4, 8); E(cmp_reg, 0, 5); E(b_cond, "jx_x", "eq")
     E(str_imm, 5, 4, 8)
@@ -266,6 +410,7 @@ def install(img, report, base_addr):
     assert rowbase == 69, rowbase
     prev = dict(slot0=u(KB_VT) & ~1, quant=bw_decode(img, QUANT, BASE), mut=bw_decode(img, mut, BASE), pad=u(SCALES_VT) & ~1,
                 leds=u(SCALES_VT + 28) & ~1, btn=MP.bw_target(img, CS.BTN_ENTRY, BASE), ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
+    if V2: prev["rel"] = MP.bw_target(img, BTN_REL, BASE)
     assert prev["slot0"] == L["c_csslot0"] and prev["quant"] == L["c_csq"] and prev["mut"] == L["c_csmut"], prev
     assert prev["pad"] == L["c_cspad"] and prev["leds"] == L["c_csleds"], prev
     code, labels = arm_code(base_addr, L, prev, rowbase)
@@ -281,4 +426,8 @@ def install(img, report, base_addr):
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)
         put(c, bl_enc(c, labels["c_jkledtask"]))
+    if V2:
+        put(BTN_REL, bw_enc(BTN_REL, labels["c_jkrel"]))
+        assert bytes(img[COLOUR_AT - BASE:COLOUR_AT - BASE + 4]) == COLOUR_OLD
+        put(COLOUR_AT, bl_enc(COLOUR_AT, labels["c_jkroot"]))
     return labels, code, prev

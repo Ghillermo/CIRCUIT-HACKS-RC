@@ -34,7 +34,10 @@ def main(img, man):
     t += 1000; e.at(t); e.btn(3); t += 150; e.at(t); e.btn(3)
     check(cur() == 27, f"MIDI 2 twice: its Preset view ({cur()})")
     t += 1000; e.at(t); e.btn(2); c3 = cur(); t += 150; e.at(t); e.shift(True); e.btn(2); e.shift(False)
-    check(cur() == c3, f"with Shift: nothing of ours ({c3} -> {cur()})")
+    if "dblpress" in man["report"]:                                              # SC48.3: Shift + MIDI = pressing it twice
+        check(cur() == 18, f"with Shift (dblpress): its Preset view ({c3} -> {cur()})")
+    else:
+        check(cur() == c3, f"with Shift: nothing of ours ({c3} -> {cur()})")
     t += 1000; e.at(t); e.btn(2); t += 150; e.at(t); e.btn(2); f = X.frame(e)
     check(cur() == 18 and f[M.PAD] & 0xFF == M.COL_OFF, f"MIDI 1 Preset view, the engine off: pad 27 dim white ({f[M.PAD]:#x})")
     e.pad(26); e.pad(16 + 2); e.pad(26); f = X.frame(e)

@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
                    mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm, strh_reg,
-                   subs_imm8, subs_reg)
+                   subs_imm8, subs_reg, ldrh_imm, lsls_reg, bics_reg, tst_reg)
 import modmx as MX  # noqa: E402
 
 MGR, S_CUR = 0x20040B10, 0x152
@@ -41,6 +41,31 @@ TYPES = ((0, 4, 7), (0, 3, 7), (0, 4, 7, 10), (0, 3, 7, 10), (0, 4, 7, 11), (0, 
 COL_DIM, COL_SEL, COL_SHIFT, COL_INV, COL_ON = 0x02, 0x01, 0x2D, 0x09, 0x17
 VMAX = 139
 INV = {"eq": "ne", "ne": "eq", "hs": "lo", "lo": "hs", "hi": "ls", "ls": "hi", "ge": "lt", "lt": "ge", "gt": "le", "le": "gt"}
+LIVE = False                                             # SC48.4 (use_live)
+SLATCH = False                                           # SC48.4 (use_slatch)
+O_ROOT, O_VEL, O_SLAT = 160, 176, 192                    # (LIVE) each held slot's root and velocity; (SLATCH) the Shift-latched slots (16 bits)
+COL_SLAT = 0x4D                                          # (SLATCH) with Shift: a latched chord's root bright cyan (arpx.use_latchcyan's colour)
+
+
+def use_live():
+    """SC48.4 / Beta 3.41 (the user, 2026-10-28: «make chords (and arpeggiator) in chord mode change immediately instead of waiting for next
+    press»): a pad of rows 1-2 that changes the chord (the type, Shift: page 2; the inversion; open voicing, the root an octave down, diatonic)
+    rebuilds at once every chord the track holds (the roots held, the latched ones): the notes that leave get their note-off, the new ones their
+    note-on (the press's velocity, through the root pad), the notes that stay go on sounding; the arpeggiator follows (its held notes come from
+    the same live note-on / off).  Each held slot keeps its root (+ O_ROOT) and velocity (+ O_VEL); the RAM grows to 196 B, signed "CHD2"."""
+    global LIVE, RSZ, RSIG
+    LIVE = True
+    RSZ, RSIG = 196, 0x32444843
+
+
+def use_slatch():
+    """SC48.4 / Beta 3.41 (the user, 2026-10-28: «make latch work on chord mode (it latches all the notes in the selected chord)»): Shift + a root
+    = its chord latched (arpx's Shift + key latch, for chords): its release ignored, it sounds until the next press of that root (which only
+    stops it), Clear + the track's button (latchclr.use_chords) or the chord screen off; several can be latched; with Shift its root bright cyan
+    (the latched notes' colour).  The chord screen's own latch (pad 16) stays as it was.  Bits in + O_SLAT (a slot's bit goes with c_choff)."""
+    global SLATCH
+    assert LIVE
+    SLATCH = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -159,6 +184,9 @@ def arm_code(base, L, prev):
     E(ldrb_reg, 0, 4, 6); E(adds_reg, 1, 5, 7); E(adds_imm8, 1, 0x40); E(strb_imm, 0, 1, 0)
     E(mov_reg, 0, 5); E(mov_reg, 1, 7); E(bl, NOTE_OFF); E(adds_imm8, 6, 1); E(b, "co_l")
     a.label("co_e"); E(movs_imm, 0, 0); E(strb_imm, 0, 4, 6); E(strb_imm, 0, 4, 7)
+    if SLATCH:                                                                         # (SLATCH) its Shift latch gone with it
+        E(bl, "c_chram"); E(adds_imm8, 0, O_SLAT); E(ldrh_imm, 1, 0, 0); E(mov_reg, 2, 7); E(subs_imm8, 2, 16)
+        E(movs_imm, 3, 1); E(lsls_reg, 3, 2); E(bics_reg, 1, 3); E(strh_imm, 1, 0, 0)
     a.label("co_x"); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_challoff(r0 = track): its held chords off, its latch dropped; clobbers r0-r3
@@ -171,6 +199,77 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 6, O_LAT); E(subs_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "ca_n", "ne"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_LAT)
     a.label("ca_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 16); E(b_cond, "ca_l", "lo")
     E(pop_list, [4, 5, 6], pc=True)
+
+    if LIVE:
+        # ---- c_chin(r0 = a note, r1 = an array, r2 = its length) -> r0 = 1 when the note is in it; clobbers r2, r3
+        a.label("c_chin")
+        a.label("cn_l"); E(cmp_imm, 2, 0); E(b_cond, "cn_0", "eq"); E(subs_imm8, 2, 1); E(ldrb_reg, 3, 1, 2); E(cmp_reg, 3, 0); E(b_cond, "cn_l", "ne")
+        E(movs_imm, 0, 1); E(raw, RET)
+        a.label("cn_0"); E(movs_imm, 0, 0); E(raw, RET)
+
+        # ---- c_chlive(r0 = track): every chord it holds (held roots, latched) rebuilt with the settings now; clobbers r0-r3
+        #      r4 = RAM, r5 = the slot, r6 = the track, r7 = the view, r8 = the new count, r9 = the old count, r10 = the slot's record, r11 = i
+        a.label("c_chlive")
+        E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
+        E(mov_reg, 6, 0); E(bl, "c_chram"); E(mov_reg, 4, 0); E(mov_reg, 0, 6); E(bl, "c_chview"); E(mov_reg, 7, 0)
+        E(movs_imm, 5, 0)
+        a.label("cv_s")
+        E(lsls_imm, 0, 5, 3); E(adds_reg, 0, 0, 4); E(adds_imm8, 0, O_HELD); E(mov_reg, 10, 0)
+        E(ldrb_imm, 1, 0, 7); E(subs_imm8, 1, 1); E(cmp_reg, 1, 6); bc("cv_n", "ne")      # this track's
+        E(ldrb_imm, 1, 0, 6); E(cmp_imm, 1, 0); bc("cv_n", "eq"); E(mov_reg, 9, 1)
+        E(adds_reg, 1, 4, 5); E(adds_imm8, 1, O_ROOT); E(ldrb_imm, 1, 1, 0); E(mov_reg, 0, 6); E(bl, "c_chbuild"); E(mov_reg, 8, 0)
+        E(movs_imm, 0, 0); E(mov_reg, 11, 0)
+        a.label("cv_o")                                                                # the old notes that leave: off
+        E(mov_reg, 0, 11); E(mov_reg, 1, 9); E(cmp_reg, 0, 1); E(b_cond, "cv_oe", "hs")
+        E(mov_reg, 1, 10); E(ldrb_reg, 0, 1, 0); E(push_list, [0])
+        E(mov_reg, 1, 4); E(adds_imm8, 1, O_BUF); E(mov_reg, 2, 8); E(bl, "c_chin"); E(mov_reg, 1, 0); E(pop_list, [0])
+        E(cmp_imm, 1, 0); E(b_cond, "cv_on", "ne")
+        E(adds_reg, 1, 7, 5); E(adds_imm8, 1, 0x50); E(strb_imm, 0, 1, 0)                 # [view + 0x40 + pad] = the note
+        E(mov_reg, 0, 7); E(mov_reg, 1, 5); E(adds_imm8, 1, 16); E(bl, NOTE_OFF)
+        a.label("cv_on"); E(mov_reg, 0, 11); E(adds_imm8, 0, 1); E(mov_reg, 11, 0); E(b, "cv_o")
+        a.label("cv_oe"); E(movs_imm, 0, 0); E(mov_reg, 11, 0)
+        a.label("cv_p")                                                                # the new notes that come: on
+        E(mov_reg, 0, 11); E(mov_reg, 1, 8); E(cmp_reg, 0, 1); E(b_cond, "cv_pe", "hs")
+        E(mov_reg, 1, 4); E(adds_imm8, 1, O_BUF); E(ldrb_reg, 0, 1, 0); E(push_list, [0])
+        E(mov_reg, 1, 10); E(mov_reg, 2, 9); E(bl, "c_chin"); E(mov_reg, 1, 0); E(pop_list, [0])
+        E(cmp_imm, 1, 0); E(b_cond, "cv_pn", "ne")
+        E(mov_reg, 1, 0); E(adds_reg, 2, 4, 5); E(adds_imm8, 2, O_VEL); E(ldrb_imm, 2, 2, 0); E(mov_reg, 3, 5); E(adds_imm8, 3, 16)
+        E(mov_reg, 0, 7); E(bl, NOTE_ON)
+        a.label("cv_pn"); E(mov_reg, 0, 11); E(adds_imm8, 0, 1); E(mov_reg, 11, 0); E(b, "cv_p")
+        a.label("cv_pe"); E(movs_imm, 0, 0)
+        a.label("cv_c"); E(mov_reg, 1, 8); E(cmp_reg, 0, 1); E(b_cond, "cv_ce", "hs")      # the slot = the new chord
+        E(mov_reg, 1, 4); E(adds_imm8, 1, O_BUF); E(ldrb_reg, 2, 1, 0); E(mov_reg, 1, 10); E(strb_reg, 2, 1, 0); E(adds_imm8, 0, 1); E(b, "cv_c")
+        a.label("cv_ce"); E(mov_reg, 1, 10); E(mov_reg, 0, 8); E(strb_imm, 0, 1, 6)
+        E(adds_reg, 0, 4, 5); E(adds_imm8, 0, O_ROOT); E(ldrb_imm, 0, 0, 0); E(adds_reg, 1, 7, 5); E(adds_imm8, 1, 0x50); E(strb_imm, 0, 1, 0)   # the root pad held
+        E(adds_reg, 0, 4, 5); E(adds_imm8, 0, O_VEL); E(ldrb_imm, 0, 0, 0); E(adds_imm8, 1, 0x20); E(strb_imm, 0, 1, 0)
+        a.label("cv_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 16); bc("cv_s", "lo")
+        E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, RET)
+
+    if SLATCH:
+        # ---- c_chslclr(r0 = track): its Shift-latched chords off (latchclr: Clear + the track's button); clobbers r0-r3
+        a.label("c_chslclr")
+        E(push_list, [4, 5, 6], lr=True)
+        E(mov_reg, 6, 0); E(bl, "c_chram"); E(mov_reg, 5, 0); E(movs_imm, 4, 0)
+        a.label("cs_l")
+        E(mov_reg, 0, 5); E(adds_imm8, 0, O_SLAT); E(ldrh_imm, 0, 0, 0); E(movs_imm, 1, 1); E(lsls_reg, 1, 4); E(tst_reg, 0, 1); E(b_cond, "cs_n", "eq")
+        E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 5); E(adds_imm8, 0, O_HELD); E(ldrb_imm, 0, 0, 7); E(subs_imm8, 0, 1); E(cmp_reg, 0, 6); E(b_cond, "cs_n", "ne")
+        E(mov_reg, 0, 4); E(bl, "c_choff")
+        a.label("cs_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 16); E(b_cond, "cs_l", "lo")
+        E(pop_list, [4, 5, 6], pc=True)
+
+        # ---- c_chlat(r0 = track, r1 = a buffer of 96 B) -> r0 = how many notes its latched chords hold (Shift, the screen's latch), copied there;
+        #      clobbers r1-r3 (latchstep: Shift + a step in the Note view)
+        a.label("c_chlat")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(mov_reg, 6, 0); E(mov_reg, 7, 1); E(push_list, [1]); E(bl, "c_chram"); E(mov_reg, 5, 0); E(movs_imm, 4, 0)
+        a.label("cl2_l")
+        E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 5); E(adds_imm8, 0, O_HELD); E(ldrb_imm, 1, 0, 7); E(subs_imm8, 1, 1); E(cmp_reg, 1, 6); E(b_cond, "cl2_n", "ne")
+        E(mov_reg, 1, 5); E(adds_imm8, 1, O_SLAT); E(ldrh_imm, 1, 1, 0); E(movs_imm, 2, 1); E(lsls_reg, 2, 4); E(tst_reg, 1, 2); E(b_cond, "cl2_y", "ne")
+        E(ldrb_imm, 1, 5, O_LAT); E(subs_imm8, 1, 1); E(cmp_reg, 1, 4); E(b_cond, "cl2_n", "ne")
+        a.label("cl2_y"); E(ldrb_imm, 1, 0, 6); E(movs_imm, 2, 0)                        # r0 = the slot: its notes appended
+        a.label("cl2_c"); E(cmp_reg, 2, 1); E(b_cond, "cl2_n", "hs"); E(ldrb_reg, 3, 0, 2); E(strb_imm, 3, 7, 0); E(adds_imm8, 7, 1); E(adds_imm8, 2, 1); E(b, "cl2_c")
+        a.label("cl2_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 16); E(b_cond, "cl2_l", "lo")
+        E(pop_list, [1]); E(subs_reg, 0, 7, 1); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_chpad (the container's slot 0: obj, pad, velocity)
     #      r4 = RAM, r5 = the pad, r6 = the track, r7 = the flags' address
@@ -188,16 +287,20 @@ def arm_code(base, L, prev):
     E(ldr_imm, 0, 4, O_SW); E(movs_imm, 1, 1); E(raw, h(0x40A9)); E(orrs_reg, 0, 1); E(str_imm, 0, 4, O_SW)   # swallowed (its release too)
     E(cmp_imm, 5, 8); E(b_cond, "cp_m", "hs")
     E(mov_reg, 0, 5); E(cmp_imm, 3, 0); E(b_cond, "cp_ty", "eq"); E(adds_imm8, 0, 8)     # row 1: the type (Shift: page 2)
-    a.label("cp_ty"); E(adds_reg, 1, 4, 6); E(strb_imm, 0, 1, O_TY); E(b, "cp_x")
+    a.label("cp_ty"); E(adds_reg, 1, 4, 6); E(strb_imm, 0, 1, O_TY); E(b, "cp_lv" if LIVE else "cp_x")
     a.label("cp_m"); E(cmp_imm, 5, 16); E(b_cond, "cp_r", "hs")
     E(mov_reg, 0, 5); E(subs_imm8, 0, 8); E(cmp_imm, 0, 4); E(b_cond, "cp_g", "hs")      # pads 9-12: the inversion (the same again = root)
     E(adds_reg, 1, 4, 6); E(ldrb_imm, 2, 1, O_INV); E(cmp_reg, 2, 0); E(b_cond, "cp_iv", "ne"); E(movs_imm, 0, 0)
-    a.label("cp_iv"); E(strb_imm, 0, 1, O_INV); E(b, "cp_x")
+    a.label("cp_iv"); E(strb_imm, 0, 1, O_INV); E(b, "cp_lv" if LIVE else "cp_x")
     a.label("cp_g"); E(subs_imm8, 0, 3); E(movs_imm, 1, 1); E(raw, h(0x4081)); E(ldrb_imm, 0, 7, 0); E(raw, h(0x4048)); E(strb_imm, 0, 7, 0)   # lsls r1, r0; eors r0, r1
-    E(cmp_imm, 1, F_LATCH); bc("cp_x", "ne"); E(raw, h(0x4208)); bc("cp_x", "ne")   # latch off: the latched chord off
+    E(cmp_imm, 1, F_LATCH); bc("cp_lv" if LIVE else "cp_x", "ne"); E(raw, h(0x4208)); bc("cp_x", "ne")   # latch off: the latched chord off
     E(ldrb_imm, 0, 4, O_LAT); E(cmp_imm, 0, 0); bc("cp_x", "eq"); E(subs_imm8, 0, 1); E(bl, "c_choff"); E(movs_imm, 0, 0); E(strb_imm, 0, 4, O_LAT)
     E(b, "cp_x")
     a.label("cp_r")                                                                    # a root
+    if SLATCH:                                                                         # (SLATCH) its chord Shift-latched: this press only stops it
+        E(mov_reg, 0, 4); E(adds_imm8, 0, O_SLAT); E(ldrh_imm, 1, 0, 0); E(mov_reg, 2, 5); E(subs_imm8, 2, 16); E(movs_imm, 3, 1); E(lsls_reg, 3, 2)
+        E(tst_reg, 1, 3); E(b_cond, "cp_nsl", "eq"); E(mov_reg, 0, 2); E(bl, "c_choff"); E(b, "cp_x")
+        a.label("cp_nsl")
     E(ldrb_imm, 0, 7, 0); E(movs_imm, 1, F_LATCH); E(raw, h(0x4208)); E(b_cond, "cp_rh", "eq")
     E(ldrb_imm, 0, 4, O_LAT); E(cmp_imm, 0, 0); E(b_cond, "cp_rh", "eq"); E(subs_imm8, 0, 1); E(bl, "c_choff"); E(movs_imm, 0, 0); E(strb_imm, 0, 4, O_LAT)
     a.label("cp_rh"); E(mov_reg, 0, 5); E(subs_imm8, 0, 16); E(bl, "c_choff")
@@ -208,6 +311,8 @@ def arm_code(base, L, prev):
     E(push_list, [1]); E(mov_reg, 0, 6); E(bl, "c_chbuild"); E(pop_list, [1])
     E(lsls_imm, 2, 5, 3); E(subs_imm8, 2, 128); E(adds_reg, 2, 2, 4); E(adds_imm8, 2, O_HELD)   # r2 = the slot (pad - 16) x 8
     E(strb_imm, 0, 2, 6); E(adds_imm8, 6, 1); E(strb_imm, 6, 2, 7); E(subs_imm8, 6, 1)    # count, track + 1
+    if LIVE:                                                                           # (LIVE) its root and velocity kept
+        E(adds_reg, 0, 4, 5); E(adds_imm8, 0, O_ROOT - 16); E(strb_imm, 1, 0, 0); E(ldr_sp, 3, 8); E(adds_imm8, 0, O_VEL - O_ROOT); E(strb_imm, 3, 0, 0)
     E(push_list, [1, 2]); E(movs_imm, 3, 0)
     a.label("cp_nl"); E(raw, h(0x9A01)); E(ldrb_imm, 0, 2, 6); E(cmp_reg, 3, 0); E(b_cond, "cp_ne", "hs")   # ldr r2, [sp, #4]
     E(adds_reg, 0, 4, 3); E(ldrb_imm, 1, 0, O_BUF); E(adds_reg, 0, 2, 3); E(strb_imm, 1, 0, 0)
@@ -215,8 +320,14 @@ def arm_code(base, L, prev):
     E(adds_imm8, 3, 1); E(b, "cp_nl")
     a.label("cp_ne"); E(pop_list, [1, 2])
     E(adds_reg, 0, 7, 5); E(adds_imm8, 0, 0x40); E(strb_imm, 1, 0, 0); E(ldr_sp, 1, 8); E(adds_imm8, 0, 0x20); E(strb_imm, 1, 0, 0)   # the root pad held
+    if SLATCH:                                                                         # (SLATCH) Shift: latched (not the screen's latch)
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "cp_nsh", "eq")
+        E(mov_reg, 0, 4); E(adds_imm8, 0, O_SLAT); E(ldrh_imm, 1, 0, 0); E(mov_reg, 2, 5); E(subs_imm8, 2, 16); E(movs_imm, 3, 1); E(lsls_reg, 3, 2)
+        E(orrs_reg, 1, 3); E(strh_imm, 1, 0, 0); E(b, "cp_x")
+        a.label("cp_nsh")
     E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, O_FL); E(movs_imm, 1, F_LATCH); E(raw, h(0x4208)); bc("cp_x", "eq")
     E(mov_reg, 0, 5); E(subs_imm8, 0, 15); E(strb_imm, 0, 4, O_LAT)
+    if LIVE: E(b, "cp_x"); a.label("cp_lv"); E(mov_reg, 0, 6); E(bl, "c_chlive")       # (LIVE) a change of rows 1-2: the held chords rebuilt
     a.label("cp_x"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("cp_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["pad"])
 
@@ -228,6 +339,9 @@ def arm_code(base, L, prev):
     E(raw, h(0x4388)); E(str_imm, 0, 4, O_SW)                                          # bics r0, r1
     E(cmp_imm, 5, 16); E(b_cond, "cl_x", "lo")
     E(mov_reg, 0, 5); E(subs_imm8, 0, 15); E(ldrb_imm, 1, 4, O_LAT); E(cmp_reg, 0, 1); E(b_cond, "cl_x", "eq")
+    if SLATCH:                                                                         # (SLATCH) a Shift-latched chord: kept
+        E(mov_reg, 1, 4); E(adds_imm8, 1, O_SLAT); E(ldrh_imm, 1, 1, 0); E(mov_reg, 2, 5); E(subs_imm8, 2, 16); E(movs_imm, 3, 1); E(lsls_reg, 3, 2)
+        E(tst_reg, 1, 3); E(b_cond, "cl_x", "ne")
     E(subs_imm8, 0, 1); E(bl, "c_choff")
     a.label("cl_x"); E(pop_list, [0, 1, 4, 5], pc=True)
     a.label("cl_f"); E(raw, popw([0, 1, 4, 5], lr=True)); E(b_w, prev["rel"])
@@ -254,6 +368,14 @@ def arm_code(base, L, prev):
     a.label("cd_g"); E(subs_imm8, 0, 3); E(movs_imm, 1, 1); E(raw, h(0x4081)); E(ldrb_imm, 0, 4, O_FL); E(raw, h(0x4208)); E(b_cond, "cd_mw", "eq")
     E(movs_imm, 2, COL_ON)
     a.label("cd_mw"); E(lsls_imm, 0, 3, 1); E(strh_reg, 2, 5, 0); E(adds_imm8, 3, 1); E(cmp_imm, 3, 16); E(b_cond, "cd_m", "lo")
+    if SLATCH:                                                                         # (SLATCH) with Shift: the latched chords' roots cyan
+        E(cmp_imm, 7, 0); E(b_cond, "cd_x", "eq")
+        E(bl, "c_chram"); E(mov_reg, 4, 0); E(movs_imm, 3, 0)
+        a.label("cd_s")
+        E(mov_reg, 0, 4); E(adds_imm8, 0, O_SLAT); E(ldrh_imm, 0, 0, 0); E(movs_imm, 1, 1); E(lsls_reg, 1, 3); E(tst_reg, 0, 1); E(b_cond, "cd_sn", "eq")
+        E(lsls_imm, 0, 3, 3); E(adds_reg, 0, 0, 4); E(adds_imm8, 0, O_HELD); E(ldrb_imm, 0, 0, 7); E(subs_imm8, 0, 1); E(cmp_reg, 0, 6); E(b_cond, "cd_sn", "ne")
+        E(movs_imm, 1, COL_SLAT); E(mov_reg, 0, 3); E(adds_imm8, 0, 16); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
+        a.label("cd_sn"); E(adds_imm8, 3, 1); E(cmp_imm, 3, 16); E(b_cond, "cd_s", "lo")
     a.label("cd_x"); E(mov_reg, 0, 5); E(pop_list, [3, 4, 5, 6, 7], pc=True)
     return a.assemble()
 

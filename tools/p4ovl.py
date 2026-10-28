@@ -24,6 +24,14 @@ OVR = MX.MXR + 0x17A                  # + 0 the knob (t << 4 | k), + 1 the marke
 MARK = 0xA5
 TIME = MX.MXR + 0x17C               # the time (u32)
 INV = V.INV
+NS = False                            # SC48.3 (use_ns): the overlay on the non-sequenceable page too (p4dest.c_p4row)
+
+
+def use_ns():
+    """SC48.3 / Beta 3.40 (p4dest.use_ns): the destination of the knob is read from the row of the page on the knobs (page 4 or the
+    non-sequenceable page): the overlay works on both."""
+    global NS
+    NS = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -73,7 +81,7 @@ def arm_code(base, L, prev):
     E(push_list, [4, 5, 6, 7], lr=True)
     E(bl, prev["leds"]); E(mov_reg, 5, 0)
     E(bl, "c_poon"); E(cmp_imm, 0, 0xFF); bc("ol_x", "eq"); E(mov_reg, 7, 0)
-    E(bl, L["c_mpon"]); E(bl, L["c_vrow"]); E(ldrb_reg, 0, 0, 7)                   # r0 = the knob's destination code
+    E(bl, L["c_mpon"]); E(bl, L["c_p4row"] if NS else L["c_vrow"]); E(ldrb_reg, 0, 0, 7)   # r0 = the knob's destination code
     E(bl, L["c_p4idx"]); imm32(1, L["t_dmap"]); E(ldrb_reg, 4, 1, 0)                # r4 = page << 4 | index
     E(lsrs_imm, 0, 4, 4); E(lsls_imm, 0, 0, 4); imm32(6, L["t_rows"]); E(adds_reg, 6, 6, 0)   # r6 = the page's 16 codes
     E(movs_imm, 7, 0)
@@ -97,7 +105,7 @@ def install(img, report, base_addr):
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_vrow")}
     L["c_shift"] = lab("sc15", "c_shift"); L["c_mpon"] = lab("mpatch", "c_mpon")
-    for k in ("c_p4pg", "c_p4idx"): L[k] = lab("p4dest", k)
+    for k in ("c_p4pg", "c_p4idx") + (("c_p4row",) if NS else ()): L[k] = lab("p4dest", k)
     for k in ("t_dmap", "t_rows", "t_pdim", "t_pbri"): L[k] = lab("modmx", k)
     KN, TP = V.AC64_VT, MP.TMPL_VT
     prev = dict(knob=u(KN + 16) & ~1, pad=u(TP) & ~1, leds=u(TP + 28) & ~1)

@@ -35,7 +35,7 @@ def asm(lines):
     if todo:
         import dspasm_cache
         for l, ws in zip(todo, dspasm_cache.assemble(todo)): _cache[l] = ws
-    if D.SHORTX: return D.mark([(l, _cache[l]) for l in lines])               # (SHORTX) the moves x:(Rn+d) marked
+    if D.SHORTX or D.SHORTMSB: return D.mark([(l, _cache[l]) for l in lines])   # (SHORTX / SHORTMSB) the moves x:(Rn+d) / #>V,D marked
     return [w for l in lines for w in _cache[l]]
 
 

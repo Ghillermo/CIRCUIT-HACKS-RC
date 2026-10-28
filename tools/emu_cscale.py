@@ -163,7 +163,7 @@ def main(img, man, prev=None):
     # out of the editor: a stock scale switches it off
     e.btn(CS.ID_SCALES)
     check(e.r8(e.blk() + CS.B_ED) == 0, "Scales alone: out of the editor")
-    e.btn(CS.ID_SCALES); e.btn(CS.ID_SCALES) if e.r32(MGR + 0x6C) != CS.SCALES_VIEW else None
+    e.btn(CS.ID_SCALES) if e.r32(MGR + 0x6C) != CS.SCALES_VIEW else None   # (from SC48.3 Scales in the Scales view = the editor)
     try:
         e.pad(16 + 2)
     except Exception as ex:                                      # (the stock's scale change does not run in emulation past this point)

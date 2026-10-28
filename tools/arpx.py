@@ -45,6 +45,25 @@ F_ARX = 0x04                                             # bit 2 of gmdrum's fla
 PAD_ARX = 21                                             # pad 22
 COL_ON, COL_OFF = 0x17, 0x02
 COL_AV, COL_LAT = 0x2D, 0x17                             # with Shift: a key yellow, a latched note green
+NOLATCHLED = False                                       # SC48.3 (use_nolatchled)
+LATCHCYAN = False                                        # SC48.4 (use_latchcyan)
+COL_CYAN = 0x4D                                          # (LATCHCYAN) bright cyan, steady (0x4E dim, 0x4F blinks)
+
+
+def use_nolatchled():
+    """SC48.3 / Beta 3.40 (the user, 2026-10-28: «on note latch toggle (shift+any pad) dont change the color of the keyboard or the held notes,
+    just make the pad white like it does now with no yellow or green»): c_ltleds is not put in the container's slot 7: with Shift the keys keep
+    their colours (a note that sounds lights white, the stock's)."""
+    global NOLATCHLED
+    NOLATCHLED = True
+
+
+def use_latchcyan():
+    """SC48.4 / Beta 3.41 (the user, 2026-10-28: «interface fix: make hold notes bright cyan on shift layout», «latched notes», «only when shift
+    held»): c_ltleds back in the container's slot 7, but only the latched notes' keys change: bright cyan while Shift is held; the other keys
+    keep their colours (use_nolatchled's rule)."""
+    global LATCHCYAN
+    LATCHCYAN = True
 LIS_VT = 0x080592E0                                      # the MIDI-in listener: + 0 note-on, + 4 note-off (this, track, note, velocity)
 CTX, INJ = 0x200069E4, 0x20                              # [[CTX] + 0x14] bit 5 = an internal injection
 TV_VT = 0x0805A064                                       # the note tracks' views: slot 0 a pad (view, pad, vel), slot 1 let go (view, pad)
@@ -345,7 +364,10 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 7); E(mov_reg, 1, 6); E(bl, PAD_IDX); E(mov_reg, 1, 0); E(push_list, [1]); E(ldr_imm, 0, 7, 0x38); E(bl, KEY_SKIP); E(pop_list, [1])
     E(cmp_imm, 0, 0); E(b_cond, "ll_n", "ne")
     E(ldr_imm, 0, 7, 0x38); E(adds_reg, 0, 0, 1); E(ldrb_imm, 1, 0, 0x14); E(cmp_imm, 1, 0); E(b_cond, "ll_n", "eq")
-    E(mov_reg, 0, 4); E(bl, "c_ltbit"); E(ldrb_imm, 0, 0, 0); E(movs_imm, 2, COL_AV); E(tst_reg, 0, 1); E(b_cond, "ll_w", "eq"); E(movs_imm, 2, COL_LAT)
+    if LATCHCYAN:                                                                      # (LATCHCYAN) a latched key cyan, the others as they are
+        E(mov_reg, 0, 4); E(bl, "c_ltbit"); E(ldrb_imm, 0, 0, 0); E(tst_reg, 0, 1); E(b_cond, "ll_n", "eq"); E(movs_imm, 2, COL_CYAN)
+    else:
+        E(mov_reg, 0, 4); E(bl, "c_ltbit"); E(ldrb_imm, 0, 0, 0); E(movs_imm, 2, COL_AV); E(tst_reg, 0, 1); E(b_cond, "ll_w", "eq"); E(movs_imm, 2, COL_LAT)
     a.label("ll_w"); E(lsls_imm, 0, 6, 1); E(raw, h(0x522A))                               # strh r2, [r5, r0]
     a.label("ll_n"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 32); E(b_cond, "ll_q", "lo")
     a.label("ll_x"); E(mov_reg, 0, 5); E(pop_list, [3, 4, 5, 6, 7], pc=True)
@@ -406,7 +428,7 @@ def install(img, report, base_addr):
     struct.pack_into("<I", img, LIS_VT + 4 - BASE, labels["c_xkoff"] | 1)
     struct.pack_into("<I", img, TV_VT - BASE, labels["c_ltpad"] | 1)
     struct.pack_into("<I", img, TV_VT + 4 - BASE, labels["c_ltrel"] | 1)
-    struct.pack_into("<I", img, CONT_VT + 28 - BASE, labels["c_ltleds"] | 1)
+    if LATCHCYAN or not NOLATCHLED: struct.pack_into("<I", img, CONT_VT + 28 - BASE, labels["c_ltleds"] | 1)
     struct.pack_into("<I", img, PG.SETUP_VT - BASE, labels["c_xspad"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)

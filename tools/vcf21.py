@@ -146,6 +146,8 @@ GETTER = 0x08036192                               # (type, index) -> the value o
 LANE_TAB = (17, 8, 15, 3, 1, 2, 11, 9)           # lane k of the sequencer (= macro k + 1) -> the code it automates: TUNE, REL, ENVA, ENVF, FILT, RES, LRATE, FXAMT
 CLEARBOTH = False                                 # SC23.5: Clear + a knob resets both layers of the knob (plain and Shift): with Shift the Clear button loses its function
 SAVELED = False                                   # SC23.5: the Save button of the top row (panel LED 57, after Duplicate) blinks with the Save pad at the save step
+SAVEEXIT = False                                  # SC48.3 (use_saveexit): a save leaves the editor
+EDSCR = None                                      # SC48.3 (use_edscratch): the editor's scratch (80 B of records + the index + the NRPN number) at this RAM address
 EDV2 = False                                      # SC23.4: the CC number picks the type (99 / 98 / 6 = NRPN with a 7-bit value, 38 = NRPN with a 14-bit value), after the last field a save step (the Save pad blinks,
                                                   # one more Octave v saves), the Save pad (next to pad 25) saves, the button of the track discards like any other view button
 COL_SAVE = (0x17, 0x18)                           # the Save pad: green bright / dim
@@ -598,6 +600,24 @@ def use_v2save():
 P4DEST = False                                     # SC44.9 (see use_p4dest)
 P4RAM = 0                                          # (P4DEST) 8 codes per track (the lanes' destinations), then "P4D1"
 P4SIG = 0x31443450
+NSPAGE = False                                     # SC48.3 (see use_nspage)
+NSRAM = 0                                          # (NSPAGE) 8 codes per track (the non-sequenceable page's knobs), then "NSD1"
+NSSIG = 0x3144534E
+NS_PAGE = 7                                        # the knob page index (Shift + pad 4); its table indices 112..127
+NS_DEF = (5, 6, 7, 20, 4, 22, 31, 10)              # ATK, DEC, SUS, SHAPE, LFO -> filter, Env -> pitch, MIX OSC 1 / 2, VCA gain
+NS_COL, NS_SHIFT = 0x5D, 0x5E                      # pad 4 with the page on: pink bright; with Shift (the page available): pink dim (the user: a colour of its own; 0x5D / 0x5E is the only steady pair unused by the stock and the mod)
+
+
+def use_nspage(ram):
+    """SC48.3 / Beta 3.40 (the user, 2026-10-28: «rename page4 to sequenceable knobs, add another (saved) page with non-sequenceble knobs, with the
+    same assign logic»; Shift + pad 4, these defaults): knob page 8 (index 7) = 8 knobs whose codes come from a second row in RAM per track
+    (ram + 8 t, NS_DEF the first time, "NSD1" at ram + 16): c_vkc reads table indices 112..119 from it (120..127: nothing, the Shift layer is
+    p4dest's assignment); Shift + pad 4 of the page row = this page; pad 4 pink while it is on, dim pink with Shift.  Not a lane: a knob here
+    records automation only when its destination is also on page 4 (as on every other page).  p4dest.use_ns: Shift + knob = the destination,
+    saved with the own-synth patches."""
+    global NSPAGE, NSRAM
+    assert P4DEST
+    NSPAGE, NSRAM = True, ram
 
 
 def use_p4dest(ram):
@@ -744,6 +764,24 @@ def use_saveled():
     global SAVELED
     assert EDV2 and OCTLED
     SAVELED = True
+
+
+def use_edscratch(addr=0x20046B00):
+    """SC48.3 / RC2.11 (the user, on the device: «knobs 4 and 5 update fine, but all the other knobs turned leds off and stopped working»): the CC
+    editor's scratch (the copy of the 8 records taken before the first unsaved change, put back when the changes are discarded, and the NRPN number
+    chosen at + 81) was the Master FX block + 64, the LED buffer that SC23.1 found idle; since SC39.1 mpatch, psave, sesscopy, patchain, stepmod and
+    sckn keep their state there (c_gst() + 104..187), so a discard (pad 25 or a view button with a change pending) wrote their bytes into the
+    template: the records whose kind byte was no longer 1..5 went dead (in the emulation of Beta 3.38 K4 and K5 survived), and the copy itself
+    clobbered their state.  Now the scratch is at addr (modmx.MXR + 0x1B00, the free RAM above the heap: written before it is read)."""
+    global EDSCR
+    EDSCR = addr
+
+
+def use_saveexit():
+    """SC48.3 / RC2.11 (the user: «after hitting save, the view must go back to default»): the Save pad (and Octave v at the save step) saves and
+    leaves the editor (c_edoff: nothing to discard after the save, the pads redrawn), instead of staying in it with no knob selected."""
+    global SAVEEXIT
+    SAVEEXIT = True
 
 
 def use_edv2():
@@ -932,7 +970,7 @@ def cced_routines(a, L, t_ed, tail, bc):
         a.emit(push_list, [4, 5, 6], lr=True)
         a.emit(mov_reg, 4, 0)
         tail(2); a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(tst_reg, 3, 1); a.emit(b_cond, "eb_done", "ne")
-        a.emit(bl, L["c_gfst"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "eb_done", "eq")
+        (a.emit(movw, 0, (EDSCR - S_SCR) & 0xFFFF), a.emit(movt, 0, (EDSCR - S_SCR) >> 16)) if EDSCR else (a.emit(bl, L["c_gfst"]), a.emit(cmp_imm, 0, 0), a.emit(b_cond, "eb_done", "eq"))
         a.emit(adds_imm8, 0, S_SCR); a.emit(mov_reg, 6, 0)
         a.emit(mov_reg, 0, 4); a.emit(movs_imm, 1, 0); a.emit(bl, "c_edrec")
         a.emit(strb_w, 1, 6, 80)
@@ -948,7 +986,7 @@ def cced_routines(a, L, t_ed, tail, bc):
         a.emit(push_list, [4, 5, 6, 7], lr=True)
         tail(2); a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(tst_reg, 3, 1); a.emit(b_cond, "dc_done", "eq")
         a.emit(bics_reg, 3, 1); a.emit(strb_w, 3, 2, O_ED + 1)
-        a.emit(bl, L["c_gfst"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dc_done", "eq")
+        (a.emit(movw, 0, (EDSCR - S_SCR) & 0xFFFF), a.emit(movt, 0, (EDSCR - S_SCR) >> 16)) if EDSCR else (a.emit(bl, L["c_gfst"]), a.emit(cmp_imm, 0, 0), a.emit(b_cond, "dc_done", "eq"))
         a.emit(adds_imm8, 0, S_SCR); a.emit(mov_reg, 6, 0)
         a.emit(bl, "c_edview"); a.emit(mov_reg, 4, 0)
         a.emit(ldrb_w, 5, 6, 80)
@@ -1209,7 +1247,7 @@ def edv2_routines(a, L, t_ft, tail, bc):
     a.emit(cmp_imm, 0, 2); a.emit(b_cond, "cg_n2", "ne"); a.emit(movs_imm, 0, 38); a.emit(pop_list, [4], pc=True)
     a.label("cg_n2")
     tail(2); a.emit(ldrb_w, 1, 2, O_ED + 1); a.emit(movs_imm, 3, 8); a.emit(tst_reg, 1, 3); a.emit(b_cond, "cg_d", "eq")
-    a.emit(bl, L["c_gfst"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cg_d", "eq")
+    (a.emit(movw, 0, (EDSCR - S_SCR) & 0xFFFF), a.emit(movt, 0, (EDSCR - S_SCR) >> 16)) if EDSCR else (a.emit(bl, L["c_gfst"]), a.emit(cmp_imm, 0, 0), a.emit(b_cond, "cg_d", "eq"))
     a.emit(ldrb_w, 0, 0, S_SCR + 81); a.emit(pop_list, [4], pc=True)
     a.label("cg_d")
     a.emit(movs_imm, 0, 6); a.emit(pop_list, [4], pc=True)
@@ -1243,7 +1281,7 @@ def edv2_routines(a, L, t_ft, tail, bc):
     a.emit(ldrh_imm, 2, 4, 4); a.emit(movs_imm, 3, 0x7F); a.emit(bics_reg, 2, 3); a.emit(orrs_reg, 2, 7); a.emit(strh_imm, 2, 4, 4); a.emit(b, "cs_done")
     a.label("cs_virt")                                                                         # an NRPN type keeps the number chosen in the scratch (the number is not in the record)
     a.emit(cmp_imm, 1, 1); a.emit(b_cond, "cs_done", "eq")
-    a.emit(bl, L["c_gfst"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cs_done", "eq")
+    (a.emit(movw, 0, (EDSCR - S_SCR) & 0xFFFF), a.emit(movt, 0, (EDSCR - S_SCR) >> 16)) if EDSCR else (a.emit(bl, L["c_gfst"]), a.emit(cmp_imm, 0, 0), a.emit(b_cond, "cs_done", "eq"))
     a.emit(strb_w, 7, 0, S_SCR + 81)
     tail(2); a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 8); a.emit(orrs_reg, 3, 1); a.emit(strb_w, 3, 2, O_ED + 1)
     a.label("cs_done")
@@ -1342,7 +1380,8 @@ def edv2_routines(a, L, t_ft, tail, bc):
     a.label("c_edsavepad")
     a.emit(push_list, [4], lr=True)
     a.emit(bl, "c_edflush")
-    tail(2); a.emit(movs_imm, 3, 0x80); a.emit(strb_w, 3, 2, O_ED)
+    if SAVEEXIT: a.emit(bl, "c_edoff")                                                         # (SC48.3) and leave the editor
+    else: tail(2); a.emit(movs_imm, 3, 0x80); a.emit(strb_w, 3, 2, O_ED)
     a.emit(pop_list, [4], pc=True)
 
 
@@ -1360,8 +1399,22 @@ def p4_routines(a, base):
     for t in range(2):
         for k, c in enumerate(LANE_TAB): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
     a.label("vr_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
+    if NSPAGE:
+        # ---- c_vrow2(r0 = track) -> r0 = the track's row of the non-sequenceable page (NS_DEF, both tracks, the first time); clobbers r1-r3
+        a.label("c_vrow2")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        imm32(1, NSRAM); E(ldr_imm, 2, 1, 16); imm32(3, NSSIG); E(cmp_reg, 2, 3); E(b_cond, "v2r_ok", "eq")
+        E(str_imm, 3, 1, 16)
+        for t in range(2):
+            for k, c in enumerate(NS_DEF): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
+        a.label("v2r_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
     a.label("c_vkc")
     E(push_list, [4], lr=True); E(mov_reg, 4, 1)
+    if NSPAGE:                                                                    # (SC48.3) indices 112..119 = the second row, 120..127 nothing
+        E(cmp_imm, 1, 16 * NS_PAGE); E(b_cond, "kc_a", "lo"); E(cmp_imm, 1, 16 * NS_PAGE + 8); E(b_cond, "kc_z", "hs")
+        E(bl, "c_vrow2"); E(subs_imm8, 4, 16 * NS_PAGE); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
+        a.label("kc_z"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+        a.label("kc_a")
     E(cmp_imm, 1, 48); E(b_cond, "kc_t", "lo"); E(cmp_imm, 1, 56); E(b_cond, "kc_t", "hs")
     E(bl, "c_vrow"); E(subs_imm8, 4, 48); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
     a.label("kc_t"); imm32(0, base); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
@@ -3426,6 +3479,10 @@ def arm_code(base, L):
         a.emit(cmp_imm, 5, 2); a.emit(b_cond, "vr_go", "ne")
         a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, RT_VEL); a.emit(bl, "c_vrt7"); a.emit(cmp_imm, 0, 0); bc("vr_x", "eq")
         a.label("vr_go")
+        if NSPAGE:                                                                # (SC48.3) Shift + pad 4 = the non-sequenceable page
+            a.emit(cmp_imm, 5, 3); a.emit(b_cond, "vr_ns", "ne"); a.emit(bl, L["c_shift"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vr_ns", "eq")
+            a.emit(movs_imm, 5, NS_PAGE)
+            a.label("vr_ns")
         a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 5); a.emit(bl, "c_vsetpage")
         a.label("vr_x")
         a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, T_PAD_RET)
@@ -3573,6 +3630,11 @@ def arm_code(base, L):
                 a.label(f"vle_q{k}"); a.emit(strh_imm, 1, 5, 2 * k)
         a.emit(movs_imm, 1, 0)
         for k in range(5 if PAGES5 else 3, 8): a.emit(strh_imm, 1, 5, 2 * k)
+        if NSPAGE:                                                                # (SC48.3) pad 4: white with the non-sequenceable page on, yellow with Shift
+            a.emit(movs_imm, 1, NS_COL); a.emit(cmp_imm, 7, NS_PAGE); a.emit(b_cond, "vle_ns", "eq")
+            a.emit(bl, L["c_shift"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vle_nx", "eq"); a.emit(movs_imm, 1, NS_SHIFT)
+            a.label("vle_ns"); a.emit(strh_imm, 1, 5, 2 * 3)
+            a.label("vle_nx")
         a.label("vle_rw")
     elif PADS2:
         a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 2); a.emit(bl, "c_vflag")                                # pad 27: the oscillator source

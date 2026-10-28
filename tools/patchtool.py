@@ -4,7 +4,7 @@
 A patch is named by WHERE it is:  a file  (bass.ctm)  or a slot of a pack  (E:/29_PACK:5  = slot 5, 0..63;  the pack = the folder that holds
 Patches/, or its Patches folder).
 
-    patchtool.py list PACK                      the 64 slots: index, page / pad of the Preset view of MIDI 1 / 2, name, engine
+    patchtool.py list PACK                      the 128 slots (64..127: Beta 3.40 and later): index, page / pad of the Preset view, name, engine
     patchtool.py show WHERE                     the name, the engine and every parameter with its value
     patchtool.py set  WHERE NAME=VALUE ...      edit parameters (the names of `show`; engine=... too); the sum is redone
     patchtool.py name WHERE "NAME"              the name (up to 16 ASCII characters; "" removes it)
@@ -35,6 +35,7 @@ from pathlib import Path
 
 REC, PSZ, PER = 512, 340, 8
 DATA, NAME_AT, NAME_LEN, FILE_LEN = 42, 44, 16, 64
+SLOTS = 128                                   # mpatch.use_slots128 (Beta 3.40): 8 pages of 16; the builds before see the first 64
 MODES = {0: "mono", 1: "mono AG", 2: "poly"}
 # code -> (name, what it is; after " | " what it is with the granular engine, which shares the values of the oscillator pages)
 PARAMS = {1: ("filt", "filtro"), 2: ("res", "resonancia"), 3: ("envf", "envolvente -> filtro"), 4: ("lfof", "LFO -> filtro"), 5: ("atk", "ataque"), 6: ("dec", "decay"),
@@ -180,7 +181,7 @@ class Where:
         self.text = s
         if m and Path(m.group(1)).is_dir():
             self.pack, self.n, self.file = Path(m.group(1)), int(m.group(2)), None
-            if not 0 <= self.n < 64: sys.exit(f"{s}: hueco 0..63")
+            if not 0 <= self.n < SLOTS: sys.exit(f"{s}: hueco 0..{SLOTS - 1}")
         else: self.pack, self.n, self.file = None, None, Path(s)
     def read(self, must=True):
         b = self.file.read_bytes() if self.file and self.file.exists() else (read_slot(self.pack, self.n) if self.pack else b"")
@@ -209,7 +210,7 @@ def main():
         need(1, "list PACK"); pack = Path(A[0]); bk = banks(pack)
         if not bk: sys.exit(f"no hay *_PATCHBANK.cpb en {patches_dir(pack)}")
         print(" idx  pág pad  nombre            motor")
-        for n in range(64):
+        for n in range(SLOTS):
             pad = read_slot(pack, n); st = state(pad)
             txt = "" if st == "empty" else ENGINE_ES[engine_of(pad)] if st == "ok" else "DAÑADO (suma)"
             print(f" {n:3d}   {n // 16 + 1}   {n % 16 + 9:2d}  {name_of(pad) if st != 'empty' else '':<16}  {txt if st != 'empty' else '-'}")
@@ -233,7 +234,7 @@ def main():
         print(f"{src.text} «{name_of(b)}» -> {dst.text}" + (f" (sustituye a «{name_of(old)}»)" if old else ""))
     elif a.cmd == "dump":
         need(2, "dump PACK DIR"); pack, out = Path(A[0]), Path(A[1]); out.mkdir(parents=True, exist_ok=True); k = 0
-        for n in range(64):
+        for n in range(SLOTS):
             pad = read_slot(pack, n)
             if state(pad) != "ok": continue
             (out / f"{n:02d}_{safe(name_of(pad)) or 'sin nombre'}.ctm").write_bytes(norm(pad)); k += 1

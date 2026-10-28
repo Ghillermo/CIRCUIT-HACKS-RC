@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R210 R210S B3.37 B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,15 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R210": ("RC2.10 — la versión candidata 2.10: RC2.09 + un arreglo (el arpegiador con el transporte parado sigue el tempo del proyecto)",
+DESC = {"R211": ("RC2.11 — la versión candidata 2.11: RC2.10 + un arreglo (el editor de CC de las pistas MIDI ya no deja knobs muertos al descartar un cambio; al guardar sale a la vista Preset)",
+                 "RC2.11 — release candidate 2.11: RC2.10 + a fix (the CC editor of the MIDI tracks no longer leaves dead knobs when a change is discarded; saving goes back to the Preset view)"),
+        "R211S": ("RC2.11S — versión más segura: RC2.11, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC2.11S — safer build: RC2.11, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B3.41": ("Beta 3.41 — beta (= SC48.4): la Beta 3.37 + el arreglo de RC2.11, metrónomo solo en el cue, Jankó nuevo, 128 patches del sinte propio, knobs no secuenciables (Shift + pad 4), modificadores del arpegio, Nudge nuevo, dobles pulsaciones = atajos con Shift, páginas de knobs mantenidas, latch con notas en cian y Shift + paso, acordes que cambian al momento y su latch; sin probar en el aparato",
+                  "Beta 3.41 — beta (= SC48.4): Beta 3.37 + the RC2.11 fix, metronome on the cue only, new Jankó, 128 own-synth patches, non-sequenceable knobs (Shift + pad 4), arpeggio modifiers, new Nudge, double presses = Shift shortcuts, held knob pages, latch with cyan notes and Shift + step, chords that change at once and their latch; not tested on the device"),
+        "B3.41S": ("Beta 3.41S — versión más segura de la beta: Beta 3.41, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                   "Beta 3.41S — safer build of the beta: Beta 3.41, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "R210": ("RC2.10 — la versión candidata 2.10: RC2.09 + un arreglo (el arpegiador con el transporte parado sigue el tempo del proyecto)",
                  "RC2.10 — release candidate 2.10: RC2.09 + a fix (the arpeggiator with the transport stopped follows the project's tempo)"),
         "R210S": ("RC2.10S — versión más segura: RC2.10, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC2.10S — safer build: RC2.10, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
@@ -89,6 +97,8 @@ DESC = {"R210": ("RC2.10 — la versión candidata 2.10: RC2.09 + un arreglo (el
                   "Beta 3.36 — beta (= SC47.9): Beta 3.35 + stereo drum pairs (Drum 1 + 2 / 3 + 4: one sample in stereo with width) and automatic notes in the own synth's sample picker (a step given a flip gets the last played note); not tested on the device"),
         "B3.37": ("Beta 3.37 — beta (= SC48): la Beta 3.36 + sonidos de partida del FM (pad 8), curva de velocity (Advanced Setup K1), MIDI 1 / 2 dos veces = Preset, el teclado externo al arpegiador en el Note de Setup, Note con el step-drummer, efectos por defecto en el secuenciador de efectos, escucha previa en el cue y arreglos (el crackling del FM en poly, la nota del selector de samples); sin probar en el aparato",
                   "Beta 3.37 — beta (= SC48): Beta 3.36 + FM starter sounds (pad 8), velocity curve (Advanced Setup K1), MIDI 1 / 2 twice = Preset, the external keyboard to the arpeggiator on Setup's Note, Note with the step-drummer, default effects in the FX sequencer, cue preview and fixes (the FM crackle in poly, the sample picker's note); not tested on the device"),
+        "B3.37S": ("Beta 3.37S — versión más segura de la beta: Beta 3.37, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                   "Beta 3.37S — safer build of the beta: Beta 3.37, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
         "B3.36S": ("Beta 3.36S — versión más segura de la beta: Beta 3.36, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                    "Beta 3.36S — safer build of the beta: Beta 3.36, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
         "B3.35": ("Beta 3.35 — beta (= SC47.8): RC2.10 + lo de la Beta 3.34 + menos aliasing en el oscilador del sinte propio (PolyBLEP en la sierra, la supersaw y la cuadrada; el wavefold limitado en las notas agudas); probada en el aparato",
@@ -586,4 +596,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R210", "R210S", "B3.37", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

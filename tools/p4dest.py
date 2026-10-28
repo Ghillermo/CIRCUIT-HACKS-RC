@@ -30,7 +30,19 @@ ST = MX.MXR + 0x178                   # + 0 the accumulator (s8), + 1 its knob (
 PAGE = 3                              # vcf21's page index of page 4 (KNOB_CODES_D)
 DIV = 4                               # knob events per destination
 POFS, PLEN = 88, 12                   # in the padding: after modmx's matrix (64..87)
+NS = False                            # SC48.3 (use_ns): the non-sequenceable page too
+POFS2 = 130                           # (NS) its block in the padding: after vmode's (126..129)
+
+
+def use_ns():
+    """SC48.3 / Beta 3.40 (vcf21.use_nspage): the same assignment on the non-sequenceable page (knob page 8, Shift + pad 4; its row c_vrow2):
+    c_p4pg = 1 on page 4, 2 on it; c_p4row(track) = the row of the page on the knobs; Clear + Shift + knob = its default (vcf21.NS_DEF); saved with
+    the own-synth patches: 12 bytes at padding + 130, "NS", version 1, the 8 codes, a check byte (a patch without them loads NS_DEF).
+    psave.XLEN = xpatch.XLEN = 142."""
+    global NS
+    NS = True
 INV = V.INV
+PLEN_LT = 8                           # the defaults table: page 4's 8 codes, then (NS) the non-sequenceable page's
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -48,6 +60,7 @@ def arm_code(base, L, prev, nd):
         zc[0] += 1; n = f"_p{zc[0]}"
         E(b_cond, n, INV[cond]); E(b, target); a.label(n)
     a.label("p4_lt"); E(raw, bytes(V.LANE_TAB))                                    # the defaults
+    if NS: a.label("ns_lt"); E(raw, bytes(V.NS_DEF))                                # (SC48.3) the non-sequenceable page's
 
     # ---- c_p4pg(r0 = track) -> r0 = 1 when page 4 of the track is the one the knobs move (mode on, no CC editor, no step-drummer view)
     a.label("c_p4pg")
@@ -55,9 +68,20 @@ def arm_code(base, L, prev, nd):
     E(bl, L["c_von"]); E(cmp_imm, 0, 0); E(b_cond, "pg_0", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); E(b_cond, "pg_0", "ne")
     E(mov_reg, 0, 4); E(bl, L["c_sdview"]); E(cmp_imm, 0, 0); E(b_cond, "pg_0", "ne")
-    E(mov_reg, 0, 4); E(bl, L["c_vpage"]); E(cmp_imm, 0, PAGE); E(b_cond, "pg_0", "ne")
+    E(mov_reg, 0, 4); E(bl, L["c_vpage"])
+    if NS: E(cmp_imm, 0, V.NS_PAGE); E(b_cond, "pg_2", "eq")
+    E(cmp_imm, 0, PAGE); E(b_cond, "pg_0", "ne")
     E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
+    if NS: a.label("pg_2"); E(movs_imm, 0, 2); E(pop_list, [4], pc=True)
     a.label("pg_0"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+
+    if NS:
+        # ---- c_p4row(r0 = track) -> r0 = the row of the page on the knobs (the non-sequenceable page's or page 4's); clobbers r1-r3
+        a.label("c_p4row")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        E(bl, L["c_vpage"]); E(cmp_imm, 0, V.NS_PAGE); E(mov_reg, 0, 4); E(b_cond, "pr_4", "ne")
+        E(bl, L["c_vrow2"]); E(pop_list, [4], pc=True)
+        a.label("pr_4"); E(bl, L["c_vrow"]); E(pop_list, [4], pc=True)
 
     # ---- c_p4idx(r0 = code) -> r0 = its index in the matrix's list (0 when it is not there); clobbers r1-r3
     a.label("c_p4idx")
@@ -73,9 +97,13 @@ def arm_code(base, L, prev, nd):
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
     E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
     E(ldr_sp, 5, 4); E(movs_imm, 0, 7); E(ands_reg, 5, 0)                          # r5 = knob 0..7
-    E(mov_reg, 0, 6); E(bl, L["c_vrow"]); E(adds_reg, 4, 0, 5)                      # r4 = the knob's code in the row
+    E(mov_reg, 0, 6); E(bl, "c_p4row" if NS else L["c_vrow"]); E(adds_reg, 4, 0, 5)  # r4 = the knob's code in the row
     E(bl, L["c_mxclrh"]); E(cmp_imm, 0, 0); E(b_cond, "kn_ac", "eq")             # Clear held (the controller's: with Shift the handler never sees it)
-    imm32(1, base); E(ldrb_reg, 0, 1, 5); E(strb_imm, 0, 4, 0); E(b, "kn_x")        # Clear: the default
+    if NS:
+        E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 2); imm32(1, base); E(b_cond, "kn_dl", "ne"); imm32(1, base + PLEN_LT)
+        a.label("kn_dl")
+    else: imm32(1, base)
+    E(ldrb_reg, 0, 1, 5); E(strb_imm, 0, 4, 0); E(b, "kn_x")                        # Clear: the default
     a.label("kn_ac")
     imm32(7, ST); E(lsls_imm, 1, 6, 4); E(orrs_reg, 1, 5); E(ldrb_imm, 2, 7, 1); E(cmp_reg, 2, 1); E(b_cond, "kn_sm", "eq")
     E(strb_imm, 1, 7, 1); E(movs_imm, 2, 0); E(strb_imm, 2, 7, 0)
@@ -97,7 +125,7 @@ def arm_code(base, L, prev, nd):
     E(mov_reg, 0, 4); E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kl_x", "hi"); E(mov_reg, 6, 0)
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("kl_x", "eq")
     E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); bc("kl_x", "eq")
-    E(mov_reg, 0, 6); E(bl, L["c_vrow"]); E(mov_reg, 4, 0); E(movs_imm, 6, 0)
+    E(mov_reg, 0, 6); E(bl, "c_p4row" if NS else L["c_vrow"]); E(mov_reg, 4, 0); E(movs_imm, 6, 0)
     a.label("kl_l")
     E(ldrb_reg, 0, 4, 6); E(bl, "c_p4idx"); imm32(1, L["t_dcol"]); E(ldrb_reg, 1, 1, 0)
     E(movs_imm, 0, 129); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 1); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1)
@@ -110,40 +138,85 @@ def arm_code(base, L, prev, nd):
     a.label("su_l"); E(ldrb_reg, 3, 0, 2); E(adds_reg, 1, 1, 3); E(adds_imm8, 2, 1); E(cmp_imm, 2, PLEN - 1); E(b_cond, "su_l", "lo")
     E(movs_imm, 0, 0xFF); E(ands_reg, 0, 1); E(raw, h(0x4770))
 
-    # ---- c_p4gath(r0 = track) in c_mpsave: modmx's gather (mpatch's and the matrix), then the destinations at padding + 88
-    a.label("c_p4gath")
-    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
-    E(bl, prev["gath"])
-    E(mov_reg, 0, 4); E(bl, L["c_vrow"]); E(mov_reg, 5, 0); imm32(6, PK.BUF + POFS)
-    E(movs_imm, 0, ord("P")); E(strb_imm, 0, 6, 0); E(movs_imm, 0, ord("4")); E(strb_imm, 0, 6, 1); E(movs_imm, 0, 1); E(strb_imm, 0, 6, 2)
-    E(movs_imm, 7, 0)
-    a.label("ga_l"); E(ldrb_reg, 0, 5, 7); E(adds_imm8, 7, 3); E(strb_reg, 0, 6, 7); E(subs_imm8, 7, 2); E(cmp_imm, 7, 8); E(b_cond, "ga_l", "lo")
-    E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(strb_imm, 0, 6, PLEN - 1)
-    E(pop_list, [4, 5, 6, 7], pc=True)
+    if not NS:
+        # ---- c_p4gath(r0 = track) in c_mpsave: modmx's gather (mpatch's and the matrix), then the destinations at padding + 88
+        a.label("c_p4gath")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
+        E(bl, prev["gath"])
+        E(mov_reg, 0, 4); E(bl, L["c_vrow"]); E(mov_reg, 5, 0); imm32(6, PK.BUF + POFS)
+        E(movs_imm, 0, ord("P")); E(strb_imm, 0, 6, 0); E(movs_imm, 0, ord("4")); E(strb_imm, 0, 6, 1); E(movs_imm, 0, 1); E(strb_imm, 0, 6, 2)
+        E(movs_imm, 7, 0)
+        a.label("ga_l"); E(ldrb_reg, 0, 5, 7); E(adds_imm8, 7, 3); E(strb_reg, 0, 6, 7); E(subs_imm8, 7, 2); E(cmp_imm, 7, 8); E(b_cond, "ga_l", "lo")
+        E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(strb_imm, 0, 6, PLEN - 1)
+        E(pop_list, [4, 5, 6, 7], pc=True)
 
-    # ---- c_p4appl(r0 = track) in c_mpload (r5 = the slot there): modmx's apply, then the patch's destinations (none or not valid: the defaults)
-    a.label("c_p4appl")
-    E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 7, 5)
-    E(bl, prev["appl"])
-    E(mov_reg, 0, 4); E(bl, L["c_vrow"]); E(mov_reg, 5, 0)                          # r5 = the row
-    E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20)               # r0 = the bank, r1 = (slot & 7) x 512
-    imm32(2, MP.OFF + POFS); E(adds_reg, 1, 1, 2)
-    imm32(2, PK.BUF + POFS); E(movs_imm, 3, PLEN); E(bl, L["c_mpr"])
-    imm32(6, PK.BUF + POFS)
-    E(cmp_imm, 0, 0); E(b_cond, "ap_d", "ne"); E(cmp_imm, 1, PLEN); E(b_cond, "ap_d", "ne")
-    E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, ord("P")); E(b_cond, "ap_d", "ne"); E(ldrb_imm, 0, 6, 1); E(cmp_imm, 0, ord("4")); E(b_cond, "ap_d", "ne")
-    E(ldrb_imm, 0, 6, 2); E(cmp_imm, 0, 1); E(b_cond, "ap_d", "ne")
-    E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(ldrb_imm, 1, 6, PLEN - 1); E(cmp_reg, 0, 1); E(b_cond, "ap_d", "ne")
-    E(adds_imm8, 6, 3); E(b, "ap_c")                                                  # r6 = the patch's 8 codes
-    a.label("ap_d"); imm32(6, base)                                                   # r6 = the defaults
-    a.label("ap_c"); E(movs_imm, 7, 0)
-    a.label("ap_l")
-    E(ldrb_reg, 0, 6, 7); E(push_list, [0]); E(bl, "c_p4idx"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(pop_list, [1])
-    E(cmp_reg, 0, 1); E(b_cond, "ap_ok", "eq")
-    imm32(1, base); E(ldrb_reg, 1, 1, 7)                                              # not one of the destinations: the default
-    a.label("ap_ok"); E(strb_reg, 1, 5, 7)
-    E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ap_l", "lo")
-    E(pop_list, [4, 5, 6, 7], pc=True)
+        # ---- c_p4appl(r0 = track) in c_mpload (r5 = the slot there): modmx's apply, then the patch's destinations (none or not valid: the defaults)
+        a.label("c_p4appl")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 7, 5)
+        E(bl, prev["appl"])
+        E(mov_reg, 0, 4); E(bl, L["c_vrow"]); E(mov_reg, 5, 0)                          # r5 = the row
+        E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20)               # r0 = the bank, r1 = (slot & 7) x 512
+        imm32(2, MP.OFF + POFS); E(adds_reg, 1, 1, 2)
+        imm32(2, PK.BUF + POFS); E(movs_imm, 3, PLEN); E(bl, L["c_mpr"])
+        imm32(6, PK.BUF + POFS)
+        E(cmp_imm, 0, 0); E(b_cond, "ap_d", "ne"); E(cmp_imm, 1, PLEN); E(b_cond, "ap_d", "ne")
+        E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, ord("P")); E(b_cond, "ap_d", "ne"); E(ldrb_imm, 0, 6, 1); E(cmp_imm, 0, ord("4")); E(b_cond, "ap_d", "ne")
+        E(ldrb_imm, 0, 6, 2); E(cmp_imm, 0, 1); E(b_cond, "ap_d", "ne")
+        E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(ldrb_imm, 1, 6, PLEN - 1); E(cmp_reg, 0, 1); E(b_cond, "ap_d", "ne")
+        E(adds_imm8, 6, 3); E(b, "ap_c")                                                  # r6 = the patch's 8 codes
+        a.label("ap_d"); imm32(6, base)                                                   # r6 = the defaults
+        a.label("ap_c"); E(movs_imm, 7, 0)
+        a.label("ap_l")
+        E(ldrb_reg, 0, 6, 7); E(push_list, [0]); E(bl, "c_p4idx"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(pop_list, [1])
+        E(cmp_reg, 0, 1); E(b_cond, "ap_ok", "eq")
+        imm32(1, base); E(ldrb_reg, 1, 1, 7)                                              # not one of the destinations: the default
+        a.label("ap_ok"); E(strb_reg, 1, 5, 7)
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ap_l", "lo")
+        E(pop_list, [4, 5, 6, 7], pc=True)
+    else:
+        def gath_block(sfx, pofs, t0, t1, rowfn):
+            E(mov_reg, 0, 4); E(bl, rowfn); E(mov_reg, 5, 0); imm32(6, PK.BUF + pofs)
+            E(movs_imm, 0, ord(t0)); E(strb_imm, 0, 6, 0); E(movs_imm, 0, ord(t1)); E(strb_imm, 0, 6, 1); E(movs_imm, 0, 1); E(strb_imm, 0, 6, 2)
+            E(movs_imm, 7, 0)
+            a.label("ga_l" + sfx); E(ldrb_reg, 0, 5, 7); E(adds_imm8, 7, 3); E(strb_reg, 0, 6, 7); E(subs_imm8, 7, 2); E(cmp_imm, 7, 8); E(b_cond, "ga_l" + sfx, "lo")
+            E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(strb_imm, 0, 6, PLEN - 1)
+
+        def appl_block(sfx, pofs, t0, t1, rowfn, deflt):
+            E(ldr_sp, 7, 0)                                                            # r7 = the slot
+            E(mov_reg, 0, 4); E(bl, rowfn); E(mov_reg, 5, 0)                            # r5 = the row
+            E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20)           # r0 = the bank, r1 = (slot & 7) x 512
+            imm32(2, MP.OFF + pofs); E(adds_reg, 1, 1, 2)
+            imm32(2, PK.BUF + pofs); E(movs_imm, 3, PLEN); E(bl, L["c_mpr"])
+            imm32(6, PK.BUF + pofs)
+            E(cmp_imm, 0, 0); E(b_cond, "ap_d" + sfx, "ne"); E(cmp_imm, 1, PLEN); E(b_cond, "ap_d" + sfx, "ne")
+            E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, ord(t0)); E(b_cond, "ap_d" + sfx, "ne"); E(ldrb_imm, 0, 6, 1); E(cmp_imm, 0, ord(t1)); E(b_cond, "ap_d" + sfx, "ne")
+            E(ldrb_imm, 0, 6, 2); E(cmp_imm, 0, 1); E(b_cond, "ap_d" + sfx, "ne")
+            E(mov_reg, 0, 6); E(bl, "c_p4sum"); E(ldrb_imm, 1, 6, PLEN - 1); E(cmp_reg, 0, 1); E(b_cond, "ap_d" + sfx, "ne")
+            E(adds_imm8, 6, 3); E(b, "ap_c" + sfx)                                      # r6 = the patch's 8 codes
+            a.label("ap_d" + sfx); imm32(6, deflt)                                      # r6 = the defaults
+            a.label("ap_c" + sfx); E(movs_imm, 7, 0)
+            a.label("ap_l" + sfx)
+            E(ldrb_reg, 0, 6, 7); E(push_list, [0]); E(bl, "c_p4idx"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(pop_list, [1])
+            E(cmp_reg, 0, 1); E(b_cond, "ap_ok" + sfx, "eq")
+            imm32(1, deflt); E(ldrb_reg, 1, 1, 7)                                       # not one of the destinations: the default
+            a.label("ap_ok" + sfx); E(strb_reg, 1, 5, 7)
+            E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ap_l" + sfx, "lo")
+
+        # ---- c_p4gath(r0 = track) in c_mpsave: modmx's gather, then page 4's destinations at padding + 88 and the non-sequenceable page's at + 130
+        a.label("c_p4gath")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
+        E(bl, prev["gath"])
+        gath_block("", POFS, "P", "4", L["c_vrow"])
+        gath_block("n", POFS2, "N", "S", L["c_vrow2"])
+        E(pop_list, [4, 5, 6, 7], pc=True)
+
+        # ---- c_p4appl(r0 = track) in c_mpload (r5 = the slot there): modmx's apply, then the two pages' destinations (none or not valid: the defaults)
+        a.label("c_p4appl")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(push_list, [5])
+        E(bl, prev["appl"])
+        appl_block("", POFS, "P", "4", L["c_vrow"], base)
+        appl_block("n", POFS2, "N", "S", L["c_vrow2"], base + PLEN_LT)
+        E(pop_list, [5]); E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 
 
@@ -153,7 +226,7 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
-    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vrow")}
+    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vrow") + (("c_vrow2",) if NS else ())}
     L["c_shift"] = lab("sc15", "c_shift")
     for k in ("c_mpr", "c_mpload", "c_mpsave"): L[k] = lab("mpatch", k)
     for k in ("t_dcode", "t_dcol", "c_mxgath", "c_mxappl", "c_mxclrh"): L[k] = lab("modmx", k)

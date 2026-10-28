@@ -43,6 +43,13 @@ COL_LIT, COL_DIM = 0x6A, 0x6B         # bright peach / the song pointer's idle s
 ID_DOWN, ID_UP = 19, 20               # Octave down = the next page, Octave up = the previous one
 LED_DOWN, LED_UP, COL_BTN = 51, 52, 0x01
 PAGES = 4
+
+
+def use_slots128():
+    """SC48.3 / Beta 3.40 (the user, 2026-10-28: «128, unless we could use that room for something else»): 8 pages of 16 = 128 slots, in the padding
+    of the pack's 128 synth patch records (records 64..127: only the SC40D diagnostic ever wrote there, without the CTM1 tag = an empty slot)."""
+    global PAGES
+    PAGES = 8
 INV = V.INV
 LSHAPE = False                        # SC43.9 (see use_lshape)
 

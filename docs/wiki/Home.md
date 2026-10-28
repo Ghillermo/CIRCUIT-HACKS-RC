@@ -2,7 +2,7 @@
 
 Firmware patches for the **Novation Circuit Tracks** (official firmware 1.2.1, build 4486): a synth engine on the MIDI tracks, new drum controls, Master FX, an arpeggiator, custom scales and chords, pattern chains, polyphony and more. **For Circuit Tracks only**: for the Circuit Rhythm, see [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX).
 
-Current versions (2026-10-27): **RC2.10**, the safer **RC2.10S** and **Beta 3.37**.
+Current versions (2026-10-28): **RC2.11**, the safer **RC2.11S**, **Beta 3.41** and its safer **Beta 3.41S**.
 
 ## Index
 
