@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.0"                    # the newest beta, not published (2026-10-29): «solo Beta 5.0» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.0"                    # the newest beta, published 2026-10-29: «solo Beta 5.0» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.02"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -49,7 +49,7 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
 - {ZB} = arreglo de **RC4.02** (también en la Beta 5.0; en RC4 / RC4.01 no).
-- {YB} = solo en la **Beta 5.0** (sin publicar; no está en RC4).
+- {YB} = solo en la **Beta 5.0** (no está en RC4.02).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 

@@ -15,7 +15,7 @@ Cada capítulo es una vista del aparato: cómo se llega, qué hace cada pad, kno
 - *(desde RC2.02)* = nuevo en RC2.02 (no está en RC2.01).
 - *(desde RC4)* = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
 - *(desde RC4.02)* = arreglo de **RC4.02** (también en la Beta 5.0; en RC4 / RC4.01 no).
-- *(solo Beta 5.0)* = solo en la **Beta 5.0** (sin publicar; no está en RC4).
+- *(solo Beta 5.0)* = solo en la **Beta 5.0** (no está en RC4.02).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 
 ## Botones que funcionan en todas las vistas

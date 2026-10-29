@@ -92,7 +92,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 - *(since RC2.02)* = new in RC2.02 (not in RC2.01).
 - *(since RC4)* = new in **RC4** (not in RC2.11 or earlier).
 - *(since RC4.02)* = a fix of **RC4.02** (in Beta 5.0 too; not in RC4 / RC4.01).
-- *(Beta 5.0 only)* = only in **Beta 5.0** (not published; not in RC4).
+- *(Beta 5.0 only)* = only in **Beta 5.0** (not in RC4.02).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 
 <a id="botones"></a>

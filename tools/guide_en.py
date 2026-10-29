@@ -24,7 +24,7 @@ VIEWS = {
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
 - {ZB} = a fix of **RC4.02** (in Beta 5.0 too; not in RC4 / RC4.01).
-- {YB} = only in **Beta 5.0** (not published; not in RC4).
+- {YB} = only in **Beta 5.0** (not in RC4.02).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",

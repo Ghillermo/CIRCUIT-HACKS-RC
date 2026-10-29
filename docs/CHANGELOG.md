@@ -7,7 +7,7 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
-### Beta 5.0 — sin publicar
+### Beta 5.0 — 2026-10-29
 
 **Beta 5.0** (marca `B5.0`; = SC49.7; las betas que amplían RC4 se numeran 5.x) = RC4.02 (sus arreglos, en [Arreglos](#arreglos)) + lo siguiente, sin probar en el aparato (las Betas 3.44 a 3.49, = SC48.8 / SC48.9 / SC49.1 / SC49.2 / SC49.5 / SC49.6, no se publicaron: están incluidas; SC49, SC49.3 y SC49.7 dejan sitio en la flash quitando código y tablas que ya no se usaban y calculando seis tablas del DSP al encender, SC49.4 quitando el modo comb de los drums y lo que quedaba del Vinyl).
 
@@ -470,7 +470,7 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
-### RC4.02 / RC4.02S / Beta 5.0 — sin publicar
+### RC4.02 / RC4.02S / Beta 5.0 — 2026-10-29
 
 **RC4.02** (marca `R402`; = RC4.01 + estos arreglos) / **RC4.02S** (`R402S`, sin escrituras propias en la tarjeta), sin probar en el aparato.
 
@@ -729,7 +729,7 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 <a id="new-features"></a>
 ## New features
 
-### Beta 5.0 — not released
+### Beta 5.0 — 2026-10-29
 
 **Beta 5.0** (marker `B5.0`; = SC49.7; the betas that extend RC4 are numbered 5.x) = RC4.02 (its fixes in [Fixes](#fixes)) + the following, not tested on the device (Betas 3.44 to 3.49, = SC48.8 / SC48.9 / SC49.1 / SC49.2 / SC49.5 / SC49.6, were not released: they are included; SC49, SC49.3 and SC49.7 make room in the flash by leaving out code and tables no longer used and computing six DSP tables at power-up, SC49.4 by leaving out the drums' comb mode and what was left of the Vinyl).
 
@@ -1192,7 +1192,7 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 <a id="fixes"></a>
 ## Fixes
 
-### RC4.02 / RC4.02S / Beta 5.0 — not released
+### RC4.02 / RC4.02S / Beta 5.0 — 2026-10-29
 
 **RC4.02** (marker `R402`; = RC4.01 + these fixes) / **RC4.02S** (`R402S`, no writes of its own to the card), not tested on the device.
 
