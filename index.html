@@ -48,6 +48,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#a18-destinos-macro">A18 Destinos de los macro knobs</a></li>
 <li><a href="#a19-copiar-proyectos">A19 Copiar proyectos a otro hueco o a otro pack</a></li>
 <li><a href="#a20-patches-entre-packs">A20 Patches del sinte propio a otro pack</a></li>
+<li><a href="#a21-luces-disparo">A21 Shift = las pistas que suenan (solo Beta 5.0)</a></li>
+<li><a href="#a22-proyecto-init">A22 Shift + Preset = el sonido del proyecto (solo Beta 5.0)</a></li>
 </ol>
 <h3>B. Controles expuestos</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Knobs de los drums según el panel</a></li>
@@ -76,10 +78,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#c14-escala-propia">C14 Escala propia (desde RC2)</a></li>
 <li><a href="#c15-acordes">C15 Pantalla de acordes (desde RC4)</a></li>
 <li><a href="#c16-pareja-estereo">C16 Parejas estéreo de drums (desde RC4)</a></li>
-<li><a href="#c17-modo-muestra">C17 Modo muestra de las pistas MIDI (desde RC2)</a></li>
-<li><a href="#c18-matriz-mod">C18 Matriz de modulación del sinte propio (desde RC2.02)</a></li>
-<li><a href="#c19-fm4">C19 FM de 4 operadores (desde RC4)</a></li>
-<li><a href="#c20-master-fx-beta">C20 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</a></li>
+<li><a href="#c17-carril-extra">C17 Carril extra de los drums (solo Beta 5.0)</a></li>
+<li><a href="#c18-modo-muestra">C18 Modo muestra de las pistas MIDI (desde RC2)</a></li>
+<li><a href="#c19-matriz-mod">C19 Matriz de modulación del sinte propio (desde RC2.02)</a></li>
+<li><a href="#c20-fm4">C20 FM de 4 operadores (desde RC4)</a></li>
+<li><a href="#c21-master-fx-beta">C21 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
 <li><a href="#d1-efectos-grid">D1 Efectos de Master FX</a></li>
@@ -321,7 +324,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>34</td><td>Setup: <strong>pad 29 / pad 30</strong>, luego un pad de canal</td><td>Canal de escucha / salida de los Program Change del proyecto (B7, <strong>desde RC2</strong>)</td></tr>
 <tr><td>35</td><td><strong>Shift + Clear</strong></td><td>Metrónomo / cuenta atrás en cuatro estados; con la cuenta atrás, Record + Play = un compás antes de grabar (<strong>desde RC2</strong>)</td></tr>
 <tr><td>36</td><td>Pattern Settings: <strong>Shift + pad 25</strong>, <strong>Shift + pads 27-32</strong></td><td>Arpegiador del patrón encendido / apagado y su orden; acordes de la secuencia y notas mantenidas juntas, una por paso (<strong>desde RC2</strong>)</td></tr>
-<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Editor de la escala propia: hasta 7 notas y un periodo; una iteración por fila (<strong>desde RC2</strong>; <strong>desde RC4</strong>: también Scales dos veces; Velocity dos veces = velocity fija; Shift + Synth / MIDI = pulsarlos dos veces; MIDI 1 / 2 otra vez con su vista Note en pantalla = su Preset; una página de knobs de MIDI 1 / 2 mantenida ½ s = solo mientras se mantiene)</td></tr>
+<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Editor de la escala propia: hasta 7 notas y un periodo; una iteración por fila (<strong>desde RC2</strong>; <strong>desde RC4</strong>: también Scales dos veces; Velocity dos veces = velocity fija (en los drums, solo Beta 5.0: la vista de automatización); Shift + Synth / MIDI = pulsarlos dos veces; MIDI 1 / 2 otra vez con su vista Note en pantalla = su Preset; una página de knobs de MIDI 1 / 2 mantenida ½ s = solo mientras se mantiene)</td></tr>
 <tr><td>38</td><td>Step-drummer: <strong>pad 32</strong>; página velocity: <strong>pads 17-24</strong></td><td>Toggle pitch-vel (transponer en la escala / velocity) y destino propio de la página 2 (<strong>desde RC2</strong>)</td></tr>
 <tr><td>39</td><td><strong>Shift + Play</strong></td><td>Cuantizar el patrón que suena en la pista elegida (<strong>desde RC2</strong>)</td></tr>
 <tr><td>40</td><td>MIDI 1 / 2 en modo muestra: <strong>Note dos veces</strong>; <strong>paso mantenido + sample</strong></td><td>Selector de los 64 samples del pack (Octave ▼ / ▲) y sample flip por paso, también en vivo con Record (<strong>desde RC2</strong>)</td></tr>
@@ -2362,9 +2365,24 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
+<section class="feat" id="a21-luces-disparo"><h3><span class="code">A21</span>Shift = las pistas que suenan (solo Beta 5.0)</h3>
+<div class="summary"><p>Con Shift mantenido, el botón de cada pista se ilumina en blanco mientras suena una nota suya.</p></div>
+<ul>
+<li><strong>Solo Beta 5.0.</strong> Con <strong>Shift</strong> mantenido, en cualquier vista, los ocho <strong>botones de pista</strong> (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) se encienden en <strong>blanco</strong> mientras su pista tiene una nota sonando (del secuenciador, de los pads o del arpegiador) y se apagan cuando la nota termina (con Shift el original los deja apagados).</li>
+<li>Los drums se encienden del golpe a su note-off (en marcha, hasta el paso siguiente).</li>
+</ul>
+</section>
+<section class="feat" id="a22-proyecto-init"><h3><span class="code">A22</span>Shift + Preset = el sonido del proyecto (solo Beta 5.0)</h3>
+<div class="summary"><p>Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.</p></div>
+<ul>
+<li><strong>Solo Beta 5.0.</strong> En las vistas de Synth 1 / 2, <strong>Shift + Preset</strong> = el patch entero del sinte vuelve a como está guardado en el proyecto (o como se cargó: lo que se ha girado después se pierde).</li>
+<li>En las de MIDI 1 / 2 con el sinte propio encendido: el sinte propio vuelve al guardado con el proyecto; un proyecto sin él, a sus valores por defecto (como Clear + MIDI 1 / 2).</li>
+<li>Con Shift, Preset se ilumina en amarillo donde funciona (con el original, Shift + Preset no hacía nada).</li>
+</ul>
+</section>
 <h2 class="group">B. Controles expuestos</h2>
 <section class="feat" id="b1-knobs-drums"><h3><span class="code">B1</span>Knobs de los drums según el panel</h3>
-<div class="summary"><p>Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb, tilt), LFO, start point, bitcrush y distorsión.</p></div>
+<div class="summary"><p>Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.0), tilt), LFO, start point, bitcrush y distorsión.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Knobs de un drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
@@ -2517,7 +2535,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K2 Osc mod</td><td>Frecuencia del ring mod</td><td>Cantidad del ring mod</td></tr>
 <tr><td>K3 Amp envelope</td><td>Izquierda: decay; pasado el máximo, <strong>ataque</strong> (centro neutro)</td><td>Izquierda: <strong>inicio</strong> del sample; derecha: <strong>corte</strong> (centro = entero)</td></tr>
 <tr><td>K4 Filter envelope</td><td>Envolvente → corte</td><td>Forma de la envolvente</td></tr>
-<tr><td>K5 Filter frequency</td><td>Filtro / EQ (por defecto, el EQ tilt de stock)</td><td><strong>Modo de filtro</strong>: EQ tilt de stock (por defecto), paso banda, notch, comb, DJ</td></tr>
+<tr><td>K5 Filter frequency</td><td>Filtro / EQ (por defecto, el EQ tilt de stock)</td><td><strong>Modo de filtro</strong>: EQ tilt de stock (por defecto), paso banda, notch, comb (no en la Beta 5.0: ahí suena el EQ tilt), DJ</td></tr>
 <tr><td>K6 Resonance</td><td>Resonancia</td><td>—</td></tr>
 <tr><td>K7 Modulation</td><td>Cantidad del LFO (derecha trémolo; izquierda vibrato; desde RC4: izquierda = scan del inicio)</td><td>Velocidad del LFO</td></tr>
 <tr><td>K8 FX</td><td>Distorsión; a la izquierda de 0, <strong>bitcrush</strong></td><td><strong>Tipo de distorsión</strong>: stock, suave, dura, plegada</td></tr>
@@ -2568,10 +2586,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Página 4 del motor, <strong>knobs secuenciables</strong> (pad 4 de la fila de páginas): TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Cantidad de efecto.</li>
 <li>Grabando, mover esos knobs graba su movimiento; al reproducir, el patrón los mueve.</li>
 <li>Con el step-drummer activado, el carril de TUNE lo usa la fila de pitch.</li>
-<li><strong>Desde RC4 — soltar la automatización:</strong> vista Velocity, Shift + pad de paso (Synth 1 / 2 y MIDI 1 / 2) = en ese paso no suena ningún carril y lo que la automatización había movido vuelve a la posición de su knob; se guarda con el patrón.</li>
+<li><strong>Desde RC4 — soltar la automatización:</strong> vista Velocity, Shift + pad de paso (Synth 1 / 2 y MIDI 1 / 2) = en ese paso no suena ningún carril y lo que la automatización había movido vuelve a los valores del proyecto (<em>desde RC4.01</em>; antes, a la posición de su knob): Synth 1 / 2, los macros del patch guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto o, sin él, sus valores por defecto; se guarda con el patrón.</li>
+<li><strong>Solo Beta 5.0 — ver y oír la automatización de un paso:</strong> en esa vista, con Shift, solo los pasos con automatización se ven en amarillo (los demás conservan su color; los marcados, en rojo); Shift + un paso amarillo pone sus valores en los knobs y en el sonido hasta soltar Shift (no lo marca).</li>
+<li><strong>Solo Beta 5.0 — knobs en amarillo y borrar la automatización de un paso:</strong> con Shift + un paso amarillo, los knobs que mueve se encienden en amarillo (brillo = su valor); Clear + paso en la vista Velocity (con o sin Shift) borra la automatización de los knobs de ese paso y deja sus notas.</li>
 <li><strong>Desde RC4 — destinos:</strong> Shift + knob de la página 4 = el destino de ese carril (los 33 parámetros, orden y colores de la matriz, 4 clics cada uno); Clear mantenido antes de Shift = el de fábrica; mientras se elige, los pads 9-24 enseñan dónde está el destino (como la matriz); se guardan con los patches del sinte propio.</li>
 <li><strong>Desde RC4 — knobs no secuenciables:</strong> <strong>Shift + pad 4</strong> abre una página de 8 knobs con destino asignable (Shift + knob, igual que los secuenciables; pad 4 rosa mientras está abierta) que <strong>no se graban</strong>; de fábrica Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA; los destinos se guardan con los patches propios.</li>
 <li><strong>Desde RC4 — foto en un paso:</strong> Record mantenido + pad de paso (vista de pista) = los parámetros que no están en su valor inicial, escritos en los carriles de ese paso; los que no tienen carril toman uno cuyo parámetro está en el inicial (borrado antes); Record queda como estaba.</li>
+<li><strong>Solo Beta 5.0 — la foto también en Synth 1 / 2 y los drums:</strong> Record mantenido + pad de paso en la vista de pista de Synth 1 / 2 = sus macros que no están donde los guarda el patch cargado, cada uno en su carril; en la de un drum = pitch, decay, distorsión y EQ que no están en su valor por defecto (los knobs nuevos del mod no tienen carril). Mixer y FX no se tocan.</li>
 </ul>
 </section>
 <section class="feat" id="b7-setup"><h3><span class="code">B7</span>Setup y MIDI del aparato</h3>
@@ -4160,7 +4181,18 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>La tabla de knobs está en la guía por vistas («Vista de pista de un drum»).</li>
 </ul>
 </section>
-<section class="feat" id="c17-modo-muestra"><h3><span class="code">C17</span>Modo muestra de las pistas MIDI (desde RC2)</h3>
+<section class="feat" id="c17-carril-extra"><h3><span class="code">C17</span>Carril extra de los drums (solo Beta 5.0)</h3>
+<div class="summary"><p><strong>Solo Beta 5.0.</strong> Cada drum tiene <strong>un carril de automatización más</strong>, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el <strong>pitch cromático</strong> (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); <strong>Record mantenido + un knob</strong> le asigna otro parámetro y <strong>Record mantenido + un pad cromático</strong> lo devuelve al pitch cromático.</p></div>
+<ul>
+<li>Knobs asignables: K2, K4, K6, K7 y Shift + K1, K2, K4, K7 (los knobs nuevos del mod sin carril propio). Mientras mantienes Record, el knob asignado se ve blanco (el pitch cromático: Preset parpadea).</li>
+<li>Grabando, girar el knob asignado escribe el paso que suena (un valor por paso); Clear + ese knob a la izquierda borra el carril; Record mantenido + paso (la foto) incluye su valor.</li>
+<li>La asignación se guarda con el proyecto; los valores, con el patrón.</li>
+<li><strong>Bloqueos de estado:</strong> Record mantenido + 1-16/17-32 en las vistas de un drum cambia entre el carril y los bloqueos de estado (el carril se borra en los 8 patrones). Cada paso guarda un estado con los 14 valores de los knobs nuevos del drum (16 niveles cada uno) o queda dentro de una rampa entre dos estados (micropaso a micropaso). Grabando, los estados que quedan en línea recta se vuelven rampa. Hasta 80 estados por proyecto.</li>
+<li><strong>Vista de automatización:</strong> la vista Velocity del drum con Shift, o fijada pulsando Velocity otra vez (en los drums, la velocity fija queda en Shift + Velocity): pasos con automatización (pitch, decay, distorsión, EQ, carril extra, estado) en amarillo, rampas en amarillo tenue, marcados en rojo; Shift + paso amarillo = sus valores en los knobs y el sonido hasta soltar Shift (los knobs que mueve, en amarillo); Shift + otro paso = marca (ahí vuelven los valores del proyecto); Clear + paso = borra su automatización y deja el golpe; en bloqueos de estado, mantener un paso lo escucha y tocar otro = una rampa.</li>
+<li><strong>Desde RC4.02 — grabar con los pads cromáticos:</strong> con Record + Play, cada pad graba un golpe con su tono en su paso (su micropaso y velocity); Shift + Play mueve el tono con su golpe.</li>
+</ul>
+</section>
+<section class="feat" id="c18-modo-muestra"><h3><span class="code">C18</span>Modo muestra de las pistas MIDI (desde RC2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> Un estado nuevo del pad 27 (cian, tras el granular): la pista MIDI toca <strong>un sample del pack de un golpe</strong>, a la altura de la nota (<strong>C3 = nota 60 = como se grabó</strong>), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero.</p><p>La <strong>vista Note ampliada</strong> (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; <strong>paso mantenido + sample</strong> = sample flip de ese paso, también en vivo con Record.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Note ampliada de MIDI 1 en modo muestra: pasos arriba, samples abajo.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -4316,7 +4348,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Sin el modo muestra, la vista Note ampliada es la de siempre.</li>
 </ul>
 </section>
-<section class="feat" id="c18-matriz-mod"><h3><span class="code">C18</span>Matriz de modulación del sinte propio (desde RC2.02)</h3>
+<section class="feat" id="c19-matriz-mod"><h3><span class="code">C19</span>Matriz de modulación del sinte propio (desde RC2.02)</h3>
 <div class="summary"><p><strong>Desde RC2.02.</strong> Con el motor de MIDI 1 / 2 encendido, el <strong>pad 6</strong> de su vista Preset es una página de knobs nueva: <strong>K1-K8 = ocho fuentes</strong> (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos).</p><p>La <strong>posición</strong> de cada knob es el <strong>destino</strong> (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la <strong>cantidad</strong>. Knobs lentos: dos clics por paso, 16 pasos por destino.</p></div>
 <ul>
 <li><strong>Fuentes:</strong> K1 velocity, K2 nota (C3 = 0), K3 un valor al azar en cada nota, K4 LFO 2, K5 envolvente 2 (ataque / caída desde cada nota), K6 una caída desde cada golpe de un drum, K7 la posición en el patrón (del primer al último paso), K8 un valor al azar cada N pasos.</li>
@@ -4327,7 +4359,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Se guarda con los patches del sinte propio</strong> (A14); no con el proyecto ni al apagar el aparato. Sin CC / NRPN. Unas 100-250 actualizaciones por segundo, repartidas entre lo que se mueve en la pista.</li>
 </ul>
 </section>
-<section class="feat" id="c19-fm4"><h3><span class="code">C19</span>FM de 4 operadores (desde RC4)</h3>
+<section class="feat" id="c20-fm4"><h3><span class="code">C20</span>FM de 4 operadores (desde RC4)</h3>
 <div class="summary"><p><strong>Desde RC4.</strong> Una variante del oscilador del sinte propio de MIDI 1 / 2: <strong>pad 24</strong> de la fila de motores (un toque al pad 27), violeta; sus knobs en el <strong>pad 7</strong>.</p><p><strong>K1-K4</strong> = ratio de los operadores 1-4 (con <strong>desafinación fina</strong> en los clics de cada ratio), <strong>K5-K8</strong> = su nivel; <strong>Shift + K1-K4</strong> = a la derecha su ataque, a la izquierda el operador <strong>percusivo</strong> con su propio decay; <strong>Shift + K5</strong> = el <strong>algoritmo</strong> (16; también <strong>manteniendo el pad 7</strong>: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), <strong>Shift + K6</strong> feedback, <strong>Shift + K7</strong> ruido, <strong>Shift + K8</strong> release (más largo con más velocity).</p></div>
 <ul>
 <li><strong>Envolventes A/R con sustain fijo:</strong> los operadores sostenidos se quedan arriba mientras se pulsa la nota; los percusivos (según el algoritmo o su Shift + knob a la izquierda) caen aunque se mantenga. El volumen lo dan los operadores (el VCA del motor abierto).</li>
@@ -4340,7 +4372,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Clear + knob</strong> = su valor en la voz del algoritmo; <strong>Clear + MIDI 1 / 2</strong> = todo a los valores iniciales. Se guarda con los patches del sinte propio (A14). Sin CC / NRPN.</li>
 </ul>
 </section>
-<section class="feat" id="c20-master-fx-beta"><h3><span class="code">C20</span>Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</h3>
+<section class="feat" id="c21-master-fx-beta"><h3><span class="code">C21</span>Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> El pad 6 de Master FX es el <strong>Glitch</strong> y el pad 31 un <strong>gesto mecánico</strong> (parada de cinta, scratch…); Digitise gana <strong>K3 = envío momentáneo al delay</strong> y <strong>K4 = envolvente</strong>; los knobs y los huecos de Master FX <strong>se guardan con cada proyecto</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (sustituye al Vinyl): mantenido, fijado, asignable a los huecos y al secuenciador de efectos como los demás efectos; sus K1-K4 son los del Glitch.</li>
@@ -4355,7 +4387,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <table><thead><tr><th>Pad</th><th>Efecto</th><th>K1-K4</th></tr></thead><tbody>
 <tr><td>1</td><td>Gater</td><td>división, profundidad, ancho, suavizado</td></tr>
 <tr><td>2 / 3</td><td>Auto-Filter paso bajo / alto</td><td>velocidad, profundidad, resonancia, frecuencia central</td></tr>
-<tr><td>4</td><td>Digitise</td><td>reducción de muestreo, reducción de bits, envío al delay (K3), envolvente de la cantidad (K4)</td></tr>
+<tr><td>4</td><td>Digitise</td><td>reducción de muestreo, reducción de bits, envío al delay (K3), envolvente de la cantidad (K4; desde RC4.02: arreglada, en RC4 no arrancaba)</td></tr>
 <tr><td>5</td><td>Phaser</td><td>velocidad, profundidad, realimentación, mezcla</td></tr>
 <tr><td>6</td><td>Glitch (en RC0.9, el Vinyl)</td><td>velocidad, repetición, retraso, caos / sobrecarga</td></tr>
 </tbody></table>
@@ -4576,9 +4608,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="d7-drums-dsp"><h3><span class="code">D7</span>DSP de los drums</h3>
-<div class="summary"><p>Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb / tilt, bitcrush, start point, distorsiones y sidechain entre drums.</p></div>
+<div class="summary"><p>Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.0) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.</p></div>
 <ul>
-<li>Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación y el EQ tilt de stock.</li>
+<li>Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación (no en la Beta 5.0) y el EQ tilt de stock.</li>
 <li>Ring mod con oscilador propio, LFO trémolo / vibrato, distorsión suave / dura / plegada, bitcrush.</li>
 <li><strong>Sidechain entre drums:</strong> Shift + FX y Octave ▼: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). <strong>Desde RC2:</strong> los pads 1-4 de la fila 1 = Synth 1, Synth 2, MIDI 1, MIDI 2 como disparo (cada nota de su patrón).</li>
 </ul>
