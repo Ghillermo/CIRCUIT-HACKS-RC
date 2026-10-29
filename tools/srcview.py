@@ -329,8 +329,11 @@ def install(img, report, base_addr, text):
     L = dict(c_gst=int(report["sc14"]["labels"]["c_gst"], 16), c_synth=int(l15["c_synth"], 16))
     K = dict(S_MODE=s15.S_MODE, S_PAINT=s15.S_PAINT, PAD0=s15.PAD0, N_MODES=s15.N_MODES, COLORS=s15.COLORS,
              SP_PRESS=s15.SP_PRESS, SP_LEDS=s15.SP_LEDS, SP_REPAINT=s15.SP_REPAINT)
-    assert struct.unpack_from("<I", img, SP_VT + 4 * SLOT_PAD - BASE)[0] == int(l15["c_spad"], 16) | 1
-    assert struct.unpack_from("<I", img, SP_VT + 4 * SLOT_LEDS - BASE)[0] == int(l15["c_sleds"], 16) | 1
+    if s15.TRIM15:                                       # (SC49.3) SC15's handlers not emitted: the stock's are still there
+        assert [struct.unpack_from("<I", img, SP_VT + 4 * k - BASE)[0] for k in (SLOT_PAD, SLOT_LEDS)] == [s15.SP_PRESS | 1, s15.SP_LEDS | 1]
+    else:
+        assert struct.unpack_from("<I", img, SP_VT + 4 * SLOT_PAD - BASE)[0] == int(l15["c_spad"], 16) | 1
+        assert struct.unpack_from("<I", img, SP_VT + 4 * SLOT_LEDS - BASE)[0] == int(l15["c_sleds"], 16) | 1
     code, labels = arm_code(base_addr, L, K)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:

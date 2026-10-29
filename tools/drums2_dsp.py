@@ -32,6 +32,10 @@ UNIPOLAR = (2, 6, 8)
 N_MODES = 5                                   # 0 DJ, 1 band-pass, 2 notch, 3 comb, 4 tilt EQ (stock)
 XTRA = False                                  # SC19.9: EXT bits 8-9 = distortion type (0 stock, 1 soft, 2 hard, 3 fold), bit 10 = filter slope (0 = 12 dB, 1 = 24 dB: the SVF twice)
 SLOPE_PASS = False                            # with XTRA: EXT bit 10 = filter slope 24 dB (the SVF twice).  Dropped for SC19.9 (the user discarded it); the code stays as an option
+GENTAB = False                                # SC49.7 (gentab.py): TEXP / TLFO / TATK / TDEC / TF built at DSP start at their GEN_ addresses; the program keeps
+                                              # TEXP's and TDEC's top octave (TEXP_S, TDEC_S; with COMPACT); TLFO / TF are multiplied up from a constant, TATK divided
+GEN_TATK, GEN_TDEC, GEN_TF = 0x3E0D, 0x3E4E, 0x3E8E   # (GENTAB) 65 / 64 / 64 words (gentab)
+GEN_TEXP, GEN_TLFO = 0x3F4F, 0x3F80           # (GENTAB) 49 / 128 words (gentab)
 COMPACT = False                               # SC36: TATK stored as its first 65 words (the rest is 0) and TDEC as its last 64 (the first 65 are equal): the
                                               # envelope index is clamped instead (ENVS <= 0 for TATK, ENVS >= 0 for TDEC); label TDEC = old TDEC + 64 (vcf21 compensates)
 ABS = False                                   # SC19: mailbox messages carry the ABSOLUTE value (the ARM keeps the state in the project); default: deltas (SC18.1)
@@ -40,6 +44,16 @@ AINC, AENV, STARTF, ENDC = 46, 47, 48, 49     # (block words past the 46 above; 
 LFOSYNC = False                               # SC44.8 (use_lfosync)
 LINC = 50                                     # (LFOSYNC) the ARM's increment of the synced LFO (lfosync.py)
 LFOSCAN = False                               # SC46.5 (use_lfoscan)
+NOCOMB = False                                # SC49.4 (use_nocomb)
+
+
+def use_nocomb():
+    """SC49.4 (the user, 2026-10-29: «Drum comb filter mode», flash for the drums' extra lane): the comb filter mode out (its set-up in dctl, the
+    filter, the TCOMB table); mode 3 (the comb's) arriving = the stock tilt EQ (4): projects saved with the comb play the EQ.  persist19.use_nocomb
+    skips it in the knob's cycle."""
+    global NOCOMB
+    assert ABS
+    NOCOMB = True
 
 
 def use_lfosync():
@@ -116,7 +130,8 @@ def code(base):
     tabs = tables()
     def e(*lines):
         for l in lines: a.emit(T(l))
-    def tab(reg, name): a.emit(lambda t: T("add #>$%x,%s" % (t, reg)), name)
+    gen = dict(TEXP=GEN_TEXP, TLFO=GEN_TLFO, TATK=GEN_TATK, TDEC=GEN_TDEC, TF=GEN_TF) if GENTAB else {}
+    def tab(reg, name): a.emit(lambda t: T("add #>$%x,%s" % (t, reg)), gen.get(name, name))
     def blk_from(src):
         e("move r1,b" if src == "r1" else "move x:>$1ed6,b")
         e("sub #>$9f,b", "asl #%d,b,b" % SHIFT, "add #>$%x,b" % DB, "move b,r6"); a.emit(D.NOP)
@@ -136,7 +151,8 @@ def code(base):
         L("pm_c1" + t); e("cmp #>$%x,a" % (48 * 256 - 1)); a.emit(J("le"), "pm_c2" + t); e("move #>$%x,a" % (48 * 256 - 1))
         L("pm_c2" + t)
         e("move a,b", "lsr #8,b", "and #>$ff,a", "move #0,a0", "asl #15,a,a", "move a,y1")
-        tab("b", "TEXP"); e("move b,r0"); a.emit(D.NOP)
+        tab("b", "TEXP")
+        e("move b,r0"); a.emit(D.NOP)
         e("move p:(r0)+,x0", "move p:(r0),a", "sub x0,a", "move a,y0", "tfr x0,a", "mac y1,y0,a")
         e("move a,y0", "mpy x1,y0,a", "asl #2,a,a", "move a,x:(r3+$2)")
         L("pm_x" + t)
@@ -158,7 +174,11 @@ def code(base):
     e("move y1,b", "cmp #>9,b"); a.emit(J("ne"), "dc_val")
     if ABS:
         # code 9: filter mode = value (0..4, anything else 0)
-        e("tfr a,b", "tst b"); a.emit(J("lt"), "dc_m0"); e("cmp #>%d,b" % (N_MODES - 1)); a.emit(J("le"), "dc_ms")
+        e("tfr a,b", "tst b"); a.emit(J("lt"), "dc_m0"); e("cmp #>%d,b" % (N_MODES - 1))
+        if NOCOMB:                                                               # the comb's mode 3 = the tilt EQ (4)
+            a.emit(J("gt"), "dc_m0"); e("cmp #>3,b"); a.emit(J("ne"), "dc_ms"); e("move #>4,b"); a.emit(J("al"), "dc_ms")
+        else:
+            a.emit(J("le"), "dc_ms")
         L("dc_m0"); e("move #>0,b")
         L("dc_ms"); e("move b,x:(r5)"); a.emit(J("al"), "dc_mbd")
         L("dc_val")
@@ -217,14 +237,15 @@ def code(base):
     e("move %s,x0" % X(EC), "move %s,y0" % X(ENV), "mpy y0,x0,b")             # b1 = EC * env
     e("move %s,x1" % X(FSEL), "move x1,y1")                                     # y1 = mode
     e("move a,x1")                                                               # x1 = v - 64
-    # comb (3): index = v + 2 * EC * env over 0..127 -> CD ; feedback in FQ
-    e("move y1,a", "cmp #>3,a"); a.emit(J("ne"), "dc_svf")
-    e("move x1,a", "add #>$40,a", "add b,a", "add b,a")
-    e("tst a"); a.emit(J("ge"), "dc_c1"); e("move #>0,a")
-    L("dc_c1"); e("cmp #>$7f,a"); a.emit(J("le"), "dc_c2"); e("move #>$7f,a")
-    L("dc_c2"); ld_tab("TCOMB", "a", "x0"); e("move x0,%s" % X(CD))
-    e("move %s,a" % X(RES), "asl #16,a,a", "move a,x0", "move #>$%x,y0" % FBK, "mpy y0,x0,a", "move a,%s" % X(FQ))
-    e("move #>5,x0", "move x0,%s" % X(FMODE)); a.emit(J("al"), "dc_fd")
+    if not NOCOMB:
+        # comb (3): index = v + 2 * EC * env over 0..127 -> CD ; feedback in FQ
+        e("move y1,a", "cmp #>3,a"); a.emit(J("ne"), "dc_svf")
+        e("move x1,a", "add #>$40,a", "add b,a", "add b,a")
+        e("tst a"); a.emit(J("ge"), "dc_c1"); e("move #>0,a")
+        L("dc_c1"); e("cmp #>$7f,a"); a.emit(J("le"), "dc_c2"); e("move #>$7f,a")
+        L("dc_c2"); ld_tab("TCOMB", "a", "x0"); e("move x0,%s" % X(CD))
+        e("move %s,a" % X(RES), "asl #16,a,a", "move a,x0", "move #>$%x,y0" % FBK, "mpy y0,x0,a", "move a,%s" % X(FQ))
+        e("move #>5,x0", "move x0,%s" % X(FMODE)); a.emit(J("al"), "dc_fd")
     L("dc_svf")
     e("move y1,a", "tst a"); a.emit(J("ne"), "dc_bp")
     # DJ (0): as SC18
@@ -370,7 +391,7 @@ def code(base):
     # ---- filters: FMODE 1 LP, 2 HP, 3 band-pass, 4 notch (SVF), 5 comb
     L("fl_again")
     e("move %s,x0" % X(FMODE), "move x0,a", "tst a"); a.emit(J("eq"), "fl_x")
-    e("cmp #>5,a"); a.emit(J("eq"), "fl_comb")
+    if not NOCOMB: e("cmp #>5,a"); a.emit(J("eq"), "fl_comb")
     e("move %s,y0" % X(FF), "move %s,y1" % X(FQ), "move #>$2c02,r0")
     for m, name in ((1, "lp"), (2, "hp"), (3, "bp"), (4, "nt")):
         if m < 4:
@@ -403,21 +424,22 @@ def code(base):
         e("move %s,x0" % X(LOW), "move x0,%s" % X(LOW2), "move %s,x0" % X(BAND), "move x0,%s" % X(BAND2))
         e("move %s,x0" % X(SAVL), "move x0,%s" % X(LOW), "move %s,x0" % X(SAVB), "move x0,%s" % X(BAND))
         e("move #>0,x0", "move x0,%s" % X(PASS)); a.emit(J("al"), "fl_x")
-    # comb: y = (1 - fb) * x + fb * buf[n - D] ; buf[n] = y   (modulo-256 buffer per drum)
-    L("fl_comb")
-    e("move m4,%s" % X(SM4), "move m5,%s" % X(SM5))
-    e("move #>$%x,m4" % (COMB_N - 1), "move #>$%x,m5" % (COMB_N - 1))
-    e("move %s,r4" % X(CWP), "move %s,n5" % X(CD))
-    e("move r4,b", "and #>$%x,b" % (COMB_N - 1))                               # keep the pointer inside this drum's buffer
-    e("move x:>$1ed6,a", "sub #>$9f,a", "asl #8,a,a", "add #>$%x,a" % COMB, "add a,b", "move b,r4")
-    e("move %s,y1" % X(FQ), "move #>$7fffff,a", "sub y1,a", "move a,y0")        # y0 = 1 - fb, y1 = fb
-    e("move #>$2c02,r0"); a.emit(D.NOP)
-    e("move r4,r5"); a.emit(D.NOP); e("move (r5)-n5")
-    a.emit(D.do_x, 0x3A, "cb_e")
-    e("move x:(r0),x0", "mpy y0,x0,a", "move x:(r5)+,x1", "mac y1,x1,a", "move a,x:(r4)+")
-    L("cb_e"); e("move a,x:(r0)+")
-    e("move r4,%s" % X(CWP))
-    e("move %s,m4" % X(SM4), "move %s,m5" % X(SM5))
+    if not NOCOMB:
+        # comb: y = (1 - fb) * x + fb * buf[n - D] ; buf[n] = y   (modulo-256 buffer per drum)
+        L("fl_comb")
+        e("move m4,%s" % X(SM4), "move m5,%s" % X(SM5))
+        e("move #>$%x,m4" % (COMB_N - 1), "move #>$%x,m5" % (COMB_N - 1))
+        e("move %s,r4" % X(CWP), "move %s,n5" % X(CD))
+        e("move r4,b", "and #>$%x,b" % (COMB_N - 1))                               # keep the pointer inside this drum's buffer
+        e("move x:>$1ed6,a", "sub #>$9f,a", "asl #8,a,a", "add #>$%x,a" % COMB, "add a,b", "move b,r4")
+        e("move %s,y1" % X(FQ), "move #>$7fffff,a", "sub y1,a", "move a,y0")        # y0 = 1 - fb, y1 = fb
+        e("move #>$2c02,r0"); a.emit(D.NOP)
+        e("move r4,r5"); a.emit(D.NOP); e("move (r5)-n5")
+        a.emit(D.do_x, 0x3A, "cb_e")
+        e("move x:(r0),x0", "mpy y0,x0,a", "move x:(r5)+,x1", "mac y1,x1,a", "move a,x:(r4)+")
+        L("cb_e"); e("move a,x:(r0)+")
+        e("move r4,%s" % X(CWP))
+        e("move %s,m4" % X(SM4), "move %s,m5" % X(SM5))
     L("fl_x")
     # ---- tremolo
     if K3SPLIT:
@@ -434,12 +456,20 @@ def code(base):
     a.emit(D.jmp(SC16_MIX))
 
     # ================================================================ tables (P memory)
-    for name in ("TEXP", "TLFO", "TF", "TCR", "TATK", "TDEC", "TCOMB"):
-        L(name)
+    for name in ("TEXP", "TLFO", "TF", "TCR", "TATK", "TDEC") + (() if NOCOMB else ("TCOMB",)):
         ws = tabs[name]
+        if GENTAB and name == "TEXP":                                            # (GENTAB) the top octave only: gentab halves it down
+            name, ws = "TEXP_S", ws[37:49]
+        if GENTAB and name in ("TLFO", "TATK", "TF"):                           # (GENTAB) none: gentab makes them from constants
+            continue
         if COMPACT and name == "TATK":
             assert not any(ws[65:]); ws = ws[:65]
         if COMPACT and name == "TDEC":
             assert len(set(ws[:65])) == 1; ws = ws[64:]
+        if GENTAB and name == "TDEC":                                            # (GENTAB) the top octave only: gentab squares it down
+            assert COMPACT; name, ws = "TDEC_S", ws[52:64]
+        L(name)
         for w in ws: a.emit([w & 0xFFFFFF])
-    return a.assemble()
+    w, l = a.assemble()
+    if GENTAB: l.update(TLFO=GEN_TLFO, TATK=GEN_TATK, TDEC=GEN_TDEC, TF=GEN_TF)   # (GENTAB) for vcf21_dsp's tabs
+    return w, l

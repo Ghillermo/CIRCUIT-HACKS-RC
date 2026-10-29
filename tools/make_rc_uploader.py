@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -77,7 +77,13 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"RC4": ("RC4 — la versión candidata 4 (= SC48.6): RC2.11 + todo lo de las betas hasta la 3.43 (polifonía y modos de voz con limitador de voces, FM, Jankó, pantalla de acordes, granular estéreo, LFO a tempo, 128 patches propios…); el limitador probado en el aparato",
+DESC = {"R402": ("RC4.02 — la versión candidata 4.02: RC4 + arreglos (los pads cromáticos de los drums graban golpe y tono en su paso; el guardado del proyecto espera al stop; la envolvente de Digitise; el paso marcado vuelve a los valores del proyecto; el editor de CC con el sinte propio, issue #15); sin probar en el aparato",
+                 "RC4.02 — release candidate 4.02: RC4 + fixes (the drums' chromatic pads record hit and pitch on their step; the project save waits for stop; Digitise's envelope; a marked step goes back to the project's values; the CC editor with the own synth, issue #15); not tested on the device"),
+        "R402S": ("RC4.02S — versión más segura: RC4.02, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC4.02S — safer build: RC4.02, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B5.0": ("Beta 5.0 — beta (= SC49.7): RC4.02 + carril extra de los drums con bloqueos de estado y rampas, vista de automatización de los drums (escuchar, marcar, borrar), la foto (Record + paso) en todas las pistas, Shift + Preset = el sonido del proyecto, Shift = las pistas que suenan; sin probar en el aparato",
+                 "Beta 5.0 — beta (= SC49.7): RC4.02 + the drums' extra lane with state locks and ramps, the drums' automation view (preview, mark, erase), the snapshot (Record + step) on every track, Shift + Preset = the project's sound, Shift = the tracks that sound; not tested on the device"),
+        "RC4": ("RC4 — la versión candidata 4 (= SC48.6): RC2.11 + todo lo de las betas hasta la 3.43 (polifonía y modos de voz con limitador de voces, FM, Jankó, pantalla de acordes, granular estéreo, LFO a tempo, 128 patches propios…); el limitador probado en el aparato",
                 "RC4 — release candidate 4 (= SC48.6): RC2.11 + everything from the betas up to 3.43 (polyphony and voice modes with a voice limiter, FM, Jankó, chord screen, stereo granular, tempo-synced LFOs, 128 own patches…); the limiter tried on the device"),
         "RC4S": ("RC4S — versión más segura: RC4, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                  "RC4S — safer build: RC4, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
@@ -600,4 +606,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

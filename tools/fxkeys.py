@@ -54,10 +54,21 @@ SEND_REVERB = range(0, 8)
 SEND_DELAY = range(11, 19)
 
 
+TRIMPG = False                                   # SC49.3 (use_trimpg)
+
+
+def use_trimpg():
+    """SC49.3 (flash for the drums' extra lane, phase 2): fxres (SC44.4) puts id 21's stock instructions back; the resonance step on it (c_pgbtn,
+    c_res) runs from nowhere: not emitted, the hook not written."""
+    global TRIMPG
+    TRIMPG = True
+
+
 def hooks():
     """(address, label, expected stock disassembly of the 4 replaced bytes) of the b.w hooks in the button handler."""
     h = [(BTN_DOWN, "c_octdn", STOCK_CMP[BTN_DOWN][1]), (BTN_UP, "c_octup", STOCK_CMP[BTN_UP][1])]
-    if PAGE_BTN: h.append((BTN_PAGE, "c_pgbtn", "ldr r0, [r4, #0x24]|movs r1, #0x15"))
+    if PAGE_BTN:
+        if not TRIMPG: h.append((BTN_PAGE, "c_pgbtn", "ldr r0, [r4, #0x24]|movs r1, #0x15"))
     else: h.append((BTN_PAIR, "c_pair", STOCK_CMP[BTN_PAIR][1]))
     if CLEAR_RESET: h.append((BTN_CLEAR, "c_dup", "ldr r0, [r4, #0x20]|mov r1, r5"))
     return h
@@ -112,13 +123,14 @@ def arm_code(base, c_gst, c_gfst, c_shift=None):
         a.emit(ldr_imm, 1, 4, off); a.emit(b_w, back)                         # displaced: r0 = view already loaded
 
     if PAGE_BTN:
-        assert CLEAR_RESET, "the page button steps the resonance (CLEAR_RESET builds)"
-        a.label("c_pgbtn")                                                      # id 21 in the FX view: resonance step
-        a.emit(ldr_imm, 0, 4, CTRL_VIEW); a.emit(ldr_imm, 1, 4, CTRL_FX); a.emit(cmp_reg, 0, 1)
-        a.emit(b_cond, "pg_s", "ne")
-        a.emit(bl, "c_res"); a.emit(b_w, BTN_EXIT)
-        a.label("pg_s")
-        a.emit(ldr_imm, 0, 4, 0x24); a.emit(movs_imm, 1, 0x15); a.emit(b_w, BTN_PAGE_BACK)   # displaced instructions
+        if not TRIMPG:
+            assert CLEAR_RESET, "the page button steps the resonance (CLEAR_RESET builds)"
+            a.label("c_pgbtn")                                                      # id 21 in the FX view: resonance step
+            a.emit(ldr_imm, 0, 4, CTRL_VIEW); a.emit(ldr_imm, 1, 4, CTRL_FX); a.emit(cmp_reg, 0, 1)
+            a.emit(b_cond, "pg_s", "ne")
+            a.emit(bl, "c_res"); a.emit(b_w, BTN_EXIT)
+            a.label("pg_s")
+            a.emit(ldr_imm, 0, 4, 0x24); a.emit(movs_imm, 1, 0x15); a.emit(b_w, BTN_PAGE_BACK)   # displaced instructions
     else:
         a.label("c_pair")
         a.emit(ldr_imm, 0, 4, CTRL_VIEW); a.emit(ldr_imm, 1, 4, CTRL_FX); a.emit(cmp_reg, 0, 1)
@@ -128,20 +140,21 @@ def arm_code(base, c_gst, c_gfst, c_shift=None):
         a.emit(ldr_imm, 0, 4, CTRL_VIEW); a.emit(ldr_imm, 1, 4, 0x34); a.emit(b_w, BTN_PAIR_BACK)
 
     if CLEAR_RESET:
-        # ---- c_res: master filter resonance (project parameter 0x21 idx 1) += RES_STEP, clamped to 127; at 127 -> 0
-        a.label("c_res")
-        a.emit(push_list, [4], lr=True)
-        a.emit(movs_imm, 0, 0x21); a.emit(movs_imm, 1, 1); a.emit(bl, GETTER)
-        a.emit(cmp_imm, 0, 127); a.emit(b_cond, "rz", "hs")
-        a.emit(adds_imm8, 0, RES_STEP); a.emit(cmp_imm, 0, 127); a.emit(b_cond, "rk", "ls")
-        a.emit(movs_imm, 0, 127); a.emit(b, "rk")
-        a.label("rz"); a.emit(movs_imm, 0, 0)
-        a.label("rk"); a.emit(mov_reg, 3, 0)
-        a.emit(movw, 0, CTX & 0xFFFF); a.emit(movt, 0, CTX >> 16)
-        a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0x10); a.emit(ldr_imm, 0, 0, 0)
-        a.emit(adds_imm8, 0, 4); a.emit(movs_imm, 1, 0x21); a.emit(movs_imm, 2, 1)
-        a.emit(bl, PARAM_SET)
-        a.emit(pop_list, [4], pc=True)
+        if not (TRIMPG and PAGE_BTN):
+            # ---- c_res: master filter resonance (project parameter 0x21 idx 1) += RES_STEP, clamped to 127; at 127 -> 0
+            a.label("c_res")
+            a.emit(push_list, [4], lr=True)
+            a.emit(movs_imm, 0, 0x21); a.emit(movs_imm, 1, 1); a.emit(bl, GETTER)
+            a.emit(cmp_imm, 0, 127); a.emit(b_cond, "rz", "hs")
+            a.emit(adds_imm8, 0, RES_STEP); a.emit(cmp_imm, 0, 127); a.emit(b_cond, "rk", "ls")
+            a.emit(movs_imm, 0, 127); a.emit(b, "rk")
+            a.label("rz"); a.emit(movs_imm, 0, 0)
+            a.label("rk"); a.emit(mov_reg, 3, 0)
+            a.emit(movw, 0, CTX & 0xFFFF); a.emit(movt, 0, CTX >> 16)
+            a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0x10); a.emit(ldr_imm, 0, 0, 0)
+            a.emit(adds_imm8, 0, 4); a.emit(movs_imm, 1, 0x21); a.emit(movs_imm, 2, 1)
+            a.emit(bl, PARAM_SET)
+            a.emit(pop_list, [4], pc=True)
         # ---- c_dup: Duplicate (id 24) pressed in the FX view without Shift -> reset; the stock handler always runs after
         a.label("c_dup")
         a.emit(ldr_imm, 0, 4, CTRL_VIEW); a.emit(ldr_imm, 1, 4, CTRL_FX); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "cl_s", "ne")

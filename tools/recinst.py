@@ -18,14 +18,17 @@ RAM: modmx.MXR + 0x180: + 0 Record held, + 1 a snapshot taken, + 2 p1 at the pre
 SC46.9 (use_sig; the user, 2026-10-26: «Manual note input doesnt work until somthing is recorded in realtime with rec on MIDI tracks» · «with all
 sound sources»): that RAM holds the power-up pattern (nothing clears it): a byte + 0 not 0 = «Record held», and every step pad of MIDI 1 / 2
 with the engine on was taken for a snapshot (swallowed, nothing written: the engine at its defaults) until Record was pressed and let go.  Now
-the four bytes count only with the signature at + 4; c_rist (first use: the signature, + 0..3 = 0)."""
+the four bytes count only with the signature at + 4; c_rist (first use: the signature, + 0..3 = 0).
+
+SC49.5 (use_fold; room in the hole for slock): the snapshot's two loops over the 8 lanes were unrolled by the builder (≈ 560 B); now real loops
+(the lane in r5 / on the stack), the same steps in the same order."""
 from __future__ import annotations
 import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm, mov_reg,  # noqa: E402
-                   movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, strb_imm, strb_reg, subs_imm8, tst_reg)
+from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm, mov_reg,  # noqa: E402
+                   movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_sp, strb_imm, strb_reg, subs_imm8, tst_reg)
 import vcf21 as V  # noqa: E402
 import mpatch as MP  # noqa: E402
 import packio as PK  # noqa: E402
@@ -39,11 +42,17 @@ LANES, LANE_BYTES = 0x3A8, 192
 INV = V.INV
 SIG = 0x314E4952                          # (use_sig) "RIN1"
 SIGOK = False
+FOLD = False                              # (SC49.5) the snapshot's lane loops as loops
 
 
 def use_sig():
     global SIGOK
     SIGOK = True
+
+
+def use_fold():
+    global FOLD
+    FOLD = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -145,12 +154,20 @@ def arm_code(base, L, prev, nd):
     E(bl, L["c_vrow"]); E(mov_reg, 6, 0)                                            # r6 = the row
     E(movs_imm, 7, 0)                                                               # r7 = the lanes to write (a bit each)
     # the lanes whose code differs keep it
-    for k in range(8):
-        E(ldrb_imm, 1, 6, k); E(mov_reg, 0, 4); E(bl, "c_ridiff"); E(cmp_imm, 0, 0); E(b_cond, f"ik_{k}", "eq")
-        E(movs_imm, 0, 1 << k); E(orrs_reg, 7, 0)
-        a.label(f"ik_{k}")
-    # every other differing code: the first free lane, cleared
-    E(push_list, [5]); E(movs_imm, 5, 0)                                            # r5 = the index in the list
+    if FOLD:
+        E(push_list, [5]); E(movs_imm, 5, 0)                                        # r5 = the lane
+        a.label("ik_l")
+        E(ldrb_reg, 1, 6, 5); E(mov_reg, 0, 4); E(bl, "c_ridiff"); E(cmp_imm, 0, 0); E(b_cond, "ik_n", "eq")
+        E(movs_imm, 0, 1); E(raw, h(0x40A8)); E(orrs_reg, 7, 0)                     # lsls r0, r5
+        a.label("ik_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 8); E(b_cond, "ik_l", "lo")
+        E(movs_imm, 5, 0)                                                           # r5 = the index in the list
+    else:
+        for k in range(8):
+            E(ldrb_imm, 1, 6, k); E(mov_reg, 0, 4); E(bl, "c_ridiff"); E(cmp_imm, 0, 0); E(b_cond, f"ik_{k}", "eq")
+            E(movs_imm, 0, 1 << k); E(orrs_reg, 7, 0)
+            a.label(f"ik_{k}")
+        # every other differing code: the first free lane, cleared
+        E(push_list, [5]); E(movs_imm, 5, 0)                                        # r5 = the index in the list
     a.label("in_l")
     imm32(0, L["t_dcode"]); E(ldrb_reg, 1, 0, 5); E(push_list, [1])
     E(mov_reg, 0, 4); E(bl, "c_ridiff"); E(pop_list, [1]); E(cmp_imm, 0, 0); bc("in_n", "eq")
@@ -166,13 +183,25 @@ def arm_code(base, L, prev, nd):
     a.label("in_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, nd); bc("in_l", "lo")
     a.label("in_x"); E(pop_list, [5])
     # the values
-    for k in range(8):
-        E(movs_imm, 0, 1 << k); E(tst_reg, 7, 0); bc(f"iw_{k}", "eq")
-        E(mov_reg, 0, 4); E(ldrb_imm, 1, 6, k); E(bl, L["c_vvaddr"]); E(movs_imm, 1, 0); E(raw, ldrsb_reg(1, 0, 1))
-        E(ldrb_imm, 0, 6, k); E(bl, L["c_vtou"]); E(push_list, [0])
-        E(mov_reg, 0, 4); E(movs_imm, 1, k); E(bl, "c_rilane"); E(movs_imm, 1, 6); E(muls, 1, 5); E(adds_reg, 0, 0, 1); E(pop_list, [1])
-        for i in range(6): E(strb_imm, 1, 0, i)
-        a.label(f"iw_{k}")
+    if FOLD:
+        E(movs_imm, 0, 0); E(push_list, [0])                                        # [sp] = the lane
+        a.label("iw_l")
+        E(ldr_sp, 2, 0); E(movs_imm, 0, 1); E(raw, h(0x4090)); E(tst_reg, 7, 0); E(b_cond, "iw_n", "eq")   # lsls r0, r2
+        E(mov_reg, 0, 4); E(ldrb_reg, 1, 6, 2); E(bl, L["c_vvaddr"]); E(movs_imm, 1, 0); E(raw, ldrsb_reg(1, 0, 1))
+        E(ldr_sp, 2, 0); E(ldrb_reg, 0, 6, 2); E(bl, L["c_vtou"]); E(push_list, [0])
+        E(mov_reg, 0, 4); E(ldr_sp, 1, 4); E(bl, "c_rilane"); E(movs_imm, 1, 6); E(muls, 1, 5); E(adds_reg, 0, 0, 1); E(pop_list, [1])
+        E(movs_imm, 2, 6)
+        a.label("iw_s"); E(subs_imm8, 2, 1); E(strb_reg, 1, 0, 2); E(b_cond, "iw_s", "ne")
+        a.label("iw_n"); E(ldr_sp, 2, 0); E(adds_imm8, 2, 1); E(str_sp, 2, 0); E(cmp_imm, 2, 8); E(b_cond, "iw_l", "lo")
+        E(pop_list, [0])
+    else:
+        for k in range(8):
+            E(movs_imm, 0, 1 << k); E(tst_reg, 7, 0); bc(f"iw_{k}", "eq")
+            E(mov_reg, 0, 4); E(ldrb_imm, 1, 6, k); E(bl, L["c_vvaddr"]); E(movs_imm, 1, 0); E(raw, ldrsb_reg(1, 0, 1))
+            E(ldrb_imm, 0, 6, k); E(bl, L["c_vtou"]); E(push_list, [0])
+            E(mov_reg, 0, 4); E(movs_imm, 1, k); E(bl, "c_rilane"); E(movs_imm, 1, 6); E(muls, 1, 5); E(adds_reg, 0, 0, 1); E(pop_list, [1])
+            for i in range(6): E(strb_imm, 1, 0, i)
+            a.label(f"iw_{k}")
     E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 

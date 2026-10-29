@@ -51,7 +51,15 @@ SHIFT_MASK = 0x07DBBE00
 SHIFT_NEXT, PRESET_CASE = 0x080333B6, 0x080334B2
 TRACK_OF = 0x0805011E           # (track-view container) -> selected track 0..7
 FLAG = 0x51
+TRIM = False                    # SC49 (use_trim): c_dpad / c_shbtn not emitted (build_sc11 replaces both hooks with c_dpad2 / c_shbtn2)
 ROWS3 = False                   # SC20.1: the scale keyboards use the three bottom rows only (the top row, pads 1-8, is dark and does nothing)
+
+
+def use_trim():
+    """SC49 (flash for the extra drum lane): build_sc11 puts c_dpad2 / c_shbtn2 on the two hooks, and nothing calls c_dpad / c_shbtn (checked on
+    SC48.9's image): not emitted, their hooks left to build_sc11."""
+    global TRIM
+    TRIM = True
 
 
 def ext_code(base: int):
@@ -134,23 +142,24 @@ def ext_code(base: int):
     a.label("pv_unused")
     a.emit(movs_imm, 0, 0xFF); a.emit(movs_imm, 1, 0); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
-    # -------- c_dpad: drum Preset view vtable slot 0 (view, pad, vel)
-    a.label("c_dpad")
-    a.emit(ldrb_w, 3, 0, FLAG); a.emit(lsls_imm, 3, 3, 31); a.emit(b_cond, "dp_chrom", "ne")
-    a.emit(b_w, DP_PAD)
-    a.label("dp_chrom")
-    a.emit(push_list, [4, 5, 6], lr=True); a.emit(sub_sp_imm, 16)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
-    a.emit(mov_reg, 1, 13); a.emit(bl, "c_scale"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dp_out", "ne")
-    a.emit(mov_reg, 0, 13); a.emit(mov_reg, 1, 5); a.emit(bl, "c_padval")
-    a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, "dp_out", "eq")
-    a.emit(mov_reg, 2, 0)
-    a.emit(ldr_imm, 0, 4, 0x0C); a.emit(ldrb_w, 1, 4, 0x24); a.emit(subs_imm8, 1, 4)   # pitch id = patch id - 4
-    a.emit(ldr_imm, 3, 0, 0); a.emit(ldr_imm, 3, 3, 0); a.emit(blx_reg, 3)               # set (and record) Pitch
-    a.emit(mov_reg, 0, 4); a.emit(bl, NOTE_OFF_PREV)
-    a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6); a.emit(bl, NOTE_ON)
-    a.label("dp_out")
-    a.emit(add_sp_imm, 16); a.emit(pop_list, [4, 5, 6], pc=True)
+    if not TRIM:
+        # -------- c_dpad: drum Preset view vtable slot 0 (view, pad, vel)
+        a.label("c_dpad")
+        a.emit(ldrb_w, 3, 0, FLAG); a.emit(lsls_imm, 3, 3, 31); a.emit(b_cond, "dp_chrom", "ne")
+        a.emit(b_w, DP_PAD)
+        a.label("dp_chrom")
+        a.emit(push_list, [4, 5, 6], lr=True); a.emit(sub_sp_imm, 16)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
+        a.emit(mov_reg, 1, 13); a.emit(bl, "c_scale"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dp_out", "ne")
+        a.emit(mov_reg, 0, 13); a.emit(mov_reg, 1, 5); a.emit(bl, "c_padval")
+        a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, "dp_out", "eq")
+        a.emit(mov_reg, 2, 0)
+        a.emit(ldr_imm, 0, 4, 0x0C); a.emit(ldrb_w, 1, 4, 0x24); a.emit(subs_imm8, 1, 4)   # pitch id = patch id - 4
+        a.emit(ldr_imm, 3, 0, 0); a.emit(ldr_imm, 3, 3, 0); a.emit(blx_reg, 3)               # set (and record) Pitch
+        a.emit(mov_reg, 0, 4); a.emit(bl, NOTE_OFF_PREV)
+        a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6); a.emit(bl, NOTE_ON)
+        a.label("dp_out")
+        a.emit(add_sp_imm, 16); a.emit(pop_list, [4, 5, 6], pc=True)
 
     # -------- c_dleds: drum Preset view vtable slot 7 (get LED buffer)
     a.label("c_dleds")
@@ -193,25 +202,26 @@ def ext_code(base: int):
     a.label("ds_out")
     a.emit(pop_list, [4, 5, 6], pc=True)
 
-    # -------- c_shbtn: b.w from 0x080333B2 (Shift held), r4 = controller, r5 = button
-    a.label("c_shbtn")
-    a.emit(cmp_imm, 5, 8); a.emit(b_cond, "sb_stock", "ne")                              # 8 = Preset
-    a.emit(ldr_imm, 0, 4, 0x2C); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sb_stock", "eq")
-    a.emit(bl, TRACK_OF)
-    a.emit(subs_imm3, 1, 0, 4); a.emit(cmp_imm, 1, 3); a.emit(b_cond, "sb_stock", "hi")    # drums only
-    a.emit(ldr_imm, 0, 4, 0x2C); a.emit(lsls_imm, 1, 1, 2); a.emit(adds_reg, 0, 0, 1)
-    a.emit(adds_imm8, 0, 0x8C); a.emit(ldr_imm, 0, 0, 0)                                 # drum Preset view
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sb_stock", "eq")
-    a.emit(ldr_imm, 1, 0, 0); a.emit(movw, 2, DP_VT & 0xFFFF); a.emit(movt, 2, DP_VT >> 16)
-    a.emit(cmp_reg, 1, 2); a.emit(b_cond, "sb_stock", "ne")
-    a.emit(ldrb_w, 1, 0, FLAG); a.emit(movs_imm, 2, 1); a.emit(eors_reg, 1, 2); a.emit(strb_w, 1, 0, FLAG)
-    a.emit(lsls_imm, 1, 1, 31); a.emit(b_cond, "sb_preset", "ne")                       # turned on: slot 7 paints
-    a.emit(bl, "c_dstock")                                                               # turned off: stock colours
-    a.label("sb_preset")
-    a.emit(b_w, PRESET_CASE)                                                             # open the Preset view
-    a.label("sb_stock")                                                                  # stock: Shift+button mask
-    a.emit(movw, 1, SHIFT_MASK & 0xFFFF); a.emit(movt, 1, SHIFT_MASK >> 16)
-    a.emit(b_w, SHIFT_NEXT)
+    if not TRIM:
+        # -------- c_shbtn: b.w from 0x080333B2 (Shift held), r4 = controller, r5 = button
+        a.label("c_shbtn")
+        a.emit(cmp_imm, 5, 8); a.emit(b_cond, "sb_stock", "ne")                              # 8 = Preset
+        a.emit(ldr_imm, 0, 4, 0x2C); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sb_stock", "eq")
+        a.emit(bl, TRACK_OF)
+        a.emit(subs_imm3, 1, 0, 4); a.emit(cmp_imm, 1, 3); a.emit(b_cond, "sb_stock", "hi")    # drums only
+        a.emit(ldr_imm, 0, 4, 0x2C); a.emit(lsls_imm, 1, 1, 2); a.emit(adds_reg, 0, 0, 1)
+        a.emit(adds_imm8, 0, 0x8C); a.emit(ldr_imm, 0, 0, 0)                                 # drum Preset view
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sb_stock", "eq")
+        a.emit(ldr_imm, 1, 0, 0); a.emit(movw, 2, DP_VT & 0xFFFF); a.emit(movt, 2, DP_VT >> 16)
+        a.emit(cmp_reg, 1, 2); a.emit(b_cond, "sb_stock", "ne")
+        a.emit(ldrb_w, 1, 0, FLAG); a.emit(movs_imm, 2, 1); a.emit(eors_reg, 1, 2); a.emit(strb_w, 1, 0, FLAG)
+        a.emit(lsls_imm, 1, 1, 31); a.emit(b_cond, "sb_preset", "ne")                       # turned on: slot 7 paints
+        a.emit(bl, "c_dstock")                                                               # turned off: stock colours
+        a.label("sb_preset")
+        a.emit(b_w, PRESET_CASE)                                                             # open the Preset view
+        a.label("sb_stock")                                                                  # stock: Shift+button mask
+        a.emit(movw, 1, SHIFT_MASK & 0xFFFF); a.emit(movt, 1, SHIFT_MASK >> 16)
+        a.emit(b_w, SHIFT_NEXT)
     return a.assemble()
 
 
@@ -237,8 +247,9 @@ def build(stock: bytes, listing: Path):
             if x in targets:
                 raise SystemExit(f"branch into patched bytes at {x:#x}")
     img[CTOR_STRB - BASE:CTOR_STRB - BASE + 4] = strh_w_imm(0, 5, 0x50)
-    img[SHIFT_BTN - BASE:SHIFT_BTN - BASE + 4] = b_w(SHIFT_BTN, labels["c_shbtn"])
-    struct.pack_into("<I", img, DP_VT - BASE, labels["c_dpad"] | 1)
+    if not TRIM:
+        img[SHIFT_BTN - BASE:SHIFT_BTN - BASE + 4] = b_w(SHIFT_BTN, labels["c_shbtn"])
+        struct.pack_into("<I", img, DP_VT - BASE, labels["c_dpad"] | 1)
     struct.pack_into("<I", img, DP_VT + 0x1C - BASE, labels["c_dleds"] | 1)
     img += b"\xFF" * (ext_base - BASE - len(img)) + code
     while len(img) % 4:

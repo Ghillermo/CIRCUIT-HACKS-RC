@@ -30,6 +30,17 @@ B_GATE, B_AF, B_DIG, B_PH, B_VN, B_HP = 0, 1, 2, 3, 4, 5
 _cache = {}
 
 
+NOVINYL = False                               # SC49.4 (use_novinyl)
+
+
+def use_novinyl():
+    """SC49.4 (the user, 2026-10-29: «Vinyl leftovers», flash for the drums' extra lane): the Vinyl was dropped in SC39.7 (its bit never set), but
+    its routine still ran on every block with any effect on and its off path zeroed X:VN_ST..+3, where Digitise's K4 envelope keeps its start
+    time since SC39.9 (the envelope never ran).  Not emitted, nor its call."""
+    global NOVINYL
+    NOVINYL = True
+
+
 def asm(lines):
     todo = [l for l in lines if l not in _cache]
     if todo:
@@ -60,7 +71,9 @@ def code(base, ret_r1=BUF):
     a.emit(T("move #>$7fffff,y0")); st("y0", G_CUR)                         # all off: gater gain = 1
     a.emit(J("al"), "fx_out")
     L("fx_any")
-    a.emit(D.jsr, "dig"); a.emit(D.jsr, "vin"); a.emit(D.jsr, "pha"); a.emit(D.jsr, "afl"); a.emit(D.jsr, "gat")
+    a.emit(D.jsr, "dig")
+    if not NOVINYL: a.emit(D.jsr, "vin")
+    a.emit(D.jsr, "pha"); a.emit(D.jsr, "afl"); a.emit(D.jsr, "gat")
     L("fx_out")
     a.emit(T("move #>$%x,r1" % ret_r1)); a.emit(D.RTS)
 
@@ -79,35 +92,36 @@ def code(base, ret_r1=BUF):
     st("b", DG_CNT); st("x0", DG_HL); st("y0", DG_HR)
     L("rts_"); a.emit(D.RTS)
 
-    # ---------------- Vinyl: + crackle (sparse noise peaks) + hiss, low-pass (tone), high-pass (wear)
-    L("vin")
-    ld(FX_ON, "x0"); a.emit(JCLR(B_VN, "x0"), "vn_off")
-    a.emit(T("move #>$%x,r0" % BUF)); a.emit(T("move #>$%x,r5" % NOISE)); a.emit(T("move #%d,n5" % NOISE_STEP))
-    a.emit(D.do_x, 0x3A, "vn_e")
-    # noise n: crackle c = n if |n| >= T else 0 ; d = c*CR + n'*HISS  (n' = next stream of the table)
-    a.emit(T("move y:(r5),a")); ld(VN_T, "x0")
-    a.emit(T("tfr a,b")); a.emit(T("abs b")); a.emit(T("cmp x0,b")); a.emit(T("clr a iflt"))
-    a.emit(T("move a,x0")); ld(VN_CR, "y0"); a.emit(T("mpy y0,x0,b"))
-    a.emit(T("move (r5)+")); a.emit(T("move y:(r5)-,x0")); ld(VN_HISS, "y0"); a.emit(T("mac y0,x0,b"))
-    a.emit(T("move (r5)+n5"))
-    a.emit(T("move b,y1"))                                                   # y1 = noise added to both channels
-    for ch in (0, 1):
-        lp, hp = VN_ST + ch, VN_ST + 2 + ch
-        # lp += LPK * (x + d - lp) ; hp += HPK * (lp - hp) ; out = lp - hp
-        a.emit(T("move x:(r0),a")); a.emit(T("add y1,a"))
-        ld(lp, "b"); a.emit(T("sub b,a")); a.emit(T("move a,x0"))
-        ld(VN_LPK, "y0"); a.emit(T("mac y0,x0,b")); st("b", lp)
-        ld(hp, "a"); a.emit(T("sub a,b")); a.emit(T("move b,x0"))
-        ld(VN_HPK, "y0"); a.emit(T("mac y0,x0,a")); st("a", hp)
-        ld(lp, "b"); a.emit(T("sub a,b"))
-        if ch == 1:
-            L("vn_e")
-        a.emit(T("move b,x:(r0)+"))
-    a.emit(D.RTS)
-    L("vn_off")
-    a.emit(T("clr a")); a.emit(T("move #>$%x,r4" % VN_ST))
-    for _ in range(4): a.emit(T("move a,x:(r4)+"))
-    a.emit(D.RTS)
+    if not NOVINYL:
+        # ---------------- Vinyl: + crackle (sparse noise peaks) + hiss, low-pass (tone), high-pass (wear)
+        L("vin")
+        ld(FX_ON, "x0"); a.emit(JCLR(B_VN, "x0"), "vn_off")
+        a.emit(T("move #>$%x,r0" % BUF)); a.emit(T("move #>$%x,r5" % NOISE)); a.emit(T("move #%d,n5" % NOISE_STEP))
+        a.emit(D.do_x, 0x3A, "vn_e")
+        # noise n: crackle c = n if |n| >= T else 0 ; d = c*CR + n'*HISS  (n' = next stream of the table)
+        a.emit(T("move y:(r5),a")); ld(VN_T, "x0")
+        a.emit(T("tfr a,b")); a.emit(T("abs b")); a.emit(T("cmp x0,b")); a.emit(T("clr a iflt"))
+        a.emit(T("move a,x0")); ld(VN_CR, "y0"); a.emit(T("mpy y0,x0,b"))
+        a.emit(T("move (r5)+")); a.emit(T("move y:(r5)-,x0")); ld(VN_HISS, "y0"); a.emit(T("mac y0,x0,b"))
+        a.emit(T("move (r5)+n5"))
+        a.emit(T("move b,y1"))                                                   # y1 = noise added to both channels
+        for ch in (0, 1):
+            lp, hp = VN_ST + ch, VN_ST + 2 + ch
+            # lp += LPK * (x + d - lp) ; hp += HPK * (lp - hp) ; out = lp - hp
+            a.emit(T("move x:(r0),a")); a.emit(T("add y1,a"))
+            ld(lp, "b"); a.emit(T("sub b,a")); a.emit(T("move a,x0"))
+            ld(VN_LPK, "y0"); a.emit(T("mac y0,x0,b")); st("b", lp)
+            ld(hp, "a"); a.emit(T("sub a,b")); a.emit(T("move b,x0"))
+            ld(VN_HPK, "y0"); a.emit(T("mac y0,x0,a")); st("a", hp)
+            ld(lp, "b"); a.emit(T("sub a,b"))
+            if ch == 1:
+                L("vn_e")
+            a.emit(T("move b,x:(r0)+"))
+        a.emit(D.RTS)
+        L("vn_off")
+        a.emit(T("clr a")); a.emit(T("move #>$%x,r4" % VN_ST))
+        for _ in range(4): a.emit(T("move a,x:(r4)+"))
+        a.emit(D.RTS)
 
     # ---------------- Phaser: 4 first-order all-passes per channel, feedback, dry/wet mix
     L("pha")

@@ -71,6 +71,15 @@ MARK_DIRTY_SVC = 0x08021FDC
 GUARD = False                         # SC19.2: the deferred work waits after power-up (stage A: BOOT_A ms, no DSP message; stage B: BOOT_B ms, the drum messages)
 BOOT_A, BOOT_B = 15000, 30000
 TICK = 0x2000081C                     # HAL uwTick (ms since power-up)
+NOCOMB = False                        # SC49.4 (use_nocomb)
+
+
+def use_nocomb():
+    """SC49.4 (drums2_dsp.use_nocomb): Shift + K5's filter mode skips 3 (the comb, gone): 0 tilt EQ, 1 band-pass, 2 notch, 4 DJ."""
+    global NOCOMB
+    NOCOMB = True
+
+
 REMAP = False                         # SC19.8: the drum knobs follow the panel labels (see REMAP_* below); the stock parameters keep their id, their saved value and their MIDI
 # physical knob (0..7 = K1..K8) -> what it turns.  Codes are the mailbox codes (MAP2); "stock" entries are the stock macro knob index the stock handler is called with
 # (1 pitch, 3 decay, 5 distortion, 7 EQ), so the parameter, the project and the MIDI are the stock ones: the MIDI follows the parameter, not the knob.
@@ -317,9 +326,16 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.label("dn_fsel")                                                               # filter mode: one step per turn, wraps 0..4
     a.emit(movs_imm, 3, 7); a.emit(ands_reg, 3, 1)
     a.emit(cmp_imm, 2, 0); a.emit(b_cond, "dn_f", "eq"); a.emit(b_cond, "dn_up", "gt")
-    a.emit(subs_imm8, 3, 1); a.emit(b_cond, "dn_f", "ge"); a.emit(movs_imm, 3, 4); a.emit(b, "dn_f")
-    a.label("dn_up")
-    a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 4); a.emit(b_cond, "dn_f", "le"); a.emit(movs_imm, 3, 0)
+    if NOCOMB:                                                                       # 3 (the comb) skipped both ways
+        a.emit(subs_imm8, 3, 1); a.emit(b_cond, "dn_c3", "ge"); a.emit(movs_imm, 3, 4); a.emit(b, "dn_f")
+        a.label("dn_c3"); a.emit(cmp_imm, 3, 3); a.emit(b_cond, "dn_f", "ne"); a.emit(movs_imm, 3, 2); a.emit(b, "dn_f")
+        a.label("dn_up")
+        a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 3); a.emit(b_cond, "dn_u4", "ne"); a.emit(movs_imm, 3, 4)
+        a.label("dn_u4"); a.emit(cmp_imm, 3, 4); a.emit(b_cond, "dn_f", "le"); a.emit(movs_imm, 3, 0)
+    else:
+        a.emit(subs_imm8, 3, 1); a.emit(b_cond, "dn_f", "ge"); a.emit(movs_imm, 3, 4); a.emit(b, "dn_f")
+        a.label("dn_up")
+        a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 4); a.emit(b_cond, "dn_f", "le"); a.emit(movs_imm, 3, 0)
     a.label("dn_f")
     a.emit(movs_imm, 5, 0xF8); a.emit(ands_reg, 5, 4); a.emit(orrs_reg, 3, 5)
     a.emit(mov_reg, 0, 3); a.emit(pop_list, [4, 5], pc=True)
@@ -1107,8 +1123,8 @@ def install(img, report, base_addr, text):
     assert DD.ABS, "drums2_dsp.ABS must be on (the ARM sends absolute values)"
     assert not CLEAR or (REMAP and KNOB_LEVELS and EXTRAS), "CLEAR needs REMAP, KNOB_LEVELS and EXTRAS"
     s18 = report["sc18"]["labels"]
-    assert struct.unpack_from("<I", img, MH_SLOT4 - BASE)[0] == int(s18["c_dk18"], 16) | 1
-    assert drums18.decode_bw(img, s14.SVC_HOOK) == int(s18["c_dtick"], 16)
+    if not drums18.TRIM18: assert struct.unpack_from("<I", img, MH_SLOT4 - BASE)[0] == int(s18["c_dk18"], 16) | 1
+    if not drums18.TRIM18: assert drums18.decode_bw(img, s14.SVC_HOOK) == int(s18["c_dtick"], 16)
     L = dict(c_mh=int(s18["c_mh"], 16), svc_next=int(s18["svc_next"], 16),
              c_shift=int(report["sc15"]["labels"]["c_shift"], 16), c_dknob3=int(report["sc12"]["labels"]["c_dknob3"], 16),
              c_dview=int(report["sc11"]["labels"]["c_dview"], 16), c_gfst=int(report["sc17"]["labels"]["c_gfst"], 16), c_clrall=int(report["sc17"]["labels"]["c_clrall"], 16),
@@ -1125,7 +1141,7 @@ def install(img, report, base_addr, text):
         img += bytes([0xFF])
     assert len(img) <= 0x70000
     # chromatic / scale drum Preset view: all four rows lit again (SC18.1's c_dleds18 darkened rows 1-2): SC08's LEDs
-    assert struct.unpack_from("<I", img, drums18.DP_VT_SLOT7 - BASE)[0] == int(s18["c_dleds18"], 16) | 1
+    if not drums18.TRIM18: assert struct.unpack_from("<I", img, drums18.DP_VT_SLOT7 - BASE)[0] == int(s18["c_dleds18"], 16) | 1
     struct.pack_into("<I", img, drums18.DP_VT_SLOT7 - BASE, int(report["sc08"]["labels"]["c_dleds"], 16) | 1)
     struct.pack_into("<I", img, MH_SLOT4 - BASE, labels["c_dk19"] | 1)
     img[s14.SVC_HOOK - BASE:s14.SVC_HOOK - BASE + 4] = b_w(s14.SVC_HOOK, labels["c_dtick19"])

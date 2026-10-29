@@ -908,6 +908,46 @@ run python3 tools/emu_vguard.py firmware/b3.42/circuittracks-4486-B3.42.bin firm
 run python3 tools/emu_midipre.py firmware/sc48.5/circuittracks-4486-SC48.5.bin firmware/sc48.5/manifest.json
 run python3 tools/emu_dspload.py firmware/s485d/circuittracks-4486-S485D.bin firmware/s485d/manifest.json
 run python3 tools/emu_vguard.py firmware/sc48.6/circuittracks-4486-SC48.6.bin firmware/sc48.6/manifest.json
+run python3 tools/emu_edlock.py firmware/sc48.7/circuittracks-4486-SC48.7.bin firmware/sc48.7/manifest.json firmware/sc48.6/circuittracks-4486-SC48.6.bin firmware/sc48.6/manifest.json
+run python3 tools/emu_sc48_8.py firmware/sc48.8/circuittracks-4486-SC48.8.bin firmware/sc48.8/manifest.json firmware/sc48.7/circuittracks-4486-SC48.7.bin firmware/sc48.7/manifest.json
+run python3 tools/emu_sc48_8.py firmware/b3.44/circuittracks-4486-B3.44.bin firmware/b3.44/manifest.json
+run python3 tools/emu_snapall.py firmware/sc48.9/circuittracks-4486-SC48.9.bin firmware/sc48.9/manifest.json firmware/sc48.8/circuittracks-4486-SC48.8.bin firmware/sc48.8/manifest.json
+# SC49: SC48.9 without its dead code (the same results as SC48.9)
+run python3 tools/emu_snapall.py firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json firmware/sc48.8/circuittracks-4486-SC48.8.bin firmware/sc48.8/manifest.json
+run python3 tools/emu_edscratch.py firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json
+run python3 tools/emu_edlock.py firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json firmware/sc48.6/circuittracks-4486-SC48.6.bin firmware/sc48.6/manifest.json
+run python3 tools/emu_nudge2.py firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json
+run python3 tools/emu_startfix.py firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json
+run python3 tools/emu_snapall.py firmware/b3.45/circuittracks-4486-B3.45.bin firmware/b3.45/manifest.json
+# SC49.1 / Beta 3.46 / RC4.01: a marked step back to Project init, yellow knobs on a preview, Clear + step, Shift + Preset
+run python3 tools/emu_sc49_1.py firmware/sc49.1/circuittracks-4486-SC49.1.bin firmware/sc49.1/manifest.json firmware/sc49/circuittracks-4486-SC49.bin firmware/sc49/manifest.json
+run python3 tools/emu_sc49_1.py firmware/b3.46/circuittracks-4486-B3.46.bin firmware/b3.46/manifest.json
+run python3 tools/emu_sc48_8.py firmware/sc49.1/circuittracks-4486-SC49.1.bin firmware/sc49.1/manifest.json
+run python3 tools/emu_snapall.py firmware/sc49.1/circuittracks-4486-SC49.1.bin firmware/sc49.1/manifest.json
+run python3 tools/emu_sc49_1.py firmware/r401/circuittracks-4486-R401.bin firmware/r401/manifest.json firmware/rc4/circuittracks-4486-RC4.bin firmware/rc4/manifest.json
+# SC49.2 / Beta 3.47: the drums' extra lane (lanex)
+run python3 tools/emu_lanex.py firmware/sc49.2/circuittracks-4486-SC49.2.bin firmware/sc49.2/manifest.json firmware/sc49.1/circuittracks-4486-SC49.1.bin firmware/sc49.1/manifest.json
+run python3 tools/emu_lanex.py firmware/b3.47/circuittracks-4486-B3.47.bin firmware/b3.47/manifest.json
+run python3 tools/emu_snapall.py firmware/sc49.2/circuittracks-4486-SC49.2.bin firmware/sc49.2/manifest.json
+# SC49.3: SC49.2 without more dead code (the same results as SC49.2)
+run python3 tools/emu_lanex.py firmware/sc49.3/circuittracks-4486-SC49.3.bin firmware/sc49.3/manifest.json
+run python3 tools/emu_sc45_3.py firmware/sc49.3/circuittracks-4486-SC49.3.bin firmware/sc49.3/manifest.json
+run python3 tools/emu_arpmods.py firmware/sc49.3/circuittracks-4486-SC49.3.bin firmware/sc49.3/manifest.json
+run python3 tools/emu_mfhold.py firmware/sc49.3/circuittracks-4486-SC49.3.bin firmware/sc49.3/manifest.json firmware/sc49.1/circuittracks-4486-SC49.1.bin firmware/sc49.1/manifest.json
+# SC49.4: the Vinyl's DSP routine and the drums' comb mode out (Digitise's K4 envelope works again)
+run python3 tools/emu_drop494_dsp.py firmware/sc49.4/circuittracks-4486-SC49.4.bin firmware/sc49.4/manifest.json firmware/sc49.3/circuittracks-4486-SC49.3.bin firmware/sc49.3/manifest.json
+run python3 tools/emu_nocomb.py firmware/sc49.4/circuittracks-4486-SC49.4.bin firmware/sc49.4/manifest.json
+run python3 tools/emu_lanex.py firmware/sc49.4/circuittracks-4486-SC49.4.bin firmware/sc49.4/manifest.json
+# SC49.5 / Beta 3.48: the drums' state locks, ramps and automation view (slock); recinst's snapshot folded
+run python3 tools/emu_slock.py firmware/sc49.5/circuittracks-4486-SC49.5.bin firmware/sc49.5/manifest.json
+run python3 tools/emu_slock.py firmware/b3.48/circuittracks-4486-B3.48.bin firmware/b3.48/manifest.json
+run python3 tools/emu_lanex.py firmware/sc49.5/circuittracks-4486-SC49.5.bin firmware/sc49.5/manifest.json
+run python3 tools/emu_snapall.py firmware/sc49.5/circuittracks-4486-SC49.5.bin firmware/sc49.5/manifest.json
+# SC49.6 / Beta 3.49: Record + step = the held step pad yellow (slock.use_cue)
+run python3 tools/emu_reccue.py firmware/sc49.6/circuittracks-4486-SC49.6.bin firmware/sc49.6/manifest.json firmware/sc49.5/circuittracks-4486-SC49.5.bin firmware/sc49.5/manifest.json
+run python3 tools/emu_reccue.py firmware/b3.49/circuittracks-4486-B3.49.bin firmware/b3.49/manifest.json
+run python3 tools/emu_slock.py firmware/sc49.6/circuittracks-4486-SC49.6.bin firmware/sc49.6/manifest.json
+run python3 tools/emu_rodisk.py firmware/r401s/circuittracks-4486-R401S.bin firmware/r401s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
 run python3 tools/emu_vguard.py firmware/b3.43/circuittracks-4486-B3.43.bin firmware/b3.43/manifest.json
 run python3 tools/emu_rodisk.py firmware/b3.43s/circuittracks-4486-B3.43S.bin firmware/b3.43s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
 run python3 tools/emu_vguard.py firmware/rc4/circuittracks-4486-RC4.bin firmware/rc4/manifest.json
@@ -917,3 +957,12 @@ run python3 tools/emu_edscratch.py firmware/r211/circuittracks-4486-R211.bin fir
 run python3 tools/emu_edscratch.py firmware/r211s/circuittracks-4486-R211S.bin firmware/r211s/manifest.json firmware/r210s/circuittracks-4486-R210S.bin firmware/r210s/manifest.json
 run python3 tools/emu_smnote.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
 run python3 tools/emu_splitknob.py firmware/sc47.9/circuittracks-4486-SC47.9.bin firmware/sc47.9/manifest.json
+# SC49.7 / Beta 5.0 / RC4.02 / RC4.02S: gentab, chromfix (hit + pitch), savedefer + svskip, dautov (the drums' automation view), novinyl in the RC
+run python3 tools/emu_gentab_dsp.py firmware/sc49.7/circuittracks-4486-SC49.7.bin firmware/sc49.7/manifest.json firmware/sc49.6/circuittracks-4486-SC49.6.bin firmware/sc49.6/manifest.json
+run python3 tools/emu_chromfix.py firmware/sc49.7/circuittracks-4486-SC49.7.bin firmware/sc49.7/manifest.json
+run python3 tools/emu_savedefer.py firmware/sc49.7/circuittracks-4486-SC49.7.bin firmware/sc49.7/manifest.json
+run python3 tools/emu_dautov.py firmware/sc49.7/circuittracks-4486-SC49.7.bin firmware/sc49.7/manifest.json
+run python3 tools/emu_dautov.py firmware/b5.0/circuittracks-4486-B5.0.bin firmware/b5.0/manifest.json
+run python3 tools/emu_chromfix.py firmware/r402/circuittracks-4486-R402.bin firmware/r402/manifest.json
+run python3 tools/emu_savedefer.py firmware/r402/circuittracks-4486-R402.bin firmware/r402/manifest.json
+run python3 tools/emu_rodisk.py firmware/r402s/circuittracks-4486-R402S.bin firmware/r402s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json

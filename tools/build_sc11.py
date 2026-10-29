@@ -143,8 +143,10 @@ def build(stock: bytes, listing: Path):
     img[sc.MARK_OFF:sc.MARK_OFF + 4] = MARKER
     L = {k: int(v, 16) for k, v in report["sc08"]["labels"].items()}
     assert struct.unpack_from("<I", img, DK_VT_SLOT4 - BASE)[0] == DK_STOCK | 1
-    assert struct.unpack_from("<I", img, DP_VT - BASE)[0] == L["c_dpad"] | 1
-    assert bytes(img[SHIFT_BTN - BASE:SHIFT_BTN - BASE + 4]) == b_w(SHIFT_BTN, L["c_shbtn"])
+    import build_sc08
+    if not build_sc08.TRIM:
+        assert struct.unpack_from("<I", img, DP_VT - BASE)[0] == L["c_dpad"] | 1
+        assert bytes(img[SHIFT_BTN - BASE:SHIFT_BTN - BASE + 4]) == b_w(SHIFT_BTN, L["c_shbtn"])
     ext = (len(img) + BASE + 3) & ~3
     code, labels = arm_code(ext, L)
     struct.pack_into("<I", img, DK_VT_SLOT4 - BASE, labels["c_dknob"] | 1)

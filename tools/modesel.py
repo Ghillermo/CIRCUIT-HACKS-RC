@@ -30,6 +30,15 @@ ROW = 16                                  # pads 17-23: the modes
 CLOSE_MS = 300
 COLS = ((0x01, 0x02), (0x2B, 0x2C), (0x17, 0x18), (0x45, 0x46), (0x32, 0x37), (0x4D, 0x4E), (0x09, 0x0A))   # bright / dim per mode
 INV = V.INV
+VDFIX = False                             # SC48.7 (use_vdfix): the VA-drum with pad 31 on reads as the VA-drum, not the granular
+
+
+def use_vdfix():
+    """SC48.7 (fix): the engine bits (VA-drum t, t + 2) with the oscillator: (1, 0) VA-drum, (0, 1) granular, (1, 1) = the VA-drum with pad 31
+    (velocity -> envelopes) on, as vcf21 reads them (c_grpg, the pad 27 colour); c_msmode took (1, 1) for the granular, so the row showed the
+    granular chosen while the VA-drum was playing."""
+    global VDFIX
+    VDFIX = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -52,8 +61,12 @@ def arm_code(base, L, prev):
     E(bl, L["c_von"]); E(cmp_imm, 0, 0); E(b_cond, "mm_0", "eq")
     E(mov_reg, 0, 4); E(adds_imm8, 0, 2); E(bl, L["c_vdbit"]); E(mov_reg, 5, 0)          # r5 = bit t + 2
     E(mov_reg, 0, 4); E(movs_imm, 1, 2); E(bl, L["c_vflag"]); E(cmp_imm, 0, 0); E(b_cond, "mm_no", "eq")
-    E(cmp_imm, 5, 0); E(b_cond, "mm_4", "ne")
-    E(mov_reg, 0, 4); E(bl, L["c_vdbit"]); E(cmp_imm, 0, 0); E(b_cond, "mm_3", "ne")
+    if VDFIX:                                                                       # (SC48.7) bit t first: VA-drum with pad 31 on (bits 1, 1) is the VA-drum
+        E(mov_reg, 0, 4); E(bl, L["c_vdbit"]); E(cmp_imm, 0, 0); E(b_cond, "mm_3", "ne")
+        E(cmp_imm, 5, 0); E(b_cond, "mm_4", "ne")
+    else:
+        E(cmp_imm, 5, 0); E(b_cond, "mm_4", "ne")
+        E(mov_reg, 0, 4); E(bl, L["c_vdbit"]); E(cmp_imm, 0, 0); E(b_cond, "mm_3", "ne")
     E(movs_imm, 0, 2); E(pop_list, [4, 5], pc=True)
     a.label("mm_no")
     E(cmp_imm, 5, 0); E(b_cond, "mm_5", "ne")

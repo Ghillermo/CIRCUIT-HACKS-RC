@@ -75,6 +75,16 @@ def popw(regs, lr=False):
     return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
+TRIM15 = False                        # SC49.3 (use_trim)
+
+
+def use_trim():
+    """SC49.3 (flash for the drums' extra lane, phase 2): srcview (SC19.1) puts its own c_xpad / c_xleds on the synth Preset view's slots 0 / 7
+    and goes on to the stock's; c_spad / c_sleds are called from nowhere (checked on SC49.2's image): not emitted, the slots left to srcview."""
+    global TRIM15
+    TRIM15 = True
+
+
 def arm_code(base, c_gst, c_h9):
     a = Asm(base)
     # ---- c_shift: r0 = Shift held (clobbers r1-r3)
@@ -91,55 +101,56 @@ def arm_code(base, c_gst, c_h9):
     a.emit(cmp_imm, 0, 1); a.emit(b_cond, "sy_ok", "ls"); a.emit(movs_imm, 0, 0xFF)
     a.label("sy_ok"); a.emit(raw, h(0x4770))
 
-    # ---- c_spad (view, pad, vel): Shift + pad 25-27 -> mode; else stock
-    a.label("c_spad")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
-    a.emit(subs_imm8, 1, PAD0); a.emit(cmp_imm, 1, N_MODES - 1); a.emit(b_cond, "sp_stock", "hi")
-    a.emit(bl, "c_shift"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sp_stock", "eq")
-    a.emit(mov_reg, 0, 4); a.emit(bl, "c_synth"); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "sp_stock", "hi")
-    a.emit(mov_reg, 7, 0)                                                      # r7 = synth
-    a.emit(bl, c_gst); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sp_stock", "eq")
-    a.emit(adds_reg, 0, 0, 7); a.emit(mov_reg, 1, 5); a.emit(subs_imm8, 1, PAD0)
-    a.emit(strb_imm, 1, 0, S_MODE)
-    a.emit(movs_imm, 0, 0x20); a.emit(movs_imm, 1, 48); a.emit(bl, MARK_DIRTY)   # resend Audio In group (H9)
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
-    a.label("sp_stock")
-    a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6)
-    a.emit(raw, popw([4, 5, 6, 7], lr=True))
-    a.emit(b_w, SP_PRESS)
+    if not TRIM15:
+        # ---- c_spad (view, pad, vel): Shift + pad 25-27 -> mode; else stock
+        a.label("c_spad")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
+        a.emit(subs_imm8, 1, PAD0); a.emit(cmp_imm, 1, N_MODES - 1); a.emit(b_cond, "sp_stock", "hi")
+        a.emit(bl, "c_shift"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sp_stock", "eq")
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_synth"); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "sp_stock", "hi")
+        a.emit(mov_reg, 7, 0)                                                      # r7 = synth
+        a.emit(bl, c_gst); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sp_stock", "eq")
+        a.emit(adds_reg, 0, 0, 7); a.emit(mov_reg, 1, 5); a.emit(subs_imm8, 1, PAD0)
+        a.emit(strb_imm, 1, 0, S_MODE)
+        a.emit(movs_imm, 0, 0x20); a.emit(movs_imm, 1, 48); a.emit(bl, MARK_DIRTY)   # resend Audio In group (H9)
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("sp_stock")
+        a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6)
+        a.emit(raw, popw([4, 5, 6, 7], lr=True))
+        a.emit(b_w, SP_PRESS)
 
-    # ---- c_sleds (view) -> LED buffer; Shift held: pads 25-27 show the mode
-    a.label("c_sleds")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(mov_reg, 4, 0)
-    a.emit(bl, SP_LEDS); a.emit(mov_reg, 5, 0)                                 # r5 = stock buffer
-    a.emit(bl, c_gst); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sl_out", "eq")
-    a.emit(mov_reg, 6, 0)                                                      # r6 = state
-    a.emit(mov_reg, 0, 4); a.emit(bl, "c_synth"); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "sl_out", "hi")
-    a.emit(mov_reg, 7, 0)                                                      # r7 = synth
-    a.emit(bl, "c_shift")
-    a.emit(movs_imm, 2, 1); a.emit(raw, h(0x40BA))                             # lsls r2,r7 -> bit
-    a.emit(ldrb_imm, 3, 6, S_PAINT)
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sl_held", "ne")
-    a.emit(tst_reg, 3, 2); a.emit(b_cond, "sl_out", "eq")                      # released: repaint once
-    a.emit(bics_reg, 3, 2); a.emit(strb_imm, 3, 6, S_PAINT)
-    a.emit(mov_reg, 0, 4); a.emit(bl, SP_REPAINT); a.emit(b, "sl_out")
-    a.label("sl_held")
-    a.emit(orrs_reg, 3, 2); a.emit(strb_imm, 3, 6, S_PAINT)
-    a.emit(adds_reg, 3, 6, 7); a.emit(ldrb_imm, 3, 3, S_MODE)                   # r3 = mode
-    a.emit(cmp_imm, 7, 0); a.emit(b_cond, "sl_s2", "ne")
-    a.emit(movs_imm, 0, COLORS[0][0]); a.emit(movs_imm, 1, COLORS[0][1]); a.emit(b, "sl_paint")
-    a.label("sl_s2"); a.emit(movs_imm, 0, COLORS[1][0]); a.emit(movs_imm, 1, COLORS[1][1])
-    a.label("sl_paint")
-    for i in range(N_MODES):
-        a.emit(cmp_imm, 3, i); a.emit(b_cond, f"sl_d{i}", "ne")
-        a.emit(strh_imm, 0, 5, 2 * (PAD0 + i)); a.emit(b, f"sl_n{i}")
-        a.label(f"sl_d{i}"); a.emit(strh_imm, 1, 5, 2 * (PAD0 + i))
-        a.label(f"sl_n{i}")
-    a.label("sl_out")
-    a.emit(mov_reg, 0, 5)
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        # ---- c_sleds (view) -> LED buffer; Shift held: pads 25-27 show the mode
+        a.label("c_sleds")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0)
+        a.emit(bl, SP_LEDS); a.emit(mov_reg, 5, 0)                                 # r5 = stock buffer
+        a.emit(bl, c_gst); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sl_out", "eq")
+        a.emit(mov_reg, 6, 0)                                                      # r6 = state
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_synth"); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "sl_out", "hi")
+        a.emit(mov_reg, 7, 0)                                                      # r7 = synth
+        a.emit(bl, "c_shift")
+        a.emit(movs_imm, 2, 1); a.emit(raw, h(0x40BA))                             # lsls r2,r7 -> bit
+        a.emit(ldrb_imm, 3, 6, S_PAINT)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "sl_held", "ne")
+        a.emit(tst_reg, 3, 2); a.emit(b_cond, "sl_out", "eq")                      # released: repaint once
+        a.emit(bics_reg, 3, 2); a.emit(strb_imm, 3, 6, S_PAINT)
+        a.emit(mov_reg, 0, 4); a.emit(bl, SP_REPAINT); a.emit(b, "sl_out")
+        a.label("sl_held")
+        a.emit(orrs_reg, 3, 2); a.emit(strb_imm, 3, 6, S_PAINT)
+        a.emit(adds_reg, 3, 6, 7); a.emit(ldrb_imm, 3, 3, S_MODE)                   # r3 = mode
+        a.emit(cmp_imm, 7, 0); a.emit(b_cond, "sl_s2", "ne")
+        a.emit(movs_imm, 0, COLORS[0][0]); a.emit(movs_imm, 1, COLORS[0][1]); a.emit(b, "sl_paint")
+        a.label("sl_s2"); a.emit(movs_imm, 0, COLORS[1][0]); a.emit(movs_imm, 1, COLORS[1][1])
+        a.label("sl_paint")
+        for i in range(N_MODES):
+            a.emit(cmp_imm, 3, i); a.emit(b_cond, f"sl_d{i}", "ne")
+            a.emit(strh_imm, 0, 5, 2 * (PAD0 + i)); a.emit(b, f"sl_n{i}")
+            a.label(f"sl_d{i}"); a.emit(strh_imm, 1, 5, 2 * (PAD0 + i))
+            a.label(f"sl_n{i}")
+        a.label("sl_out")
+        a.emit(mov_reg, 0, 5)
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_h9b: Audio In group -> X:$3A01 / X:$3A02 = modes, then SC10's c_h9 (r0 preserved)
     a.label("c_h9b")
@@ -230,8 +241,9 @@ def build(stock: bytes, listing: Path):
     ext = (len(img) + BASE + 3) & ~3
     code, labels = arm_code(ext, c_gst, c_h9)
     img[H9_HOOK - BASE:H9_HOOK - BASE + 4] = b_w(H9_HOOK, labels["c_h9b"])
-    struct.pack_into("<I", img, SP_VT - BASE, labels["c_spad"] | 1)
-    struct.pack_into("<I", img, SP_VT + 0x1C - BASE, labels["c_sleds"] | 1)
+    if not TRIM15:
+        struct.pack_into("<I", img, SP_VT - BASE, labels["c_spad"] | 1)
+        struct.pack_into("<I", img, SP_VT + 0x1C - BASE, labels["c_sleds"] | 1)
     img += b"\xFF" * (ext - BASE - len(img)) + code
     while len(img) % 4:
         img += b"\xFF"

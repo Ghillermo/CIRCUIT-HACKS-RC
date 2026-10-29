@@ -57,6 +57,15 @@ PARAM_GET = 0x0803542C
 DSP_WRITE = 0x080292F8
 O_EXT, O_FLAGS, O_DELTA = 0x31, 0x3E, 0x3F
 V2 = False                            # SC18.1: drums2_dsp layout and knob map, chromatic view rows 1-2 dark
+TRIM18 = False                        # SC49 (use_trim): c_dk18 / c_dtick / c_dleds18 not emitted (persist19 takes their hooks)
+
+
+def use_trim():
+    """SC49 (flash for the extra drum lane): persist19 puts c_dtick19 at the head of the DSP service chain (chained to svc_next) and SC08's
+    c_dleds back on the drum Preset view's slot 7; c_dtick and c_dleds18 are called from nowhere (checked on SC48.9's image): not emitted,
+    their hooks left alone.  c_dk18 too: persist19 puts c_dk19 on slot 4 of the drum macro handlers (and c_dk19 goes on to SC12's c_dknob3)."""
+    global TRIM18
+    TRIM18 = True
 DP_VT_SLOT7 = 0x0805ABBC + 0x1C       # drum Preset view getLeds (SC08's c_dleds)
 # knob -> mailbox code (knob index 0..7 = K1..K8);  SC18 / SC18.1
 MAP1 = dict(plain={0: 1, 2: 2, 4: 3, 6: 5}, shift={4: 4, 7: 6})
@@ -118,103 +127,106 @@ def knobs_code(a, L):
     a.label("mh_no"); a.emit(movs_imm, 0, 0)
     a.label("mh_ok"); a.emit(raw, h(0x4770))
 
-    # ---- c_dk18 (obj, knob, delta): slot 4 of the drum macro handlers
-    a.label("c_dk18")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
-    a.emit(bl, L["c_shift"])
-    a.emit(cmp_imm, 0, 0); bc("dk_ns", "eq")
-    for knob, code in sorted(MAP["shift"].items()):                             # Shift + knob
-        a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_pend", "eq")
-    a.emit(b, "dk_old")
-    a.label("dk_ns")
-    for knob, code in sorted(MAP["plain"].items()):
-        a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_pend", "eq")
-    a.emit(movs_imm, 7, 0); a.emit(cmp_imm, 5, 3); bc("dk_ext", "eq")           # K4: start point (bits 3..0)
-    a.emit(movs_imm, 7, 4); a.emit(cmp_imm, 5, 5); bc("dk_ext", "eq")           # K6: bitcrush (bits 7..4)
-    a.label("dk_old")
-    a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6)
-    a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["c_dknob3"])
-    # pending message: r1 = code, r6 = delta
-    a.label("dk_pend")
-    a.emit(raw, ldrb_w_(0, 4, O_FLAGS)); a.emit(movs_imm, 2, 0x0F); a.emit(ands_reg, 2, 0)
-    a.emit(raw, ldrsb_imm(3, 4, O_DELTA))
-    a.emit(cmp_reg, 2, 1); a.emit(b_cond, "dp_same", "eq")
-    a.emit(movs_imm, 2, 0xF0); a.emit(ands_reg, 0, 2); a.emit(orrs_reg, 0, 1); a.emit(movs_imm, 3, 0)
-    a.label("dp_same")
-    a.emit(adds_reg, 3, 3, 6)
-    a.emit(cmp_imm, 3, 100); a.emit(b_cond, "dp_c1", "le"); a.emit(movs_imm, 3, 100)
-    a.label("dp_c1")
-    a.emit(raw, h(0xF113)); a.emit(raw, h(0x0F64))                              # cmn.w r3,#100
-    a.emit(b_cond, "dp_c2", "ge"); a.emit(movs_imm, 3, 0); a.emit(subs_imm8, 3, 100)
-    a.label("dp_c2")
-    a.emit(raw, strb_w(3, 4, O_DELTA)); a.emit(raw, strb_w(0, 4, O_FLAGS))
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
-    # extended range: r7 = nibble shift (0 start point / 4 bitcrush), macro = (knob - 1) / 2 (1 decay, 2 distortion)
-    a.label("dk_ext")
-    a.emit(cmp_imm, 6, 0); bc("dk_done", "eq")
-    a.emit(ldr_imm, 0, 4, 0xC); a.emit(lsrs_imm, 1, 5, 1); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 3, 0, 0)   # r3 = stock value
-    a.emit(raw, ldrb_w_(0, 4, O_EXT)); a.emit(raw, lsrs_reg_w(1, 0, 7)); a.emit(movs_imm, 2, 0x0F); a.emit(ands_reg, 1, 2)   # r1 = ext
-    a.emit(cmp_imm, 6, 0); bc("de_right", "gt")
-    # left: counts when ext > 0 or the stock value is already 0
-    a.emit(cmp_imm, 1, 0); a.emit(b_cond, "de_l", "ne")
-    a.emit(cmp_imm, 3, 0); bc("dk_old", "ne")
-    a.label("de_l")
-    a.emit(subs_reg, 1, 1, 6)                                                   # ext - delta (delta < 0)
-    a.emit(cmp_imm, 1, 15); a.emit(b_cond, "de_set", "le"); a.emit(movs_imm, 1, 15)
-    a.emit(b, "de_set")
-    a.label("de_right")
-    a.emit(cmp_imm, 1, 0); bc("dk_old", "eq")
-    a.emit(subs_reg, 1, 1, 6); a.emit(b_cond, "de_set", "ge"); a.emit(movs_imm, 1, 0)
-    a.label("de_set")                                                           # ext field = r1
-    a.emit(movs_imm, 2, 0x0F); a.emit(raw, lsls_reg_w(2, 2, 7)); a.emit(bics_reg, 0, 2)
-    a.emit(raw, lsls_reg_w(1, 1, 7)); a.emit(orrs_reg, 0, 1)
-    a.emit(raw, strb_w(0, 4, O_EXT))
-    a.emit(raw, ldrb_w_(0, 4, O_FLAGS)); a.emit(movs_imm, 1, 0x40); a.emit(orrs_reg, 0, 1); a.emit(raw, strb_w(0, 4, O_FLAGS))
-    a.label("dk_done")
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIM18:
+        # ---- c_dk18 (obj, knob, delta): slot 4 of the drum macro handlers
+        a.label("c_dk18")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
+        a.emit(bl, L["c_shift"])
+        a.emit(cmp_imm, 0, 0); bc("dk_ns", "eq")
+        for knob, code in sorted(MAP["shift"].items()):                             # Shift + knob
+            a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_pend", "eq")
+        a.emit(b, "dk_old")
+        a.label("dk_ns")
+        for knob, code in sorted(MAP["plain"].items()):
+            a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_pend", "eq")
+        a.emit(movs_imm, 7, 0); a.emit(cmp_imm, 5, 3); bc("dk_ext", "eq")           # K4: start point (bits 3..0)
+        a.emit(movs_imm, 7, 4); a.emit(cmp_imm, 5, 5); bc("dk_ext", "eq")           # K6: bitcrush (bits 7..4)
+        a.label("dk_old")
+        a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(mov_reg, 2, 6)
+        a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["c_dknob3"])
+        # pending message: r1 = code, r6 = delta
+        a.label("dk_pend")
+        a.emit(raw, ldrb_w_(0, 4, O_FLAGS)); a.emit(movs_imm, 2, 0x0F); a.emit(ands_reg, 2, 0)
+        a.emit(raw, ldrsb_imm(3, 4, O_DELTA))
+        a.emit(cmp_reg, 2, 1); a.emit(b_cond, "dp_same", "eq")
+        a.emit(movs_imm, 2, 0xF0); a.emit(ands_reg, 0, 2); a.emit(orrs_reg, 0, 1); a.emit(movs_imm, 3, 0)
+        a.label("dp_same")
+        a.emit(adds_reg, 3, 3, 6)
+        a.emit(cmp_imm, 3, 100); a.emit(b_cond, "dp_c1", "le"); a.emit(movs_imm, 3, 100)
+        a.label("dp_c1")
+        a.emit(raw, h(0xF113)); a.emit(raw, h(0x0F64))                              # cmn.w r3,#100
+        a.emit(b_cond, "dp_c2", "ge"); a.emit(movs_imm, 3, 0); a.emit(subs_imm8, 3, 100)
+        a.label("dp_c2")
+        a.emit(raw, strb_w(3, 4, O_DELTA)); a.emit(raw, strb_w(0, 4, O_FLAGS))
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        # extended range: r7 = nibble shift (0 start point / 4 bitcrush), macro = (knob - 1) / 2 (1 decay, 2 distortion)
+        a.label("dk_ext")
+        a.emit(cmp_imm, 6, 0); bc("dk_done", "eq")
+        a.emit(ldr_imm, 0, 4, 0xC); a.emit(lsrs_imm, 1, 5, 1); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 3, 0, 0)   # r3 = stock value
+        a.emit(raw, ldrb_w_(0, 4, O_EXT)); a.emit(raw, lsrs_reg_w(1, 0, 7)); a.emit(movs_imm, 2, 0x0F); a.emit(ands_reg, 1, 2)   # r1 = ext
+        a.emit(cmp_imm, 6, 0); bc("de_right", "gt")
+        # left: counts when ext > 0 or the stock value is already 0
+        a.emit(cmp_imm, 1, 0); a.emit(b_cond, "de_l", "ne")
+        a.emit(cmp_imm, 3, 0); bc("dk_old", "ne")
+        a.label("de_l")
+        a.emit(subs_reg, 1, 1, 6)                                                   # ext - delta (delta < 0)
+        a.emit(cmp_imm, 1, 15); a.emit(b_cond, "de_set", "le"); a.emit(movs_imm, 1, 15)
+        a.emit(b, "de_set")
+        a.label("de_right")
+        a.emit(cmp_imm, 1, 0); bc("dk_old", "eq")
+        a.emit(subs_reg, 1, 1, 6); a.emit(b_cond, "de_set", "ge"); a.emit(movs_imm, 1, 0)
+        a.label("de_set")                                                           # ext field = r1
+        a.emit(movs_imm, 2, 0x0F); a.emit(raw, lsls_reg_w(2, 2, 7)); a.emit(bics_reg, 0, 2)
+        a.emit(raw, lsls_reg_w(1, 1, 7)); a.emit(orrs_reg, 0, 1)
+        a.emit(raw, strb_w(0, 4, O_EXT))
+        a.emit(raw, ldrb_w_(0, 4, O_FLAGS)); a.emit(movs_imm, 1, 0x40); a.emit(orrs_reg, 0, 1); a.emit(raw, strb_w(0, 4, O_FLAGS))
+        a.label("dk_done")
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
-    # ---- c_dtick: DSP service hook (b.w from the SVC chain, DSP lock held), then the previous target
-    a.label("c_dtick")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(movs_imm, 7, 0)
-    a.label("dt_loop")
-    a.emit(mov_reg, 0, 7); a.emit(bl, "c_mh"); a.emit(cmp_imm, 0, 0); bc("dt_next", "eq")
-    a.emit(mov_reg, 4, 0)
-    a.emit(raw, ldrb_w_(5, 4, O_FLAGS))
-    a.emit(lsls_imm, 0, 5, 28); bc("dt_ext", "eq")                              # no pending code
-    a.emit(movs_imm, 0, 0x80); a.emit(eors_reg, 5, 0)                           # toggle the tag
-    a.emit(lsrs_imm, 0, 5, 7); a.emit(lsls_imm, 0, 0, 23)                       # tag << 23
-    a.emit(movs_imm, 1, 0x0F); a.emit(ands_reg, 1, 5); a.emit(lsls_imm, 1, 1, 16); a.emit(orrs_reg, 0, 1)
-    a.emit(raw, ldrsb_imm(1, 4, O_DELTA)); a.emit(raw, uxth(1, 1)); a.emit(orrs_reg, 0, 1)
-    a.emit(lsls_imm, 1, 0, 8)
-    a.emit(lsls_imm, 2, 7, SH); a.emit(movw, 0, DB & 0xFFFF); a.emit(adds_reg, 2, 2, 0)       # X:DB(d) + MB
-    a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
-    a.emit(movs_imm, 0, 0xF0); a.emit(ands_reg, 5, 0)
-    a.emit(movs_imm, 0, 0); a.emit(raw, strb_w(0, 4, O_DELTA))
-    a.label("dt_ext")
-    a.emit(lsls_imm, 0, 5, 25); bc("dt_store", "pl")                            # bit 6: extended values changed
-    a.emit(movs_imm, 0, 0x40); a.emit(bics_reg, 5, 0)
-    a.emit(raw, ldrb_w_(1, 4, O_EXT)); a.emit(lsls_imm, 1, 1, 8)
-    a.emit(lsls_imm, 2, 7, SH); a.emit(movw, 0, (DB + DD.EXT) & 0xFFFF); a.emit(adds_reg, 2, 2, 0)
-    a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
-    a.label("dt_store")
-    a.emit(raw, strb_w(5, 4, O_FLAGS))
-    a.label("dt_next")
-    a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 4); bc("dt_loop", "lo")
-    a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["svc_next"])
-
-    if V2:
-        # ---- c_dleds18 (drum Preset view, slot 7): SC08's LEDs, then rows 1-2 dark in chromatic / scale mode
-        a.label("c_dleds18")
-        a.emit(push_list, [4], lr=True)
+    if not TRIM18:
+        # ---- c_dtick: DSP service hook (b.w from the SVC chain, DSP lock held), then the previous target
+        a.label("c_dtick")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(movs_imm, 7, 0)
+        a.label("dt_loop")
+        a.emit(mov_reg, 0, 7); a.emit(bl, "c_mh"); a.emit(cmp_imm, 0, 0); bc("dt_next", "eq")
         a.emit(mov_reg, 4, 0)
-        a.emit(bl, L["c_dleds"])                                                # r0 = LED buffer
-        a.emit(ldrb_w, 1, 4, 0x51); a.emit(lsls_imm, 1, 1, 31); a.emit(b_cond, "dl8_x", "eq")
-        a.emit(movs_imm, 1, 0); a.emit(movs_imm, 2, 0)
-        a.label("dl8_l"); a.emit(raw, h(0x5281))                                # strh r1,[r0,r2]
-        a.emit(adds_imm8, 2, 2); a.emit(cmp_imm, 2, 32); a.emit(b_cond, "dl8_l", "lo")
-        a.label("dl8_x"); a.emit(pop_list, [4], pc=True)
+        a.emit(raw, ldrb_w_(5, 4, O_FLAGS))
+        a.emit(lsls_imm, 0, 5, 28); bc("dt_ext", "eq")                              # no pending code
+        a.emit(movs_imm, 0, 0x80); a.emit(eors_reg, 5, 0)                           # toggle the tag
+        a.emit(lsrs_imm, 0, 5, 7); a.emit(lsls_imm, 0, 0, 23)                       # tag << 23
+        a.emit(movs_imm, 1, 0x0F); a.emit(ands_reg, 1, 5); a.emit(lsls_imm, 1, 1, 16); a.emit(orrs_reg, 0, 1)
+        a.emit(raw, ldrsb_imm(1, 4, O_DELTA)); a.emit(raw, uxth(1, 1)); a.emit(orrs_reg, 0, 1)
+        a.emit(lsls_imm, 1, 0, 8)
+        a.emit(lsls_imm, 2, 7, SH); a.emit(movw, 0, DB & 0xFFFF); a.emit(adds_reg, 2, 2, 0)       # X:DB(d) + MB
+        a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
+        a.emit(movs_imm, 0, 0xF0); a.emit(ands_reg, 5, 0)
+        a.emit(movs_imm, 0, 0); a.emit(raw, strb_w(0, 4, O_DELTA))
+        a.label("dt_ext")
+        a.emit(lsls_imm, 0, 5, 25); bc("dt_store", "pl")                            # bit 6: extended values changed
+        a.emit(movs_imm, 0, 0x40); a.emit(bics_reg, 5, 0)
+        a.emit(raw, ldrb_w_(1, 4, O_EXT)); a.emit(lsls_imm, 1, 1, 8)
+        a.emit(lsls_imm, 2, 7, SH); a.emit(movw, 0, (DB + DD.EXT) & 0xFFFF); a.emit(adds_reg, 2, 2, 0)
+        a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
+        a.label("dt_store")
+        a.emit(raw, strb_w(5, 4, O_FLAGS))
+        a.label("dt_next")
+        a.emit(adds_imm8, 7, 1); a.emit(cmp_imm, 7, 4); bc("dt_loop", "lo")
+        a.emit(raw, popw([4, 5, 6, 7], lr=True)); a.emit(b_w, L["svc_next"])
+
+    if not TRIM18:
+        if V2:
+            # ---- c_dleds18 (drum Preset view, slot 7): SC08's LEDs, then rows 1-2 dark in chromatic / scale mode
+            a.label("c_dleds18")
+            a.emit(push_list, [4], lr=True)
+            a.emit(mov_reg, 4, 0)
+            a.emit(bl, L["c_dleds"])                                                # r0 = LED buffer
+            a.emit(ldrb_w, 1, 4, 0x51); a.emit(lsls_imm, 1, 1, 31); a.emit(b_cond, "dl8_x", "eq")
+            a.emit(movs_imm, 1, 0); a.emit(movs_imm, 2, 0)
+            a.label("dl8_l"); a.emit(raw, h(0x5281))                                # strh r1,[r0,r2]
+            a.emit(adds_imm8, 2, 2); a.emit(cmp_imm, 2, 32); a.emit(b_cond, "dl8_l", "lo")
+            a.label("dl8_x"); a.emit(pop_list, [4], pc=True)
 
 
 def decode_bw(img, addr):
@@ -255,11 +267,11 @@ def install_arm(img, report, base_addr, text, knobs=True):
     img[REC_HOOK - BASE:REC_HOOK - BASE + 4] = b_w(REC_HOOK, labels["c_rstep"])
     if knobs:
         img[MH_CTOR_BL - BASE:MH_CTOR_BL - BASE + 4] = bl_enc(MH_CTOR_BL, labels["c_mhinit"])
-        struct.pack_into("<I", img, MH_SLOT4 - BASE, labels["c_dk18"] | 1)
-        img[s14.SVC_HOOK - BASE:s14.SVC_HOOK - BASE + 4] = b_w(s14.SVC_HOOK, labels["c_dtick"])
+        if not TRIM18: struct.pack_into("<I", img, MH_SLOT4 - BASE, labels["c_dk18"] | 1)
+        if not TRIM18: img[s14.SVC_HOOK - BASE:s14.SVC_HOOK - BASE + 4] = b_w(s14.SVC_HOOK, labels["c_dtick"])
         labels["svc_next"] = L["svc_next"]
         if V2:
-            struct.pack_into("<I", img, DP_VT_SLOT7 - BASE, labels["c_dleds18"] | 1)
+            if not TRIM18: struct.pack_into("<I", img, DP_VT_SLOT7 - BASE, labels["c_dleds18"] | 1)
     return labels, code
 
 

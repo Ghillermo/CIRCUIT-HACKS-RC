@@ -72,6 +72,15 @@ VIEWOFF = False                                               # SC43.7 (use_view
 VIEW_IFC0, VIEW_SZ = 0x200413F0, 0x2F4                        # the note-on interface of track t's view (embedded at view + 0x110)
 RATEFLIP = False                                              # SC43.7 (use_rateflip)
 PRESSORD = False                                              # SC45.3 (use_pressord)
+TRIMINS = False                                               # SC49.3 (use_trimins)
+
+
+def use_trimins():
+    """SC49.3 (flash for the drums' extra lane, phase 2): with PRESSORD the notes go in by c_arins (the pressed order); the sorted insert
+    (c_arins_old) is called from nowhere: not emitted."""
+    global TRIMINS
+    assert PRESSORD
+    TRIMINS = True
 MUTARP = False                                                # SC45.3 (use_mutarp)
 MUTLIVE = False                                               # SC45.4 (use_mutlive)
 BPM0 = False                                                  # SC47.2 / RC2.10 (use_bpm0)
@@ -375,28 +384,29 @@ def arm_code(base, L, prev):
         E(adds_imm8, 5, 1); E(strb_imm, 5, 4, S_N)
         a.label("ip_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
-    # ---- c_arins(r0 = state, r1 = note, r2 = velocity): into the sorted list (a note there: its velocity); at most 6
-    a.label("c_arins" if not PRESSORD else "c_arins_old")
-    E(push_list, [3, 4, 5, 6, 7] if RATE else [4, 5, 6, 7], lr=True)                  # (RATE: [sp] = the gate)
-    E(mov_reg, 4, 0); E(ldrb_imm, 5, 4, S_N); E(movs_imm, 3, 0)
-    a.label("in_f"); E(cmp_reg, 3, 5); E(b_cond, "in_p", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES)
-    E(cmp_reg, 6, 1); E(b_cond, "in_p", "hs"); E(adds_imm8, 3, 1); E(b, "in_f")
-    a.label("in_p")                                                                    # r3 = the place
-    E(cmp_reg, 3, 5); E(b_cond, "in_n", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES); E(cmp_reg, 6, 1); E(b_cond, "in_n", "ne")
-    E(strb_imm, 2, 0, S_VELS)
-    if RATE: E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT))
-    E(b, "in_x")
-    a.label("in_n"); E(cmp_imm, 5, 6); E(b_cond, "in_x", "hs")
-    E(mov_reg, 7, 5)
-    a.label("in_s"); E(cmp_reg, 7, 3); E(b_cond, "in_w", "ls")                          # move up the ones above
-    E(adds_reg, 0, 4, 7); E(subs_imm8, 0, 1); E(ldrb_imm, 6, 0, S_NOTES); E(strb_imm, 6, 0, S_NOTES + 1)
-    E(ldrb_imm, 6, 0, S_VELS); E(strb_imm, 6, 0, S_VELS + 1)
-    if RATE: E(raw, ldrb_w_(6, 0, D_EXT)); E(raw, strb_w_(6, 0, D_EXT + 1))
-    E(subs_imm8, 7, 1); E(b, "in_s")
-    a.label("in_w"); E(adds_reg, 0, 4, 3); E(strb_imm, 1, 0, S_NOTES); E(strb_imm, 2, 0, S_VELS)
-    if RATE: E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT))
-    E(adds_imm8, 5, 1); E(strb_imm, 5, 4, S_N)
-    a.label("in_x"); E(pop_list, [3, 4, 5, 6, 7] if RATE else [4, 5, 6, 7], pc=True)
+    if not TRIMINS:
+        # ---- c_arins(r0 = state, r1 = note, r2 = velocity): into the sorted list (a note there: its velocity); at most 6
+        a.label("c_arins" if not PRESSORD else "c_arins_old")
+        E(push_list, [3, 4, 5, 6, 7] if RATE else [4, 5, 6, 7], lr=True)                  # (RATE: [sp] = the gate)
+        E(mov_reg, 4, 0); E(ldrb_imm, 5, 4, S_N); E(movs_imm, 3, 0)
+        a.label("in_f"); E(cmp_reg, 3, 5); E(b_cond, "in_p", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES)
+        E(cmp_reg, 6, 1); E(b_cond, "in_p", "hs"); E(adds_imm8, 3, 1); E(b, "in_f")
+        a.label("in_p")                                                                    # r3 = the place
+        E(cmp_reg, 3, 5); E(b_cond, "in_n", "hs"); E(adds_reg, 0, 4, 3); E(ldrb_imm, 6, 0, S_NOTES); E(cmp_reg, 6, 1); E(b_cond, "in_n", "ne")
+        E(strb_imm, 2, 0, S_VELS)
+        if RATE: E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT))
+        E(b, "in_x")
+        a.label("in_n"); E(cmp_imm, 5, 6); E(b_cond, "in_x", "hs")
+        E(mov_reg, 7, 5)
+        a.label("in_s"); E(cmp_reg, 7, 3); E(b_cond, "in_w", "ls")                          # move up the ones above
+        E(adds_reg, 0, 4, 7); E(subs_imm8, 0, 1); E(ldrb_imm, 6, 0, S_NOTES); E(strb_imm, 6, 0, S_NOTES + 1)
+        E(ldrb_imm, 6, 0, S_VELS); E(strb_imm, 6, 0, S_VELS + 1)
+        if RATE: E(raw, ldrb_w_(6, 0, D_EXT)); E(raw, strb_w_(6, 0, D_EXT + 1))
+        E(subs_imm8, 7, 1); E(b, "in_s")
+        a.label("in_w"); E(adds_reg, 0, 4, 3); E(strb_imm, 1, 0, S_NOTES); E(strb_imm, 2, 0, S_VELS)
+        if RATE: E(ldr_sp, 6, 0); E(raw, strb_w_(6, 0, D_EXT))
+        E(adds_imm8, 5, 1); E(strb_imm, 5, 4, S_N)
+        a.label("in_x"); E(pop_list, [3, 4, 5, 6, 7] if RATE else [4, 5, 6, 7], pc=True)
 
     # ---- c_ardel(r0 = state, r1 = note): out of the list
     a.label("c_ardel")

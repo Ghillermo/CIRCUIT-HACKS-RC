@@ -79,7 +79,8 @@ def install(img, report, base_addr):
     import ct_fw
     BASE = ct_fw.APP_BASE
     fk = {k: int(v, 16) for k, v in report["fxkeys"]["labels"].items()}
-    assert MP.bw_target(img, K.BTN_PAGE, BASE) == fk["c_pgbtn"], "id 21 is not fxkeys' resonance step"
+    if K.TRIMPG: assert bytes(img[K.BTN_PAGE - BASE:K.BTN_PAGE - BASE + 4]) == bytes(ldr_imm(0, 4, 0x24)) + bytes(movs_imm(1, 0x15)), "id 21 is not the stock's"
+    else: assert MP.bw_target(img, K.BTN_PAGE, BASE) == fk["c_pgbtn"], "id 21 is not fxkeys' resonance step"
     lt = int(report["leds18"]["labels"]["c_ledtask"], 16)
     green = (bytes(movw(0, L18.LIGHT_GREEN)) + bytes(movw(1, 2 * 53)) + bytes(strh_reg(0, 5, 1)))
     seg = bytes(img[lt - BASE:lt - BASE + 0x40])

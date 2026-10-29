@@ -15,11 +15,16 @@ import hole  # noqa: E402
 import linein3  # noqa: E402
 
 NAME = "SC45"
+AUTOREL_END = False                 # SC49.1: autorel at the end of the image (it outgrew the hole's room); the modules after it move up in the hole
 
 
 def extra(img, report):
     B.extra(img, report)
-    hole.add(img, report, "autorel", autorel)
+    if AUTOREL_END:
+        import build_sc41_5
+        build_sc41_5.add(img, report, "autorel", autorel)
+    else:
+        hole.add(img, report, "autorel", autorel)
     hole.add(img, report, "modesel", modesel)
     hole.check(img, report)
 

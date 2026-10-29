@@ -209,9 +209,18 @@ DUP_SUBS = (0, 9, 36, 45, 54, 63)                # [MGR + 0x152] = 9 x track + s
 PV_OBJ = 0x20044128                              # the packs view object (heap, fixed for this firmware): vtable PV_VT, [+0x10] p0 = the loaded pack
 CROSS_COL = MAGENTA                              # SC37.1: YELLOW
 PATCHX = False                                   # SC37.1: swap synth patches between packs (see 5.)
+TRIMX = False                                    # SC49 (use_trimx): the old swaps (c_xswap, c_xswap2) not emitted: c_xcopy2 replaced them (COPYX)
 SP_VT = 0x0805AC9C                               # the synth Preset view: slot 0 pad, slot 7 LEDs
 KIND_PATCH, PATCH_SZ, PATCH_STRIDE, PER_BANK = 3, 340, 512, 8
 PCLIP_MAGIC = 0xA6
+
+
+def use_trimx():
+    """SC49 (flash for the extra drum lane): with COPYX the pads go to c_xcopy2; c_xswap (SC37) and c_xswap2 (SC37.3) are no longer called from
+    anywhere (checked on SC48.9's image): not emitted."""
+    global TRIMX
+    assert COPYX
+    TRIMX = True
 
 
 def use_dupmask():
@@ -280,6 +289,17 @@ def use_pmode():
     global PMODE
     assert PATCHX and SRCGUARD
     PMODE = True
+
+
+SVSKIP = False                                    # SC49.7 / RC4.02 (use_svskip)
+
+
+def use_svskip():
+    """SC49.7 / Beta 5.0 / RC4.02 (the user, 2026-10-29: «extend clock fix to project save»): the project save read the saved bits and all 64 entries
+    of the DSP's sample table (65 SPI reads holding the DSP's semaphore) on every save.  Now a save with every slot's bit set reads only the bits;
+    after a scan, every slot that has nothing pending gets its bit (a replacement clears its slot's bit, SMP_SAVEBIT): the next save is one read."""
+    global SVSKIP
+    SVSKIP = True
 
 
 def use_playhold():
@@ -518,6 +538,8 @@ def arm_code(base, L, prev):
     a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 8)
     a.emit(mov_reg, 0, 7); a.emit(bl, "c_take")
     imm32(0, SAVED); a.emit(bl, "c_xr"); a.emit(str_imm, 0, 7, 4)
+    if SVSKIP:                                                                               # every slot saved: nothing to look for
+        a.emit(lsls_imm, 1, 0, 24); a.emit(lsrs_imm, 1, 1, 24); a.emit(cmp_imm, 1, 0xFF); a.emit(b_cond, "sv_gv", "eq")
     a.emit(movs_imm, 4, 0)
     a.label("sv_scan")                               # N = r4: start in a slot, at its base, not saved -> pending
     a.emit(lsls_imm, 0, 4, 2); imm32(1, TAB); a.emit(adds_reg, 0, 0, 1); a.emit(bl, "c_xr"); a.emit(mov_reg, 5, 0)
@@ -535,6 +557,14 @@ def arm_code(base, L, prev):
     a.emit(adds_imm8, 0, 1); a.emit(str_imm, 0, 7, 8)
     a.label("sv_next")
     a.emit(adds_imm8, 4, 1); a.emit(cmp_imm, 4, 64); bc("sv_scan", "lo")
+    if SVSKIP:                                                                               # the slots with nothing pending: saved
+        a.emit(movs_imm, 1, 0); a.emit(movs_imm, 6, 0)
+        a.label("sv_pm"); a.emit(ldr_imm, 0, 7, 8); a.emit(cmp_reg, 6, 0); a.emit(b_cond, "sv_pw", "hs")
+        a.emit(lsls_imm, 0, 6, 2); a.emit(adds_reg, 0, 0, 7); a.emit(ldr_imm, 0, 0, 12); a.emit(lsrs_imm, 0, 0, 8)
+        a.emit(movs_imm, 2, 1); a.emit(raw, h(0x4082)); a.emit(orrs_reg, 1, 2); a.emit(adds_imm8, 6, 1); a.emit(b, "sv_pm")   # lsls r2, r0
+        a.label("sv_pw"); a.emit(movs_imm, 2, 0xFF); a.emit(bics_reg, 2, 1); a.emit(ldr_imm, 1, 7, 4); a.emit(orrs_reg, 1, 2)
+        imm32(0, SAVED); a.emit(bl, "c_xw")
+        a.label("sv_gv")
     a.emit(mov_reg, 0, 7); a.emit(bl, "c_give")
     a.emit(movs_imm, 6, 0)
     a.label("sv_l")                                  # r6 = index in the pending list
@@ -830,127 +860,128 @@ def cross_code(a, L, imm32, bc):
     a.emit(adds_imm8, 6, 1); a.emit(b, "yw_l")
     a.label("yw_x"); a.emit(pop_list, [4, 5, 6], pc=True)
 
-    # ---- c_xswap (r0 = A, r1 = pack X, r2 = B): A of pack X <-> B of the current pack -> r0 = status (0 = done)
-    # frame r7: [0] cb [4] ctx [8] &done [12] done [16..27] item X:A [28..39] item B [40] size X:A [44] offset [48] piece [52] status
-    #           [56..67] entry B [68] n of B [72] destination [76] k [80] n of X:A [84] holder [88] pos
-    F = 96 if FIX2 else 92
-    a.label("c_xswap")
-    a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, F); a.emit(mov_reg, 7, 13)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
-    a.emit(movs_imm, 3, 0)
-    for o in range(0, F, 4): a.emit(str_imm, 3, 7, o)
-    if FIX2: a.emit(bl, "c_curpack"); a.emit(str_imm, 0, 7, 92)                                 # [92] = the loaded pack
-    a.emit(movs_imm, 3, KIND_PCM); a.emit(str_imm, 3, 7, 16); a.emit(str_imm, 4, 7, 20); a.emit(strb_imm, 5, 7, 24)
-    a.emit(str_imm, 3, 7, 28); a.emit(str_imm, 6, 7, 32)
-    if FIX2: a.emit(ldr_imm, 3, 7, 92); a.emit(strb_w, 3, 7, 36)                                # B: the loaded pack by its number
-    else: a.emit(movs_imm, 3, 0xFF); a.emit(strb_w, 3, 7, 36)
-    a.emit(movs_imm, 0, 8); a.emit(str_imm, 0, 7, 52)                                       # status 8 until it works
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 40)
-    a.emit(cmp_imm, 0, 44); bc("xs_x", "ls")
-    a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(str_imm, 0, 7, 80)
-    a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_entry")   # B: its entry and its length
-    a.emit(ldr_imm, 0, 7, 60); a.emit(str_imm, 0, 7, 68)
-    a.emit(ldr_imm, 0, 7, 56); imm32(1, SD.HIGH_BASE); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_nb", "hs")
-    a.emit(mov_reg, 0, 6)
-    if FIX2: a.emit(ldr_imm, 1, 7, 92); a.emit(bl, "c_isizep")
-    else: a.emit(bl, "c_isize")
-    a.emit(cmp_imm, 0, 44); bc("xs_x", "ls")
-    a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(str_imm, 0, 7, 68)
-    a.label("xs_nb")
-    a.emit(movs_imm, 0, 10); a.emit(str_imm, 0, 7, 52)                                      # 10: does not fit
-    a.emit(mov_reg, 0, 6); a.emit(ldr_imm, 1, 7, 80)
-    if FIX2: a.emit(ldr_imm, 2, 7, 92); a.emit(bl, "c_fitsp")
-    else: a.emit(bl, "c_fits")
-    a.emit(cmp_imm, 0, 0); bc("xs_x", "eq")
-    a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 68); a.emit(mov_reg, 2, 5); a.emit(bl, "c_fitsp"); a.emit(cmp_imm, 0, 0); bc("xs_x", "eq")
-    # 1. the file X:A -> B of the current pack, in 4 KB pieces
-    a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(movs_imm, 1, 0); a.emit(movs_imm, 2, 0); a.emit(bl, DEL_FN)
-    a.label("xs_cp")
-    a.emit(ldr_imm, 0, 7, 40); a.emit(ldr_imm, 1, 7, 44); a.emit(subs_reg, 0, 0, 1); bc("xs_cpd", "eq")
-    imm32(1, BUFSZ); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_pc", "ls"); a.emit(mov_reg, 0, 1)
-    a.label("xs_pc"); a.emit(str_imm, 0, 7, 48)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)              # &done
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, READ)
-    a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
-    a.emit(cmp_imm, 0, 0); bc("xs_fail", "ne")
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, WRITE)
-    a.emit(cmp_imm, 0, 0); bc("xs_fail", "ne")
-    a.emit(ldr_imm, 0, 7, 44); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 44); a.emit(b, "xs_cp")
-    a.label("xs_fail"); a.emit(str_imm, 0, 7, 52); a.emit(bl, BUF_UNLOCK)
-    if FIX2:                                     # B was deleted: written back from the DSP's memory, then the storage task back on the loaded pack
-        a.emit(ldr_imm, 0, 7, 32); a.emit(ldr_imm, 1, 7, 56); a.emit(ldr_imm, 2, 7, 68); a.emit(ldr_imm, 3, 7, 92); a.emit(bl, "c_wavp")
-        a.emit(b, "xs_sel")
-    else: a.emit(b, "xs_x")
-    a.label("xs_cpd"); a.emit(bl, BUF_UNLOCK)
-    # 2. B's audio (still in the DSP's memory) -> sample A of pack X
-    a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 56); a.emit(ldr_imm, 2, 7, 68); a.emit(mov_reg, 3, 5); a.emit(bl, "c_wavp")
-    a.emit(str_imm, 0, 7, 52); a.emit(cmp_imm, 0, 0); bc("xs_x", "ne")
-    # 3. the new B into the free external memory, and its table entry -> there (a header that is not a plain 44-byte mono 16-bit WAV: skipped)
-    a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 44)
-    a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(movs_imm, 1, 0); imm32(2, BUF); a.emit(movs_imm, 3, 44); a.emit(bl, READ)
-    a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
-    a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
-    imm32(2, BUF)
-    for off, v in ((0, 0x46464952), (8, 0x45564157), (36, 0x61746164)):                      # RIFF, WAVE, data
-        a.emit(ldr_imm, 0, 2, off); imm32(1, v); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "ne")
-    a.emit(ldr_imm, 0, 2, 20); imm32(1, 0x00010001); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "ne")    # PCM, mono
-    a.emit(ldr_imm, 0, 2, 32); a.emit(lsrs_imm, 0, 0, 16); a.emit(cmp_imm, 0, 16); bc("xs_nolive", "ne")   # 16 bits
-    a.emit(ldr_imm, 0, 7, 80); imm32(1, IMP_HI - IMP_LO); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "hs")
-    a.emit(cmp_imm, 0, 4); bc("xs_nolive", "lo")
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take"); imm32(0, SD.IMPW); a.emit(bl, "c_xr"); a.emit(mov_reg, 3, 0)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
-    imm32(1, IMP_LO); a.emit(cmp_reg, 3, 1); a.emit(b_cond, "xs_lo", "hs"); a.emit(mov_reg, 3, 1)
-    a.label("xs_lo")
-    a.emit(ldr_imm, 0, 7, 80); a.emit(adds_reg, 0, 0, 3); imm32(2, IMP_HI); a.emit(cmp_reg, 0, 2); a.emit(b_cond, "xs_fit", "ls"); a.emit(mov_reg, 3, 1)
-    a.label("xs_fit"); a.emit(str_imm, 3, 7, 72)                                             # destination
-    a.emit(movs_imm, 0, 44); a.emit(str_imm, 0, 7, 44); a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 76)
-    a.label("xs_ld")                             # read up to 4 KB of B's samples (from offset 44), then 64 at a time to the DSP
-    a.emit(ldr_imm, 0, 7, 80); a.emit(ldr_imm, 1, 7, 76); a.emit(subs_reg, 0, 0, 1); bc("xs_ldd", "eq")
-    a.emit(lsls_imm, 0, 0, 1); imm32(1, BUFSZ); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_lp", "ls"); a.emit(mov_reg, 0, 1)
-    a.label("xs_lp"); a.emit(str_imm, 0, 7, 48)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, READ)
-    a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
-    a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
-    a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 88)                                       # pos = bytes of the piece sent
-    a.label("xs_w")
-    a.emit(ldr_imm, 0, 7, 48); a.emit(ldr_imm, 1, 7, 88); a.emit(subs_reg, 0, 0, 1); bc("xs_wd", "eq")
-    a.emit(lsrs_imm, 0, 0, 1); a.emit(cmp_imm, 0, NW); a.emit(b_cond, "xs_wn", "ls"); a.emit(movs_imm, 0, NW)
-    a.label("xs_wn"); a.emit(mov_reg, 6, 0)                                                 # r6 = n of this copy (B's index lives in the frame from now on)
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take")
-    imm32(0, BUF); a.emit(ldr_imm, 1, 7, 88); a.emit(adds_reg, 0, 0, 1); a.emit(mov_reg, 1, 6); a.emit(bl, "c_ywin")
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
-    imm32(0, WIN); a.emit(ldr_imm, 1, 7, 72); a.emit(ldr_imm, 2, 7, 76); a.emit(adds_reg, 1, 1, 2); a.emit(mov_reg, 2, 6); a.emit(bl, "c_copy2")
-    a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
-    a.emit(ldr_imm, 0, 7, 76); a.emit(adds_reg, 0, 0, 6); a.emit(str_imm, 0, 7, 76)
-    a.emit(ldr_imm, 0, 7, 88); a.emit(adds_reg, 0, 0, 6); a.emit(adds_reg, 0, 0, 6); a.emit(str_imm, 0, 7, 88)
-    a.emit(b, "xs_w")
-    a.label("xs_wd")
-    a.emit(ldr_imm, 0, 7, 44); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 44); a.emit(b, "xs_ld")
-    a.label("xs_ldd")                            # loaded: entry B = (destination, n - 2, its increment); X:IMPW = after it
-    a.emit(bl, BUF_UNLOCK)
-    a.emit(ldr_imm, 0, 7, 72); a.emit(str_imm, 0, 7, 56); a.emit(ldr_imm, 1, 7, 80); a.emit(subs_imm8, 1, 2); a.emit(str_imm, 1, 7, 60)
-    a.emit(ldr_imm, 0, 7, 32); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_setentry")
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take")
-    imm32(0, SD.IMPW); a.emit(ldr_imm, 1, 7, 72); a.emit(ldr_imm, 2, 7, 80); a.emit(adds_reg, 1, 1, 2); a.emit(bl, "c_xw")
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
-    a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 52); a.emit(b, "xs_sel")
-    a.label("xs_nolive")                         # swapped on the card; the new B sounds after the pack is loaded again
-    a.emit(bl, BUF_UNLOCK); a.emit(movs_imm, 0, 1); a.emit(str_imm, 0, 7, 52)
-    a.label("xs_sel")                            # the current pack selected again in the storage task (op 0 on its PCM 0)
-    if FIX2:
-        a.emit(ldr_imm, 0, 7, 92); a.emit(bl, "c_resel")
-    else:
-        a.emit(bl, "c_curpack"); a.emit(sub_sp_imm, 16)
-        a.emit(raw, h(0x9002)); a.emit(movs_imm, 0, KIND_PCM); a.emit(raw, h(0x9000)); a.emit(movs_imm, 0, 0); a.emit(raw, h(0x9001))   # [8] pack, [0] kind, [4] 0
-        a.emit(mov_reg, 0, 13); a.emit(bl, EXISTS); a.emit(add_sp_imm, 16)
-    a.label("xs_x")
-    if FIX2:                                     # (any early exit after reading pack X: the storage task back on the loaded pack)
-        a.emit(ldr_imm, 0, 7, 92); a.emit(bl, "c_resel")
-    a.emit(ldr_imm, 0, 7, 52); a.emit(add_sp_imm, F); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIMX:
+        # ---- c_xswap (r0 = A, r1 = pack X, r2 = B): A of pack X <-> B of the current pack -> r0 = status (0 = done)
+        # frame r7: [0] cb [4] ctx [8] &done [12] done [16..27] item X:A [28..39] item B [40] size X:A [44] offset [48] piece [52] status
+        #           [56..67] entry B [68] n of B [72] destination [76] k [80] n of X:A [84] holder [88] pos
+        F = 96 if FIX2 else 92
+        a.label("c_xswap")
+        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, F); a.emit(mov_reg, 7, 13)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
+        a.emit(movs_imm, 3, 0)
+        for o in range(0, F, 4): a.emit(str_imm, 3, 7, o)
+        if FIX2: a.emit(bl, "c_curpack"); a.emit(str_imm, 0, 7, 92)                                 # [92] = the loaded pack
+        a.emit(movs_imm, 3, KIND_PCM); a.emit(str_imm, 3, 7, 16); a.emit(str_imm, 4, 7, 20); a.emit(strb_imm, 5, 7, 24)
+        a.emit(str_imm, 3, 7, 28); a.emit(str_imm, 6, 7, 32)
+        if FIX2: a.emit(ldr_imm, 3, 7, 92); a.emit(strb_w, 3, 7, 36)                                # B: the loaded pack by its number
+        else: a.emit(movs_imm, 3, 0xFF); a.emit(strb_w, 3, 7, 36)
+        a.emit(movs_imm, 0, 8); a.emit(str_imm, 0, 7, 52)                                       # status 8 until it works
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 40)
+        a.emit(cmp_imm, 0, 44); bc("xs_x", "ls")
+        a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(str_imm, 0, 7, 80)
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_entry")   # B: its entry and its length
+        a.emit(ldr_imm, 0, 7, 60); a.emit(str_imm, 0, 7, 68)
+        a.emit(ldr_imm, 0, 7, 56); imm32(1, SD.HIGH_BASE); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_nb", "hs")
+        a.emit(mov_reg, 0, 6)
+        if FIX2: a.emit(ldr_imm, 1, 7, 92); a.emit(bl, "c_isizep")
+        else: a.emit(bl, "c_isize")
+        a.emit(cmp_imm, 0, 44); bc("xs_x", "ls")
+        a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(str_imm, 0, 7, 68)
+        a.label("xs_nb")
+        a.emit(movs_imm, 0, 10); a.emit(str_imm, 0, 7, 52)                                      # 10: does not fit
+        a.emit(mov_reg, 0, 6); a.emit(ldr_imm, 1, 7, 80)
+        if FIX2: a.emit(ldr_imm, 2, 7, 92); a.emit(bl, "c_fitsp")
+        else: a.emit(bl, "c_fits")
+        a.emit(cmp_imm, 0, 0); bc("xs_x", "eq")
+        a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 68); a.emit(mov_reg, 2, 5); a.emit(bl, "c_fitsp"); a.emit(cmp_imm, 0, 0); bc("xs_x", "eq")
+        # 1. the file X:A -> B of the current pack, in 4 KB pieces
+        a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(movs_imm, 1, 0); a.emit(movs_imm, 2, 0); a.emit(bl, DEL_FN)
+        a.label("xs_cp")
+        a.emit(ldr_imm, 0, 7, 40); a.emit(ldr_imm, 1, 7, 44); a.emit(subs_reg, 0, 0, 1); bc("xs_cpd", "eq")
+        imm32(1, BUFSZ); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_pc", "ls"); a.emit(mov_reg, 0, 1)
+        a.label("xs_pc"); a.emit(str_imm, 0, 7, 48)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)              # &done
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, READ)
+        a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
+        a.emit(cmp_imm, 0, 0); bc("xs_fail", "ne")
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, WRITE)
+        a.emit(cmp_imm, 0, 0); bc("xs_fail", "ne")
+        a.emit(ldr_imm, 0, 7, 44); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 44); a.emit(b, "xs_cp")
+        a.label("xs_fail"); a.emit(str_imm, 0, 7, 52); a.emit(bl, BUF_UNLOCK)
+        if FIX2:                                     # B was deleted: written back from the DSP's memory, then the storage task back on the loaded pack
+            a.emit(ldr_imm, 0, 7, 32); a.emit(ldr_imm, 1, 7, 56); a.emit(ldr_imm, 2, 7, 68); a.emit(ldr_imm, 3, 7, 92); a.emit(bl, "c_wavp")
+            a.emit(b, "xs_sel")
+        else: a.emit(b, "xs_x")
+        a.label("xs_cpd"); a.emit(bl, BUF_UNLOCK)
+        # 2. B's audio (still in the DSP's memory) -> sample A of pack X
+        a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 56); a.emit(ldr_imm, 2, 7, 68); a.emit(mov_reg, 3, 5); a.emit(bl, "c_wavp")
+        a.emit(str_imm, 0, 7, 52); a.emit(cmp_imm, 0, 0); bc("xs_x", "ne")
+        # 3. the new B into the free external memory, and its table entry -> there (a header that is not a plain 44-byte mono 16-bit WAV: skipped)
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 44)
+        a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(movs_imm, 1, 0); imm32(2, BUF); a.emit(movs_imm, 3, 44); a.emit(bl, READ)
+        a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
+        a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
+        imm32(2, BUF)
+        for off, v in ((0, 0x46464952), (8, 0x45564157), (36, 0x61746164)):                      # RIFF, WAVE, data
+            a.emit(ldr_imm, 0, 2, off); imm32(1, v); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "ne")
+        a.emit(ldr_imm, 0, 2, 20); imm32(1, 0x00010001); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "ne")    # PCM, mono
+        a.emit(ldr_imm, 0, 2, 32); a.emit(lsrs_imm, 0, 0, 16); a.emit(cmp_imm, 0, 16); bc("xs_nolive", "ne")   # 16 bits
+        a.emit(ldr_imm, 0, 7, 80); imm32(1, IMP_HI - IMP_LO); a.emit(cmp_reg, 0, 1); bc("xs_nolive", "hs")
+        a.emit(cmp_imm, 0, 4); bc("xs_nolive", "lo")
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take"); imm32(0, SD.IMPW); a.emit(bl, "c_xr"); a.emit(mov_reg, 3, 0)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
+        imm32(1, IMP_LO); a.emit(cmp_reg, 3, 1); a.emit(b_cond, "xs_lo", "hs"); a.emit(mov_reg, 3, 1)
+        a.label("xs_lo")
+        a.emit(ldr_imm, 0, 7, 80); a.emit(adds_reg, 0, 0, 3); imm32(2, IMP_HI); a.emit(cmp_reg, 0, 2); a.emit(b_cond, "xs_fit", "ls"); a.emit(mov_reg, 3, 1)
+        a.label("xs_fit"); a.emit(str_imm, 3, 7, 72)                                             # destination
+        a.emit(movs_imm, 0, 44); a.emit(str_imm, 0, 7, 44); a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 76)
+        a.label("xs_ld")                             # read up to 4 KB of B's samples (from offset 44), then 64 at a time to the DSP
+        a.emit(ldr_imm, 0, 7, 80); a.emit(ldr_imm, 1, 7, 76); a.emit(subs_reg, 0, 0, 1); bc("xs_ldd", "eq")
+        a.emit(lsls_imm, 0, 0, 1); imm32(1, BUFSZ); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "xs_lp", "ls"); a.emit(mov_reg, 0, 1)
+        a.label("xs_lp"); a.emit(str_imm, 0, 7, 48)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 28); a.emit(ldr_imm, 1, 7, 44); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 48); a.emit(bl, READ)
+        a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
+        a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 88)                                       # pos = bytes of the piece sent
+        a.label("xs_w")
+        a.emit(ldr_imm, 0, 7, 48); a.emit(ldr_imm, 1, 7, 88); a.emit(subs_reg, 0, 0, 1); bc("xs_wd", "eq")
+        a.emit(lsrs_imm, 0, 0, 1); a.emit(cmp_imm, 0, NW); a.emit(b_cond, "xs_wn", "ls"); a.emit(movs_imm, 0, NW)
+        a.label("xs_wn"); a.emit(mov_reg, 6, 0)                                                 # r6 = n of this copy (B's index lives in the frame from now on)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take")
+        imm32(0, BUF); a.emit(ldr_imm, 1, 7, 88); a.emit(adds_reg, 0, 0, 1); a.emit(mov_reg, 1, 6); a.emit(bl, "c_ywin")
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
+        imm32(0, WIN); a.emit(ldr_imm, 1, 7, 72); a.emit(ldr_imm, 2, 7, 76); a.emit(adds_reg, 1, 1, 2); a.emit(mov_reg, 2, 6); a.emit(bl, "c_copy2")
+        a.emit(cmp_imm, 0, 0); bc("xs_nolive", "ne")
+        a.emit(ldr_imm, 0, 7, 76); a.emit(adds_reg, 0, 0, 6); a.emit(str_imm, 0, 7, 76)
+        a.emit(ldr_imm, 0, 7, 88); a.emit(adds_reg, 0, 0, 6); a.emit(adds_reg, 0, 0, 6); a.emit(str_imm, 0, 7, 88)
+        a.emit(b, "xs_w")
+        a.label("xs_wd")
+        a.emit(ldr_imm, 0, 7, 44); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 44); a.emit(b, "xs_ld")
+        a.label("xs_ldd")                            # loaded: entry B = (destination, n - 2, its increment); X:IMPW = after it
+        a.emit(bl, BUF_UNLOCK)
+        a.emit(ldr_imm, 0, 7, 72); a.emit(str_imm, 0, 7, 56); a.emit(ldr_imm, 1, 7, 80); a.emit(subs_imm8, 1, 2); a.emit(str_imm, 1, 7, 60)
+        a.emit(ldr_imm, 0, 7, 32); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_setentry")
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_take")
+        imm32(0, SD.IMPW); a.emit(ldr_imm, 1, 7, 72); a.emit(ldr_imm, 2, 7, 80); a.emit(adds_reg, 1, 1, 2); a.emit(bl, "c_xw")
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 84); a.emit(bl, "c_give")
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 52); a.emit(b, "xs_sel")
+        a.label("xs_nolive")                         # swapped on the card; the new B sounds after the pack is loaded again
+        a.emit(bl, BUF_UNLOCK); a.emit(movs_imm, 0, 1); a.emit(str_imm, 0, 7, 52)
+        a.label("xs_sel")                            # the current pack selected again in the storage task (op 0 on its PCM 0)
+        if FIX2:
+            a.emit(ldr_imm, 0, 7, 92); a.emit(bl, "c_resel")
+        else:
+            a.emit(bl, "c_curpack"); a.emit(sub_sp_imm, 16)
+            a.emit(raw, h(0x9002)); a.emit(movs_imm, 0, KIND_PCM); a.emit(raw, h(0x9000)); a.emit(movs_imm, 0, 0); a.emit(raw, h(0x9001))   # [8] pack, [0] kind, [4] 0
+            a.emit(mov_reg, 0, 13); a.emit(bl, EXISTS); a.emit(add_sp_imm, 16)
+        a.label("xs_x")
+        if FIX2:                                     # (any early exit after reading pack X: the storage task back on the loaded pack)
+            a.emit(ldr_imm, 0, 7, 92); a.emit(bl, "c_resel")
+        a.emit(ldr_imm, 0, 7, 52); a.emit(add_sp_imm, F); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
 
 def exact_code(a, imm32, bc):
@@ -1149,50 +1180,51 @@ def exact_code(a, imm32, bc):
         a.emit(movs_imm, 0, kind); a.emit(str_imm, 0, 7, o); a.emit(str_imm, idx_reg, 7, o + 4); a.emit(strb_w, pack_reg, 7, o + 8)
     def iptr(rd, o): a.emit(mov_reg, rd, 7); a.emit(adds_imm8, rd, o)
 
-    # ---- c_xswap2 (r0 = A, r1 = pack X, r2 = B of the loaded pack) -> r0 = status
-    # frame: [16..27] X:A [28..39] B [40] size X:A [44] size B [48] dst [52] status [56..67] entry B [68] plain [72] the loaded pack [76] holder [80] words
-    F2 = 84
-    a.label("c_xswap2")
-    a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, F2); a.emit(mov_reg, 7, 13)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2); zero_frame(F2)
-    a.emit(bl, "c_curpack"); a.emit(str_imm, 0, 7, 72)
-    item(16, KIND_PCM, 4, 5); a.emit(ldr_imm, 1, 7, 72); item(28, KIND_PCM, 6, 1)
-    a.emit(movs_imm, 0, 8); a.emit(str_imm, 0, 7, 52)
-    iptr(0, 16); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 40); a.emit(cmp_imm, 0, 44); bc("x2_sel", "ls")
-    iptr(0, 28); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 44); a.emit(cmp_imm, 0, 44); bc("x2_sel", "ls")
-    a.emit(movs_imm, 0, 10); a.emit(str_imm, 0, 7, 52)
-    a.emit(mov_reg, 0, 6); a.emit(ldr_imm, 1, 7, 40); a.emit(subs_imm8, 1, 44); a.emit(lsrs_imm, 1, 1, 1); a.emit(ldr_imm, 2, 7, 72); a.emit(bl, "c_fitsp")
-    a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
-    a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 44); a.emit(subs_imm8, 1, 44); a.emit(lsrs_imm, 1, 1, 1); a.emit(mov_reg, 2, 5); a.emit(bl, "c_fitsp")
-    a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
-    a.emit(ldr_imm, 0, 7, 40); a.emit(adds_imm8, 0, 1); a.emit(lsrs_imm, 0, 0, 1); imm32(1, PADW); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 80)
-    a.emit(bl, "c_impdst"); a.emit(str_imm, 0, 7, 48); a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
-    a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_entry")
-    # 1. X:A -> the DSP
-    iptr(0, 16); a.emit(ldr_imm, 1, 7, 40); a.emit(ldr_imm, 2, 7, 48); a.emit(bl, "c_f2d"); a.emit(str_imm, 1, 7, 68)
-    a.emit(str_imm, 0, 7, 52); a.emit(cmp_imm, 0, 0); bc("x2_sel", "ne")
-    # 2. B's file -> X:A (failed: X:A back from the DSP)
-    iptr(0, 28); iptr(1, 16); a.emit(ldr_imm, 2, 7, 44); a.emit(bl, "c_f2f"); a.emit(cmp_imm, 0, 0); bc("x2_ok2", "eq")
-    a.emit(str_imm, 0, 7, 52); iptr(0, 16); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(b, "x2_sel")
-    a.label("x2_ok2")
-    # 3. the DSP copy -> B (failed: B back from X:A, X:A back from the DSP)
-    iptr(0, 28); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(cmp_imm, 0, 0); bc("x2_ok3", "eq")
-    a.emit(str_imm, 0, 7, 52)
-    iptr(0, 16); iptr(1, 28); a.emit(ldr_imm, 2, 7, 44); a.emit(bl, "c_f2f")
-    iptr(0, 16); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(b, "x2_sel")
-    a.label("x2_ok3")
-    # 4. the copy is B's live sample: entry = (its data, n - 2, B's increment), zeros after it, X:IMPW after them
-    a.emit(movs_imm, 0, 1); a.emit(str_imm, 0, 7, 52)
-    a.emit(ldr_imm, 0, 7, 68); a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
-    a.emit(ldr_imm, 0, 7, 40); a.emit(adds_imm8, 0, 1); a.emit(lsrs_imm, 0, 0, 1); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(bl, "c_zpad")
-    a.emit(ldr_imm, 0, 7, 48); a.emit(adds_imm8, 0, 22); a.emit(str_imm, 0, 7, 56)
-    a.emit(ldr_imm, 0, 7, 40); a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(subs_imm8, 0, 2); a.emit(str_imm, 0, 7, 60)
-    a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_setentry")
-    take(76); imm32(0, SD.IMPW); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 80); a.emit(adds_reg, 1, 1, 2); a.emit(bl, "c_xw"); give(76)
-    a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 52)
-    a.label("x2_sel")
-    a.emit(ldr_imm, 0, 7, 72); a.emit(bl, "c_resel")
-    a.emit(ldr_imm, 0, 7, 52); a.emit(add_sp_imm, F2); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIMX:
+        # ---- c_xswap2 (r0 = A, r1 = pack X, r2 = B of the loaded pack) -> r0 = status
+        # frame: [16..27] X:A [28..39] B [40] size X:A [44] size B [48] dst [52] status [56..67] entry B [68] plain [72] the loaded pack [76] holder [80] words
+        F2 = 84
+        a.label("c_xswap2")
+        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, F2); a.emit(mov_reg, 7, 13)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2); zero_frame(F2)
+        a.emit(bl, "c_curpack"); a.emit(str_imm, 0, 7, 72)
+        item(16, KIND_PCM, 4, 5); a.emit(ldr_imm, 1, 7, 72); item(28, KIND_PCM, 6, 1)
+        a.emit(movs_imm, 0, 8); a.emit(str_imm, 0, 7, 52)
+        iptr(0, 16); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 40); a.emit(cmp_imm, 0, 44); bc("x2_sel", "ls")
+        iptr(0, 28); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 44); a.emit(cmp_imm, 0, 44); bc("x2_sel", "ls")
+        a.emit(movs_imm, 0, 10); a.emit(str_imm, 0, 7, 52)
+        a.emit(mov_reg, 0, 6); a.emit(ldr_imm, 1, 7, 40); a.emit(subs_imm8, 1, 44); a.emit(lsrs_imm, 1, 1, 1); a.emit(ldr_imm, 2, 7, 72); a.emit(bl, "c_fitsp")
+        a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
+        a.emit(mov_reg, 0, 4); a.emit(ldr_imm, 1, 7, 44); a.emit(subs_imm8, 1, 44); a.emit(lsrs_imm, 1, 1, 1); a.emit(mov_reg, 2, 5); a.emit(bl, "c_fitsp")
+        a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
+        a.emit(ldr_imm, 0, 7, 40); a.emit(adds_imm8, 0, 1); a.emit(lsrs_imm, 0, 0, 1); imm32(1, PADW); a.emit(adds_reg, 0, 0, 1); a.emit(str_imm, 0, 7, 80)
+        a.emit(bl, "c_impdst"); a.emit(str_imm, 0, 7, 48); a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_entry")
+        # 1. X:A -> the DSP
+        iptr(0, 16); a.emit(ldr_imm, 1, 7, 40); a.emit(ldr_imm, 2, 7, 48); a.emit(bl, "c_f2d"); a.emit(str_imm, 1, 7, 68)
+        a.emit(str_imm, 0, 7, 52); a.emit(cmp_imm, 0, 0); bc("x2_sel", "ne")
+        # 2. B's file -> X:A (failed: X:A back from the DSP)
+        iptr(0, 28); iptr(1, 16); a.emit(ldr_imm, 2, 7, 44); a.emit(bl, "c_f2f"); a.emit(cmp_imm, 0, 0); bc("x2_ok2", "eq")
+        a.emit(str_imm, 0, 7, 52); iptr(0, 16); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(b, "x2_sel")
+        a.label("x2_ok2")
+        # 3. the DSP copy -> B (failed: B back from X:A, X:A back from the DSP)
+        iptr(0, 28); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(cmp_imm, 0, 0); bc("x2_ok3", "eq")
+        a.emit(str_imm, 0, 7, 52)
+        iptr(0, 16); iptr(1, 28); a.emit(ldr_imm, 2, 7, 44); a.emit(bl, "c_f2f")
+        iptr(0, 16); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 40); a.emit(bl, "c_d2f"); a.emit(b, "x2_sel")
+        a.label("x2_ok3")
+        # 4. the copy is B's live sample: entry = (its data, n - 2, B's increment), zeros after it, X:IMPW after them
+        a.emit(movs_imm, 0, 1); a.emit(str_imm, 0, 7, 52)
+        a.emit(ldr_imm, 0, 7, 68); a.emit(cmp_imm, 0, 0); bc("x2_sel", "eq")
+        a.emit(ldr_imm, 0, 7, 40); a.emit(adds_imm8, 0, 1); a.emit(lsrs_imm, 0, 0, 1); a.emit(ldr_imm, 1, 7, 48); a.emit(adds_reg, 0, 0, 1); a.emit(bl, "c_zpad")
+        a.emit(ldr_imm, 0, 7, 48); a.emit(adds_imm8, 0, 22); a.emit(str_imm, 0, 7, 56)
+        a.emit(ldr_imm, 0, 7, 40); a.emit(subs_imm8, 0, 44); a.emit(lsrs_imm, 0, 0, 1); a.emit(subs_imm8, 0, 2); a.emit(str_imm, 0, 7, 60)
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 1, 56); a.emit(bl, "c_setentry")
+        take(76); imm32(0, SD.IMPW); a.emit(ldr_imm, 1, 7, 48); a.emit(ldr_imm, 2, 7, 80); a.emit(adds_reg, 1, 1, 2); a.emit(bl, "c_xw"); give(76)
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 52)
+        a.label("x2_sel")
+        a.emit(ldr_imm, 0, 7, 72); a.emit(bl, "c_resel")
+        a.emit(ldr_imm, 0, 7, 52); a.emit(add_sp_imm, F2); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_swap2 (r0 = A, r1 = B, both of the loaded pack) -> r0 = status
     # frame: [16..27] A [28..39] B [40] size A [44] size B [48] tmp [52] status [56..67] entry A [68..79] entry B [80] the loaded pack

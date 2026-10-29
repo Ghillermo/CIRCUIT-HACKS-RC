@@ -60,6 +60,7 @@ DSP_TABLE = 0x08029700
 STOCK_WORDS = s10.DSP0_WORDS          # 0x2A5E
 CODE_P = STOCK_WORDS                  # new DSP code right after the stock program
 CODE_P_END = 0x3000                   # stay well inside 16K words of program RAM
+INIT_LABEL = "sc_init"                # (gentab, SC49.7) the routine P:$10B calls: "init2" builds the tables, then sc_init
 BLK = 0x3A10                          # X:$3A10 + 9k
 CLR_FROM, CLR_N = 0x3A00, 0x34        # X:$3A00..$3A33 (SC10 flag, SC15 modes, drum blocks)
 ENV, STATE, SAVE_R5 = 0x2028, 0x2048, 0x204C
@@ -382,7 +383,7 @@ def build(stock: bytes, listing: Path):
     assert P[0x10B:0x10D] == D.jsr(li_init)
     assert P[MIX_HOOK:MIX_HOOK + 2] == [0x60F400, 0x002E70] and P[IDLE_HOOK] == 0x00000C
     words, dl = dsp_code(CODE_P)
-    P[0x10B:0x10D] = D.jsr(dl["sc_init"])
+    P[0x10B:0x10D] = D.jsr(dl[INIT_LABEL])
     P[MIX_HOOK:MIX_HOOK + 2] = D.jsr(dl["mixhook"])
     # P:$21AB is one word: short jmp (target < $1000) to a 2-word trampoline after SC15's code
     tramp = max(p for p in range(0x80, 0x100) if P[p]) + 1

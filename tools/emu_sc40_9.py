@@ -78,7 +78,8 @@ def main(img, man, prev, prev_man):
     from thumb import bl as tbl, b_w
     w = lambda a, i=img: struct.unpack_from("<I", i, a - B)[0]
     at = lambda a, n: bytes(img[a - B:a - B + n])
-    stub = int(man["report"]["compkn"]["prev"]["knob"], 16)
+    ck = man["report"]["compkn"]["prev"]                   # (compkn.use_trim, SC49.3: not installed, the slot never left the stock's stub)
+    stub = int(ck["knob"], 16) if "knob" in ck else struct.unpack_from("<I", Path("stock/circuittracks-firmware-4486-STOCK.bin").read_bytes(), FS.SETUP_VT + 16 - B)[0] & ~1
     check(at(FS.SAVE_CALL, 4) == tbl(FS.SAVE_CALL, L["c_fssave"]) and w(SK.CT_VT + 16) == L["c_fsknob"] | 1 and w(FS.SETUP_VT + 8) == L["c_fssbtn"] | 1
           and all(at(g, 4) == b_w(g, L[f"c_fsgate_{g:x}"]) for g in FS.GATES) and all(at(c, 4) == tbl(c, L["c_fsledtask"]) for c in PK.LED_CALLS)
           and w(FS.SETUP_VT + 16) == stub | 1 and w(FS.SETUP_VT + 16, prev) != stub | 1,

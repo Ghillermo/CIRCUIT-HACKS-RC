@@ -35,8 +35,17 @@ MGR = 0x20040B10
 # its LED shows it), so switching on again gives the filter's current position; each toggle resends the group with the stock MARK_DIRTY (from
 # the pad press, the UI task: not the DSP service tick).
 HOLD = False
+TRIMSET = False                        # SC49.3 (use_trimset)
 GROUP_GET = 0x08028F46                # bl GETTER(0x21, 0) of the stock master group
 MARK_DIRTY = 0x0803BDCC
+
+
+def use_trimset():
+    """SC49.3 (flash for the drums' extra lane, phase 2): with HOLD the toggle never moves the filter (c_mfget answers the DSP group): c_mfset is
+    called from nowhere: not emitted."""
+    global TRIMSET
+    assert HOLD
+    TRIMSET = True
 
 
 def use_hold():
@@ -58,12 +67,13 @@ def arm_code(base, L, prev):
     E(movs_imm, 0, 0); E(raw, h(0x4770))
     a.label("mo_1"); E(movs_imm, 0, 1); E(raw, h(0x4770))
 
-    # ---- c_mfset(r0 = the position): the master filter there, through the stock listener; clobbers r0-r3
-    a.label("c_mfset")
-    E(push_list, [4], lr=True); E(mov_reg, 4, 0)
-    imm32(0, K.CTX); E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0x10); E(ldr_imm, 0, 0, 0)
-    E(adds_imm8, 0, 4); E(movs_imm, 1, 0x21); E(movs_imm, 2, 0); E(mov_reg, 3, 4); E(bl, K.PARAM_SET)
-    E(pop_list, [4], pc=True)
+    if not TRIMSET:
+        # ---- c_mfset(r0 = the position): the master filter there, through the stock listener; clobbers r0-r3
+        a.label("c_mfset")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        imm32(0, K.CTX); E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0x10); E(ldr_imm, 0, 0, 0)
+        E(adds_imm8, 0, 4); E(movs_imm, 1, 0x21); E(movs_imm, 2, 0); E(mov_reg, 3, 4); E(bl, K.PARAM_SET)
+        E(pop_list, [4], pc=True)
 
     # ---- c_mftog(): off -> on (the kept position back), on -> off (kept, the centre); clobbers r0-r3
     a.label("c_mftog")

@@ -480,6 +480,8 @@ def use_lfoshape2():
     N_LSHAPES, LS_SLEW = 7, True
 
 
+GENTAB = False                                  # SC49.7 (gentab.py): TINC built at DSP start at GEN_TINC; the program keeps its top octave (TINC_S)
+GEN_TINC = 0x3ECE                               # (GENTAB) 129 words, past the program's end (gentab.GEN_TINC)
 GRAN = False                                    # SC36: the granular engine of DSP core 1 (granular_dsp): DFLAGS bit 4 (ACT bit 12) = this voice plays OUT instead of the oscillator; GNEW counted for core 1
 GATEREL = False                                  # SC23.3: release 0 = a ~2 ms release (a basic gate); see use_gaterel
 GATE_RKC = None                                  # set by use_gaterel: the release coefficient per block
@@ -556,6 +558,7 @@ q24 = D1.q24
 
 
 def code(base, tabs, premix, ret_old):
+    tinc = GEN_TINC if GENTAB else "TINC"                                         # (GENTAB) the generated table's fixed address
     """tabs: P addresses of TATK, TDEC, TLFO, TF (drums2_dsp); premix / ret_old: where vpre / vret continue (SC10's premix, the old operand of the P:$D21 chain)."""
     a = D.Asm(base)
     L = a.label
@@ -862,7 +865,7 @@ def code(base, tabs, premix, ret_old):
                 L(p + "s1" + lab); e("cmp #>$7effff,a"); a.emit(J("le"), p + "s2" + lab); e("move #>$7effff,a")
                 L(p + "s2" + lab); e("move a1,x1", "move x1,b", "asr #16,b,b")
                 e("move x1,a", "and #>$ffff,a", "asl #7,a,a", "move a,y1")
-                a.emit(lambda x: T("add #>$%x,b" % x), "TINC"); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
+                a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
                 e("move y0,a", "sub x0,a", "move a,y0", "mpy y1,y0,a", "move x0,b", "add a,b", "move b1,%s" % ox(OW, inc_off))
                 # the shape m = (PW - 50) / 50 + ENVW x ENV + LFOW x LV (saturating); fold drive / 8 = 0.125 + 0.86 max(m, 0); saw slope m; pulse threshold 0.94 m
                 e("move %s,a" % ox(OW, 3), "sub #>50,a", "asl #17,a,a", "move a,x0", "move #>$51eb85,y0", "mpy y0,x0,a", "asl a")
@@ -936,7 +939,7 @@ def code(base, tabs, premix, ret_old):
             L(p + "s1"); e("cmp #>$7effff,a"); a.emit(J("le"), p + "s2"); e("move #>$7effff,a")
             L(p + "s2"); e("move a1,x1", "move x1,b", "asr #16,b,b")              # b = the note index
             e("move x1,a", "and #>$ffff,a", "asl #7,a,a", "move a,y1")           # y1 = the fraction (23 bit)
-            a.emit(lambda x: T("add #>$%x,b" % x), "TINC"); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
+            a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
             e("move y0,a", "sub x0,a", "move a,y0", "mpy y1,y0,a", "move x0,b", "add a,b", "move b1,x:(r3+9)")
             # the shape m (24 bit fraction, saturating) and what each waveform needs from it: sine / triangle: the fold drive / 8 = 0.125 + 0.86 max(m, 0); saw: m; pulse: the threshold 0.94 m
             e("move x:(r3+3),a", "sub #>64,a", "asl #17,a,a")
@@ -954,7 +957,7 @@ def code(base, tabs, premix, ret_old):
             e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
             e("move %s,a" % X(NOTE), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "o1"); e("clr a")
             L(p + "o1"); e("cmp #>127,a"); a.emit(J("le"), p + "o2"); e("move #>127,a")
-            L(p + "o2"); a.emit(lambda x: T("add #>$%x,a" % x), "TINC"); e("move a,r0"); a.emit(D.NOP); e("move p:(r0),x1")
+            L(p + "o2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r0"); a.emit(D.NOP); e("move p:(r0),x1")
             e("move x:(r3+1),a", "asl #17,a,a", "move a,y0", "mpy x1,y0,b", "asr #5,b,b")
             e("move x:(r3+4),a", "asl #17,a,a", "move a,y0", "move %s,x0" % X(LV), "mpy x0,y0,a", "move a,y0", "mpy x1,y0,a", "asr #4,a,a", "add a,b")
             e("move x1,a", "add b,a", "move a1,x:(r3+6)")
@@ -1029,7 +1032,7 @@ def code(base, tabs, premix, ret_old):
                 e("move x:(r3+%d),a" % SM_ON, "tst a"); a.emit(J("eq"), p + "smz")
                 e("move %s,a" % ("x:(r2+%d)" % PV_NOTE if POLY else X(NOTE)), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "sm1"); e("clr a")
                 L(p + "sm1"); e("cmp #>127,a"); a.emit(J("le"), p + "sm2"); e("move #>127,a")
-                L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), "TINC"); e("move a,r4"); a.emit(D.NOP); e("move p:(r4),x0")
+                L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r4"); a.emit(D.NOP); e("move p:(r4),x0")
                 e("move #>$%x,y0" % y0k, "mpy y0,x0,a")                                     # a1 = the ratio in 9.15
                 e("move a1,b", "asr #15,b,b", "move b1,n4", "and #>$7fff,a", "asl #8,a,a", "move a1,y1")   # n4 = its integer part, y1 = the fraction (1.23)
                 if SMST2:                                                                 # the furthest position of the block: the left's end, then (stereo) the right's
@@ -1670,8 +1673,12 @@ def code(base, tabs, premix, ret_old):
         e("move x:>$%x,r1" % FBSAVE, "move y:>$ffd,r5")
         a.emit(D.RTS)
     if OSC:
-        L("TINC")                                                                 # phase increment per sample (one cycle = 2^24) of MIDI note n at 48 kHz
-        for n in range(129 if OSC2 else 128): a.emit([int(round(440 * 2 ** ((n - 69) / 12) / 48000 * (1 << 24))) & 0xFFFFFF])
+        ns = range(129 if OSC2 else 128)
+        if GENTAB:                                                                # (GENTAB) the top octave only: gentab halves it down at DSP start
+            assert OSC2; L("TINC_S"); ns = range(117, 129)
+        else:
+            L("TINC")                                                             # phase increment per sample (one cycle = 2^24) of MIDI note n at 48 kHz
+        for n in ns: a.emit([int(round(440 * 2 ** ((n - 69) / 12) / 48000 * (1 << 24))) & 0xFFFFFF])
     return a.assemble()
 
 

@@ -45,6 +45,16 @@ COL_LIT, COL_DIM = 0x6A, 0x6B         # peach bright / dim (steady codes; the FX
 CHANCE = (0x00, 0x01, 0x10, 0x11, 0x20, 0x02, 0x40, 0x84)
 
 
+TRIMSL = False                        # SC49.3 (use_trimsl)
+
+
+def use_trimsl():
+    """SC49.3 (flash for the drums' extra lane, phase 2): stepmod (SC40.3) puts its own c_rfbuf / c_rfled on the probability view's slots 7 / 8
+    and its thunk, going on to the stock's; c_mutbuf / c_mutled / c_mutled_t are called from nowhere: not emitted, the slots left to stepmod
+    (c_mutrow stays: stepmod calls it)."""
+    global TRIMSL
+    TRIMSL = True
+
 def udiv(rd, rn, rm): return h(0xFBB0 | rn) + h(0xF0F0 | rd << 8 | rm)
 
 
@@ -140,19 +150,20 @@ def arm_code(base):
     a.label("mp_x"); E(pop_list, [4, 5, 6], pc=True)
     a.label("mp_s"); E(b_w, PROB_PAD)
 
-    # ---- c_mutled (view): the stock's listener, then row 4
-    a.label("c_mutled_t"); E(subs_imm8, 0, 8)
-    a.label("c_mutled")
-    E(push_list, [4], lr=True)
-    E(mov_reg, 4, 0); E(bl, PROB_LISTEN)
-    E(mov_reg, 0, 4); E(bl, "c_mutrow")
-    E(pop_list, [4], pc=True)
+    if not TRIMSL:
+        # ---- c_mutled (view): the stock's listener, then row 4
+        a.label("c_mutled_t"); E(subs_imm8, 0, 8)
+        a.label("c_mutled")
+        E(push_list, [4], lr=True)
+        E(mov_reg, 4, 0); E(bl, PROB_LISTEN)
+        E(mov_reg, 0, 4); E(bl, "c_mutrow")
+        E(pop_list, [4], pc=True)
 
-    # ---- c_mutbuf (view) -> its LED buffer (slot 7, every LED pass): row 4 drawn first, so it is there before the store's first change
-    a.label("c_mutbuf")
-    E(push_list, [4], lr=True)
-    E(mov_reg, 4, 0); E(bl, "c_mutrow")
-    E(mov_reg, 0, 4); E(pop_list, [4]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, PROB_BUF)      # pop {r4}; ldr lr, [sp], #4
+        # ---- c_mutbuf (view) -> its LED buffer (slot 7, every LED pass): row 4 drawn first, so it is there before the store's first change
+        a.label("c_mutbuf")
+        E(push_list, [4], lr=True)
+        E(mov_reg, 4, 0); E(bl, "c_mutrow")
+        E(mov_reg, 0, 4); E(pop_list, [4]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, PROB_BUF)      # pop {r4}; ldr lr, [sp], #4
 
     # ---- c_mutrow (view): row 4 = the level as a bar in peach (dim above it; off when the step has no notes)
     a.label("c_mutrow")
@@ -192,7 +203,8 @@ def install(img, report, base_addr):
         assert struct.unpack_from("<I", img, addr - BASE)[0] == old | 1, hex(addr)
         struct.pack_into("<I", img, addr - BASE, new | 1)
     slot(PROB_VT, labels["c_mutpad"], PROB_PAD)
-    slot(PROB_VT + 8 * 4, labels["c_mutled"], PROB_LISTEN)
-    slot(PROB_VT2, labels["c_mutled_t"], PROB_THUNK)
-    slot(PROB_VT + 7 * 4, labels["c_mutbuf"], PROB_BUF)
+    if not TRIMSL:
+        slot(PROB_VT + 8 * 4, labels["c_mutled"], PROB_LISTEN)
+        slot(PROB_VT2, labels["c_mutled_t"], PROB_THUNK)
+        slot(PROB_VT + 7 * 4, labels["c_mutbuf"], PROB_BUF)
     return labels, code

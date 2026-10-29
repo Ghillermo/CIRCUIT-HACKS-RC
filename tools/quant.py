@@ -21,7 +21,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm3, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bics_reg, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp,  # noqa: E402
                    ldrb_imm, ldrb_reg, lsls_imm, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_sp, strb_imm,
-                   strb_reg, sub_sp_imm, add_sp_imm, subs_imm3, subs_imm8, subs_reg)
+                   strb_reg, sub_sp_imm, add_sp_imm, subs_imm3, subs_imm8, subs_reg, lsrs_imm)
 import packio as PK  # noqa: E402
 import fxdiag as FD  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -32,6 +32,17 @@ ID_PLAY, LED_PLAY = 17, 49
 SESSION_OBJ, TAIL, O_Q, Q_DONE = 0x2003D71C, 0x27024, 939, 0xD1
 COL_AV, COL_DONE = 0x2D, 0x17                                  # yellow (available), green (done)
 STEP_SZ, SET_OFF, D_SET_OFF = 28, 0x380, 0x80                 # a note step; the pattern's settings from its start (note / drum)
+
+
+KEEP = False                                                  # SC49.2 (use_keepbits)
+
+
+def use_keepbits():
+    """SC49.2 (lanex: the drums' extra lane in the spare bits of each step: probability bits 3-7, micro step bits 6-7): a drum's hit moves alone,
+    every step keeps its spare bits (a lane value belongs to its step, as the stock's lanes do): the micro steps are tested without bits 6-7, a
+    hit moved to an empty next step takes only the probability's low 3 bits, the emptied step keeps bits 6-7 of its micro steps."""
+    global KEEP
+    KEEP = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -84,21 +95,39 @@ def arm_code(base, L, prev):
 
     # ---- c_qzhit(r0 = a drum pattern, r1 = step, r2 = the next step, or 0xFF): its hit quantized
     a.label("c_qzhit")
-    E(push_list, [4, 5, 6], lr=True)
-    E(adds_reg, 4, 0, 1); E(movs_imm, 3, 0x60); E(ldrb_reg, 5, 4, 3)                               # r4 = the step's velocity byte, r5 = its micro steps
-    E(cmp_imm, 5, 1); E(b_cond, "qh_x", "ls")
-    E(subs_imm3, 6, 5, 1); E(ands_reg, 6, 5); E(cmp_imm, 6, 0); E(b_cond, "qh_x", "ne")           # several hits: kept
-    E(cmp_imm, 5, 8); E(b_cond, "qh_m", "hs")
-    a.label("qh_z"); E(movs_imm, 1, 1); E(strb_reg, 1, 4, 3); E(b, "qh_x")
-    a.label("qh_m"); E(cmp_imm, 2, 0xFF); E(b_cond, "qh_z", "eq")
-    E(adds_reg, 6, 0, 2); E(ldrb_reg, 1, 6, 3); E(cmp_imm, 1, 0); E(b_cond, "qh_d", "ne")          # r6 = the next step's velocity byte
-    E(movs_imm, 3, 0)
-    a.label("qh_c"); E(ldrb_reg, 1, 4, 3); E(strb_reg, 1, 6, 3); E(adds_imm8, 3, 0x20); E(cmp_imm, 3, 0x60); E(b_cond, "qh_c", "lo")   # velocity, probability, sample flip
-    E(movs_imm, 1, 1); E(b, "qh_w")
-    a.label("qh_d"); E(movs_imm, 3, 1); E(orrs_reg, 1, 3); E(movs_imm, 3, 0x60)
-    a.label("qh_w"); E(strb_reg, 1, 6, 3)
-    E(movs_imm, 1, 0); E(strb_imm, 1, 4, 0); E(strb_reg, 1, 4, 3); E(movs_imm, 1, 0xFF); E(movs_imm, 3, 0x40); E(strb_reg, 1, 4, 3)   # the old step emptied
-    a.label("qh_x"); E(pop_list, [4, 5, 6], pc=True)
+    if KEEP:
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(adds_reg, 4, 0, 1); E(movs_imm, 3, 0x60); E(ldrb_reg, 5, 4, 3)
+        E(lsrs_imm, 7, 5, 6); E(lsls_imm, 7, 7, 6); E(lsls_imm, 5, 5, 26); E(lsrs_imm, 5, 5, 26)   # r7 = the step's spare bits, r5 = its micro steps
+        E(cmp_imm, 5, 1); E(b_cond, "qk_x", "ls")
+        E(subs_imm3, 6, 5, 1); E(ands_reg, 6, 5); E(cmp_imm, 6, 0); E(b_cond, "qk_x", "ne")           # several hits: kept
+        E(cmp_imm, 5, 8); E(b_cond, "qk_m", "hs")
+        a.label("qk_z"); E(movs_imm, 1, 1); E(orrs_reg, 1, 7); E(strb_reg, 1, 4, 3); E(b, "qk_x")
+        a.label("qk_m"); E(cmp_imm, 2, 0xFF); E(b_cond, "qk_z", "eq")
+        E(adds_reg, 6, 0, 2); E(ldrb_reg, 1, 6, 3); E(lsls_imm, 5, 1, 26); E(b_cond, "qk_d", "ne")      # the next step has hits
+        E(ldrb_imm, 5, 4, 0); E(strb_imm, 5, 6, 0)                                                     # an empty one: the velocity,
+        E(movs_imm, 3, 0x20); E(ldrb_reg, 5, 4, 3); E(lsls_imm, 5, 5, 29); E(lsrs_imm, 5, 5, 29)
+        E(ldrb_reg, 0, 6, 3); E(lsrs_imm, 0, 0, 3); E(lsls_imm, 0, 0, 3); E(orrs_reg, 0, 5); E(strb_reg, 0, 6, 3)   # the probability's low bits,
+        E(movs_imm, 3, 0x40); E(ldrb_reg, 5, 4, 3); E(strb_reg, 5, 6, 3); E(movs_imm, 3, 0x60)          # the sample flip
+        a.label("qk_d"); E(movs_imm, 5, 1); E(orrs_reg, 1, 5); E(strb_reg, 1, 6, 3)
+        E(movs_imm, 1, 0); E(strb_imm, 1, 4, 0); E(strb_reg, 7, 4, 3); E(movs_imm, 1, 0xFF); E(movs_imm, 3, 0x40); E(strb_reg, 1, 4, 3)   # the old step emptied
+        a.label("qk_x"); E(pop_list, [4, 5, 6, 7], pc=True)
+    else:
+        E(push_list, [4, 5, 6], lr=True)
+        E(adds_reg, 4, 0, 1); E(movs_imm, 3, 0x60); E(ldrb_reg, 5, 4, 3)                               # r4 = the step's velocity byte, r5 = its micro steps
+        E(cmp_imm, 5, 1); E(b_cond, "qh_x", "ls")
+        E(subs_imm3, 6, 5, 1); E(ands_reg, 6, 5); E(cmp_imm, 6, 0); E(b_cond, "qh_x", "ne")           # several hits: kept
+        E(cmp_imm, 5, 8); E(b_cond, "qh_m", "hs")
+        a.label("qh_z"); E(movs_imm, 1, 1); E(strb_reg, 1, 4, 3); E(b, "qh_x")
+        a.label("qh_m"); E(cmp_imm, 2, 0xFF); E(b_cond, "qh_z", "eq")
+        E(adds_reg, 6, 0, 2); E(ldrb_reg, 1, 6, 3); E(cmp_imm, 1, 0); E(b_cond, "qh_d", "ne")          # r6 = the next step's velocity byte
+        E(movs_imm, 3, 0)
+        a.label("qh_c"); E(ldrb_reg, 1, 4, 3); E(strb_reg, 1, 6, 3); E(adds_imm8, 3, 0x20); E(cmp_imm, 3, 0x60); E(b_cond, "qh_c", "lo")   # velocity, probability, sample flip
+        E(movs_imm, 1, 1); E(b, "qh_w")
+        a.label("qh_d"); E(movs_imm, 3, 1); E(orrs_reg, 1, 3); E(movs_imm, 3, 0x60)
+        a.label("qh_w"); E(strb_reg, 1, 6, 3)
+        E(movs_imm, 1, 0); E(strb_imm, 1, 4, 0); E(strb_reg, 1, 4, 3); E(movs_imm, 1, 0xFF); E(movs_imm, 3, 0x40); E(strb_reg, 1, 4, 3)   # the old step emptied
+        a.label("qh_x"); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_qzdo(): the pattern the selected track plays, quantized
     a.label("c_qzdo")

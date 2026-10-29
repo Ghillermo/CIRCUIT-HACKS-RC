@@ -92,6 +92,17 @@ def use_rec():
     REC = True
 
 
+KEEP = False                                             # SC49.2 (use_keepbits)
+
+
+def use_keepbits():
+    """SC49.2 (lanex: the drums' extra lane in the spare bits of each step): a hit recorded on an empty step sets the probability's low 3 bits to
+    7 and keeps bits 3-7 (the lane's code), where it wrote the whole byte."""
+    global KEEP
+    assert REC
+    KEEP = True
+
+
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def mls_(rd, rn, rm, ra): return h(0xFB00 | rn) + h(ra << 12 | rd << 8 | 0x10 | rm)      # rd = ra - rn * rm
@@ -343,7 +354,11 @@ def arm_code(base, L, prev):
             imm32(0, TRANSPORT); E(movs_imm, 1, k); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("dp_x", "eq" if want == "ne" else "ne")
         E(ldr_sp, 0, 0); E(ldr_imm, 0, 0, 0x48); E(ldr_sp, 1, 4); E(movw, 2, 0x6A8); E(muls, 1, 2); E(adds_reg, 0, 0, 1)
         E(ldr_sp, 1, 8); E(adds_reg, 0, 0, 1)                                                # r0 = the step's velocity byte
-        E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "dp_v", "ne"); E(strb_imm, 7, 0, 0); E(movs_imm, 1, 7); E(movs_imm, 2, 0x20); E(strb_reg, 1, 0, 2)
+        E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 0); E(b_cond, "dp_v", "ne"); E(strb_imm, 7, 0, 0)
+        if KEEP:                                                                            # probability 7, its spare bits (the extra lane) kept
+            E(movs_imm, 2, 0x20); E(ldrb_reg, 1, 0, 2); E(lsrs_imm, 1, 1, 3); E(lsls_imm, 1, 1, 3); E(adds_imm8, 1, 7); E(strb_reg, 1, 0, 2)
+        else:
+            E(movs_imm, 1, 7); E(movs_imm, 2, 0x20); E(strb_reg, 1, 0, 2)
         a.label("dp_v")
         E(movs_imm, 1, 0x40); E(strb_reg, 6, 0, 1)                                          # the sample flip
         E(adds_imm8, 0, 0x60); E(ldrb_imm, 1, 0, 0); E(ldr_sp, 2, 12); E(movs_imm, 3, 1); E(raw, h(0x4093)); E(orrs_reg, 1, 3); E(strb_imm, 1, 0, 0)   # lsls r3, r2

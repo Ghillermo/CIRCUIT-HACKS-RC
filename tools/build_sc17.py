@@ -87,6 +87,15 @@ MIX2 = dict(MIX_VT=0x0805A668, MIX_PRESS=0x08046626, MIX_REL=0x080466B4, MIX_KNO
 LED_N = 32                            # entries in the Master FX LED buffer (SC17.4+: 42, see use_full_leds)
 
 
+TRIMSP = False                        # SC49.3 (use_trimsp)
+
+
+def use_trimsp():
+    """SC49.3 (flash for the drums' extra lane, phase 2): with SPCACHE the playhead comes from c_spcur (c_spengine / c_sppos called from nowhere)
+    and with SP2 pad 7 is dark (c_jmpled called from nowhere): not emitted."""
+    global TRIMSP
+    TRIMSP = True
+
 def use_full_leds():
     """SC17.4: the LED task (0x08034196, map 0x08059438) reads 42 entries from the active view:
     0-31 pads, 32/33 two buttons, 34-41 the 8 knob LEDs.  A 32-entry buffer showed garbage on the knobs."""
@@ -311,6 +320,16 @@ def use_mechswap():
 
 
 T0FIX = False                             # SC40 (see use_t0fix)
+NOVTAB = False                            # SC49.7 (see use_novtab)
+VINYL_TABS = ("VTH", "VHISS", "VLPK", "VHPK")
+
+
+def use_novtab():
+    """SC49.7 (room in the flash): the Vinyl's four knob tables (128 words each, 2 KB) left out of the image: with MECH (SC39.7) the Vinyl's
+    parameters are never sent (c_fxtick's statics skip set 4), so nothing reads them."""
+    global NOVTAB
+    assert MECH
+    NOVTAB = True
 
 
 LFOSYNC = False                           # SC44.8 (see use_lfosync)
@@ -2069,26 +2088,27 @@ def songptr_code(a, L, pal_codes, bc, zjmp):
             a.emit(ldrb_w, 1, 0, O_H2); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "se_ok", "ne"); a.emit(movs_imm, 1, 16); a.emit(b, "se_ok")
         a.label("se_no"); a.emit(movs_imm, 0, 0); a.emit(movs_imm, 1, 16); a.emit(raw, h(0x4770))
 
-    # ---- c_spengine: r0 = sequencer engine (X = [[ctx + 0x10]]; E = [[X + 0x2C] + 4])
-    a.label("c_spengine")
-    a.emit(movw, 0, CTX & 0xFFFF); a.emit(movt, 0, CTX >> 16)
-    a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0x10); a.emit(ldr_imm, 0, 0, 0)
-    a.emit(ldr_imm, 0, 0, 0x2C); a.emit(ldr_imm, 0, 0, 4); a.emit(raw, h(0x4770))
+    if not (TRIMSP and SPCACHE):
+        # ---- c_spengine: r0 = sequencer engine (X = [[ctx + 0x10]]; E = [[X + 0x2C] + 4])
+        a.label("c_spengine")
+        a.emit(movw, 0, CTX & 0xFFFF); a.emit(movt, 0, CTX >> 16)
+        a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0x10); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(ldr_imm, 0, 0, 0x2C); a.emit(ldr_imm, 0, 0, 4); a.emit(raw, h(0x4770))
 
-    # ---- c_sppos: r0 = current step 0-15 of the 16-step cycle, or 0xFF when the transport is not running
-    a.label("c_sppos")
-    a.emit(push_list, [4], lr=True)
-    a.emit(bl, "c_spengine"); a.emit(mov_reg, 4, 0)
-    if SP_PLAY:                                                                # the transport state: the store the Play button toggles (0x20011034, = [macro handler + 0x28])
-        a.emit(movw, 0, PLAY_STORE & 0xFFFF); a.emit(movt, 0, PLAY_STORE >> 16)
-    else:
-        a.emit(ldr_imm, 0, 4, 0x28)
-    a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pp_run", "ne"); a.emit(movs_imm, 0, 0xFF); a.emit(pop_list, [4], pc=True)
-    a.label("pp_run")
-    a.emit(raw, ldr_w(0, 4, 0x90)); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldr_imm, 0, 0, 0)
-    a.emit(movs_imm, 1, 6); a.emit(raw, udiv(0, 0, 1)); a.emit(movs_imm, 1, 15); a.emit(ands_reg, 0, 1)
-    a.emit(pop_list, [4], pc=True)
+        # ---- c_sppos: r0 = current step 0-15 of the 16-step cycle, or 0xFF when the transport is not running
+        a.label("c_sppos")
+        a.emit(push_list, [4], lr=True)
+        a.emit(bl, "c_spengine"); a.emit(mov_reg, 4, 0)
+        if SP_PLAY:                                                                # the transport state: the store the Play button toggles (0x20011034, = [macro handler + 0x28])
+            a.emit(movw, 0, PLAY_STORE & 0xFFFF); a.emit(movt, 0, PLAY_STORE >> 16)
+        else:
+            a.emit(ldr_imm, 0, 4, 0x28)
+        a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pp_run", "ne"); a.emit(movs_imm, 0, 0xFF); a.emit(pop_list, [4], pc=True)
+        a.label("pp_run")
+        a.emit(raw, ldr_w(0, 4, 0x90)); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(movs_imm, 1, 6); a.emit(raw, udiv(0, 0, 1)); a.emit(movs_imm, 1, 15); a.emit(ands_reg, 0, 1)
+        a.emit(pop_list, [4], pc=True)
 
     if SPCACHE:
         # ---- c_spcur: r0 = the step 0-15 the tick hook saw last, or 0xFF when that was more than 2 s ago (stopped).  The word at S_SPS = (HAL clock / 64, 24 bit) << 8 | step: it does not wrap into "fresh" for 12 days
@@ -2207,7 +2227,7 @@ def songptr_code(a, L, pal_codes, bc, zjmp):
         a.label("spl_y")
     a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
-    if JUMP:
+    if JUMP and not (TRIMSP and SP2):
         # ---- c_jmpled (r0 = LED buffer): pad 7 bright while the jump mode is on, dim otherwise
         a.label("c_jmpled")
         a.emit(push_list, [4], lr=True)
@@ -2350,7 +2370,7 @@ def build(stock: bytes, listing: Path):
     assert vt == [MIX_PRESS | 1, MIX_REL | 1, MIX_KNOB | 1, MIX_LEDS | 1], [hex(x) for x in vt]
     L = {k: int(report["sc14"]["labels"][k], 16) for k in ("c_gst", "c_now", "c_beat", "c_gtick")}
     L["c_shift"] = int(report["sc15"]["labels"]["c_shift"], 16)
-    L["c_sleds"] = int(report["sc15"]["labels"]["c_sleds"], 16)
+    if "c_sleds" in report["sc15"]["labels"]: L["c_sleds"] = int(report["sc15"]["labels"]["c_sleds"], 16)   # (only DIAG calls it)
     if SLOTS:
         for k in ("c_fxpress", "c_fxrel", "c_fxleds"): L[k] = int(report["sc14"]["labels"][k], 16)
     if CLEARPAD: L["c_gpick_t"] = int(report["sc14"]["labels"]["c_gpick_t"], 16)
@@ -2366,6 +2386,7 @@ def build(stock: bytes, listing: Path):
     data = bytearray()
     tabaddr = {}
     for name, vals in tabs.items():
+        if NOVTAB and name in VINYL_TABS: continue                             # (NOVTAB) nothing reads them
         tabaddr[name] = ext + len(data); data += struct.pack("<128I", *vals)
     defaults_addr = ext + len(data); data += bytes(x for d in DEFAULTS for x in d)
     setmap_addr = ext + len(data); data += bytes(SETMAP + ([SMP_SET] if SMP2 else []) + ([GL_SET] if GLITCH else []))

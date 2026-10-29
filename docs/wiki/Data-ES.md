@@ -23,6 +23,8 @@ Cada pista tiene 8 patrones por proyecto. Lo que está en un patrón viaja con �
 | **Valores del secuenciador de efectos** | MIDI 1 / 2 | [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer) |
 | **Sample flips del modo muestra** (en el carril de nivel de la pista) *(desde RC2)* | MIDI 1 / 2 | [Selector de samples](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-muestra) |
 | **Pasos cromáticos de los drums** (en el carril de pitch del drum) *(desde RC2)* | drums | [Vista cromática](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-cromatica) con Record |
+| *(solo Beta 5.0)* **Carril extra de los drums** (el pitch cromático o el knob asignado; en los bits libres de cada paso; el código 126 = la **marca** de la vista de automatización) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista) con Record; la vista de automatización |
+| *(solo Beta 5.0)* **Estados y rampas de los drums** (bloqueos de estado: en los mismos bits, el número de estado o «rampa»; los estados, en el proyecto) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista) con Record; la vista de automatización |
 | Golpes de los **rollers** y del **arpegio de drums** | drums | Con Record, como golpes normales |
 | *(desde RC4)* La **copia del sinte propio** de MIDI 1 / 2 (en los ajustes de los patrones 1-5, sin cambiar lo que suenan) | MIDI 1 / 2 | Sola, al guardar el proyecto |
 
@@ -38,6 +40,7 @@ Cada pista tiene 8 patrones por proyecto. Lo que está en un patrón viaja con �
 6. **Un patch de Synth 1 / 2** tal como suena (knobs, destinos de macro editados, MIDI recibido) va con el proyecto; para tenerlo en el pack y usarlo en otros proyectos, **guárdalo** en la [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-preset) (Clear + pad dos veces) *(desde RC2)*.
 7. **Antes de apagar:** para el secuenciador y espera **2 s** sin tocar el motor de MIDI 1 / 2 (sus ajustes se escriben en la tarjeta solo con el transporte parado, para no cortar el audio), y apaga con el **botón de encendido**.
 8. **Sin tarjeta (pack de la memoria interna)** y con las versiones **S**, el mod no escribe nada propio: patches, samples y copias no se guardan (el LED de Save se pone rojo). Los proyectos, sí, como en el original.
+9. *(desde RC4.02)* **Guardar mientras suena:** Save dos veces con el secuenciador en marcha deja el guardado **pendiente** (Save parpadea en amarillo) y lo escribe **al parar**, para no descompasar el reloj; si antes pides otra cosa del proyecto (cargar uno, guardar en otro hueco), se guarda primero. Si cambias de pack antes de parar, ese guardado se descarta. Para el transporte antes de apagar.
 
 ## Qué vuelve tras reiniciar y dónde se guarda
 
@@ -57,6 +60,8 @@ Cinco sitios: el **patrón**, el **proyecto** (los dos, al guardar el proyecto),
 | **Escala propia** y *(desde RC4)* **Jankó** | [Scales](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#escalas) |
 | Sinte propio de MIDI 1 / 2: **gate retrigger**, **forma del LFO**, el toggle pitch-vel y el destino de la página 2 del step-drummer | [Páginas de knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs), [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer) |
 | *(desde RC4)* **Parejas estéreo de drums**: encendidas, distancia, apertura y desviaciones | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista) |
+| *(solo Beta 5.0)* **Qué lleva el carril extra** de cada drum (carril o bloqueos de estado) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista) |
+| *(solo Beta 5.0)* **Los estados de los drums** (hasta 80, con sus 14 valores; guardados con el proyecto y sus escenas) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista) |
 | *(desde RC4)* **El sinte propio entero** de MIDI 1 / 2: motor, valores, matriz, destinos de los knobs secuenciables y *(desde RC4)* no secuenciables, FM, modo de voz, estéreo (al cargar un proyecto que lo lleva manda el del proyecto; uno anterior deja el sonido como estaba) | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) |
 
 ### El pack (se escribe en la tarjeta al hacer el gesto)

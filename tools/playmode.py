@@ -58,6 +58,14 @@ def use_dsync():
     DSYNC = True
 CLRMOD = False                                                # SC41.7 (see use_clrmod)
 NUDGE2 = False                                                # SC48.3 (use_nudge2)
+TRIMNU = False                                                # SC49 (use_trimnu): Nudge v1 (c_pmnudge) not emitted
+
+
+def use_trimnu():
+    """SC49 (flash for the extra drum lane): with NUDGE2 pad 26 goes to c_pmnudge2; c_pmnudge is called from nowhere: not emitted."""
+    global TRIMNU
+    assert NUDGE2
+    TRIMNU = True
 
 
 def use_nudge2():
@@ -211,62 +219,63 @@ def arm_code(base, L, prev):
     E(subs_imm8, 7, 1); E(b, "ro_k")
     a.label("ro_x"); E(add_sp_imm, 32); E(pop_list, [4, 5, 6, 7], pc=True)
 
-    # ---- c_pmnudge (r0 = the Pattern Settings view, r1 = track (a note track), r2 = pattern): the pattern rotated so that its first step is
-    #      step 1: the steps and the twelve automation lanes, over 16 or 32 steps; then first = 0 and the last step moved, through the view's store
-    a.label("c_pmnudge")
-    if DRUMS:
-        # (SC40.9) a drum track: its four byte arrays and eight lanes.  [sp]: n, the new last step, the track then the lanes, the offset of the lanes
-        E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
-        E(mov_reg, 7, 0); E(str_sp, 1, 8); E(mov_reg, 0, 1); E(mov_reg, 1, 2); E(bl, L["c_pcrule"]); E(cmp_imm, 0, 0); bc("nu_x", "eq")
-        E(subs_imm8, 0, 4); E(ldrb_imm, 5, 0, 1); E(ldrb_imm, 6, 0, 0)                 # r5 = the first step, r6 = the last
-        imm32(1, SET_OFF); E(ldr_sp, 2, 8); E(cmp_imm, 2, 4); E(b_cond, "nu_o", "lo"); E(movs_imm, 1, D_SET_OFF)
-        a.label("nu_o"); E(subs_reg, 4, 0, 1)                                         # r4 = the pattern
-        E(cmp_imm, 5, 0); bc("nu_x", "eq"); E(cmp_imm, 5, 31); bc("nu_x", "hi"); E(cmp_imm, 6, 31); bc("nu_x", "hi")
-        E(movs_imm, 3, 32); E(cmp_imm, 5, 16); E(b_cond, "nu_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "nu_n", "hs"); E(movs_imm, 3, 16)
-        a.label("nu_n"); E(str_sp, 3, 0)
-        E(subs_reg, 6, 6, 5); E(b_cond, "nu_l", "pl"); E(adds_reg, 6, 6, 3)            # the new last step
-        a.label("nu_l"); E(str_sp, 6, 4)
-        E(ldr_sp, 0, 8); E(cmp_imm, 0, 4); E(b_cond, "nu_dr", "hs")
-        E(mov_reg, 0, 4); E(movs_imm, 1, STEP_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-        E(movs_imm, 0, LANES); E(str_sp, 0, 8); imm32(0, AUTO_OFF); E(str_sp, 0, 12); E(b, "nu_la")
-        a.label("nu_dr")
-        E(movs_imm, 6, 0)
-        a.label("nu_d1"); E(lsls_imm, 0, 6, 5); E(adds_reg, 0, 0, 4); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-        E(adds_imm8, 6, 1); E(cmp_imm, 6, D_ARRAYS); E(b_cond, "nu_d1", "lo")
-        if DSYNC:                                                                     # drumpat's bytes; the drum's edit store
-            E(mov_reg, 0, 4); E(adds_imm8, 0, 0x88); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-            E(ldr_sp, 0, 8); E(subs_imm8, 0, 4); E(mov_reg, 1, 4); E(bl, "c_pmdsync")
-        E(movs_imm, 0, D_LANES); E(str_sp, 0, 8); E(movs_imm, 0, D_AUTO_OFF); E(str_sp, 0, 12)
-        a.label("nu_la")
-        E(movs_imm, 6, 0)
-        a.label("nu_a")
-        E(ldr_sp, 0, 12); E(adds_reg, 0, 0, 4); E(movs_imm, 1, LANE_SZ * 32); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
-        E(movs_imm, 1, LANE_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-        E(adds_imm8, 6, 1); E(ldr_sp, 0, 8); E(cmp_reg, 6, 0); E(b_cond, "nu_a", "lo")
-        E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)
-        E(ldr_sp, 1, 4); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
-        E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
-        a.label("nu_x"); E(add_sp_imm, 16); E(pop_list, [4, 5, 6, 7], pc=True)
-    else:
-        E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
-        E(mov_reg, 7, 0); E(mov_reg, 0, 1); E(mov_reg, 1, 2); E(bl, L["c_pcrule"]); E(cmp_imm, 0, 0); bc("nu_x", "eq")
-        E(subs_imm8, 0, 4); E(ldrb_imm, 5, 0, 1); E(ldrb_imm, 6, 0, 0)                     # r5 = the first step, r6 = the last
-        imm32(1, SET_OFF); E(subs_reg, 4, 0, 1)                                           # r4 = the pattern
-        E(cmp_imm, 5, 0); bc("nu_x", "eq"); E(cmp_imm, 5, 31); bc("nu_x", "hi"); E(cmp_imm, 6, 31); bc("nu_x", "hi")
-        E(movs_imm, 3, 32); E(cmp_imm, 5, 16); E(b_cond, "nu_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "nu_n", "hs"); E(movs_imm, 3, 16)
-        a.label("nu_n"); E(str_sp, 3, 0)
-        E(subs_reg, 6, 6, 5); E(b_cond, "nu_l", "pl"); E(adds_reg, 6, 6, 3)                # the new last step
-        a.label("nu_l"); E(str_sp, 6, 4)
-        E(mov_reg, 0, 4); E(movs_imm, 1, STEP_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-        E(movs_imm, 6, 0)
-        a.label("nu_a")
-        imm32(0, AUTO_OFF); E(adds_reg, 0, 0, 4); E(movs_imm, 1, LANE_SZ * 32); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
-        E(movs_imm, 1, LANE_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
-        E(adds_imm8, 6, 1); E(cmp_imm, 6, LANES); E(b_cond, "nu_a", "lo")
-        E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)
-        E(ldr_sp, 1, 4); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
-        E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
-        a.label("nu_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIMNU:
+        # ---- c_pmnudge (r0 = the Pattern Settings view, r1 = track (a note track), r2 = pattern): the pattern rotated so that its first step is
+        #      step 1: the steps and the twelve automation lanes, over 16 or 32 steps; then first = 0 and the last step moved, through the view's store
+        a.label("c_pmnudge")
+        if DRUMS:
+            # (SC40.9) a drum track: its four byte arrays and eight lanes.  [sp]: n, the new last step, the track then the lanes, the offset of the lanes
+            E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
+            E(mov_reg, 7, 0); E(str_sp, 1, 8); E(mov_reg, 0, 1); E(mov_reg, 1, 2); E(bl, L["c_pcrule"]); E(cmp_imm, 0, 0); bc("nu_x", "eq")
+            E(subs_imm8, 0, 4); E(ldrb_imm, 5, 0, 1); E(ldrb_imm, 6, 0, 0)                 # r5 = the first step, r6 = the last
+            imm32(1, SET_OFF); E(ldr_sp, 2, 8); E(cmp_imm, 2, 4); E(b_cond, "nu_o", "lo"); E(movs_imm, 1, D_SET_OFF)
+            a.label("nu_o"); E(subs_reg, 4, 0, 1)                                         # r4 = the pattern
+            E(cmp_imm, 5, 0); bc("nu_x", "eq"); E(cmp_imm, 5, 31); bc("nu_x", "hi"); E(cmp_imm, 6, 31); bc("nu_x", "hi")
+            E(movs_imm, 3, 32); E(cmp_imm, 5, 16); E(b_cond, "nu_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "nu_n", "hs"); E(movs_imm, 3, 16)
+            a.label("nu_n"); E(str_sp, 3, 0)
+            E(subs_reg, 6, 6, 5); E(b_cond, "nu_l", "pl"); E(adds_reg, 6, 6, 3)            # the new last step
+            a.label("nu_l"); E(str_sp, 6, 4)
+            E(ldr_sp, 0, 8); E(cmp_imm, 0, 4); E(b_cond, "nu_dr", "hs")
+            E(mov_reg, 0, 4); E(movs_imm, 1, STEP_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(movs_imm, 0, LANES); E(str_sp, 0, 8); imm32(0, AUTO_OFF); E(str_sp, 0, 12); E(b, "nu_la")
+            a.label("nu_dr")
+            E(movs_imm, 6, 0)
+            a.label("nu_d1"); E(lsls_imm, 0, 6, 5); E(adds_reg, 0, 0, 4); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(adds_imm8, 6, 1); E(cmp_imm, 6, D_ARRAYS); E(b_cond, "nu_d1", "lo")
+            if DSYNC:                                                                     # drumpat's bytes; the drum's edit store
+                E(mov_reg, 0, 4); E(adds_imm8, 0, 0x88); E(movs_imm, 1, 1); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+                E(ldr_sp, 0, 8); E(subs_imm8, 0, 4); E(mov_reg, 1, 4); E(bl, "c_pmdsync")
+            E(movs_imm, 0, D_LANES); E(str_sp, 0, 8); E(movs_imm, 0, D_AUTO_OFF); E(str_sp, 0, 12)
+            a.label("nu_la")
+            E(movs_imm, 6, 0)
+            a.label("nu_a")
+            E(ldr_sp, 0, 12); E(adds_reg, 0, 0, 4); E(movs_imm, 1, LANE_SZ * 32); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
+            E(movs_imm, 1, LANE_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(adds_imm8, 6, 1); E(ldr_sp, 0, 8); E(cmp_reg, 6, 0); E(b_cond, "nu_a", "lo")
+            E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)
+            E(ldr_sp, 1, 4); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
+            E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
+            a.label("nu_x"); E(add_sp_imm, 16); E(pop_list, [4, 5, 6, 7], pc=True)
+        else:
+            E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
+            E(mov_reg, 7, 0); E(mov_reg, 0, 1); E(mov_reg, 1, 2); E(bl, L["c_pcrule"]); E(cmp_imm, 0, 0); bc("nu_x", "eq")
+            E(subs_imm8, 0, 4); E(ldrb_imm, 5, 0, 1); E(ldrb_imm, 6, 0, 0)                     # r5 = the first step, r6 = the last
+            imm32(1, SET_OFF); E(subs_reg, 4, 0, 1)                                           # r4 = the pattern
+            E(cmp_imm, 5, 0); bc("nu_x", "eq"); E(cmp_imm, 5, 31); bc("nu_x", "hi"); E(cmp_imm, 6, 31); bc("nu_x", "hi")
+            E(movs_imm, 3, 32); E(cmp_imm, 5, 16); E(b_cond, "nu_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "nu_n", "hs"); E(movs_imm, 3, 16)
+            a.label("nu_n"); E(str_sp, 3, 0)
+            E(subs_reg, 6, 6, 5); E(b_cond, "nu_l", "pl"); E(adds_reg, 6, 6, 3)                # the new last step
+            a.label("nu_l"); E(str_sp, 6, 4)
+            E(mov_reg, 0, 4); E(movs_imm, 1, STEP_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(movs_imm, 6, 0)
+            a.label("nu_a")
+            imm32(0, AUTO_OFF); E(adds_reg, 0, 0, 4); E(movs_imm, 1, LANE_SZ * 32); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
+            E(movs_imm, 1, LANE_SZ); E(ldr_sp, 2, 0); E(mov_reg, 3, 5); E(bl, "c_pmrot")
+            E(adds_imm8, 6, 1); E(cmp_imm, 6, LANES); E(b_cond, "nu_a", "lo")
+            E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)
+            E(ldr_sp, 1, 4); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1)
+            E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
+            a.label("nu_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
 
     if NUDGE2:
         # ---- c_pmnudge2 (r0 = the Pattern Settings view, r1 = track, r2 = pattern, r3 = 0 back / 1 forward): the range one step, see use_nudge2.

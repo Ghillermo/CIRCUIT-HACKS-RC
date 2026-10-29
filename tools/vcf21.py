@@ -147,6 +147,9 @@ LANE_TAB = (17, 8, 15, 3, 1, 2, 11, 9)           # lane k of the sequencer (= ma
 CLEARBOTH = False                                 # SC23.5: Clear + a knob resets both layers of the knob (plain and Shift): with Shift the Clear button loses its function
 SAVELED = False                                   # SC23.5: the Save button of the top row (panel LED 57, after Duplicate) blinks with the Save pad at the save step
 SAVEEXIT = False                                  # SC48.3 (use_saveexit): a save leaves the editor
+EDLOCK = False                                    # SC48.7 (use_edlock): no CC editor while the track's own synth is on
+VELLOCK = False                                   # SC48.7 (use_vellock): pad 31 (velocity -> envelopes) only with the VA-drum
+TRIMED = False                                    # SC49 (use_trimed): the CC editor v1 (c_edfield, c_edknob, c_edcyc) not emitted: v2 replaced it (EDV2)
 EDSCR = None                                      # SC48.3 (use_edscratch): the editor's scratch (80 B of records + the index + the NRPN number) at this RAM address
 EDV2 = False                                      # SC23.4: the CC number picks the type (99 / 98 / 6 = NRPN with a 7-bit value, 38 = NRPN with a 14-bit value), after the last field a save step (the Save pad blinks,
                                                   # one more Octave v saves), the Save pad (next to pad 25) saves, the button of the track discards like any other view button
@@ -784,6 +787,31 @@ def use_saveexit():
     SAVEEXIT = True
 
 
+def use_edlock():
+    """SC48.7 (issue #15; the user: «CC re-assign cannot be used during voice modes», «Instead, knobs send their assigned custom CC and NRPNs»,
+    «The re-assign view pad is off when a voice is being used»): with the track's own synth on, its knobs drive the voice and send the own
+    synth's CC / NRPN map, never the template's, so the CC editor (which edits the template) is closed to it: pad 25 off and a press does
+    nothing; an editor left open when the own synth comes on is left (its unsaved changes discarded) at the next LED frame."""
+    global EDLOCK
+    EDLOCK = True
+
+
+def use_trimed():
+    """SC49 (flash for the extra drum lane): with EDV2 the editor runs on c_edfield2 / c_edknob2 / c_edcyc2; c_edfield, c_edknob and c_edcyc are
+    called from nowhere (checked on SC48.9's image): not emitted."""
+    global TRIMED
+    assert EDV2
+    TRIMED = True
+
+
+def use_vellock():
+    """SC48.7 (fix, found applying «Unavailable pads are off»): pad 31 of the MIDI Preset view (velocity -> the pitch / filter envelopes) was lit
+    and pressable with the engine bit t without the oscillator = the FX sequencer, where a press set bit t + 2 and turned the engine into the
+    sample mode; now it needs the oscillator too (the VA-drum): dark and inert otherwise."""
+    global VELLOCK
+    VELLOCK = True
+
+
 def use_edv2():
     """SC23.4: CC editor v2.  Fields (the first one is the CC number; its value picks the type): CC = [number, start, end]; NRPN with a 7-bit value (number 99, 98 or 6) = [number, MSB, LSB, start, end];
     NRPN with a 14-bit value (number 38) = [number, MSB, LSB, start MSB, start LSB, end MSB, end LSB]; RPN records made in Components keep their fields without the number.  After the last field comes the
@@ -875,23 +903,24 @@ def cced_routines(a, L, t_ed, tail, bc):
     a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(bl, "c_edapply")
     a.emit(pop_list, [4, 5], pc=True)
 
-    # ---- c_edfield(r0 = record, r1 = field) -> r0 = address of the halfword (0: not editable), r1 = shift, r2 = palette code of the field, r3 = number of fields of the record
-    a.label("c_edfield")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
-    a.emit(ldrb_imm, 2, 4, 0); a.emit(subs_imm8, 2, 1); a.emit(cmp_imm, 2, 4); a.emit(b_cond, "ef_bad", "hi")
-    ted(7)
-    a.emit(ldrb_reg, 6, 7, 2)                                                                  # class
-    a.emit(movs_imm, 2, 6); a.emit(muls, 2, 6)                                                 # 6 * class
-    a.emit(adds_reg, 1, 2, 5); a.emit(mov_reg, 3, 7); a.emit(adds_imm8, 3, 8); a.emit(ldrb_reg, 3, 3, 1)      # r3 = role
-    a.emit(adds_reg, 1, 2, 3); a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 26); a.emit(ldrb_reg, 1, 0, 1)    # r1 = shift
-    a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 44); a.emit(ldrb_reg, 0, 0, 3); a.emit(adds_reg, 0, 0, 4)    # r0 = record + offset
-    a.emit(mov_reg, 2, 7); a.emit(adds_imm8, 2, 50); a.emit(ldrb_reg, 2, 2, 3)                              # r2 = colour
-    a.emit(mov_reg, 3, 7); a.emit(adds_imm8, 3, 5); a.emit(ldrb_reg, 3, 3, 6)                               # r3 = number of fields
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
-    a.label("ef_bad")
-    a.emit(movs_imm, 0, 0)
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIMED:
+        # ---- c_edfield(r0 = record, r1 = field) -> r0 = address of the halfword (0: not editable), r1 = shift, r2 = palette code of the field, r3 = number of fields of the record
+        a.label("c_edfield")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
+        a.emit(ldrb_imm, 2, 4, 0); a.emit(subs_imm8, 2, 1); a.emit(cmp_imm, 2, 4); a.emit(b_cond, "ef_bad", "hi")
+        ted(7)
+        a.emit(ldrb_reg, 6, 7, 2)                                                                  # class
+        a.emit(movs_imm, 2, 6); a.emit(muls, 2, 6)                                                 # 6 * class
+        a.emit(adds_reg, 1, 2, 5); a.emit(mov_reg, 3, 7); a.emit(adds_imm8, 3, 8); a.emit(ldrb_reg, 3, 3, 1)      # r3 = role
+        a.emit(adds_reg, 1, 2, 3); a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 26); a.emit(ldrb_reg, 1, 0, 1)    # r1 = shift
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 44); a.emit(ldrb_reg, 0, 0, 3); a.emit(adds_reg, 0, 0, 4)    # r0 = record + offset
+        a.emit(mov_reg, 2, 7); a.emit(adds_imm8, 2, 50); a.emit(ldrb_reg, 2, 2, 3)                              # r2 = colour
+        a.emit(mov_reg, 3, 7); a.emit(adds_imm8, 3, 5); a.emit(ldrb_reg, 3, 3, 6)                               # r3 = number of fields
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("ef_bad")
+        a.emit(movs_imm, 0, 0)
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_eddig(r0 = LED buffer, r1 = glyph (12 bits, 4 rows x 3 columns), r2 = palette code, r3 = base column): draws one glyph, keeps r4-r7
     a.label("c_eddig")
@@ -1028,61 +1057,63 @@ def cced_routines(a, L, t_ed, tail, bc):
     if not SDRUM: a.emit(strb_w, 0, 2, O_ED + 2); a.emit(lsrs_imm, 3, 0, 8); a.emit(strb_w, 3, 2, O_ED + 3)
     a.emit(raw, h(0x4770))
 
-    # ---- c_edknob(r0 = knob 0..7, r1 = delta): first touch of a knob selects it (and shows its field), the next ones change the value
-    a.label("c_edknob")
-    a.emit(push_list, [4, 5, 6, 7], lr=True)
-    a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
-    tail(2); a.emit(ldrb_w, 6, 2, O_ED)
-    a.emit(movs_imm, 3, 0x40); a.emit(tst_reg, 6, 3); a.emit(b_cond, "ek_sel", "eq")
-    a.emit(movs_imm, 3, 7); a.emit(mov_reg, 7, 6); a.emit(ands_reg, 7, 3); a.emit(cmp_reg, 7, 4); a.emit(b_cond, "ek_sel", "ne")
-    a.emit(bl, "c_edview"); a.emit(mov_reg, 7, 0)
-    if CCED2: a.emit(bl, "c_edbak")
-    a.emit(mov_reg, 1, 4); a.emit(mov_reg, 0, 7); a.emit(bl, "c_edrec")
-    a.emit(push_list, [1])
-    a.emit(lsrs_imm, 1, 6, 3); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(bl, "c_edfield")
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ek_end", "eq")
-    a.emit(mov_reg, 6, 1)
-    a.emit(ldrh_imm, 2, 0, 0); a.emit(mov_reg, 3, 2); a.emit(lsrs_reg, 3, 6); a.emit(movs_imm, 1, 0x7F); a.emit(ands_reg, 3, 1)
-    a.emit(mov_reg, 1, 3); a.emit(adds_reg, 1, 1, 5)
-    a.emit(cmp_imm, 1, 0); a.emit(b_cond, "ek_c1", "ge"); a.emit(movs_imm, 1, 0)
-    a.label("ek_c1")
-    a.emit(cmp_imm, 1, 127); a.emit(b_cond, "ek_c2", "le"); a.emit(movs_imm, 1, 127)
-    a.label("ek_c2")
-    a.emit(cmp_reg, 1, 3); a.emit(b_cond, "ek_end", "eq")
-    a.emit(movs_imm, 3, 0x7F); a.emit(lsls_reg, 3, 6); a.emit(bics_reg, 2, 3); a.emit(lsls_reg, 1, 6); a.emit(orrs_reg, 2, 1); a.emit(strh_imm, 2, 0, 0)
-    tail(2); a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(orrs_reg, 3, 1); a.emit(strb_w, 3, 2, O_ED + 1)
-    a.emit(mov_reg, 0, 7); a.emit(pop_list, [1]); a.emit(bl, "c_edapply")
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
-    a.label("ek_end")
-    a.emit(pop_list, [1])
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
-    a.label("ek_sel")
-    if not CCED2: a.emit(bl, "c_edflush")
-    tail(2); a.emit(movs_imm, 3, 0xC0); a.emit(orrs_reg, 3, 4); a.emit(strb_w, 3, 2, O_ED)
-    a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if not TRIMED:
+        # ---- c_edknob(r0 = knob 0..7, r1 = delta): first touch of a knob selects it (and shows its field), the next ones change the value
+        a.label("c_edknob")
+        a.emit(push_list, [4, 5, 6, 7], lr=True)
+        a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
+        tail(2); a.emit(ldrb_w, 6, 2, O_ED)
+        a.emit(movs_imm, 3, 0x40); a.emit(tst_reg, 6, 3); a.emit(b_cond, "ek_sel", "eq")
+        a.emit(movs_imm, 3, 7); a.emit(mov_reg, 7, 6); a.emit(ands_reg, 7, 3); a.emit(cmp_reg, 7, 4); a.emit(b_cond, "ek_sel", "ne")
+        a.emit(bl, "c_edview"); a.emit(mov_reg, 7, 0)
+        if CCED2: a.emit(bl, "c_edbak")
+        a.emit(mov_reg, 1, 4); a.emit(mov_reg, 0, 7); a.emit(bl, "c_edrec")
+        a.emit(push_list, [1])
+        a.emit(lsrs_imm, 1, 6, 3); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(bl, "c_edfield")
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ek_end", "eq")
+        a.emit(mov_reg, 6, 1)
+        a.emit(ldrh_imm, 2, 0, 0); a.emit(mov_reg, 3, 2); a.emit(lsrs_reg, 3, 6); a.emit(movs_imm, 1, 0x7F); a.emit(ands_reg, 3, 1)
+        a.emit(mov_reg, 1, 3); a.emit(adds_reg, 1, 1, 5)
+        a.emit(cmp_imm, 1, 0); a.emit(b_cond, "ek_c1", "ge"); a.emit(movs_imm, 1, 0)
+        a.label("ek_c1")
+        a.emit(cmp_imm, 1, 127); a.emit(b_cond, "ek_c2", "le"); a.emit(movs_imm, 1, 127)
+        a.label("ek_c2")
+        a.emit(cmp_reg, 1, 3); a.emit(b_cond, "ek_end", "eq")
+        a.emit(movs_imm, 3, 0x7F); a.emit(lsls_reg, 3, 6); a.emit(bics_reg, 2, 3); a.emit(lsls_reg, 1, 6); a.emit(orrs_reg, 2, 1); a.emit(strh_imm, 2, 0, 0)
+        tail(2); a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(orrs_reg, 3, 1); a.emit(strb_w, 3, 2, O_ED + 1)
+        a.emit(mov_reg, 0, 7); a.emit(pop_list, [1]); a.emit(bl, "c_edapply")
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("ek_end")
+        a.emit(pop_list, [1])
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("ek_sel")
+        if not CCED2: a.emit(bl, "c_edflush")
+        tail(2); a.emit(movs_imm, 3, 0xC0); a.emit(orrs_reg, 3, 4); a.emit(strb_w, 3, 2, O_ED)
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
     if CCED2:
-        # ---- c_edcyc(r0 = direction: 0 forward, 1 back): Octave v / ^: the next / previous field of the selected knob (wraps, saves nothing)
-        a.label("c_edcyc")
-        a.emit(push_list, [4, 5, 6, 7], lr=True)
-        a.emit(mov_reg, 5, 0)
-        tail(2); a.emit(ldrb_w, 6, 2, O_ED)
-        a.emit(movs_imm, 3, 0x40); a.emit(tst_reg, 6, 3); a.emit(b_cond, "ec_end", "eq")
-        a.emit(bl, "c_edview"); a.emit(mov_reg, 7, 0)
-        a.emit(mov_reg, 1, 6); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(mov_reg, 0, 7); a.emit(bl, "c_edrec")
-        a.emit(lsrs_imm, 1, 6, 3); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(mov_reg, 4, 1)
-        a.emit(bl, "c_edfield")
-        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ec_end", "eq")
-        a.emit(cmp_imm, 5, 0); a.emit(b_cond, "ec_back", "ne")
-        a.emit(adds_imm8, 4, 1); a.emit(cmp_reg, 4, 3); a.emit(b_cond, "ec_set", "lo"); a.emit(movs_imm, 4, 0); a.emit(b, "ec_set")
-        a.label("ec_back")
-        a.emit(cmp_imm, 4, 0); a.emit(b_cond, "ec_wrap", "eq"); a.emit(subs_imm8, 4, 1); a.emit(b, "ec_set")
-        a.label("ec_wrap")
-        a.emit(mov_reg, 4, 3); a.emit(subs_imm8, 4, 1)
-        a.label("ec_set")
-        tail(2); a.emit(movs_imm, 3, 0x38); a.emit(bics_reg, 6, 3); a.emit(lsls_imm, 1, 4, 3); a.emit(orrs_reg, 6, 1); a.emit(strb_w, 6, 2, O_ED)
-        a.label("ec_end")
-        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        if not TRIMED:
+            # ---- c_edcyc(r0 = direction: 0 forward, 1 back): Octave v / ^: the next / previous field of the selected knob (wraps, saves nothing)
+            a.label("c_edcyc")
+            a.emit(push_list, [4, 5, 6, 7], lr=True)
+            a.emit(mov_reg, 5, 0)
+            tail(2); a.emit(ldrb_w, 6, 2, O_ED)
+            a.emit(movs_imm, 3, 0x40); a.emit(tst_reg, 6, 3); a.emit(b_cond, "ec_end", "eq")
+            a.emit(bl, "c_edview"); a.emit(mov_reg, 7, 0)
+            a.emit(mov_reg, 1, 6); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(mov_reg, 0, 7); a.emit(bl, "c_edrec")
+            a.emit(lsrs_imm, 1, 6, 3); a.emit(movs_imm, 3, 7); a.emit(ands_reg, 1, 3); a.emit(mov_reg, 4, 1)
+            a.emit(bl, "c_edfield")
+            a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ec_end", "eq")
+            a.emit(cmp_imm, 5, 0); a.emit(b_cond, "ec_back", "ne")
+            a.emit(adds_imm8, 4, 1); a.emit(cmp_reg, 4, 3); a.emit(b_cond, "ec_set", "lo"); a.emit(movs_imm, 4, 0); a.emit(b, "ec_set")
+            a.label("ec_back")
+            a.emit(cmp_imm, 4, 0); a.emit(b_cond, "ec_wrap", "eq"); a.emit(subs_imm8, 4, 1); a.emit(b, "ec_set")
+            a.label("ec_wrap")
+            a.emit(mov_reg, 4, 3); a.emit(subs_imm8, 4, 1)
+            a.label("ec_set")
+            tail(2); a.emit(movs_imm, 3, 0x38); a.emit(bics_reg, 6, 3); a.emit(lsls_imm, 1, 4, 3); a.emit(orrs_reg, 6, 1); a.emit(strb_w, 6, 2, O_ED)
+            a.label("ec_end")
+            a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
 
     else:
@@ -2708,6 +2739,7 @@ def sd_routines(a, L, tail, bc, t_sd):
         E(movs_imm, 6, 0)
         E(mov_reg, 0, 4); E(bl, "c_von"); E(cmp_imm, 0, 0); E(b_cond, "sl_wv", "eq")
         E(mov_reg, 0, 4); E(bl, "c_vdbit"); E(cmp_imm, 0, 0); E(b_cond, "sl_wv", "eq")
+        if VELLOCK: E(mov_reg, 0, 4); E(movs_imm, 1, 2); E(bl, "c_vflag"); E(cmp_imm, 0, 0); E(b_cond, "sl_wv", "eq")   # (SC48.7) no oscillator (the FX sequencer): dark
         E(mov_reg, 0, 4); E(adds_imm8, 0, 2); E(bl, "c_vdbit"); E(movs_imm, 6, COL_VEL[1]); E(cmp_imm, 0, 0); E(b_cond, "sl_wv", "eq"); E(movs_imm, 6, COL_VEL[0])
         a.label("sl_wv"); E(strh_imm, 6, 5, 2 * PAD_VEL)
         a.label("sl_nv")
@@ -3378,6 +3410,7 @@ def arm_code(base, L):
         a.emit(mov_reg, 0, 6); a.emit(bl, "c_edact"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vpv_x", "ne")
         a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vpv_x", "eq")
         a.emit(mov_reg, 0, 6); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vpv_x", "eq")
+        if VELLOCK: a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 2); a.emit(bl, "c_vflag"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vpv_x", "eq")   # (SC48.7) VA-drum only
         a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdbit"); a.emit(movs_imm, 1, 1); a.emit(eors_reg, 1, 0)
         a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdput")
         a.emit(movw, 0, SETOBJ & 0xFFFF); a.emit(movt, 0, SETOBJ >> 16); a.emit(bl, SAVE_FN)
@@ -3449,6 +3482,7 @@ def arm_code(base, L):
         a.emit(mov_reg, 0, 6); a.emit(bl, "c_edact"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vcc_on", "eq")
         a.emit(bl, "c_edoff"); a.emit(b, "vcc_x")
         a.label("vcc_on")
+        if EDLOCK: a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vcc_x", "ne")   # (SC48.7) the own synth on: no editor
         a.emit(bl, "c_eddiscard" if CCED2 else "c_edflush"); a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 6); a.emit(bl, "c_edon")
         a.label("vcc_x")
         a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, T_PAD_RET)
@@ -3576,6 +3610,12 @@ def arm_code(base, L):
         a.emit(bics_reg, 3, 1); a.emit(strb_w, 3, 2, O_ED + 1)
         a.emit(mov_reg, 0, 4); a.emit(bl, "c_edclean")
         a.label("lc_n")
+        if EDLOCK:                                                                # (SC48.7) the editor open with the own synth on: leave it
+            a.emit(ldrb_imm, 7, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 7, 1)
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_edact"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "lk_n", "eq")
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "lk_n", "eq")
+            a.emit(bl, "c_edoff")
+            a.label("lk_n")
         a.emit(mov_reg, 0, 4)
     a.emit(bl, L["c_tleds"]); a.emit(mov_reg, 5, 0)
     a.emit(ldrb_imm, 0, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 0, 1)
@@ -3662,7 +3702,12 @@ def arm_code(base, L):
             a.label("vle_p"); a.emit(strh_imm, 1, 5, 2 * PAD_PAGE)
     if CCED:
         a.emit(mov_reg, 0, 6); a.emit(bl, "c_edact"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vle_ed", "ne")
-        a.emit(movs_imm, 1, COL_CC[1]); a.emit(strh_imm, 1, 5, 2 * PAD_CC); a.emit(b, "vle_end")
+        if EDLOCK:                                                                # (SC48.7) the own synth on: pad 25 unavailable, dark
+            a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(movs_imm, 1, COL_CC[1]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vle_lk", "eq")
+            a.emit(movs_imm, 1, 0)
+            a.label("vle_lk")
+        else: a.emit(movs_imm, 1, COL_CC[1])
+        a.emit(strh_imm, 1, 5, 2 * PAD_CC); a.emit(b, "vle_end")
         a.label("vle_ed")
         a.emit(movs_imm, 1, COL_CC[0]); a.emit(strh_imm, 1, 5, 2 * PAD_CC)
         if EDV2:

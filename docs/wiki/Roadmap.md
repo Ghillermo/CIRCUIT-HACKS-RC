@@ -2,12 +2,13 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-10-28. Current versions: **RC4 / RC4S**.
+Updated 2026-10-29. Current versions: **RC4.02 / RC4.02S** (fixes) and **Beta 5.0** (new features; the betas that extend RC4 are numbered 5.x).
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 
 ## In progress
 
+- **The drums' automation view** (Beta 5.0, to be tested on the device): a drum's Velocity view with Shift works as on the synth tracks: the steps with automation yellow, Shift + a yellow step = hear its values, Shift + another step = a mark where the drum's knobs go back to the project's values, Clear + step = erase its automation; also the drums' extra automation lane, state locks and ramps.
 - **Stereo drum pairs** (Beta 3.36 / 3.37, to be tested on the device): hold Drum 1 and press Drum 2 (or Drum 3 + Drum 4). Drum 1 / 3 plays its sample on the left and Drum 2 / 4 plays the next sample on the right, both driven by Drum 1 / 3's controls and pattern. Drum 2 / 4's knobs set the pan spread, the detune and small deviations. Saved with the project; the same gesture goes back to two separate drums.
 
 ## Now

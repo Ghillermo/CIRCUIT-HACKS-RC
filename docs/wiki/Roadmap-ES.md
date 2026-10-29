@@ -2,12 +2,13 @@
 
 *[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Cambios](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Actualizada el 2026-10-28. Versiones actuales: **RC4 / RC4S**.
+Actualizada el 2026-10-29. Versiones actuales: **RC4.02 / RC4.02S** (arreglos) y la **Beta 5.0** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
 
 El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantidad**: que lo que ya existe suene mejor, sea más fácil de usar, sea sólido y esté bien documentado. Las funciones nuevas grandes esperan hasta entonces.
 
 ## En marcha
 
+- **Vista de automatización de los drums** (Beta 5.0, por probar en el aparato): la vista Velocity con Shift de un drum funciona como en las pistas de sinte: los pasos con automatización en amarillo, Shift + un paso amarillo = escuchar sus valores, Shift + otro paso = una marca donde los knobs del drum vuelven a los valores del proyecto, Clear + paso = borrar su automatización; además el carril extra de automatización de los drums, los bloqueos de estado y las rampas.
 - **Parejas estéreo de drums** (Betas 3.36 / 3.37, por probar en el aparato): mantén Drum 1 y pulsa Drum 2 (o Drum 3 + Drum 4). Drum 1 / 3 toca su sample a la izquierda y Drum 2 / 4 el sample siguiente a la derecha, los dos con los controles y el patrón de Drum 1 / 3. Los knobs de Drum 2 / 4 ajustan la apertura estéreo, la desafinación y pequeñas desviaciones. Se guarda con el proyecto; el mismo gesto vuelve a dos drums separados.
 
 ## Ahora

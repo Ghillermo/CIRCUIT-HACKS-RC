@@ -134,7 +134,9 @@ FEATURE_LABELS = dict(cross="c_xswap", patch="c_pswap", fix2="c_resel", exact="c
 
 
 def feat(man, name):
-    return FEATURE_LABELS[name] in man["report"].get("packio", {}).get("labels", {})
+    labels = man["report"].get("packio", {}).get("labels", {})
+    # SC49 (packio.use_trimx) drops c_xswap / c_xswap2: every build with c_xcopy2 (SC37.4) has the cross, patch, fix2 and exact paths
+    return FEATURE_LABELS[name] in labels or (name in ("cross", "patch", "fix2", "exact") and "c_xcopy2" in labels)
 PVIEW_OBJ = 0x20044128
 
 
@@ -443,7 +445,7 @@ def main(img, man):
         print(("ok  : " if c else "FAIL: ") + m); fails += 0 if c else 1
     rep = man["report"]
     if feat(man, "cross"):
-        check(rep["sc17"].get("smp_savebit") is True and "packio" in rep and "rdiag" not in rep and "c_xswap" in rep["packio"]["labels"], "manifest: smp_savebit, packio with c_xswap, no rdiag")
+        check(rep["sc17"].get("smp_savebit") is True and "packio" in rep and "rdiag" not in rep and ({"c_xswap", "c_xcopy2"} & set(rep["packio"]["labels"])), "manifest: smp_savebit, packio with c_xswap / c_xcopy2, no rdiag")
         (PK.use_copyx() if feat(man, "copyx") else PK.use_exact() if feat(man, "exact") else PK.use_fix2() if feat(man, "fix2")
          else PK.use_cross2() if feat(man, "patch") else PK.use_cross())
         if feat(man, "dupmask"): PK.use_dupmask()

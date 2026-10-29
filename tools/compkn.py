@@ -28,6 +28,14 @@ MGR, CTX = 0x20040B10, 0x200069E4
 GETTER, PARAM_SET = 0x08036192, 0x08034D92
 TYPE, IDX = 0x21, (3, 4)              # K1 the attack, K2 the release
 COL = 0x01
+TRIM = False                          # SC49.3 (use_trim)
+
+
+def use_trim():
+    """SC49.3 (flash for the drums' extra lane, phase 2): fxsess (SC40.9) gives the Setup view's knob slot back to the stock and skips the LED
+    code: compkn's knobs moved to the Sidechain view, nothing of it runs.  Not installed at all (its LED task head left out of the chain)."""
+    global TRIM
+    TRIM = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -69,7 +77,8 @@ def arm_code(base, L, prev):
 
 
 def install(img, report, base_addr):
-    """Append the code; slot 4 of the Setup view and the two LED task calls."""
+    """Append the code; slot 4 of the Setup view and the two LED task calls (TRIM: nothing)."""
+    if TRIM: return {}, b"", {}
     import ct_fw
     BASE = ct_fw.APP_BASE
     u = lambda a: struct.unpack_from("<I", img, a - BASE)[0]

@@ -212,12 +212,13 @@ def install(img, report, base_addr):
     struct.pack_into("<I", img, SETUP_VT + 8 - BASE, labels["c_fssbtn"] | 1)
     for addr in GATES:
         img[addr - BASE:addr - BASE + 4] = b_w(addr, labels[f"c_fsgate_{addr:x}"])
-    # compkn (SC40.2) out: its knob slot back to the stock's, its LED code skipped
-    assert u(SETUP_VT + 16) & ~1 == lab("compkn", "c_ckknob")
-    struct.pack_into("<I", img, SETUP_VT + 16 - BASE, int(report["compkn"]["prev"]["knob"], 16) | 1)
-    skip, end = lab("compkn", "c_ckledtask") + 8, lab("compkn", "cl_x")
-    assert bytes(img[skip - BASE:skip - BASE + 4]) == movw(0, MGR & 0xFFFF), hex(skip)
-    img[skip - BASE:skip - BASE + 2] = b(skip, end)
+    # compkn (SC40.2) out: its knob slot back to the stock's, its LED code skipped (compkn.use_trim: not installed at all)
+    if "c_ckknob" in report["compkn"]["labels"]:
+        assert u(SETUP_VT + 16) & ~1 == lab("compkn", "c_ckknob")
+        struct.pack_into("<I", img, SETUP_VT + 16 - BASE, int(report["compkn"]["prev"]["knob"], 16) | 1)
+        skip, end = lab("compkn", "c_ckledtask") + 8, lab("compkn", "cl_x")
+        assert bytes(img[skip - BASE:skip - BASE + 4]) == movw(0, MGR & 0xFFFF), hex(skip)
+        img[skip - BASE:skip - BASE + 2] = b(skip, end)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl(c, prev["ledtask"]), hex(c)
         img[c - BASE:c - BASE + 4] = bl(c, labels["c_fsledtask"])

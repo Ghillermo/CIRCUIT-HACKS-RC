@@ -436,9 +436,11 @@ def install(img, report, base_addr):
     u = lambda a: struct.unpack_from("<I", img, a - BASE)[0]
     lab = lambda sec, n: int(report[sec]["labels"][n], 16)
     L = dict(c_gst=lab("sc14", "c_gst"), c_mutnote=lab("mutate39", "c_mutnote"), c_mutrow=lab("mutate39", "c_mutrow"))
-    prev = dict(pad=u(MU.PROB_VT) & ~1, ledtask=lab("compkn", "c_ckledtask"))
+    import fxdiag as FD
+    prev = dict(pad=u(MU.PROB_VT) & ~1, ledtask=lab("compkn", "c_ckledtask") if "c_ckledtask" in report["compkn"]["labels"] else FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert u(PS_VT) == PS_PAD | 1 and u(PS_VT + 28) == PS_BUF | 1
-    assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == lab("mutate39", "c_mutbuf") | 1 and u(MU.PROB_VT + 32) == lab("mutate39", "c_mutled") | 1
+    if MU.TRIMSL: assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == MU.PROB_BUF | 1 and u(MU.PROB_VT + 32) == MU.PROB_LISTEN | 1 and u(MU.PROB_VT2) == MU.PROB_THUNK | 1
+    else: assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == lab("mutate39", "c_mutbuf") | 1 and u(MU.PROB_VT + 32) == lab("mutate39", "c_mutled") | 1
     code, labels = arm_code(base_addr, L, prev)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
