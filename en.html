@@ -48,8 +48,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#a18-destinos-macro">A18 Macro knob destinations</a></li>
 <li><a href="#a19-copiar-proyectos">A19 Copying projects to another slot or another pack</a></li>
 <li><a href="#a20-patches-entre-packs">A20 Own-synth patches to another pack</a></li>
-<li><a href="#a21-luces-disparo">A21 Shift = the tracks that sound (Beta 5.0 only)</a></li>
-<li><a href="#a22-proyecto-init">A22 Shift + Preset = the project&#x27;s sound (Beta 5.0 only)</a></li>
+<li><a href="#a21-luces-disparo">A21 Shift = a flash on every note (Beta 5.4 only)</a></li>
+<li><a href="#a22-proyecto-init">A22 Shift + Preset = the project&#x27;s sound (Beta 5.4 only)</a></li>
 </ol>
 <h3>B. Exposed controls</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Drum knobs as printed on the panel</a></li>
@@ -78,11 +78,12 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#c14-escala-propia">C14 Custom scale (since RC2)</a></li>
 <li><a href="#c15-acordes">C15 Chord screen (since RC4)</a></li>
 <li><a href="#c16-pareja-estereo">C16 Stereo drum pairs (since RC4)</a></li>
-<li><a href="#c17-carril-extra">C17 The drums&#x27; extra lane (Beta 5.0 only)</a></li>
+<li><a href="#c17-carril-extra">C17 The drums&#x27; extra lane (Beta 5.4 only)</a></li>
 <li><a href="#c18-modo-muestra">C18 Sample mode of the MIDI tracks (since RC2)</a></li>
 <li><a href="#c19-matriz-mod">C19 Mod matrix of the own synth (since RC2.02)</a></li>
-<li><a href="#c20-fm4">C20 4-operator FM (since RC4)</a></li>
-<li><a href="#c21-master-fx-beta">C21 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
+<li><a href="#c20-saltos">C20 Jump sequencer of MIDI 1 / 2 (Beta 5.4 only)</a></li>
+<li><a href="#c21-fm4">C21 4-operator FM (since RC4)</a></li>
+<li><a href="#c22-master-fx-beta">C22 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
 <li><a href="#d1-efectos-grid">D1 Master FX effects</a></li>
@@ -107,44 +108,44 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p>Every shortcut of the mod on a drawing of the device: double presses, Shift + button, Clear + knob and the special pads of each view.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shortcut map: the numbers refer to the table.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Clear+</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Clear+</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Shortcuts</text>
-<rect x="34" y="140" width="60" height="18" rx="4" fill="#ffd23f" stroke="#111"/>
+<rect x="34" y="140" width="60" height="18" rx="4" fill="#ffff19" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Scales</text>
 <circle cx="91" cy="143" r="10" fill="#ff6a13" stroke="#fff" stroke-width="1.5"/>
 <text x="91" y="147" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">14</text>
 <rect x="100" y="140" width="60" height="18" rx="4" fill="#fff1c4" stroke="#111"/>
 <text x="130.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▼</text>
-<rect x="166" y="140" width="60" height="18" rx="4" fill="#ffb38a" stroke="#111"/>
+<rect x="166" y="140" width="60" height="18" rx="4" fill="#ff8682" stroke="#111"/>
 <text x="196.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▲</text>
 <circle cx="223" cy="143" r="10" fill="#ff6a13" stroke="#fff" stroke-width="1.5"/>
 <text x="223" y="147" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">5</text>
-<rect x="232" y="140" width="60" height="18" rx="4" fill="#3ddc5a" stroke="#111"/>
+<rect x="232" y="140" width="60" height="18" rx="4" fill="#00ff00" stroke="#111"/>
 <text x="262.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">1-16 / 17-32</text>
-<rect x="298" y="140" width="60" height="18" rx="4" fill="#ff3b30" stroke="#111"/>
+<rect x="298" y="140" width="60" height="18" rx="4" fill="#ff0000" stroke="#111"/>
 <text x="328.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Clear</text>
 <circle cx="355" cy="143" r="10" fill="#ff6a13" stroke="#fff" stroke-width="1.5"/>
 <text x="355" y="147" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">4</text>
@@ -174,7 +175,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="135" y="179" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">2</text>
 <rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
-<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff8a00" stroke="#111"/>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff4e13" stroke="#111"/>
 <text x="235.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">MIDI 1</text>
 <circle cx="259" cy="175" r="10" fill="#ff6a13" stroke="#fff" stroke-width="1.5"/>
 <text x="259" y="179" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">8</text>
@@ -192,7 +193,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="545.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Drum 4</text>
 <rect x="580" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Patterns</text>
-<rect x="22" y="224" width="54" height="38" rx="4" fill="#ffd23f" stroke="#111"/>
+<rect x="22" y="224" width="54" height="38" rx="4" fill="#ffff19" stroke="#111"/>
 <text x="49.0" y="246.5" font-size="9.5" fill="#111" text-anchor="middle">Note</text>
 <rect x="580" y="224" width="54" height="38" rx="4" fill="#ffffff" stroke="#111"/>
 <text x="607.0" y="246.5" font-size="9.5" fill="#111" text-anchor="middle">Mixer</text>
@@ -225,7 +226,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Sample</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <circle cx="506" cy="220" r="10" fill="#ff6a13" stroke="#fff" stroke-width="1.5"/>
@@ -271,7 +272,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
 <rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Engine</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
 <rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -280,10 +281,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Record</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Shortcut map: the numbers refer to the table.</figcaption></figure>
@@ -307,7 +308,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>17</td><td>MIDI 1 / 2 Preset: <strong>Clear + a page pad (1-5)</strong></td><td>The values of that knob page back to their initial values (C1, <strong>since RC2</strong>)</td></tr>
 <tr><td>18</td><td>Advanced Setup: <strong>Duplicate</strong></td><td>MIDI Thru: Thru → Out 2 → Merge → Filter (B7, <strong>since RC2</strong>)</td></tr>
 <tr><td>19</td><td><strong>Synth 1 + Synth 2</strong> together</td><td>Split keyboard: Synth 1 on top, Synth 2 below (A12, <strong>since RC2</strong>); <strong>Since RC2.02</strong>: any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2, the track you held first on top</td></tr>
-<tr><td>20</td><td><strong>Shift + Pattern Settings</strong>, a step, <strong>row 4</strong></td><td>Random-mutate of the step: random octave / scale changes (C8, <strong>since RC2</strong>)</td></tr>
+<tr><td>20</td><td>Pattern Settings: <strong>pad 25</strong>, a step, <strong>row 4</strong></td><td>Random-mutate of the step: random octave / scale changes (C8, <strong>since RC2</strong>; <strong>Beta 5.4 only:</strong> rows 3-4 redesigned, with a factor on Octave)</td></tr>
 <tr><td>21</td><td>MIDI 1 / 2 Preset: <strong>pads 9-24</strong>, <strong>Clear + pad</strong> twice, <strong>Duplicate + A + B</strong>, <strong>Octave ▼ / ▲</strong></td><td>Patches of the own synth: load, save, exchange, page (A14, <strong>since RC2</strong>)</td></tr>
 <tr><td>22</td><td>MIDI 1 / 2: <strong>Clear + the track button</strong></td><td>The track engine back to its initial values (A14, <strong>since RC2</strong>)</td></tr>
 <tr><td>23</td><td>Synth 1 / 2 Preset: <strong>Clear + pad</strong> twice</td><td>Saves the synth’s patch into that slot of the pack (A15, <strong>since RC2</strong>)</td></tr>
@@ -317,23 +318,24 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>27</td><td>Sidechain (<strong>Shift + FX</strong>): <strong>K1-K4</strong>, <strong>K7 / K8</strong></td><td>Side-chain of the chosen track; attack / release of the master compressor (<strong>since RC2</strong>)</td></tr>
 <tr><td>28</td><td>Setup: <strong>Record</strong></td><td>Record into the synth what the MIDI track sends it: yellow = yes (<strong>since RC2</strong>)</td></tr>
 <tr><td>29</td><td><strong>Pattern Settings</strong> twice, <strong>row 4</strong></td><td>Step frequency: it plays every n plays of the pattern (<strong>since RC2</strong>)</td></tr>
-<tr><td>30</td><td>Pattern Settings: <strong>pad 25</strong></td><td>Dynamics (row 3) and random-mutate (row 4); <strong>Clear + pad 25</strong> clears them from the pattern (<strong>since RC2</strong>)</td></tr>
-<tr><td>31</td><td>Pattern Settings: <strong>pads 26 / 27 / 28</strong></td><td>Nudge, fractal order, deconstructed order (<strong>since RC2</strong>; <strong>since RC4</strong>: Nudge = the range one step back, Shift + pad 26 forward; Shift + pads 1-16 with the arpeggiator on = its modifiers)</td></tr>
+<tr><td>30</td><td>Pattern Settings: <strong>pad 25</strong></td><td>Dynamics (row 3) and random-mutate (row 4); <strong>Clear + pad 25</strong> clears them from the pattern (<strong>since RC2</strong>; <strong>Beta 5.4 only:</strong> the step&#x27;s micro steps too)</td></tr>
+<tr><td>31</td><td>Pattern Settings: <strong>pads 26 / 27 / 28</strong></td><td>Nudge, fractal order, deconstructed order (<strong>since RC2</strong>; <strong>Beta 5.4 only</strong>: Nudge = the content of the range one step back, Shift + pad 26 forward, without moving the first and last steps; <strong>since RC4</strong>: Shift + pads 1-16 with the arpeggiator on = its modifiers)</td></tr>
 <tr><td>32</td><td>Patterns: <strong>Shift + Octave ▲ / ▼</strong></td><td>Pattern chain mode on / off (<strong>since RC2</strong>)</td></tr>
 <tr><td>33</td><td>Mixer: <strong>Shift + pads 9-16</strong></td><td>Repeats of the current scene (<strong>since RC2</strong>)</td></tr>
 <tr><td>34</td><td>Setup: <strong>pad 29 / pad 30</strong>, then a channel pad</td><td>Listen / output channel of the project’s Program Changes (B7, <strong>since RC2</strong>)</td></tr>
 <tr><td>35</td><td><strong>Shift + Clear</strong></td><td>Metronome / count-in in four states; with the count-in, Record + Play = one bar before recording (<strong>since RC2</strong>)</td></tr>
 <tr><td>36</td><td>Pattern Settings: <strong>Shift + pad 25</strong>, <strong>Shift + pads 27-32</strong></td><td>The pattern&#x27;s arpeggiator on / off and its order; chords of the sequence and notes held together, one a step (<strong>since RC2</strong>)</td></tr>
-<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Custom scale editor: up to 7 notes and a period; one iteration a row (<strong>since RC2</strong>; <strong>since RC4</strong>: also Scales twice; Velocity twice = fixed velocity (on the drums, Beta 5.0 only: the automation view); Shift + Synth / MIDI = pressing them twice; MIDI 1 / 2 again with its Note view on the screen = its Preset; a MIDI 1 / 2 knob page held ½ s = only while held)</td></tr>
+<tr><td>37</td><td><strong>Shift + Scales</strong></td><td>Custom scale editor: up to 7 notes and a period; one iteration a row (<strong>since RC2</strong>; <strong>since RC4</strong>: also Scales twice; Velocity twice = fixed velocity (on the drums, Beta 5.4 only: the automation view); Shift + Synth / MIDI = pressing them twice; MIDI 1 / 2 again with its Note view on the screen = its Preset; a MIDI 1 / 2 knob page held ½ s = only while held)</td></tr>
 <tr><td>38</td><td>Step-drummer: <strong>pad 32</strong>; velocity page: <strong>pads 17-24</strong></td><td>Pitch-vel toggle (transpose in the scale / velocity) and page 2&#x27;s own destination (<strong>since RC2</strong>)</td></tr>
 <tr><td>39</td><td><strong>Shift + Play</strong></td><td>Quantize the pattern the selected track plays (<strong>since RC2</strong>)</td></tr>
 <tr><td>40</td><td>MIDI 1 / 2 in the sample mode: <strong>Note twice</strong>; <strong>a held step + a sample</strong></td><td>Picker of the pack&#x27;s 64 samples (Octave ▼ / ▲) and a sample flip per step, also live with Record (<strong>since RC2</strong>)</td></tr>
 <tr><td>41</td><td>MIDI 1 / 2 Preset: <strong>pad 6</strong>; <strong>K1-K8</strong>, <strong>Shift + K4 / K5 / K6 / K8</strong>, <strong>Clear + pad 6</strong></td><td>Mod matrix of the own synth: each knob a source, its position = destination and amount (C16, <strong>Since RC2.02</strong>)</td></tr>
 <tr><td>42</td><td>Setup: <strong>K4</strong>, <strong>K5-K8</strong>, <strong>Shift</strong></td><td>General MIDI mode of the drums: on / off and the GM note of Drum 1-4 (35-81; it sounds and its number shows; Shift confirms) (<strong>since RC4</strong>)</td></tr>
-<tr><td>43</td><td>Custom scale editor: <strong>Shift + pad 8</strong> / <strong>Shift + pad 24</strong></td><td>The isomorphic <strong>Jankó</strong> layout of the note tracks&#x27; keyboard: the row above a semitone lower (pad 8) or the earlier one, every row a semitone higher (pad 24); Octave = a semitone, held = an octave (<strong>since RC4</strong>)</td></tr>
+<tr><td>43</td><td>Custom scale editor: <strong>Shift + pad 8</strong> / <strong>Shift + pad 24</strong></td><td>The isomorphic <strong>Jankó</strong> layout of the note tracks&#x27; keyboard: the row above a semitone lower (pad 8) or the earlier one, every row a semitone higher (pad 24); Octave = a semitone, held = an octave (<strong>since RC4</strong>). <strong>Beta 5.4 only:</strong> pad 8 alone; the upper pair repeats the lower one and, with a key held in the expanded Note view, Octave moves only the other pair</td></tr>
 <tr><td>44</td><td>Expanded Note view: <strong>Shift + pad 8</strong></td><td><strong>Chord screen</strong>: type, inversion and modifiers; the roots play the chord; a change of type or modifier changes the sounding chord (and the arpeggio) at once; Shift + a root = latch of the whole chord (<strong>since RC4</strong>)</td></tr>
 <tr><td>45</td><td>Advanced Setup: <strong>pad 23</strong></td><td>USB merge: what comes in on the DIN In also goes out over USB (<strong>since RC4</strong>)</td></tr>
-<tr><td>46</td><td>Note view: <strong>Shift + a key</strong></td><td>Latch: the note keeps sounding until the next press of that note; with the arpeggiator, an arpeggio latch; with Shift, the latched notes in cyan; Shift + a step = the latched notes written into that step (<strong>since RC4</strong>)</td></tr>
+<tr><td>45</td><td>Advanced Setup: <strong>pad 22</strong></td><td>Delayed save: saving the project while it plays waits until you stop; off by default (<strong>Beta 5.4 only</strong>)</td></tr>
+<tr><td>46</td><td>Note view: <strong>Shift + a key</strong></td><td>Latch: the note keeps sounding until the next press of that note; with the arpeggiator, an arpeggio latch; with Shift, the latched notes in teal; Shift + a step = the latched notes written into that step (<strong>since RC4</strong>)</td></tr>
 <tr><td>48</td><td>MIDI 1 / 2 Preset: <strong>pad 32</strong></td><td>The own synth&#x27;s voice mode: retrigger, legato, <strong>glide</strong>, <strong>uni retrig / uni legato / uni glide / uni always-glide</strong>, poly (<strong>since RC4</strong>)</td></tr>
 <tr><td>47</td><td>Setup: <strong>Note</strong></td><td>External keyboard to the arpeggiator: notes coming in over MIDI are arpeggiated like the pads (off by default) (<strong>since RC4</strong>)</td></tr>
 <tr><td>49</td><td>Advanced Setup: <strong>K1</strong></td><td>The pads&#x27; velocity curve: −8 … +8, the centre = the original; more sensitive to the right, harder to the left (<strong>since RC4</strong>)</td></tr>
@@ -347,18 +349,18 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p>From the Mixer, <strong>Mixer again</strong> opens Master FX; any other view button leaves it.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Master FX: pads 1-6 effects, 7 sample, 8 all off, 9-24 song pointer, assignable bottom row, 31 mechanical gesture, 32 record.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">P1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">P1</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">P2</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">P2</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">P3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">P3</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">P4</text>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">P4</text>
 <circle cx="338" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -423,25 +425,25 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gater</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#ff8a00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">AF LP</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">AF HP</text>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#b6f23d" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ff4c7b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Digitise</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Phaser</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Sample</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <rect x="518" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
@@ -529,10 +531,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#fff1c4" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">slot</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Record</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Master FX: pads 1-6 effects, 7 sample, 8 all off, 9-24 song pointer, assignable bottom row, 31 mechanical gesture, 32 record.</figcaption></figure>
@@ -547,38 +549,38 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p><strong>Octave ▲ / ▼</strong> = delay / reverb sends; <strong>Shift + knob</strong> = reverb and delay parameters.</p><p><strong>Duplicate</strong> = reset (sends to 0, master filter centred, Master FX off); <strong>Shift + Octave ▲ / ▼</strong> = master filter resonance ±16 (since RC4; before, <strong>1-16 / 17-32</strong>); <strong>Shift + pad 25</strong> = master filter off / on (since RC4).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FX view: Octave picks delay / reverb; the bottom row is the Master FX one.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">send</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">send</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">FX</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
 <rect x="100" y="140" width="60" height="18" rx="4" fill="#fff1c4" stroke="#111"/>
 <text x="130.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▼</text>
-<rect x="166" y="140" width="60" height="18" rx="4" fill="#ffb38a" stroke="#111"/>
+<rect x="166" y="140" width="60" height="18" rx="4" fill="#ff8682" stroke="#111"/>
 <text x="196.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▲</text>
-<rect x="232" y="140" width="60" height="18" rx="4" fill="#3ddc5a" stroke="#111"/>
+<rect x="232" y="140" width="60" height="18" rx="4" fill="#00ff00" stroke="#111"/>
 <text x="262.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">1-16 / 17-32</text>
 <rect x="298" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="328.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Clear</text>
@@ -627,37 +629,37 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
 <rect x="84" y="340" width="54" height="54" rx="7" fill="#fff1c4" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
@@ -687,10 +689,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gesto</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Record</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>FX view: Octave picks delay / reverb; the bottom row is the Master FX one.</figcaption></figure>
@@ -699,7 +701,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td><strong>Octave ▼</strong></td><td>The knobs control the <strong>reverb sends</strong> (colour of pad 17)</td></tr>
 <tr><td><strong>Shift + knob</strong></td><td><strong>Effect parameters</strong>. Reverb: type, decay, damping. Delay: time, sync, feedback, width, ratio, slew. Saved with the project</td></tr>
 <tr><td><strong>Duplicate</strong></td><td>Reset: sends to 0, master filter centred (resonance untouched), Master FX off</td></tr>
-<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Since RC4.</strong> Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow)</td></tr>
+<tr><td><strong>Shift + Octave ▲ / ▼</strong></td><td><strong>Since RC4.</strong> Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow). <strong>Beta 5.4 only:</strong> the brightness of Octave shows the value, as the original&#x27;s octaves</td></tr>
 <tr><td><strong>Shift + pad 25</strong></td><td><strong>Since RC4.</strong> Master filter off (it sounds centred even if the knob moves) / on (at the knob&#x27;s current position). While off: the filter knob&#x27;s LED red; with Shift, pad 25 yellow / red</td></tr>
 <tr><td><strong>1-16 / 17-32</strong></td><td>Since RC4 it does what it always did (before, it raised the master filter resonance, with the green LED)</td></tr>
 </tbody></table>
@@ -852,24 +854,24 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
 <rect x="518" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Noise</text>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">In 1</text>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">In 2</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#ff8a00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">In 1</text>
 <text x="297.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">inv</text>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#ff8a00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">In 2</text>
 <text x="359.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">inv</text>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#8e5cff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Step</text>
 <text x="421.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">drum</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
@@ -989,7 +991,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
 <rect x="146" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">A</text>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
 <rect x="270" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -1008,7 +1010,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
 <rect x="208" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">B</text>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
 <rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -1091,7 +1093,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="592.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Shift</text>
 <rect x="22" y="172" width="54" height="28" rx="4" fill="#ffffff" stroke="#111"/>
 <text x="49.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">Preset</text>
-<rect x="84" y="172" width="54" height="28" rx="4" fill="#e040fb" stroke="#111"/>
+<rect x="84" y="172" width="54" height="28" rx="4" fill="#c63ac6" stroke="#111"/>
 <text x="111.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">Synth 1</text>
 <rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
@@ -1134,7 +1136,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
 <rect x="270" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">A</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -1153,7 +1155,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
 <rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">B</text>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
 <rect x="456" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -1253,30 +1255,30 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p>Mixer view: <strong>Shift + a knob turned right</strong> sets that track’s level to <strong>100</strong>; <strong>turned left</strong>, to <strong>0</strong>.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mixer: Shift + knob right = level 100, left = 0.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">100 / 0</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">100 / 0</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Mixer</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
@@ -1500,69 +1502,69 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#3db24f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Split keyboard: rows 1-2 = Synth 1, rows 3-4 = Synth 2.</figcaption></figure>
 <ul>
@@ -1652,71 +1654,71 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
 <rect x="84" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">mono</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#8e5cff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">glide</text>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">mono</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#8e5cff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">glide</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.</figcaption></figure>
 <ul>
@@ -1817,24 +1819,24 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">last</text>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
 <rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
 <rect x="456" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
 <rect x="518" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
 <rect x="146" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
@@ -1854,7 +1856,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
 <rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Engine</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
 <rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -1960,70 +1962,70 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">¿guardar?</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves.</figcaption></figure>
 <ul>
@@ -2046,9 +2048,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">macro 4</text>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">macro 4</text>
 <circle cx="338" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -2176,7 +2178,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
 <rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Macros</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Source view with the macro editor: pad 32 lit, the picked knob white.</figcaption></figure>
@@ -2189,7 +2191,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <table><thead><tr><th>Field</th><th>Value</th><th>Colour of the number</th></tr></thead><tbody>
 <tr><td>Slot</td><td>1-4</td><td>yellow</td></tr>
 <tr><td>Start</td><td>0-127</td><td>green</td></tr>
-<tr><td>End</td><td>0-127</td><td>orange</td></tr>
+<tr><td>End</td><td>0-127</td><td>amber</td></tr>
 <tr><td>Destination</td><td>its CC or NRPN number</td><td>white = CC; light blue, magenta, violet = NRPN of banks 0, 1, 2</td></tr>
 <tr><td>Depth</td><td>0-63</td><td>teal = positive, red = negative</td></tr>
 </tbody></table>
@@ -2277,21 +2279,21 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
 <rect x="208" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
 <rect x="270" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">cargado</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">A</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">B</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -2365,50 +2367,50 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>In the safer build (RC2S) it does not write to the SD card: the Save LED turns red.</li>
 </ul>
 </section>
-<section class="feat" id="a21-luces-disparo"><h3><span class="code">A21</span>Shift = the tracks that sound (Beta 5.0 only)</h3>
-<div class="summary"><p>With Shift held, each track&#x27;s button lights white while one of its notes sounds.</p></div>
+<section class="feat" id="a21-luces-disparo"><h3><span class="code">A21</span>Shift = a flash on every note (Beta 5.4 only)</h3>
+<div class="summary"><p>With Shift held, each track&#x27;s button flashes white on every note it plays.</p></div>
 <ul>
-<li><strong>Beta 5.0 only.</strong> With <strong>Shift</strong> held, in every view, the eight <strong>track buttons</strong> (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) light <strong>white</strong> while their track has a note sounding (from the sequencer, the pads or the arpeggiator) and go dark when the note ends (with Shift the original leaves them dark).</li>
-<li>The drums light from the hit to its note-off (playing, until the next step).</li>
+<li><strong>Beta 5.4 only.</strong> With <strong>Shift</strong> held, in every view, the eight <strong>track buttons</strong> (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) flash <strong>white</strong> for 100 ms on every note their track plays, from the sequencer, the pads, the arpeggiator or MIDI (with Shift the original leaves them dark).</li>
+<li>A note tied to the next one is one note: one flash.</li>
 </ul>
 </section>
-<section class="feat" id="a22-proyecto-init"><h3><span class="code">A22</span>Shift + Preset = the project&#x27;s sound (Beta 5.0 only)</h3>
+<section class="feat" id="a22-proyecto-init"><h3><span class="code">A22</span>Shift + Preset = the project&#x27;s sound (Beta 5.4 only)</h3>
 <div class="summary"><p>Shift + Preset brings the track&#x27;s sound back to the one saved in the project.</p></div>
 <ul>
-<li><strong>Beta 5.0 only.</strong> In Synth 1 / 2&#x27;s views, <strong>Shift + Preset</strong> = the synth&#x27;s whole patch back to how the project saved it (or how it was loaded: what was turned since is lost).</li>
+<li><strong>Beta 5.4 only.</strong> In Synth 1 / 2&#x27;s views, <strong>Shift + Preset</strong> = the synth&#x27;s whole patch back to how the project saved it (or how it was loaded: what was turned since is lost).</li>
 <li>In MIDI 1 / 2&#x27;s views with the own synth on: the own synth back to the one saved with the project; a project without it, to its defaults (as Clear + MIDI 1 / 2).</li>
 <li>With Shift, Preset lights yellow where it works (in the original, Shift + Preset did nothing).</li>
 </ul>
 </section>
 <h2 class="group">B. Exposed controls</h2>
 <section class="feat" id="b1-knobs-drums"><h3><span class="code">B1</span>Drum knobs as printed on the panel</h3>
-<div class="summary"><p>Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.0), tilt), LFO, start point, bitcrush and distortion.</p></div>
+<div class="summary"><p>Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.4), tilt), LFO, start point, bitcrush and distortion.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Knobs of a drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Pitch</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Pitch</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Ring</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Ring</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Decay</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Decay</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Env→F</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Env→F</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Filter</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Filter</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Reso</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Reso</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">LFO</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">LFO</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Dist</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Dist</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Drum</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
@@ -2535,7 +2537,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K2 Osc mod</td><td>Ring mod frequency</td><td>Ring mod amount</td></tr>
 <tr><td>K3 Amp envelope</td><td>Left: decay; past its maximum, <strong>attack</strong> (centre neutral)</td><td>Left: sample <strong>start</strong>; right: <strong>cut</strong> (centre = whole)</td></tr>
 <tr><td>K4 Filter envelope</td><td>Envelope → cutoff</td><td>Envelope shape</td></tr>
-<tr><td>K5 Filter frequency</td><td>Filter / EQ (by default the stock EQ tilt)</td><td><strong>Filter mode</strong>: stock EQ tilt (default), band pass, notch, comb (not in Beta 5.0: the EQ tilt plays instead), DJ</td></tr>
+<tr><td>K5 Filter frequency</td><td>Filter / EQ (by default the stock EQ tilt)</td><td><strong>Filter mode</strong>: stock EQ tilt (default), band pass, notch, comb (not in Beta 5.4: the EQ tilt plays instead), DJ</td></tr>
 <tr><td>K6 Resonance</td><td>Resonance</td><td>—</td></tr>
 <tr><td>K7 Modulation</td><td>LFO amount (right tremolo; left vibrato; since RC4: left = start scan)</td><td>LFO speed</td></tr>
 <tr><td>K8 FX</td><td>Distortion; left of 0, <strong>bitcrush</strong></td><td><strong>Distortion type</strong>: stock, soft, hard, folded</td></tr>
@@ -2587,12 +2589,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>While recording, moving those knobs records the movement; on playback the pattern moves them.</li>
 <li>With the step-drummer on, the TUNE lane is used by the pitch row.</li>
 <li><strong>since RC4 — letting go of the automation:</strong> Velocity view, Shift + a step pad (Synth 1 / 2 and MIDI 1 / 2) = no lane plays at that step and what the automation had moved goes back to the project&#x27;s values (<em>since RC4.01</em>; before, to its knob&#x27;s position): Synth 1 / 2, the macros of the patch saved in the project; MIDI 1 / 2, the own synth saved with the project or, without it, its defaults; saved with the pattern.</li>
-<li><strong>Beta 5.0 only — seeing and hearing a step&#x27;s automation:</strong> in that view, with Shift, only the steps with automation are yellow (the others keep their colour; the marked ones, red); Shift + a yellow step puts its values on the knobs and into the sound until Shift is let go (it does not mark it).</li>
-<li><strong>Beta 5.0 only — yellow knobs and erasing a step&#x27;s automation:</strong> with Shift + a yellow step, the knobs it moves light yellow (brightness = their value); Clear + a step in the Velocity view (with or without Shift) erases that step&#x27;s knob automation and keeps its notes.</li>
+<li><strong>Beta 5.4 only — seeing and hearing a step&#x27;s automation:</strong> in that view, with Shift, only the steps with automation are yellow (the others keep their colour; the marked ones, red); Shift + a yellow step puts its values on the knobs and into the sound until Shift is let go (it does not mark it).</li>
+<li><strong>Beta 5.4 only — yellow knobs and erasing a step&#x27;s automation:</strong> with Shift + a yellow step, the knobs it moves light yellow (brightness = their value); Clear + a step in the Velocity view (with or without Shift) erases that step&#x27;s knob automation and keeps its notes.</li>
 <li><strong>since RC4 — destinations:</strong> Shift + a knob of page 4 = that lane&#x27;s destination (the 33 parameters, the matrix&#x27;s order and colours, 4 clicks each); Clear held before Shift = the factory one; while you pick, pads 9-24 show where the destination lives (as the matrix&#x27;s); saved with the own-synth patches.</li>
 <li><strong>since RC4 — non-sequenceable knobs:</strong> <strong>Shift + pad 4</strong> opens a page of 8 knobs with an assignable destination (Shift + knob, as on the sequenceable ones; pad 4 pink while it is open) that are <strong>not recorded</strong>; by default Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2, VCA gain; the destinations are saved with the own patches.</li>
 <li><strong>since RC4 — snapshot into a step:</strong> Record held + a step pad (track view) = the parameters not at their initial value, written into that step&#x27;s lanes; those without a lane take one whose parameter is at its initial value (cleared first); Record stays as it was.</li>
-<li><strong>Beta 5.0 only — the snapshot on Synth 1 / 2 and the drums too:</strong> Record held + a step pad in Synth 1 / 2&#x27;s track view = their macros that are not where the loaded patch keeps them, each into its lane; in a drum&#x27;s = pitch, decay, distortion and EQ that are not at their default (the mod&#x27;s new knobs have no lane). Mixer and FX are left alone.</li>
+<li><strong>Beta 5.4 only — a sweep between two steps:</strong> in that view, with Shift, <strong>hold a yellow step and press another yellow step</strong> (in either order): every lane with a value at both becomes a straight line between them, on the steps in between. The ends do not change; a lane with a value at only one is left alone.</li>
+<li><strong>Beta 5.4 only — the snapshot on Synth 1 / 2 and the drums too:</strong> Record held + a step pad in Synth 1 / 2&#x27;s track view = their macros that are not where the loaded patch keeps them, each into its lane; in a drum&#x27;s = pitch, decay, distortion and EQ that are not at their default (the mod&#x27;s new knobs have no lane). Mixer and FX are left alone.</li>
 </ul>
 </section>
 <section class="feat" id="b7-setup"><h3><span class="code">B7</span>Setup and device MIDI</h3>
@@ -2718,7 +2721,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="421.0" y="360" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Rev</text>
 <text x="421.0" y="372" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→ 3</text>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="360" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Dly</text>
 <text x="483.0" y="372" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→ 4</text>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
@@ -2748,6 +2751,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Setup, channels</td><td>MIDI 1 / 2 may use a channel already used by another track</td></tr>
 <tr><td>Advanced Setup, Duplicate</td><td>MIDI Thru: Thru → Out 2 → <strong>Merge</strong> → <strong>Filter</strong> (<strong>since RC2</strong>)</td></tr>
 <tr><td>Advanced Setup, pad 23</td><td><strong>USB merge</strong>: the DIN In also to the USB out, without the DIN In&#x27;s clock with Clock Tx (<strong>since RC4</strong>)</td></tr>
+<tr><td>Advanced Setup, pad 22</td><td><strong>Delayed save</strong>: saving the project while it plays waits until you stop; off by default, as the original (<strong>Beta 5.4 only</strong>)</td></tr>
 <tr><td>Setup, Note</td><td><strong>External keyboard to the arpeggiator</strong> (green on / dim red off, the default) (<strong>since RC4</strong>)</td></tr>
 <tr><td>Advanced Setup, K1</td><td>The pads&#x27; <strong>velocity curve</strong> (−8 … +8; the centre = the original; the number on the pads and Velocity lit while turning) (<strong>since RC4</strong>)</td></tr>
 <tr><td>Setup, pad 29 / 30</td><td>Listen / output channel of the project’s Program Changes (<strong>since RC2</strong>)</td></tr>
@@ -2764,7 +2768,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>No metronome</td><td>red</td></tr>
 <tr><td>Metronome</td><td>green</td></tr>
 <tr><td>Count-in only</td><td>magenta</td></tr>
-<tr><td>Count-in and metronome</td><td>cyan</td></tr>
+<tr><td>Count-in and metronome</td><td>teal</td></tr>
 </tbody></table>
 <ul>
 <li>With the count-in, <strong>Record armed and Play from stopped</strong>: one bar of count-in plays (4 clicks, the stock metronome&#x27;s sound, at the project&#x27;s tempo) with Record blinking red; then recording starts. <strong>Play</strong> during the count cancels it.</li>
@@ -2827,30 +2831,30 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p><strong>Since RC2.08:</strong> an external keyboard on the channel of MIDI 1 / 2 (USB or DIN) plays its own synth; its notes are not sent again to the MIDI out.</p><p>Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → <strong>line</strong> → <strong>oscillator</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>sample</strong> (since RC2) → <strong>FX sequencer</strong>.</p><p>Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). <strong>since RC2:</strong> Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MIDI 1 Preset view with the oscillator (pad 27 green): page row and engine pads; pad 28 shows only with the oscillator or VA-drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Attack</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Attack</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Release</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Release</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Env→A</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Env→A</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Env→F</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Env→F</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Filter</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Filter</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Reso</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Reso</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">LFO</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">LFO</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">FX</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">FX</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">MIDI 1 Preset</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
@@ -2876,7 +2880,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="111.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 1</text>
 <rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
-<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff8a00" stroke="#111"/>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#1a47ff" stroke="#111"/>
 <text x="235.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">MIDI 1</text>
 <rect x="270" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="297.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">MIDI 2</text>
@@ -2907,20 +2911,20 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff8a00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffaf2f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="236" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">VCA</text>
 <text x="111.0" y="248" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">VCF</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">OSC1</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">OSC2</text>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Seq.</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Mod.</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -2961,26 +2965,26 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
 <rect x="518" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">CC</text>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Flip</text>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Engine</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">2 osc</text>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#ffaf2f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Order</text>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#8e5cff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Step</text>
 <text x="421.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">drum</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Vel</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -2991,11 +2995,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>States of pad 27</h4>
 <table><thead><tr><th>Colour</th><th>Engine</th></tr></thead><tbody>
 <tr><td>off</td><td>the knobs are the normal MIDI macros</td></tr>
-<tr><td>yellow</td><td><strong>line input</strong> through the VCA-VCF</td></tr>
+<tr><td>amber</td><td><strong>line input</strong> through the VCA-VCF</td></tr>
 <tr><td>green</td><td><strong>oscillator</strong> (D3)</td></tr>
-<tr><td>red</td><td><strong>VA-drum</strong> (D4)</td></tr>
+<tr><td>orange</td><td><strong>VA-drum</strong> (D4)</td></tr>
 <tr><td>magenta</td><td><strong>granular</strong> (D5)</td></tr>
-<tr><td>cyan</td><td><strong>sample</strong>: a pack sample one-shot, at the note&#x27;s pitch (C15, since RC2)</td></tr>
+<tr><td>teal</td><td><strong>sample</strong>: a pack sample one-shot, at the note&#x27;s pitch (C15, since RC2)</td></tr>
 <tr><td>blue</td><td><strong>FX sequencer</strong> (C3)</td></tr>
 </tbody></table>
 <h4>Pads of the Preset view</h4>
@@ -3006,7 +3010,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>27</td><td>Engine</td></tr>
 <tr><td>1-5</td><td>Knob page. <strong>Clear + the pad</strong> (since RC2): the values of that page (with and without Shift) go back to their initial values; the engine stays</td></tr>
 <tr><td>28</td><td>One / two oscillators (only with the oscillators or VA-drum; dark with the other engines)</td></tr>
-<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX (<strong>since RC2</strong>: Shift + 29 = gate retrigger; off = legato; <strong>since RC4</strong>: it steps through the seven voice modes of pad 32)</td></tr>
+<tr><td>29</td><td>Chain order: VCA → FX → filter / filter → VCA → FX (<strong>since RC2</strong>: Shift + 29 = gate retrigger; off = legato; <strong>since RC4</strong>: it steps through the eight voice modes of pad 32)</td></tr>
 <tr><td>30</td><td>Step-drummer (C2)</td></tr>
 <tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes</td></tr>
 <tr><td>32</td><td><strong>Since RC4:</strong> voice mode, a row on pads 17-24: retrigger, legato, glide (legato sliding; K1 = its time with the row open), uni retrig, uni legato, uni glide and uni always-glide (unison; K2 = the detune), poly (4 voices in the oscillator (one or two), the VA-drum (envelopes per hit) and the sample mode; in FM 6 between MIDI 1 and MIDI 2; poly is the mode of a project that never chose another); saved with the patch</td></tr>
@@ -3044,36 +3048,36 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p>Sequencing by <strong>pairs of steps</strong> on top of the pattern: pads 1-16 steps, 17-24 destination / macro, the 8 knobs = the 8 pairs (pitch or velocity).</p><p>MIDI: Preset view, pad 30. Synths: source view, pad 30. While recording, the steps you play are recorded in real time.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Step-drummer view (MIDI 1).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">pair 1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">pair 1</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">pair 2</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">pair 2</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">pair 3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">pair 3</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">pair 4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">pair 4</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">pair 5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">pair 5</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">pair 6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">pair 6</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">pair 7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">pair 7</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">pair 8</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">pair 8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Step-drummer</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
 <rect x="100" y="140" width="60" height="18" rx="4" fill="#9aa0a6" stroke="#111"/>
 <text x="130.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▼</text>
-<rect x="166" y="140" width="60" height="18" rx="4" fill="#ffd23f" stroke="#111"/>
+<rect x="166" y="140" width="60" height="18" rx="4" fill="#ffff19" stroke="#111"/>
 <text x="196.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▲</text>
 <rect x="232" y="140" width="60" height="18" rx="4" fill="#9aa0a6" stroke="#111"/>
 <text x="262.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">1-16 / 17-32</text>
@@ -3124,61 +3128,61 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
 <rect x="456" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">▶</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#44ddff" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Pitch</text>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">OSC2</text>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">WAVE</text>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">FM</text>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">MIX</text>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Env F</text>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">SHAPE</text>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">DEC</text>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
 <rect x="84" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -3231,30 +3235,30 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p><strong>Blue</strong> state of pad 27: the step-drummer of the track picks, for each pair of steps, <strong>a slot of the Master FX bottom row</strong> (0 = none); it plays on the steps with a note.</p><p>The knob moves slowly (<strong>one slot every ~48 steps of the turn</strong>) and lights in the <strong>colour of the chosen effect</strong>. <strong>A slot with no effect assigned does nothing:</strong> assign the effects to the Master FX bottom row first (see “Assignable bottom row”). <strong>since RC2:</strong> at the end of the travel there is the <strong>random</strong> value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FX sequencer: each knob = the Master FX bottom-row slot of its pair of steps.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Gater</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Gater</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">none</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">none</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Phaser</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Phaser</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Glitch</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Glitch</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">none</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">none</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Digitise</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Digitise</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">none</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">none</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Glitch</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Glitch</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">FX sequencer</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
@@ -3280,7 +3284,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="111.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 1</text>
 <rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
-<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff8a00" stroke="#111"/>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff4e13" stroke="#111"/>
 <text x="235.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">MIDI 1</text>
 <rect x="270" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="297.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">MIDI 2</text>
@@ -3309,15 +3313,15 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="22" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="49.0" y="427.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Pattern</text>
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
-<rect x="580" y="410" width="54" height="38" rx="4" fill="#3ddc5a" stroke="#111"/>
+<rect x="580" y="410" width="54" height="38" rx="4" fill="#00ff00" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#111" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
 <rect x="146" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
 <rect x="332" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
@@ -3327,11 +3331,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
 <rect x="146" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
 <rect x="270" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
@@ -3363,14 +3367,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
 <rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">FX seq</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
 <rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
 <rect x="332" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#8e5cff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Step</text>
 <text x="421.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">drum</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
@@ -3500,7 +3504,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="146" y="278" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">2</text>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">start</text>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
 <rect x="270" y="278" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
@@ -3521,7 +3525,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="84" y="340" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">9</text>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">end</text>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
 <rect x="208" y="340" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
@@ -3571,18 +3575,18 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p><strong>Pad 32</strong> (red) records the output; <strong>pad 7</strong> (yellow) plays it: K1 pitch, K2 mode (one-shot / gate / loop by colour), K3 start, K4 end.</p><p>The sample can be assigned to the bottom row (pad 7 + a bottom pad) and can replace a drum (A8).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Captured sample.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Pitch</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Pitch</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Mode</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Mode</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Start</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Start</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">End</text>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">End</text>
 <circle cx="338" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -3659,7 +3663,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
 <rect x="394" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Play</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
 <rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -3700,7 +3704,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
 <rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#ffd23f" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#ffff19" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">sample</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
 <rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -3711,7 +3715,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
 <rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Record</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Captured sample.</figcaption></figure>
@@ -3736,18 +3740,18 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p><strong>Hold pad 6</strong> (Master FX or FX view): the output breaks up and lags like a tape. K1 speed, K2 repeat, K3 delay, K4 chaos (lower half) or overload (upper half).</p><p><strong>Pad 6 held + a bottom-row pad</strong> = that slot is a Glitch too, with its copy of K1-K4.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Glitch: pad 6; also assigned to pad 28.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Speed</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Speed</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Repeat</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Repeat</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Delay</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Delay</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Chaos</text>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Chaos</text>
 <circle cx="338" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -3822,7 +3826,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
 <rect x="332" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
 <rect x="456" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -3867,7 +3871,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
 <rect x="208" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Glitch</text>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
 <rect x="332" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -3906,7 +3910,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="c8-random-mutate"><h3><span class="code">C8</span>Random-mutate per step</h3>
-<div class="summary"><p><strong>Since RC2.</strong> In the probability view (<strong>Shift + Pattern Settings</strong>) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.</p></div>
+<div class="summary"><p><strong>Since RC2.</strong> In the probability view, in mode 2 (<strong>pad 25</strong> of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Probability view: row 3 = the step’s probability (original), row 4 = random-mutate.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -3981,7 +3985,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff3b30" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ff0000" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">step</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
 <rect x="146" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -4014,56 +4018,56 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
 <rect x="518" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#2f7bff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">off</text>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">oct</text>
 <text x="173.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">6</text>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">scale</text>
 <text x="235.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">6</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">oct 6</text>
 <text x="297.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">scale 6</text>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">scale</text>
 <text x="359.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">12</text>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">oct</text>
 <text x="421.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">12</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">scale</text>
 <text x="483.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">25</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">oct 25</text>
 <text x="545.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">scale 50</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Probability view: row 3 = the step’s probability (original), row 4 = random-mutate.</figcaption></figure>
 <ol>
-<li>1. On Synth 1 / 2 or MIDI 1 / 2, press <strong>Shift + Pattern Settings</strong>: the original’s probability view. Row 3 is still the chance of the step playing.</li>
+<li>1. On Synth 1 / 2 or MIDI 1 / 2, open Pattern Settings and touch <strong>pad 25</strong>: the probability view in mode 2.</li>
 <li>2. Hold a step that has notes and touch a pad of <strong>row 4</strong> (peach):</li>
 </ol>
 <table><thead><tr><th>Pad</th><th>Octave</th><th>Scale</th></tr></thead><tbody>
@@ -4080,7 +4084,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Scale:</strong> the note changes to another note of the project’s scale, within the same octave. <strong>Octave:</strong> it goes one octave up or down (at random). Every note of a chord is drawn separately, each time the step plays.</li>
 <li><strong>Without Record</strong> the changed note plays that once and the step does not change. <strong>With Record</strong> the changed note is written into the step (the sequence drifts).</li>
 <li>Tied notes are not changed.</li>
-<li>The value is stored in the step, with the pattern and the project. The drums do not have it.</li>
+<li>The value is stored in the step, with the pattern and the project. The drums have their own (see «Frequency and dynamics per step»).</li>
+<li><strong>Beta 5.4 only — rows 3-4 redesigned (on the drums too):</strong> pad 17 off; pads 18-20 another note of the scale (chance ×1, ×2, ×4); pads 21 / 22 octave up, low / high chance (×1, ×2); pads 23 / 24 octave up or down, low / high (×1, ×2); pad 25 dynamics on / off; pad 26 accents; pad 27 accents and length (stronger notes only shorter, weaker ones only longer); pad 28 random length and velocity ±16; pad 32 micro steps on / off (−2 to +2, inside the step). <strong>Octave ▼ / ▲ in that view = the track&#x27;s factor</strong> (×0 to ×8, ×1 from the factory; saved with the project), which multiplies all the chances: at ×1, note and octave 6 % for each ×1 of the pad; dynamics and micro steps 25 %. On a drum: the sample instead of the note (±1 inside its row, ±8 to another row), pad 27 dark, pad 28 the velocity only, and pad 32 works for the whole drum and only delays the hit.</li>
 </ul>
 </section>
 <section class="feat" id="c9-frecuencia-dinamicas"><h3><span class="code">C9</span>Step frequency and dynamics</h3>
@@ -4101,7 +4106,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>8</td><td>—</td><td>−32 to +64</td><td>accent dynamics</td></tr>
 </tbody></table>
 <ul>
-<li>Everything is saved with the step. With <strong>Record</strong> and mode 2 on the screen, what sounds (the mutated note, the dynamics) is written into the pattern.</li>
+<li>Everything is saved with the step. With <strong>Record</strong> and mode 2 on the screen, what sounds (the mutated note, the dynamics) is written into that track&#x27;s pattern (Beta 5.4 only; on the RCs, into the other note tracks too).</li>
 </ul>
 <h4>On the drums (since RC2)</h4>
 <ul>
@@ -4124,9 +4129,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="c11-nudge-ordenes"><h3><span class="code">C11</span>Nudge and play orders</h3>
-<div class="summary"><p><strong>Since RC2.</strong> In the Pattern Settings view: <strong>pad 26 = Nudge</strong> (the pattern rotated so that the chosen first step becomes step 1), <strong>pad 27 = fractal order</strong>, <strong>pad 28 = deconstructed order</strong>. On every track, drums included.</p></div>
+<div class="summary"><p><strong>Since RC2.</strong> In the Pattern Settings view: <strong>pad 26 = Nudge</strong> (moves the content of the selected steps), <strong>pad 27 = fractal order</strong>, <strong>pad 28 = deconstructed order</strong>. On every track, drums included.</p></div>
 <ul>
-<li><strong>Nudge (pad 26, orange):</strong> rewrites the pattern so that the chosen first step becomes step 1; what was in front of it goes to the end. It rotates whole steps with their automation, over 16 steps (a pattern of up to 16) or over 32. The last step moves with it (steps 6-13 → 1-8).</li>
+<li><strong>Nudge (pad 26, blue), Beta 5.4 only:</strong> the content of the selected range (first to last step) moves one step back; <strong>Shift + pad 26</strong>, one step forward. What leaves at one end of the range comes in at the other and <strong>the first and last steps do not move</strong>. It moves whole steps with their automation, and on the drums their own values. The view shows it at once. On the RCs it also moves the first and last steps, and the view did not show the moved content until the next Play.</li>
 <li><strong>Fractal (pad 27):</strong> 1 · 1 2 · 1 2 3 · 1 2 3 4 … up to the last step, then again.</li>
 <li><strong>Deconstructed (pad 28):</strong> the diagonals of the grid: 1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15 (and the same with 17-32). Steps outside the pattern are skipped: with 8 steps, 1 6 2 7 3 8 4 5.</li>
 <li>Pads 27 / 28 and the four direction pads (29-32) exclude each other and share colours.</li>
@@ -4159,16 +4164,16 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <section class="feat" id="c14-escala-propia"><h3><span class="code">C14</span>Custom scale (since RC2)</h3>
 <div class="summary"><p><strong>Since RC2.</strong> <strong>Shift + Scales</strong> = an editor of a custom scale for the note tracks: up to 7 notes over the root and any <strong>period</strong> (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.</p></div>
 <ul>
-<li>The editor&#x27;s keyboard: two octaves of a piano from the root (rows 4 / 3 the first octave, white / black; rows 2 / 1 the second). The highest key pressed is the period (orange), the others the notes (green).</li>
+<li>The editor&#x27;s keyboard: two octaves of a piano from the root (rows 4 / 3 the first octave, white / black; rows 2 / 1 the second). The highest key pressed is the period (blue), the others the notes (green).</li>
 <li>It drives playing, the lit notes of the sequence, quantising and random-mutate. A stock scale switches it off; the editor switches it on again.</li>
-<li><strong>since RC4 — Jankó:</strong> in the editor, <strong>Shift + pad 8</strong> turns on the isomorphic Jankó layout: every column a whole tone up; the rows come in pairs as on the stock&#x27;s chromatic keyboard: the lower one starts on the root and the one above is a semitone lower (C D E F♯… / B C♯ D♯ F…); in the expanded Note view the upper pair is an octave up. <strong>Shift + pad 24</strong> = the earlier layout (every row a semitone above the one below). Every chord type has the same shape in any key; the root pads in the root colour. All 12 notes are in the scale (they all light, random-mutate picks any of its octave). Octave: a tap = a semitone, held = an octave; Shift + Octave still transposes the pattern. Saved with the project.</li>
+<li><strong>since RC4 — Jankó:</strong> in the editor, <strong>Shift + pad 8</strong> turns on the isomorphic Jankó layout: every column a whole tone up; the rows come in pairs as on the stock&#x27;s chromatic keyboard: the lower one starts on the root and the one above is a semitone lower (C D E F♯… / B C♯ D♯ F…); in the expanded Note view the upper pair is an octave up. <strong>Shift + pad 24</strong> = the earlier layout (every row a semitone above the one below). Every chord type has the same shape in any key; the root pads in the root colour. All 12 notes are in the scale (they all light, random-mutate picks any of its octave). Octave: a tap = a semitone, held = an octave; Shift + Octave still transposes the pattern. Saved with the project. <strong>Beta 5.4 only:</strong> one layout (Shift + pad 8): in the expanded Note view the upper pair repeats the lower one; with a key held, Octave moves only the pair the key does not belong to; pad 24 does nothing.</li>
 </ul>
 </section>
 <section class="feat" id="c15-acordes"><h3><span class="code">C15</span>Chord screen (since RC4)</h3>
 <div class="summary"><p><strong>Since RC4.</strong> In the <strong>expanded Note view</strong> of Synth 1 / 2 and MIDI 1 / 2, <strong>Shift + pad 8</strong> opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.</p></div>
 <ul>
 <li><strong>Row 1:</strong> major, minor, 7, m7, maj7, sus4, dim, aug; <strong>Shift + pads 1-7</strong>: sus2, 6, m6, add9, 9, 7sus4, fifth (yellow with Shift, the chosen one white; Shift + pad 8 = on / off).</li>
-<li><strong>Row 2:</strong> pads 9-12 the inversion (root position, 1st, 2nd, 3rd; orange), pad 13 open voicing, pad 14 the root an octave down, pad 15 diatonic (thirds of the project&#x27;s scale, the custom one and Jankó too), pad 16 latch.</li>
+<li><strong>Row 2:</strong> pads 9-12 the inversion (root position, 1st, 2nd, 3rd; blue), pad 13 open voicing, pad 14 the root an octave down, pad 15 diatonic (thirds of the project&#x27;s scale, the custom one and Jankó too), pad 16 latch.</li>
 <li><strong>Rows 3-4:</strong> the roots, the same notes as the Note view&#x27;s keyboard (scale, root, Octave, Jankó); up to 6 notes, with the pad&#x27;s velocity.</li>
 <li>It sounds and is recorded with Record as plain notes of the pattern (it plays back the same without the screen); the arpeggiator arpeggiates the chord. The type and the modifiers are not saved.</li>
 </ul>
@@ -4181,8 +4186,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The knob table is in the guide by views («Drum track view»).</li>
 </ul>
 </section>
-<section class="feat" id="c17-carril-extra"><h3><span class="code">C17</span>The drums&#x27; extra lane (Beta 5.0 only)</h3>
-<div class="summary"><p><strong>Beta 5.0 only.</strong> Each drum has <strong>one more automation lane</strong>, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the <strong>chromatic pitch</strong> (the chromatic view&#x27;s pads record there; the pitch lane stays K1&#x27;s); <strong>Record held + a knob</strong> assigns another parameter and <strong>Record held + a chromatic pad</strong> brings back the chromatic pitch.</p></div>
+<section class="feat" id="c17-carril-extra"><h3><span class="code">C17</span>The drums&#x27; extra lane (Beta 5.4 only)</h3>
+<div class="summary"><p><strong>Beta 5.4 only.</strong> Each drum has <strong>one more automation lane</strong>, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the <strong>chromatic pitch</strong> (the chromatic view&#x27;s pads record there; the pitch lane stays K1&#x27;s); <strong>Record held + a knob</strong> assigns another parameter and <strong>Record held + a chromatic pad</strong> brings back the chromatic pitch.</p></div>
 <ul>
 <li>Assignable knobs: K2, K4, K6, K7 and Shift + K1, K2, K4, K7 (the mod&#x27;s new knobs without a lane of their own). While Record is held, the assigned knob lights white (the chromatic pitch: Preset blinks).</li>
 <li>While recording, turning the assigned knob writes the step that plays (one value per step); Clear + that knob to the left erases the lane; Record held + a step (the snapshot) includes its value.</li>
@@ -4193,7 +4198,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="c18-modo-muestra"><h3><span class="code">C18</span>Sample mode of the MIDI tracks (since RC2)</h3>
-<div class="summary"><p><strong>Since RC2.</strong> A new state of pad 27 (cyan, after the granular): the MIDI track plays <strong>a pack sample one-shot</strong>, at the note&#x27;s pitch (<strong>C3 = note 60 = as recorded</strong>), through the engine&#x27;s filter, effect and LFO; the VCA stays open and the sample plays to its end.</p><p>The <strong>expanded Note view</strong> (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; <strong>a held step + a sample</strong> = that step&#x27;s sample flip, also live with Record.</p></div>
+<div class="summary"><p><strong>Since RC2.</strong> A new state of pad 27 (teal, after the granular): the MIDI track plays <strong>a pack sample one-shot</strong>, at the note&#x27;s pitch (<strong>C3 = note 60 = as recorded</strong>), through the engine&#x27;s filter, effect and LFO; the VCA stays open and the sample plays to its end.</p><p>The <strong>expanded Note view</strong> (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; <strong>a held step + a sample</strong> = that step&#x27;s sample flip, also live with Record.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Expanded Note view of MIDI 1 in the sample mode: steps on top, samples below.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -4271,37 +4276,37 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="84" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">suena</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="297.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">flip</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#ffb38a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#ff8682" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">flip</text>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
-<rect x="208" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
 <rect x="84" y="340" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
@@ -4313,7 +4318,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
 <rect x="332" y="340" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#00c2a8" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#00ffb5" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">sample</text>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
 <rect x="456" y="340" width="54" height="54" rx="7" fill="#9aa0a6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
@@ -4338,8 +4343,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Expanded Note view of MIDI 1 in the sample mode: steps on top, samples below.</figcaption></figure>
 <ul>
-<li><strong>Picking the sample:</strong> in the expanded Note view, rows 3-4 = 16 samples of the pack; <strong>Octave ▼</strong> = next page, <strong>▲</strong> = previous (4 pages, the 64 samples; the button lights when there are more pages that way). Touching a sample = the track&#x27;s sample (cyan), and it sounds (note 60). It is the same value as the granular&#x27;s source (Shift + K8 on its page): changing one changes the other; the capture is picked there.</li>
-<li><strong>Sample flip:</strong> rows 1-2 = the 16 steps of the half shown (<strong>1-16 / 17-32</strong> = the other half). <strong>Hold a step and touch a sample</strong> = that step plays that sample (peach; the held step green, its sample yellow); since RC2.04 also <strong>hold a sample and touch steps</strong>; <strong>Clear + step</strong> = no flip (dim cyan, the background of rows 1-2). The step playing, white. A flip on a step with no note does nothing. <strong>Since RC4:</strong> a flip on a step with no note adds the last note played on the track there (60 if none), and the steps show peach = a note with a flip, cyan = a note without a flip, violet = a flip without a note; erasing a step&#x27;s note in the Note view (Clear + step, or the step held + its key) keeps the flip.</li>
+<li><strong>Picking the sample:</strong> in the expanded Note view, rows 3-4 = 16 samples of the pack; <strong>Octave ▼</strong> = next page, <strong>▲</strong> = previous (4 pages, the 64 samples; the button lights when there are more pages that way). Touching a sample = the track&#x27;s sample (teal), and it sounds (note 60). It is the same value as the granular&#x27;s source (Shift + K8 on its page): changing one changes the other; the capture is picked there.</li>
+<li><strong>Sample flip:</strong> rows 1-2 = the 16 steps of the half shown (<strong>1-16 / 17-32</strong> = the other half). <strong>Hold a step and touch a sample</strong> = that step plays that sample (peach; the held step green, its sample yellow); since RC2.04 also <strong>hold a sample and touch steps</strong>; <strong>Clear + step</strong> = no flip (dim teal, the background of rows 1-2). The step playing, white. A flip on a step with no note does nothing. <strong>Since RC4:</strong> a flip on a step with no note adds the last note played on the track there (60 if none), and the steps show peach = a note with a flip, teal = a note without a flip, violet = a flip without a note; erasing a step&#x27;s note in the Note view (Clear + step, or the step held + its key) keeps the flip.</li>
 <li><strong>Live:</strong> with <strong>Record + Play</strong>, touching a sample records a note 60 on the step playing, and its flip.</li>
 <li><strong>The pitch</strong> comes from the track&#x27;s notes (the normal Note view, the step-drummer, incoming MIDI): C3 = as recorded, an octave up = twice as fast. One voice per track, like a drum: every note restarts the sample; the note-off does not cut it, it plays to its end.</li>
 <li><strong>The VCA open:</strong> in this mode the envelope does not close the VCA (gain, velocity and LFO → level still work); the other engines as before.</li>
@@ -4359,7 +4364,16 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Saved with the own-synth patches</strong> (A14); not with the project nor across a power-down. No CC / NRPN. Some 100-250 updates a second, shared by what moves on the track.</li>
 </ul>
 </section>
-<section class="feat" id="c20-fm4"><h3><span class="code">C20</span>4-operator FM (since RC4)</h3>
+<section class="feat" id="c20-saltos"><h3><span class="code">C20</span>Jump sequencer of MIDI 1 / 2 (Beta 5.4 only)</h3>
+<div class="summary"><p>The notes of a MIDI track make another track&#x27;s pattern jump to the step they indicate.</p></div>
+<ul>
+<li><strong>Beta 5.4 only.</strong> MIDI 1 / 2 Preset view, engine row (a tap on pad 27): <strong>pads 9-16</strong> are the eight tracks; a tap points at that track, the same one turns it off, and pad 27 takes its colour.</li>
+<li>While pointing, the track does not sound: each note, from the sequencer, the pads or the arpeggiator, makes the other track jump on that very step.</li>
+<li>Note view: pads 17-32 = steps 1-16, Octave ▲ = 17-32; expanded Note view: the 32 pads = steps 1-32. The scale changes nothing.</li>
+<li>Saved with the project.</li>
+</ul>
+</section>
+<section class="feat" id="c21-fm4"><h3><span class="code">C21</span>4-operator FM (since RC4)</h3>
 <div class="summary"><p><strong>Since RC4.</strong> A variant of the oscillator of the MIDI 1 / 2 own synth: <strong>pad 24</strong> of the engine row (a tap on pad 27), violet; its knobs on <strong>pad 7</strong>.</p><p><strong>K1-K4</strong> = the ratio of operators 1-4 (with a <strong>fine detune</strong> on each ratio&#x27;s clicks), <strong>K5-K8</strong> = their level; <strong>Shift + K1-K4</strong> = to the right its attack, to the left the operator <strong>percussive</strong> with its own decay; <strong>Shift + K5</strong> = the <strong>algorithm</strong> (16; also by <strong>holding pad 7</strong>: pads 9-24 are the algorithms, a press picks one and plays it), <strong>Shift + K6</strong> feedback, <strong>Shift + K7</strong> noise, <strong>Shift + K8</strong> release (longer with more velocity).</p></div>
 <ul>
 <li><strong>A/R envelopes with a fixed sustain:</strong> the sustained operators stay up while the note is held; the percussive ones (by the algorithm, or their Shift + knob to the left) fall even while it is held. The loudness comes from the operators (the engine&#x27;s VCA open).</li>
@@ -4372,7 +4386,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Clear + knob</strong> = its value in the algorithm&#x27;s voice; <strong>Clear + MIDI 1 / 2</strong> = everything to the defaults. Saved with the own-synth patches (A14). No CC / NRPN.</li>
 </ul>
 </section>
-<section class="feat" id="c21-master-fx-beta"><h3><span class="code">C21</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
+<section class="feat" id="c22-master-fx-beta"><h3><span class="code">C22</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
 <div class="summary"><p><strong>Since RC2.</strong> Pad 6 of Master FX is the <strong>Glitch</strong> and pad 31 a <strong>mechanical gesture</strong> (tape stop, scratch…); Digitise gains <strong>K3 = momentary send to the delay</strong> and <strong>K4 = envelope</strong>; the Master FX knobs and slots <strong>are saved with every project</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (it replaces the Vinyl): held, latched, assignable to the slots and to the FX sequencer like the other effects; its K1-K4 are the Glitch’s.</li>
@@ -4431,30 +4445,30 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <div class="summary"><p>Up to <strong>16 grains per track</strong> from any sample of the pack or the capture, with interpolation and window.</p><p>K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, since RC2), LFO → size, source.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Granular page (pad 2, magenta engine).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
-<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<text x="146" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Pitch</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="146" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Pitch</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
-<text x="194" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Position</text>
-<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="194" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Position</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<text x="242" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Scan</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="242" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Scan</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<text x="290" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Size</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="290" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Size</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<text x="338" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">Density</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="338" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">Density</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<text x="386" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Zone</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="386" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Zone</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<text x="434" y="130" font-size="10" fill="#00c2a8" text-anchor="middle">LFO→pos</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00c2a8" stroke-width="4"/>
+<text x="434" y="130" font-size="10" fill="#00ffb5" text-anchor="middle">LFO→pos</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="482" y="20" font-size="10" fill="#00c2a8" text-anchor="middle">Env→pos</text>
+<text x="482" y="20" font-size="10" fill="#00ffb5" text-anchor="middle">Env→pos</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Granular</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Scales</text>
@@ -4480,7 +4494,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="111.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 1</text>
 <rect x="146" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="173.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Synth 2</text>
-<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff8a00" stroke="#111"/>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#ff4e13" stroke="#111"/>
 <text x="235.0" y="189.5" font-size="9.5" fill="#111" text-anchor="middle">MIDI 1</text>
 <rect x="270" y="172" width="54" height="28" rx="4" fill="#2b2d31" stroke="#111"/>
 <text x="297.0" y="189.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">MIDI 2</text>
@@ -4513,7 +4527,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="607.0" y="432.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Play</text>
 <rect x="84" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#3ddc5a" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Gran.</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
 <rect x="208" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -4564,7 +4578,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
 <rect x="146" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#e040fb" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Engine</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
 <rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
@@ -4608,9 +4622,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="d7-drums-dsp"><h3><span class="code">D7</span>Drum DSP</h3>
-<div class="summary"><p>Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.0) / tilt filters, bitcrush, start point, distortions and sidechain between drums.</p></div>
+<div class="summary"><p>Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.4) / tilt filters, bitcrush, start point, distortions and sidechain between drums.</p></div>
 <ul>
-<li>State-variable filter per drum (DJ, band pass, notch), comb with feedback (not in Beta 5.0) and the stock EQ tilt.</li>
+<li>State-variable filter per drum (DJ, band pass, notch), comb with feedback (not in Beta 5.4) and the stock EQ tilt.</li>
 <li>Ring mod with its own oscillator, tremolo / vibrato LFO, soft / hard / folded distortion, bitcrush.</li>
 <li><strong>Sidechain between drums:</strong> Shift + FX and Octave ▼: ducking pages per drum (rows 3-4) and which drum triggers it (row 1, pads 5-8). <strong>since RC2:</strong> row 1 pads 1-4 = Synth 1, Synth 2, MIDI 1, MIDI 2 as the trigger (every note of their pattern).</li>
 </ul>
