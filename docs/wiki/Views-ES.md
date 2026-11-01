@@ -76,6 +76,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
+- **Secuenciador de saltos** *(solo Beta 5.4)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
@@ -133,7 +134,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Modo muestra y selector de samples
 
-*Cómo se llega:* *(desde RC2)* MIDI 1 / 2 con el motor en **muestra** (pad 27 cian, tras el granular): **Note dos veces** (vista Note ampliada). La pista toca un sample del pack de un golpe, a la altura de cada nota.
+*Cómo se llega:* *(desde RC2)* MIDI 1 / 2 con el motor en **muestra** (pad 27 verde azulado, tras el granular): **Note dos veces** (vista Note ampliada). La pista toca un sample del pack de un golpe, a la altura de cada nota.
 
 - **Drums con altura en una pista MIDI** — cualquier sample del pack suena a la altura de cada nota, como en una caja de ritmos con samples afinables.
 - **Un sample distinto por paso** — el sample flip cambia de sample paso a paso sin otra pista; se graba también en vivo.
@@ -146,7 +147,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 *Cómo se llega:* Botón **Pattern Settings** con una pista elegida: primer / último paso, sync rate y dirección como siempre, más los pads 25-28 y el arpegiador (Shift).
 
-- **Nudge** — rota el patrón para que empiece en otro paso.
+- **Nudge** — mueve el contenido de los pasos elegidos un paso atrás o adelante.
 - **Órdenes fractal y deconstruido** — recorren el patrón de otra forma sin cambiar sus notas.
 - **Arpegiador** *(desde RC2)* — los acordes del patrón (y los que tocas) suenan nota a nota, con su orden y su resolución; en los drums, saltando de sample.
 - **Dinámicas y random-mutate** (pad 25) — variaciones para que el patrón no suene siempre igual.
@@ -165,7 +166,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Vista de probabilidad (pistas de notas y drums)
 
-*Cómo se llega:* **Shift + Pattern Settings** (modo de stock), **Pattern Settings dos veces** (modo 1) o el **pad 25** de Pattern Settings (modo 2). Mantén un paso con notas y toca un pad de las filas 3-4.
+*Cómo se llega:* **Pattern Settings dos veces** o **Shift + Pattern Settings** (modo 1), o el **pad 25** de Pattern Settings (modo 2). Mantén un paso con notas y toca un pad de las filas 3-4.
 
 - **Probabilidad (de stock)** — que un paso suene solo a veces.
 - **Frecuencia** *(desde RC2)* — que un paso suene una de cada n vueltas: variaciones que vuelven cada 2, 4 u 8 vueltas.

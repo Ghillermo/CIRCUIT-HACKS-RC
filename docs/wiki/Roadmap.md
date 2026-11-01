@@ -8,6 +8,7 @@ The mod has grown fast. The next stage is about **quality rather than quantity**
 
 ## In progress
 
+- **New random-mutate interface** (Beta 5.4): one set of pads per step for the note, the octave, the dynamics and the micro steps, a factor on Octave for the whole track, on notes and drums.
 - **The drums' automation view** (Beta 5.0, to be tested on the device): a drum's Velocity view with Shift works as on the synth tracks: the steps with automation yellow, Shift + a yellow step = hear its values, Shift + another step = a mark where the drum's knobs go back to the project's values, Clear + step = erase its automation; also the drums' extra automation lane, state locks and ramps.
 - **Stereo drum pairs** (Beta 3.36 / 3.37, to be tested on the device): hold Drum 1 and press Drum 2 (or Drum 3 + Drum 4). Drum 1 / 3 plays its sample on the left and Drum 2 / 4 plays the next sample on the right, both driven by Drum 1 / 3's controls and pattern. Drum 2 / 4's knobs set the pan spread, the detune and small deviations. Saved with the project; the same gesture goes back to two separate drums.
 
@@ -37,6 +38,7 @@ The mod has grown fast. The next stage is about **quality rather than quantity**
 - **Simpler version marks** (only "since RC…" and "Beta only").
 - **A printable PDF,** made from the same source as the web pages.
 - **This wiki:** the sections ([Views](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views), [Data](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Data), [Features](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Features), [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP), [Usability](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability), [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI)), the FAQ and troubleshooting, kept in step with the manual.
+- **Demo patches:** a set of ready-made patches that show what the mod can do.
 
 ## Ideas open for discussion
 

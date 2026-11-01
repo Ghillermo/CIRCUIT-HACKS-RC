@@ -179,7 +179,7 @@ Pressing pad 31 slows the audio to a stop; releasing it starts it again. K1 = mo
 ### Slots (pads 26-30)
 Hold an effect (pads 1-6), pad 7 (the capture) or the Glitch / gesture pad and touch a slot: the slot keeps that effect with a copy of its knobs. Touch the slot = on while held; **Shift + slot** = latched. Slots are saved with the project. An empty slot is the stock performance effect of the FX view. The FX sequencer (section 10) triggers these slots.
 """, [F("Master FX (Mixer twice). RC0.9: pad 6 Vinyl, pad 31 Glitch; RC2: pad 6 Glitch, pad 31 mechanical gesture.",
-        pads={1: ("orange", "Gater"), 2: ("yellow", "Filter\nLP"), 3: ("yellow", "Filter\nHP"), 4: ("lime", "Digitise"), 5: ("magenta", "Phaser"), 6: ("teal", "Glitch"),
+        pads={1: ("orange", "Gater"), 2: ("green", "Filter\nLP"), 3: ("blue", "Filter\nHP"), 4: ("pink", "Digitise"), 5: ("magenta", "Phaser"), 6: ("peach", "Glitch"),
               7: ("yellow", "Capture\nplay"), 8: ("white", "All\noff"), **{n: ("purple", str(n - 8), True) for n in range(9, 25)},
               **{n: ("peach", f"Slot\n{n - 25}", True) for n in range(26, 31)}, 31: ("pink", "Gesture"), 32: ("red", "Rec")},
         knobs={1: "K1", 2: "K2", 3: "K3", 4: "K4"}, buttons={"Mixer": "white"}, view="Master FX")])
@@ -271,7 +271,7 @@ sec("midi", "MIDI tracks as synths", f"""
 Normally a MIDI track only sends MIDI. With the mod, MIDI 1 and MIDI 2 can each have their **own engine** on the Circuit itself; the notes still go out over MIDI.
 
 ### The engine (pad 27)
-In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (yellow) → oscillator (green) → VA-drum (red) → granular (magenta) → sample (cyan, {B}) → FX sequencer (blue) → off.
+In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (amber) → oscillator (green) → VA-drum (orange) → granular (magenta) → sample (teal, {B}) → FX sequencer (blue) → off.
 *Since RC4:* a tap on pad 27 opens the engines on the third row of pads, in their colours; tap the one you want and pad 27 again goes back to the patches. Shift + pad 27 steps to the next as before.
 
 | Engine | In plain words |
@@ -322,10 +322,10 @@ With the engine on, **pad 6** of the MIDI Preset view turns the 8 knobs into **8
 ### Own-synth patches {B}
 Rows 2-3 of the MIDI Preset view are 16 patch slots, 4 pages with Octave ▼ / ▲ (64 per pack, shared by MIDI 1 and 2; since RC4: 8 pages, 128). Touch = load (the tonic sounds while you hold). **Clear + pad** twice = save. **Duplicate + A + B** = swap; **Duplicate + A**, another pack, **Duplicate + B** = copy. Dim peach = a patch, bright = the last used, violet = empty. A patch keeps the engine, both oscillators, the order, every value and the step-drummer setting (the steps belong to the pattern). **Clear + the track button** resets the whole engine.
 """, [F("MIDI 1 Preset view with the engine on.",
-        pads={1: ("orange", "VCA\nVCF"), 2: ("green", "OSC1", True), 3: ("teal", "OSC2", True), 4: ("purple", "Auto", True), 5: ("pink", "Mod", True),
+        pads={1: ("amber", "VCA\nVCF"), 2: ("green", "OSC1", True), 3: ("teal", "OSC2", True), 4: ("yellow", "Auto", True), 5: ("magenta", "Mod", True),
               **{n: ("peach", "", True) for n in range(9, 25)}, 25: ("magenta", "CC"), 26: ("yellow", "Flip", True), 27: ("green", "Engine"), 28: ("green", "2 osc", True),
-              29: ("orange", "Order", True), 30: ("purple", "Step\ndrum", True), 31: ("teal", "Vel", True)},
-        knobs={1: "Attack", 2: "Release", 3: "Env→A", 4: "Env→F", 5: "Filter", 6: "Reso", 7: "LFO", 8: "FX"}, buttons={"MIDI 1": "orange", "Preset": "white"}, view="MIDI 1 Preset")])
+              29: ("amber", "Order", True), 30: ("purple", "Step\ndrum", True), 31: ("teal", "Vel", True)},
+        knobs={1: "Attack", 2: "Release", 3: "Env→A", 4: "Env→F", 5: "Filter", 6: "Reso", 7: "LFO", 8: "FX"}, buttons={"MIDI 1": "blue", "Preset": "white"}, view="MIDI 1 Preset")])
 
 # ---------------------------------------------------------------------------------------------------- 11
 sec("patterns", "Pattern tools", f"""
@@ -335,7 +335,7 @@ Press **Pattern Settings** with a track chosen. As on a stock unit: pads 1-16 th
 | Pad | Function |
 |---|---|
 | 25 | The probability view in **mode 2** (below). {B}: **Clear + pad 25** clears the dynamics and random-mutate of the whole pattern (note tracks). |
-| 26 | **Nudge** (orange). |
+| 26 | **Nudge** (blue). |
 | 27 | **Fractal** order: 1 · 1 2 · 1 2 3 · … up to the last step. |
 | 28 | **Deconstructed** order: the grid's diagonals (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15, the same for 17-32). |
 
@@ -366,7 +366,7 @@ Choose a step that has notes (pads 1-16) and touch a pad of row 3 or 4.
 ### Micro Step view {B}
 Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: pads 17-22 = the 6 micro steps of the chosen step, **pad 24 = Tie** (a toggle: ties the chosen notes to the next step), pads 25-30 = the step's notes (touching one chooses it and plays it). **Each note has a single micro step:** touching another moves it there; for several in the step, enter several notes (drums can light several: repeats). Added:
 - **Pad 32 = gate by holding** (green): when entering notes by hand, the time you hold the pad is the note's length.
-- **Pad 31 = fixed length** (orange): with both off it opens a selector (pads 17-32 = 1-16 steps); picking a length turns it on, and every note entered by hand gets it.
+- **Pad 31 = fixed length** (blue): with both off it opens a selector (pads 17-32 = 1-16 steps); picking a length turns it on, and every note entered by hand gets it.
 - With one on, pressing it again turns it off; pressing the other one switches.
 
 ### Pattern chains and scenes {B}
@@ -379,7 +379,7 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
 - *since RC4:* with the cue mode on, the metronome's click (and the count-in's) sounds only on the right: you hear it in the cue headphones and the audience does not.
 """, [F("Pattern Settings: stock pads plus 25-28; with Shift, the arpeggiator (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "First"), **{n: ("green", "", True) for n in range(17, 25)},
-              25: ("peach", "Mode 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decon."), 29: ("purple", "Fwd", True), 30: ("purple", "Back", True), 31: ("purple", "Ping", True), 32: ("purple", "Rnd", True)},
+              25: ("peach", "Mode 2\n/ Arp"), 26: ("blue", "Nudge"), 27: ("pink", "Fractal"), 28: ("pink", "Decon."), 29: ("pink", "Fwd", True), 30: ("pink", "Back", True), 31: ("purple", "Ping", True), 32: ("purple", "Rnd", True)},
         buttons={"Pattern Settings": "white", "Shift": "yellow"}, view="Pattern Settings"),
       F("Probability view, mode 2: row 3 = dynamics, row 4 = random-mutate.",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 3: ("white", "Step"), **{n: ("green", str(n - 16), n != 19) for n in range(17, 25)},
@@ -387,14 +387,14 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
         buttons={"Pattern Settings": "white"}, view="Probability"),
       F("Micro Step view (Gate twice): pad 31 fixed length, pad 32 gate by holding (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 17: ("green", "μ1"), **{n: ("green", f"μ{n - 16}", True) for n in range(18, 23)}, 24: ("orange", "Tie", True),
-              25: ("magenta", "Note"), 31: ("orange", "Fixed"), 32: ("green", "Hold")},
+              25: ("magenta", "Note"), 31: ("blue", "Fixed"), 32: ("green", "Hold")},
         buttons={"Gate": "white"}, view="Micro Step")])
 
 # ---------------------------------------------------------------------------------------------------- 12
 sec("scales", "Scales and the custom scale", f"""
 **Scales** works as always (root and stock scale). {B} **Shift + Scales** opens the **custom scale editor** (the Scales button shows yellow with Shift):
 - The pads are two octaves of a piano from the root: row 4 = the white keys of the first octave, row 3 its black keys, rows 2 / 1 the second octave.
-- Press a key to add or remove it (up to 7). The **highest key is the period**: the root of the next iteration (it does not have to be an octave). The root is white, notes green, the period orange.
+- Press a key to add or remove it (up to 7). The **highest key is the period**: the root of the next iteration (it does not have to be an octave). The root is white, notes green, the period blue.
 - On the note tracks each row of pads is one iteration (two per row with 4 notes or fewer). It also drives which notes light up, the quantising and random-mutate.
 - Picking a stock scale switches the custom scale off (the keys are kept). Saved with the project.
 """, [F("Custom scale editor (Shift + Scales): two octaves of a piano from the root.",
@@ -404,7 +404,7 @@ sec("scales", "Scales and the custom scale", f"""
 
 # ---------------------------------------------------------------------------------------------------- 13
 sec("metronome", "Metronome and count-in", f"""
-{B} **Shift + Clear** walks four states, shown by the Clear LED while Shift is held: **red** = no metronome, **green** = metronome, **magenta** = count-in only, **cyan** = count-in and metronome.
+{B} **Shift + Clear** walks four states, shown by the Clear LED while Shift is held: **red** = no metronome, **green** = metronome, **magenta** = count-in only, **teal** = count-in and metronome.
 - **Count-in:** with Record armed and the transport stopped, **Play** gives one bar of four clicks at the project's tempo (Record blinks), then recording starts. Play during the count cancels it.
 - The click's volume is the stock one: press **Tempo / Swing** and turn **K5**. The count-in is saved with the project.
 """)

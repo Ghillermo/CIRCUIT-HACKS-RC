@@ -966,3 +966,28 @@ run python3 tools/emu_dautov.py firmware/b5.0/circuittracks-4486-B5.0.bin firmwa
 run python3 tools/emu_chromfix.py firmware/r402/circuittracks-4486-R402.bin firmware/r402/manifest.json
 run python3 tools/emu_savedefer.py firmware/r402/circuittracks-4486-R402.bin firmware/r402/manifest.json
 run python3 tools/emu_rodisk.py firmware/r402s/circuittracks-4486-R402S.bin firmware/r402s/manifest.json firmware/sc41.2/circuittracks-4486-SC41.2.bin firmware/sc41.2/manifest.json
+# SC49.8 / Beta 5.1 / RC4.03 / RC4.03S: trigled.use_flash, savedefer.use_toggle
+run python3 tools/emu_trigflash.py firmware/sc49.8/circuittracks-4486-SC49.8.bin firmware/sc49.8/manifest.json
+run python3 tools/emu_trigflash.py firmware/b5.1/circuittracks-4486-B5.1.bin firmware/b5.1/manifest.json
+run python3 tools/emu_savedefer.py firmware/sc49.8/circuittracks-4486-SC49.8.bin firmware/sc49.8/manifest.json
+run python3 tools/emu_savedefer.py firmware/r403/circuittracks-4486-R403.bin firmware/r403/manifest.json
+run python3 tools/emu_sc48_8.py firmware/sc49.8/circuittracks-4486-SC49.8.bin firmware/sc49.8/manifest.json
+# SC49.9 / Beta 5.2: janko.use_v3
+run python3 tools/emu_janko3.py firmware/sc49.9/circuittracks-4486-SC49.9.bin firmware/sc49.9/manifest.json
+run python3 tools/emu_janko3.py firmware/b5.2/circuittracks-4486-B5.2.bin firmware/b5.2/manifest.json
+# SC50 / Beta 5.3: mutate39.use_mut2, mutfac, autorel.use_sweep (emu_sc40_3, emu_sc39 and emu_sc43's drums do not apply)
+run python3 tools/emu_mutate2.py firmware/sc50/circuittracks-4486-SC50.bin firmware/sc50/manifest.json
+run python3 tools/emu_mutate2.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
+run python3 tools/emu_jumpseq.py firmware/sc50/circuittracks-4486-SC50.bin firmware/sc50/manifest.json
+run python3 tools/emu_jumpseq.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
+run python3 tools/emu_sc45_3.py firmware/sc50/circuittracks-4486-SC50.bin firmware/sc50/manifest.json
+run python3 tools/emu_sc48_8.py firmware/sc50/circuittracks-4486-SC50.bin firmware/sc50/manifest.json
+# RC4.04 / RC4.04S (and SC50 / Beta 5.3): playmode.use_nudge3
+run python3 tools/emu_nudge2.py firmware/sc50/circuittracks-4486-SC50.bin firmware/sc50/manifest.json
+# SC50.1 / Beta 5.4: octave pads of the random-mutate, the resonance on Octave (the last line of emu_fxres, Shift's LEDs as SC44.3, is older than this build)
+run python3 tools/emu_mutate2.py firmware/sc50.1/circuittracks-4486-SC50.1.bin firmware/sc50.1/manifest.json
+run python3 tools/emu_mutate2.py firmware/b5.4/circuittracks-4486-B5.4.bin firmware/b5.4/manifest.json
+run python3 tools/emu_nudge2.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
+run python3 tools/emu_nudge2.py firmware/r404/circuittracks-4486-R404.bin firmware/r404/manifest.json
+run python3 tools/emu_nudge2.py firmware/r404s/circuittracks-4486-R404S.bin firmware/r404s/manifest.json
+[ -f tools/emu_sdsysex.py ] && run python3 tools/emu_sdsysex.py

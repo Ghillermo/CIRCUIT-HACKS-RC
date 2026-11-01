@@ -58,6 +58,7 @@ def use_dsync():
     DSYNC = True
 CLRMOD = False                                                # SC41.7 (see use_clrmod)
 NUDGE2 = False                                                # SC48.3 (use_nudge2)
+NUDGE3 = False                                                # SC50 / RC4.04 (use_nudge3)
 TRIMNU = False                                                # SC49 (use_trimnu): Nudge v1 (c_pmnudge) not emitted
 
 
@@ -80,6 +81,19 @@ def use_nudge2():
     global NUDGE2
     assert DRUMS and DSYNC
     NUDGE2 = True
+
+
+
+def use_nudge3():
+    """SC50 / Beta 5.3 / RC4.04 (the user, 2026-11-01: «el nudge sólo cambia inicio y fin, pero no arrastra el contenido de los pasos»; «sería mejor mover
+    el contenido sin arrastrar el puntero de principio y fin»): pad 26 = the content of first .. last one step back, Shift + pad 26 = forward, a rotation
+    inside that range (what leaves at one end comes in at the other); first and last stay.  The bug: the Note view paints the steps from what the
+    stores tell it, a raw rotation only showed at the next Play (first and last moved at once, the notes did not).  Now the stock is told, as its own
+    step edits do (0x0803D1D4): a note track's step editor store 0x08035456 + commit, a drum's edit store commit, after drumstore's sync."""
+    global NUDGE3
+    NUDGE3 = True
+
+
 PAD_MODE2, MGR_HELD = 24, 0x20                                # pad 25 (stepmod's mode 2); the held buttons = p0 of [[ctrl + 0x20] + 0xC], bit 0 Clear
 
 
@@ -89,6 +103,8 @@ def use_clrmod():
     of byte 3); the frequency (bits 0-2) stays.  Without Clear pad 25 opens mode 2 as before.  c_pmclrpad in front of c_pmpspad in slot 0."""
     global CLRMOD
     CLRMOD = True
+EDITOR, ED_SZ, STORE_W = 0x20039E50, 0x3A0, 0x08035456        # (NUDGE3) the note tracks' step editors: [+ 0x18] the pattern store
+DS_PROB0, DS_PROB_SZ = 0x200438DC, 0x3C                       # (NUDGE3) a drum's edit store = [[DS_PROB0 + DS_PROB_SZ d + 0xC]] (drumstore.py)
 D_SET_OFF, D_AUTO_OFF, D_LANES, D_ARRAYS = 0x80, 0xA8, 8, 4   # a drum pattern: four arrays of 32 bytes (velocity, probability, sample, micro steps), the settings, 8 lanes
 
 
@@ -281,6 +297,9 @@ def arm_code(base, L, prev):
         # ---- c_pmnudge2 (r0 = the Pattern Settings view, r1 = track, r2 = pattern, r3 = 0 back / 1 forward): the range one step, see use_nudge2.
         #      [sp]: + 0 the start, + 4 the count, + 8 k (the left rotation), + 12 the track, + 16 the new first, + 20 the new last, + 24 the lanes'
         #      count, + 28 their offset
+        if NUDGE3:                                                                    # c_pmrs(r0 = the array, r1 = the element's size): c_pmnudge2's rotation
+            a.label("c_pmrs")
+            E(push_list, [], lr=True); E(ldr_sp, 2, 4); E(muls, 2, 1); E(adds_reg, 0, 0, 2); E(ldr_sp, 2, 8); E(ldr_sp, 3, 12); E(bl, "c_pmrot"); E(pop_list, [], pc=True)
         a.label("c_pmnudge2")
         E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 32)
         E(mov_reg, 7, 0); E(str_sp, 1, 12); E(push_list, [3])
@@ -288,23 +307,32 @@ def arm_code(base, L, prev):
         E(subs_imm8, 0, 4); E(ldrb_imm, 5, 0, 1); E(ldrb_imm, 6, 0, 0)                 # r5 = the first step, r6 = the last
         imm32(1, SET_OFF); E(ldr_sp, 2, 12); E(cmp_imm, 2, 4); E(b_cond, "n2_o", "lo"); E(movs_imm, 1, D_SET_OFF)
         a.label("n2_o"); E(subs_reg, 4, 0, 1)                                         # r4 = the pattern
-        E(cmp_imm, 5, 31); bc("n2_x", "hi"); E(cmp_imm, 6, 31); bc("n2_x", "hi"); E(cmp_reg, 5, 6); bc("n2_x", "hi")
-        E(movs_imm, 2, 32); E(cmp_imm, 5, 16); E(b_cond, "n2_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "n2_n", "hs"); E(movs_imm, 2, 16)
-        a.label("n2_n")                                                               # r2 = the pattern's length (16 / 32)
-        E(str_sp, 5, 16); E(str_sp, 6, 20)
-        E(cmp_imm, 3, 0); E(b_cond, "n2_fw", "ne")
-        E(cmp_imm, 5, 0); E(b_cond, "n2_bw", "ne")                                     # back, at step 1: the whole pattern
-        E(movs_imm, 0, 0); E(str_sp, 0, 0); E(str_sp, 2, 4); E(movs_imm, 0, 1); E(str_sp, 0, 8); E(b, "n2_go")
-        a.label("n2_bw"); E(subs_imm8, 5, 1); E(str_sp, 5, 0); E(subs_reg, 0, 6, 5); E(adds_imm8, 0, 1); E(str_sp, 0, 4)   # first - 1 .. last
-        E(movs_imm, 0, 1); E(str_sp, 0, 8); E(str_sp, 5, 16); E(subs_imm8, 6, 1); E(str_sp, 6, 20); E(b, "n2_go")
-        a.label("n2_fw")
-        E(subs_imm8, 2, 1); E(cmp_reg, 6, 2); E(b_cond, "n2_ff", "lo"); E(adds_imm8, 2, 1)   # forward, at the end: the whole pattern
-        E(movs_imm, 0, 0); E(str_sp, 0, 0); E(str_sp, 2, 4); E(subs_imm8, 2, 1); E(str_sp, 2, 8); E(b, "n2_go")
-        a.label("n2_ff"); E(str_sp, 5, 0); E(subs_reg, 0, 6, 5); E(adds_imm8, 0, 2); E(str_sp, 0, 4); E(subs_imm8, 0, 1); E(str_sp, 0, 8)   # first .. last + 1
-        E(adds_imm8, 5, 1); E(str_sp, 5, 16); E(adds_imm8, 6, 1); E(str_sp, 6, 20)
+        E(cmp_imm, 5, 31); bc("n2_x", "hi"); E(cmp_imm, 6, 31); bc("n2_x", "hi"); E(cmp_reg, 5, 6)
+        if NUDGE3:                                                                    # first .. last, by one: left (back) or n - 1 left (forward)
+            bc("n2_x", "hs")
+            E(str_sp, 5, 0); E(subs_reg, 0, 6, 5); E(adds_imm8, 0, 1); E(str_sp, 0, 4)
+            E(movs_imm, 1, 1); E(cmp_imm, 3, 0); E(b_cond, "n2_k", "eq"); E(subs_imm8, 0, 1); E(mov_reg, 1, 0)
+            a.label("n2_k"); E(str_sp, 1, 8)
+        else:
+            bc("n2_x", "hi")
+            E(movs_imm, 2, 32); E(cmp_imm, 5, 16); E(b_cond, "n2_n", "hs"); E(cmp_imm, 6, 16); E(b_cond, "n2_n", "hs"); E(movs_imm, 2, 16)
+            a.label("n2_n")                                                           # r2 = the pattern's length (16 / 32)
+            E(str_sp, 5, 16); E(str_sp, 6, 20)
+            E(cmp_imm, 3, 0); E(b_cond, "n2_fw", "ne")
+            E(cmp_imm, 5, 0); E(b_cond, "n2_bw", "ne")                                 # back, at step 1: the whole pattern
+            E(movs_imm, 0, 0); E(str_sp, 0, 0); E(str_sp, 2, 4); E(movs_imm, 0, 1); E(str_sp, 0, 8); E(b, "n2_go")
+            a.label("n2_bw"); E(subs_imm8, 5, 1); E(str_sp, 5, 0); E(subs_reg, 0, 6, 5); E(adds_imm8, 0, 1); E(str_sp, 0, 4)   # first - 1 .. last
+            E(movs_imm, 0, 1); E(str_sp, 0, 8); E(str_sp, 5, 16); E(subs_imm8, 6, 1); E(str_sp, 6, 20); E(b, "n2_go")
+            a.label("n2_fw")
+            E(subs_imm8, 2, 1); E(cmp_reg, 6, 2); E(b_cond, "n2_ff", "lo"); E(adds_imm8, 2, 1)   # forward, at the end: the whole pattern
+            E(movs_imm, 0, 0); E(str_sp, 0, 0); E(str_sp, 2, 4); E(subs_imm8, 2, 1); E(str_sp, 2, 8); E(b, "n2_go")
+            a.label("n2_ff"); E(str_sp, 5, 0); E(subs_reg, 0, 6, 5); E(adds_imm8, 0, 2); E(str_sp, 0, 4); E(subs_imm8, 0, 1); E(str_sp, 0, 8)   # first .. last + 1
+            E(adds_imm8, 5, 1); E(str_sp, 5, 16); E(adds_imm8, 6, 1); E(str_sp, 6, 20)
         a.label("n2_go")
         def rot(off_reg_setup, size):                                                 # r0 = the array (r4 + ...), then + start x size
-            off_reg_setup(); E(ldr_sp, 1, 0); E(movs_imm, 2, size); E(muls, 1, 2); E(adds_reg, 0, 0, 1)
+            off_reg_setup()
+            if NUDGE3: E(movs_imm, 1, size); E(bl, "c_pmrs"); return
+            E(ldr_sp, 1, 0); E(movs_imm, 2, size); E(muls, 1, 2); E(adds_reg, 0, 0, 1)
             E(movs_imm, 1, size); E(ldr_sp, 2, 4); E(ldr_sp, 3, 8); E(bl, "c_pmrot")
         E(ldr_sp, 0, 12); E(cmp_imm, 0, 4); E(b_cond, "n2_dr", "hs")
         rot(lambda: E(mov_reg, 0, 4), STEP_SZ)                                        # a note pattern: its steps, its 12 lanes
@@ -322,10 +350,17 @@ def arm_code(base, L, prev):
         E(adds_imm8, 6, 1); E(ldr_sp, 0, 24); E(cmp_reg, 6, 0); E(b_cond, "n2_a", "lo")
         E(ldr_sp, 0, 12); E(cmp_imm, 0, 4); E(b_cond, "n2_st", "lo")
         E(subs_imm8, 0, 4); E(mov_reg, 1, 4); E(bl, "c_pmdsync")                       # the drum's edit store
+        if NUDGE3:                                                                    # the stock told: its step pads
+            E(ldr_sp, 0, 12); E(subs_imm8, 0, 4); E(movs_imm, 1, DS_PROB_SZ); E(muls, 0, 1); imm32(1, DS_PROB0 + 0xC); E(adds_reg, 0, 0, 1)
+            E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0); E(bl, MU.PARAM_COMMIT); E(b, "n2_x")
         a.label("n2_st")
-        E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)                # first / last through the view's store
-        E(ldr_sp, 1, 20); E(strb_imm, 1, 0, 0); E(ldr_sp, 1, 16); E(strb_imm, 1, 0, 1)
-        E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
+        if NUDGE3:
+            E(ldr_sp, 0, 12); E(movw, 1, ED_SZ); E(muls, 0, 1); imm32(1, EDITOR); E(adds_reg, 0, 0, 1); E(ldr_imm, 4, 0, 0x18)
+            E(mov_reg, 0, 4); E(bl, STORE_W); E(mov_reg, 0, 4); E(bl, MU.PARAM_COMMIT)
+        else:
+            E(ldr_imm, 0, 7, 0xC); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)            # first / last through the view's store
+            E(ldr_sp, 1, 20); E(strb_imm, 1, 0, 0); E(ldr_sp, 1, 16); E(strb_imm, 1, 0, 1)
+            E(ldr_imm, 0, 7, 0xC); E(bl, MU.PARAM_COMMIT)
         a.label("n2_x"); E(add_sp_imm, 32); E(pop_list, [4, 5, 6, 7], pc=True)
 
     if DSYNC:

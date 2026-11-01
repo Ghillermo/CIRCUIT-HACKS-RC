@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.02** (in Beta 5.0 too; not in RC4 / RC4.01).
-- {YB} = only in **Beta 5.0** (not in RC4.02).
+- {ZB} = a fix of **RC4.02** (in Beta 5.4 too; not in RC4 / RC4.01).
+- {YB} = only in **Beta 5.4** (not in RC4.02).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -33,14 +33,14 @@ VIEWS = {
 |---|---|---|
 | **Clear + knob to the right** | drums, MIDI track engine, Master FX | The knob goes back to its default (both layers, with and without Shift). **Lavender** LED = done, as on the original. |
 | **Clear + knob to the left** | drums (stock knobs), MIDI track engine {B} | Deletes that knob's automation in the playing pattern, as on the original (**red** LED). On the MIDI engine, that of the knob's two lanes (with and without Shift) that have automation. |
-| **Shift** | all | While Shift is held, the shortcuts available light **yellow**; the chosen option, another colour. {YB} Also, the eight **track buttons** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) light **white** while their track has a note sounding (from the sequencer, the pads or the arpeggiator) and go dark when it ends (the drums, from the hit to its note-off). |
+| **Shift** | all | While Shift is held, the shortcuts available light **yellow**; the chosen option, another colour. {YB} Also, the eight **track buttons** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) flash **white** for 100 ms on every note their track plays, from the sequencer, the pads, the arpeggiator or MIDI. A tied note is one note: one flash. |
 | **Save** | all | Saves the project as always; it also writes into the pack the samples replaced by captures (drum Preset), if they fit in the sample memory *(writes to the card)*. |
 | **Press the track button again** | Synth 1 / 2 | Opens the synth's source view (2.3). |
 | **Clear + Synth 1 / 2** | its view | {B} Its eight macros back to the loaded patch's values. |
 | **Shift + Preset** | Synth 1 / 2's and MIDI 1 / 2's views (the own synth on) | {YB} That track's sound back to the project's: Synth 1 / 2, the whole patch as the project saved it; MIDI 1 / 2, the own synth saved with the project (without it, its defaults). With Shift, Preset lights **yellow** where it works. |
 | **Clear + a drum's button** | its view | {B} Deletes the automation of its knobs in the playing pattern and puts its eight knobs back to their defaults. |
 | **Two note-track buttons together** | all | Split keyboard {B}: Synth 1 + Synth 2; {NB} any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2. |
-| **Shift + Clear** | all | Metronome in four states {B}: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / cyan (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. {XB} With the Mixer's cue mode, the click in the cue only (right output). |
+| **Shift + Clear** | all | Metronome in four states {B}: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / teal (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. {XB} With the Mixer's cue mode, the click in the cue only (right output). |
 | **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo, Record blinks red), then recording starts {B}. Play during the count cancels it. The count-in is saved with the project. |
 | **Shift + Play** | all | {B} **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
 | **Shift + Scales** | all | Custom scale editor {B} (2.2). {XB}: also **Scales twice**. |
@@ -72,8 +72,9 @@ VIEWS = {
 "advanced-setup": ("Advanced Setup view",
     "Open it as on the original. Besides its stock settings (master compressor, etc.):", f"""
 - **Duplicate** = mode of the MIDI Thru jack {B}: Thru (dim red, DIN In by hardware) → Out 2 (green) → **Merge** (yellow: DIN In + the device's MIDI) → **Filter** (blue: DIN In without the channels the device listens to). No SysEx in Merge / Filter. Saved in the settings.
-- **K1 = the pads' velocity curve** {XB}: −8 to +8 (2 clicks a step); the centre (0) is the original response, the default. **To the right, more sensitive** (soft hits sound louder); **to the left, harder** (you have to hit harder). While you turn it, the pads show the number (green to the right, red to the left, white at the centre) and **Velocity** lights for 1.5 s. It applies to every pad in every view; fixed velocity (Shift + Velocity = 96) does not change. Saved in the settings.
+- **K1 = the pads' velocity curve** {XB}: −8 to +8 (2 clicks a step); the centre (0) is the original response, the default. **To the right, more sensitive** (soft hits sound louder); **to the left, harder** (you have to hit harder). While you turn it, the pads show the number (green to the right, orange to the left, white at the centre) and **Velocity** lights for 1.5 s. It applies to every pad in every view; fixed velocity (Shift + Velocity = 96) does not change. Saved in the settings.
 - **Pad 23 = USB merge** {XB}: what comes in on the **DIN In** (a keyboard on a MIDI cable) also goes out over **USB** to the computer, together with the device's own MIDI. Green on, dim off; saved in the settings. With Clock Tx on, the DIN In's clock and transport are not copied (the computer would get two clocks); SysEx is not copied; what comes in over USB is not sent on.
+- **Pad 22 = delayed save** *(Beta 5.4 only)*: off (the default), Save saves at once, as the original. On, saving with the sequencer running waits until you stop, so the clock does not stumble ([what happens while it waits](#guardado)). Green on, dim off; saved in the settings.
 - The master compressor's attack / release are set in the Sidechain view, K7 / K8.
 """),
 "synth-nota": ("Synth 1 / 2 track view (Note, Velocity, Gate)",
@@ -86,14 +87,15 @@ VIEWS = {
 - any track button ({XB} a short tap, no knob turned) or view button closes it (held notes are released); Play, Record, Octave and Shift do not.
 - The macro knobs work as always; their destinations can be edited on the device (source view, pad 32).
 - **Velocity view, Shift + a step pad** {XB} (Synth 1 / 2 and MIDI 1 / 2): that step **lets go of the automation**: no lane plays there and the parameters the automation had moved go back to **the project's values** *(since RC4.01; before, to their knob's position)*: on Synth 1 / 2, the macros of the patch as the project saved it (or as it was loaded: turning knobs afterwards does not count); on MIDI 1 / 2, the own synth saved with the project (a project without it: its defaults). A knob turned by hand after the automation stays where you left it. Again = off. With Shift, in the Velocity view, the step pads are yellow and the marked ones red; on the 17-32 page, steps 17-32. Saved with the pattern. {YB} With Shift, the steps **keep their colour** and only **the ones with automation are yellow** (the marked ones, red); **Shift + a yellow step** does not mark it: it **puts its automation values on the knobs and into the sound** until Shift is let go, and letting go puts everything back as it was (Shift + any other step marks or unmarks it as always); meanwhile **the knobs it moves light yellow**, as bright as their value. {YB} **Clear + a step** in the Velocity view (with or without Shift; Clear first, since Shift + Clear is the metronome) **erases that step's knob automation** and keeps its notes, its mark and the level / pan / send automation.
+- **Sweep between two steps** {YB} (Synth 1 / 2 and MIDI 1 / 2): in the Velocity view with Shift, **hold a yellow step and press another yellow step**, in either order: every lane with a value at both becomes a straight line between them, on the steps in between (one value a step, what the playback reads). The two ends do not change; a lane with a value at only one of them is left alone. With a step without automation as the second one nothing happens. It is the gesture of the drums' ramps.
 - **Snapshot of the macros into a step** {YB}: in the track view (Note), **Record held + a step pad** (pads 1-16; with 17-32, steps 17-32) writes into that step the **macros that are not where the loaded patch keeps them** (where Clear + Synth would put them back), each into its lane. The step keeps its notes and Record stays as it was. Mixer and FX are left alone (scenes already keep them). {YB} While you hold the step, it lights **yellow**.
-- **Shift + a key = latch** {XB} (Synth 1 / 2 and MIDI 1 / 2, Note and expanded Note view, no step held): the note sounds and **keeps sounding when you let go of the pad**; the **next press of that note** (on any pad that has it, with or without Shift) stops it, and that press does nothing else. **While Shift is held, the keys of the latched notes light bright cyan**; the other keys keep their colours (without Shift, a sounding note lights white as always). *(Up to Beta 3.39, with Shift the keys lit yellow and the latched ones green; in Beta 3.40, no colours.)* With the **arpeggiator** on, the latched notes stay in the arpeggio: an **arpeggio latch**. **Clear + the track's button** lets go of all its latched notes (and its latched chords). **Shift + a step** (Note view, pads 1-16) with notes latched on the track: **the latched notes are written into that step** (notes already there are not repeated; up to 6 a step; one step long, velocity 100); while Shift is held with notes latched, the step pads light **yellow**; with nothing latched, Shift + step is the stock one. On the chord screen, **Shift + a root** latches the whole chord (below). Not on the sample picker (Shift + pad already does something else there); not saved.
+- **Shift + a key = latch** {XB} (Synth 1 / 2 and MIDI 1 / 2, Note and expanded Note view, no step held): the note sounds and **keeps sounding when you let go of the pad**; the **next press of that note** (on any pad that has it, with or without Shift) stops it, and that press does nothing else. **While Shift is held, the keys of the latched notes light bright teal**; the other keys keep their colours (without Shift, a sounding note lights white as always). *(Up to Beta 3.39, with Shift the keys lit yellow and the latched ones green; in Beta 3.40, no colours.)* With the **arpeggiator** on, the latched notes stay in the arpeggio: an **arpeggio latch**. **Clear + the track's button** lets go of all its latched notes (and its latched chords). **Shift + a step** (Note view, pads 1-16) with notes latched on the track: **the latched notes are written into that step** (notes already there are not repeated; up to 6 a step; one step long, velocity 100); while Shift is held with notes latched, the step pads light **yellow**; with nothing latched, Shift + step is the stock one. On the chord screen, **Shift + a root** latches the whole chord (below). Not on the sample picker (Shift + pad already does something else there); not saved.
 - **Chord screen** {XB} (Synth 1 / 2 and MIDI 1 / 2, only in the **expanded Note view**: Note twice): **Shift + pad 8** turns it on and off (with Shift pad 8 is yellow, green with the screen on).
 
 | Pads | What they do |
 |---|---|
 | Row 1 | The chord type: major, minor, 7, m7, maj7, sus4, dim, aug. **Shift + pads 1-7**: sus2, 6, m6, add9, 9, 7sus4, fifth (with Shift the row yellow; the chosen one white) |
-| Pads 9-12 | The inversion: root position, 1st, 2nd, 3rd (orange; the same again = root position) |
+| Pads 9-12 | The inversion: root position, 1st, 2nd, 3rd (blue; the same again = root position) |
 | Pad 13 | Open voicing: the second note an octave up |
 | Pad 14 | The root added an octave down |
 | Pad 15 | Diatonic: the chord made of thirds of the project's scale (the custom one and Jankó too): 3 notes, 4 when the type has 4 or more |
@@ -102,7 +104,7 @@ VIEWS = {
 
 - Pads 13-16 green on, dim off.
 - **The chord changes at once**: change the type, the inversion or a modifier (pads 13-15) while a chord sounds (held or latched) and the new chord sounds without pressing the root again: the notes that leave stop, the new ones sound and the ones that stay keep sounding. The **arpeggiator** follows the change too (its arpeggio goes on with the new notes).
-- **Shift + a root = chord latch**: the whole chord keeps sounding after you let go of the pad, until you **press that root again** (which only stops it), **Clear + the track's button** or the screen goes off; several can be latched at once and they follow the type and modifiers. With Shift, its root lights **bright cyan**. In the Note view, **Shift + a step** writes its notes into that step. Pad 16's latch is as before.
+- **Shift + a root = chord latch**: the whole chord keeps sounding after you let go of the pad, until you **press that root again** (which only stops it), **Clear + the track's button** or the screen goes off; several can be latched at once and they follow the type and modifiers. With Shift, its root lights **bright teal**. In the Note view, **Shift + a step** writes its notes into that step. Pad 16's latch is as before.
 - What you play sounds and is recorded with Record as **plain notes of the pattern**: it plays back the same without the chord screen. With the **arpeggiator** on, the chord is arpeggiated from one finger.
 - Each track's type and modifiers are **not saved** (lost at power-off).
 - On MIDI 1 / 2 in the sample mode, the expanded Note view stays the sample picker.
@@ -111,12 +113,12 @@ VIEWS = {
     "Press **Scales** as always (root and stock scale); **Shift + Scales** for the custom scale.", f"""
 - **Shift + Scales** opens the Scales view with the **custom scale editor** {B}; with Shift held the Scales button shows yellow. Scales again, Shift + Scales or another view close it. {XB}: **Scales twice** = Shift + Scales (with the Scales view on screen, Scales opens and closes the editor).
 - **The editor's keyboard** is two octaves of a piano from the **root** (the Scales view's, picked as always out of the editor): row 4 = the white keys of the first octave (root, +2, +4, +5, +7, +9, +11, +12), row 3 = its black keys; rows 2 / 1 = the second octave (+12 … +24).
-- **Pressing a key** adds or removes it (up to **7**). The highest one pressed is the **period**: the root of the next iteration (not necessarily the octave); the others are the scale's notes. Colours: root white, notes green, period orange, free keys dim.
+- **Pressing a key** adds or removes it (up to **7**). The highest one pressed is the **period**: the root of the next iteration (not necessarily the octave); the others are the scale's notes. Colours: root white, notes green, period blue, free keys dim.
 - **On the note tracks** (Synth 1 / 2, MIDI 1 / 2) every row of pads is **one iteration**: its notes and the period note at the end, like the octaves of a stock scale. With **4 notes or fewer**, **two iterations a row** (one in each half). Octave ▼ / ▲ move one row.
 - The custom scale also drives **which notes of the sequence light up**, the quantising and **random-mutate** (another note of the same iteration).
 - **Picking a stock scale** (pads 17-32 out of the editor) switches the custom scale off; the keys are kept: going back to the editor switches it on again. While it is on, no stock scale shows as selected.
 - Saved **with the project**; a new project starts without a custom scale.
-- **Jankó** {XB}: in the editor, **Shift + pad 8** (top right; yellow with Shift) turns on the **isomorphic Jankó layout** (pad 8 cyan while on): on the note tracks every column goes up a **whole tone** and the rows come **in pairs**, as on the stock's chromatic keyboard: the lower one starts on the Scales view's **root** (with root C: C D E F♯ G♯ A♯ C D) and the one above is **a semitone lower** (B C♯ D♯ F G A B C♯); in the expanded Note view the upper pair is the lower one **an octave up**. Every chord type has the same shape in any key. **Shift + pad 24** turns on the **earlier layout** instead (every row a semitone above the one below; projects saved with it keep it). With both, the **root** pads show in the stock's root colour. All 12 notes are there: the notes that sound light on their pads and random-mutate picks any of the 12 of its octave. **Octave ▼ / ▲: a tap = a semitone; held for about half a second = an octave** from where it was (Shift + Octave still transposes the pattern an octave). The same pad again, a key of the editor or a stock scale turn it off. Saved with the project.
+- **Jankó** {XB}: in the editor, **Shift + pad 8** (top right; yellow with Shift) turns on the **isomorphic Jankó layout** (pad 8 teal while on): on the note tracks every column goes up a **whole tone** and the rows come **in pairs**, as on the stock's chromatic keyboard: the lower one starts on the Scales view's **root** (with root C: C D E F♯ G♯ A♯ C D) and the one above is **a semitone lower** (B C♯ D♯ F G A B C♯). Every chord type has the same shape in any key. The **root** pads show in the stock's root colour. All 12 notes are there: the notes that sound light on their pads and random-mutate picks any of the 12 of its octave. **Octave ▼ / ▲: a tap = a semitone; held for about half a second = an octave** from where it was (Shift + Octave still transposes the pattern an octave). The same pad again, a key of the editor or a stock scale turn it off. Saved with the project. On the RCs, in the expanded Note view the upper pair is the lower one an octave up and **Shift + pad 24** turns on the earlier layout (every row a semitone above the one below). {YB} **One layout, Shift + pad 8:** in the expanded Note view the upper pair **repeats** the lower one and pad 24 does nothing; a project saved with either earlier layout opens with this one. **Each pair moves on its own:** in the expanded Note view, with a key held, Octave moves **only the pair the key does not belong to** by a semitone (held for about half a second, an octave from where it was); the key keeps sounding. With keys held in both pairs nothing moves. With no key held, in the Note view and on the chord screen, Octave moves both. The distance between the pairs is not saved: it goes back to 0 at power-off.
 """),
 "synth-fuente": ("Synth source view",
     "With the Synth 1 / 2 view on screen, **press its button again** (*since RC4*: or **Shift + Synth 1 / 2** from any view). Any button closes it.", f"""
@@ -137,7 +139,7 @@ VIEWS = {
 Every macro knob has 4 slots; every slot, a destination, a span of the travel (start and end) and a depth.
 1. **Pad 32** (teal) = editor on; the knobs no longer move the macros.
 2. **Turn a knob** to pick its macro (white LED); the first turn changes nothing.
-3. The knob changes the current field; **Octave ▼ / ▲** = next / previous field: slot (1-4, yellow) → start (green) → end (orange) → destination (white = CC; light blue, magenta, violet = NRPN of banks 0, 1, 2) → depth (teal positive, red negative). The pads draw the number.
+3. The knob changes the current field; **Octave ▼ / ▲** = next / previous field: slot (1-4, yellow) → start (green) → end (amber) → destination (white = CC; light blue, magenta, violet = NRPN of banks 0, 1, 2) → depth (teal positive, red negative). The pads draw the number.
 4. Any pad releases the macro; pad 32 turns the editor off.
 - The destination walks first the 31 parameters with a CC (by number), then the 39 that only have an NRPN. Changes sound at once; to keep them in the pack, save the patch (Preset view).
 
@@ -168,29 +170,39 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 | 9-24 | **Own-synth patches** {B}: see below. |
 | 25 | **CC editor** of the MIDI macros ([CC editor](#midi-cc)). |
 | 26 | **Patch flip**: every note of the track goes out as a Program Change (on the track's channel; if that is a synth's or the drums' channel, also internally). Exclusive with the engine. |
-| 27 | Track **engine**: off → yellow (line input) → green (oscillator) → red (VA-drum) → magenta (granular) → cyan (sample {B}) → blue (FX sequencer). {XB} With the engine off, the pad shows grey (dim white). |
+| 27 | Track **engine**: off → amber (line input) → green (oscillator) → orange (VA-drum) → magenta (granular) → teal (sample {B}) → blue (FX sequencer). {XB} With the engine off, the pad shows grey (dim white). |
 | 28 | One / two oscillators (oscillator and VA-drum). |
 | 29 | Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page's colour {B}). |
-| **Shift + 29** {B} | **Gate retrigger**: on (green with Shift, the default) = every new note restarts the envelope; off (yellow) = **legato**: with other notes held, a new note only changes the pitch. {XB} It steps through the seven **voice modes** of pad 32 (with Shift, in the mode's colour). |
+| **Shift + 29** {B} | **Gate retrigger**: on (green with Shift, the default) = every new note restarts the envelope; off (yellow) = **legato**: with other notes held, a new note only changes the pitch. {XB} It steps through the eight **voice modes** of pad 32 (with Shift, in the mode's colour). |
 | 30 | Opens the **step-drummer**; **Shift + pad 30** turns it off. |
 | 31 | VA-drum only: velocity scales the pitch and filter envelopes. |
 | 32 | {XB} **Voice mode** (a row): see «Voice mode» below. |
 
 ### Voice mode (pad 32) {XB}
-With the engine on, **a touch on pad 32** opens the voice modes on **pads 17-24** (modes with the same name share a colour) (the current one bright, the others dim; pads 9-24 do not load patches meanwhile); touching one picks it; pad 32 again (or leaving the view) closes it. Pad 32 always shows the mode's colour. With the row open, **K1 = the glide's amount** (cyan: its time; fully left, no glide; up to about 2 s) and **K2 = the unison's detune** (blue; up to ±50 cents between the outer voices). The mode, the time and the detune are saved with the own-synth patch and with the project.
+With the engine on, **a touch on pad 32** opens the voice modes on **pads 17-24** (modes with the same name share a colour) (the current one bright, the others dim; pads 9-24 do not load patches meanwhile); touching one picks it; pad 32 again (or leaving the view) closes it. Pad 32 always shows the mode's colour. With the row open, **K1 = the glide's amount** (teal: its time; fully left, no glide; up to about 2 s) and **K2 = the unison's detune** (blue; up to ±50 cents between the outer voices). The mode, the time and the detune are saved with the own-synth patch and with the project.
 
 | Pad | Mode |
 |---|---|
 | 17 (green) | **Retrigger**: every new note restarts the envelope. |
 | 18 (yellow) | **Legato**: with other notes held, a new note only changes the pitch. |
-| 19 (cyan) | **Glide**: like legato (with other keys held the gate is not restarted), but the pitch **slides** from the held note to the new one (K1 = the amount: the glide's time). A note played with none held starts at its pitch and restarts. In the oscillator (one or two), the VA-drum and FM; the sample mode and the granular do not slide. |
+| 19 (teal) | **Glide**: like legato (with other keys held the gate is not restarted), but the pitch **slides** from the held note to the new one (K1 = the amount: the glide's time). A note played with none held starts at its pitch and restarts. In the oscillator (one or two), the VA-drum and FM; the sample mode and the granular do not slide. |
 | 20 (green) | **Uni retrig**: the voices (4; in FM 6, or 3 with both tracks in FM) play the same note, spread symmetrically by K2; every new note moves them all and restarts the envelope; they sound until every note is let go. In the oscillator (one or two), the VA-drum and FM; in the sample mode, one voice. |
 | 21 (yellow) | **Uni legato**: the unison like legato: with other keys held, the voices only change pitch (without restarting the gate nor, in FM and the VA-drum, their own envelopes). |
-| 22 (cyan) | **Uni glide**: the unison sliding only from a held note to another (legato); a note played with none held starts at its pitch, with no glide, and restarts the envelope. |
+| 22 (teal) | **Uni glide**: the unison sliding only from a held note to another (legato); a note played with none held starts at its pitch, with no glide, and restarts the envelope. |
 | 23 (violet) | **Uni always-glide**: the unison always sliding from the previous note to the new one, even after every key was let go (then the gate restarts); with other keys held, the voices only change pitch. |
 | 24 (magenta) | **Poly**: In the **oscillator** (one or **two oscillators**; the supersaw too), the **VA-drum**, **FM** and the **sample mode** (stereo too), **up to 4 notes at once** (in FM, up to 6), each with its own velocity; the envelope, the filter and the effect are the track's and every new note restarts them; letting go of a note while others are held silences it and the last one rings through the release; one note too many takes the oldest one's voice. **In the VA-drum** every hit has **its own pitch and level envelopes and its own noise**: a new hit does not restart the earlier ones and letting go of the note does not cut the hit (the filter is still the track's). **In FM** every note has its own four operators with their envelopes and its own noise, and rings through its release even if you play others; **6 FM voices between the two tracks**: a track alone has 6; with MIDI 1 and MIDI 2 both in FM poly (or unison), 3 each. In granular, one voice. *Since RC4*: each voice is turned down by how many are sounding (one or two notes, the same; four, at 0.71; six, at 0.58), so chords do not clip; **poly is the mode of a project that never chose another**; and when the DSP is about to run out of time (many FM voices with long releases), **the quietest voice already ringing out is switched off** (or, with none, the oldest held note) before any rattle is heard; then it plays with the voices that fit and tries one more every 2 s (the unison modes too, which follow the same level rule). While two or more voices sound, **Synth 1 and Synth 2 do not lose voices** to the time they take (the device used to drop its own when short of time: they went silent until the chord was let go); when time really runs out, the own synth's voices are the ones switched off. |
 
 How many voices each mode gives, the chord level and the voice limiter when the DSP is short of time: [Own-synth voices](#midi-voces).
+
+### Jump sequencer {YB}
+A MIDI track can move another track's pattern: instead of sounding, its notes make that track **jump to the step they indicate**.
+
+- **Pointing:** with the engine row open (a tap on pad 27), **pads 9-16** are the eight tracks, in the order of their buttons and in their colours. A tap points at that track (it lights bright, and pad 27 takes its colour); another track changes it; the same one turns it off. The track's own pad stays dark.
+- **While pointing, the track plays no notes:** not on its engine, not over MIDI, not on a shared channel. Each of its notes, from the sequencer, the pads or the arpeggiator, is a jump: it lands on the note's own step and the other track goes on from there.
+- **Which step:** in its Note view, **pads 17-32 are steps 1-16** and with **Octave ▲ steps 17-32**; in the **expanded Note view the 32 pads are steps 1-32 in order**. The scale and the root change nothing: while you see that track, its keyboard is a Jankó layout with a different note on every pad, and the other tracks keep theirs.
+- **Everything about a step still applies:** probability, 1 in N, random-mutate. A track muted in the Mixer makes no jump.
+- **Pads and other speeds:** a pad while playing jumps on the other track's next step; a slower track waits for its next step. Stopped, a pad does nothing. With Record, pads are recorded and jump when played back.
+- A step outside the pattern's first / last plays once and the pattern ends as usual. MIDI 1 and MIDI 2 can point at the same time. **Saved with the project.**
 
 ### Own-synth patches (pads 9-24) {B}
 - 16 slots per page; **Octave ▼ / ▲** = 4 pages (64 slots per pack, shared by MIDI 1 and MIDI 2); {XB} **8 pages, 128 slots**.
@@ -203,7 +215,7 @@ How many voices each mode gives, the chord level and the voice limiter when the 
 - **Choosing the engine** {XB}: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (before RC4, every tap of pad 27).
 - **Line input** (yellow): the track's audio input (line 1 on MIDI 1, line 2 on MIDI 2) goes through the VCA-VCF; the track's notes trigger it.
 - **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony (with one oscillator, {B}: the last note has priority and releasing it goes back to the previous one).
-- **VA-drum** (red): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
+- **VA-drum** (orange): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
 - **Granular** (magenta): up to 16 grains from a pack sample or the capture (page 2, next section).
 - **FX sequencer** (blue): the track's step-drummer triggers the slots of Master FX's bottom row (6.1).
 - **FM** (violet) {XB}: **pad 24** of the row: a 4-operator FM synth, a variant of the oscillator, with 16 algorithms (classic, percussive, bells and strings) and its knobs on **page 7** (chapter «4-operator FM»).
@@ -301,7 +313,7 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 - **Page 4 — sequenceable knobs:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect). {XB}: **Shift + knob** = that knob's **destination**: the engine's 33 parameters in the modulation matrix's order and colours (the LED in its page's colour; 4 clicks a parameter); with **Clear held before Shift**, the factory one. While you pick, **pads 9-24 show where the destination lives**, as when a matrix knob turns: its page's pad bright and that page's knobs (K1-K8 above, Shift + K1-K8 below; the destination bright). The lane records and plays the new destination (what it already held now moves that parameter). They are saved with the own-synth patches (MIDI 1 / 2's Preset view); a patch without them loads the factory ones.
 - **Non-sequenceable knobs** {XB} (**Shift + pad 4**; pad 4 pink while they are on the knobs, dim pink with Shift): 8 knobs with an **assignable destination** like the sequenceable ones (**Shift + knob** = the destination among the 33 parameters, in its page's colour; **Clear held, then Shift + knob** = the factory one; while you pick, pads 9-24 show where it lives). By default: Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2, VCA gain. They move that parameter's value **without recording it** (a destination that is also on the sequenceable knobs is recorded, as from any page). Their destinations are saved with the own patches.
 - **Snapshot of the values into a step** {XB}: in MIDI 1 / 2's track view (engine on), **Record held + a step pad** (pads 1-16; with 17-32, steps 17-32) writes into that step's lanes the parameters that are **not at their initial value** (the one of Clear + knob to the right), and only those. A parameter without a lane takes one whose parameter is at its initial value (in lane order), and that lane is cleared in the pattern first; when they do not fit, the first ones in the matrix's order. The step keeps its notes and Record stays as it was. {YB} Also on **Synth 1 / 2** (their macros) and the **drums** (pitch, decay, distortion, EQ): [Synth 1 / 2 track view](#synth-nota), [a drum's track view](#drum-pista). {YB} While you hold the step, it lights **yellow**.
-- **Page 5:** ADSR on top, LFO below. {B}: **Shift + K8 = the LFO's shape**: reverse saw (orange, the usual one), saw (magenta), triangle (green), square (red), sine (cyan), sample & hold (white: a random value each cycle); {NB}: **slewed sample & hold** (violet: it glides from one random value to the next during each cycle), and **with no shape saved (a new or older project) the triangle** (in RC2: the reverse saw; an own-synth patch from before the shapes still loads the reverse saw). A step every 4 clicks, K8's LED with Shift in its colour. Saved with the project and in the own-synth patch; with the VA-drum the LFO stays its noise.
+- **Page 5:** ADSR on top, LFO below. {B}: **Shift + K8 = the LFO's shape**: reverse saw (blue, the usual one), saw (magenta), triangle (green), square (red), sine (teal), sample & hold (white: a random value each cycle); {NB}: **slewed sample & hold** (violet: it glides from one random value to the next during each cycle), and **with no shape saved (a new or older project) the triangle** (in RC2: the reverse saw; an own-synth patch from before the shapes still loads the reverse saw). A step every 4 clicks, K8's LED with Shift in its colour. Saved with the project and in the own-synth patch; with the VA-drum the LFO stays its noise.
 - **Page 6** {NB}: the mod matrix (next section).
 - **Page 7** {XB}: with the FM engine, its operators and its algorithm (chapter «4-operator FM»).
 - Type knobs show colour (type) and brightness (position within the type). Everything goes out and comes in over CC / NRPN (MIDI reference).
@@ -311,13 +323,13 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 | Knob | Alone | With Shift |
 |---|---|---|
 | K1-K4 | Ratio of operators 1-4: 0.5 … 16 (green = whole, light blue = and a half, teal = inharmonic: 0.71, 1.41, 4.24). Each ratio spans 5-6 clicks: the first is exact and each further one **detunes** +2.5 cents (up to about +12; LED half bright) | Centre = attack 0. **To the right:** the operator's attack (0 … about 3 s; light blue). **To the left:** the operator is **percussive** with its own decay, shorter the further left (3 ms … 8 s; red) |
-| K5 | Level of operator 1 (orange) | Algorithm (16, 8 clicks each; its family's colour) |
+| K5 | Level of operator 1 (blue) | Algorithm (16, 8 clicks each; its family's colour) |
 | K6 | Level of operator 2 | Feedback (magenta) |
 | K7 | Level of operator 3 | Noise (white) |
-| K8 | Level of operator 4 | Release (blue) |
+| K8 | Level of operator 4 | Release (amber) |
 
 - **Choosing the algorithm with the pads:** on the FM page, **hold pad 7**: pads 9-24 show the 16 algorithms (their family's colour; the current one bright). **Press one**: it is chosen and the tonic sounds while you hold it (**Shift + pad**: no sound). Letting go of pad 7 brings the patches back.
-- **Starter sounds** {XB}: with FM on, **a tap on pad 8** opens the FM page (like pad 7) and **holding pad 8** shows **16 ready-to-play instruments** on pads 9-24, in their family's colour: **row 2** piano, electric piano, organ (keys, white), pluck, harp, marimba (plucked, violet), bass (blue), bell (teal); **row 3** strings, pad (green), flute, clarinet, brass (winds, light blue), kick, snare, hi-hat (drums, red). **Press one**: it loads whole (algorithm, ratios, levels, envelopes, feedback, noise and release) and the tonic sounds while you hold it (**Shift + pad**: no sound); the one matching what plays shows bright. They are starting points: tweak them with the knobs and save them like any patch. Pad 8 shows dim white with FM on and bright while held.
+- **Starter sounds** {XB}: with FM on, **a tap on pad 8** opens the FM page (like pad 7) and **holding pad 8** shows **16 ready-to-play instruments** on pads 9-24, in their family's colour: **row 2** piano, electric piano, organ (keys, white), pluck, harp, marimba (plucked, violet), bass (amber), bell (teal); **row 3** strings, pad (green), flute, clarinet, brass (winds, light blue), kick, snare, hi-hat (drums, orange). **Press one**: it loads whole (algorithm, ratios, levels, envelopes, feedback, noise and release) and the tonic sounds while you hold it (**Shift + pad**: no sound); the one matching what plays shows bright. They are starting points: tweak them with the knobs and save them like any patch. Pad 8 shows dim white with FM on and bright while held.
 - **While a ratio turns** (K1-K4) pads 9-32 show the 24 ratios for 1.5 s (the current one bright, white when detuned); while the algorithm turns (Shift + K5), pads 9-24 show the algorithms. Meanwhile those pads load no patch.
 - **It is a variant of the oscillator:** the note, TUNE / FINE, the pitch envelope and the vibrato of page 2 still apply; after it, the filter, the effect and the matrix as with the oscillator. One note at a time (the last one wins); with the retrigger off (Shift + pad 29) a legato note does not restart the attacks.
 - **The loudness comes from the operators' envelopes**: the engine's VCA stays open (velocity still sets the level) and page 1's ADSR moves the filter, the pitch and the brightness.
@@ -365,7 +377,7 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 
 - **The knob's position is the destination and the amount.** Fully left = off. Turning right goes through **every parameter of the knob pages** (33: page 1's, then page 2's, page 3's and the page 5 ones not seen before), one stretch each: inside a stretch the amount grows from 1/16 to full ({XB}: from 0 to full: the stretch's first step is the destination with no amount, its LED dim); into the next stretch the destination changes and the amount starts again.
 - **Slow knobs:** two clicks a step, 16 steps a destination.
-- **The LED's colour is the destination page's** (the colours of pads 1-5: orange VCA-VCF, green OSC 1, teal OSC 2), its **brightness** the amount; dark = no destination.
+- **The LED's colour is the destination page's** (the colours of pads 1-5: amber VCA-VCF, green OSC 1, teal OSC 2), its **brightness** the amount; dark = no destination.
 - **While you turn a source** (and 1.5 s after), the pads show where its destination lives: its page pad lights up and pads 9-16 / 17-24 are that page's K1-K8 / Shift + K1-K8 (dim the ones with a parameter, bright the destination). While they show, pads 9-24 do not load patches.
 - **Full amount** = the whole source sweeps the parameter's whole range. The bipolar sources (note, random, LFO 2, stepped random) go up and down; the others only up. The parameter's stored value does not change: the matrix is added when it is sent.
 - Several sources can share a destination (they add up). TUNE moves in semitones and FINE in fractions; with the granular engine, its ranges; in sample mode the sample parameter picks the sample (from the capture to 64) and only TUNE changes the pitch.
@@ -412,7 +424,7 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 | 1-16 | First / last step (stock). |
 | 17-24 | Sync rate (stock). |
 | 25 | Opens the probability view in **mode 2** (dynamics and random-mutate; on the drums too {B}). **Clear + pad 25** (note tracks): clears the dynamics and the random-mutate of every step of the pattern; the frequency stays {B}. |
-| 26 | **Nudge** (orange): the chosen first step becomes step 1; what was in front goes to the end (steps and automation, over 16 or 32). {XB}: **a tap = the selected range (first to last step) one step back**, **Shift + pad 26 = one step forward**; the range keeps its length and the step it moves onto goes to the gap it leaves; when the range touches step 1 (back) or the end (16 / 32, forward), the whole pattern rotates and the range stays. |
+| 26 | **Nudge** (blue): the chosen first step becomes step 1; what was in front goes to the end (steps and automation, over 16 or 32). {XB}: a tap = the range one step back, Shift + pad 26 forward, with the first and last steps. *(Beta 5.4 only)* **A tap = the content of the selected range (first to last step) one step back**, **Shift + pad 26 = one step forward**: what leaves at one end of the range comes in at the other and **the first and last steps do not move**. |
 | 27 | **Fractal** order: 1 · 1 2 · 1 2 3 · … up to the last step. |
 | 28 | **Deconstructed** order: the grid's diagonals (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15). |
 | 29-32 | Stock direction; exclusive with 27 / 28. |
@@ -459,19 +471,47 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 - **One micro step per note (stock):** each note stores a single position, so touching another micro step moves the chosen note; two cannot be lit at once. For several in the same step, enter several notes. Drums can light several micro steps (repeats).
 - **Gate once** is the Gate view (pads 17-32 = the length): there pads 31 / 32 are the stock's.
 - **Pad 32 = gate by holding** {B} for the track (green = on, dim = off; saved with the project): when **entering notes by hand** (a step held + a note pad, or a note held + a step pad), **how long you hold the pad is the note's gate**, at the project's tempo and the track's sync rate (1 micro step to 16 steps). It ends when the first of the two pads is let go. Off: the stock's gate.
-- **Pad 31 = fixed length** {B} for the track (orange = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate, all of a chord's notes too, whichever pad you let go first (since RC2.08: before, only when the note pad was let go first).
+- **Pad 31 = fixed length** {B} for the track (blue = on): with both off, it opens the **selector** (pads 17-32 = 1 … 16 steps, like the Gate view) and **picking a length turns it on** (and closes the selector). With it, every note entered by hand (not one recorded live) gets that gate, all of a chord's notes too, whichever pad you let go first (since RC2.08: before, only when the note pad was let go first).
 - **The two toggles** {B}: with one on, **pressing it again turns it off** (nothing opens); **pressing the other one** turns the first off and the new one on (pad 31 by opening its selector).
 - The arpeggiator uses those gates too: each note of the chord lasts its own.
 """),
 "probabilidad": ("Probability view (note tracks and drums)",
-    "**Shift + Pattern Settings** (stock mode), **Pattern Settings twice** (mode 1) or **pad 25** of Pattern Settings (mode 2). Hold a step with notes and touch a pad of rows 3-4.", f"""
+    "**Pattern Settings twice** or **Shift + Pattern Settings** (mode 1), or **pad 25** of Pattern Settings (mode 2). Hold a step with notes and touch a pad of rows 3-4.", f"""
 | Mode | Row 3 | Row 4 |
 |---|---|---|
-| Stock (Shift + Pattern Settings) | Step probability | **Random-mutate** {B} |
-| Mode 1 (Pattern Settings twice) | Step probability | **Frequency**: the step plays on the last of every n passes (1-8), yellow {B} |
+| Mode 1 | Step probability | **Frequency**: the step plays on the last of every n passes (1-8), yellow {B} |
 | Mode 2 (pad 25) | Random **dynamics** {B} | Random-mutate {B} |
 
-### Random-mutate (row 4)
+### Mode 2 {YB}
+The two rows are one set of pads, per step:
+
+| Pad | What it does |
+|---|---|
+| 17 | No note or octave changes (white) |
+| 18 / 19 / 20 | **Another note of the scale**, in the same octave: chance ×1 / ×2 / ×4 (peach) |
+| 21 / 22 | **An octave up**: low / high chance, ×1 / ×2 (sand) |
+| 23 / 24 | **An octave up or down**, at random: low / high chance, ×1 / ×2 (sand) |
+| 25 | **Dynamics** on / off (green); turning them on picks pad 26's |
+| 26 | **Accents**: velocity −32 to +64 |
+| 27 | **Accents and length**: the same, and stronger notes only get shorter (down to a half), weaker ones only longer (up to double) |
+| 28 | **Random length**, a half to double, and velocity ±16 |
+| 29-31 | No function (dark) |
+| 32 | **Micro steps** on / off (teal): the note moves 0, 1 or 2 micro steps earlier or later, staying inside its step |
+
+- **Octave ▼ / ▲ with this view open = the track's factor**, ×0 to ×8 (×1 from the factory), which multiplies all its chances. The pads show the number for 1.5 s; the Octave that cannot move any further goes dark. Saved with the project.
+- **Chances at factor ×1:** note and octave, 6 % for each ×1 of the pad; dynamics and micro steps, 25 %. At ×4: 25 % and 100 %. At ×0 nothing changes.
+- **At ×8, pad 24 changes every note:** the step's own note never sounds and only an octave up and an octave down are left. The draw is half and half, but without the original note as a reference the ear takes the lower one as the base and it seems that nearly all go up. With pad 22 all of them go up.
+- Note, dynamics and micro steps are drawn apart, each note of a chord apart; the micro steps once a step. A note on the first micro step cannot go earlier, nor one on the last later. Without Record it changes only that time; with Record and this view on screen it is written into that track's pattern (the sequence drifts). Tied notes keep their note, length and micro step.
+- A project from an earlier version keeps the values of its steps, which now mean what this table says.
+
+### Mode 2 on the drums {YB}
+The same pads on the chosen step (pads 1-16) and the same Octave (the drum's factor):
+
+- **Pads 18-20:** another sample of its row of 8 (±1). **Pads 21 / 22:** the next row (+8), low / high chance. **Pads 23 / 24:** a row up or down (±8), low / high chance. It starts from the step's sample flip, or the chosen sample; it is not recorded.
+- **Pads 25, 26 and 28:** dynamics. A hit has no length: pad 28 only moves the velocity ±16 and pad 27 is dark.
+- **Pad 32:** micro steps of **the whole drum**, not of the step (the step has no spare bits), and they only delay: the hit comes 1 or 2 micro steps late (a drum cannot play earlier). If a step with several hits already has one delayed, the next one plays on time. It also works on a step without a hit; the other pads need a step with a hit.
+
+### Random-mutate in the RCs (row 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |
 |---|---|---|---|---|---|---|---|---|
 | Octave | — | 6 % | — | 6 % | — | 12 % | — | 25 % |
@@ -479,13 +519,13 @@ The same gestures (**Shift + pad 25 / 27-32 / 17-24**) in a drum's Pattern Setti
 
 - Scale = another note of the scale in the same octave; octave = one up or down. Each note of a chord is drawn separately. Without Record it changes only that time; with Record it is written (the sequence drifts). Tied notes do not change.
 
-### Dynamics (row 3, mode 2)
+### Dynamics in the RCs (row 3, mode 2)
 | Pad | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
 |---|---|---|---|---|---|---|---|---|
 | Micro steps | — | ±2 | ±2 | — | −1 to +3 | −1 to +3 | — | — |
 | Velocity | — | — | 0 to +32 | 0 to +32 | 0 to +32 | — | ±32 | −32 to +64 |
 
-- With Record and mode 2 on screen, what plays (mutated note, dynamics) is written into the pattern. Everything is saved with the step.
+- With Record and mode 2 on screen, what plays (mutated note, dynamics) is written into that track's pattern *(Beta 5.4 only; on the RCs, into the other note tracks too)*. Everything is saved with the step.
 
 ### On the drums {B}
 The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of its Pattern Settings (mode 2, peach; green when its arpeggiator is on). Pick a step with a hit (pads 1-16) and touch a pad of rows 3-4.
@@ -493,27 +533,27 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | Mode | Row 3 | Row 4 |
 |---|---|---|
 | Mode 1 | Step probability (stock) | **Frequency** (1-8), yellow |
-| Mode 2 | **Dynamics** (the same 8 levels) | Pads 25-28: **random-mutate of the sample** |
+| Mode 2, in the RCs | **Dynamics** (the same 8 levels) | Pads 25-28: **random-mutate of the sample** |
 
 | Pad | 25 | 26 | 27 | 28 |
 |---|---|---|---|---|
-| Random-mutate | — | 25 % ±1 (the next sample in its row of 8) | 25 % ±8 (the same column in another row) | 12 % of each |
+| Random-mutate in the RCs | — | 25 % ±1 (the next sample in its row of 8) | 25 % ±8 (the same column in another row) | 12 % of each |
 
 - The dynamics only delay the hit inside its step (a drum cannot play earlier). The mutate starts from the step's sample flip, or the chosen sample; it is not recorded.
 - The values live in bytes of the pattern the stock does not use (they travel when it is duplicated and with Nudge); the first one set clears those bytes in the project's 32 drum patterns (a factory pack keeps garbage there).
 """),
 "midi-muestra": ("Sample mode and sample picker",
-    f"{B} MIDI 1 / 2 with the engine on **sample** (pad 27 cyan, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.", """
+    f"{B} MIDI 1 / 2 with the engine on **sample** (pad 27 teal, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.", """
 | Control | Function |
 |---|---|
-| Pads 17-32 | 16 samples of the pack: touch = the track's sample (cyan) and it sounds; the others dim. {XB} **Shift + sample** = pick it silently; **Shift + the one already chosen** = pick the second sample (stereo; see below). |
+| Pads 17-32 | 16 samples of the pack: touch = the track's sample (teal) and it sounds; the others dim. {XB} **Shift + sample** = pick it silently; **Shift + the one already chosen** = pick the second sample (stereo; see below). |
 | Octave ▼ / ▲ | Next / previous page of samples (4 pages = the pack's 64; lit when there are more that way). |
-| Pads 1-16 | The 16 steps of the half shown: peach = with a sample flip, dim cyan (the background) = without, white = the one playing. **Hold a step + touch a sample** = its flip (the step green, its sample yellow); also **hold a sample + touch steps** (since RC2.04); **Clear + step** = remove it. {XB}: a flip on a step **without a note** adds **the last note you played** on the track there (60 if none yet; one step long, velocity 100), so it sounds; the steps show **peach** = a note with a flip, **cyan** = a note without a flip, **violet** = a flip without a note, dim cyan = nothing. {XB} In the **Note view** the added note shows at once and steps with a note and a flip show **peach** (a flip without a note only shows here). |
+| Pads 1-16 | The 16 steps of the half shown: peach = with a sample flip, dim teal (the background) = without, white = the one playing. **Hold a step + touch a sample** = its flip (the step green, its sample yellow); also **hold a sample + touch steps** (since RC2.04); **Clear + step** = remove it. {XB}: a flip on a step **without a note** adds **the last note you played** on the track there (60 if none yet; one step long, velocity 100), so it sounds; the steps show **peach** = a note with a flip, **teal** = a note without a flip, **violet** = a flip without a note, dim teal = nothing. {XB} In the **Note view** the added note shows at once and steps with a note and a flip show **peach** (a flip without a note only shows here). |
 | 1-16 / 17-32 | The other half of the pattern. |
 
 - **The pitch:** C3 (note 60) = the sample as recorded; an octave up = twice as fast. The notes come from the normal Note view, the step-drummer or incoming MIDI.
 - **One-shot:** the VCA stays open and the sample plays to its end; every new note restarts it (one voice per track). The filter, effect and LFO of the engine pages still work.
-- **Stereo** {XB}: **K7 of the OSC 1 page** (WAVE, which did nothing in this mode) = the **stereo width**. Fully left, mono as always; turned up, every note plays the chosen sample on the **left** and the **second** one on the **right** (at first the next one, N + 1; 64 is followed by 1): a stereo sample is two slots of the pack (the device's samples are mono). **The second is picked in the picker:** **Shift + the sample already chosen** switches to picking the second (it blinks cyan; the first shows violet): touching a sample = the second, and it sounds; **Shift + the second** goes back to the first. The **distance** between them is kept: when the first changes (or with a step's flip) the second follows. With the width up, the second shows violet. The note lasts as long as the **longer** one: the shorter falls silent at its end. Both at the same pitch. The centre goes the track's way (filter, effect, level, pan, sends); the stereo part goes through the same filter and follows the track's VCA, level, pan, mute and sidechain, but not the effect or the sends. It is set at each note: turning K7 up from 0 during a note applies from the next one. The capture always plays in mono.
+- **Stereo** {XB}: **K7 of the OSC 1 page** (WAVE, which did nothing in this mode) = the **stereo width**. Fully left, mono as always; turned up, every note plays the chosen sample on the **left** and the **second** one on the **right** (at first the next one, N + 1; 64 is followed by 1): a stereo sample is two slots of the pack (the device's samples are mono). **The second is picked in the picker:** **Shift + the sample already chosen** switches to picking the second (it blinks teal; the first shows violet): touching a sample = the second, and it sounds; **Shift + the second** goes back to the first. The **distance** between them is kept: when the first changes (or with a step's flip) the second follows. With the width up, the second shows violet. The note lasts as long as the **longer** one: the shorter falls silent at its end. Both at the same pitch. The centre goes the track's way (filter, effect, level, pan, sends); the stereo part goes through the same filter and follows the track's VCA, level, pan, mute and sidechain, but not the effect or the sends. It is set at each note: turning K7 up from 0 during a note applies from the next one. The capture always plays in mono.
 - **Live:** with **Record + Play**, touching a sample records a note 60 on the step playing, with its flip.
 - **Erasing the note of a step with a flip** {XB} (in the Note view: Clear + step, or the step held + its note's key) erases the note and **keeps the flip**, which only shows here (violet); Clear + step in this picker removes the flip.
 - The track's sample is the same source as the granular's (Shift + K8 on its page; the capture is picked there).
@@ -637,7 +677,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Octave ▲ / ▼** | The knobs = delay / reverb sends. |
 | **Shift + knob** | Global parameters: reverb K1 type, K2 decay, K3 damping; delay K1 time, K2 sync, K3 feedback, K4 width, K5 ratio, K6 slew. Saved with the project. |
 | **Duplicate** | Reset: sends to 0, master filter centred, Master FX off. |
-| **Shift + Octave ▲ / ▼** *(since RC4)* | Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow). Before RC4: **1-16 / 17-32** (green LED). |
+| **Shift + Octave ▲ / ▼** *(since RC4)* | Master filter resonance +16 / −16; stops at 127 / 0 (with Shift, Octave lights yellow). {YB} With Shift, Octave shows the value the way the original shows octaves: Octave ▼ bright in the upper half, dim in the lower and off at 0; Octave ▲ the other way round, off at 127. Before RC4: **1-16 / 17-32** (green LED). |
 | **Shift + pad 25** *(since RC4)* | Master filter off / on: while off, it sounds as with the filter at the centre even if you move its knob (the knob still changes its position); again, the filter comes back at the knob's current position. While off, the filter knob's LED is red; with Shift, pad 25 lights yellow (red while off). Without Shift, pad 25 is the stock one. |
 | Bottom row | The same as in Master FX: slots (26-30), mechanical gesture (31), record (32). |
 
@@ -734,7 +774,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 6. **A Synth 1 / 2 patch** as it sounds (knobs, edited macro destinations, MIDI received) goes with the project; to have it in the pack and use it in other projects, **save it** in the [Preset view](#synth-preset) (Clear + pad twice) {B}.
 7. **Before switching off:** stop the sequencer and wait **2 s** without touching the MIDI 1 / 2 engine (its settings are written to the card only with the transport stopped, so as not to break up the audio), and switch off with the **power button**.
 8. **Without a card (the internal memory's pack)** and with the **S** versions, the mod writes nothing of its own: patches, samples and copies are not saved (the Save LED turns red). Projects are, as on the original.
-9. {ZB} **Saving while it plays:** Save twice with the sequencer running leaves the save **pending** (Save blinks yellow) and writes it **when you stop**, so the clock does not stumble; if you ask the project for something else first (loading one, saving into another slot), it is saved first. If you change pack before stopping, that save is dropped. Stop the transport before switching off.
+9. *(Beta 5.4 only)* **Saving while it plays:** by default the project saves at once, as on the original, though the clock can stumble for a moment. With the **delayed save** ([Advanced Setup](#advanced-setup), pad 22) on, Save twice with the sequencer running leaves the save **pending** (Save blinks yellow) and writes it **when you stop**; if you ask the project for something else first (loading one, saving into another slot) or turn pad 22 off, it is saved right then. If you change pack before stopping, that save is dropped. With a save pending, stop the transport before switching off.
 """),
 "guardado": ("What comes back after a restart and where it is saved",
     "Five places: the **pattern**, the **project** (both when the project is saved), the **pack** (at once, on the card), the **device settings** (on their own, for every project) and none (lost at power-off).", f"""
@@ -752,6 +792,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Custom scale** and {XB} **Jankó** | [Scales](#escalas) |
 | MIDI 1 / 2 own synth: **gate retrigger**, **LFO shape**, the step-drummer's pitch-vel toggle and page 2 destination | [Knob pages](#midi-knobs), [Step-drummer](#step-drummer) |
 | {XB} **Stereo drum pairs**: on, distance, width and deviations | [Drums](#drum-pista) |
+| {YB} **The random-mutate factor** of each track and each drum's **micro steps** (mode 2) | [Probability view](#probabilidad) |
+| {YB} **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](#midi-preset) |
 | {YB} **What each drum's extra lane carries** (lane or state locks) | [Drums](#drum-pista) |
 | {YB} **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](#drum-pista) |
 | {XB} **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and {XB} non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was) | [MIDI Preset view](#midi-preset) |
@@ -771,6 +813,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **MIDI 1 / 2 engine**: the engine chosen, all its values, oscillators and order (pads 28 / 29), step-drummer on and its destination, FX sequencer, patch flip | [MIDI Preset view](#midi-preset) |
 | **MIDI Thru jack mode** (Thru, Out 2, Merge, Filter), the project's **Program Change channels**, **cue mode** | [Advanced Setup](#advanced-setup), [Setup](#setup), [Mixer](#mixer) |
 | {XB} The drums' **General MIDI mode** and its notes; **USB merge**; **external keyboard to the arpeggiator**; the pads' **velocity curve** | [Setup](#setup), [Advanced Setup](#advanced-setup) |
+| *(Beta 5.4 only)* **Delayed save** | [Advanced Setup](#advanced-setup) |
 """),
 "datos-perdido": ("What is lost at a restart",
     "Whatever is in none of the tables above lives only in memory and is gone at power-off (or when another version is installed).", f"""
@@ -804,9 +847,11 @@ Synth 1 = channel 1, Synth 2 = channel 2, drums = channel 10, project and Master
 | **External keyboard on MIDI 1 / 2** {B} | Notes coming in on the channel of MIDI 1 / 2 (USB or DIN) play its own synth and are recorded; they are not sent on to the output. |
 | **External keyboard to the arpeggiator** {XB} | Setup, Note button: notes coming in on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator. |
 | **Patch flip** | MIDI 1 / 2 Preset view, pad 26: every note of the track goes out as a Program Change on the track's channel. |
+| **Jump sequencer** {YB} | MIDI 1 / 2 Preset view, pads 9-16 of the engine row: while pointing at another track, the MIDI track sends no notes; its notes make that track jump. |
 | **The project's Program Change** {B} | Setup, pads 29 / 30: listen channel and output channel (16 by default); what arrives on the listen one is sent again on the output one. |
 | **MIDI Thru: Merge and Filter** | Advanced Setup, Duplicate: Thru (hardware), Out 2, Merge (DIN In + the device's MIDI), Filter (DIN In without the device's channels). No SysEx. |
 | **USB merge** {XB} | Advanced Setup, pad 23: what comes in on the DIN In also goes out over USB (without the clock with Clock Tx, without SysEx). |
+| **Delayed save** *(Beta 5.4 only)* | Advanced Setup, pad 22: saving the project while it plays waits until you stop (Save blinks yellow). Off by default: as the original. |
 | **General MIDI mode of the drums** {XB} | Setup, K4 / K5-K8: the hits of Drum 1-4 go out as the GM note chosen instead of 60 / 62 / 64 / 65. Inside, the sound is the same. |
 | **Stereo drum pair** {XB} | Drum 2 / 4's notes play it alone, on the right; its pattern neither sounds nor goes out over MIDI while the pair lasts. |
 | **Record the internal routings** {B} | Setup, Record: what a MIDI track sends to a synth on the same channel is also recorded in the synth; {XB} nothing is recorded in a track muted in the Mixer. |
@@ -847,6 +892,7 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 2. Pick the version (RC4, the safer RC4S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
+- **New builds:** in step 2, **Check for new builds** looks up the published ones (it needs the internet) and adds to the list those your installer does not carry; you pick and send them like the others.
 """),
 }
 
@@ -883,6 +929,7 @@ ABOUT = {
 - **Own-synth patches** {B} — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** {NB} — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
+- **Jump sequencer** {YB} — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 """,
     "midi-knobs": """
@@ -923,7 +970,7 @@ ABOUT = {
 - **Rollers** {B} — repeat the drum on the micro steps you hold: rolls and ratchets live, stopped too, and recorded with Record.
 """,
     "pattern-settings": f"""
-- **Nudge** — rotates the pattern so that it starts on another step.
+- **Nudge** — moves the content of the selected steps one step back or forward.
 - **Fractal and deconstructed orders** — walk through the pattern another way without changing its notes.
 - **Arpeggiator** {B} — the pattern's chords (and the ones you play) sound note by note, in their order and resolution; on the drums, jumping from sample to sample.
 - **Dynamics and random-mutate** (pad 25) — variations so that the pattern does not always sound the same.

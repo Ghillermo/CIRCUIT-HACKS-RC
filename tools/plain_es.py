@@ -179,7 +179,7 @@ Pulsar el pad 31 frena el audio hasta pararlo; soltarlo lo arranca otra vez. K1 
 ### Huecos (pads 26-30)
 Mantén un efecto (pads 1-6), el pad 7 (la captura) o el pad del Glitch / gesto y toca un hueco: el hueco guarda ese efecto con una copia de sus knobs. Tocar el hueco = encendido mientras lo mantienes; **Shift + hueco** = fijado. Los huecos se guardan con el proyecto. Un hueco vacío es el efecto de actuación de stock de la vista FX. El secuenciador de efectos (sección 10) dispara estos huecos.
 """, [F("Master FX (Mixer dos veces). RC0.9: pad 6 Vinyl, pad 31 Glitch; RC2: pad 6 Glitch, pad 31 gesto mecánico.",
-        pads={1: ("orange", "Gater"), 2: ("yellow", "Filtro\nLP"), 3: ("yellow", "Filtro\nHP"), 4: ("lime", "Digitise"), 5: ("magenta", "Phaser"), 6: ("teal", "Glitch"),
+        pads={1: ("orange", "Gater"), 2: ("green", "Filtro\nLP"), 3: ("blue", "Filtro\nHP"), 4: ("pink", "Digitise"), 5: ("magenta", "Phaser"), 6: ("peach", "Glitch"),
               7: ("yellow", "Tocar\ncaptura"), 8: ("white", "Todo\nfuera"), **{n: ("purple", str(n - 8), True) for n in range(9, 25)},
               **{n: ("peach", f"Hueco\n{n - 25}", True) for n in range(26, 31)}, 31: ("pink", "Gesto"), 32: ("red", "Grabar")},
         knobs={1: "K1", 2: "K2", 3: "K3", 4: "K4"}, buttons={"Mixer": "white"}, view="Master FX")])
@@ -271,7 +271,7 @@ sec("midi", "Pistas MIDI como sintes", f"""
 Normalmente una pista MIDI solo envía MIDI. Con el mod, MIDI 1 y MIDI 2 pueden tener cada una su **propio motor** en el Circuit; las notas siguen saliendo por MIDI.
 
 ### El motor (pad 27)
-En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor siguiente; su color dice cuál: apagado (oscuro) → entrada de línea (amarillo) → oscilador (verde) → VA-drum (rojo) → granular (magenta) → muestra (cian, {B}) → secuenciador de efectos (azul) → apagado.
+En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor siguiente; su color dice cuál: apagado (oscuro) → entrada de línea (ámbar) → oscilador (verde) → VA-drum (naranja) → granular (magenta) → muestra (verde azulado, {B}) → secuenciador de efectos (azul) → apagado.
 *Desde RC4:* un toque al pad 27 abre los motores en la tercera fila de pads, en sus colores; tocas el que quieras y el pad 27 otra vez vuelve a los patches. Shift + pad 27 pasa al siguiente como antes.
 
 | Motor | En palabras sencillas |
@@ -322,10 +322,10 @@ Con el motor encendido, el **pad 6** de la vista Preset de MIDI convierte los 8 
 ### Patches del sinte propio {B}
 Las filas 2-3 de la vista Preset de MIDI son 16 huecos de patch, 4 páginas con Octave ▼ / ▲ (64 por pack, compartidos por MIDI 1 y 2; desde RC4: 8 páginas, 128). Tocar = cargar (la tónica suena mientras lo mantienes). **Clear + pad** dos veces = guardar. **Duplicate + A + B** = intercambiar; **Duplicate + A**, otro pack, **Duplicate + B** = copiar. Melocotón tenue = un patch, brillante = el último usado, violeta = vacío. Un patch guarda el motor, los dos osciladores, el orden, todos los valores y el ajuste del step-drummer (los pasos son del patrón). **Clear + el botón de la pista** reinicia todo el motor.
 """, [F("Vista Preset de MIDI 1 con el motor encendido.",
-        pads={1: ("orange", "VCA\nVCF"), 2: ("green", "OSC1", True), 3: ("teal", "OSC2", True), 4: ("purple", "Auto", True), 5: ("pink", "Mod", True),
+        pads={1: ("amber", "VCA\nVCF"), 2: ("green", "OSC1", True), 3: ("teal", "OSC2", True), 4: ("yellow", "Auto", True), 5: ("magenta", "Mod", True),
               **{n: ("peach", "", True) for n in range(9, 25)}, 25: ("magenta", "CC"), 26: ("yellow", "Flip", True), 27: ("green", "Motor"), 28: ("green", "2 osc", True),
-              29: ("orange", "Orden", True), 30: ("purple", "Step\ndrum", True), 31: ("teal", "Vel", True)},
-        knobs={1: "Ataque", 2: "Release", 3: "Env→A", 4: "Env→F", 5: "Filtro", 6: "Reso", 7: "LFO", 8: "FX"}, buttons={"MIDI 1": "orange", "Preset": "white"}, view="Preset MIDI 1")])
+              29: ("amber", "Orden", True), 30: ("purple", "Step\ndrum", True), 31: ("teal", "Vel", True)},
+        knobs={1: "Ataque", 2: "Release", 3: "Env→A", 4: "Env→F", 5: "Filtro", 6: "Reso", 7: "LFO", 8: "FX"}, buttons={"MIDI 1": "blue", "Preset": "white"}, view="Preset MIDI 1")])
 
 # ---------------------------------------------------------------------------------------------------- 11
 sec("patterns", "Herramientas de patrón", f"""
@@ -335,7 +335,7 @@ Pulsa **Pattern Settings** con una pista elegida. Como en stock: pads 1-16 el pr
 | Pad | Función |
 |---|---|
 | 25 | La vista de probabilidad en **modo 2** (más abajo). {B}: **Clear + pad 25** borra las dinámicas y el random-mutate de todo el patrón (pistas de notas). |
-| 26 | **Nudge** (naranja). |
+| 26 | **Nudge** (azul). |
 | 27 | Orden **fractal**: 1 · 1 2 · 1 2 3 · … hasta el último paso. |
 | 28 | Orden **deconstruido**: las diagonales de la rejilla (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15, igual para 17-32). |
 
@@ -366,7 +366,7 @@ Elige un paso con notas (pads 1-16) y toca un pad de la fila 3 o 4.
 ### Vista Micro Step {B}
 Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock: pads 17-22 = los 6 micropasos del paso elegido, **pad 24 = Tie** (un toggle: enlaza las notas elegidas con el paso siguiente), pads 25-30 = las notas del paso (tocar una la elige y la hace sonar). **Cada nota tiene un solo micropaso:** tocar otro lo mueve ahí; para varias en el paso, pon varias notas (en los drums sí se encienden varios: repeticiones). Añadido:
 - **Pad 32 = gate por pulsación** (verde): al introducir notas a mano, lo que mantienes el pad es la duración de la nota.
-- **Pad 31 = longitud fija** (naranja): con los dos apagados abre un selector (pads 17-32 = 1-16 pasos); elegir una longitud lo enciende, y toda nota introducida a mano la toma.
+- **Pad 31 = longitud fija** (azul): con los dos apagados abre un selector (pads 17-32 = 1-16 pasos); elegir una longitud lo enciende, y toda nota introducida a mano la toma.
 - Con uno encendido, pulsarlo otra vez lo apaga; pulsar el otro cambia.
 
 ### Cadenas de patrones y escenas {B}
@@ -379,7 +379,7 @@ Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock
 - *Desde RC4:* con el modo cue encendido, el clic del metrónomo (y el de la cuenta atrás) suena solo por la derecha: lo oyes en los cascos del cue y el público no.
 """, [F("Pattern Settings: pads de stock más 25-28; con Shift, el arpegiador (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 1: ("white", "Primero"), **{n: ("green", "", True) for n in range(17, 25)},
-              25: ("peach", "Modo 2\n/ Arp"), 26: ("orange", "Nudge"), 27: ("purple", "Fractal"), 28: ("purple", "Decons."), 29: ("purple", "Adel.", True), 30: ("purple", "Atrás", True), 31: ("purple", "Ping", True), 32: ("purple", "Azar", True)},
+              25: ("peach", "Modo 2\n/ Arp"), 26: ("blue", "Nudge"), 27: ("pink", "Fractal"), 28: ("pink", "Decons."), 29: ("pink", "Adel.", True), 30: ("pink", "Atrás", True), 31: ("purple", "Ping", True), 32: ("purple", "Azar", True)},
         buttons={"Pattern Settings": "white", "Shift": "yellow"}, view="Pattern Settings"),
       F("Vista de probabilidad, modo 2: fila 3 = dinámicas, fila 4 = random-mutate.",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 3: ("white", "Paso"), **{n: ("green", str(n - 16), n != 19) for n in range(17, 25)},
@@ -387,14 +387,14 @@ Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock
         buttons={"Pattern Settings": "white"}, view="Probabilidad"),
       F("Vista Micro Step (Gate dos veces): pad 31 longitud fija, pad 32 gate por pulsación (RC2).",
         pads={**{n: ("white", "", True) for n in range(1, 17)}, 17: ("green", "μ1"), **{n: ("green", f"μ{n - 16}", True) for n in range(18, 23)}, 24: ("orange", "Tie", True),
-              25: ("magenta", "Nota"), 31: ("orange", "Fija"), 32: ("green", "Pulsar")},
+              25: ("magenta", "Nota"), 31: ("blue", "Fija"), 32: ("green", "Pulsar")},
         buttons={"Gate": "white"}, view="Micro Step")])
 
 # ---------------------------------------------------------------------------------------------------- 12
 sec("scales", "Escalas y la escala propia", f"""
 **Scales** funciona como siempre (tónica y escala de stock). {B} **Shift + Scales** abre el **editor de la escala propia** (el botón Scales se ve amarillo con Shift):
 - Los pads son dos octavas de un piano desde la tónica: fila 4 = las teclas blancas de la primera octava, fila 3 sus teclas negras, filas 2 / 1 la segunda octava.
-- Pulsa una tecla para añadirla o quitarla (hasta 7). La **tecla más alta es el periodo**: la tónica de la iteración siguiente (no tiene por qué ser una octava). La tónica se ve blanca, las notas verdes, el periodo naranja.
+- Pulsa una tecla para añadirla o quitarla (hasta 7). La **tecla más alta es el periodo**: la tónica de la iteración siguiente (no tiene por qué ser una octava). La tónica se ve blanca, las notas verdes, el periodo azul.
 - En las pistas de notas cada fila de pads es una iteración (dos por fila con 4 notas o menos). También decide qué notas se encienden, la cuantización y el random-mutate.
 - Elegir una escala de stock apaga la escala propia (las teclas se conservan). Se guarda con el proyecto.
 """, [F("Editor de la escala propia (Shift + Scales): dos octavas de un piano desde la tónica.",
@@ -404,7 +404,7 @@ sec("scales", "Escalas y la escala propia", f"""
 
 # ---------------------------------------------------------------------------------------------------- 13
 sec("metronome", "Metrónomo y cuenta atrás", f"""
-{B} **Shift + Clear** recorre cuatro estados, que muestra el LED de Clear mientras Shift está pulsado: **rojo** = sin metrónomo, **verde** = metrónomo, **magenta** = solo cuenta atrás, **cian** = cuenta atrás y metrónomo.
+{B} **Shift + Clear** recorre cuatro estados, que muestra el LED de Clear mientras Shift está pulsado: **rojo** = sin metrónomo, **verde** = metrónomo, **magenta** = solo cuenta atrás, **verde azulado** = cuenta atrás y metrónomo.
 - **Cuenta atrás:** con Record armado y el transporte parado, **Play** da un compás de cuatro clics al tempo del proyecto (Record parpadea) y luego empieza a grabar. Play durante la cuenta la cancela.
 - El volumen del clic es el de stock: pulsa **Tempo / Swing** y gira **K5**. La cuenta atrás se guarda con el proyecto.
 """)

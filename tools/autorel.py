@@ -31,7 +31,13 @@ mark; the preview goes to the sound too):
     stock's route only reaches with the transport running): for each lane with a value, the first of its micro steps (as the playback); before
     the first change of a lane its value now (c_arbase; MIDI 1 / 2 with the engine off: p[k] of the macro store) is kept;
   * Shift released (the LED task): the kept values played back the same way.
-  RAM: modmx.MXR + 0x1EA0 (40 B): + 0 "ARP2", + 4 the lanes kept (bit 8 t + k), + 8 their values (8 t + k)."""
+  RAM: modmx.MXR + 0x1EA0 (40 B): + 0 "ARP2", + 4 the lanes kept (bit 8 t + k), + 8 their values (8 t + k).
+
+use_sweep() (SC50 / Beta 5.3; the user, 2026-11-01: «incluye el control de insertar sweep manualmente a la interfaz de automatización del sinte»; «es decir:
+interpola entre dos estados de automatización»; «pulsando uno y después el otro»): Velocity view with Shift, a yellow step held and another yellow step
+pressed = each lane with a value at both gets the straight line between them on the steps between (the stock's playback takes one value a step: all
+6 micro steps get it, as a snapshot); the ends stay; a lane with a value at one end only is left; nothing else is written.  Either order.  The drums' ramps
+are the same gesture.  RAM + 37: the held pad + 1, + 38 its step (the signature "AR02": the old one left these bytes as they came)."""
 from __future__ import annotations
 import struct
 import sys
@@ -55,6 +61,8 @@ PB_READ, PB_OLD = 0x08031B8E, bytes.fromhex("90f8a8b3")      # ldrb.w fp, [r0, #
 MARK = 0x80
 COL_AV, COL_MARK = 0x2D, 0x53
 SIG = 0x31305241                     # "AR01" at RAM + 40: the flags are cleared the first time (the RAM holds the power-up pattern)
+SIG2 = 0x32305241                    # (SWEEP) "AR02"
+SWEEP = False                        # SC50 (use_sweep): a yellow step held + another = a sweep between them
 INV = V.INV
 V2 = False                           # SC48.8 (use_v2): yellow = the steps with automation; Shift + a yellow step = its values until Shift is let go
 PVR = MX.MXR + 0x1EA0                # (V2) + 0 "ARP2", + 4 the lanes kept, + 8 their values
@@ -104,6 +112,11 @@ def use_v3():
     V3 = True
 
 
+def use_sweep():
+    global SWEEP
+    SWEEP = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def ldrb_w(rt, rn, imm12): return h(0xF890 | rn) + h(rt << 12 | imm12)
@@ -121,8 +134,9 @@ def arm_code(base, L, prev):
 
     # ---- c_arst() -> r0 = RAM, the flags cleared the first time; clobbers r1, r2
     a.label("c_arst")
-    imm32(0, RAM); E(ldr_imm, 1, 0, 40); imm32(2, SIG); E(cmp_reg, 1, 2); E(b_cond, "as_x", "eq")
+    imm32(0, RAM); E(ldr_imm, 1, 0, 40); imm32(2, SIG2 if SWEEP else SIG); E(cmp_reg, 1, 2); E(b_cond, "as_x", "eq")
     E(str_imm, 2, 0, 40); E(movs_imm, 1, 0); E(str_imm, 1, 0, 0)
+    if SWEEP: E(str_imm, 1, 0, 36)
     a.label("as_x"); E(raw, h(0x4770))
 
     # ---- c_artrk(r0 = a step / lane object) -> r0 = 0..3, or 0xFF; clobbers r1
@@ -173,9 +187,18 @@ def arm_code(base, L, prev):
     if V2: E(mov_reg, 7, 0)                                                                   # r7 = the pattern
     E(movs_imm, 1, 28); E(muls, 1, 5); E(adds_reg, 0, 0, 1)
     if V2:                                                                                    # not marked, with automation: preview only
-        E(mov_reg, 6, 0); E(ldrb_imm, 1, 0, 3); E(movs_imm, 2, MARK); E(tst_reg, 1, 2); E(b_cond, "pd_tg", "ne")
+        E(mov_reg, 6, 0)
+        if SWEEP:                                                                             # a yellow step held: this one = the sweep's other end
+            E(bl, "c_arst"); imm32(0, RAM + 36); E(ldrb_imm, 1, 0, 1); E(cmp_imm, 1, 0); E(b_cond, "pd_ns", "eq")
+            E(ldrb_imm, 1, 0, 2); E(mov_reg, 0, 7); E(push_list, [1]); E(mov_reg, 1, 5); E(bl, "c_araut"); E(pop_list, [1])
+            E(cmp_imm, 0, 0); bc("pd_sw", "eq")
+            E(mov_reg, 0, 4); E(mov_reg, 2, 5); E(bl, "c_arsweep"); E(b, "pd_sw")
+            a.label("pd_ns"); E(mov_reg, 0, 6)
+        E(ldrb_imm, 1, 0, 3); E(movs_imm, 2, MARK); E(tst_reg, 1, 2); E(b_cond, "pd_tg", "ne")
         E(mov_reg, 0, 7); E(mov_reg, 1, 5); E(bl, "c_araut"); E(cmp_imm, 0, 0); E(b_cond, "pd_tg", "eq")
-        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arprev"); E(b, "pd_sw")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_arprev")
+        if SWEEP: imm32(0, RAM + 36); E(raw, h(0x9901)); E(adds_imm8, 1, 1); E(strb_imm, 1, 0, 1); E(strb_imm, 5, 0, 2)   # ldr r1, [sp, #4]: this pad held
+        E(b, "pd_sw")
         a.label("pd_tg"); E(mov_reg, 0, 6)
     E(ldrb_imm, 1, 0, 3); E(movs_imm, 2, MARK); E(raw, h(0x4051)); E(strb_imm, 1, 0, 3)     # eors r1, r2
     if V2: a.label("pd_sw")
@@ -185,7 +208,14 @@ def arm_code(base, L, prev):
 
     # ---- c_arrelp (slot 1 of the step objects: obj, pad): the release of a swallowed press swallowed too
     a.label("c_arrelp")
-    imm32(3, RAM + 36); E(ldrb_imm, 2, 3, 0); E(cmp_imm, 2, 0); E(b_cond, "rl_prev", "eq")
+    imm32(3, RAM + 36)
+    if SWEEP:                                                                                 # the held step let go
+        E(ldrb_imm, 2, 3, 1); E(subs_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "rl_s", "ne")
+        E(movs_imm, 2, 0); E(strb_imm, 2, 3, 1)
+        E(ldrb_imm, 2, 3, 0); E(subs_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "rl_t", "ne"); E(movs_imm, 2, 0); E(strb_imm, 2, 3, 0)
+        a.label("rl_t"); E(raw, h(0x4770))
+        a.label("rl_s")
+    E(ldrb_imm, 2, 3, 0); E(cmp_imm, 2, 0); E(b_cond, "rl_prev", "eq")
     E(subs_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "rl_prev", "ne")
     E(movs_imm, 2, 0); E(strb_imm, 2, 3, 0); E(raw, h(0x4770))
     a.label("rl_prev"); E(b_w, prev["srel"])
@@ -195,7 +225,10 @@ def arm_code(base, L, prev):
     E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 5, 1)
     E(bl, prev["ledtask"])
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0)
-    if V3: E(b_cond, "le_s", "ne"); imm32(0, PVM); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0); E(bl, "c_arpvback"); E(b, "le_x"); a.label("le_s")
+    if V3:
+        E(b_cond, "le_s", "ne"); imm32(0, PVM); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0)
+        if SWEEP: imm32(0, RAM + 36); E(strb_imm, 1, 0, 1)                                    # Shift let go: no step held for a sweep
+        E(bl, "c_arpvback"); E(b, "le_x"); a.label("le_s")
     elif V2: E(b_cond, "le_s", "ne"); E(bl, "c_arpvback"); E(b, "le_x"); a.label("le_s")
     else: E(b_cond, "le_x", "eq")
     E(movs_imm, 4, 0)
@@ -362,6 +395,33 @@ def arm_code(base, L, prev):
         E(ldrb_imm, 1, 6, 1); E(lsls_imm, 2, 4, 4); E(adds_imm8, 2, 1); E(cmp_reg, 1, 2); E(b_cond, "pj_n", "ne")
         a.label("pj_0"); E(adds_reg, 6, 6, 5); E(movs_imm, 1, 2); E(raw, ldrsb_reg(0, 6, 1)); E(movs_imm, 1, 1); E(pop_list, [4, 5, 6], pc=True)
         a.label("pj_n"); E(movs_imm, 0, 0); E(movs_imm, 1, 0); E(pop_list, [4, 5, 6], pc=True)
+
+    if SWEEP:
+        # ---- c_arfirst(r0 = a step; r7 = a lane's first byte) -> r0 = the value the playback takes at that step, or 0xFF; clobbers r1
+        a.label("c_arfirst")
+        E(movs_imm, 1, 6); E(muls, 0, 1); E(adds_reg, 1, 0, 7)
+        for m in range(6): E(ldrb_imm, 0, 1, m); E(cmp_imm, 0, 0xFF); E(b_cond, "af_x", "ne")
+        a.label("af_x"); E(raw, h(0x4770))
+
+        # ---- c_arsweep(r0 = track 0..3, r1 = a step, r2 = another): lanes 0..7 with a value at both: the steps between on the straight line; clobbers r0-r3
+        a.label("c_arsweep")
+        E(raw, pushw([4, 5, 6, 7, 8, 9], lr=True))
+        E(mov_reg, 5, 1); E(mov_reg, 6, 2); E(cmp_reg, 5, 6); E(b_cond, "sw_o", "ls"); E(mov_reg, 5, 2); E(mov_reg, 6, 1)
+        a.label("sw_o")
+        E(bl, "c_arpat"); E(movw, 1, LANE0); E(adds_reg, 7, 0, 1); E(movs_imm, 4, 8)
+        a.label("sw_k")
+        E(mov_reg, 0, 5); E(bl, "c_arfirst"); E(cmp_imm, 0, 0xFF); E(b_cond, "sw_n", "eq"); E(mov_reg, 8, 0)
+        E(mov_reg, 0, 6); E(bl, "c_arfirst"); E(cmp_imm, 0, 0xFF); E(b_cond, "sw_n", "eq"); E(mov_reg, 9, 0)
+        E(mov_reg, 3, 5); E(adds_imm8, 3, 1)                                                   # r3 = the step
+        a.label("sw_s"); E(cmp_reg, 3, 6); E(b_cond, "sw_n", "hs")
+        E(mov_reg, 0, 9); E(mov_reg, 1, 8); E(subs_reg, 0, 0, 1); E(subs_reg, 1, 3, 5); E(muls, 0, 1); E(subs_reg, 1, 6, 5)
+        E(raw, h(0xFB90) + h(0xF0F0 | 1))                                                      # sdiv r0, r0, r1
+        E(mov_reg, 1, 8); E(adds_reg, 0, 0, 1)
+        E(movs_imm, 1, 6); E(muls, 1, 3); E(adds_reg, 1, 1, 7)
+        for m in range(6): E(strb_imm, 0, 1, m)
+        E(adds_imm8, 3, 1); E(b, "sw_s")
+        a.label("sw_n"); E(adds_imm8, 7, 192); E(subs_imm8, 4, 1); E(b_cond, "sw_k", "ne")
+        E(raw, popw([4, 5, 6, 7, 8, 9])); E(raw, h(0xBD00))
 
     # ---- c_arbase(r0 = track 0..3, r1 = lane) -> r0 = the lane value the track has now, or 0xFF (MIDI with the engine off); clobbers r1-r3
     a.label("c_arbase")

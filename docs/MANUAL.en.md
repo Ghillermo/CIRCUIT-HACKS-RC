@@ -28,8 +28,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A18 Macro knob destinations](#a18-destinos-macro)
 - [A19 Copying projects to another slot or another pack](#a19-copiar-proyectos)
 - [A20 Own-synth patches to another pack](#a20-patches-entre-packs)
-- [A21 Shift = the tracks that sound (Beta 5.0 only)](#a21-luces-disparo)
-- [A22 Shift + Preset = the project's sound (Beta 5.0 only)](#a22-proyecto-init)
+- [A21 Shift = a flash on every note (Beta 5.4 only)](#a21-luces-disparo)
+- [A22 Shift + Preset = the project's sound (Beta 5.4 only)](#a22-proyecto-init)
 
 **B. Exposed controls**
 
@@ -60,11 +60,12 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [C14 Custom scale (since RC2)](#c14-escala-propia)
 - [C15 Chord screen (since RC4)](#c15-acordes)
 - [C16 Stereo drum pairs (since RC4)](#c16-pareja-estereo)
-- [C17 The drums' extra lane (Beta 5.0 only)](#c17-carril-extra)
+- [C17 The drums' extra lane (Beta 5.4 only)](#c17-carril-extra)
 - [C18 Sample mode of the MIDI tracks (since RC2)](#c18-modo-muestra)
 - [C19 Mod matrix of the own synth (since RC2.02)](#c19-matriz-mod)
-- [C20 4-operator FM (since RC4)](#c20-fm4)
-- [C21 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c21-master-fx-beta)
+- [C20 Jump sequencer of MIDI 1 / 2 (Beta 5.4 only)](#c20-saltos)
+- [C21 4-operator FM (since RC4)](#c21-fm4)
+- [C22 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c22-master-fx-beta)
 
 **D. DSP**
 
@@ -170,18 +171,18 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
 
 <a id="a21-luces-disparo"></a>
-### A21. Shift = the tracks that sound (Beta 5.0 only)
-- With Shift held, each track's button lights white while one of its notes sounds.
+### A21. Shift = a flash on every note (Beta 5.4 only)
+- With Shift held, each track's button flashes white on every note it plays.
 
 <a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = the project's sound (Beta 5.0 only)
+### A22. Shift + Preset = the project's sound (Beta 5.4 only)
 - Shift + Preset brings the track's sound back to the one saved in the project.
 
 ## B. Exposed controls
 
 <a id="b1-knobs-drums"></a>
 ### B1. Drum knobs as printed on the panel
-- Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.0), tilt), LFO, start point, bitcrush and distortion.
+- Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.4), tilt), LFO, start point, bitcrush and distortion.
 
 <a id="b2-rev-delay"></a>
 ### B2. Reverb and delay parameters
@@ -254,7 +255,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="c8-random-mutate"></a>
 ### C8. Random-mutate per step
-- **Since RC2.** In the probability view (**Shift + Pattern Settings**) row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
+- **Since RC2.** In the probability view, in mode 2 (**pad 25** of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
 
 <a id="c9-frecuencia-dinamicas"></a>
 ### C9. Step frequency and dynamics
@@ -266,7 +267,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="c11-nudge-ordenes"></a>
 ### C11. Nudge and play orders
-- **Since RC2.** In the Pattern Settings view: **pad 26 = Nudge** (the pattern rotated so that the chosen first step becomes step 1), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
+- **Since RC2.** In the Pattern Settings view: **pad 26 = Nudge** (moves the content of the selected steps), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
 
 <a id="c12-arpegiador"></a>
 ### C12. Arpeggiator (since RC2)
@@ -289,12 +290,12 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC4.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.
 
 <a id="c17-carril-extra"></a>
-### C17. The drums' extra lane (Beta 5.0 only)
-- **Beta 5.0 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
+### C17. The drums' extra lane (Beta 5.4 only)
+- **Beta 5.4 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
 
 <a id="c18-modo-muestra"></a>
 ### C18. Sample mode of the MIDI tracks (since RC2)
-- **Since RC2.** A new state of pad 27 (cyan, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
+- **Since RC2.** A new state of pad 27 (teal, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
 - The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
 
 <a id="c19-matriz-mod"></a>
@@ -302,13 +303,17 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
 - Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
 
-<a id="c20-fm4"></a>
-### C20. 4-operator FM (since RC4)
+<a id="c20-saltos"></a>
+### C20. Jump sequencer of MIDI 1 / 2 (Beta 5.4 only)
+- The notes of a MIDI track make another track's pattern jump to the step they indicate.
+
+<a id="c21-fm4"></a>
+### C21. 4-operator FM (since RC4)
 - **Since RC4.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
 - **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
 
-<a id="c21-master-fx-beta"></a>
-### C21. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
+<a id="c22-master-fx-beta"></a>
+### C22. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
 - **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP
@@ -340,7 +345,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="d7-drums-dsp"></a>
 ### D7. Drum DSP
-- Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.0) / tilt filters, bitcrush, start point, distortions and sidechain between drums.
+- Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.4) / tilt filters, bitcrush, start point, distortions and sidechain between drums.
 
 <a id="d8-entradas"></a>
 ### D8. Audio inputs and returns

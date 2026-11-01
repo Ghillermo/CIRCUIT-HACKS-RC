@@ -60,6 +60,8 @@ class ET(T8.E8):
 def trig_part(img, man, check):
     e = ET(img, man)
     L = {k: int(v, 16) for k, v in man["report"]["trigled"]["labels"].items()}
+    if "c_tfrt" in L:
+        print("(trigled.use_flash: 100 ms from each note, emu_trigflash.py)"); del e; gc.collect(); return
     btns = lambda shift: (e.shift(shift), X.frame(e)[32:40], e.shift(False))[1]
     hold = lambda q: e.call(PRESS, MGR, q, 100, maxins=8_000_000)
     let = lambda q: e.call(RELEASE, MGR, q, maxins=8_000_000)

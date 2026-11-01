@@ -33,6 +33,7 @@ from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bics_reg,
                    ldrb_reg, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm,
                    str_sp, strb_imm, strb_reg, strh_imm, strh_reg, subs_imm8, subs_reg, tst_reg, sub_sp_imm, add_sp_imm)
 from build_sc14 import udiv  # noqa: E402
+import mutate39 as MU  # noqa: E402
 
 MGR, BTN_PRESS, BTN_RELEASE, BTN_PS = 0x20040B10, 0x08033320, 0x0803381A, 12
 PS_VT = 0x0805AB4C
@@ -72,7 +73,7 @@ def arm_code(base, L, prev):
     def bc(target, cond):
         zc[0] += 1; n = f"_q{zc[0]}"; E(b_cond, n, INV[cond]); E(b, target); a.label(n)
     RET = h(0x4770)
-    E(raw, tables()); t_dyn, t_mut = base, base + 4 * len(DYN)
+    if not MU.MUT2: E(raw, tables()); t_dyn, t_mut = base, base + 4 * len(DYN)
 
     # ---- c_dqtail() -> r0 = the record's tail, or 0; clobbers r1
     a.label("c_dqtail")
@@ -116,9 +117,20 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, UI_TAG); E(strb_imm, 1, 0, 1); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0)
     a.label("ui_x"); E(raw, h(0xBD00))
 
-    # ---- c_dqrnd(r0 = n) -> r0 = 0..n - 1 at random; clobbers r1-r3
-    a.label("c_dqrnd")
-    E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, RANDOM); E(lsrs_imm, 0, 0, 4); E(raw, udiv(1, 0, 4)); E(raw, mls_(0, 1, 4, 0)); E(pop_list, [4], pc=True)
+    if MU.MUT2:
+        # ---- c_dqtk(r4 = a player) -> r0 = its track 4..7; clobbers r1
+        a.label("c_dqtk")
+        imm32(1, DP0); E(subs_reg, 0, 4, 1); E(movs_imm, 1, DP_SZ); E(raw, udiv(0, 0, 1)); E(adds_imm8, 0, 4); E(raw, RET)
+
+        # ---- c_dqmic(r0 = drum 0..3): its micro steps' toggle flipped; clobbers r0-r2
+        a.label("c_dqmic")
+        E(raw, h(0xB500)); E(adds_imm8, 0, 4); E(bl, L["c_mgget"]); E(cmp_imm, 1, 0); E(b_cond, "mc_x", "eq")
+        E(movs_imm, 2, MU.FAC_MICRO); E(raw, h(0x4050)); E(strb_imm, 0, 1, 0)                  # eors r0, r2
+        a.label("mc_x"); E(raw, h(0xBD00))
+    else:
+        # ---- c_dqrnd(r0 = n) -> r0 = 0..n - 1 at random; clobbers r1-r3
+        a.label("c_dqrnd")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, RANDOM); E(lsrs_imm, 0, 0, 4); E(raw, udiv(1, 0, 4)); E(raw, mls_(0, 1, 4, 0)); E(pop_list, [4], pc=True)
 
     # ---- c_dqsmp(r0 = player) -> r0 = the sample its hit plays now: the step's flip (from r1 = base, r2 = step), else the selection; clobbers r1-r3
     a.label("c_dqsmp")
@@ -127,19 +139,38 @@ def arm_code(base, L, prev):
     E(ldr_imm, 0, 4, 0x5C); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0)
     a.label("sm_x"); E(pop_list, [4], pc=True)
 
-    # ---- c_dqmut(r0 = sample, r1 = level 1..3) -> r0 = the sample, moved as MUT says (± 1 wraps inside its row of 8, ± 8 around the 64); clobbers r1-r3
-    a.label("c_dqmut")
-    E(push_list, [4, 5, 6], lr=True)
-    E(mov_reg, 4, 0); E(lsls_imm, 1, 1, 1); imm32(2, t_mut); E(adds_reg, 5, 2, 1)         # r5 = the level's chances
-    E(bl, RANDOM); E(mov_reg, 6, 0)                                                      # r6 = random bits
-    E(movs_imm, 0, 15); E(ands_reg, 0, 6); E(ldrb_imm, 1, 5, 1); E(cmp_reg, 0, 1); E(b_cond, "mu_r", "hs")   # inside the row
-    E(movs_imm, 0, 7); E(ands_reg, 0, 4); E(movs_imm, 1, 1); E(lsls_imm, 2, 6, 27); E(b_cond, "mu_p", "pl"); E(movs_imm, 1, 7)   # bit 4: down
-    a.label("mu_p"); E(adds_reg, 0, 0, 1); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(bics_reg, 4, 1); E(orrs_reg, 4, 0)
-    a.label("mu_r")
-    E(lsrs_imm, 0, 6, 5); E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(ldrb_imm, 1, 5, 0); E(cmp_reg, 0, 1); E(b_cond, "mu_x", "hs")   # another row
-    E(movs_imm, 1, 8); E(lsls_imm, 2, 6, 22); E(b_cond, "mu_q", "pl"); E(movs_imm, 1, 56)    # bit 9: down (+ 56 = - 8 mod 64)
-    a.label("mu_q"); E(adds_reg, 4, 4, 1); E(movs_imm, 1, 63); E(ands_reg, 4, 1)
-    a.label("mu_x"); E(mov_reg, 0, 4); E(pop_list, [4, 5, 6], pc=True)
+    if MU.MUT2:
+        # ---- c_dqmut(r0 = sample, r1 = level 1..7; r4 = the player) -> r0 = the sample: levels 1-3 +- 1 inside its row of 8, 4 - 8, 5 + 8, 6 / 7 +- 8
+        #      around the 64; clobbers r1-r3
+        a.label("c_dqmut")
+        E(push_list, [5, 6], lr=True); E(mov_reg, 5, 0); E(mov_reg, 6, 1)
+        E(bl, "c_dqtk"); E(mov_reg, 1, 6); E(bl, L["c_mglv"]); E(cmp_imm, 0, 0); E(b_cond, "mu_x", "eq")
+        E(cmp_imm, 6, 3); E(b_cond, "mu_o", "hi")
+        E(movs_imm, 0, 7); E(ands_reg, 0, 5); E(movs_imm, 3, 1); E(lsls_imm, 2, 1, 31); E(b_cond, "mu_p", "pl"); E(movs_imm, 3, 7)
+        a.label("mu_p"); E(adds_reg, 0, 0, 3); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(bics_reg, 5, 1); E(orrs_reg, 5, 0); E(b, "mu_x")
+        a.label("mu_o")
+        if MU.MUT3:                                                                           # levels 4 / 5 + 8, 6 / 7 +- 8
+            E(movs_imm, 3, 8); E(cmp_imm, 6, 6); E(b_cond, "mu_q", "lo")
+        else:
+            E(movs_imm, 3, 56); E(cmp_imm, 6, 4); E(b_cond, "mu_q", "eq")
+            E(movs_imm, 3, 8); E(cmp_imm, 6, 5); E(b_cond, "mu_q", "eq")
+        E(lsls_imm, 2, 1, 31); E(b_cond, "mu_q", "pl"); E(movs_imm, 3, 56)
+        a.label("mu_q"); E(adds_reg, 5, 5, 3); E(movs_imm, 1, 63); E(ands_reg, 5, 1)
+        a.label("mu_x"); E(mov_reg, 0, 5); E(pop_list, [5, 6], pc=True)
+    else:
+        # ---- c_dqmut(r0 = sample, r1 = level 1..3) -> r0 = the sample, moved as MUT says (± 1 wraps inside its row of 8, ± 8 around the 64); clobbers r1-r3
+        a.label("c_dqmut")
+        E(push_list, [4, 5, 6], lr=True)
+        E(mov_reg, 4, 0); E(lsls_imm, 1, 1, 1); imm32(2, t_mut); E(adds_reg, 5, 2, 1)         # r5 = the level's chances
+        E(bl, RANDOM); E(mov_reg, 6, 0)                                                      # r6 = random bits
+        E(movs_imm, 0, 15); E(ands_reg, 0, 6); E(ldrb_imm, 1, 5, 1); E(cmp_reg, 0, 1); E(b_cond, "mu_r", "hs")   # inside the row
+        E(movs_imm, 0, 7); E(ands_reg, 0, 4); E(movs_imm, 1, 1); E(lsls_imm, 2, 6, 27); E(b_cond, "mu_p", "pl"); E(movs_imm, 1, 7)   # bit 4: down
+        a.label("mu_p"); E(adds_reg, 0, 0, 1); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(bics_reg, 4, 1); E(orrs_reg, 4, 0)
+        a.label("mu_r")
+        E(lsrs_imm, 0, 6, 5); E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(ldrb_imm, 1, 5, 0); E(cmp_reg, 0, 1); E(b_cond, "mu_x", "hs")   # another row
+        E(movs_imm, 1, 8); E(lsls_imm, 2, 6, 22); E(b_cond, "mu_q", "pl"); E(movs_imm, 1, 56)    # bit 9: down (+ 56 = - 8 mod 64)
+        a.label("mu_q"); E(adds_reg, 4, 4, 1); E(movs_imm, 1, 63); E(ands_reg, 4, 1)
+        a.label("mu_x"); E(mov_reg, 0, 4); E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_dqhit(r0 = player, r1 = velocity, r2 = sample + 1 or 0): the hit through its interface (the sample set first); clobbers r0-r3
     a.label("c_dqhit")
@@ -177,32 +208,59 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(ldr_sp, 2, 12); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(cmp_imm, 0, 0); bc("pl_x", "eq")
     E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(bl, "c_dqbyte"); E(mov_reg, 8, 0)               # r8 = our byte
     E(ldr_sp, 1, 8); E(ldrb_reg, 6, 5, 1)                                                # r6 = the velocity
-    E(mov_reg, 0, 8); E(cmp_imm, 0, 0); bc("pl_plain", "eq")
+    E(mov_reg, 0, 8); E(cmp_imm, 0, 0)
+    if MU.MUT2:                                                                         # a byte 0 and the drum's micro steps on: on
+        E(b_cond, "pl_nz", "ne")
+        E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_plain", "eq")
+        a.label("pl_nz"); E(mov_reg, 0, 8)
+    else: bc("pl_plain", "eq")
     # the frequency: pass % n = 0
     E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 7); E(ands_reg, 1, 2); E(cmp_imm, 1, 0); E(b_cond, "pl_dy", "eq"); E(adds_imm8, 1, 1)
     E(ldrb_imm, 0, 7, 0); E(ldrb_imm, 2, 7, 1); E(lsls_imm, 2, 2, 8); E(orrs_reg, 0, 2); E(raw, udiv(2, 0, 1)); E(raw, mls_(0, 2, 1, 0)); E(cmp_imm, 0, 0); bc("pl_x", "ne")
     # the dynamics: the velocity, a later micro step
     a.label("pl_dy")
     E(movs_imm, 0, 0); E(mov_reg, 9, 0)                                                  # r9 = the micro steps later
-    E(mov_reg, 0, 8); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
-    E(lsls_imm, 0, 0, 2); imm32(1, t_dyn); E(adds_reg, 0, 0, 1); E(mov_reg, 2, 0); E(push_list, [2])
-    E(ldrb_imm, 1, 2, 3); E(ldrb_imm, 0, 2, 2); E(subs_reg, 0, 1, 0); E(adds_imm8, 0, 1); E(bl, "c_dqrnd")
-    E(pop_list, [2]); E(push_list, [2]); E(ldrb_imm, 1, 2, 2); E(adds_reg, 6, 6, 0); E(adds_reg, 6, 6, 1); E(subs_imm8, 6, 64)
-    E(cmp_imm, 6, 1); E(b_cond, "pl_v1", "ge"); E(movs_imm, 6, 1)
-    a.label("pl_v1"); E(cmp_imm, 6, 127); E(b_cond, "pl_v2", "le"); E(movs_imm, 6, 127)
-    a.label("pl_v2")
-    E(pop_list, [2]); E(ldrb_imm, 1, 2, 1); E(ldrb_imm, 0, 2, 0); E(push_list, [0]); E(subs_reg, 0, 1, 0); E(adds_imm8, 0, 1); E(bl, "c_dqrnd")
-    E(pop_list, [1]); E(adds_reg, 0, 0, 1); E(subs_imm8, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "pl_mu", "le")      # later only
-    E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
-    a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
-    # the mutate: the sample
-    a.label("pl_mu")
-    E(movs_imm, 0, 0); E(push_list, [0])                                                 # [sp] = the sample + 1 (0: as it is)
-    E(mov_reg, 0, 8); E(lsrs_imm, 0, 0, 6); E(cmp_imm, 0, 0); E(b_cond, "pl_go", "eq"); E(mov_reg, 3, 0)
-    E(push_list, [3]); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(ldr_sp, 2, 8 + 8); E(bl, "c_dqsmp"); E(pop_list, [1])
-    E(cmp_imm, 0, 63); E(b_cond, "pl_go", "hi"); E(bl, "c_dqmut"); E(adds_imm8, 0, 1); E(str_sp, 0, 0)
+    if MU.MUT2:
+        E(mov_reg, 0, 8); E(movs_imm, 1, 3); E(ands_reg, 0, 1); bc("pl_mi", "eq")
+        E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mi", "eq")
+        E(lsls_imm, 0, 1, 22); E(lsrs_imm, 0, 0, 22)
+        E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 30); E(lsrs_imm, 1, 1, 30)                   # r1 = the dynamics: 3 = +- 16, else - 32..+ 64
+        E(bl, L["c_mgdv"]); E(adds_reg, 6, 6, 0)
+        E(cmp_imm, 6, 1); E(b_cond, "pl_v1", "ge"); E(movs_imm, 6, 1)
+        a.label("pl_v1"); E(cmp_imm, 6, 127); E(b_cond, "pl_mi", "le"); E(movs_imm, 6, 127)
+        a.label("pl_mi")                                                                 # the drum's micro steps: 1 or 2 later (a drum cannot play earlier)
+        E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_mu", "eq")
+        E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
+        E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(adds_imm8, 0, 1)
+        E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
+        a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
+        # the mutate: the sample (level = bits 6-7 | bit 2)
+        a.label("pl_mu")
+        E(movs_imm, 0, 0); E(push_list, [0])                                             # [sp] = the sample + 1 (0: as it is)
+        E(mov_reg, 0, 8); E(lsrs_imm, 3, 0, 6); E(movs_imm, 1, 4); E(ands_reg, 0, 1); E(orrs_reg, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "pl_go", "eq")
+        E(push_list, [3]); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(ldr_sp, 2, 8 + 8); E(bl, "c_dqsmp"); E(pop_list, [1])
+        E(cmp_imm, 0, 63); E(b_cond, "pl_go", "hi"); E(bl, "c_dqmut"); E(adds_imm8, 0, 1); E(str_sp, 0, 0)
+    else:
+        E(mov_reg, 0, 8); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
+        E(lsls_imm, 0, 0, 2); imm32(1, t_dyn); E(adds_reg, 0, 0, 1); E(mov_reg, 2, 0); E(push_list, [2])
+        E(ldrb_imm, 1, 2, 3); E(ldrb_imm, 0, 2, 2); E(subs_reg, 0, 1, 0); E(adds_imm8, 0, 1); E(bl, "c_dqrnd")
+        E(pop_list, [2]); E(push_list, [2]); E(ldrb_imm, 1, 2, 2); E(adds_reg, 6, 6, 0); E(adds_reg, 6, 6, 1); E(subs_imm8, 6, 64)
+        E(cmp_imm, 6, 1); E(b_cond, "pl_v1", "ge"); E(movs_imm, 6, 1)
+        a.label("pl_v1"); E(cmp_imm, 6, 127); E(b_cond, "pl_v2", "le"); E(movs_imm, 6, 127)
+        a.label("pl_v2")
+        E(pop_list, [2]); E(ldrb_imm, 1, 2, 1); E(ldrb_imm, 0, 2, 0); E(push_list, [0]); E(subs_reg, 0, 1, 0); E(adds_imm8, 0, 1); E(bl, "c_dqrnd")
+        E(pop_list, [1]); E(adds_reg, 0, 0, 1); E(subs_imm8, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "pl_mu", "le")      # later only
+        E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
+        a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
+        # the mutate: the sample
+        a.label("pl_mu")
+        E(movs_imm, 0, 0); E(push_list, [0])                                                 # [sp] = the sample + 1 (0: as it is)
+        E(mov_reg, 0, 8); E(lsrs_imm, 0, 0, 6); E(cmp_imm, 0, 0); E(b_cond, "pl_go", "eq"); E(mov_reg, 3, 0)
+        E(push_list, [3]); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(ldr_sp, 2, 8 + 8); E(bl, "c_dqsmp"); E(pop_list, [1])
+        E(cmp_imm, 0, 63); E(b_cond, "pl_go", "hi"); E(bl, "c_dqmut"); E(adds_imm8, 0, 1); E(str_sp, 0, 0)
     a.label("pl_go")
     E(mov_reg, 0, 9); E(cmp_imm, 0, 0); E(b_cond, "pl_now", "eq")
+    if MU.MUT2: E(ldrb_imm, 1, 7, 3); E(cmp_imm, 1, 0); E(b_cond, "pl_now", "ne")        # one hit kept already (one slot a drum): this one at once
     E(ldr_sp, 1, 12 + 4); E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 1); E(strb_imm, 0, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5)
     E(add_sp_imm, 4); E(b, "pl_x")
     a.label("pl_now"); E(pop_list, [2]); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_dqhit"); E(b, "pl_x")
@@ -255,9 +313,26 @@ def arm_code(base, L, prev):
     E(cmp_imm, 7, 8); bc("dp_p", "lo")                                                  # mode 1: row 3 the stock's
     E(subs_imm8, 7, 8); E(movs_imm, 5, 3); E(b, "dp_s")                                 # row 4: the frequency (bits 3-5)
     a.label("dp_2")
-    E(cmp_imm, 7, 8); E(b_cond, "dp_d", "lo")
-    E(subs_imm8, 7, 8); E(cmp_imm, 7, 3); bc("dp_t", "hi"); E(movs_imm, 5, 6); E(b, "dp_s")   # pads 25-28: the mutate (bits 6-7)
-    a.label("dp_d"); E(movs_imm, 5, 0)                                                  # row 3: the dynamics (bits 0-2)
+    if MU.MUT2:
+        # pad 32 = the drum's micro steps, whatever the step; pads 17-24 the level (bits 6-7 | bit 2), 25 on / off, 26 / 28 the dynamics (a step with a hit)
+        E(cmp_imm, 7, 15); E(b_cond, "dp_a", "ne")
+        E(ldr_sp, 0, 0); E(bl, "c_dqview"); E(bl, "c_dqmic"); E(b, "dp_t")
+        a.label("dp_a"); E(cmp_imm, 7, 12); bc("dp_t", "hs"); E(cmp_imm, 7, 10); bc("dp_t", "eq")
+        E(ldr_sp, 0, 0); E(bl, "c_dqhas"); E(cmp_imm, 0, 0); bc("dp_t", "eq")
+        E(bl, "c_dqmark")
+        E(ldr_sp, 0, 0); E(bl, "c_dqview"); E(adds_reg, 1, 1, 2); E(adds_imm8, 1, DQ_OFF); E(mov_reg, 4, 1); E(ldrb_imm, 0, 4, 0)
+        E(cmp_imm, 7, 8); E(b_cond, "dp_r", "hs")
+        E(movs_imm, 1, 0xC4); E(bics_reg, 0, 1); E(movs_imm, 1, 4); E(ands_reg, 1, 7); E(orrs_reg, 0, 1)
+        E(lsls_imm, 1, 7, 30); E(lsrs_imm, 1, 1, 24); E(orrs_reg, 0, 1); E(b, "dp_w")
+        a.label("dp_r"); E(movs_imm, 1, 3); E(cmp_imm, 7, 8); E(b_cond, "dp_g", "ne")
+        E(tst_reg, 0, 1); E(b_cond, "dp_on", "eq"); E(bics_reg, 0, 1); E(b, "dp_w")
+        a.label("dp_on"); E(movs_imm, 1, 1); E(orrs_reg, 0, 1); E(b, "dp_w")
+        a.label("dp_g"); E(bics_reg, 0, 1); E(subs_imm8, 7, 8); E(orrs_reg, 0, 7)
+        a.label("dp_w"); E(strb_imm, 0, 4, 0); E(b, "dp_t")
+    else:
+        E(cmp_imm, 7, 8); E(b_cond, "dp_d", "lo")
+        E(subs_imm8, 7, 8); E(cmp_imm, 7, 3); bc("dp_t", "hi"); E(movs_imm, 5, 6); E(b, "dp_s")   # pads 25-28: the mutate (bits 6-7)
+        a.label("dp_d"); E(movs_imm, 5, 0)                                                  # row 3: the dynamics (bits 0-2)
     a.label("dp_s")
     E(ldr_sp, 0, 0); E(bl, "c_dqhas"); E(cmp_imm, 0, 0); bc("dp_t", "eq")             # a step without a hit
     E(bl, "c_dqmark")
@@ -284,15 +359,23 @@ def arm_code(base, L, prev):
     a.label("rw_fw"); E(mov_reg, 0, 3); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
     E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "rw_f", "lo")
     E(b, "rw_x")
-    a.label("rw_2")                                                                     # mode 2: row 3 = the dynamics (the chosen one green), pads 25-28 = the mutate bar
-    E(movs_imm, 3, 0)
-    a.label("rw_d"); E(movs_imm, 2, 0); E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "rw_dw", "eq")
-    E(movs_imm, 2, COL_DIM); E(movs_imm, 0, 7); E(ands_reg, 0, 7); E(cmp_reg, 0, 3); E(b_cond, "rw_dw", "ne"); E(movs_imm, 2, COL_DYN)
-    a.label("rw_dw"); E(lsls_imm, 0, 3, 1); E(strh_reg, 2, 5, 0); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "rw_d", "lo")
-    E(lsrs_imm, 7, 7, 6); E(movs_imm, 3, 0)
-    a.label("rw_u"); E(movs_imm, 2, 0); E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "rw_uw", "eq"); E(cmp_imm, 3, 4); E(b_cond, "rw_uw", "hs")
-    E(movs_imm, 2, COL_DIM); E(cmp_reg, 3, 7); E(b_cond, "rw_uw", "hi"); E(movs_imm, 2, COL_MUT)
-    a.label("rw_uw"); E(mov_reg, 0, 3); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "rw_u", "lo")
+    a.label("rw_2")                                                                     # mode 2
+    if MU.MUT2:
+        E(mov_reg, 0, 4); E(bl, "c_dqview"); E(adds_imm8, 0, 4); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(ands_reg, 0, 1)
+        E(lsrs_imm, 3, 0, 3); E(movs_imm, 0, 4); E(orrs_reg, 3, 0)
+        E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "rw_h", "eq"); E(movs_imm, 0, 1); E(orrs_reg, 3, 0)
+        a.label("rw_h")
+        E(lsrs_imm, 1, 7, 6); E(movs_imm, 0, 4); E(ands_reg, 0, 7); E(orrs_reg, 1, 0)
+        E(movs_imm, 2, 3); E(ands_reg, 2, 7); E(mov_reg, 0, 5); E(bl, L["c_mgrow"])
+    else:
+        E(movs_imm, 3, 0)
+        a.label("rw_d"); E(movs_imm, 2, 0); E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "rw_dw", "eq")
+        E(movs_imm, 2, COL_DIM); E(movs_imm, 0, 7); E(ands_reg, 0, 7); E(cmp_reg, 0, 3); E(b_cond, "rw_dw", "ne"); E(movs_imm, 2, COL_DYN)
+        a.label("rw_dw"); E(lsls_imm, 0, 3, 1); E(strh_reg, 2, 5, 0); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "rw_d", "lo")
+        E(lsrs_imm, 7, 7, 6); E(movs_imm, 3, 0)
+        a.label("rw_u"); E(movs_imm, 2, 0); E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "rw_uw", "eq"); E(cmp_imm, 3, 4); E(b_cond, "rw_uw", "hs")
+        E(movs_imm, 2, COL_DIM); E(cmp_reg, 3, 7); E(b_cond, "rw_uw", "hi"); E(movs_imm, 2, COL_MUT)
+        a.label("rw_uw"); E(mov_reg, 0, 3); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "rw_u", "lo")
     a.label("rw_x"); E(raw, popw([4, 5, 6, 7, 8])); E(raw, h(0xBD00))
 
     # c_dqbuf (that view's slot 7: view) -> its LEDs: the view on the screen (a view that opens takes the mode asked, else mode 1; row 3 back to
@@ -337,6 +420,8 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = dict(c_shift=lab("sc15", "c_shift"), c_pmtp=lab("playmode", "c_pmtp"))
+    if MU.MUT2:
+        for k in ("c_mgget", "c_mgroll", "c_mglv", "c_mgrow", "c_mgdv"): L[k] = lab("mutate39", k)
     prev = dict(pspad=u(PS_VT) & ~1, psbuf=u(PS_VT + 28) & ~1, ppad=u(PROB_VT) & ~1, pbuf=u(PROB_VT + 28) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     rl = lab("rollers", "c_rlplay")
     sites = [x for x in range(rl, rl + 64, 2) if bytes(img[x - BASE:x - BASE + 4]) == bl(x, DP_PLAY)]

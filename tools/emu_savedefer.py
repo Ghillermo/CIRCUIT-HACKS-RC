@@ -10,6 +10,9 @@ storage task's callback) is cleared by hand.
   * a kept save waits while the manager is busy, and is dropped if the manager's pack changed;
   * a save of another slot through the listener: the kept one is posted first and the new one finds the stock «saving» (ignored, as the stock
     does while it saves); asked again: kept; the same slot again: nothing posted;
+  * use_toggle (RC4.03 / Beta 5.1): by default the stock's save, playing too (posted at once, nothing kept), Advanced Setup's pad 22 dim; pad 22 = on
+    (bit 3 of gmdrum's flags in both copies, the settings' save asked, the pad green), then everything above; pad 22 again with a save kept: written at
+    once, the next save the stock's;
   * svskip: the save hook with every capture slot saved reads the DSP once; with none saved and nothing in the slots, 65 reads and the slots' bits
     set (X:$3D1E = $FF), so the next save reads once.
 """
@@ -20,6 +23,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from unicorn import UC_HOOK_CODE  # noqa: E402
 from unicorn.arm_const import UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_LR, UC_ARM_REG_PC  # noqa: E402
 import emu_lazysave as T  # noqa: E402
+import emu_gmdrum as EGM  # noqa: E402
+import gmdrum as G  # noqa: E402
 import emu_sc42_6 as X  # noqa: E402
 import savedefer as SD  # noqa: E402
 import fxdiag as FD  # noqa: E402
@@ -36,7 +41,9 @@ def main(img, man):
         print(("ok  : " if c else "FAIL: ") + m); fails += 0 if c else 1
     R = man["report"]
     lab = lambda m, k: int(R[m]["labels"][k], 16)
-    e = T.EL(img); e.at(300000); e.transport(0)
+    toggle = "c_sdq" in R["savedefer"]["labels"]
+    e = EGM.EG(img, man) if toggle else T.EL(img)
+    e.at(300000); e.transport(0)
     posts = []
     def post(uc, a, s, d): posts.append(1); uc.reg_write(UC_ARM_REG_R0, 0); uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR) | 1)
     e.uc.hook_add(UC_HOOK_CODE, post, begin=POST, end=POST)
@@ -44,12 +51,24 @@ def main(img, man):
     p_at = lambda store, k: r0(0x0803542C, store, k)
     def busy(v):
         for fn in (0x080354FA, 0x0803542C): e.uc.mem_write(r0(fn, e.r32(MAN + 0x64), 1), bytes([v]))
+        if v == 0:                                                  # the UI's own lock during a save ([ctrl + 0x7C] p0 bit 1: pads ignored), cleared by the same callback
+            for fn in (0x080354FA, 0x0803542C): a_ = r0(fn, e.r32(0x20040B10 + 0x7C), 0); e.uc.mem_write(a_, bytes([e.r8(a_) & ~2]))
     def save():
         e.btn(SAVE_BTN); e.btn(SAVE_BTN)
     ram = lambda: bytes(e.uc.mem_read(SD.RAM, 16))
     def frame(t):
         e.at(t); return X.frame(e)[SD.LED_SAVE]
     t = 300000
+    def toggle_pad():
+        e.setup(True, adv=1); f0 = X.frame(e)[SD.PAD_SD]; e.unpend(); e.pad(SD.PAD_SD); f1 = X.frame(e)[SD.PAD_SD]; e.setup(False); return f0, f1
+    if toggle:
+        e.setup(False); e.transport(1); save(); n0 = len(posts); busy(0)
+        check(n0 == 1 and ram()[4] == 0, f"by default, playing: the stock's save, posted at once ({n0}), nothing kept ({ram()[4]})")
+        e.transport(0); posts.clear()
+        f0, f1 = toggle_pad()
+        cp = [e.param(G.P0, c) for c in (0, 1)]
+        check(all(q[1] == G.SIG and q[2] & SD.F_SD for q in cp) and e.pending() and f0 == SD.COL_OFF and f1 == SD.COL_ON,
+              f"Advanced Setup pad 22: on, in both copies, the save asked ({[q.hex() for q in cp]}), the pad dim, then green ({f0:#x}, {f1:#x})")
     # stopped: as the stock
     save(); n1 = len(posts); busy(0)
     check(n1 == 1 and ram()[4] == 0, f"stopped: Save twice posts the record at once ({n1}), nothing kept ({ram()[4]})")
@@ -82,6 +101,12 @@ def main(img, man):
     e.call(lst & ~1 | 1, MAN + 4, e.r32(MAN + 0x48), s0 ^ 1, 0, maxins=8_000_000); k4 = ram()
     check(len(posts) == 4 and k3[4] == 1 and k3[6] == s0 ^ 1 and k4[4] == 1, f"asked again: kept (slot {k3[6]}); the same slot again: nothing posted ({len(posts) - 4})")
     e.transport(0); frame(t + 0x900); busy(0)
+    if toggle:
+        n = len(posts); e.transport(1); save(); k = ram()[4]; f0, f1 = toggle_pad(); n1 = len(posts); busy(0)
+        check(k == 1 and n1 == n + 1 and ram()[4] == 0 and f0 == SD.COL_ON and f1 == SD.COL_OFF,
+              f"pad 22 off with a save kept: written at once ({n1 - n}), nothing kept ({ram()[4]}); the pad green, then dim")
+        save(); n2 = len(posts); busy(0); e.transport(0)
+        check(n2 == n1 + 1 and ram()[4] == 0, f"off again, playing: the stock's save, at once ({n2 - n1})")
     del e; gc.collect()
     # svskip
     e = T.EL(img); e.at(300000); e.transport(0)

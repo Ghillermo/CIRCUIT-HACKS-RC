@@ -79,6 +79,17 @@ def use_dyn2():
     DYN = DYN2
 
 
+RECTRK = False                                                # SC50 / RC4.04 (use_rectrack)
+
+
+def use_rectrack():
+    """SC50 / Beta 5.3 / RC4.04: with Record and mode 2 on the screen, only the track of that view is written; c_rfrec used to answer for every note
+    player, so the other note tracks' levels and dynamics rewrote their patterns with no view of them on the screen (since SC40.3).  c_rfrec(r0 = the
+    player): the player's track against the selected one."""
+    global RECTRK
+    RECTRK = True
+
+
 ENGINE_OBJ = 0x20038EC0                                       # the engine itself (0x20038ECC is its interface at + 0xC): + 0x30 + 4 t = the playing store of track t,
                                                               # + 0x50 the pattern's, + 0x70 the next one's, + 0x90 the global tick's (SC40.3 read ENGINE + 0x90: not the tick)
 PASSCNT = False                                               # SC40.4: the frequency counts the plays of each pattern
@@ -116,7 +127,7 @@ def arm_code(base, L, prev):
         zc[0] += 1; n = f"_r{zc[0]}"
         E(b_cond, n, INV[cond]); E(b, target); a.label(n)
     def get(k): imm32(0, MU.PLAY_STORE); E(movs_imm, 1, k); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0)
-    t_dyn = base; E(raw, dyn_table())
+    if not MU.MUT2: t_dyn = base; E(raw, dyn_table())
 
     # ---- c_rfst() -> r0 = the state (tag written when the bytes were someone else's: mode 1), 0 without the block; clobbers r1-r3
     a.label("c_rfst")
@@ -181,14 +192,22 @@ def arm_code(base, L, prev):
 
     # ---- c_rfrec() -> r0 = 1 when what mode 2 produces is to be written: mode 2 on the screen and recording; clobbers r1-r3
     a.label("c_rfrec")
-    E(push_list, [4], lr=True)
+    if RECTRK: E(push_list, [4, 5], lr=True); E(mov_reg, 5, 0)
+    else: E(push_list, [4], lr=True)
     E(bl, "c_rfst"); E(cmp_imm, 0, 0); E(b_cond, "rr_n", "eq")
     E(ldrb_imm, 4, 0, 1); E(lsrs_imm, 0, 4, 4); E(b_cond, "rr_n", "eq")
     E(movs_imm, 0, 1); E(ands_reg, 0, 4); E(b_cond, "rr_n", "eq")
     for k, skip in ((0, "eq"), (1, "eq"), (2, "ne")):
         get(k); E(cmp_imm, 0, 0); E(b_cond, "rr_n", skip)
-    E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
-    a.label("rr_n"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+    if RECTRK:                                                                        # the player's track = the one on the screen
+        if MU.MUT2: E(mov_reg, 0, 5); E(bl, L["c_mgtrk"]); E(mov_reg, 4, 0)
+        else: imm32(1, MU.PLAYER0); E(subs_reg, 0, 5, 1); E(movw, 1, MU.PLAYER_SZ); E(raw, udiv(4, 0, 1))
+        E(bl, "c_rfnt"); E(cmp_reg, 0, 4); E(b_cond, "rr_n", "ne")
+        E(movs_imm, 0, 1); E(pop_list, [4, 5], pc=True)
+        a.label("rr_n"); E(movs_imm, 0, 0); E(pop_list, [4, 5], pc=True)
+    else:
+        E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
+        a.label("rr_n"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
 
     # ---- c_rfmask (from the mask builder, in place of its probability and micro step tests): r5 = the step, r4 = the unit - 4, r8 = the unit's
     #      number, r3 = the micro step, r2 = the unit's bit, r1 = the mask so far, r9 = the player -> r1 |= r2 when the unit starts here;
@@ -230,26 +249,54 @@ def arm_code(base, L, prev):
     a.label("fm_fr"); E(ldr_sp, 5, 20)
     a.label("fm_fq")
     # the micro step
-    E(ldr_sp, 4, 16); E(ldrb_imm, 0, 4, 6)                                            # r0 = the unit's
-    E(ldrb_imm, 1, 5, STEP_BYTE); E(lsrs_imm, 1, 1, SH_DYN); E(movs_imm, 2, 7); E(ands_reg, 1, 2); E(b_cond, "fm_cmp", "eq")
-    E(lsls_imm, 1, 1, 2); imm32(2, t_dyn); E(adds_reg, 2, 2, 1)
-    E(ldrb_imm, 3, 2, 1); E(cmp_imm, 3, 1); E(b_cond, "fm_cmp", "eq")                 # r3 = the span
-    E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 2); E(adds_imm8, 1, 3); E(mov_reg, 7, 1)      # r7 = the shift of the unit's four bits
-    E(mov_reg, 1, 6); E(lsrs_reg, 1, 7); E(movs_imm, 5, 15); E(ands_reg, 1, 5)
-    E(raw, udiv(5, 1, 3)); E(muls, 5, 3); E(subs_reg, 1, 1, 5)
-    E(ldrb_imm, 5, 2, 0); E(adds_reg, 1, 1, 5); E(subs_imm8, 1, M_BIAS)               # the offset
-    E(adds_reg, 1, 1, 0)
-    E(cmp_imm, 1, 0); E(b_cond, "fm_l", "ge"); E(movs_imm, 1, 0)
-    a.label("fm_l"); E(cmp_imm, 1, MAX_MICRO); E(b_cond, "fm_h", "le"); E(movs_imm, 1, MAX_MICRO)
-    a.label("fm_h")
-    E(ldr_sp, 3, 12); E(cmp_reg, 1, 3); E(b_cond, "fm_no", "ne")
-    E(cmp_reg, 1, 0); E(b_cond, "fm_yes", "eq")
-    E(mov_reg, 5, 1); E(mov_reg, 4, 2)                                                # r5 = the new micro step, r4 = the table's row
-    E(bl, "c_rfrec"); E(cmp_imm, 0, 0); E(b_cond, "fm_yes", "eq")
-    E(ldrb_imm, 1, 4, 0); E(movs_imm, 0, M_BIAS); E(subs_reg, 0, 0, 1)                # written: the unit's four bits = "offset 0" for the later calls
-    E(movs_imm, 1, 15); E(lsls_reg, 1, 7); E(bics_reg, 6, 1); E(lsls_reg, 0, 7); E(orrs_reg, 6, 0); E(raw, str_r9(6, 4))
-    E(ldr_sp, 4, 16); E(strb_imm, 5, 4, 6)
-    E(b, "fm_yes")
+    if MU.MUT2:
+        # the step's toggle (byte [3] bit 6): one draw a step, the word's bits 27-29 in eighths (2 x the factor: 25 % at x 1); the unit's four bits
+        # % 5 = 0..4 = - 2..+ 2 (the same for the six calls of a step)
+        E(ldr_sp, 4, 16); E(ldrb_imm, 0, 4, 6)                                        # r0 = the unit's
+        E(ldrb_imm, 1, 5, STEP_BYTE); E(lsls_imm, 1, 1, 25); E(b_cond, "fm_cmp", "pl")
+        E(ldrb_imm, 1, 4, 5); E(cmp_imm, 1, 0x80); E(b_cond, "fm_cmp", "hs")          # a tied unit, a unit that continues a tie (the stock's wait table): they stay
+        E(ldrb_imm, 2, 4, 4); E(lsrs_imm, 1, 2, 5); E(lsls_imm, 1, 1, 2); E(raw, h(0x4449)); E(ldr_imm, 1, 1, 0x54)   # add r1, r9
+        E(movs_imm, 3, 31); E(ands_reg, 2, 3); E(lsrs_reg, 1, 2); E(lsls_imm, 1, 1, 31); E(b_cond, "fm_cmp", "mi")
+        E(mov_reg, 7, 0)
+        E(mov_reg, 0, 9); E(bl, L["c_mgtrk"]); E(bl, L["c_mgfac"]); E(lsls_imm, 0, 0, 1)
+        E(lsrs_imm, 1, 6, 27); E(movs_imm, 2, 7); E(ands_reg, 1, 2); E(cmp_reg, 1, 0); E(mov_reg, 0, 7); E(b_cond, "fm_cmp", "hs")
+        E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 2); E(adds_imm8, 1, 3); E(mov_reg, 7, 1)  # r7 = the shift of the unit's four bits
+        E(mov_reg, 1, 6); E(lsrs_reg, 1, 7); E(movs_imm, 5, 15); E(ands_reg, 1, 5)
+        E(movs_imm, 3, 5); E(raw, udiv(5, 1, 3)); E(muls, 5, 3); E(subs_reg, 1, 1, 5)
+        E(subs_imm8, 1, 2); E(adds_reg, 1, 1, 0)
+        E(cmp_imm, 1, 0); E(b_cond, "fm_l", "ge"); E(movs_imm, 1, 0)
+        a.label("fm_l"); E(cmp_imm, 1, MAX_MICRO); E(b_cond, "fm_h", "le"); E(movs_imm, 1, MAX_MICRO)
+        a.label("fm_h")
+        E(ldr_sp, 3, 12); E(cmp_reg, 1, 3); E(b_cond, "fm_no", "ne")
+        E(cmp_reg, 1, 0); E(b_cond, "fm_yes", "eq")
+        E(mov_reg, 5, 1)                                                              # r5 = the new micro step
+        if RECTRK: E(mov_reg, 0, 9)
+        E(bl, "c_rfrec"); E(cmp_imm, 0, 0); E(b_cond, "fm_yes", "eq")
+        E(movs_imm, 1, 15); E(lsls_reg, 1, 7); E(bics_reg, 6, 1); E(movs_imm, 0, 2); E(lsls_reg, 0, 7); E(orrs_reg, 6, 0); E(raw, str_r9(6, 4))   # "offset 0"
+        E(ldr_sp, 4, 16); E(strb_imm, 5, 4, 6)
+        E(b, "fm_yes")
+    else:
+        E(ldr_sp, 4, 16); E(ldrb_imm, 0, 4, 6)                                            # r0 = the unit's
+        E(ldrb_imm, 1, 5, STEP_BYTE); E(lsrs_imm, 1, 1, SH_DYN); E(movs_imm, 2, 7); E(ands_reg, 1, 2); E(b_cond, "fm_cmp", "eq")
+        E(lsls_imm, 1, 1, 2); imm32(2, t_dyn); E(adds_reg, 2, 2, 1)
+        E(ldrb_imm, 3, 2, 1); E(cmp_imm, 3, 1); E(b_cond, "fm_cmp", "eq")                 # r3 = the span
+        E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 2); E(adds_imm8, 1, 3); E(mov_reg, 7, 1)      # r7 = the shift of the unit's four bits
+        E(mov_reg, 1, 6); E(lsrs_reg, 1, 7); E(movs_imm, 5, 15); E(ands_reg, 1, 5)
+        E(raw, udiv(5, 1, 3)); E(muls, 5, 3); E(subs_reg, 1, 1, 5)
+        E(ldrb_imm, 5, 2, 0); E(adds_reg, 1, 1, 5); E(subs_imm8, 1, M_BIAS)               # the offset
+        E(adds_reg, 1, 1, 0)
+        E(cmp_imm, 1, 0); E(b_cond, "fm_l", "ge"); E(movs_imm, 1, 0)
+        a.label("fm_l"); E(cmp_imm, 1, MAX_MICRO); E(b_cond, "fm_h", "le"); E(movs_imm, 1, MAX_MICRO)
+        a.label("fm_h")
+        E(ldr_sp, 3, 12); E(cmp_reg, 1, 3); E(b_cond, "fm_no", "ne")
+        E(cmp_reg, 1, 0); E(b_cond, "fm_yes", "eq")
+        E(mov_reg, 5, 1); E(mov_reg, 4, 2)                                                # r5 = the new micro step, r4 = the table's row
+        if RECTRK: E(mov_reg, 0, 9)
+        E(bl, "c_rfrec"); E(cmp_imm, 0, 0); E(b_cond, "fm_yes", "eq")
+        E(ldrb_imm, 1, 4, 0); E(movs_imm, 0, M_BIAS); E(subs_reg, 0, 0, 1)                # written: the unit's four bits = "offset 0" for the later calls
+        E(movs_imm, 1, 15); E(lsls_reg, 1, 7); E(bics_reg, 6, 1); E(lsls_reg, 0, 7); E(orrs_reg, 6, 0); E(raw, str_r9(6, 4))
+        E(ldr_sp, 4, 16); E(strb_imm, 5, 4, 6)
+        E(b, "fm_yes")
     a.label("fm_cmp"); E(ldr_sp, 3, 12); E(cmp_reg, 0, 3); E(b_cond, "fm_no", "ne")
     a.label("fm_yes"); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7]); E(orrs_reg, 1, 2); E(b, "fm_ret")
     a.label("fm_no"); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7])
@@ -264,28 +311,51 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 1, 4, 4); E(str_sp, 1, 4)
     E(bl, L["c_mutnote"])
     E(lsls_imm, 1, 7, 2); E(subs_reg, 7, 4, 1)                                        # r7 = the step
+    if RECTRK: E(ldr_sp, 0, 0)
     E(bl, "c_rfrec"); E(str_sp, 0, 8)
     E(cmp_imm, 0, 0); E(b_cond, "fn_d", "ne")
     E(ldr_sp, 1, 4); E(strb_imm, 1, 4, 4)                                             # not to be written: the step keeps its note
     a.label("fn_d")
-    E(ldrb_imm, 1, 7, STEP_BYTE); E(lsrs_imm, 1, 1, SH_DYN); E(movs_imm, 2, 7); E(ands_reg, 1, 2); bc("fn_x", "eq")
-    E(lsls_imm, 1, 1, 2); imm32(2, t_dyn); E(adds_reg, 2, 2, 1); E(mov_reg, 7, 2)     # r7 = the table's row
-    E(bl, MU.RANDOM)
-    E(ldrb_imm, 3, 7, 3); E(lsrs_imm, 1, 0, 8); E(lsls_imm, 1, 1, 16); E(lsrs_imm, 1, 1, 16)
-    E(raw, udiv(2, 1, 3)); E(muls, 2, 3); E(subs_reg, 1, 1, 2)
-    E(ldrb_imm, 2, 7, 2); E(adds_reg, 1, 1, 2); E(subs_imm8, 1, V_BIAS)
-    E(mov_reg, 3, 10); E(adds_reg, 1, 1, 3)
-    E(cmp_imm, 1, 1); E(b_cond, "fn_v1", "ge"); E(movs_imm, 1, 1)
-    a.label("fn_v1"); E(cmp_imm, 1, 127); E(b_cond, "fn_v2", "le"); E(movs_imm, 1, 127)
-    a.label("fn_v2"); E(mov_reg, 10, 1)
-    E(cmp_imm, 6, 0x80); E(b_cond, "fn_w", "hs")                                      # a tied unit keeps its length
-    E(ldrb_imm, 3, 7, 1); E(lsrs_imm, 1, 0, 24)
-    E(raw, udiv(2, 1, 3)); E(muls, 2, 3); E(subs_reg, 1, 1, 2)
-    E(ldrb_imm, 2, 7, 0); E(adds_reg, 1, 1, 2); E(subs_imm8, 1, M_BIAS)
-    E(adds_reg, 1, 1, 6)
-    E(cmp_imm, 1, 1); E(b_cond, "fn_l1", "ge"); E(movs_imm, 1, 1)
-    a.label("fn_l1"); E(cmp_imm, 1, MAX_LEN); E(b_cond, "fn_l2", "le"); E(movs_imm, 1, MAX_LEN)
-    a.label("fn_l2"); E(mov_reg, 6, 1)
+    if MU.MUT2:
+        E(ldrb_imm, 1, 7, STEP_BYTE); E(lsrs_imm, 1, 1, SH_DYN); E(movs_imm, 2, 3); E(ands_reg, 1, 2); bc("fn_x", "eq")
+        E(mov_reg, 7, 1)                                                              # r7 = the dynamics
+        E(ldr_sp, 0, 0); E(bl, L["c_mgtrk"]); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("fn_x", "eq")
+        E(lsrs_imm, 2, 1, 10); E(push_list, [2]); E(lsls_imm, 0, 1, 22); E(lsrs_imm, 0, 0, 22)   # [sp]: 10 bits for the length; r0: 10 bits
+        E(mov_reg, 1, 7); E(bl, L["c_mgdv"])                                          # r0 = the velocity's change
+        E(mov_reg, 3, 10); E(adds_reg, 3, 3, 0)
+        E(cmp_imm, 3, 1); E(b_cond, "fn_v1", "ge"); E(movs_imm, 3, 1)
+        a.label("fn_v1"); E(cmp_imm, 3, 127); E(b_cond, "fn_v2", "le"); E(movs_imm, 3, 127)
+        a.label("fn_v2"); E(mov_reg, 10, 3)
+        E(pop_list, [1])
+        E(cmp_imm, 7, 1); E(b_cond, "fn_w", "eq"); E(cmp_imm, 6, 0x80); E(b_cond, "fn_w", "hs")   # a tied unit keeps its length
+        E(cmp_imm, 7, 3); E(b_cond, "fn_r", "eq")
+        E(raw, h(0x4241)); E(b_cond, "fn_s", "ge"); E(raw, h(0x1049)); E(b, "fn_s")   # negs r1, r0; asrs r1, r1, #1
+        a.label("fn_r"); E(mov_reg, 0, 1); E(movs_imm, 3, 65); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 1, 0, 2); E(subs_imm8, 1, 32)
+        a.label("fn_s")                                                               # r1 = - 32 (a half) .. 0 .. + 32 (double)
+        E(muls, 1, 6); E(movs_imm, 3, 5); E(cmp_imm, 1, 0); E(b_cond, "fn_t", "ge"); E(adds_imm8, 1, 63); E(movs_imm, 3, 6)   # (toward 0)
+        a.label("fn_t"); E(raw, h(0x4100 | 3 << 3 | 1)); E(adds_reg, 1, 1, 6)         # asrs r1, r3
+        E(cmp_imm, 1, 1); E(b_cond, "fn_l1", "ge"); E(movs_imm, 1, 1)
+        a.label("fn_l1"); E(cmp_imm, 1, MAX_LEN); E(b_cond, "fn_l2", "le"); E(movs_imm, 1, MAX_LEN)
+        a.label("fn_l2"); E(mov_reg, 6, 1)
+    else:
+        E(ldrb_imm, 1, 7, STEP_BYTE); E(lsrs_imm, 1, 1, SH_DYN); E(movs_imm, 2, 7); E(ands_reg, 1, 2); bc("fn_x", "eq")
+        E(lsls_imm, 1, 1, 2); imm32(2, t_dyn); E(adds_reg, 2, 2, 1); E(mov_reg, 7, 2)     # r7 = the table's row
+        E(bl, MU.RANDOM)
+        E(ldrb_imm, 3, 7, 3); E(lsrs_imm, 1, 0, 8); E(lsls_imm, 1, 1, 16); E(lsrs_imm, 1, 1, 16)
+        E(raw, udiv(2, 1, 3)); E(muls, 2, 3); E(subs_reg, 1, 1, 2)
+        E(ldrb_imm, 2, 7, 2); E(adds_reg, 1, 1, 2); E(subs_imm8, 1, V_BIAS)
+        E(mov_reg, 3, 10); E(adds_reg, 1, 1, 3)
+        E(cmp_imm, 1, 1); E(b_cond, "fn_v1", "ge"); E(movs_imm, 1, 1)
+        a.label("fn_v1"); E(cmp_imm, 1, 127); E(b_cond, "fn_v2", "le"); E(movs_imm, 1, 127)
+        a.label("fn_v2"); E(mov_reg, 10, 1)
+        E(cmp_imm, 6, 0x80); E(b_cond, "fn_w", "hs")                                      # a tied unit keeps its length
+        E(ldrb_imm, 3, 7, 1); E(lsrs_imm, 1, 0, 24)
+        E(raw, udiv(2, 1, 3)); E(muls, 2, 3); E(subs_reg, 1, 1, 2)
+        E(ldrb_imm, 2, 7, 0); E(adds_reg, 1, 1, 2); E(subs_imm8, 1, M_BIAS)
+        E(adds_reg, 1, 1, 6)
+        E(cmp_imm, 1, 1); E(b_cond, "fn_l1", "ge"); E(movs_imm, 1, 1)
+        a.label("fn_l1"); E(cmp_imm, 1, MAX_LEN); E(b_cond, "fn_l2", "le"); E(movs_imm, 1, MAX_LEN)
+        a.label("fn_l2"); E(mov_reg, 6, 1)
     a.label("fn_w")
     E(ldr_sp, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "fn_x", "eq")
     E(mov_reg, 1, 10); E(strb_imm, 1, 4, 7); E(strb_imm, 6, 4, 5)
@@ -304,7 +374,20 @@ def arm_code(base, L, prev):
     E(ldr_imm, 0, 4, 0xC); E(ldr_imm, 6, 0, 8)
     E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "se_x", "eq")   # a step without notes
     E(mov_reg, 0, 6); E(movs_imm, 1, 0); E(bl, MU.PARAM_WPTR)
+    if MU.MUT2:                                                                       # shift 8 = mode 2: the value = the pad 0..15
+        E(cmp_imm, 7, 8); E(b_cond, "se_f", "ne")
+        E(cmp_imm, 5, 8); E(b_cond, "se_r", "hs"); E(strb_imm, 5, 0, MU.STEP_LEVEL); E(b, "se_c")
+        a.label("se_r"); E(ldrb_imm, 1, 0, STEP_BYTE)
+        E(cmp_imm, 5, 15); E(b_cond, "se_d", "ne"); E(movs_imm, 2, 0x40); E(raw, h(0x4051)); E(b, "se_w")   # eors r1, r2
+        a.label("se_d"); E(cmp_imm, 5, 11); E(b_cond, "se_c", "hi")
+        E(movs_imm, 2, 0x30); E(cmp_imm, 5, 8); E(b_cond, "se_m", "ne")
+        E(tst_reg, 1, 2); E(b_cond, "se_o", "eq"); E(bics_reg, 1, 2); E(b, "se_w")
+        a.label("se_o"); E(movs_imm, 2, 0x10); E(orrs_reg, 1, 2); E(b, "se_w")
+        a.label("se_m"); E(bics_reg, 1, 2); E(subs_imm8, 5, 8); E(lsls_imm, 5, 5, SH_DYN); E(orrs_reg, 1, 5)
+        a.label("se_w"); E(strb_imm, 1, 0, STEP_BYTE); E(b, "se_c")
+        a.label("se_f")
     E(ldrb_imm, 1, 0, STEP_BYTE); E(movs_imm, 2, 7); E(lsls_reg, 2, 7); E(bics_reg, 1, 2); E(lsls_reg, 5, 7); E(orrs_reg, 1, 5); E(strb_imm, 1, 0, STEP_BYTE)
+    if MU.MUT2: a.label("se_c")
     E(mov_reg, 0, 6); E(bl, MU.PARAM_COMMIT)
     a.label("se_x"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
@@ -320,8 +403,10 @@ def arm_code(base, L, prev):
     E(cmp_imm, 1, 8); E(b_cond, "pd_c", "lo")
     E(subs_imm8, 1, 8); E(movs_imm, 2, SH_FREQ); E(bl, "c_rfset"); E(b, "pd_x")
     a.label("pd_t")
-    E(cmp_imm, 1, 8); E(b_cond, "pd_c", "hs")
-    E(movs_imm, 2, SH_DYN); E(bl, "c_rfset")
+    if MU.MUT2: E(movs_imm, 2, 8); E(bl, "c_rfset")
+    else:
+        E(cmp_imm, 1, 8); E(b_cond, "pd_c", "hs")
+        E(movs_imm, 2, SH_DYN); E(bl, "c_rfset")
     a.label("pd_x"); E(pop_list, [0, 1, 2, 3, 4], pc=True)
     a.label("pd_c"); E(raw, popw([0, 1, 2, 3, 4], lr=True))
     a.label("pd_f"); E(b_w, prev["pad"])
@@ -332,7 +417,16 @@ def arm_code(base, L, prev):
     E(mov_reg, 4, 0)
     E(bl, "c_rfst"); E(movs_imm, 7, 0); E(cmp_imm, 0, 0); E(b_cond, "rw_m", "eq")
     E(ldrb_imm, 7, 0, 1); E(movs_imm, 0, 1); E(ands_reg, 7, 0); E(b_cond, "rw_m", "eq")
-    E(mov_reg, 0, 4); E(bl, L["c_mutrow"])
+    if MU.MUT2:                                                                       # mode 2: the two rows
+        E(ldr_imm, 0, 4, 0xC); E(ldr_imm, 0, 0, 8); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET)
+        E(ldrb_imm, 3, 0, 0); E(ldrb_imm, 5, 0, STEP_BYTE); E(ldrb_imm, 1, 0, MU.STEP_LEVEL); E(movs_imm, 2, 7); E(ands_reg, 1, 2)
+        E(lsrs_imm, 2, 5, SH_DYN); E(movs_imm, 0, 3); E(ands_reg, 2, 0)
+        E(movs_imm, 6, 0); E(cmp_imm, 3, 0); E(b_cond, "rw_n", "eq"); E(movs_imm, 6, 1)
+        a.label("rw_n"); E(lsrs_imm, 5, 5, 6); E(movs_imm, 0, 1); E(ands_reg, 5, 0); E(lsls_imm, 5, 5, 1); E(orrs_reg, 6, 5); E(mov_reg, 3, 6)
+        E(ldr_imm, 0, 4, 4); E(ldr_imm, 0, 0, 0); E(bl, L["c_mgrow"])
+        E(pop_list, [3, 4, 5, 6, 7], pc=True)
+    else:
+        E(mov_reg, 0, 4); E(bl, L["c_mutrow"])
     a.label("rw_m")
     E(ldr_imm, 0, 4, 0xC); E(ldr_imm, 0, 0, 8); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET)
     E(ldrb_imm, 5, 0, 0); E(ldrb_imm, 6, 0, STEP_BYTE)
@@ -435,11 +529,13 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a: struct.unpack_from("<I", img, a - BASE)[0]
     lab = lambda sec, n: int(report[sec]["labels"][n], 16)
-    L = dict(c_gst=lab("sc14", "c_gst"), c_mutnote=lab("mutate39", "c_mutnote"), c_mutrow=lab("mutate39", "c_mutrow"))
+    L = dict(c_gst=lab("sc14", "c_gst"), c_mutnote=lab("mutate39", "c_mutnote"))
+    for k in (("c_mgtrk", "c_mgfac", "c_mgroll", "c_mgrow", "c_mgdv") if MU.MUT2 else ("c_mutrow",)): L[k] = lab("mutate39", k)
     import fxdiag as FD
     prev = dict(pad=u(MU.PROB_VT) & ~1, ledtask=lab("compkn", "c_ckledtask") if "c_ckledtask" in report["compkn"]["labels"] else FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert u(PS_VT) == PS_PAD | 1 and u(PS_VT + 28) == PS_BUF | 1
-    if MU.TRIMSL: assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == MU.PROB_BUF | 1 and u(MU.PROB_VT + 32) == MU.PROB_LISTEN | 1 and u(MU.PROB_VT2) == MU.PROB_THUNK | 1
+    if MU.MUT2: assert prev["pad"] == MU.PROB_PAD
+    elif MU.TRIMSL: assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == MU.PROB_BUF | 1 and u(MU.PROB_VT + 32) == MU.PROB_LISTEN | 1 and u(MU.PROB_VT2) == MU.PROB_THUNK | 1
     else: assert prev["pad"] == lab("mutate39", "c_mutpad") and u(MU.PROB_VT + 28) == lab("mutate39", "c_mutbuf") | 1 and u(MU.PROB_VT + 32) == lab("mutate39", "c_mutled") | 1
     code, labels = arm_code(base_addr, L, prev)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code

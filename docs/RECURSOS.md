@@ -37,6 +37,13 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC50.1 / Beta 5.4 (2026-11-01):** imagen `0x6ff78` (**136 B libres**), zona libre 4 B; 20 B más que SC50 (`fxres.use_v2`). Sin RAM nueva.
+> **SC50 (2026-11-01):** random-mutate nuevo (`mutate39.use_mut2`, `mutfac`), sweep (`autorel.use_sweep`) y secuenciador de saltos (`jumpseq`, 556 B): imagen `0x6FF64` (**156 B libres**), 140 B en `centab` (la tabla de cents en 16 bits: `0x0805DA68..0x0805DAF3`), zona libre 4 B; RC4.04 `0X6FEE4` (284 B), RC4.04S `0X6FED4` (300 B), con `playmode.use_nudge3` y `stepmod.use_rectrack`. RAM `modmx.MXR + 0x21E8..0x21EB` y `+ 0x21F0..0x2203`. **Cola + 364..366** = el secuenciador de saltos; **+ 536..543** = el factor de cada pista (libres en + 357..543: solo + 363 y + 367..375). DSP sin cambios.
+
+> **SC49.9 (2026-11-01):** `janko.use_v3`: imagen `0X6FB28` (**1240 B libres**), zona libre 26 B. RAM `modmx.MXR + 0x518..0x51C`, firma `JNK3`. DSP sin cambios.
+
+> **SC49.8 / RC4.03 (2026-10-30):** `trigled.use_flash` y `savedefer.use_toggle`: imagen SC49.8 `0X6FBA4` (**1116 B libres**), RC4.03 `0X6FF14` (236 B), RC4.03S `0X6FF04` (252 B). RAM `modmx.MXR + 0x21C0..0x21E3`. Banderas de gmdrum: bit 3 = guardado diferido. DSP sin cambios.
+
 > **SC49.7 (2026-10-29):** `gentab` (seis tablas del núcleo 0 calculadas al arrancar el DSP: 342 palabras menos en la flash; las tablas en `P:$3E0D..$3FFF`, el programa hasta `P:$3D74`: **152 palabras libres**) + `build_sc17.use_novtab` (las tablas del Vinyl fuera: 2 KB) + `chromfix` (376 B) + `savedefer` (272 B) + `packio.use_svskip` + `dautov` (1 276 B): imagen `0x6FB88` (**1 144 B libres**), zona libre 46 B. RAM `modmx.MXR + 0x2150` (chromfix), `+ 0x2160` (savedefer, 16 B), `+ 0x2180` (dautov, 28 B). SPI: un guardado del proyecto lee el DSP 1 vez (antes 65) sin capturas pendientes. RC4.02: imagen `0x6FE7C` (388 B libres), zona libre 358 B.
 
 > **SC49.6 (2026-10-29):** + 20 B (`slock.use_cue`): imagen `0x6FFD0` (**48 B libres**), zona libre 46 B.

@@ -79,7 +79,13 @@ def main(img, man, prev, stock):
     check(e.get(0x21, 1) == 50 and e.flush().get(0xD0) is None, "1-16 / 17-32 in the FX view: the resonance stays")
     # ---- LEDs
     f0, f1 = e.frame(), e.frame(shift=True)
-    check((f1[L18.LED_OCT_DN], f1[L18.LED_OCT_UP]) == (R.YELLOW, R.YELLOW), f"with Shift: Octave DOWN / UP yellow ({f1[51]:#x}, {f1[52]:#x})")
+    if "c_rslv" in L:                                                                     # SC50.1: the value on Octave, as the stock's octave: bright, dim, off at the end
+        for v, dn, up in ((0, 0, R.YELLOW), (1, R.YELLOW_DIM, R.YELLOW), (50, R.YELLOW_DIM, R.YELLOW), (63, R.YELLOW_DIM, R.YELLOW), (64, R.YELLOW, R.YELLOW_DIM), (100, R.YELLOW, R.YELLOW_DIM), (126, R.YELLOW, R.YELLOW_DIM), (127, R.YELLOW, 0)):
+            e.pset(0x21, 1, v); fx = e.frame(shift=True)
+            check((fx[L18.LED_OCT_DN], fx[L18.LED_OCT_UP]) == (dn, up), f"with Shift, resonance {v}: Octave DOWN / UP ({fx[51]:#x}, {fx[52]:#x})")
+        e.pset(0x21, 1, 50)
+    else:
+        check((f1[L18.LED_OCT_DN], f1[L18.LED_OCT_UP]) == (R.YELLOW, R.YELLOW), f"with Shift: Octave DOWN / UP yellow ({f1[51]:#x}, {f1[52]:#x})")
     check((f0[L18.LED_OCT_DN], f0[L18.LED_OCT_UP]) == (0x2A, 0x6B), f"without Shift: Octave DOWN / UP cream / peach ({f0[51]:#x}, {f0[52]:#x})")
     check(f0[53] != L18.LIGHT_GREEN and f1[53] != L18.LIGHT_GREEN, f"LED 53 is not the old green ({f0[53]:#x}, {f1[53]:#x})")
     del e; gc.collect()

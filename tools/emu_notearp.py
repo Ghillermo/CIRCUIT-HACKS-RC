@@ -38,7 +38,10 @@ def main(img, man):
     check(flag(0) == 0, "with Shift: nothing")
     e.setup(True, adv=1); e.call(0x08047494, e.r32(MGR + 0x68), 1, maxins=4_000_000)
     e.call(0x08033282, MGR, AX.PAD_ARX, 100, maxins=8_000_000); f = X.frame(e)
-    check(flag(0) == 0 and f[AX.PAD_ARX] == 0, f"Advanced Setup, pad 22: nothing, dark ({flag(0)}, {f[AX.PAD_ARX]:#x})")
+    if "c_sdq" in man["report"]["savedefer"]["labels"] if "savedefer" in man["report"] else False:   # RC4.03 / SC49.8: pad 22 = the delayed save
+        check(flag(0) == 0, f"Advanced Setup, pad 22: the delayed save, not the arpeggiator's input ({flag(0)})")
+    else:
+        check(flag(0) == 0 and f[AX.PAD_ARX] == 0, f"Advanced Setup, pad 22: nothing, dark ({flag(0)}, {f[AX.PAD_ARX]:#x})")
     del e; gc.collect()
     print(f"{Path(img).stem} RESULT: {'ALL PASS' if not fails else f'{fails} FAIL'}")
     return fails

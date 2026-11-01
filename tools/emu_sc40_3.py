@@ -109,6 +109,7 @@ class EM(T39.EP):
 
     def screen(self, mode2):
         if self.st: self.uc.mem_write(self.st + 1, bytes([0x31 if mode2 else 0]))
+        self.set_p0(self.r32(CONT + 0x188), 0)                                     # (RC4.04: only the selected track is written)
 
     def build(self, micro, word, keep=False):
         """the mask builder for one micro step of step 1 -> the mask"""

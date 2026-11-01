@@ -253,7 +253,7 @@ Una capa sobre el patrón: el patrón decide qué pasos suenan; los knobs dan a 
 Normalmente una pista MIDI solo envía MIDI. Con el mod, MIDI 1 y MIDI 2 pueden tener cada una su **propio motor** en el Circuit; las notas siguen saliendo por MIDI.
 
 ### El motor (pad 27)
-En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor siguiente; su color dice cuál: apagado (oscuro) → entrada de línea (amarillo) → oscilador (verde) → VA-drum (rojo) → granular (magenta) → muestra (cian, *(desde RC2)*) → secuenciador de efectos (azul) → apagado.
+En la vista Preset de MIDI 1 / 2, cada pulsación del **pad 27** pasa al motor siguiente; su color dice cuál: apagado (oscuro) → entrada de línea (ámbar) → oscilador (verde) → VA-drum (naranja) → granular (magenta) → muestra (verde azulado, *(desde RC2)*) → secuenciador de efectos (azul) → apagado.
 *Desde RC4:* un toque al pad 27 abre los motores en la tercera fila de pads, en sus colores; tocas el que quieras y el pad 27 otra vez vuelve a los patches. Shift + pad 27 pasa al siguiente como antes.
 
 | Motor | En palabras sencillas |
@@ -313,7 +313,7 @@ Pulsa **Pattern Settings** con una pista elegida. Como en stock: pads 1-16 el pr
 | Pad | Función |
 |---|---|
 | 25 | La vista de probabilidad en **modo 2** (más abajo). *(desde RC2)*: **Clear + pad 25** borra las dinámicas y el random-mutate de todo el patrón (pistas de notas). |
-| 26 | **Nudge** (naranja). |
+| 26 | **Nudge** (azul). |
 | 27 | Orden **fractal**: 1 · 1 2 · 1 2 3 · … hasta el último paso. |
 | 28 | Orden **deconstruido**: las diagonales de la rejilla (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15, igual para 17-32). |
 
@@ -344,7 +344,7 @@ Elige un paso con notas (pads 1-16) y toca un pad de la fila 3 o 4.
 ### Vista Micro Step *(desde RC2)*
 Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock: pads 17-22 = los 6 micropasos del paso elegido, **pad 24 = Tie** (un toggle: enlaza las notas elegidas con el paso siguiente), pads 25-30 = las notas del paso (tocar una la elige y la hace sonar). **Cada nota tiene un solo micropaso:** tocar otro lo mueve ahí; para varias en el paso, pon varias notas (en los drums sí se encienden varios: repeticiones). Añadido:
 - **Pad 32 = gate por pulsación** (verde): al introducir notas a mano, lo que mantienes el pad es la duración de la nota.
-- **Pad 31 = longitud fija** (naranja): con los dos apagados abre un selector (pads 17-32 = 1-16 pasos); elegir una longitud lo enciende, y toda nota introducida a mano la toma.
+- **Pad 31 = longitud fija** (azul): con los dos apagados abre un selector (pads 17-32 = 1-16 pasos); elegir una longitud lo enciende, y toda nota introducida a mano la toma.
 - Con uno encendido, pulsarlo otra vez lo apaga; pulsar el otro cambia.
 
 ### Cadenas de patrones y escenas *(desde RC2)*
@@ -361,14 +361,14 @@ Pulsa **Gate** dos veces (Gate una vez es la vista Gate de stock). Como en stock
 
 **Scales** funciona como siempre (tónica y escala de stock). *(desde RC2)* **Shift + Scales** abre el **editor de la escala propia** (el botón Scales se ve amarillo con Shift):
 - Los pads son dos octavas de un piano desde la tónica: fila 4 = las teclas blancas de la primera octava, fila 3 sus teclas negras, filas 2 / 1 la segunda octava.
-- Pulsa una tecla para añadirla o quitarla (hasta 7). La **tecla más alta es el periodo**: la tónica de la iteración siguiente (no tiene por qué ser una octava). La tónica se ve blanca, las notas verdes, el periodo naranja.
+- Pulsa una tecla para añadirla o quitarla (hasta 7). La **tecla más alta es el periodo**: la tónica de la iteración siguiente (no tiene por qué ser una octava). La tónica se ve blanca, las notas verdes, el periodo azul.
 - En las pistas de notas cada fila de pads es una iteración (dos por fila con 4 notas o menos). También decide qué notas se encienden, la cuantización y el random-mutate.
 - Elegir una escala de stock apaga la escala propia (las teclas se conservan). Se guarda con el proyecto.
 
 <a id="metronome"></a>
 ## 13. Metrónomo y cuenta atrás
 
-*(desde RC2)* **Shift + Clear** recorre cuatro estados, que muestra el LED de Clear mientras Shift está pulsado: **rojo** = sin metrónomo, **verde** = metrónomo, **magenta** = solo cuenta atrás, **cian** = cuenta atrás y metrónomo.
+*(desde RC2)* **Shift + Clear** recorre cuatro estados, que muestra el LED de Clear mientras Shift está pulsado: **rojo** = sin metrónomo, **verde** = metrónomo, **magenta** = solo cuenta atrás, **verde azulado** = cuenta atrás y metrónomo.
 - **Cuenta atrás:** con Record armado y el transporte parado, **Play** da un compás de cuatro clics al tempo del proyecto (Record parpadea) y luego empieza a grabar. Play durante la cuenta la cancela.
 - El volumen del clic es el de stock: pulsa **Tempo / Swing** y gira **K5**. La cuenta atrás se guarda con el proyecto.
 

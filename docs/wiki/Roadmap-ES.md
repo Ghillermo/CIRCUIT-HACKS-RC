@@ -8,6 +8,7 @@ El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantid
 
 ## En marcha
 
+- **Interfaz nueva del random-mutate** (Beta 5.4): una botonera por paso para la nota, la octava, las dinámicas y los micropasos, y un factor en Octave para toda la pista, en notas y drums.
 - **Vista de automatización de los drums** (Beta 5.0, por probar en el aparato): la vista Velocity con Shift de un drum funciona como en las pistas de sinte: los pasos con automatización en amarillo, Shift + un paso amarillo = escuchar sus valores, Shift + otro paso = una marca donde los knobs del drum vuelven a los valores del proyecto, Clear + paso = borrar su automatización; además el carril extra de automatización de los drums, los bloqueos de estado y las rampas.
 - **Parejas estéreo de drums** (Betas 3.36 / 3.37, por probar en el aparato): mantén Drum 1 y pulsa Drum 2 (o Drum 3 + Drum 4). Drum 1 / 3 toca su sample a la izquierda y Drum 2 / 4 el sample siguiente a la derecha, los dos con los controles y el patrón de Drum 1 / 3. Los knobs de Drum 2 / 4 ajustan la apertura estéreo, la desafinación y pequeñas desviaciones. Se guarda con el proyecto; el mismo gesto vuelve a dos drums separados.
 
@@ -37,6 +38,7 @@ El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantid
 - **Marcas de versión más sencillas** (solo «desde RC…» y «solo beta»).
 - **Un PDF para imprimir,** hecho de la misma fuente que las páginas web.
 - **Esta wiki:** las secciones ([Vistas](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views-ES), [Datos](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Data-ES), [Funciones](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Features-ES), [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES), [Usabilidad](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability-ES), [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI-ES)), las preguntas frecuentes y los problemas frecuentes, al día con el manual.
+- **Patches de demostración:** un juego de patches listos para usar que enseñen lo que hace el mod.
 
 ## Ideas abiertas
 

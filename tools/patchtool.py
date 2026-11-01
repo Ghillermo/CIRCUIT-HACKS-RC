@@ -17,24 +17,28 @@ Patches/, or its Patches folder).
     patchtool.py patdiag PACK                   the marks the SC403D diagnostic leaves in the settings of every pattern
     patchtool.py sessdiag PACK                  the marks the SC402D diagnostic leaves in the last 1000 bytes of the projects
 
-Every write into a pack copies the bank to *.bak first (once) and never touches the 340 bytes of the synth patch of the record.  A slot whose
-record (or bank file) does not exist yet is created with empty synth patches (0xFF, what the device itself leaves between patches).
+Every write into a pack copies the bank first (once a run) to a folder of the PC, ~/CircuitHacks_backups/patchtool/<date>/<pack>/, and never touches
+the 340 bytes of the synth patch of the record.  Not next to the bank: the firmware finds files by their NN_ prefix alone, so a NN_PATCHBANK.cpb.bak in
+a pack can take the bank's place (`list` warns of old ones).  A slot whose record (or bank file) does not exist yet is created with empty synth
+patches (0xFF, what the device itself leaves between patches).
 
 Where they live (tools/mpatch.py, docs/NOTAS.md): Patches/NN_PATCHBANK.cpb = 8 records of 512 bytes; a record = 340 bytes of a stock synth patch
 (Components' business) + 172 bytes of padding.  Slot n of the own synth is the padding of record n (bank n / 8, record n % 8):
     [0..3] "CTM1"  [4] flags  [5] step-drummer nibble  [6..31] the values of codes 1..26  [32..39] codes 27..34  [40] sum of [4..39]  [41] 1
+    [42] the LFO shape when [41] = 2
     [44..59] the name this tool keeps (the device ignores it; Duplicate + A + B on the device moves it with the patch (SC39.4), a save on the
              device over the slot removes it)
-A .ctm file is those first 64 bytes.  The flags: bit 0 the mode on, 1 the oscillator source, 2 / 3 the engine bits, 4 two oscillators, 5 the
-chain order.  The values are the knob values of tools/vcf21.py: 0..127, or -64..63 for the bipolar ones; this tool takes -64..127 and does
+    [64..] what the later builds add: the matrix, page 4's destinations, FM, the voice mode, the non-sequenceable page (`copy` and `dump` carry them)
+A .ctm file is the whole padding, 172 bytes (a file of 64 bytes from an older version of this tool still loads: the rest is empty).  The flags: bit 0 the
+mode on, 1 the oscillator source, 2 / 3 the engine bits, 4 two oscillators, 5 the chain order.  The values are the knob values of tools/vcf21.py: 0..127, or -64..63 for the bipolar ones; this tool takes -64..127 and does
 not know each knob's own range: `show` on a patch made on the device tells what a value looks like.
 """
 from __future__ import annotations
-import argparse, re, shutil, sys
+import argparse, re, shutil, sys, time
 from pathlib import Path
 
 REC, PSZ, PER = 512, 340, 8
-DATA, NAME_AT, NAME_LEN, FILE_LEN = 42, 44, 16, 64
+DATA, NAME_AT, NAME_LEN, FILE_LEN = 42, 44, 16, REC - PSZ
 SLOTS = 128                                   # mpatch.use_slots128 (Beta 3.40): 8 pages of 16; the builds before see the first 64
 MODES = {0: "mono", 1: "mono AG", 2: "poly"}
 # code -> (name, what it is; after " | " what it is with the granular engine, which shares the values of the oscillator pages)
@@ -50,11 +54,12 @@ PARAMS = {1: ("filt", "filtro"), 2: ("res", "resonancia"), 3: ("envf", "envolven
           33: ("fm", "FM | granular: dispersión de la posición"), 34: ("ring", "ring | granular: probabilidad de grano al revés")}
 BYNAME = {v[0]: k for k, v in PARAMS.items()}
 DEFAULTS = (0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 40, 0, 0, 60, 63, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0) + (0, 0, 0, 50, 64, 0, 0, 0)
-ENGINES = {"off": 0b0000, "line": 0b0001, "fxseq": 0b0101, "osc": 0b0011, "va-drum": 0b0111, "granular": 0b1011}
-ENGINE_ES = {"off": "apagado", "line": "entrada de línea", "fxseq": "secuenciador de efectos", "osc": "oscilador", "va-drum": "VA-drum", "granular": "granular"}
+ENGINES = {"off": 0b0000, "line": 0b0001, "fxseq": 0b0101, "osc": 0b0011, "va-drum": 0b0111, "granular": 0b1011, "sample": 0b1001}
+ENGINE_ES = {"off": "apagado", "line": "entrada de línea", "fxseq": "secuenciador de efectos", "osc": "oscilador", "va-drum": "VA-drum", "granular": "granular", "sample": "muestra"}
+BACKUPS = Path.home() / "CircuitHacks_backups" / "patchtool" / time.strftime("%Y-%m-%d_%H%M%S")
 
 
-# ---------------------------------------------------------------- a patch (64 bytes)
+# ---------------------------------------------------------------- a patch (the whole padding of a record)
 def state(b: bytes):
     if len(b) < DATA or b[:4] != b"CTM1": return "empty"
     return "ok" if sum(b[4:40]) & 0xFF == b[40] else "bad sum"
@@ -66,23 +71,25 @@ def name_of(b: bytes):
 
 
 def norm(b: bytes):
-    """any padding / file -> the 64 bytes of a .ctm"""
-    return bytes(b[:DATA]) + b"\xFF" * (NAME_AT - DATA) + name_of(b).ljust(NAME_LEN).encode("ascii") + b"\xFF" * (FILE_LEN - NAME_AT - NAME_LEN) if name_of(b) \
-        else bytes(b[:DATA]) + b"\xFF" * (FILE_LEN - DATA)
+    """any padding / file -> the whole padding: what a short one lacks is empty"""
+    return bytes(b[:FILE_LEN]).ljust(FILE_LEN, b"\xFF")
 
 
 def engine_of(b: bytes):
     fl = b[4]
     if not fl & 1: return "off"
-    if not fl & 2: return "fxseq" if fl & 4 else "line"
+    if not fl & 2: return "fxseq" if fl & 4 else "sample" if fl & 8 else "line"
     if fl & 4: return "va-drum"
     return "granular" if fl & 8 else "osc"
 
 
-def make(flags, sd, vals, name=""):
+def make(flags, sd, vals, name="", base=None):
+    """base: a whole padding whose other fields stay (the version, the LFO shape, the fields of the later builds)"""
     body = bytes([flags, sd]) + bytes(v & 0xFF for v in vals)
-    b = b"CTM1" + body + bytes([sum(body) & 0xFF, 1])
-    return norm(b + b"\xFF" * (NAME_AT - DATA) + (name.ljust(NAME_LEN).encode("ascii") if name else b"\xFF" * NAME_LEN))
+    b = bytearray(base or b"\xFF" * FILE_LEN)
+    b[:DATA] = b"CTM1" + body + bytes([sum(body) & 0xFF, base[41] if base else 1])
+    b[NAME_AT:NAME_AT + NAME_LEN] = name.ljust(NAME_LEN).encode("ascii") if name else b"\xFF" * NAME_LEN
+    return bytes(b)
 
 
 def values(b): return [v - 256 if v >= 128 else v for v in b[6:40]]
@@ -121,7 +128,7 @@ def edit(b: bytes, pairs):
             if not -64 <= n <= 127: sys.exit(f"{k}: -64..127")
             vals[BYNAME[k] - 1] = n
         else: sys.exit(f"{k}: parámetro desconocido (mira `show`)")
-    return make(fl, sd, vals, name_of(b))
+    return make(fl, sd, vals, name_of(b), b)
 
 
 # ---------------------------------------------------------------- a pack
@@ -153,9 +160,10 @@ def record(data: bytes, slot: int):
     return (None, b"") if len(r) < PSZ else (r[:PSZ], r[PSZ:])
 
 
-def backup(f: Path):
-    b = f.with_suffix(f.suffix + ".bak")
-    if f.exists() and not b.exists(): shutil.copy2(f, b); print("copia:", b)
+def backup(f: Path, seen=set()):
+    if not f.exists() or f in seen: return
+    d = BACKUPS / f.parent.parent.name; d.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(f, d / f.name); seen.add(f); print("copia:", d / f.name)
 
 
 def read_slot(pack: Path, n: int):
@@ -190,7 +198,7 @@ class Where:
         return norm(b) if st == "ok" else None
     def write(self, b: bytes):
         if self.file: self.file.write_bytes(b); return
-        write_slot(self.pack, self.n, b[:DATA] + b"\xFF" * (NAME_AT - DATA) + b[NAME_AT:NAME_AT + NAME_LEN])
+        write_slot(self.pack, self.n, b)
 
 
 def safe(s): return re.sub(r"[^A-Za-z0-9 _.-]", "_", s).strip()
@@ -214,6 +222,8 @@ def main():
             pad = read_slot(pack, n); st = state(pad)
             txt = "" if st == "empty" else ENGINE_ES[engine_of(pad)] if st == "ok" else "DAÑADO (suma)"
             print(f" {n:3d}   {n // 16 + 1}   {n % 16 + 9:2d}  {name_of(pad) if st != 'empty' else '':<16}  {txt if st != 'empty' else '-'}")
+        old = sorted(f.name for f in patches_dir(pack).glob("*.bak"))
+        if old: print("aviso: quita estos ficheros del pack, el aparato busca por el prefijo NN_ y pueden tapar al banco real:", ", ".join(old))
     elif a.cmd == "show":
         need(1, "show DÓNDE"); print(describe(Where(A[0]).read()))
     elif a.cmd == "set":
@@ -221,7 +231,7 @@ def main():
     elif a.cmd == "name":
         need(2, 'name DÓNDE "NOMBRE"'); w = Where(A[0]); new = A[1]
         if len(new) > NAME_LEN or any(not 32 <= ord(c) < 127 for c in new): sys.exit("nombre: hasta 16 caracteres ASCII")
-        b = w.read(); w.write(make(b[4], b[5], values(b), new)); print(f"{w.text}: «{name_of(b)}» -> «{new}»")
+        b = w.read(); w.write(make(b[4], b[5], values(b), new, b)); print(f"{w.text}: «{name_of(b)}» -> «{new}»")
     elif a.cmd == "new":
         need(1, "new FICHERO.ctm [engine]"); e = A[1] if len(A) > 1 else "osc"
         if e not in ENGINES: sys.exit("engine: " + ", ".join(ENGINES))

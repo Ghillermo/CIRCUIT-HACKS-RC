@@ -11,6 +11,10 @@ Ours:
   * id 21: its 4 stock bytes back (ldr r0, [r4, #0x24]; movs r1, #0x15);
   * leds18's c_ledtask: the green of LED 53 off (its movw / movw / strh = nops); the LED task chain: with the FX view and Shift, Octave
     UP / DOWN yellow (0x2D, the Shift convention).
+
+SC50.1 / Beta 5.4 (use_v2; the user, 2026-11-01: «cambiar la reso de master filter con shift octave debería mostrar el valor actual en el brillo de los pads octave (como
+hacen las octaves de stock en el modo stock)»): the stock's Octave shows how far each way can still go, in three levels: bright, dim, off at the end (0x01 / 0x02 / 0x00,
+read in emulation).  With Shift in the FX view: the same, in yellow, DOWN = the resonance, UP = 127 - the resonance; no steady yellow lies between 0x2D and 0x2E (0x2F / 0x30 are animated).
 """
 from __future__ import annotations
 import struct
@@ -18,14 +22,21 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, mov_reg, movs_imm, movt, movw,  # noqa: E402
-                   pop_list, push_list, strh_reg, subs_imm8, raw)
+                   pop_list, push_list, strh_reg, subs_imm8, subs_reg, raw)
 import fxkeys as K  # noqa: E402
 import fxdiag as FD  # noqa: E402
 import mpatch as MP  # noqa: E402
 import packio as PK  # noqa: E402
 import leds18 as L18  # noqa: E402
 
-STEP, YELLOW = 16, 0x2D
+STEP, YELLOW, YELLOW_DIM = 16, 0x2D, 0x2E
+V2 = False
+
+
+def use_v2():
+    global V2
+    V2 = True
+
 NOP10 = bytes.fromhex("00bf") * 5
 
 
@@ -68,9 +79,20 @@ def arm_code(base, L, prev):
     E(ldr_imm, 0, 4, K.CTRL_VIEW); E(cmp_imm, 0, 0); E(b_cond, "rl_x", "eq")
     E(ldr_imm, 1, 4, K.CTRL_FX); E(cmp_reg, 0, 1); E(b_cond, "rl_x", "ne")
     E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "rl_x", "eq")
-    for led in (L18.LED_OCT_DN, L18.LED_OCT_UP):
-        E(movs_imm, 0, YELLOW); E(movw, 1, 2 * led); E(strh_reg, 0, 5, 1)
+    if V2:
+        E(movs_imm, 0, 0x21); E(movs_imm, 1, 1); E(bl, K.GETTER); E(mov_reg, 6, 0)
+        E(bl, "c_rslv"); E(movw, 1, 2 * L18.LED_OCT_DN); E(strh_reg, 0, 5, 1)
+        E(movs_imm, 0, 127); E(subs_reg, 0, 0, 6); E(bl, "c_rslv"); E(movw, 1, 2 * L18.LED_OCT_UP); E(strh_reg, 0, 5, 1)
+    else:
+        for led in (L18.LED_OCT_DN, L18.LED_OCT_UP):
+            E(movs_imm, 0, YELLOW); E(movw, 1, 2 * led); E(strh_reg, 0, 5, 1)
     a.label("rl_x"); E(pop_list, [4, 5, 6], pc=True)
+    if V2:
+        # ---- c_rslv(r0 = how far that way, 0..127) -> r0 = the LED: off at the end, dim below the middle, bright above
+        a.label("c_rslv")
+        E(cmp_imm, 0, 0); E(b_cond, "rv_x", "eq")
+        E(cmp_imm, 0, 64); E(movs_imm, 0, YELLOW); E(b_cond, "rv_x", "hs"); E(movs_imm, 0, YELLOW_DIM)
+        a.label("rv_x"); E(raw, h(0x4770))
     return a.assemble()
 
 

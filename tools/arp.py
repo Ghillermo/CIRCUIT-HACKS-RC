@@ -664,9 +664,30 @@ def arm_code(base, L, prev):
         zc[0] += 1; n_ = f"_ps{zc[0]}"; E(b_cond, n_, INVC[cond]); E(b, target); a.label(n_)
     bm = bcs if MODS else (lambda t_, c_: E(b_cond, t_, c_))                           # (SC48.3: the modifiers' code makes these far)
 
-    if MUTARP:
+    import mutate39 as MU
+    if MUTARP and MU.MUT2:
+        # ---- c_armuts(r0 = track, r1 = a level, r2 = a note) -> r1 = the note through that level; r0, r2, r3 kept
+        a.label("c_armuts")
+        E(push_list, [0, 2, 3], lr=True); E(movs_imm, 3, 7); E(raw, h(0x4019)); E(b_cond, "mu_n", "eq")   # ands r1, r3
+        E(bl, L["c_mgmut"]); E(mov_reg, 1, 0); E(pop_list, [0, 2, 3], pc=True)
+        a.label("mu_n"); E(mov_reg, 1, 2); E(pop_list, [0, 2, 3], pc=True)
+        # ---- c_armut(r1 = a note; r6 = the sequence state, r7 = the track) -> r1 = the note through the chord step's level
+        a.label("c_armut")
+        E(push_list, [0, 2], lr=True); E(mov_reg, 2, 1); E(raw, ldrb_w_(1, 6, D_MUT)); E(mov_reg, 0, 7); E(bl, "c_armuts"); E(pop_list, [0, 2], pc=True)
+        if MUTLIVE:
+            # ---- c_armutL(r0 = a player, r1 = a note) -> r1 = the note through the level of the step its track is on; clobbers r0
+            a.label("c_armutL")
+            E(push_list, [2, 3, 4, 5, 6, 7], lr=True)
+            E(mov_reg, 4, 1); E(bl, "c_artrk"); E(cmp_imm, 0, 3); E(b_cond, "ml_x", "hi"); E(mov_reg, 5, 0)
+            E(bl, "c_arpat"); E(mov_reg, 6, 0)                                                 # r6 = the pattern
+            E(lsls_imm, 0, 5, 2); imm32(1, ENG + 0x30); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 1); E(bl, PARAM_GET)
+            E(ldrb_imm, 7, 0, 0); E(cmp_imm, 7, 31); E(b_cond, "ml_x", "hi")                    # r7 = the step
+            E(mov_reg, 0, 5); E(bl, "c_arply"); E(ldr_imm, 0, 0, 0x48); imm32(1, 0xCA8); E(muls, 1, 6); E(adds_reg, 0, 0, 1)
+            E(movs_imm, 1, 28); E(muls, 1, 7); E(adds_reg, 0, 0, 1); E(ldrb_imm, 1, 0, 2)      # the step's byte [2]
+            E(mov_reg, 2, 4); E(mov_reg, 0, 5); E(bl, "c_armuts"); E(pop_list, [2, 3, 4, 5, 6, 7], pc=True)
+            a.label("ml_x"); E(mov_reg, 1, 4); E(pop_list, [2, 3, 4, 5, 6, 7], pc=True)
+    elif MUTARP:
         # ---- c_armut(r1 = a note; r6 = the sequence state) -> r1 = the note through the chord step's mutate level (mutate39's chances)
-        import mutate39 as MU
         a.label("c_armut")
         E(push_list, [0, 2, 3, 4, 5, 6, 7], lr=True)
         if not MUTLIVE: E(raw, ldrb_w_(7, 6, D_MUT)); E(cmp_imm, 7, 0); E(b_cond, "mu_x", "eq"); E(mov_reg, 5, 1)
@@ -1014,6 +1035,8 @@ def install(img, report, base_addr):
     lab = lambda sec, n: int(report[sec]["labels"][n], 16)
     L = dict(c_shift=lab("sc15", "c_shift"), c_rfnt=lab("stepmod", "c_rfnt"), c_pmtp=lab("playmode", "c_pmtp"))
     if MUTARP: L["c_mutscale"] = lab("mutate39", "c_mutscale")
+    import mutate39 as MU0
+    if MUTARP and MU0.MUT2: L["c_mgmut"] = lab("mutate39", "c_mgmut")
     prev = dict(pspad=u(SM.PS_VT) & ~1, psbuf=u(SM.PS_VT + 28) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE),
                 load=MP.bw_target(img, P19.LOAD_END, BASE), new=MP.bw_target(img, P19.NEW_TAIL, BASE))
     assert u(PLAYER_VT + 8) == PLAY_STOCK | 1

@@ -17,17 +17,25 @@ Ours:
   * c_sdflush waits while the manager is busy ([+ 0x64] p1 = 2: a patch load or a save in flight) and drops a kept save when the manager's pack has
     changed since (another pack loaded meanwhile: the record is another project); a save that runs (stopped) replaces a kept one.
 RAM: modmx.MXR + 0x2160: + 0 "SD01", + 4 a save kept, + 6 its slot, + 7 its flag, + 8 the manager, + 12 the pack.
+
+SC49.8 / Beta 5.1 / RC4.03 (use_toggle(); the user, 2026-10-30: «Make the delayed save a toggle in advanced setup (stock save by default)»): the
+stock's save unless Advanced Setup's pad 22 is on (green on / dim off, next to the USB merge's pad 23; notearp had left it dark and swallowed), saved
+with the unit's settings: bit 3 of gmdrum's flags byte (0 on every unit so far, so the stock's save comes first).  Turned off with a save kept: the
+kept save is written at once (the stock would have written it at Save; while kept its request stays in the manager's store, so a new Save would not
+even reach the listener).
 """
 from __future__ import annotations
 import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, ands_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, lsrs_imm, mov_reg, movs_imm, movt, movw,  # noqa: E402
-                   pop_list, push_list, raw, str_imm, strb_imm, strh_reg)
+from thumb import (Asm, ands_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_w, lsrs_imm, mov_reg, movs_imm, movt, movw,  # noqa: E402
+                   pop_list, push_list, raw, str_imm, strb_imm, strh_imm, strh_reg)
 import modmx as MX  # noqa: E402
 import packio as PK  # noqa: E402
 import fxdiag as FD  # noqa: E402
+import gmdrum as G  # noqa: E402
+import pgmch as PG  # noqa: E402
 
 RAM = MX.MXR + 0x2160
 SIG = struct.unpack("<I", b"SD01")[0]
@@ -36,9 +44,21 @@ DISP_VT, DISP = 0x08059CF0, 0x08030500                          # the session ma
 TRANSPORT, PARAM_GET, HAL_TICK = 0x20011034, 0x0803542C, 0x2000081C
 LED_SAVE, YELLOW = 57, 0x2D
 RET = h(0x4770)
+TOGGLE = False                                                  # SC49.8 / RC4.03: delayed only with Advanced Setup's pad 22 on
+F_SD = 0x08                                                     # bit 3 of gmdrum's flags byte
+PAD_SD = 21                                                     # pad 22
+COL_ON, COL_OFF = 0x17, 0x02
 
 
-def arm_code(base, prev):
+def use_toggle():
+    global TOGGLE
+    TOGGLE = True
+
+
+def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
+
+
+def arm_code(base, prev, L=None):
     a = Asm(base)
     E = a.emit
     def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
@@ -54,11 +74,21 @@ def arm_code(base, prev):
     # ---- c_sdpack(r0 = the manager) -> r0 = its pack ([+ 0x60] p0); clobbers r1-r3
     a.label("c_sdpack")
     E(push_list, [], lr=True); E(ldr_imm, 0, 0, 0x60); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(pop_list, [], pc=True)
+    if TOGGLE:
+        # ---- c_sdq() -> r0 = 1 with the delayed save on; clobbers r1-r3
+        a.label("c_sdq")
+        E(raw, h(0xB500))
+        E(bl, L["c_gmsig"]); E(cmp_imm, 0, 0); E(b_cond, "sq_0", "eq")
+        E(movs_imm, 0, G.P0); E(movs_imm, 1, 0); E(bl, L["c_gmp"]); E(ldrb_imm, 0, 0, G.B_FLAGS); E(movs_imm, 1, F_SD); E(raw, h(0x4208))   # tst r0, r1
+        E(b_cond, "sq_0", "eq"); E(movs_imm, 0, 1); E(raw, h(0xBD00))
+        a.label("sq_0"); E(movs_imm, 0, 0); E(raw, h(0xBD00))
 
     # ---- c_sdsave (the save routine's head: manager, slot, flag): playing = kept; else the stock's (and nothing kept any more)
     a.label("c_sdsave")
     E(push_list, [0, 1, 2, 4], lr=True)
-    E(bl, "c_sdram"); E(mov_reg, 4, 0); E(bl, "c_sdplay"); E(cmp_imm, 0, 0); E(b_cond, "ss_run", "eq")
+    E(bl, "c_sdram"); E(mov_reg, 4, 0)
+    if TOGGLE: E(bl, "c_sdq"); E(cmp_imm, 0, 0); E(b_cond, "ss_run", "eq")
+    E(bl, "c_sdplay"); E(cmp_imm, 0, 0); E(b_cond, "ss_run", "eq")
     E(ldr_sp, 0, 0); E(bl, "c_sdpack"); E(strb_imm, 0, 4, 12)
     E(ldr_sp, 1, 0); E(str_imm, 1, 4, 8); E(ldr_sp, 1, 4); E(strb_imm, 1, 4, 6); E(ldr_sp, 1, 8); E(strb_imm, 1, 4, 7)
     E(movs_imm, 1, 1); E(strb_imm, 1, 4, 4)
@@ -86,9 +116,29 @@ def arm_code(base, prev):
     a.label("sd_g"); E(pop_list, [0, 1, 2, 3]); E(raw, h(0xF85D) + h(0xEB04))   # ldr.w lr, [sp], #4
     E(b_w, DISP)
 
+    if TOGGLE:
+        # ---- c_sdpad (the Setup view's slot 0: view, pad, velocity): Advanced Setup, pad 22 = the delayed save on / off
+        a.label("c_sdpad")
+        E(push_list, [0, 1, 2, 4], lr=True)
+        E(cmp_imm, 1, PAD_SD); E(b_cond, "sp_f", "ne")
+        E(ldrb_w, 0, 0, PG.ADV_OFF); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "eq")
+        E(bl, L["c_gmsig"]); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "sp_w", "eq")             # no signature yet: the flags are 0
+        E(movs_imm, 0, G.P0); E(movs_imm, 1, 0); E(bl, L["c_gmp"]); E(ldrb_imm, 1, 0, G.B_FLAGS)
+        a.label("sp_w"); E(movs_imm, 0, F_SD); E(raw, h(0x4041))                                      # eors r1, r0
+        E(movs_imm, 0, G.B_FLAGS); E(bl, L["c_gmput"]); E(bl, L["c_gmsave"]); E(bl, "c_sdflush")
+        E(pop_list, [0, 1, 2, 4], pc=True)
+        a.label("sp_f"); E(raw, popw([0, 1, 2, 4], lr=True)); E(b_w, prev["pad"])
+
     # ---- c_sdled (the LED task's calls: ctrl, frame): the chain; a kept save: run once stopped, else Save blinking yellow
     a.label("c_sdled")
     E(push_list, [3, 4, 5], lr=True); E(mov_reg, 5, 1); E(bl, prev["led"])
+    if TOGGLE:                                                                                        # Advanced Setup: pad 22 green on / dim off
+        imm32(0, PG.MGR); E(ldr_imm, 0, 0, PG.MODE_STORE); E(movs_imm, 1, 0); E(bl, PG.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+        E(cmp_imm, 0, PG.MODE_SETUP); E(b_cond, "sl_k", "ne")
+        imm32(0, PG.SETUP_OBJ); E(ldrb_w, 0, 0, PG.ADV_OFF); E(cmp_imm, 0, 0); E(b_cond, "sl_k", "eq")
+        E(movs_imm, 4, COL_ON); E(bl, "c_sdq"); E(cmp_imm, 0, 0); E(b_cond, "sl_p", "ne"); E(movs_imm, 4, COL_OFF)
+        a.label("sl_p"); E(strh_imm, 4, 5, 2 * PAD_SD)
+        a.label("sl_k")
     E(bl, "c_sdram"); E(ldrb_imm, 1, 0, 4); E(cmp_imm, 1, 0); E(b_cond, "sl_x", "eq")
     E(bl, "c_sdplay"); E(cmp_imm, 0, 0); E(b_cond, "sl_b", "ne")
     E(bl, "c_sdflush"); E(b, "sl_x")
@@ -109,7 +159,11 @@ def install(img, report, base_addr):
     assert u(DISP_VT) == DISP | 1, hex(u(DISP_VT))
     prev = dict(led=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     for c in PK.LED_CALLS[1:]: assert FD.bl_target(img, c, BASE) == prev["led"], hex(c)
-    code, labels = arm_code(base_addr, prev)
+    L = None
+    if TOGGLE:
+        L = {k: int(report["gmdrum"]["labels"][k], 16) for k in ("c_gmsig", "c_gmp", "c_gmput", "c_gmsave")}
+        prev["pad"] = u(PG.SETUP_VT) & ~1
+    code, labels = arm_code(base_addr, prev, L)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
@@ -118,4 +172,5 @@ def install(img, report, base_addr):
     put(SAVE_FN, b_w(SAVE_FN, labels["c_sdsave"]))
     struct.pack_into("<I", img, DISP_VT - BASE, labels["c_sddisp"] | 1)
     for c in PK.LED_CALLS: put(c, bl(c, labels["c_sdled"]))
+    if TOGGLE: struct.pack_into("<I", img, PG.SETUP_VT - BASE, labels["c_sdpad"] | 1)
     return labels, code, prev

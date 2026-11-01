@@ -253,7 +253,7 @@ A layer over the pattern: the pattern decides which steps play; the knobs give e
 Normally a MIDI track only sends MIDI. With the mod, MIDI 1 and MIDI 2 can each have their **own engine** on the Circuit itself; the notes still go out over MIDI.
 
 ### The engine (pad 27)
-In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (yellow) → oscillator (green) → VA-drum (red) → granular (magenta) → sample (cyan, *(since RC2)*) → FX sequencer (blue) → off.
+In the MIDI 1 / 2 Preset view, each press of **pad 27** moves to the next engine; its colour shows which: off (dark) → line input (amber) → oscillator (green) → VA-drum (orange) → granular (magenta) → sample (teal, *(since RC2)*) → FX sequencer (blue) → off.
 *Since RC4:* a tap on pad 27 opens the engines on the third row of pads, in their colours; tap the one you want and pad 27 again goes back to the patches. Shift + pad 27 steps to the next as before.
 
 | Engine | In plain words |
@@ -313,7 +313,7 @@ Press **Pattern Settings** with a track chosen. As on a stock unit: pads 1-16 th
 | Pad | Function |
 |---|---|
 | 25 | The probability view in **mode 2** (below). *(since RC2)*: **Clear + pad 25** clears the dynamics and random-mutate of the whole pattern (note tracks). |
-| 26 | **Nudge** (orange). |
+| 26 | **Nudge** (blue). |
 | 27 | **Fractal** order: 1 · 1 2 · 1 2 3 · … up to the last step. |
 | 28 | **Deconstructed** order: the grid's diagonals (1 6 11 16 · 2 7 12 13 · 3 8 9 14 · 4 5 10 15, the same for 17-32). |
 
@@ -344,7 +344,7 @@ Choose a step that has notes (pads 1-16) and touch a pad of row 3 or 4.
 ### Micro Step view *(since RC2)*
 Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: pads 17-22 = the 6 micro steps of the chosen step, **pad 24 = Tie** (a toggle: ties the chosen notes to the next step), pads 25-30 = the step's notes (touching one chooses it and plays it). **Each note has a single micro step:** touching another moves it there; for several in the step, enter several notes (drums can light several: repeats). Added:
 - **Pad 32 = gate by holding** (green): when entering notes by hand, the time you hold the pad is the note's length.
-- **Pad 31 = fixed length** (orange): with both off it opens a selector (pads 17-32 = 1-16 steps); picking a length turns it on, and every note entered by hand gets it.
+- **Pad 31 = fixed length** (blue): with both off it opens a selector (pads 17-32 = 1-16 steps); picking a length turns it on, and every note entered by hand gets it.
 - With one on, pressing it again turns it off; pressing the other one switches.
 
 ### Pattern chains and scenes *(since RC2)*
@@ -361,14 +361,14 @@ Press **Gate** twice (Gate once is the stock Gate view). As on the stock unit: p
 
 **Scales** works as always (root and stock scale). *(since RC2)* **Shift + Scales** opens the **custom scale editor** (the Scales button shows yellow with Shift):
 - The pads are two octaves of a piano from the root: row 4 = the white keys of the first octave, row 3 its black keys, rows 2 / 1 the second octave.
-- Press a key to add or remove it (up to 7). The **highest key is the period**: the root of the next iteration (it does not have to be an octave). The root is white, notes green, the period orange.
+- Press a key to add or remove it (up to 7). The **highest key is the period**: the root of the next iteration (it does not have to be an octave). The root is white, notes green, the period blue.
 - On the note tracks each row of pads is one iteration (two per row with 4 notes or fewer). It also drives which notes light up, the quantising and random-mutate.
 - Picking a stock scale switches the custom scale off (the keys are kept). Saved with the project.
 
 <a id="metronome"></a>
 ## 13. Metronome and count-in
 
-*(since RC2)* **Shift + Clear** walks four states, shown by the Clear LED while Shift is held: **red** = no metronome, **green** = metronome, **magenta** = count-in only, **cyan** = count-in and metronome.
+*(since RC2)* **Shift + Clear** walks four states, shown by the Clear LED while Shift is held: **red** = no metronome, **green** = metronome, **magenta** = count-in only, **teal** = count-in and metronome.
 - **Count-in:** with Record armed and the transport stopped, **Play** gives one bar of four clicks at the project's tempo (Record blinks), then recording starts. Play during the count cancels it.
 - The click's volume is the stock one: press **Tempo / Swing** and turn **K5**. The count-in is saved with the project.
 

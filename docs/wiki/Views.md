@@ -76,6 +76,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
+- **Jump sequencer** *(Beta 5.4 only)* — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
@@ -133,7 +134,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### Sample mode and sample picker
 
-*How to get there:* *(since RC2)* MIDI 1 / 2 with the engine on **sample** (pad 27 cyan, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.
+*How to get there:* *(since RC2)* MIDI 1 / 2 with the engine on **sample** (pad 27 teal, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.
 
 - **Pitched drums on a MIDI track** — any pack sample plays at the pitch of each note, like a drum machine with tunable samples.
 - **A different sample per step** — the sample flip changes sample step by step with no other track; it can be recorded live too.
@@ -146,7 +147,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 *How to get there:* The **Pattern Settings** button with a track selected: first / last step, sync rate and direction as always, plus pads 25-28 and the arpeggiator (Shift).
 
-- **Nudge** — rotates the pattern so that it starts on another step.
+- **Nudge** — moves the content of the selected steps one step back or forward.
 - **Fractal and deconstructed orders** — walk through the pattern another way without changing its notes.
 - **Arpeggiator** *(since RC2)* — the pattern's chords (and the ones you play) sound note by note, in their order and resolution; on the drums, jumping from sample to sample.
 - **Dynamics and random-mutate** (pad 25) — variations so that the pattern does not always sound the same.
@@ -165,7 +166,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### Probability view (note tracks and drums)
 
-*How to get there:* **Shift + Pattern Settings** (stock mode), **Pattern Settings twice** (mode 1) or **pad 25** of Pattern Settings (mode 2). Hold a step with notes and touch a pad of rows 3-4.
+*How to get there:* **Pattern Settings twice** or **Shift + Pattern Settings** (mode 1), or **pad 25** of Pattern Settings (mode 2). Hold a step with notes and touch a pad of rows 3-4.
 
 - **Probability (stock)** — a step that only plays sometimes.
 - **Frequency** *(since RC2)* — a step that plays once every n passes: variations that come back every 2, 4 or 8 passes.

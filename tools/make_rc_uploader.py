@@ -1,12 +1,14 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R402 R402S B5.4 B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
   2. applies the patch of the chosen version, checks the SHA-256 of the result against the published one, encodes the update (same format as ct_fw.encode) and
      checks the SHA-256 of that .syx against the published one too;
   3. sends it with the pull protocol of Components (the code of tools/ct_uploader.html).  "Oficial" sends the official file untouched (to go back).
+The page's link «Buscar versiones nuevas» (the user, 2026-11-01: «Add a link to the installer to be able to check for new builds and install them») reads builds/index.json
+from the public pages (publish_rc writes it from this page's PATCHES and DESC) and adds to the list, ready to send, the versions the page does not carry.
 """
 from __future__ import annotations
 import base64
@@ -77,7 +79,15 @@ def main(versions):
     print("tools/rc_uploader.html", len(page), "bytes")
 
 
-DESC = {"R402": ("RC4.02 — la versión candidata 4.02: RC4 + arreglos (los pads cromáticos de los drums graban golpe y tono en su paso; el guardado del proyecto espera al stop; la envolvente de Digitise; el paso marcado vuelve a los valores del proyecto; el editor de CC con el sinte propio, issue #15); sin probar en el aparato",
+DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado diferido como interruptor (Advanced Setup, pad 22; de fábrica, el guardado del original) + el Nudge mueve el contenido del tramo y deja quietos el primer y el último paso + con Record y el modo 2 solo se escribe la pista de la vista",
+                 "RC4.04 — release candidate 4.04: RC4.02 + the delayed save as a switch (Advanced Setup, pad 22; by default, the original's save) + the Nudge moves the content of the range and leaves the first and last steps where they are + with Record and mode 2 only the view's track is written"),
+        "R404S": ("RC4.04S — versión más segura: RC4.04, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
+                  "RC4.04S — safer build: RC4.04, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B5.4": ("Beta 5.4 — beta (= SC50.1): Beta 5.0 + los arreglos de RC4.04 (el guardado diferido como interruptor, el Nudge que mueve el contenido del tramo, Record solo en la pista de la vista) + con Shift, el botón de cada pista destella en blanco con cada nota + Jankó rediseñado + random-mutate rediseñado en notas y drums, con el factor en Octave + sweep entre dos pasos de automatización + secuenciador de saltos de MIDI 1 / 2 + la resonancia del filtro master en el brillo de Octave; sin probar en el aparato",
+                 "Beta 5.4 — beta (= SC50.1): Beta 5.0 + the RC4.04 fixes (the delayed save as a switch, the Nudge moving the content of the range, Record only on the view's track) + with Shift, each track's button flashes white on every note + Jankó redesigned + random-mutate redesigned on notes and drums, with the factor on Octave + a sweep between two automation steps + the jump sequencer of MIDI 1 / 2 + the master filter's resonance in the brightness of Octave; not tested on the device"),
+        "B5.3": ("Beta 5.3 — beta (= SC50): Beta 5.0 + RC4.04 + con Shift, el botón de cada pista destella en blanco con cada nota + Jankó rediseñado + random-mutate rediseñado en notas y drums + sweep entre dos pasos de automatización + secuenciador de saltos de MIDI 1 / 2; sin probar en el aparato",
+                 "Beta 5.3 — beta (= SC50): Beta 5.0 + RC4.04 + with Shift, each track's button flashes white on every note + Jankó redesigned + random-mutate redesigned on notes and drums + a sweep between two automation steps + a MIDI 1 / 2 jump sequencer; not tested on the device"),
+        "R402": ("RC4.02 — la versión candidata 4.02: RC4 + arreglos (los pads cromáticos de los drums graban golpe y tono en su paso; el guardado del proyecto espera al stop; la envolvente de Digitise; el paso marcado vuelve a los valores del proyecto; el editor de CC con el sinte propio, issue #15); sin probar en el aparato",
                  "RC4.02 — release candidate 4.02: RC4 + fixes (the drums' chromatic pads record hit and pitch on their step; the project save waits for stop; Digitise's envelope; a marked step goes back to the project's values; the CC editor with the own synth, issue #15); not tested on the device"),
         "R402S": ("RC4.02S — versión más segura: RC4.02, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC4.02S — safer build: RC4.02, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
@@ -334,6 +344,7 @@ TEMPLATE = r"""<!doctype html>
   <section>
     <h2><span class="es">2 · Versión</span><span class="en">2 · Version</span></h2>
     <select id="ver"></select>
+    <p><a href="#" id="chk"><span class="es">Buscar versiones nuevas</span><span class="en">Check for new builds</span></a> <span id="chkInfo"></span></p>
     <div id="verInfo" class="mono" style="margin-top:8px"></div>
     <label id="ackRow" class="row" style="margin-top:10px;align-items:flex-start;display:none"><input type="checkbox" id="ack" style="margin-top:3px"><span><span class="es">He copiado los datos de la tarjeta microSD a otro almacenamiento y no usaré la memoria interna de Circuit para guardar proyectos.</span><span class="en">I have copied the data of the microSD card to another storage and I will not use the Circuit’s internal memory to save projects.</span></span></label>
   </section>
@@ -455,6 +466,25 @@ $("file").onchange = async () => {
   } catch (e) { $("fileInfo").innerHTML = html + `<span class="bad">${t("Archivo inválido", "Invalid file")}: ${esc(e.message)}</span>`; }
 };
 $("ver").onchange = () => { updateAck(true); prepare(); updateSend(); };
+// ---------- new builds: the public pages' list; only what passes these checks reaches the page, and the patched image still has to match its SHA-256
+const PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/";
+const getJson = async f => { const r = await fetch(PAGES + "builds/" + f, { cache: "no-store" }); if (!r.ok) throw Error(r.status); return r.json(); };
+const okPatch = P => P && Array.isArray(P.ops) && /^[0-9a-f]{64}$/.test(P.image_sha256) && /^[0-9a-f]{64}$/.test(P.syx_sha256);
+$("chk").onclick = async ev => {
+  ev.preventDefault(); const say = m => { $("chkInfo").textContent = m; }; say(t("buscando…", "checking…"));
+  try {
+    const list = await getJson("index.json");
+    const fresh = list.filter(x => /^[A-Za-z0-9.]{1,8}$/.test(x.v) && !PATCHES[x.v]);
+    if (!fresh.length) { say(t("ya tienes todas las versiones publicadas", "you have every published build")); return; }
+    for (const x of [...fresh].reverse()) {
+      const P = await getJson(x.v + ".json"); if (!okPatch(P)) throw Error(x.v);
+      PATCHES[x.v] = P; DESC[x.v] = [String(x.es), String(x.en)];
+      const o = document.createElement("option"); o.value = x.v; o.textContent = verLabel(x.v); $("ver").insertBefore(o, $("ver").firstChild);
+    }
+    $("ver").value = fresh[0].v; $("ver").onchange();
+    say(t(`${fresh.length} nueva(s): ${fresh.map(x => x.v).join(", ")}; elige y envía como siempre`, `${fresh.length} new: ${fresh.map(x => x.v).join(", ")}; pick one and send as usual`));
+  } catch (e) { say(t("no se pudo consultar (¿sin conexión?); descarga el instalador: ", "could not check (offline?); download the installer: ") + PAGES + "rc_uploader.zip"); }
+};
 async function prepare() {
   packets = null; updateSend(); if (!stockImg) { $("verInfo").textContent = t("Primero elige el firmware oficial.", "Pick the official firmware first."); return; }
   const v = $("ver").value;
@@ -606,4 +636,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R402", "R402S", "B5.4", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
