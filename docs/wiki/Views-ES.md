@@ -83,7 +83,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### Voces del sinte propio: polifonía y límite de voces
 
-*Cómo se llega:* Con el sinte propio de MIDI 1 / 2 encendido, el **pad 32** de su [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) elige el modo de voz *(desde RC4)*. Aquí, cuántas voces da cada modo y cada motor, cómo suenan los acordes y qué hace el aparato cuando el DSP va justo de tiempo.
+*Cómo se llega:* Con el sinte propio de MIDI 1 / 2 encendido, el **pad 32** de su [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) elige el modo de voz *(desde RC4)*. Con diagramas y todas las tablas de motores, knobs, guardado y MIDI: [Pistas MIDI y modos de voz](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html). Aquí, cuántas voces da cada modo y cada motor, cómo suenan los acordes y qué hace el aparato cuando el DSP va justo de tiempo.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-voces)
 

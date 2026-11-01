@@ -374,7 +374,7 @@ Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen
 <a id="midi-voces"></a>
 ### 3.2 Voces del sinte propio: polifonía y límite de voces
 
-*Cómo se llega:* Con el sinte propio de MIDI 1 / 2 encendido, el **pad 32** de su [vista Preset](#midi-preset) elige el modo de voz *(desde RC4)*. Aquí, cuántas voces da cada modo y cada motor, cómo suenan los acordes y qué hace el aparato cuando el DSP va justo de tiempo.
+*Cómo se llega:* Con el sinte propio de MIDI 1 / 2 encendido, el **pad 32** de su [vista Preset](#midi-preset) elige el modo de voz *(desde RC4)*. Con diagramas y todas las tablas de motores, knobs, guardado y MIDI: [Pistas MIDI y modos de voz](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html). Aquí, cuántas voces da cada modo y cada motor, cómo suenan los acordes y qué hace el aparato cuando el DSP va justo de tiempo.
 
 ### Cuántas voces
 | Modo de voz | Motor | Voces de la pista |

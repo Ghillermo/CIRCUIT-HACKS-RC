@@ -1,0 +1,522 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pistas MIDI y modos de voz</title><style>
+:root { --bg:#f6f4ef; --fg:#1d1d1f; --muted:#5b5f66; --card:#ffffff; --accent:#ff6a13; --line:#e1ddd3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; } }
+:root[data-theme="dark"] { --bg:#121315; --fg:#ececec; --muted:#a3a8ae; --card:#1c1d20; --line:#2c2e33; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 "Helvetica Neue", Arial, sans-serif; }
+header.cover { background:#17181b; color:#fff; padding:56px 24px 40px; text-align:center; }
+header.cover h1 { font-size:40px; margin:0 0 8px; letter-spacing:.5px; } header.cover p { color:#c9cdd2; margin:4px 0; }
+header.cover .bar { height:6px; width:180px; margin:18px auto 0; background:linear-gradient(90deg,#ff3b30,#ff8a00,#ffd23f,#3ddc5a,#00c2a8,#2f7bff,#8e5cff,#e040fb); border-radius:3px; }
+main { max-width:980px; margin:0 auto; padding:24px 16px 64px; }
+nav.toc { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px 22px; }
+nav.toc h2 { margin-top:0; } nav.toc ol { padding-left:20px; } nav.toc a { color:var(--fg); }
+h2.group { margin-top:48px; padding-bottom:6px; border-bottom:3px solid var(--accent); }
+section.feat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px 24px; margin:22px 0; }
+section.feat h3 { margin-top:0; } section.feat .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+.summary { color:var(--muted); border-left:4px solid var(--accent); padding-left:12px; }
+figure { margin:16px 0; } figure svg { width:100%; height:auto; border-radius:14px; } figcaption { color:var(--muted); font-size:14px; margin-top:6px; text-align:center; }
+table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14.5px; display:block; overflow-x:auto; }
+body { overflow-x:hidden; } th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15); padding:1px 4px; border-radius:4px; }
+footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
+p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
+section.feat a { color:var(--accent); text-underline-offset:2px; }
+.feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>
+<header class="cover"><h1>Pistas MIDI y modos de voz</h1><p>CIRCUIT-HACKS · Beta 5.4</p><p><a style="color:#fff" href="voices.html">English</a> · <a style="color:#fff" href="guia.html">Guía por vistas</a></p><div class="bar"></div></header><main>
+<nav class="toc"><h2>Contenido</h2><ol>
+<li><a href="#s1">Resumen</a></li>
+<li><a href="#s2">Diagrama de bloques</a></li>
+<li><a href="#s3">Vistas y menús</a></li>
+<li><a href="#s4">Motores</a></li>
+<li><a href="#s5">Modos de voz</a></li>
+<li><a href="#s6">Páginas de knobs</a></li>
+<li><a href="#s7">Modulación</a></li>
+<li><a href="#s8">Secuencia y interpretación</a></li>
+<li><a href="#s9">Guardado</a></li>
+<li><a href="#s10">Control MIDI</a></li>
+</ol></nav>
+<section class="feat" id="s1"><h3>Resumen</h3>
+<p>MIDI 1 y MIDI 2 son dos sintes completos dentro del Circuit Tracks: cada pista sigue mandando MIDI y además suena con un motor propio, de hasta 4 voces (6 en FM). El <strong>modo de voz</strong> decide cómo se reparten las notas entre esas voces: ocho modos en el pad 32 de la vista Preset.</p>
+<p>Este documento describe la <strong>Beta 5.4</strong>, publicada el 1 de noviembre de 2026 y sin probar en el aparato. Casi todo está ya en RC4 y RC4.02; lo que solo está en la beta se marca <em>(solo Beta 5.4)</em>.</p>
+<p>El modo de voz no tiene CC ni NRPN: se elige en el aparato y se guarda con el patch y con el proyecto.</p>
+</section>
+<section class="feat" id="s2"><h3>Diagrama de bloques</h3>
+<p>Una nota sigue dos caminos: sale por MIDI y, con el motor encendido, entra en el modo de voz. El MIDI de entrada solo toma el segundo camino.</p>
+<figure><svg viewBox="0 0 760 628" role="img" aria-label="Cada nota pasa por el modo de voz antes de llegar al motor" font-size="13" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arr-628" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs><text x="24" y="28" font-size="15" font-weight="600" fill="var(--fg)">Cada nota pasa por el modo de voz antes de llegar al motor</text><rect x="24" y="368" width="688" height="148" rx="8" fill="rgba(127,127,127,.12)" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="390" font-weight="600" fill="var(--fg)">Motor de la pista</text><path d="M104 128V152H456" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M280 128V152" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M134 152V176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M456 128V176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M632 128V176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M544 248V368" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M104 336V368" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M280 336V368" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M456 336V368" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M632 336V368" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M216 436H240" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M376 436H400" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M536 436H560" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M188 516V540" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><path d="M352 572H384" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-628)"/><rect x="24" y="72" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="96" font-weight="600" fill="var(--fg)">Pads y teclado</text><text x="40" y="112" font-size="11.5" fill="var(--muted)">Notas, acordes, latch</text><rect x="200" y="72" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="216" y="96" font-weight="600" fill="var(--fg)">Secuenciador</text><text x="216" y="112" font-size="11.5" fill="var(--muted)">Pasos del patrón</text><rect x="376" y="72" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="392" y="96" font-weight="600" fill="var(--fg)">Arpegiador</text><text x="392" y="112" font-size="11.5" fill="var(--muted)">Una nota cada vez</text><rect x="552" y="72" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="568" y="96" font-weight="600" fill="var(--fg)">MIDI de entrada</text><text x="568" y="112" font-size="11.5" fill="var(--muted)">USB o DIN</text><rect x="24" y="176" width="220" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="200" font-weight="600" fill="var(--fg)">Salida MIDI</text><text x="40" y="216" font-size="11.5" fill="var(--muted)">Por el canal de la pista</text><text x="40" y="232" font-size="11.5" fill="var(--muted)">Patch flip: Program Change</text><rect x="376" y="176" width="336" height="72" rx="8" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="2"/><text x="392" y="200" font-weight="600" fill="var(--fg)">Modo de voz</text><text x="392" y="216" font-size="11.5" fill="var(--fg)">Una voz, unísono o poly</text><text x="392" y="232" font-size="11.5" fill="var(--fg)">Decide redisparo, glide y reparto de voces</text><rect x="24" y="280" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="304" font-weight="600" fill="var(--fg)">ADSR y LFO</text><text x="40" y="320" font-size="11.5" fill="var(--muted)">Páginas 1 y 5</text><rect x="200" y="280" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="216" y="304" font-weight="600" fill="var(--fg)">Matriz</text><text x="216" y="320" font-size="11.5" fill="var(--muted)">8 fuentes, 33 destinos</text><rect x="376" y="280" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="392" y="304" font-weight="600" fill="var(--fg)">Automatización</text><text x="392" y="320" font-size="11.5" fill="var(--muted)">8 carriles del patrón</text><rect x="552" y="280" width="160" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="568" y="304" font-weight="600" fill="var(--fg)">Step-drummer</text><text x="568" y="320" font-size="11.5" fill="var(--muted)">Pares de pasos</text><rect x="40" y="400" width="176" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="56" y="424" font-weight="600" fill="var(--fg)">Fuente</text><text x="56" y="440" font-size="11.5" fill="var(--muted)">Oscilador, VA-drum, FM,</text><text x="56" y="456" font-size="11.5" fill="var(--muted)">granular, muestra, línea</text><rect x="240" y="400" width="136" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="256" y="424" font-weight="600" fill="var(--fg)">VCA</text><text x="256" y="440" font-size="11.5" fill="var(--muted)">ADSR y velocity</text><text x="256" y="456" font-size="11.5" fill="var(--muted)">Gain, saturación</text><rect x="400" y="400" width="136" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="416" y="424" font-weight="600" fill="var(--fg)">Efecto</text><text x="416" y="440" font-size="11.5" fill="var(--muted)">7 tipos</text><text x="416" y="456" font-size="11.5" fill="var(--muted)">Cantidad</text><rect x="560" y="400" width="136" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="576" y="424" font-weight="600" fill="var(--fg)">Filtro</text><text x="576" y="440" font-size="11.5" fill="var(--muted)">7 tipos</text><text x="576" y="456" font-size="11.5" fill="var(--muted)">Resonancia</text><rect x="24" y="540" width="328" height="64" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="564" font-weight="600" fill="var(--fg)">Tira de la pista en el Mixer</text><text x="40" y="580" font-size="11.5" fill="var(--muted)">Nivel, panorama, mute, envíos, sidechain</text><rect x="384" y="540" width="328" height="64" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="400" y="564" font-weight="600" fill="var(--fg)">Mezcla y salida</text><text x="400" y="580" font-size="11.5" fill="var(--muted)">Filtro master y Master FX</text><text x="24" y="60" font-size="11.5" fill="var(--muted)">Origen de las notas</text><text x="642" y="156" font-size="11.5" fill="var(--muted)">no se reenvía</text><text x="552" y="266" font-size="11.5" fill="var(--muted)">1, 4 o 6 voces</text><text x="24" y="270" font-size="11.5" fill="var(--muted)">Modulación</text><text x="40" y="498" font-size="11.5" fill="var(--muted)">El pad 29 cambia el orden: filtro, VCA, efecto</text></svg></figure>
+<p>La modulación actúa sobre los parámetros del motor, no sobre la nota. Con patch flip activo no hay motor: la nota sale como Program Change.</p>
+</section>
+<section class="feat" id="s3"><h3>Vistas y menús</h3>
+<p>La vista Preset es el centro de la pista: ahí se eligen el motor, el modo de voz, el patch y la página de knobs. Las demás vistas tratan el patrón.</p>
+<figure><svg viewBox="0 0 760 620" role="img" aria-label="La vista Preset concentra el sonido; las demás, el patrón" font-size="13" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arr-620" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs><text x="24" y="28" font-size="15" font-weight="600" fill="var(--fg)">La vista Preset concentra el sonido; las demás, el patrón</text><path d="M140 330H156" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M156 92V568" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M156 92H172" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M156 262H172" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M156 432H172" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M156 500H172" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M156 568H172" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M320 262H336" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M336 160V364" fill="none" stroke="var(--muted)" stroke-width="1.25"/><path d="M336 160H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M336 228H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M336 296H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M336 364H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M320 92H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M552 92H584" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M320 432H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M320 500H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><path d="M320 568H352" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-620)"/><rect x="24" y="298" width="116" height="64" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="322" font-weight="600" fill="var(--fg)">MIDI 1 / 2</text><text x="40" y="338" font-size="11.5" fill="var(--muted)">Botón</text><rect x="172" y="64" width="148" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="188" y="88" font-weight="600" fill="var(--fg)">Note</text><text x="188" y="104" font-size="11.5" fill="var(--muted)">Tocar y escribir</text><rect x="352" y="64" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="88" font-weight="600" fill="var(--fg)">Note ampliada</text><text x="368" y="104" font-size="11.5" fill="var(--muted)">Note otra vez</text><rect x="584" y="64" width="152" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="600" y="88" font-weight="600" fill="var(--fg)">Step-drummer</text><text x="600" y="104" font-size="11.5" fill="var(--muted)">Si está encendido</text><rect x="172" y="226" width="148" height="72" rx="8" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="2"/><text x="188" y="250" font-weight="600" fill="var(--fg)">Preset</text><text x="188" y="266" font-size="11.5" fill="var(--fg)">O MIDI 1 / 2</text><text x="188" y="282" font-size="11.5" fill="var(--fg)">otra vez</text><rect x="352" y="132" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="156" font-weight="600" fill="var(--fg)">Fila de motores</text><text x="368" y="172" font-size="11.5" fill="var(--muted)">Pad 27</text><rect x="352" y="200" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="224" font-weight="600" fill="var(--fg)">Modos de voz</text><text x="368" y="240" font-size="11.5" fill="var(--muted)">Pad 32; K1 glide, K2 unísono</text><rect x="352" y="268" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="292" font-weight="600" fill="var(--fg)">Editor de CC</text><text x="368" y="308" font-size="11.5" fill="var(--muted)">Pad 25, con el motor apagado</text><rect x="352" y="336" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="360" font-weight="600" fill="var(--fg)">Step-drummer</text><text x="368" y="376" font-size="11.5" fill="var(--muted)">Pad 30</text><rect x="172" y="404" width="148" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="188" y="428" font-weight="600" fill="var(--fg)">Velocity</text><text x="188" y="444" font-size="11.5" fill="var(--muted)">Por paso</text><rect x="352" y="404" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="428" font-weight="600" fill="var(--fg)">Automatización del paso</text><text x="368" y="444" font-size="11.5" fill="var(--muted)">Shift + paso</text><rect x="172" y="472" width="148" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="188" y="496" font-weight="600" fill="var(--fg)">Gate</text><text x="188" y="512" font-size="11.5" fill="var(--muted)">Duración</text><rect x="352" y="472" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="496" font-weight="600" fill="var(--fg)">Micro Step</text><text x="368" y="512" font-size="11.5" fill="var(--muted)">Gate otra vez</text><rect x="172" y="540" width="148" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="188" y="564" font-weight="600" fill="var(--fg)">Pattern Settings</text><text x="188" y="580" font-size="11.5" fill="var(--muted)">Pasos y arpegiador</text><rect x="352" y="540" width="200" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="368" y="564" font-weight="600" fill="var(--fg)">Probabilidad</text><text x="368" y="580" font-size="11.5" fill="var(--muted)">Pattern Settings otra vez</text></svg></figure>
+<p>El step-drummer aparece dos veces porque se llega por dos caminos: el pad 30 de Preset o repetir Note cuando ya está encendido.</p>
+<h4>Vistas</h4>
+<table><thead><tr><th>Vista</th><th>Cómo se llega</th><th>Para qué sirve</th></tr></thead><tbody>
+<tr><td>Note</td><td>Botón MIDI 1 / 2</td><td>Tocar y escribir notas. Shift + tecla = latch.</td></tr>
+<tr><td>Note ampliada</td><td>Note dos veces</td><td>Teclado grande y pantalla de acordes (Shift + pad 8). Con el motor en muestra, selector de samples.</td></tr>
+<tr><td>Preset</td><td>Preset, MIDI 1 / 2 otra vez con Note en pantalla, o Shift + MIDI 1 / 2</td><td>Motor, modo de voz, patches, páginas de knobs. Sin motor, plantillas de stock.</td></tr>
+<tr><td>Step-drummer</td><td>Pad 30 de Preset, o Note repetido con el step-drummer encendido</td><td>Parámetros por pares de pasos.</td></tr>
+<tr><td>Editor de CC</td><td>Pad 25 de Preset, con el motor apagado</td><td>Qué CC o NRPN manda cada macro de la plantilla.</td></tr>
+<tr><td>Velocity</td><td>Botón Velocity</td><td>Velocity por paso. Con Shift, soltar la automatización de un paso. Dos veces = velocity fija.</td></tr>
+<tr><td>Gate</td><td>Botón Gate</td><td>Duración de las notas.</td></tr>
+<tr><td>Micro Step</td><td>Gate dos veces</td><td>Micropasos y Tie. Pad 31 = longitud fija, pad 32 = gate por pulsación.</td></tr>
+<tr><td>Pattern Settings</td><td>Botón Pattern Settings</td><td>Primer y último paso, sync rate, dirección, Nudge, órdenes y arpegiador.</td></tr>
+<tr><td>Probabilidad</td><td>Shift + Pattern Settings (stock), Pattern Settings dos veces (modo 1) o pad 25 de Pattern Settings (modo 2)</td><td>Probabilidad, frecuencia, dinámicas y random-mutate.</td></tr>
+<tr><td>Teclado partido</td><td>Mantener una pista de notas y pulsar otra</td><td>Dos pistas en los pads, cada una con su escala, octava y velocity.</td></tr>
+</tbody></table>
+<h4>Pads de la vista Preset</h4>
+<table><thead><tr><th>Pad</th><th>Función</th></tr></thead><tbody>
+<tr><td>1-5</td><td>Página de knobs: 1 VCA-VCF, 2 OSC 1 (o granular), 3 OSC 2, 4 knobs secuenciables, 5 modulación. Shift + pad 4 = knobs no secuenciables. Un toque deja la página; mantener ½ s la enseña solo mientras lo mantienes.</td></tr>
+<tr><td>6</td><td>Matriz de modulación.</td></tr>
+<tr><td>7</td><td>Página FM. Mantenerlo enseña los 16 algoritmos en los pads 9-24.</td></tr>
+<tr><td>8</td><td>Con FM: un toque abre la página FM; mantenerlo enseña los 16 sonidos de partida.</td></tr>
+<tr><td>9-24</td><td>Patches del sinte propio: 16 huecos por página, 8 páginas con Octave.</td></tr>
+<tr><td>25</td><td>Editor de CC. Apagado y sin efecto con el motor encendido.</td></tr>
+<tr><td>26</td><td>Patch flip: cada nota sale como Program Change. Excluyente con el motor.</td></tr>
+<tr><td>27</td><td>Abre la fila de motores. Shift + pad 27 pasa al motor siguiente.</td></tr>
+<tr><td>28</td><td>Uno o dos osciladores (oscilador y VA-drum).</td></tr>
+<tr><td>29</td><td>Orden de la cadena. Shift + pad 29 pasa por los ocho modos de voz.</td></tr>
+<tr><td>30</td><td>Abre el step-drummer. Shift + pad 30 lo desactiva.</td></tr>
+<tr><td>31</td><td>Solo VA-drum: la velocity escala las envolventes de pitch y filtro.</td></tr>
+<tr><td>32</td><td>Abre el menú de modos de voz, en el color del modo actual.</td></tr>
+</tbody></table>
+<h4>Menús sobre los pads</h4>
+<p>Un menú ocupa los pads 9-24 mientras está abierto; esos pads dejan de cargar patches.</p>
+<table><thead><tr><th>Menú</th><th>Abrir</th><th>Contenido</th><th>Cerrar</th></tr></thead><tbody>
+<tr><td>Fila de motores</td><td>Toque en pad 27</td><td>Pads 17-24: apagado, línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos, FM. Pads 9-16: a qué pista apunta el secuenciador de saltos <em>(solo Beta 5.4)</em></td><td>Pad 27 otra vez. Elegir no la cierra.</td></tr>
+<tr><td>Modos de voz</td><td>Toque en pad 32</td><td>Pads 17-24: los ocho modos. K1 = glide, K2 = desafinación del unísono</td><td>Pad 32 otra vez, o salir de la vista</td></tr>
+<tr><td>Algoritmos FM</td><td>Mantener pad 7</td><td>Pads 9-24: los 16 algoritmos</td><td>Soltar el pad 7</td></tr>
+<tr><td>Sonidos de partida</td><td>Mantener pad 8 con FM</td><td>Pads 9-24: 16 instrumentos</td><td>Soltar el pad 8</td></tr>
+<tr><td>Destino de la matriz</td><td>Girar una fuente de la página 6</td><td>Pad de la página del destino y sus knobs en los pads 9-24</td><td>Solo, 1,5 s después</td></tr>
+<tr><td>Ratios FM</td><td>Girar K1-K4 en la página FM</td><td>Pads 9-32: los 24 ratios</td><td>Solo, 1,5 s después</td></tr>
+</tbody></table>
+<h4>Gestos con Clear, Shift y Duplicate</h4>
+<table><thead><tr><th>Gesto</th><th>Efecto</th></tr></thead><tbody>
+<tr><td>Clear + botón de la pista</td><td>Valores del motor a los iniciales, y suelta las notas en latch. El motor elegido se queda.</td></tr>
+<tr><td>Clear + pad 1-5</td><td>Esa página a sus valores iniciales.</td></tr>
+<tr><td>Clear + knob</td><td>A la derecha, valor por defecto (lavanda). A la izquierda, borra su automatización (rojo).</td></tr>
+<tr><td>Shift + Preset</td><td>Vuelve el sinte propio guardado con el proyecto. <em>(solo Beta 5.4)</em></td></tr>
+<tr><td>Clear + pad de patch, dos veces</td><td>Guarda el patch en ese hueco.</td></tr>
+<tr><td>Duplicate + A + B</td><td>Intercambia dos patches. Con otro pack cargado entre medias, copia.</td></tr>
+<tr><td>Shift + pad de patch</td><td>Carga el patch sin que suene la tónica.</td></tr>
+</tbody></table>
+</section>
+<section class="feat" id="s4"><h3>Motores</h3>
+<p>Cada pista tiene un motor de siete, más apagado, y la pista sigue mandando su MIDI con cualquiera. Se elige en la fila que abre el pad 27.</p>
+<table><thead><tr><th>Pad de la fila</th><th>Color</th><th>Motor</th><th>Qué suena</th><th>Voces máximas</th></tr></thead><tbody>
+<tr><td>17</td><td>Blanco</td><td>Apagado</td><td>Nada propio: la pista es MIDI de stock, con plantillas</td><td>—</td></tr>
+<tr><td>18</td><td>Ámbar</td><td>Entrada de línea</td><td>La línea 1 (MIDI 1) o 2 (MIDI 2) pasa por el VCA-VCF; las notas lo disparan</td><td>1</td></tr>
+<tr><td>19</td><td>Verde</td><td>Oscilador</td><td>Morph seno, triángulo, sierra, cuadrada; segundo oscilador con el pad 28</td><td>4</td></tr>
+<tr><td>20</td><td>Naranja</td><td>VA-drum</td><td>Percusión sintética: VCA de un disparo, decays de pitch y filtro, ruido</td><td>4</td></tr>
+<tr><td>21</td><td>Magenta</td><td>Granular</td><td>Hasta 16 granos de un sample del pack o de la captura</td><td>1</td></tr>
+<tr><td>22</td><td>Verde azulado</td><td>Muestra</td><td>Un sample del pack a la altura de la nota, de un golpe</td><td>4</td></tr>
+<tr><td>23</td><td>Azul</td><td>Secuenciador de efectos</td><td>No suena: dispara huecos de Master FX</td><td>—</td></tr>
+<tr><td>24</td><td>Violeta</td><td>FM</td><td>4 operadores y 16 algoritmos; variante del oscilador</td><td>6, o 3 + 3</td></tr>
+</tbody></table>
+<h4>Oscilador</h4>
+<p>WAVE (K7 de la página 2) es una posición continua entre formas: 0 seno, 42 triángulo, 84 sierra, 126 cuadrada. SHAPE (K2) actúa distinto en cada forma; entre dos formas actúa sobre las dos.</p>
+<table><thead><tr><th>Forma</th><th>SHAPE a la izquierda del centro</th><th>SHAPE a la derecha del centro</th></tr></thead><tbody>
+<tr><td>Seno</td><td>Nada</td><td>Wavefold: amplifica hasta unas 8 veces y pliega. Menos en notas agudas</td></tr>
+<tr><td>Triángulo</td><td>Rampas exponenciales</td><td>Wavefold</td></tr>
+<tr><td>Sierra</td><td>Todo el recorrido: de sierra normal a supersaw de 7 sierras</td><td>Hasta la supersaw entera</td></tr>
+<tr><td>Cuadrada</td><td>Pulso más estrecho, hasta un 3 %</td><td>Pulso más estrecho por el otro lado, hasta un 97 %</td></tr>
+</tbody></table>
+<p>La sierra, la supersaw y el pulso usan PolyBLEP, con unos 40 dB menos de aliasing en notas agudas. Con el pad 28, el OSC 2 modula al OSC 1 con FM, ring, sync y modos bit a bit. Dos notas a la vez = parafonía en los modos mono con dos osciladores.</p>
+<h4>VA-drum</h4>
+<p>El knob Sustain es el decay de pitch y el knob Release el decay de filtro. La velocidad del LFO da el nivel de ruido, y el LFO se sustituye por valores aleatorios. En poly cada golpe lleva su envolvente de tono, de volumen y su ruido: un golpe nuevo no corta los anteriores.</p>
+<h4>Granular</h4>
+<p>El modo de nota (Shift + K6 de la página 2) cambia lo que hacen las notas.</p>
+<table><thead><tr><th>Modo de nota</th><th>Qué hacen las notas</th></tr></thead><tbody>
+<tr><td>Tono</td><td>Cambian la altura de los granos</td></tr>
+<tr><td>Slicer</td><td>El sample se parte en 16 trozos y cada nota toca uno, desde la nota 36</td></tr>
+<tr><td>Stretch</td><td>Cambian la altura; el tramo desde K2 dura K3 pasos (1-64) a cualquier tempo</td></tr>
+</tbody></table>
+<p>Con Shift + K4 por encima de 0, cada grano sale a un lado al azar. El panorama de la pista decide la proporción. La fuente (Shift + K8) es la captura o el sample de un drum.</p>
+<h4>Muestra</h4>
+<p>C3 (nota 60) es el sample como se grabó; una octava arriba, el doble de rápido. El VCA se queda abierto y el sample suena hasta el final. Los samples se eligen en la vista Note ampliada, con un sample distinto por paso (sample flip).</p>
+<p>K7 de la página 2 es la anchura estéreo: cada nota toca el sample elegido a la izquierda y un segundo a la derecha. Shift + el sample elegido pasa a elegir el segundo. La nota dura lo que el más largo.</p>
+<h4>FM</h4>
+<p>El volumen lo dan las envolventes de los operadores: el VCA queda abierto y la ADSR de la página 1 mueve filtro, tono y brillo. SHAPE, Env → forma y LFO → forma cambian cuánto modulan los moduladores (× 0,27 a × 3,7), así que todo lo que mueve esos valores mueve el timbre.</p>
+<p>Cada operador es sostenido o percusivo: Shift + K1-K4 a la derecha da ataque, a la izquierda decay propio. El release es uno para todos y más largo cuanto más fuerte la nota.</p>
+<table><thead><tr><th>#</th><th>Algoritmo</th><th>Familia</th><th>Voz con Clear + pad 7</th></tr></thead><tbody>
+<tr><td>1</td><td>4 → 3 → 2 → 1 (pila)</td><td>Clásicos</td><td>La inicial</td></tr>
+<tr><td>2</td><td>3 y 4 → 2 → 1</td><td>Clásicos</td><td>Metales</td></tr>
+<tr><td>3</td><td>4 → 1 y 3 → 2 → 1</td><td>Clásicos</td><td>Piano eléctrico</td></tr>
+<tr><td>4</td><td>4 → 3 → 1 y 2 → 1</td><td>Clásicos</td><td>Bajo</td></tr>
+<tr><td>5</td><td>Dos pilas: 4 → 3 y 2 → 1</td><td>Clásicos</td><td>Piano eléctrico 2</td></tr>
+<tr><td>6</td><td>4 → 1, 2 y 3</td><td>Clásicos</td><td>Pad</td></tr>
+<tr><td>7</td><td>4 → 3; 2 y 1 solos</td><td>Clásicos</td><td>Clave</td></tr>
+<tr><td>8</td><td>Cuatro portadores</td><td>Clásicos</td><td>Órgano</td></tr>
+<tr><td>9</td><td>Bombo: 2 → 1, caída de pitch del 4</td><td>Percusivos</td><td>Bombo</td></tr>
+<tr><td>10</td><td>Caja: 2 → 1 + ruido, caída de pitch del 4</td><td>Percusivos</td><td>Caja</td></tr>
+<tr><td>11</td><td>Metal: 2, 3 y 4 → 1, ratios inarmónicos</td><td>Percusivos</td><td>Hi-hat</td></tr>
+<tr><td>12</td><td>Tom: 3 → 2 → 1, caída de pitch del 4</td><td>Percusivos</td><td>Tom</td></tr>
+<tr><td>13</td><td>Campana: 2 → 1 y 4 → 3</td><td>Campanas</td><td>Campana</td></tr>
+<tr><td>14</td><td>Campana tubular: 2 y 3 → 1, el 4 portador</td><td>Campanas</td><td>Campana tubular</td></tr>
+<tr><td>15</td><td>Cuerdas: dos pilas desafinadas</td><td>Cuerdas</td><td>Cuerdas</td></tr>
+<tr><td>16</td><td>Ensemble: 4 → 1, 2 y 3 desafinados</td><td>Cuerdas</td><td>Ensemble</td></tr>
+</tbody></table>
+<p>Los sonidos de partida (pad 8 mantenido): piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja y hi-hat.</p>
+</section>
+<section class="feat" id="s5"><h3>Modos de voz</h3>
+<p>Hay ocho modos, combinación de dos decisiones: cuántas voces suenan y qué hace una nota nueva con otras teclas pulsadas. Un proyecto que nunca eligió modo empieza en poly.</p>
+<table><thead><tr><th>Voces</th><th>Redispara</th><th>No redispara</th><th>Se desliza</th><th>Se desliza siempre</th></tr></thead><tbody>
+<tr><td>Una voz</td><td>Retrigger (17)</td><td>Legato (18)</td><td>Glide (19)</td><td>—</td></tr>
+<tr><td>Todas en la misma nota</td><td>Uni retrig (20)</td><td>Uni legato (21)</td><td>Uni glide (22)</td><td>Uni always-glide (23)</td></tr>
+<tr><td>Una voz por nota</td><td>Poly (24)</td><td>—</td><td>—</td><td>—</td></tr>
+</tbody></table>
+<p>El número es el pad del menú. Los modos que se llaman igual comparten color: redisparo verde, legato amarillo, glide verde azulado. Uni always-glide es violeta y poly magenta.</p>
+<figure><svg viewBox="0 0 760 492" role="img" aria-label="El modo de voz elige entre una voz, unísono o poly" font-size="13" xmlns="http://www.w3.org/2000/svg"><defs><marker id="arr-492" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs><text x="24" y="28" font-size="15" font-weight="600" fill="var(--fg)">El modo de voz elige entre una voz, unísono o poly</text><rect x="160" y="56" width="392" height="308" rx="8" fill="rgba(127,127,127,.12)" stroke="var(--muted)" stroke-width="1.25"/><text x="176" y="78" font-weight="600" fill="var(--fg)">Modo de voz (pad 32)</text><path d="M124 220H144V132H176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><path d="M124 220H176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><path d="M124 220H144V308H176" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><path d="M552 156H584" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><path d="M660 192V232" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><path d="M356 392V364" fill="none" stroke="var(--muted)" stroke-width="1.25" marker-end="url(#arr-492)"/><rect x="24" y="192" width="100" height="56" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="40" y="216" font-weight="600" fill="var(--fg)">Nota</text><text x="40" y="232" font-size="11.5" fill="var(--muted)">y su velocity</text><rect x="176" y="96" width="360" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="192" y="120" font-weight="600" fill="var(--fg)">Una voz</text><text x="192" y="136" font-size="11.5" fill="var(--muted)">Retrigger, legato, glide</text><text x="192" y="152" font-size="11.5" fill="var(--muted)">La última nota manda; al soltarla vuelve la anterior</text><rect x="176" y="184" width="360" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="192" y="208" font-weight="600" fill="var(--fg)">Todas las voces en la misma nota</text><text x="192" y="224" font-size="11.5" fill="var(--muted)">Uni retrig, uni legato, uni glide, uni always-glide</text><text x="192" y="240" font-size="11.5" fill="var(--muted)">4 voces (FM 6 o 3), desafinadas con K2</text><rect x="176" y="272" width="360" height="72" rx="8" fill="var(--accent)" fill-opacity="0.12" stroke="var(--accent)" stroke-width="2"/><text x="192" y="296" font-weight="600" fill="var(--fg)">Una voz por nota (de fábrica)</text><text x="192" y="312" font-size="11.5" fill="var(--fg)">Poly</text><text x="192" y="328" font-size="11.5" fill="var(--fg)">4 voces (FM 6 o 3); una nota de más quita la más antigua</text><rect x="584" y="120" width="152" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="600" y="144" font-weight="600" fill="var(--fg)">Nivel</text><text x="600" y="160" font-size="11.5" fill="var(--muted)">Cada voz × √(2 / n)</text><text x="600" y="176" font-size="11.5" fill="var(--muted)">1 o 2 voces: entero</text><rect x="584" y="232" width="152" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="600" y="256" font-weight="600" fill="var(--fg)">VCA de la pista</text><text x="600" y="272" font-size="11.5" fill="var(--muted)">Filtro y efecto</text><text x="600" y="288" font-size="11.5" fill="var(--muted)">siempre de la pista</text><rect x="160" y="392" width="392" height="72" rx="8" fill="var(--card)" fill-opacity="1" stroke="var(--muted)" stroke-width="1.25"/><text x="176" y="416" font-weight="600" fill="var(--fg)">Límite de voces</text><text x="176" y="432" font-size="11.5" fill="var(--muted)">Con dos voces o más, cada 2 ms mira el tiempo del DSP.</text><text x="176" y="448" font-size="11.5" fill="var(--muted)">Apaga la voz soltada más baja, o la mantenida más antigua.</text></svg></figure>
+<p>El modo reparte las notas entre las voces; después, el nivel de cada voz baja según cuántas suenan y todas pasan por el filtro y el efecto de la pista.</p>
+<h4>Cómo se elige</h4>
+<p>Con el motor encendido, un toque al pad 32 abre el menú en los pads 17-24, con el modo actual brillante. Tocar un pad elige el modo. Shift + pad 29 hace lo mismo sin abrir el menú: pasa por los ocho en ese orden, y con Shift el pad 29 se ve en el color del modo.</p>
+<p>Con el menú abierto, dos knobs ajustan los modos:</p>
+<table><thead><tr><th>Knob</th><th>Parámetro</th><th>Recorrido</th><th>LED</th></tr></thead><tbody>
+<tr><td>K1</td><td>Tiempo del glide</td><td>Sin glide a la izquierda del todo; de 2 ms a unos 2 s</td><td>Verde azulado</td></tr>
+<tr><td>K2</td><td>Desafinación del unísono</td><td>Hasta ±50 cents entre las voces de los extremos</td><td>Azul</td></tr>
+</tbody></table>
+<h4>Qué hace cada modo</h4>
+<table><thead><tr><th>Modo</th><th>Nota nueva con otras pulsadas</th><th>Nota nueva sin otras pulsadas</th><th>Al soltar</th></tr></thead><tbody>
+<tr><td>Retrigger</td><td>Salta a la nota y redispara la envolvente</td><td>Dispara la envolvente</td><td>Vuelve a la nota anterior si sigue pulsada</td></tr>
+<tr><td>Legato</td><td>Solo cambia la altura</td><td>Dispara la envolvente</td><td>Vuelve a la nota anterior si sigue pulsada</td></tr>
+<tr><td>Glide</td><td>Se desliza a la nota, sin redisparar</td><td>Empieza en su altura y dispara</td><td>Vuelve a la nota anterior si sigue pulsada</td></tr>
+<tr><td>Uni retrig</td><td>Mueve todas las voces y redispara</td><td>Dispara la envolvente</td><td>Suena hasta soltar todas las notas</td></tr>
+<tr><td>Uni legato</td><td>Mueve las voces sin redisparar, sin deslizar</td><td>Dispara la envolvente</td><td>Suena hasta soltar todas las notas</td></tr>
+<tr><td>Uni glide</td><td>Las voces se deslizan, sin redisparar</td><td>Empieza en su altura, sin glide, y dispara</td><td>Suena hasta soltar todas las notas</td></tr>
+<tr><td>Uni always-glide</td><td>Las voces se deslizan, sin redisparar</td><td>Se desliza desde la nota anterior y redispara</td><td>Suena hasta soltar todas las notas</td></tr>
+<tr><td>Poly</td><td>Toma otra voz y redispara la envolvente de la pista</td><td>Toma una voz y dispara</td><td>Esa voz se apaga; la última suena con el release</td></tr>
+</tbody></table>
+<p>En uni legato tampoco se redisparan las envolventes propias de FM y VA-drum.</p>
+<h4>Voces por motor</h4>
+<table><thead><tr><th>Modo</th><th>Motor</th><th>Voces de la pista</th></tr></thead><tbody>
+<tr><td>Retrigger, legato, glide</td><td>Todos</td><td>1</td></tr>
+<tr><td>Poly</td><td>Oscilador (uno o dos, también supersaw), VA-drum, muestra (también estéreo)</td><td>4</td></tr>
+<tr><td>Poly</td><td>FM</td><td>6, o 3 y 3 con las dos pistas en FM poly o unísono</td></tr>
+<tr><td>Unísonos</td><td>Oscilador, VA-drum</td><td>4 en la misma nota, repartidas con K2</td></tr>
+<tr><td>Unísonos</td><td>FM</td><td>6, o 3 con las dos pistas en FM</td></tr>
+<tr><td>Unísonos</td><td>Muestra</td><td>1</td></tr>
+<tr><td>Todos</td><td>Granular y entrada de línea</td><td>1</td></tr>
+</tbody></table>
+<p>El glide funciona en oscilador, VA-drum y FM. El modo muestra y el granular no deslizan.</p>
+<p>Cada pista tiene su máximo; solo las voces FM se reparten entre las dos. Si la segunda pista entra en FM poly o unísono, las voces de las dos se cortan al momento para repartirse.</p>
+<h4>Qué es de cada voz y qué es de la pista</h4>
+<table><thead><tr><th>Elemento</th><th>Oscilador y muestra</th><th>VA-drum</th><th>FM</th></tr></thead><tbody>
+<tr><td>Altura y velocity</td><td>Por voz</td><td>Por voz</td><td>Por voz</td></tr>
+<tr><td>Envolvente de volumen</td><td>De la pista</td><td>Por voz</td><td>Por voz, en los operadores</td></tr>
+<tr><td>Envolvente de tono</td><td>De la pista</td><td>Por voz</td><td>De la pista</td></tr>
+<tr><td>Ruido</td><td>—</td><td>Por voz</td><td>Por voz</td></tr>
+<tr><td>Filtro y efecto</td><td>De la pista</td><td>De la pista</td><td>De la pista</td></tr>
+<tr><td>Al soltar</td><td>La última nota suena con el release</td><td>El golpe sigue hasta acabar</td><td>Cada voz suena entera con su release</td></tr>
+</tbody></table>
+<h4>Robo de voz</h4>
+<p>Con todas las voces ocupadas, una nota nueva quita la voz a la nota más antigua de la pista, con un fundido de 2 ms. Una nota soltada ocupa su voz mientras suena su release, así que con releases largos las voces se llenan aunque toques notas sueltas.</p>
+<h4>Nivel de los acordes</h4>
+<p>Cada voz baja según cuántas suenan, para que la suma no recorte. El factor es √(2 / n), y los unísonos siguen la misma regla.</p>
+<table><thead><tr><th>Voces sonando</th><th>Nivel de cada voz</th></tr></thead><tbody>
+<tr><td>1 o 2</td><td>1,00</td></tr>
+<tr><td>3</td><td>0,82</td></tr>
+<tr><td>4</td><td>0,71</td></tr>
+<tr><td>5</td><td>0,63</td></tr>
+<tr><td>6</td><td>0,58</td></tr>
+</tbody></table>
+<h4>Límite de voces</h4>
+<p>Con dos voces propias o más sonando, el aparato apaga voces antes de que el DSP se quede sin tiempo y se oiga un traqueteo. FM es el motor que más gasta. Con una sola voz propia el límite no actúa.</p>
+<ol>
+<li>1. Cada 2 ms mide cuánto tiempo le sobra al DSP.</li>
+<li>2. Si va justo, apaga la voz soltada más baja, las de FM primero. Si no hay ninguna soltada, apaga la nota mantenida más antigua.</li>
+<li>3. Apaga como mucho una voz cada 12 ms, o cada 4 ms si va muy justo.</li>
+<li>4. La pista sigue con las voces que caben, mínimo 2. Una nota nueva apaga antes la soltada más baja.</li>
+<li>5. Cada 2 s sin problemas prueba con una voz más, hasta volver al máximo.</li>
+</ol>
+<p>Synth 1 y Synth 2 no pierden voces por esto: con dos voces propias o más sonando, el aparato deja de apagar las suyas por falta de tiempo. Las que se apagan son las del sinte propio.</p>
+<p>Para tener más voces a la vez: releases más cortos, menos operadores FM con nivel alto, o una sola pista en FM poly.</p>
+<h4>Guardado del modo</h4>
+<p>El modo, el tiempo del glide y la desafinación se guardan con el patch propio y con el proyecto. Un patch sin ellos deja los valores actuales.</p>
+</section>
+<section class="feat" id="s6"><h3>Páginas de knobs</h3>
+<p>Con el motor encendido, los pads 1-7 eligen qué hacen los 8 knobs, y Shift da una segunda capa. Los knobs de tipo se ven con el color del tipo y el brillo de la posición dentro del tipo.</p>
+<h4>Página 1: VCA-VCF</h4>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1</td><td>Ataque</td><td>Sustain</td></tr>
+<tr><td>K2</td><td>Release</td><td>Decay</td></tr>
+<tr><td>K3</td><td>Envolvente → nivel</td><td>LFO → nivel</td></tr>
+<tr><td>K4</td><td>Envolvente → filtro</td><td>LFO → filtro</td></tr>
+<tr><td>K5</td><td>Filtro</td><td>Tipo de filtro: DJ, LP 12, HP 12, BP, notch, LP 24, HP 24</td></tr>
+<tr><td>K6</td><td>Resonancia</td><td>Gain del VCA, hasta +18 dB con saturación</td></tr>
+<tr><td>K7</td><td>Velocidad del LFO: derecha libre, izquierda a tempo</td><td>—</td></tr>
+<tr><td>K8</td><td>Cantidad de efecto</td><td>Tipo de efecto: suave, dura, plegado, wavefold, ring, comb, chorus</td></tr>
+</tbody></table>
+<h4>Página 2: OSC 1</h4>
+<p>En oscilador, VA-drum, muestra y FM.</p>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1</td><td>TUNE</td><td>FINE</td></tr>
+<tr><td>K2</td><td>SHAPE</td><td>MIX OSC 1 ↔ OSC 2</td></tr>
+<tr><td>K3</td><td>Envolvente → tono</td><td>BITSYNC</td></tr>
+<tr><td>K4</td><td>Envolvente → forma</td><td>—</td></tr>
+<tr><td>K5</td><td>LFO → tono</td><td>—</td></tr>
+<tr><td>K6</td><td>LFO → forma</td><td>—</td></tr>
+<tr><td>K7</td><td>WAVE (morph); en muestra, anchura estéreo</td><td>—</td></tr>
+<tr><td>K8</td><td>LFO → morph</td><td>Envolvente → morph</td></tr>
+</tbody></table>
+<h4>Página 2: granular</h4>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1</td><td>Tono ±24 semitonos</td><td>Fino ±1 semitono</td></tr>
+<tr><td>K2</td><td>Posición en el sample</td><td>Dispersión de la posición</td></tr>
+<tr><td>K3</td><td>Scan, con el centro congelado</td><td>Izquierda: grano al revés. Derecha: dispersión del tono</td></tr>
+<tr><td>K4</td><td>Tamaño del grano, 5-500 ms</td><td>Dispersión estéreo</td></tr>
+<tr><td>K5</td><td>Densidad, 1-16 granos</td><td>Ventana</td></tr>
+<tr><td>K6</td><td>Zona del scan</td><td>Modo de nota: tono, slicer, stretch</td></tr>
+<tr><td>K7</td><td>LFO → posición</td><td>LFO → tamaño</td></tr>
+<tr><td>K8</td><td>Envolvente → posición</td><td>Fuente: la captura o el sample de un drum</td></tr>
+</tbody></table>
+<h4>Página 3: OSC 2</h4>
+<table><thead><tr><th>Knob</th><th>Solo</th></tr></thead><tbody>
+<tr><td>K1</td><td>TUNE 2</td></tr>
+<tr><td>K2</td><td>SHAPE 2</td></tr>
+<tr><td>K3</td><td>MIX OSC 1 ↔ OSC 2</td></tr>
+<tr><td>K4</td><td>FM</td></tr>
+<tr><td>K5</td><td>FINE 2</td></tr>
+<tr><td>K6</td><td>BITSYNC</td></tr>
+<tr><td>K7</td><td>WAVE 2</td></tr>
+<tr><td>K8</td><td>RING</td></tr>
+</tbody></table>
+<h4>Página 4: knobs secuenciables</h4>
+<p>Son los 8 valores que se graban como automatización con Record + Play. De fábrica: TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO y Efecto.</p>
+<p>Shift + knob elige el destino entre los 33 parámetros, a 4 clics por parámetro. Mientras eliges, los pads 9-24 enseñan dónde vive el destino. Clear mantenido y luego Shift + knob devuelve el de fábrica.</p>
+<h4>Knobs no secuenciables (Shift + pad 4)</h4>
+<p>Ocho knobs con destino asignable que no se graban. El pad 4 se ve rosa. De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2 y Gain del VCA.</p>
+<p>Un destino que también esté en los knobs secuenciables sí se graba, como desde cualquier página.</p>
+<h4>Página 5: modulación</h4>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1</td><td>Ataque</td><td>Envolvente → nivel</td></tr>
+<tr><td>K2</td><td>Decay</td><td>Envolvente → filtro</td></tr>
+<tr><td>K3</td><td>Sustain</td><td>Envolvente → tono</td></tr>
+<tr><td>K4</td><td>Release</td><td>Envolvente → forma</td></tr>
+<tr><td>K5</td><td>Velocidad del LFO</td><td>LFO → forma</td></tr>
+<tr><td>K6</td><td>LFO → filtro</td><td>LFO → morph</td></tr>
+<tr><td>K7</td><td>LFO → nivel</td><td>Envolvente → morph</td></tr>
+<tr><td>K8</td><td>LFO → tono</td><td>Forma del LFO</td></tr>
+</tbody></table>
+<p>Con VA-drum, el LFO sigue siendo su ruido.</p>
+<h4>Página 6: matriz</h4>
+<p>Ocho fuentes de modulación, en la sección siguiente.</p>
+<h4>Página 7: FM</h4>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K1-K4</td><td>Ratio del operador 1-4: de 0,5 a 16. Cada ratio ocupa 5-6 clics: el primero exacto, los siguientes desafinan +2,5 cents</td><td>Centro = ataque 0. Derecha: ataque hasta unos 3 s. Izquierda: percusivo, con decay de 3 ms a 8 s</td></tr>
+<tr><td>K5</td><td>Nivel del operador 1</td><td>Algoritmo</td></tr>
+<tr><td>K6</td><td>Nivel del operador 2</td><td>Feedback</td></tr>
+<tr><td>K7</td><td>Nivel del operador 3</td><td>Ruido</td></tr>
+<tr><td>K8</td><td>Nivel del operador 4</td><td>Release</td></tr>
+</tbody></table>
+<p>El nivel de un portador es su volumen; el de un modulador, cuánto modula.</p>
+</section>
+<section class="feat" id="s7"><h3>Modulación</h3>
+<p>El motor tiene una ADSR y un LFO propios, y la matriz añade ocho fuentes que mueven cualquiera de 33 parámetros. La matriz se suma al enviar: el valor guardado del parámetro no cambia.</p>
+<h4>LFO</h4>
+<p>K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift + K8 de la página 5 elige la forma, un paso cada 4 clics, con el LED en su color.</p>
+<table><thead><tr><th>Forma</th><th>Color</th></tr></thead><tbody>
+<tr><td>Triángulo, la inicial</td><td>Verde</td></tr>
+<tr><td>Diente de sierra inverso</td><td>Azul</td></tr>
+<tr><td>Diente de sierra</td><td>Magenta</td></tr>
+<tr><td>Cuadrada</td><td>Rojo</td></tr>
+<tr><td>Seno</td><td>Verde azulado</td></tr>
+<tr><td>Sample &amp; hold</td><td>Blanco</td></tr>
+<tr><td>Sample &amp; hold suavizado</td><td>Violeta</td></tr>
+</tbody></table>
+<h4>Matriz de modulación (pad 6)</h4>
+<table><thead><tr><th>Knob</th><th>Fuente</th><th>Shift + knob</th></tr></thead><tbody>
+<tr><td>K1</td><td>Velocity de la nota</td><td>—</td></tr>
+<tr><td>K2</td><td>Nota: C3 = 0, una octava = un cuarto del recorrido</td><td>—</td></tr>
+<tr><td>K3</td><td>Azar: un valor nuevo en cada nota</td><td>—</td></tr>
+<tr><td>K4</td><td>LFO 2</td><td>Forma × velocidad; en cada forma, mitad izquierda a tempo y derecha libre</td></tr>
+<tr><td>K5</td><td>Envolvente 2: ataque y caída desde cada nota</td><td>Ataque × caída, de 20 ms a 4 s</td></tr>
+<tr><td>K6</td><td>Golpe de un drum: una caída desde cada golpe</td><td>Drum 1-4 × su caída</td></tr>
+<tr><td>K7</td><td>Posición en el patrón, del primer paso al último</td><td>—</td></tr>
+<tr><td>K8</td><td>Azar por pasos: un valor nuevo cada N pasos</td><td>N = 1, 2, 4, 8 o 16</td></tr>
+</tbody></table>
+<p>La posición del knob es a la vez el destino y la cantidad:</p>
+<ul>
+<li>Del todo a la izquierda, apagado.</li>
+<li>Cada destino ocupa 16 pasos, a 2 clics por paso. El primero es el destino sin cantidad, con el LED tenue.</li>
+<li>El color del LED es el de la página del destino, y el brillo la cantidad.</li>
+<li>Las fuentes nota, azar, LFO 2 y azar por pasos suben y bajan; las demás solo suben.</li>
+<li>Varias fuentes al mismo destino se suman.</li>
+</ul>
+<table><thead><tr><th>Gesto</th><th>Efecto</th></tr></thead><tbody>
+<tr><td>Clear + knob</td><td>Esa fuente apagada</td></tr>
+<tr><td>Clear + Shift + knob</td><td>Su parámetro al valor inicial</td></tr>
+<tr><td>Clear + pad 6</td><td>Todas las fuentes apagadas</td></tr>
+</tbody></table>
+<p>Las modulaciones llegan al motor unas 100-250 veces por segundo, repartidas entre todo lo que se mueve en la pista.</p>
+</section>
+<section class="feat" id="s8"><h3>Secuencia y interpretación</h3>
+<p>La pista usa el patrón de stock, y el mod añade automatización del motor, step-drummer, arpegiador y variaciones por paso. Todo sale por las mismas voces y respeta el modo de voz.</p>
+<h4>Automatización</h4>
+<p>Los 8 knobs secuenciables graban con Record + Play en 8 carriles del patrón. Hay varios gestos por paso:</p>
+<table><thead><tr><th>Gesto</th><th>Vista</th><th>Efecto</th></tr></thead><tbody>
+<tr><td>Record mantenido + paso</td><td>Note</td><td>Foto: escribe en ese paso los parámetros que no están en su valor inicial. <em>(solo Beta 5.4)</em> El paso se ve amarillo mientras lo mantienes</td></tr>
+<tr><td>Shift + paso</td><td>Velocity</td><td>Marca el paso: ahí no suena ningún carril y lo automatizado vuelve al sinte guardado con el proyecto</td></tr>
+<tr><td>Shift + paso amarillo</td><td>Velocity</td><td><em>(solo Beta 5.4)</em> Oye sus valores hasta soltar Shift, con los knobs que mueve en amarillo</td></tr>
+<tr><td>Clear + paso</td><td>Velocity</td><td><em>(solo Beta 5.4)</em> Borra la automatización de los knobs de ese paso; las notas quedan</td></tr>
+<tr><td>Paso amarillo mantenido + otro paso amarillo</td><td>Velocity, con Shift</td><td><em>(solo Beta 5.4)</em> Sweep: cada carril con valor en los dos pasos queda en línea recta entre ellos</td></tr>
+</tbody></table>
+<p>En la foto, un parámetro sin carril toma uno cuyo parámetro sí está en su valor inicial, y ese carril se borra antes. Si no caben, quedan los primeros en el orden de la matriz.</p>
+<h4>Step-drummer</h4>
+<p>Los 8 knobs son 8 pares de pasos del patrón: cada par desplaza un destino solo en esos pasos. El LED muestra la cantidad: tenue sin modulación, más brillante cuanto más se aleja.</p>
+<table><thead><tr><th>Control</th><th>Función</th></tr></thead><tbody>
+<tr><td>Pads 1-16</td><td>Pasos de la mitad mostrada. Tocar = escuchar. Shift + tocar = poner o quitar nota. Con Record, graba en el paso que suena</td></tr>
+<tr><td>Pads 17-24</td><td>Destino: tono, OSC 2, WAVE, FM, MIX, env → filtro, SHAPE, decay</td></tr>
+<tr><td>K1-K8</td><td>Los 8 pares de pasos, el que suena en blanco</td></tr>
+<tr><td>Octave ▲ / ▼</td><td>Página pitch o velocity. La página velocity tiene destino propio</td></tr>
+<tr><td>1-16 / 17-32</td><td>La otra mitad del patrón</td></tr>
+<tr><td>Pad 32</td><td>Toggle pitch-vel: la página pitch transpone por grados y la velocity cambia la velocity</td></tr>
+</tbody></table>
+<p>El toggle sube o baja un grado de la escala cada 8 pasos del knob, de −8 a +8 grados. Con el step-drummer activado, TUNE y Release dejan de reproducirse y grabarse como automatización, porque usa sus carriles.</p>
+<h4>Secuenciador de efectos</h4>
+<p>Con este motor, cada knob del step-drummer elige un hueco de la fila inferior de Master FX: nada, pads 26-31 o random. Un hueco sin efecto toca el efecto de arriba de su columna.</p>
+<h4>Secuenciador de saltos</h4>
+<p>Las notas de la pista hacen saltar el patrón de otra pista al paso que indican, en el mismo paso de la nota. <em>(solo Beta 5.4)</em></p>
+<table><thead><tr><th>Control</th><th>Función</th></tr></thead><tbody>
+<tr><td>Pads 9-16 de la fila de motores</td><td>Las ocho pistas: un toque apunta a esa pista, el mismo la apaga. El pad 27 toma su color</td></tr>
+<tr><td>Vista Note, pads 17-32</td><td>Pasos 1-16; Octave ▲, pasos 17-32. La escala no cambia nada</td></tr>
+<tr><td>Note ampliada, los 32 pads</td><td>Pasos 1-32</td></tr>
+</tbody></table>
+<p>Mientras apunta, la pista no suena. Cada nota, del secuenciador, de los pads o del arpegiador, hace saltar la otra pista. Se guarda con el proyecto.</p>
+<h4>Arpegiador</h4>
+<p>Funciona por pista y patrón, en Pattern Settings con Shift. Las notas se arpegian en el orden en que se pulsaron.</p>
+<table><thead><tr><th>Gesto</th><th>Función</th></tr></thead><tbody>
+<tr><td>Shift + pad 25</td><td>Encendido o apagado</td></tr>
+<tr><td>Shift + pads 27-32</td><td>Orden: fractal, deconstruido, arriba, abajo, ping-pong, aleatorio</td></tr>
+<tr><td>Shift + pads 17-24</td><td>Resolución: 1/4, 1/4T, 1/8, 1/8T, 1/16, 1/16T, 1/32, 1/32T. El mismo pad otra vez = la de la pista</td></tr>
+<tr><td>Shift + pads 1-4</td><td>Octavas: ninguna, +1, +1 y −1, +2 y −1</td></tr>
+<tr><td>Shift + pads 5-8</td><td>Cuándo cambia la octava: cada vuelta, cada nota, cada 3, cada 4</td></tr>
+<tr><td>Shift + pads 9-12</td><td>Groove: ninguno, puntillo, swing, cada nota dos veces</td></tr>
+<tr><td>Shift + pads 13-16</td><td>Reinicio: ninguno, o tras una vuelta 1, 3 o 5 notas más</td></tr>
+</tbody></table>
+<p>Cuatro fuentes llegan al arpegiador: acordes del patrón, notas mantenidas, un paso mantenido con el transporte parado, y el teclado externo si está encendido el botón Note de Setup. Con Record se graba el acorde, no las notas sueltas.</p>
+<h4>Variaciones por paso</h4>
+<table><thead><tr><th>Función</th><th>Dónde</th><th>Qué hace</th></tr></thead><tbody>
+<tr><td>Probabilidad</td><td>Vista de probabilidad, fila 3</td><td>Que el paso suene a veces</td></tr>
+<tr><td>Frecuencia</td><td>Modo 1, fila 4</td><td>El paso suena en la última de cada n vueltas, de 1 a 8</td></tr>
+<tr><td>Dinámicas</td><td>Modo 2, pads 25-28</td><td>Acentos, acentos y longitud, o longitud al azar. <em>(solo Beta 5.4)</em></td></tr>
+<tr><td>Random-mutate</td><td>Modo 2, pads 17-24</td><td>Pads 18-20 otra nota de la escala (×1, ×2, ×4), 21 / 22 una octava arriba (baja / alta), 23 / 24 arriba o abajo (baja / alta). <em>(solo Beta 5.4)</em></td></tr>
+<tr><td>Gate por pulsación</td><td>Micro Step, pad 32</td><td>Lo que mantienes al introducir una nota es su duración</td></tr>
+<tr><td>Longitud fija</td><td>Micro Step, pad 31</td><td>Todas las notas introducidas a mano con el mismo gate, de 1 a 16 pasos</td></tr>
+<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Mueve el contenido del tramo un paso atrás; Shift, adelante. El primer y el último paso no se mueven. <em>(solo Beta 5.4)</em></td></tr>
+<tr><td>Fractal y deconstruido</td><td>Pattern Settings, pads 27 y 28</td><td>Otro orden de recorrido del patrón</td></tr>
+<tr><td>Micropasos</td><td>Modo 2, pad 32</td><td>La nota se adelanta o se atrasa hasta 2 micropasos, sin salir de su paso. <em>(solo Beta 5.4)</em></td></tr>
+<tr><td>Factor de la pista</td><td>Octave, con el modo 2 abierto</td><td>De ×0 a ×8, multiplica todas las probabilidades de la pista; ×1 de fábrica. A ×8 el pad 24 cambia todas las notas: el sorteo sigue siendo mitad y mitad. <em>(solo Beta 5.4)</em></td></tr>
+</tbody></table>
+<h4>Tocar en vivo</h4>
+<table><thead><tr><th>Función</th><th>Gesto</th><th>Qué hace</th></tr></thead><tbody>
+<tr><td>Latch</td><td>Shift + tecla en Note</td><td>La nota sigue sonando hasta su siguiente pulsación. Con Shift, las fijadas se ven verde azulado brillante</td></tr>
+<tr><td>Notas fijadas a un paso</td><td>Shift + paso en Note</td><td>Escribe las notas fijadas en ese paso, hasta 6</td></tr>
+<tr><td>Pantalla de acordes</td><td>Shift + pad 8 en Note ampliada</td><td>Tipo, inversión y modificadores; las filas 3-4 tocan el acorde, hasta 6 notas</td></tr>
+<tr><td>Teclado partido</td><td>Mantener una pista y pulsar otra</td><td>Dos pistas en los pads. Mantener un botón de pista da sus knobs</td></tr>
+<tr><td>Banco de acordes</td><td>Record de Setup en amarillo</td><td>Nada se graba en una pista silenciada: suena y se graba en el sinte del canal compartido</td></tr>
+<tr><td>Destello de notas</td><td>Shift mantenido, en cualquier vista</td><td><em>(solo Beta 5.4)</em> El botón de cada pista destella en blanco 100 ms con cada nota</td></tr>
+</tbody></table>
+<p>Cada nota del acorde pasa por el modo de voz: en poly suena hasta el máximo de voces del motor.</p>
+</section>
+<section class="feat" id="s9"><h3>Guardado</h3>
+<p>El sinte propio vive en tres sitios a la vez: el proyecto, el patch del pack y los ajustes del aparato. Al cargar un proyecto que lo lleva, manda el del proyecto; uno anterior deja el sonido como estaba.</p>
+<table><thead><tr><th>Sitio</th><th>Cuándo se escribe</th><th>Alcance</th><th>Dónde</th></tr></thead><tbody>
+<tr><td>Patrón y proyecto</td><td>Save dos veces</td><td>Ese proyecto</td><td>Fichero de sesión del pack</td></tr>
+<tr><td>Patch propio</td><td>Clear + pad dos veces, al momento</td><td>Todo el pack; 128 huecos comunes a MIDI 1 y 2</td><td>Relleno de los registros de <code>Patches/NN_PATCHBANK.cpb</code></td></tr>
+<tr><td>Ajustes del aparato</td><td>Solos, con el transporte parado y 2 s sin cambios</td><td>Todos los proyectos</td><td>Ajustes del aparato</td></tr>
+</tbody></table>
+<p>El fichero de patches de Synth 1 / 2 no cambia: el patch propio va en la parte de cada registro que el original no usa.</p>
+<h4>Qué se guarda dónde</h4>
+<table><thead><tr><th>Dato</th><th>Patrón</th><th>Proyecto</th><th>Patch propio</th><th>Ajustes</th></tr></thead><tbody>
+<tr><td>Notas, velocity, gate, micropasos, probabilidad</td><td>Sí</td><td>Con el patrón</td><td>—</td><td>—</td></tr>
+<tr><td>Automatización, marcas, pares del step-drummer, sample flips</td><td>Sí</td><td>Con el patrón</td><td>—</td><td>—</td></tr>
+<tr><td>Frecuencia, dinámicas, random-mutate, orden fractal o deconstruido</td><td>Sí</td><td>Con el patrón</td><td>—</td><td>—</td></tr>
+<tr><td>Arpegiador y modificadores, por pista y patrón</td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Gate por pulsación, longitud fija</td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Toggle pitch-vel, destino de la página velocity</td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Motor elegido, osciladores, orden, valores</td><td>—</td><td>Sí</td><td>Sí</td><td>Sí</td></tr>
+<tr><td>Step-drummer encendido y su destino</td><td>—</td><td>Sí</td><td>Sí</td><td>Sí</td></tr>
+<tr><td>Modo de voz, tiempo del glide, desafinación</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>Matriz de modulación</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>FM: operadores, algoritmo, feedback, ruido</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>Destinos de los knobs secuenciables y no secuenciables</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>Forma del LFO</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>Estéreo del modo muestra: distancia al segundo sample</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
+<tr><td>Patch flip</td><td>—</td><td>—</td><td>—</td><td>Sí</td></tr>
+<tr><td>Factor del random-mutate, por pista <em>(solo Beta 5.4)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Pista a la que apunta el secuenciador de saltos <em>(solo Beta 5.4)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+</tbody></table>
+<h4>Qué se pierde al apagar</h4>
+<ul>
+<li>Todo lo cambiado desde el último Save del proyecto.</li>
+<li>Notas y acordes en latch, y el tipo y los modificadores de la pantalla de acordes.</li>
+<li>El teclado partido y las vistas abiertas.</li>
+<li>El medio tono de Octave con Jankó.</li>
+<li>Un patch esperando a copiarse a otro pack.</li>
+<li>Los contadores de vueltas de la frecuencia y del orden fractal, que se reinician al parar.</li>
+</ul>
+<h4>Limitaciones</h4>
+<ul>
+<li>Sin tarjeta, y en las versiones S, el mod no escribe nada propio: los patches no se guardan y Save se pone rojo. El proyecto sí se guarda.</li>
+<li>El editor de CC guarda en la plantilla, no en el patch propio.</li>
+<li>Un patch de una versión antigua carga sin lo que aún no existía: la matriz apagada y los destinos de fábrica.</li>
+</ul>
+</section>
+<section class="feat" id="s10"><h3>Control MIDI</h3>
+<p>Cada knob del motor manda y recibe un CC o NRPN por el canal de la pista, con valores de 0 a 127 y 64 como centro en los bipolares. El modo de voz, la matriz, el FM y los destinos de los knobs no tienen CC ni NRPN.</p>
+<p>Todo respeta los filtros CC Tx y CC Rx de la vista Setup. Los mensajes salen al girar el knob, también con Clear, y entran por el mismo número.</p>
+<h4>Notas y canales</h4>
+<table><thead><tr><th>Mensaje</th><th>Qué hace</th></tr></thead><tbody>
+<tr><td>Canal de la pista</td><td>Se elige en Setup, con el botón de la pista y los pads 1-15</td></tr>
+<tr><td>Notas de salida</td><td>La pista manda sus notas con cualquier motor</td></tr>
+<tr><td>Notas de entrada</td><td>Por el canal de la pista, USB o DIN: tocan el sinte propio y se graban. No se reenvían a la salida</td></tr>
+<tr><td>Canal compartido</td><td>MIDI 1 / 2 en el canal de un sinte o de los drums los toca por dentro (loopback interno)</td></tr>
+<tr><td>Patch flip</td><td>Pad 26: cada nota sale como Program Change por el canal de la pista. Excluyente con el motor</td></tr>
+<tr><td>Teclado al arpegiador</td><td>Botón Note de Setup: las notas entrantes pasan por el arpegiador. Apagado de fábrica</td></tr>
+<tr><td>Grabar ruteos internos</td><td>Record de Setup: lo que la pista manda a un sinte se graba también en él</td></tr>
+<tr><td>Fusión USB</td><td>Advanced Setup, pad 23: el DIN In sale también por USB</td></tr>
+<tr><td>MIDI Thru</td><td>Advanced Setup, Duplicate: Thru, Out 2, Merge o Filter</td></tr>
+</tbody></table>
+<p>Con el motor encendido, los knobs mandan este mapa y nunca la plantilla. Con el motor apagado mandan la plantilla, editable con el pad 25.</p>
+<h4>Seleccionar un NRPN</h4>
+<p>Manda CC 99 (MSB), CC 98 (LSB) y CC 6 (valor), en ese orden. El aparato recuerda el NRPN elegido hasta el siguiente CC 99 o 98. En la tabla, 4:13 significa MSB 4, LSB 13.</p>
+<h4>Parámetros del motor</h4>
+<p>En granular, la página 2 y parte de la 3 usan los mismos números con otro significado, entre paréntesis.</p>
+<table><thead><tr><th>Parámetro</th><th>Mensaje</th><th>Página / knob</th></tr></thead><tbody>
+<tr><td>Filtro</td><td>CC 74</td><td>1 / K5</td></tr>
+<tr><td>Resonancia</td><td>CC 71</td><td>1 / K6</td></tr>
+<tr><td>Envolvente → filtro</td><td>CC 79</td><td>1 / K4</td></tr>
+<tr><td>LFO → filtro</td><td>NRPN 4:4</td><td>1 / Shift + K4</td></tr>
+<tr><td>Ataque</td><td>CC 73</td><td>1 / K1</td></tr>
+<tr><td>Decay</td><td>CC 75</td><td>1 / Shift + K2</td></tr>
+<tr><td>Sustain</td><td>CC 70</td><td>1 / Shift + K1</td></tr>
+<tr><td>Release</td><td>CC 72</td><td>1 / K2</td></tr>
+<tr><td>Cantidad de efecto</td><td>CC 91</td><td>1 / K8</td></tr>
+<tr><td>Gain del VCA</td><td>CC 59</td><td>1 / Shift + K6</td></tr>
+<tr><td>Velocidad del LFO</td><td>NRPN 0:76</td><td>1 / K7</td></tr>
+<tr><td>LFO → nivel</td><td>NRPN 4:12</td><td>1 / Shift + K3</td></tr>
+<tr><td>Tipo de efecto</td><td>NRPN 4:13</td><td>1 / Shift + K8</td></tr>
+<tr><td>Envolvente → nivel</td><td>NRPN 4:15</td><td>1 / K3</td></tr>
+<tr><td>Tipo de filtro</td><td>NRPN 4:16</td><td>1 / Shift + K5</td></tr>
+<tr><td>TUNE (granular: tono)</td><td>CC 26</td><td>2 / K1</td></tr>
+<tr><td>FINE (granular: tamaño)</td><td>CC 27</td><td>2 / Shift + K1</td></tr>
+<tr><td>WAVE (granular: posición)</td><td>CC 20</td><td>2 / K7</td></tr>
+<tr><td>SHAPE (granular: densidad)</td><td>CC 21</td><td>2 / K2</td></tr>
+<tr><td>LFO → tono (granular: scan)</td><td>NRPN 4:21</td><td>2 / K5</td></tr>
+<tr><td>Envolvente → tono (granular: env → posición)</td><td>NRPN 4:22</td><td>2 / K3</td></tr>
+<tr><td>Envolvente → forma (granular: zona)</td><td>NRPN 4:23</td><td>2 / K4</td></tr>
+<tr><td>LFO → forma (granular: LFO → posición)</td><td>NRPN 4:24</td><td>2 / K6</td></tr>
+<tr><td>Envolvente → morph (granular: fuente)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
+<tr><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
+<tr><td>TUNE 2 (granular: LFO → tamaño)</td><td>CC 37</td><td>3 / K1</td></tr>
+<tr><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5</td></tr>
+<tr><td>WAVE 2 (granular: estéreo)</td><td>CC 30</td><td>3 / K7</td></tr>
+<tr><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
+<tr><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>3 / K3</td></tr>
+<tr><td>BITSYNC</td><td>NRPN 4:32</td><td>3 / K6</td></tr>
+<tr><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4</td></tr>
+<tr><td>RING (granular: reverso y dispersión del tono)</td><td>CC 54</td><td>3 / K8</td></tr>
+</tbody></table>
+<h4>CC y NRPN de entrada</h4>
+<p>Los CC y NRPN que entran mueven el motor, pero no se graban en el patrón ni se reenvían por MIDI. Solo los knobs del aparato escriben automatización. Con el motor apagado, el aparato no los toma.</p>
+</section>
+</main></body></html>

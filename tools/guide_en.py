@@ -222,7 +222,7 @@ A MIDI track can move another track's pattern: instead of sounding, its notes ma
 - The track keeps sending its MIDI with any engine.
 """),
 "midi-voces": ("Own-synth voices: polyphony and the voice limiter",
-    "With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](#midi-preset) picks the voice mode {XB}. Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.", f"""
+    "With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](#midi-preset) picks the voice mode {XB}. With diagrams and every table of engines, knobs, saving and MIDI: [MIDI tracks and voice modes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html). Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.", f"""
 ### How many voices
 | Voice mode | Engine | The track's voices |
 |---|---|---|

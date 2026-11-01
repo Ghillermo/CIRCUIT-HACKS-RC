@@ -83,7 +83,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### Own-synth voices: polyphony and the voice limiter
 
-*How to get there:* With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) picks the voice mode *(since RC4)*. Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.
+*How to get there:* With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) picks the voice mode *(since RC4)*. With diagrams and every table of engines, knobs, saving and MIDI: [MIDI tracks and voice modes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html). Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-voces)
 
