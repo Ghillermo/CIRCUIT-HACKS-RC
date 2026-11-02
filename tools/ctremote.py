@@ -13,7 +13,10 @@
     python tools/ctremote.py del KIND IDX [PACK] --yes               deletes the item (op 5; SC35D9, kinds 2-6 only)
     python tools/ctremote.py delpack PACK --yes                      deletes a whole pack (SC35DA; numbered as the API = folder + 1; never the current one)
     python tools/ctremote.py dspr X|Y ADDR N / dspx SRC N / capture FILE.wav     DSP memory and the captured sample (SC342D+)
-    python tools/ctremote.py dspw ADDR VALUE                         writes one DSP X word (SC35DB)
+    python tools/ctremote.py dspw ADDR VALUE                         writes one DSP X word (SC35DB; S494D: ADDR bit 31 = core 1)
+  S494D (rdiag.ITCM / CORE1): dspr X1|Y1 = DSP core 1; mem reads the ITCM (0x0-0x3FFF) too
+    python tools/ctremote.py itfill [KEY]                            every word of the ITCM 0x100-0x3FFF = its address XOR KEY
+    python tools/ctremote.py itchk [KEY]                             the words that changed since: count, the first one (address, value)
   SEQWD (rdiag.WATCH): the DWT data watchpoint and its log of the code that touched the address
     python tools/ctremote.py watch ADDR [read|write|rw|off] [MASK]   arms comparator 0 (MASK = low address bits ignored) and clears the log
     python tools/ctremote.py wlog                                    hits + the distinct PC / LR that touched the address
@@ -87,6 +90,9 @@ def req_dspr(seq, space, addr, n): return build(3, seq, [space] + nib32(addr) + 
 def req_dspx(seq, src, n): return build(8, seq, nib32(src) + [min(n, NX)])
 def dec_delpack(p): return dict(status=un32(p[:8]), reselect_exists=un32(p[8:16]) if len(p) >= 16 else None, current=un32(p[16:24]) if len(p) >= 24 else None)
 def req_dspw(seq, addr, v): return build(9, seq, nib32(addr) + nib32(v))
+def req_itfill(seq, key): return build(13, seq, nib32(key))
+def req_itchk(seq, key): return build(14, seq, nib32(key))
+def dec_itchk(p): return dict(zip(("status", "itcmcr", "bad", "first", "value"), [un32(p[i:i + 8]) for i in range(0, min(len(p), 40), 8)]))
 def dec_dspr(p): return dict(status=un32(p[:8]), words=[un32([0, 0] + p[i:i + 6]) for i in range(8, len(p), 6)])
 def dec_dspx(p): return dict(status=un32(p[:8]), samples=[un32([0] * 4 + p[i:i + 4]) for i in range(8, len(p), 4)])
 
@@ -196,6 +202,9 @@ class Link:
         winmm.midiInClose(self.hin); winmm.midiOutClose(self.hout)
 
 
+IT_KEY = 0x5AC3A53C
+
+
 def num(s): return int(s, 0)
 
 
@@ -251,9 +260,13 @@ def main(argv):
             a = [x for x in argv if x != "--yes"]
             k, i, off, data = kind_of(a[1]), num(a[2]), num(a[3]), bytes.fromhex(a[4]); pk = num(a[5]) if len(a) > 5 else 0x7F
             print(dec_write(L.ask(lambda s: req_write(s, k, i, off, data, pk), 6)))
-        elif cmd == "dspr":
-            sp, addr, n = (1 if argv[1].lower() == "y" else 0), num(argv[2]), num(argv[3])
+        elif cmd == "dspr":                         # dspr x|y[1] ADDR N: 1 = DSP core 1 (S494D)
+            sp, addr, n = (1 if argv[1].lower()[0] == "y" else 0) | (2 if argv[1].endswith("1") else 0), num(argv[2]), num(argv[3])
             d = dec_dspr(L.ask(lambda s: req_dspr(s, sp, addr, n), 3)); print(d["status"], [f"{w:06x}" for w in d["words"]])
+        elif cmd in ("itfill", "itchk"):           # S494D: the ITCM canary (0x100-0x3FFF = address XOR KEY)
+            key = num(argv[1]) if len(argv) > 1 else IT_KEY
+            if cmd == "itfill": print(dec_itchk(L.ask(lambda s: req_itfill(s, key), 13)))
+            else: print({k: (hex(v) if k != "bad" else v) for k, v in dec_itchk(L.ask(lambda s: req_itchk(s, key), 14)).items()})
         elif cmd == "dspw":
             addr, v = num(argv[1]), num(argv[2])
             print(dec_write(L.ask(lambda s: req_dspw(s, addr, v), 9)))

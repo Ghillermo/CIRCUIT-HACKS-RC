@@ -997,6 +997,8 @@ run python3 tools/emu_mutate2.py firmware/sc50.3/circuittracks-4486-SC50.3.bin f
 run python3 tools/emu_mutate2.py firmware/b5.6/circuittracks-4486-B5.6.bin firmware/b5.6/manifest.json
 run python3 tools/emu_actfix_dsp.py firmware/b5.5/circuittracks-4486-B5.5.bin
 run python3 tools/emu_actfix_dsp.py firmware/r405/circuittracks-4486-R405.bin
+# SC50.7 / Beta 5.10: use_roll2
+run python3 tools/emu_mutate2.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.7/manifest.json
 # SC50.6 / Beta 5.9 / RC4.07: use_roll, use_curve
 run python3 tools/emu_mutate2.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
 run python3 tools/emu_sccurve.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json

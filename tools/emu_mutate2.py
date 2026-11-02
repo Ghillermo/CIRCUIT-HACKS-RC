@@ -48,6 +48,7 @@ def fac_addr(e, t): return e.r32(MU.SESSION_OBJ + 0x14) + MU.TAIL + MU.O_FAC + t
 
 
 ROLL = [False]                                               # drumpat.use_roll: a drum's pad 27 lit
+ROLL2 = [False]                                              # drumpat.use_roll2: a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
 
 
 def row(level, dyn, micro, note=True, drum=False):
@@ -57,7 +58,9 @@ def row(level, dyn, micro, note=True, drum=False):
         on = i == level if i < 8 else (dyn != 0 if i == 8 else (micro if i == 15 else i - 8 == dyn))
         v = lit if on else dim
         if not note and not (drum and i == 15): v = 0
-        if drum and i == 10 and not ROLL[0]: v = 0
+        if drum and i == 10 and not ROLL[0] and not ROLL2[0]: v = 0
+        if drum and ROLL2[0] and 8 <= i <= 11:
+            v = (lit if i - 7 == dyn else dim) if note and i < 11 else 0
         out.append(v)
     return out
 
@@ -356,7 +359,7 @@ def drum_part(img, man, check):
     flag = bytes(e.uc.mem_read(e.r32(T.LZ.SESSION_OBJ + 0x14) + 0x27024 + Q.O_FLAG, 2))
     check(flag == b"DQ", f"the project marked ({flag})")
     seq = []
-    for q, want in ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)) if ROLL[0] else ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
+    for q, want in ((8, 1), (8, 0), (9, 2), (10, 3), (11, 3), (9, 2), (9, 0), (10, 3)) if ROLL2[0] else ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)) if ROLL[0] else ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
         e.pad(16 + q); X.frame(e); seq.append((byte() & 3, want))
     check(all(p == w for p, w in seq), f"pad 25 on / off, pads 26 / 28 the dynamics, pad 27 nothing ({seq})")
     check(leds() == row(0, 3, False, True, True), f"their LEDs ({[hex(x) for x in leds()]})")
@@ -386,8 +389,33 @@ def drum_part(img, man, check):
         return list(hits), list(sets)
     def setb(b_, g=8, micro=False): e.uc.mem_write(base + Q.DQ_OFF, bytes([b_])); e.uc.mem_write(a, bytes([MU.FAC_TAG | g | (MU.FAC_MICRO if micro else 0)]))
     setb(1); h_, _ = play(40); vs = [v for _, v in h_]
-    check(len(vs) == 40 and min(vs) >= 68 and max(vs) <= 127 and len(set(vs)) > 5, f"accents at x 8: 68..127 ({min(vs)}..{max(vs)}, {len(set(vs))} kinds)")
-    if ROLL[0]:
+    if ROLL2[0]:
+        check(len(vs) == 40 and min(vs) >= 84 and max(vs) <= 116 and len(set(vs)) > 5, f"pad 25 at x 8: velocity +- 16 ({min(vs)}..{max(vs)}, {len(set(vs))} kinds)")
+        setb(2); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_))
+        check(len(h_) == 80 and m_ == [0, 3] and all(v == 100 for _, v in h_), f"pad 26 at x 8: once more on micro step 4 ({len(h_)}, {m_})")
+        setb(3); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_))
+        check(len(h_) == 120 and m_ == [0, 2, 5] and all(v == 100 for _, v in h_), f"pad 27 at x 8: once more on micro steps 3 and 6 ({len(h_)}, {m_})")
+        for d_, nm, mm in ((2, "pad 26", 3), (3, "pad 27", 2)):
+            setb(d_, 1); h2, _ = play(200); r_ = sum(1 for c, _ in h2 if c[2] == mm) / 200
+            check(0.15 <= r_ <= 0.35, f"{nm} at x 1: rolls in about a quarter of the hits ({r_:.2f})")
+        def moved(mask, g=8, n=40):
+            e.uc.mem_write(base + 0x60, bytes([mask])); setb(0, g, True); h3, _ = play(n); e.uc.mem_write(base + 0x60, bytes([1]))
+            return h3, sorted(set(c[2] for c, _ in h3))
+        h_, ms_ = moved(0x08); check(len(h_) == 40 and ms_ == [1, 2, 4, 5], f"pad 32 at x 8, a hit on micro step 4: 1 or 2 earlier or later ({ms_})")
+        h_, ms_ = moved(0x01); check(len(h_) == 40 and ms_ == [1, 2], f"on micro step 1: only later ({ms_})")
+        h_, ms_ = moved(0x20); check(len(h_) == 40 and ms_ == [3, 4], f"on micro step 6: only earlier ({ms_})")
+        h_, ms_ = moved(0x07, n=32); check(len(h_) == 96 and set(ms_) <= {1, 2, 3, 4} and len(ms_) == 4, f"three hits: the whole step later, all of them sound ({len(h_)}, {ms_})")
+        h_, ms_ = moved(0x21, n=16); check(len(h_) == 32 and ms_ == [0, 5], f"hits on micro steps 1 and 6: no room, not moved ({ms_})")
+        h_, ms_ = moved(0x08, 1, 64); late = sum(1 for c, _ in h_ if c[2] != 3)
+        check(len(h_) == 64 and 5 <= late <= 30, f"pad 32 at x 1: 25 % moved ({late} of 64)")
+        setb(1, 0); h_, _ = play(8)
+        check(all(v == 100 for _, v in h_) and len(h_) == 8, "x 0: no change")
+        setb(0, 1); h_, _ = play(8)
+        check(all(c[2] == 0 for c, _ in h_) and len(h_) == 8, "off: on its micro step")
+    else:
+        check(len(vs) == 40 and min(vs) >= 68 and max(vs) <= 127 and len(set(vs)) > 5, f"accents at x 8: 68..127 ({min(vs)}..{max(vs)}, {len(set(vs))} kinds)")
+    if ROLL2[0]: pass
+    elif ROLL[0]:
         setb(2); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_)); vs = [v for c, v in h_]; on = [v for c, v in h_ if c[2] == 0]
         check(len(h_) == 80 and m_ == [0, 3] and min(vs) >= 84 and max(vs) <= 116 and len(set(on)) > 5 and all(h_[i][1] == h_[i + 1][1] for i in range(0, 80, 2)), f"pad 27 at x 8: the hit at +- 16, repeated 3 micro steps later with its velocity ({len(h_)}, {m_}, {min(vs)}..{max(vs)})")
         setb(3); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_))
@@ -398,6 +426,19 @@ def drum_part(img, man, check):
     else:
         setb(3); h_, _ = play(40); vs = [v for _, v in h_]
         check(len(vs) == 40 and min(vs) >= 84 and max(vs) <= 116 and len(set(vs)) > 5, f"pad 28 at x 8: velocity ± 16 ({min(vs)}..{max(vs)})")
+    if not ROLL2[0]: old_micro(e, play, setb, base, man, check)
+    up3 = "c_mgup" in man["report"]["mutate39"]["labels"]
+    for level, want, name in ((1, {9, 10, 11}, "pad 18"), (3, {9, 11}, "pad 20"), (4, {10, 18} if up3 else {2, 10}, "pad 21"), (5, {18} if up3 else {10, 18}, "pad 22"), (6, {2, 10, 18}, "pad 23"), (7, {2, 18}, "pad 24")):
+        setb((level & 3) << 6 | (level & 4), 8); h_, s_ = play(48); smp = set(v for c, v in s_)
+        check(len(h_) == 48 and smp == want, f"{name} at x 8 ({'always' if 10 not in want else '50 %'}): the sample {sorted(smp)}")
+    setb(3 << 6, 1); h_, s_ = play(64); moved = sum(1 for c, v in s_ if v in (9, 11))
+    check(9 <= moved <= 28, f"pad 20 at x 1: 25 % ({moved} of 64)")
+    e.uc.mem_write(e.r32(T.LZ.SESSION_OBJ + 0x14) + 0x27024 + Q.O_FLAG, bytes(2)); setb(3 | 3 << 3, 8); h_, _ = play(4)
+    check(len(h_) == 4 and all(v == 100 for _, v in h_), f"a project not marked: the stock's hits ({h_})")
+    del e; gc.collect()
+
+
+def old_micro(e, play, setb, base, man, check):
     setb(1, 0); h_, _ = play(8)
     check(all(v == 100 for _, v in h_) and len(h_) == 8, "x 0: no change")
     setb(0, 8, True); h_, _ = play(40); ms_ = sorted(set(c[2] for c, _ in h_))
@@ -413,15 +454,6 @@ def drum_part(img, man, check):
     check(all(c[2] == 0 for c, _ in h_) and len(h_) == 8, "off: on its micro step")
     e.uc.mem_write(base + 0x60, bytes([7])); setb(0, 8, True); h_, _ = play(32); e.uc.mem_write(base + 0x60, bytes([1]))
     check(len(h_) >= 96 if rep32 else len(h_) == 96, f"three hits in a step, the micro steps at x 8: all of them sound ({len(h_)} of 96)")
-    up3 = "c_mgup" in man["report"]["mutate39"]["labels"]
-    for level, want, name in ((1, {9, 10, 11}, "pad 18"), (3, {9, 11}, "pad 20"), (4, {10, 18} if up3 else {2, 10}, "pad 21"), (5, {18} if up3 else {10, 18}, "pad 22"), (6, {2, 10, 18}, "pad 23"), (7, {2, 18}, "pad 24")):
-        setb((level & 3) << 6 | (level & 4), 8); h_, s_ = play(48); smp = set(v for c, v in s_)
-        check(len(h_) == 48 and smp == want, f"{name} at x 8 ({'always' if 10 not in want else '50 %'}): the sample {sorted(smp)}")
-    setb(3 << 6, 1); h_, s_ = play(64); moved = sum(1 for c, v in s_ if v in (9, 11))
-    check(9 <= moved <= 28, f"pad 20 at x 1: 25 % ({moved} of 64)")
-    e.uc.mem_write(e.r32(T.LZ.SESSION_OBJ + 0x14) + 0x27024 + Q.O_FLAG, bytes(2)); setb(3 | 3 << 3, 8); h_, _ = play(4)
-    check(len(h_) == 4 and all(v == 100 for _, v in h_), f"a project not marked: the stock's hits ({h_})")
-    del e; gc.collect()
 
 
 def sweep_part(img, man, check):
@@ -478,6 +510,7 @@ def sweep_part(img, man, check):
 def main(img, man):
     if "jumpoct" in man["report"]: MU.use_white25()
     ROLL[0] = "c_dqroll" in man["report"]["drumpat"]["labels"]
+    ROLL2[0] = "pl_le" in man["report"]["drumpat"]["labels"]
     fails = 0
     def check(c, m):
         nonlocal fails

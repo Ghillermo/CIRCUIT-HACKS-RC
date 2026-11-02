@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.9 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.9** (not in RC4.07).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.10 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.10** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -512,10 +512,8 @@ The two rows are one set of pads, per step:
 The same pads on the chosen step (pads 1-16) and the same Octave (the drum's factor):
 
 - **Pads 18-20:** another sample of its row of 8 (±1). **Pads 21 / 22:** the next row (+8), low / high chance. **Pads 23 / 24:** a row up or down (±8), low / high chance. It starts from the step's sample flip, or the chosen sample; it is not recorded.
-- **Pads 25 and 26:** dynamics (accents).
-- **Pad 27:** {YB} **velocity roller**: at a chance of 25 % × the factor, the hit moves its velocity ±16 and repeats halfway through the step (3 micro steps later), with its velocity and sample.
-- **Pad 28:** {YB} **triplet roller**: at the same chance, the hit repeats 2 and 4 micro steps later: three hits in the step. Only the repeats that fit in the step sound; each drum keeps one roller at a time.
-- **Pad 32:** micro steps for the **whole drum**, not the step (the step has no free bits), and they only delay: the hit comes 1 or 2 micro steps late (a drum cannot sound earlier). On a step with a roller, the roller wins. If a step with several hits already has one delayed, the next one sounds on time. It also works on a step with nothing chosen.
+- **Pads 25-27:** {YB} one of the three at a time on each step (the same again removes it), at a chance of 25 % × the factor. **Pad 25 = velocity**: the hit moves its velocity ±16. **Pad 26 = roller**: the hit repeats on micro step 4 (3 after it). **Pad 27 = three-hit roller**: it repeats on micro steps 3 and 6 (2 and 5 after it). The repeats carry the hit's velocity and sample, and only the ones that fit in the step sound. Pad 28 is dark.
+- **Pad 32:** micro steps for the **whole drum**, not the step (the step has no free bits): {YB} at the same chance, the whole step moves 1 or 2 micro steps earlier or later without leaving it (a hit on the first micro step only moves later, one on the last only earlier; a step with hits on both the first and the last does not move). It also works on a step with nothing chosen.
 
 ### Random-mutate in the RCs (row 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |

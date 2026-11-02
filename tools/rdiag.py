@@ -35,7 +35,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, b, b_cond, b_w, bl, cmp_imm, cmp_reg, ldr_imm, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm, mov_reg, movs_imm, movt, movw,  # noqa: E402
                    adds_imm8, subs_imm8, pop_list, push_list, raw, h, ands_reg, adds_reg, subs_reg, str_imm, strb_imm, strb_reg, add_sp_imm, sub_sp_imm,
-                   orrs_reg, tst_reg)
+                   orrs_reg, tst_reg, eors_reg)
 
 HOOK = 0x0801EB30
 HOOK_CONT = HOOK + 4
@@ -69,7 +69,11 @@ DEMCR, DFSR, DWT_CTRL, DWT_LAR, DWT_COMP0 = 0xE000EDFC, 0xE000ED30, 0xE0001000, 
 GST = None                                       # c_gst (set by install from the report)
 FLASH = (0x08000000, 0x08080000)
 RAM = (0x20000000, 0x20050000)
-INV = {"eq": "ne", "ne": "eq", "lo": "hs", "hs": "lo", "hi": "ls", "ls": "hi"}
+INV = {"eq": "ne", "ne": "eq", "lo": "hs", "hs": "lo", "hi": "ls", "ls": "hi", "pl": "mi", "mi": "pl"}
+ITCM = False                                     # S494D: the core's 16 KB of ITCM (address 0, unused by the stock: Arrhythmia's canary on the Rhythm; tools/itcm
+ITCMCR = 0xE000EF90                              #   of RYTHM): mem reads 0x0-0x3FFF; 13 itfill key = every word of 0x100-0x3FFF = its address XOR key (only with
+IT_START, IT_END = 0x100, 0x4000                 #   ITCMCR.EN and SZ >= 5); 14 itchk key -> bad words, the first one (address, value); nothing set right
+CORE1 = False                                    # S494D: dspr space bit 1 / dspw address bit 31 = DSP core 1 (the stock read / write take the core in r0)
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -149,12 +153,12 @@ def arm_code(base, router_ptr):
     for o in range(0, 40, 4): a.emit(str_imm, 0, 7, o)
     a.emit(ldrb_imm, 0, 4, 4); a.emit(movs_imm, 1, 0x40); a.emit(orrs_reg, 1, 0); a.emit(strb_imm, 1, 4, 4)   # cmd | 0x40 (r0 = cmd)
     a.emit(push_list, [0]); a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(mov_reg, 1, 0); a.emit(pop_list, [0])  # r1 = payload pointer
-    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()):
+    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()) + (((13, "rc_itfill"), (14, "rc_itchk")) if ITCM else ()):
         a.emit(cmp_imm, 0, cmd); bc(lab, "eq")
     a.emit(mov_reg, 0, 1); imm32(1, 0xFFFFFFFF); a.emit(bl, "c_p32"); a.emit(b, "rc_send")   # unknown command: status -1
 
     a.label("rc_ping")
-    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0)); a.emit(bl, "c_p32")
+    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0) + (0x100 if ITCM else 0) + (0x200 if CORE1 else 0)); a.emit(bl, "c_p32")
     a.emit(mov_reg, 1, 6); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
 
     def item_from(off):                          # the item {kind, idx, pack} from buf[off..off+2] into the frame; pack 0x7F -> 0xFF
@@ -176,8 +180,8 @@ def arm_code(base, router_ptr):
     a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_g32"); a.emit(push_list, [0])     # [sp] = addr
     clamp_n(14, 2); a.emit(pop_list, [1])                                     # r1 = addr, r2 = n
     a.emit(adds_reg, 3, 1, 2)                                                  # r3 = end
-    for k, (lo, hi) in enumerate((FLASH, RAM)):
-        imm32(0, lo); a.emit(cmp_reg, 1, 0); bc(f"mm_n{k}", "lo")
+    for k, (lo, hi) in enumerate((FLASH, RAM) + (((0, IT_END),) if ITCM else ())):
+        if lo: imm32(0, lo); a.emit(cmp_reg, 1, 0); bc(f"mm_n{k}", "lo")
         imm32(0, hi); a.emit(cmp_reg, 3, 0); bc(f"mm_n{k}", "hi")
         a.emit(b, "mm_ok")
         a.label(f"mm_n{k}")
@@ -257,7 +261,11 @@ def arm_code(base, router_ptr):
         # command 3: space = buf[6], addr = g32(buf + 7), n = buf[15] (<= NR) -> status 0, n words as 6 nibbles
         a.label("rc_dspr")
         a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 7); a.emit(bl, "c_g32"); a.emit(str_imm, 0, 7, 16)
-        a.emit(ldrb_imm, 0, 4, 6); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dr_sx", "eq")
+        if CORE1:                                # [8] = the core (space bit 1), the Y flag from bit 0
+            a.emit(ldrb_imm, 0, 4, 6); a.emit(lsrs_imm, 1, 0, 1); a.emit(str_imm, 1, 7, 8)
+            a.emit(lsls_imm, 0, 0, 31); a.emit(b_cond, "dr_sx", "eq")
+        else:
+            a.emit(ldrb_imm, 0, 4, 6); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dr_sx", "eq")
         a.emit(ldr_imm, 0, 7, 16); imm32(1, 0x8000); a.emit(orrs_reg, 0, 1); a.emit(str_imm, 0, 7, 16)
         a.label("dr_sx")
         a.emit(ldrb_imm, 0, 4, 15); a.emit(cmp_imm, 0, NR); a.emit(b_cond, "dr_nr", "ls"); a.emit(movs_imm, 0, NR)
@@ -266,7 +274,10 @@ def arm_code(base, router_ptr):
         take()
         a.label("dr_l")
         a.emit(ldr_imm, 0, 7, 20); a.emit(cmp_imm, 0, 0); bc("dr_x", "eq"); a.emit(subs_imm8, 0, 1); a.emit(str_imm, 0, 7, 20)
-        a.emit(ldr_imm, 1, 7, 16); a.emit(movs_imm, 0, 0); a.emit(bl, DSP_READ); a.emit(lsrs_imm, 1, 0, 8)
+        a.emit(ldr_imm, 1, 7, 16)
+        if CORE1: a.emit(ldr_imm, 0, 7, 8)
+        else: a.emit(movs_imm, 0, 0)
+        a.emit(bl, DSP_READ); a.emit(lsrs_imm, 1, 0, 8)
         a.emit(ldr_imm, 0, 7, 16); a.emit(adds_imm8, 0, 1); a.emit(str_imm, 0, 7, 16)
         a.emit(ldr_imm, 0, 7, 24); a.emit(lsls_imm, 1, 1, 8); a.emit(bl, "c_p32"); a.emit(subs_imm8, 0, 2); a.emit(str_imm, 0, 7, 24)   # 6 nibbles
         a.emit(b, "dr_l")
@@ -314,7 +325,11 @@ def arm_code(base, router_ptr):
             a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_g32"); a.emit(str_imm, 0, 7, 16)
             a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 14); a.emit(bl, "c_g32"); a.emit(str_imm, 0, 7, 20)
             take()
-            a.emit(ldr_imm, 3, 7, 20); a.emit(lsls_imm, 1, 3, 8); a.emit(ldr_imm, 2, 7, 16); a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
+            a.emit(ldr_imm, 3, 7, 20); a.emit(lsls_imm, 1, 3, 8); a.emit(ldr_imm, 2, 7, 16)
+            if CORE1:                            # bit 31 = core 1, the address = bits 0..15
+                a.emit(lsrs_imm, 0, 2, 31); a.emit(lsls_imm, 2, 2, 16); a.emit(lsrs_imm, 2, 2, 16)
+            else: a.emit(movs_imm, 0, 0)
+            a.emit(bl, DSP_WRITE)
             give()
             a.emit(movs_imm, 1, 0); a.emit(b, "dx_status")
         a.label("dx_status")
@@ -359,6 +374,42 @@ def arm_code(base, router_ptr):
         a.emit(ldr_imm, 2, 7, 20); a.emit(ldr_imm, 3, 7, 24); a.emit(raw, h(0x58D1))                # ldr r1,[r2,r3]
         a.emit(bl, "c_p32")
         a.emit(ldr_imm, 3, 7, 24); a.emit(adds_imm8, 3, 4); a.emit(str_imm, 3, 7, 24); a.emit(cmp_imm, 3, 4 + 8 * LOG_N); a.emit(b_cond, "rl_l", "lo")
+        a.emit(b, "rc_send")
+
+    if ITCM:
+        def itkey():                             # r5 = key; [0] = ITCMCR; Z clear and r0 != 0 when usable (EN, SZ >= 5)
+            a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_g32"); a.emit(mov_reg, 5, 0)
+            imm32(0, ITCMCR); a.emit(ldr_imm, 1, 0, 0); a.emit(str_imm, 1, 7, 0)
+
+        def itok(off):
+            a.emit(ldr_imm, 1, 7, 0); a.emit(lsls_imm, 2, 1, 31); bc(off, "eq")
+            a.emit(lsls_imm, 2, 1, 25); a.emit(lsrs_imm, 2, 2, 28); a.emit(cmp_imm, 2, 5); bc(off, "lo")
+        # ---- itfill: key = g32(buf + 6) -> status (2 = no ITCM), ITCMCR
+        a.label("rc_itfill")
+        itkey(); itok("it_off")
+        a.emit(movw, 2, IT_START); a.emit(movw, 3, IT_END)
+        a.label("itf_l")
+        a.emit(mov_reg, 0, 2); a.emit(eors_reg, 0, 5); a.emit(str_imm, 0, 2, 0)
+        a.emit(adds_imm8, 2, 4); a.emit(cmp_reg, 2, 3); a.emit(b_cond, "itf_l", "lo")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32")
+        a.emit(ldr_imm, 1, 7, 0); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
+        a.label("it_off")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 2); a.emit(bl, "c_p32")
+        a.emit(ldr_imm, 1, 7, 0); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
+        # ---- itchk: key -> status, ITCMCR, bad words, first bad address, its value
+        a.label("rc_itchk")
+        itkey(); itok("it_off")
+        a.emit(movw, 2, IT_START); a.emit(movw, 3, IT_END)
+        a.label("itc_l")
+        a.emit(ldr_imm, 0, 2, 0); a.emit(mov_reg, 1, 2); a.emit(eors_reg, 1, 5); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "itc_n", "eq")
+        a.emit(ldr_imm, 1, 7, 4); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "itc_c", "ne")
+        a.emit(str_imm, 2, 7, 12); a.emit(str_imm, 0, 7, 16)
+        a.label("itc_c")
+        a.emit(adds_imm8, 1, 1); a.emit(str_imm, 1, 7, 4)
+        a.label("itc_n")
+        a.emit(adds_imm8, 2, 4); a.emit(cmp_reg, 2, 3); a.emit(b_cond, "itc_l", "lo")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32")
+        for o in (0, 4, 12, 16): a.emit(ldr_imm, 1, 7, o); a.emit(bl, "c_p32")
         a.emit(b, "rc_send")
 
     # r0 = end of the payload: F7, then send {buf, end + 1 - buf} to the port it came from

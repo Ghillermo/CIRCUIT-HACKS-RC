@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -87,6 +87,8 @@ DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado di
                  "RC4.07 — release candidate 4.07: RC4.05 + fixes (the arpeggio on a muted track, notes shared by two chords, the count-in with an external clock, rollers and the drums' arpeggio at the project's tempo when stopped, Sidechain LEDs); not tested on the device"),
         "R407S": ("RC4.07S — versión más segura: RC4.07, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC4.07S — safer build: RC4.07, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B5.10": ("Beta 5.10 — beta (= SC50.7): Beta 5.9 con los pads del random-mutate de los drums rehechos: pad 25 velocity, pad 26 repetición en el 4.º micropaso, pad 27 repeticiones en el 3.º y el 6.º, pad 32 adelanta o retrasa el paso dentro de sí; sin probar en el aparato",
+                 "Beta 5.10 — beta (= SC50.7): Beta 5.9 with the drums' random-mutate pads redone: pad 25 velocity, pad 26 a repeat on the 4th micro step, pad 27 repeats on the 3rd and the 6th, pad 32 moves the step earlier or later inside itself; not tested on the device"),
         "B5.9": ("Beta 5.9 — beta (= SC50.6): Beta 5.6 + RC4.07 + acorde inverso en el pad 16 de la pantalla de acordes + solo en el Mixer + rollers de drums en el random-mutate + destello de Clear con el clic a 0; sin probar en el aparato",
                  "Beta 5.9 — beta (= SC50.6): Beta 5.6 + RC4.07 + inverse chord on pad 16 of the chord screen + solo in the Mixer + drum rollers in the random-mutate + Clear flashing with the click at 0; not tested on the device"),
         "R405": ("RC4.05 — la versión candidata 4.05: RC4.02 + arreglos (las formas de LFO seno, sample & hold y sample & hold suavizado, que callaban el motor; el guardado diferido como interruptor; el Nudge que mueve el contenido del tramo; Record solo en la pista de la vista; el pad 23 de la fila de motores); sin probar en el aparato",
@@ -648,4 +650,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R407", "R407S", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R407", "R407S", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

@@ -48,6 +48,7 @@ CHANCE = (0x00, 0x01, 0x10, 0x11, 0x20, 0x02, 0x40, 0x84)
 TRIMSL = False                        # SC49.3 (use_trimsl)
 MUT2 = False                          # SC50 / Beta 5.3 (use_mut2): the redesign of mode 2 of the probability view
 ROLL27 = False                        # SC50.6 (drumpat.use_roll): a drum's pad 27 lit
+ROLL3 = False                         # SC50.7 (drumpat.use_roll2): a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
 MUT3 = False                          # SC50.1 / Beta 5.4 (use_mut3): pads 21 / 22 = octave up, low / high; pads 23 / 24 = both, low / high
 SESSION_OBJ, TAIL, O_FAC = 0x2003D71C, 0x27024, 536   # (MUT2) the record's tail + 536 + track (0..3 notes, 4..7 drums) = 0xA0 | micro on (drums) << 4 | the factor
 PLAYER0, PLAYER_SZ = 0x20040200, 0x184
@@ -246,16 +247,23 @@ def arm_code(base):
         E(movs_imm, 7, 1); E(cmp_imm, 6, 8); E(b_cond, "gr_4", "hs")
         E(cmp_reg, 6, 5); E(b_cond, "gr_c", "eq"); E(b, "gr_0")
         a.label("gr_4"); E(b_cond, "gr_5", "ne")
+        if ROLL3: E(lsls_imm, 0, 3, 29); E(b_cond, "gr_d", "mi")                       # a drum's pad 25 = the dynamics 1
         E(cmp_imm, 2, 0); E(b_cond, "gr_c", "ne"); E(b, "gr_0")
         a.label("gr_5"); E(cmp_imm, 6, 15); E(b_cond, "gr_6", "ne")
         E(lsls_imm, 0, 3, 30); E(b_cond, "gr_c", "mi"); E(b, "gr_0")
-        a.label("gr_6"); E(mov_reg, 0, 6); E(subs_imm8, 0, 8); E(cmp_reg, 0, 2); E(b_cond, "gr_c", "eq")
+        a.label("gr_6")
+        if ROLL3:                                                                       # a drum: pads 25-27 = the dynamics 1-3
+            E(lsls_imm, 0, 3, 29); E(b_cond, "gr_e", "pl")
+            a.label("gr_d"); E(mov_reg, 0, 6); E(subs_imm8, 0, 7); E(cmp_reg, 0, 2); E(b_cond, "gr_c", "eq"); E(b, "gr_0")
+            a.label("gr_e")
+        E(mov_reg, 0, 6); E(subs_imm8, 0, 8); E(cmp_reg, 0, 2); E(b_cond, "gr_c", "eq")
         a.label("gr_0"); E(movs_imm, 7, 0)
         a.label("gr_c")
         E(lsls_imm, 0, 6, 1); E(adds_reg, 0, 0, 7); E(movw, 1, t_cols & 0xFFFF); E(movt, 1, t_cols >> 16); E(ldrb_reg, 0, 1, 0)
         E(lsls_imm, 1, 3, 29); E(b_cond, "gr_n", "pl")
         E(cmp_imm, 6, 15); E(b_cond, "gr_w", "eq")
         if not ROLL27: E(cmp_imm, 6, 10); E(b_cond, "gr_z", "eq")
+        if ROLL3: E(cmp_imm, 6, 11); E(b_cond, "gr_z", "eq")                            # a drum's pad 28: dark
         a.label("gr_n"); E(lsls_imm, 1, 3, 31); E(b_cond, "gr_w", "mi")
         a.label("gr_z"); E(movs_imm, 0, 0)
         a.label("gr_w"); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 4, 1)

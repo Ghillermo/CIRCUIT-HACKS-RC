@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.10 — 2026-11-02
+
+**Beta 5.10** (marca `B5.10`; = SC50.7) = la Beta 5.9 + lo siguiente, sin probar en el aparato.
+
+- **Pads del random-mutate de los drums rehechos:** pad 25 = velocity ±16, pad 26 = roller en el micropaso 4, pad 27 = roller en los micropasos 3 y 6 (uno de los tres por paso; pad 28 apagado); el pad 32 adelanta o atrasa el paso entero 1 o 2 micropasos sin salir de él. → [Guía: Vista de probabilidad (pistas de notas y drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#probabilidad)
+
 ### Beta 5.9 — 2026-11-02
 
 **Beta 5.9** (marca `B5.9`; = SC50.6; las Betas 5.7 y 5.8, = SC50.4 y SC50.5, no se publicaron: esta las incluye) = la Beta 5.6 + los arreglos de RC4.07 + lo siguiente, sin probar en el aparato.
@@ -784,6 +790,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.10 — 2026-11-02
+
+**Beta 5.10** (marker `B5.10`; = SC50.7) = Beta 5.9 + the following, untested on the device.
+
+- **The drums' random-mutate pads redone:** pad 25 = velocity ±16, pad 26 = a roller on micro step 4, pad 27 = a roller on micro steps 3 and 6 (one of the three a step; pad 28 dark); pad 32 moves the whole step 1 or 2 micro steps earlier or later without leaving it. → [Guide: Probability view (note tracks and drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
 
 ### Beta 5.9 — 2026-11-02
 

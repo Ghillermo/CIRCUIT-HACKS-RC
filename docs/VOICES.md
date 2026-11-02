@@ -4,7 +4,7 @@
 
 MIDI 1 and MIDI 2 are two complete synths inside the Circuit Tracks: each track keeps sending MIDI and also sounds through its own engine, with up to 4 voices (6 in FM). The **voice mode** decides how notes are shared out among those voices: eight modes on pad 32 of the Preset view.
 
-This document describes **Beta 5.9**, published on 2 November 2026 and not tested on the device. Nearly all of it is already in RC4 and RC4.07; what is only in the beta is marked *(Beta 5.9 only)*.
+This document describes **Beta 5.10**, not tested on the device. Nearly all of it is already in RC4 and RC4.07; what is only in the beta is marked *(Beta 5.10 only)*.
 
 The voice mode has no CC or NRPN: it is chosen on the device and saved with the patch and the project.
 
@@ -53,7 +53,7 @@ The step-drummer appears twice because there are two ways in: pad 30 of Preset, 
 | 26 | Patch flip: each note goes out as a Program Change. Excludes the engine. |
 | 27 | Opens the engine row. Shift + pad 27 steps to the next engine. |
 | 28 | One or two oscillators (oscillator and VA-drum). |
-| 29 | Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter *(Beta 5.9 only)*. Shift + pad 29 steps through the eight voice modes. |
+| 29 | Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter *(Beta 5.10 only)*. Shift + pad 29 steps through the eight voice modes. |
 | 30 | Opens the step-drummer. Shift + pad 30 turns it off. |
 | 31 | VA-drum only: velocity scales the pitch and filter envelopes. |
 | 32 | Opens the voice mode menu, in the colour of the current mode. |
@@ -66,7 +66,7 @@ A menu takes over pads 9-24 while it is open; those pads stop loading patches.
 
 | Menu | Open | Content | Close |
 | --- | --- | --- | --- |
-| Engine row | Tap pad 27 | Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. Pads 9-16: which track the jump sequencer points at *(Beta 5.9 only)* | Pad 27 again. Choosing does not close it. |
+| Engine row | Tap pad 27 | Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. Pads 9-16: which track the jump sequencer points at *(Beta 5.10 only)* | Pad 27 again. Choosing does not close it. |
 | Voice modes | Tap pad 32 | Pads 17-24: the eight modes. K1 = glide, K2 = unison detune | Pad 32 again, or leave the view |
 | FM algorithms | Hold pad 7 | Pads 9-24: the 16 algorithms | Release pad 7 |
 | Starter sounds | Hold pad 8 with FM | Pads 9-24: 16 instruments | Release pad 8 |
@@ -84,7 +84,7 @@ A menu takes over pads 9-24 while it is open; those pads stop loading patches.
 | Clear + the track's button | Engine values back to their initial ones, and latched notes let go. The chosen engine stays. |
 | Clear + pad 1-5 | That page back to its initial values. |
 | Clear + knob | To the right, default value (lavender). To the left, erases its automation (red). |
-| Shift + Preset | The own synth saved with the project comes back. *(Beta 5.9 only)* |
+| Shift + Preset | The own synth saved with the project comes back. *(Beta 5.10 only)* |
 | Clear + patch pad, twice | Saves the patch in that slot. |
 | Duplicate + A + B | Swaps two patches. With another pack loaded in between, copies. |
 | Shift + patch pad | Loads the patch without the root note sounding. |
@@ -279,7 +279,7 @@ The mode, the glide time and the detune are saved with the own patch and with th
 
 ## Knob pages
 
-With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type's colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type *(Beta 5.9 only)*: the LFO shape, the FM algorithm and the granular's note mode go to 16.
+With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type's colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type *(Beta 5.10 only)*: the LFO shape, the FM algorithm and the granular's note mode go to 16.
 
 ### Page 1: VCA-VCF
 
@@ -384,7 +384,7 @@ The engine has its own ADSR and LFO, and the matrix adds eight sources that move
 
 ### LFO
 
-K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks *(Beta 5.9 only; before, 4)*.
+K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks *(Beta 5.10 only; before, 4)*.
 
 | Shape | Colour |
 | --- | --- |
@@ -435,11 +435,11 @@ The 8 sequenceable knobs record with Record + Play into 8 lanes of the pattern. 
 
 | Gesture | View | Effect |
 | --- | --- | --- |
-| Record held + step | Note | Snapshot: writes on that step the parameters that are not at their initial value. *(Beta 5.9 only)* The step shows yellow while held |
+| Record held + step | Note | Snapshot: writes on that step the parameters that are not at their initial value. *(Beta 5.10 only)* The step shows yellow while held |
 | Shift + step | Velocity | Marks the step: no lane sounds there and what was automated goes back to the synth saved with the project |
-| Shift + yellow step | Velocity | *(Beta 5.9 only)* Hear its values until Shift is released, with the knobs it moves in yellow |
-| Clear + step | Velocity | *(Beta 5.9 only)* Erases the knobs' automation on that step; the notes stay |
-| Yellow step held + another yellow step | Velocity, with Shift | *(Beta 5.9 only)* Sweep: every lane with a value at both steps becomes a straight line between them |
+| Shift + yellow step | Velocity | *(Beta 5.10 only)* Hear its values until Shift is released, with the knobs it moves in yellow |
+| Clear + step | Velocity | *(Beta 5.10 only)* Erases the knobs' automation on that step; the notes stay |
+| Yellow step held + another yellow step | Velocity, with Shift | *(Beta 5.10 only)* Sweep: every lane with a value at both steps becomes a straight line between them |
 
 In the snapshot, a parameter with no lane takes one whose parameter is at its initial value, and that lane is erased first. If they do not fit, the first ones in the matrix's order stay.
 
@@ -466,11 +466,11 @@ With this engine, each step-drummer knob chooses a slot of the bottom row of Mas
 
 ### Jump sequencer
 
-The track's notes make another track's pattern jump to the step they indicate, on the note's own step. *(Beta 5.9 only)*
+The track's notes make another track's pattern jump to the step they indicate, on the note's own step. *(Beta 5.10 only)*
 
 | Control | Function |
 | --- | --- |
-| Pads 9-16 of the engine row | The eight tracks: a tap points at that track, the same one turns it off. Pad 27 takes its colour and *(Beta 5.9 only)* blinks |
+| Pads 9-16 of the engine row | The eight tracks: a tap points at that track, the same one turns it off. Pad 27 takes its colour and *(Beta 5.10 only)* blinks |
 | Note view, pads 17-32 | Steps 1-16; Octave ▲, steps 17-32. The scale changes nothing |
 | Expanded Note, the 32 pads | Steps 1-32 |
 
@@ -508,14 +508,14 @@ Four sources reach the arpeggiator: the pattern's chords, held notes, a held ste
 | --- | --- | --- |
 | Probability | Probability view, row 3 | The step sounds sometimes |
 | Frequency | Mode 1, row 4 | The step sounds on the last of every n turns, 1 to 8 |
-| Dynamics | Mode 2, pads 25-28 | Accents, accents and length, or random length. *(Beta 5.9 only)* |
-| Random-mutate | Mode 2, pads 17-24 | Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). *(Beta 5.9 only)* |
+| Dynamics | Mode 2, pads 25-28 | Accents, accents and length, or random length. *(Beta 5.10 only)* |
+| Random-mutate | Mode 2, pads 17-24 | Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). *(Beta 5.10 only)* |
 | Gate by press | Micro Step, pad 32 | What you hold while entering a note is its length |
 | Fixed length | Micro Step, pad 31 | All notes entered by hand with the same gate, 1 to 16 steps |
-| Nudge | Pattern Settings, pad 26 | Moves the content of the range one step back; Shift, forward. The first and last steps do not move. *(Beta 5.9 only)* |
+| Nudge | Pattern Settings, pad 26 | Moves the content of the range one step back; Shift, forward. The first and last steps do not move. *(Beta 5.10 only)* |
 | Fractal and deconstructed | Pattern Settings, pads 27 and 28 | Another order through the pattern |
-| Micro steps | Mode 2, pad 32 | The note moves up to 2 micro steps earlier or later, inside its step. *(Beta 5.9 only)* |
-| Track factor | Octave, with mode 2 open | ×0 to ×8, multiplies all the track's chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. *(Beta 5.9 only)* |
+| Micro steps | Mode 2, pad 32 | The note moves up to 2 micro steps earlier or later, inside its step. *(Beta 5.10 only)* |
+| Track factor | Octave, with mode 2 open | ×0 to ×8, multiplies all the track's chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. *(Beta 5.10 only)* |
 
 <!--panel:mutate-->
 
@@ -530,7 +530,7 @@ Four sources reach the arpeggiator: the pattern's chords, held notes, a held ste
 | Chord screen | Shift + pad 8 in expanded Note | Type, inversion and modifiers; rows 3-4 play the chord, up to 6 notes |
 | Split keyboard | Hold one track and press another | Two tracks on the pads. Holding a track button gives its knobs |
 | Chord bank | Setup's Record in yellow | Nothing is recorded on a muted track: it sounds and is recorded on the synth of the shared channel |
-| Note flash | Shift held, in any view | *(Beta 5.9 only)* Each track's button flashes white for 100 ms on every note |
+| Note flash | Shift held, in any view | *(Beta 5.10 only)* Each track's button flashes white for 100 ms on every note |
 
 Each note of the chord goes through the voice mode: in poly it sounds up to the engine's maximum of voices.
 
@@ -565,8 +565,8 @@ The Synth 1 / 2 patch file does not change: the own patch goes in the part of ea
 | LFO shape | — | Yes | Yes | — |
 | Sample mode stereo: distance to the second sample | — | Yes | Yes | — |
 | Patch flip | — | — | — | Yes |
-| Random-mutate factor, per track *(Beta 5.9 only)* | — | Yes | — | — |
-| Track the jump sequencer points at *(Beta 5.9 only)* | — | Yes | — | — |
+| Random-mutate factor, per track *(Beta 5.10 only)* | — | Yes | — | — |
+| Track the jump sequencer points at *(Beta 5.10 only)* | — | Yes | — | — |
 
 ### What is lost at power-off
 

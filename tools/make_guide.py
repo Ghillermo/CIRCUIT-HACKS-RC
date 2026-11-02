@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.9"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.10"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -48,8 +48,8 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.9; en RC4.02 y antes no).
-- {YB} = solo en la **Beta 5.9** (no está en RC4.07).
+- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.10; en RC4.02 y antes no).
+- {YB} = solo en la **Beta 5.10** (no está en RC4.07).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -644,10 +644,8 @@ Las dos filas son una sola botonera, por paso:
 La misma botonera sobre el paso elegido (pads 1-16) y el mismo Octave (el factor del drum):
 
 - **Pads 18-20:** otro sample de su fila de 8 (±1). **Pads 21 / 22:** la fila siguiente (+8), probabilidad baja / alta. **Pads 23 / 24:** una fila más o menos (±8), probabilidad baja / alta. Parte del sample flip del paso, o del sample elegido; no se graba.
-- **Pads 25 y 26:** dinámicas (acentos).
-- **Pad 27:** {YB} **roller de velocity**: con probabilidad de 25 % × factor, el golpe mueve su velocity ±16 y se repite en la mitad del paso (3 micropasos después), con su velocity y su sample.
-- **Pad 28:** {YB} **roller de tresillo**: con la misma probabilidad, el golpe se repite 2 y 4 micropasos después: tres golpes en el paso. Solo suenan las repeticiones que caben en el paso; cada drum guarda un roller a la vez.
-- **Pad 32:** micropasos de **todo el drum**, no del paso (el paso no tiene bits libres), y solo retrasan: el golpe llega 1 o 2 micropasos tarde (un drum no puede sonar antes). En un paso con roller manda el roller. Si en un paso con varios golpes ya hay uno retrasado, el siguiente suena a su hora. Funciona también en un paso sin nada elegido.
+- **Pads 25-27:** {YB} uno de los tres a la vez por paso (el mismo otra vez lo quita), con probabilidad de 25 % × factor. **Pad 25 = velocity**: el golpe mueve su velocity ±16. **Pad 26 = roller**: el golpe se repite en el micropaso 4 (3 después). **Pad 27 = roller de tres**: se repite en los micropasos 3 y 6 (2 y 5 después). Las repeticiones llevan la velocity y el sample del golpe y solo suenan las que caben en el paso. El pad 28 está apagado.
+- **Pad 32:** micropasos de **todo el drum**, no del paso (el paso no tiene bits libres): {YB} con la misma probabilidad, el paso entero se adelanta o se atrasa 1 o 2 micropasos sin salir de él (un golpe en el primer micropaso solo se atrasa, en el último solo se adelanta; un paso con golpes en el primero y el último no se mueve). Funciona también en un paso sin nada elegido.
 
 ### Random-mutate en las RC (fila 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |

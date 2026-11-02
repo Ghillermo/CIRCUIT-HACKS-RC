@@ -88,6 +88,22 @@ def use_roll():
     MU.ROLL27 = True
 
 
+ROLL2 = False                                                # SC50.7 (use_roll2)
+
+
+def use_roll2():
+    """SC50.7 / Beta 5.10 (the user, 2026-11-02: «pad 25: velocity. 26: roller en paso cuarto 27: roller en pasos 3 y 6 32: retrasa o adelanta microsteps (dentro del step)»):
+    a drum's dynamics by step, at 25 % x the factor: 1 = pad 25 = the velocity +- 16, 2 = pad 26 = the hit once more on micro step 4 (counted from 1: 3 after it), 3 = pad 27 =
+    once more on micro steps 3 and 6 (2 and 5 after it); pad 28 dark and dead; the same pad again = none.  Pad 32 (the drum's micro steps) moves the hit 1 or 2 micro steps
+    earlier or later, inside its step (at its first or last micro step the other way).  To play earlier, the step is looked at on its micro step 0: the hit found, its micro
+    step chosen there and the stock's hit later in the step left out.  The kept hit's slot byte 3 = a mask of the micro steps still to play (bits 0-5) and bit 6 = the step
+    handled at micro step 0; cleared at every micro step 0.  A roller is not moved."""
+    global ROLL2
+    use_roll()
+    ROLL2 = True
+    MU.ROLL3 = True
+
+
 def arm_code(base, L, prev):
     a = Asm(base)
     E = a.emit
@@ -212,7 +228,8 @@ def arm_code(base, L, prev):
 
     # ---- c_dqplay (in place of the stock's hit 0x08041252: player, pattern, step, micro step)
     a.label("c_dqplay")
-    E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], lr=True))
+    REGS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    E(raw, pushw(REGS, lr=True))
     E(mov_reg, 4, 0); E(movw, 0, 0x6A8); E(muls, 0, 1); E(ldr_imm, 5, 4, 0x48); E(adds_reg, 5, 5, 0)   # r4 = player, r5 = base
     imm32(1, DP0); E(subs_reg, 0, 4, 1); E(movs_imm, 1, DP_SZ); E(raw, udiv(6, 0, 1))                  # r6 = drum
     E(bl, "c_dqtail"); E(cmp_imm, 0, 0); bc("pl_stock", "eq")
@@ -226,16 +243,52 @@ def arm_code(base, L, prev):
     a.label("pl_w"); E(strb_imm, 0, 7, 0); E(lsrs_imm, 0, 0, 8); E(strb_imm, 0, 7, 1)
     # a hit kept for a later micro step
     a.label("pl_pd")
-    E(ldrb_imm, 0, 7, 3); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq")
-    if ROLL:                                                                            # bit 7: one more, 2 micro steps on
+    if ROLL2:                                                                           # micro step 0: the slot cleared, the step's move chosen; else a roller's bit played
+        E(ldr_sp, 1, 12); E(cmp_imm, 1, 0); E(b_cond, "pd_f", "ne")
+        E(movs_imm, 0, 0); E(strb_imm, 0, 7, 3); E(b, "pl_l")
+        a.label("pd_f")
+        E(ldrb_imm, 0, 7, 3); E(movs_imm, 2, 1); E(lsls_reg, 2, 1); E(tst_reg, 0, 2); E(b_cond, "pd_s", "eq")
+        E(bics_reg, 0, 2); E(strb_imm, 0, 7, 3)
+        E(mov_reg, 0, 4); E(ldrb_imm, 1, 7, 4); E(ldrb_imm, 2, 7, 5); E(bl, "c_dqhit")
+        a.label("pd_s"); E(ldr_sp, 1, 12); E(b, "pl_k")
+        a.label("pl_l")                                                                 # the drum's micro steps on and the chance: the whole step 1 or 2 earlier / later
+        E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_k0", "eq")
+        E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_k0", "eq")
+        E(mov_reg, 8, 1); E(movs_imm, 6, 0); E(movs_imm, 0, 5); E(mov_reg, 9, 0)           # r8 = random bits, r6 = the step's hits (bit = micro step)
+        a.label("pl_ls"); E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(mov_reg, 2, 9); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(lsls_imm, 6, 6, 1); E(cmp_imm, 0, 0); E(b_cond, "pl_ln", "eq"); E(adds_imm8, 6, 1)
+        a.label("pl_ln"); E(mov_reg, 0, 9); E(subs_imm8, 0, 1); E(mov_reg, 9, 0); E(b_cond, "pl_ls", "pl")
+        E(cmp_imm, 6, 0); E(b_cond, "pl_k0", "eq")
+        E(mov_reg, 1, 8); E(movs_imm, 2, 1); E(ands_reg, 2, 1); E(adds_imm8, 2, 1)            # r2 = 1 / 2 micro steps
+        E(lsls_imm, 1, 1, 30); E(b_cond, "pl_le", "mi")                                       # bit 1: earlier first
+        E(mov_reg, 3, 6); E(lsls_reg, 3, 2); E(cmp_imm, 3, 0x3F); E(b_cond, "pl_ml", "ls")
+        E(mov_reg, 3, 6); E(lsrs_reg, 3, 2); E(lsls_reg, 3, 2); E(cmp_reg, 3, 6); E(b_cond, "pl_me", "eq"); E(b, "pl_k0")
+        a.label("pl_le")
+        E(mov_reg, 3, 6); E(lsrs_reg, 3, 2); E(lsls_reg, 3, 2); E(cmp_reg, 3, 6); E(b_cond, "pl_me", "eq")
+        E(mov_reg, 3, 6); E(lsls_reg, 3, 2); E(cmp_imm, 3, 0x3F); E(b_cond, "pl_k0", "hi")
+        a.label("pl_ml"); E(lsls_imm, 2, 2, 6); E(b, "pl_mv")                                 # bits 6-7 = how far, bit 0 = earlier
+        a.label("pl_me"); E(lsls_imm, 2, 2, 6); E(adds_imm8, 2, 1)
+        a.label("pl_mv"); E(strb_imm, 2, 7, 3)
+        a.label("pl_k0"); E(movs_imm, 1, 0)
+        a.label("pl_k")                                                                 # r1 = micro step: the hit that sounds on it (moved)
+        E(ldrb_imm, 0, 7, 3); E(lsrs_imm, 2, 0, 6); E(b_cond, "pl_ks", "eq"); E(lsls_imm, 0, 0, 31); E(b_cond, "pl_ke", "mi")
+        E(subs_reg, 1, 1, 2); bc("pl_x", "mi"); E(b, "pl_ks")
+        a.label("pl_ke"); E(adds_reg, 1, 1, 2); E(cmp_imm, 1, 5); bc("pl_x", "hi")
+        a.label("pl_ks"); E(mov_reg, 2, 1)
+    else:
+        E(ldrb_imm, 0, 7, 3); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq")
+    if ROLL2: pass
+    elif ROLL:                                                                          # bit 7: one more, 2 micro steps on
         a.label("c_dqroll"); E(lsls_imm, 1, 0, 25); E(lsrs_imm, 1, 1, 25); E(ldr_sp, 2, 12); E(adds_imm8, 2, 1); E(cmp_reg, 1, 2); E(b_cond, "pl_h", "ne")
         E(movs_imm, 1, 0); E(lsrs_imm, 0, 0, 7); E(b_cond, "pl_r0", "eq"); E(adds_imm8, 2, 2); E(cmp_imm, 2, 6); E(b_cond, "pl_r0", "hi"); E(mov_reg, 1, 2)
         a.label("pl_r0"); E(strb_imm, 1, 7, 3)
     else:
         E(ldr_sp, 1, 12); E(adds_imm8, 1, 1); E(cmp_reg, 0, 1); E(b_cond, "pl_h", "ne"); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 3)
-    E(mov_reg, 0, 4); E(ldrb_imm, 1, 7, 4); E(ldrb_imm, 2, 7, 5); E(bl, "c_dqhit")
-    a.label("pl_h")
-    E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(ldr_sp, 2, 12); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(cmp_imm, 0, 0); bc("pl_x", "eq")
+    if ROLL2:
+        E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(cmp_imm, 0, 0); bc("pl_x", "eq")
+    else:
+        E(mov_reg, 0, 4); E(ldrb_imm, 1, 7, 4); E(ldrb_imm, 2, 7, 5); E(bl, "c_dqhit")
+        a.label("pl_h")
+        E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(ldr_sp, 2, 12); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(cmp_imm, 0, 0); bc("pl_x", "eq")
     E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(bl, "c_dqbyte"); E(mov_reg, 8, 0)               # r8 = our byte
     E(ldr_sp, 1, 8); E(ldrb_reg, 6, 5, 1)                                                # r6 = the velocity
     E(mov_reg, 0, 8); E(cmp_imm, 0, 0)
@@ -255,7 +308,11 @@ def arm_code(base, L, prev):
         E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mi", "eq")
         E(lsls_imm, 0, 1, 22); E(lsrs_imm, 0, 0, 22)
         E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 30); E(lsrs_imm, 1, 1, 30)                   # r1 = the dynamics: 3 = +- 16, else - 32..+ 64
-        if ROLL:                                                                         # 2 / 3: r9 = the roller << 8; 2 with +- 16
+        if ROLL2:                                                                        # 1 = +- 16; 2 / 3: r9 = the roller << 8
+            E(cmp_imm, 1, 1); E(b_cond, "pl_ro", "ne"); E(movs_imm, 1, 3); E(b, "pl_ac")
+            a.label("pl_ro"); E(subs_imm8, 1, 1); E(lsls_imm, 2, 1, 8); E(mov_reg, 9, 2); E(b, "pl_mi")
+            a.label("pl_ac")
+        elif ROLL:                                                                       # 2 / 3: r9 = the roller << 8; 2 with +- 16
             E(cmp_imm, 1, 1); E(b_cond, "pl_ac", "eq")
             E(subs_imm8, 1, 1); E(lsls_imm, 2, 1, 8); E(mov_reg, 9, 2); E(cmp_imm, 1, 2); bc("pl_mi", "eq"); E(movs_imm, 1, 3)
             a.label("pl_ac")
@@ -263,12 +320,14 @@ def arm_code(base, L, prev):
         E(cmp_imm, 6, 1); E(b_cond, "pl_v1", "ge"); E(movs_imm, 6, 1)
         a.label("pl_v1"); E(cmp_imm, 6, 127); E(b_cond, "pl_mi", "le"); E(movs_imm, 6, 127)
         a.label("pl_mi")                                                                 # the drum's micro steps: 1 or 2 later (a drum cannot play earlier)
-        if ROLL: E(mov_reg, 0, 9); E(cmp_imm, 0, 0); bc("pl_mu", "ne")                   # a roller has the slot
-        E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_mu", "eq")
-        E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
-        E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(adds_imm8, 0, 2 if REPEAT else 1)
-        E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
-        a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
+        if ROLL2: pass                                                                  # (ROLL2) the step moved at its micro step 0
+        else:
+            if ROLL: E(mov_reg, 0, 9); E(cmp_imm, 0, 0); bc("pl_mu", "ne")                   # a roller has the slot
+            E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_mu", "eq")
+            E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
+            E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(adds_imm8, 0, 2 if REPEAT else 1)
+            E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
+            a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
         # the mutate: the sample (level = bits 6-7 | bit 2)
         a.label("pl_mu")
         E(movs_imm, 0, 0); E(push_list, [0])                                             # [sp] = the sample + 1 (0: as it is)
@@ -294,22 +353,31 @@ def arm_code(base, L, prev):
         E(push_list, [3]); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(ldr_sp, 2, 8 + 8); E(bl, "c_dqsmp"); E(pop_list, [1])
         E(cmp_imm, 0, 63); E(b_cond, "pl_go", "hi"); E(bl, "c_dqmut"); E(adds_imm8, 0, 1); E(str_sp, 0, 0)
     a.label("pl_go")
-    E(mov_reg, 0, 9)
-    if ROLL:                                                                            # r1 = the roller: 1 double, 2 triplet; the hit sounds now, the repeat kept
+    if ROLL2:                                                                           # the hit now; a roller's micro steps after it into the slot's bits 1-5
+        E(mov_reg, 2, 9); E(lsrs_imm, 2, 2, 8); E(b_cond, "pl_now", "eq")
+        E(cmp_imm, 2, 1); E(b_cond, "pl_gt", "ne"); E(movs_imm, 2, 0x08); E(b, "pl_gd")       # micro step 4 (3 after it)
+        a.label("pl_gt"); E(movs_imm, 2, 0x24)                                          # 3 and 6 (2 and 5 after it)
+        a.label("pl_gd"); E(ldr_sp, 3, 12 + 4); E(lsls_reg, 2, 3); E(movs_imm, 3, 0x3E); E(ands_reg, 2, 3)
+        E(ldrb_imm, 0, 7, 3); E(orrs_reg, 0, 2); E(strb_imm, 0, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5); E(b, "pl_now")
+    else:
+        E(mov_reg, 0, 9)
+    if ROLL2: pass
+    elif ROLL:                                                                          # r1 = the roller: 1 double, 2 triplet; the hit sounds now, the repeat kept
         E(lsrs_imm, 1, 0, 8); E(b_cond, "pl_gn", "eq")
         E(ldrb_imm, 2, 7, 3); E(cmp_imm, 2, 0); E(b_cond, "pl_now", "ne")
         E(ldr_sp, 2, 12 + 4); E(movs_imm, 3, 4); E(subs_reg, 3, 3, 1); E(adds_reg, 2, 2, 3); E(cmp_imm, 2, 5); E(b_cond, "pl_now", "hi")
         E(adds_imm8, 2, 1); E(cmp_imm, 1, 2); E(b_cond, "pl_gs", "ne"); E(movs_imm, 3, 0x80); E(orrs_reg, 2, 3)
         a.label("pl_gs"); E(strb_imm, 2, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5); E(b, "pl_now")
         a.label("pl_gn")
-    E(cmp_imm, 0, 0); E(b_cond, "pl_now", "eq")
-    if MU.MUT2: E(ldrb_imm, 1, 7, 3); E(cmp_imm, 1, 0); E(b_cond, "pl_now", "ne")        # one hit kept already (one slot a drum): this one at once
-    E(ldr_sp, 1, 12 + 4); E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 1); E(strb_imm, 0, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5)
-    if not REPEAT: E(add_sp_imm, 4); E(b, "pl_x")                                       # (REPEAT) the hit sounds now too
+    if not ROLL2:
+        E(cmp_imm, 0, 0); E(b_cond, "pl_now", "eq")
+        if MU.MUT2: E(ldrb_imm, 1, 7, 3); E(cmp_imm, 1, 0); E(b_cond, "pl_now", "ne")    # one hit kept already (one slot a drum): this one at once
+        E(ldr_sp, 1, 12 + 4); E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 1); E(strb_imm, 0, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5)
+        if not REPEAT: E(add_sp_imm, 4); E(b, "pl_x")                                   # (REPEAT) the hit sounds now too
     a.label("pl_now"); E(pop_list, [2]); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_dqhit"); E(b, "pl_x")
     a.label("pl_plain"); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(movs_imm, 2, 0); E(bl, "c_dqhit"); E(b, "pl_x")
     a.label("pl_stock"); E(ldr_sp, 0, 0); E(ldr_sp, 1, 4); E(ldr_sp, 2, 8); E(ldr_sp, 3, 12); E(bl, DP_PLAY)
-    a.label("pl_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])); E(raw, h(0xBD00))
+    a.label("pl_x"); E(raw, popw(REGS)); E(raw, h(0xBD00))
 
     # ---- the views
     # c_dqps: the drum's Pattern Settings pad 25 (no Shift) = the probability view in mode 2
@@ -360,7 +428,7 @@ def arm_code(base, L, prev):
         # pad 32 = the drum's micro steps, whatever the step; pads 17-24 the level (bits 6-7 | bit 2), 25 on / off, 26 / 28 the dynamics (a step with a hit)
         E(cmp_imm, 7, 15); E(b_cond, "dp_a", "ne")
         E(ldr_sp, 0, 0); E(bl, "c_dqview"); E(bl, "c_dqmic"); E(b, "dp_t")
-        a.label("dp_a"); E(cmp_imm, 7, 12); bc("dp_t", "hs")
+        a.label("dp_a"); E(cmp_imm, 7, 11 if ROLL2 else 12); bc("dp_t", "hs")
         if not ROLL: E(cmp_imm, 7, 10); bc("dp_t", "eq")
         E(ldr_sp, 0, 0); E(bl, "c_dqhas"); E(cmp_imm, 0, 0); bc("dp_t", "eq")
         E(bl, "c_dqmark")
@@ -368,10 +436,14 @@ def arm_code(base, L, prev):
         E(cmp_imm, 7, 8); E(b_cond, "dp_r", "hs")
         E(movs_imm, 1, 0xC4); E(bics_reg, 0, 1); E(movs_imm, 1, 4); E(ands_reg, 1, 7); E(orrs_reg, 0, 1)
         E(lsls_imm, 1, 7, 30); E(lsrs_imm, 1, 1, 24); E(orrs_reg, 0, 1); E(b, "dp_w")
-        a.label("dp_r"); E(movs_imm, 1, 3); E(cmp_imm, 7, 8); E(b_cond, "dp_g", "ne")
-        E(tst_reg, 0, 1); E(b_cond, "dp_on", "eq"); E(bics_reg, 0, 1); E(b, "dp_w")
-        a.label("dp_on"); E(movs_imm, 1, 1); E(orrs_reg, 0, 1); E(b, "dp_w")
-        a.label("dp_g"); E(bics_reg, 0, 1); E(subs_imm8, 7, 8); E(orrs_reg, 0, 7)
+        if ROLL2:                                                                        # pads 25-27 = the dynamics 1-3, the same again = none
+            a.label("dp_r"); E(movs_imm, 1, 3); E(subs_imm8, 7, 7); E(mov_reg, 2, 0); E(ands_reg, 2, 1); E(bics_reg, 0, 1)
+            E(cmp_reg, 2, 7); E(b_cond, "dp_w", "eq"); E(orrs_reg, 0, 7)
+        else:
+            a.label("dp_r"); E(movs_imm, 1, 3); E(cmp_imm, 7, 8); E(b_cond, "dp_g", "ne")
+            E(tst_reg, 0, 1); E(b_cond, "dp_on", "eq"); E(bics_reg, 0, 1); E(b, "dp_w")
+            a.label("dp_on"); E(movs_imm, 1, 1); E(orrs_reg, 0, 1); E(b, "dp_w")
+            a.label("dp_g"); E(bics_reg, 0, 1); E(subs_imm8, 7, 8); E(orrs_reg, 0, 7)
         a.label("dp_w"); E(strb_imm, 0, 4, 0); E(b, "dp_t")
     else:
         E(cmp_imm, 7, 8); E(b_cond, "dp_d", "lo")

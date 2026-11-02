@@ -37,6 +37,7 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC50.7 / Beta 5.10 (2026-11-02):** imagen `0x6ff40` (**192 B libres**). `drumpat.use_roll2` +68 B.
 > **SC50.6 / Beta 5.9 (2026-11-02):** imagen `0x6fefc` (**260 B libres**); RC4.07 `0x6ff6c`, RC4.07S `0x6ff5c`. `drumpat.use_roll` +84 B, `sckn.use_curve` +4 B.
 > **SC50.5 / Beta 5.8 (2026-11-02):** imagen `0x6fea4` (**348 B libres**: `build_sc17.use_nogoff` libera 512 B, `mixsolo` usa 168 B, `drumpat.use_repeat` ahorra 4 B); RAM `MXR + 0x2210`. Hueco de `semitab`: 4 B.
 > **SC50.4 / Beta 5.7 (2026-11-02):** imagen `0x6fffc` (4 B libres), hueco de `semitab`: **4 B libres** (`chshare` 52 B, `arpmute` 96 B, `cibpm` 32 B, `clickflash` 76 B); RAM `MXR + 0x21E4`. RC4.06 `0x6ff64` (156 B libres), RC4.06S `0x6ff54` (172 B).
