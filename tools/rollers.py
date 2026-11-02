@@ -78,8 +78,15 @@ O_OFF, OFF_MS = 664, 100                                   # (NOTEOFF) a drum's 
 
 
 MUTE = False                                               # SC43.7 (use_mute)
+BPM0 = False                                               # SC50.4 / RC4.06 (use_bpm0)
 MUTE_AT, MUTE_OLD, MUTE_BACK = 0x0804A632, bytes.fromhex("002004f13801"), 0x0804A638   # the muted branch of the players' tick (movs r0, #0; add.w r1, r4, #0x38)
 TICK_TAB, MICRO_N = 0x08059218, 0x0804A2E8                 # the step's micro step of a tick by the sync index (24 B a row); the micro steps of a tick
+
+
+def use_bpm0():
+    """SC50.4 / RC4.06 (a fix, the same as arp.use_bpm0): the rollers with the transport stopped took p1 of the tempo store 0x20011404, which is not the tempo (about 120): now p0."""
+    global BPM0
+    BPM0 = True
 
 
 def use_mute():
@@ -281,7 +288,7 @@ def arm_code(base, prev):
         a.label("rf_r")
         imm32(0, DP0); E(ldr_imm, 0, 0, 0x10); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 7); E(b_cond, "rf_t", "ls"); E(movs_imm, 0, 3)
         a.label("rf_t"); E(lsls_imm, 0, 0, 2); imm32(1, TICKS_TAB); E(adds_reg, 0, 0, 1); E(ldr_imm, 7, 0, 0)    # r7 = the ticks a step
-        imm32(0, TEMPO); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "rf_b", "hs"); E(movs_imm, 1, 120)
+        imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "rf_b", "hs"); E(movs_imm, 1, 120)
         a.label("rf_b")
         E(movs_imm, 0, 6); E(muls, 1, 0); imm32(0, 40000); E(muls, 0, 7); E(raw, udiv(7, 0, 1))            # r7 = a micro step in 1/16 ms: 40000 tps / (6 BPM)
         E(movs_imm, 0, 6); E(push_list, [0])                                                                 # at most 6 a call

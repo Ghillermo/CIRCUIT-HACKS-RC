@@ -47,6 +47,9 @@ LED_DOWN, LED_UP = 51, 52
 def fac_addr(e, t): return e.r32(MU.SESSION_OBJ + 0x14) + MU.TAIL + MU.O_FAC + t
 
 
+ROLL = [False]                                               # drumpat.use_roll: a drum's pad 27 lit
+
+
 def row(level, dyn, micro, note=True, drum=False):
     """the 16 LEDs of mode 2"""
     out = []
@@ -54,7 +57,7 @@ def row(level, dyn, micro, note=True, drum=False):
         on = i == level if i < 8 else (dyn != 0 if i == 8 else (micro if i == 15 else i - 8 == dyn))
         v = lit if on else dim
         if not note and not (drum and i == 15): v = 0
-        if drum and i == 10: v = 0
+        if drum and i == 10 and not ROLL[0]: v = 0
         out.append(v)
     return out
 
@@ -353,7 +356,7 @@ def drum_part(img, man, check):
     flag = bytes(e.uc.mem_read(e.r32(T.LZ.SESSION_OBJ + 0x14) + 0x27024 + Q.O_FLAG, 2))
     check(flag == b"DQ", f"the project marked ({flag})")
     seq = []
-    for q, want in ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
+    for q, want in ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)) if ROLL[0] else ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
         e.pad(16 + q); X.frame(e); seq.append((byte() & 3, want))
     check(all(p == w for p, w in seq), f"pad 25 on / off, pads 26 / 28 the dynamics, pad 27 nothing ({seq})")
     check(leds() == row(0, 3, False, True, True), f"their LEDs ({[hex(x) for x in leds()]})")
@@ -384,18 +387,32 @@ def drum_part(img, man, check):
     def setb(b_, g=8, micro=False): e.uc.mem_write(base + Q.DQ_OFF, bytes([b_])); e.uc.mem_write(a, bytes([MU.FAC_TAG | g | (MU.FAC_MICRO if micro else 0)]))
     setb(1); h_, _ = play(40); vs = [v for _, v in h_]
     check(len(vs) == 40 and min(vs) >= 68 and max(vs) <= 127 and len(set(vs)) > 5, f"accents at x 8: 68..127 ({min(vs)}..{max(vs)}, {len(set(vs))} kinds)")
-    setb(3); h_, _ = play(40); vs = [v for _, v in h_]
-    check(len(vs) == 40 and min(vs) >= 84 and max(vs) <= 116 and len(set(vs)) > 5, f"pad 28 at x 8: velocity ± 16 ({min(vs)}..{max(vs)})")
+    if ROLL[0]:
+        setb(2); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_)); vs = [v for c, v in h_]; on = [v for c, v in h_ if c[2] == 0]
+        check(len(h_) == 80 and m_ == [0, 3] and min(vs) >= 84 and max(vs) <= 116 and len(set(on)) > 5 and all(h_[i][1] == h_[i + 1][1] for i in range(0, 80, 2)), f"pad 27 at x 8: the hit at +- 16, repeated 3 micro steps later with its velocity ({len(h_)}, {m_}, {min(vs)}..{max(vs)})")
+        setb(3); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_))
+        check(len(h_) == 120 and m_ == [0, 2, 4] and all(v == 100 for _, v in h_), f"pad 28 at x 8: triplets, micro steps 0, 2, 4 ({len(h_)}, {m_})")
+        for d_, nm in ((2, "pad 27"), (3, "pad 28")):
+            setb(d_, 1); h2, _ = play(200); r_ = sum(1 for c, _ in h2 if c[2] == (3 if d_ == 2 else 2)) / 200
+            check(0.15 <= r_ <= 0.35, f"{nm} at x 1: rolls in about a quarter of the hits ({r_:.2f})")
+    else:
+        setb(3); h_, _ = play(40); vs = [v for _, v in h_]
+        check(len(vs) == 40 and min(vs) >= 84 and max(vs) <= 116 and len(set(vs)) > 5, f"pad 28 at x 8: velocity ± 16 ({min(vs)}..{max(vs)})")
     setb(1, 0); h_, _ = play(8)
     check(all(v == 100 for _, v in h_) and len(h_) == 8, "x 0: no change")
     setb(0, 8, True); h_, _ = play(40); ms_ = sorted(set(c[2] for c, _ in h_))
-    check(len(h_) == 40 and ms_ == [1, 2], f"the micro steps at x 8: the hit 1 or 2 micro steps later, never earlier ({ms_})")
+    rep32 = "mixsolo" in man["report"] and not ROLL[0]
+    if rep32:                                                                           # drumpat.use_repeat
+        check(len(h_) == 80 and ms_ == [0, 2, 3] and sum(1 for c, _ in h_ if c[2] == 0) == 40, f"pad 32 at x 8: the hit on time and once more 2 or 3 micro steps later ({len(h_)}, {ms_})")
+        setb(0, 1, True); h2, _ = play(200); r_ = sum(1 for c, _ in h2 if c[2]) / 200
+        check(0.15 <= r_ <= 0.35, f"at x 1: a repeat in about a quarter of the hits ({r_:.2f})")
+    else: check(len(h_) == 40 and ms_ == [1, 2], f"the micro steps at x 8: the hit 1 or 2 micro steps later, never earlier ({ms_})")
     setb(0, 1, True); h_, _ = play(64); late = sum(1 for c, _ in h_ if c[2])
-    check(len(h_) == 64 and 5 <= late <= 30, f"the micro steps at x 1: 25 % ({late} of 64)")
+    check(len(h_) == 64 + (late if rep32 else 0) and 5 <= late <= 30, f"the micro steps at x 1: 25 % ({late} of 64)")
     setb(0, 1); h_, _ = play(8)
     check(all(c[2] == 0 for c, _ in h_) and len(h_) == 8, "off: on its micro step")
     e.uc.mem_write(base + 0x60, bytes([7])); setb(0, 8, True); h_, _ = play(32); e.uc.mem_write(base + 0x60, bytes([1]))
-    check(len(h_) == 96, f"three hits in a step, the micro steps at x 8: all of them sound ({len(h_)} of 96)")
+    check(len(h_) >= 96 if rep32 else len(h_) == 96, f"three hits in a step, the micro steps at x 8: all of them sound ({len(h_)} of 96)")
     up3 = "c_mgup" in man["report"]["mutate39"]["labels"]
     for level, want, name in ((1, {9, 10, 11}, "pad 18"), (3, {9, 11}, "pad 20"), (4, {10, 18} if up3 else {2, 10}, "pad 21"), (5, {18} if up3 else {10, 18}, "pad 22"), (6, {2, 10, 18}, "pad 23"), (7, {2, 18}, "pad 24")):
         setb((level & 3) << 6 | (level & 4), 8); h_, s_ = play(48); smp = set(v for c, v in s_)
@@ -460,6 +477,7 @@ def sweep_part(img, man, check):
 
 def main(img, man):
     if "jumpoct" in man["report"]: MU.use_white25()
+    ROLL[0] = "c_dqroll" in man["report"]["drumpat"]["labels"]
     fails = 0
     def check(c, m):
         nonlocal fails

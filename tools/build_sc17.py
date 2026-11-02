@@ -321,7 +321,14 @@ def use_mechswap():
 
 T0FIX = False                             # SC40 (see use_t0fix)
 NOVTAB = False                            # SC49.7 (see use_novtab)
+NOGOFF = False                            # SC50.5 (see use_nogoff)
 VINYL_TABS = ("VTH", "VHISS", "VLPK", "VHPK")
+
+
+def use_nogoff():
+    """SC50.5 (room in the flash): the Gater's depth table GOFF = MIX the other way round, to within 0.1 %: the 512 B of GOFF left out of the image."""
+    global NOGOFF
+    NOGOFF = True
 
 
 def use_novtab():
@@ -1081,7 +1088,9 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     a.emit(adds_imm8, 0, 8); a.emit(muls, 0, 5)                                # duty*period
     a.emit(cmp_reg, 1, 0); bc("ft_gc", "hs")
     a.emit(movw, 0, 0xFFFF); a.emit(movt, 0, 0x7F); a.emit(b, "ft_gw")
-    a.label("ft_gc"); knob(1, 4, 0, 1); ldtab(0, "GOFF", 1)
+    a.label("ft_gc"); knob(1, 4, 0, 1)
+    if NOGOFF: a.emit(movs_imm, 0, 127); a.emit(subs_reg, 1, 0, 1); ldtab(0, "MIX", 1)
+    else: ldtab(0, "GOFF", 1)
     a.label("ft_gw"); a.emit(movw, 1, G.G_TGT); a.emit(movs_imm, 2, S_CG); a.emit(bl, "c_dwc")
     a.label("ft_g")
     # Auto-Filter: period = beat*n16/4 ; idx = cut(127 - tri, centre, depth) ; f = AFTAB[idx]
@@ -2387,6 +2396,7 @@ def build(stock: bytes, listing: Path):
     tabaddr = {}
     for name, vals in tabs.items():
         if NOVTAB and name in VINYL_TABS: continue                             # (NOVTAB) nothing reads them
+        if NOGOFF and name == "GOFF": continue                                 # (NOGOFF)
         tabaddr[name] = ext + len(data); data += struct.pack("<128I", *vals)
     defaults_addr = ext + len(data); data += bytes(x for d in DEFAULTS for x in d)
     setmap_addr = ext + len(data); data += bytes(SETMAP + ([SMP_SET] if SMP2 else []) + ([GL_SET] if GLITCH else []))

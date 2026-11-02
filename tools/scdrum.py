@@ -20,10 +20,11 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldrb_imm, ldrb_reg, ldrb_w, lsls_imm, lsrs_imm,  # noqa: E402
-                   mov_reg, movs_imm, movt, movw, orrs_reg, pop_list, push_list, raw, strb_imm, strb_reg, strh_reg, subs_imm8, subs_reg)
+                   mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, strb_imm, strb_reg, strh_reg, subs_imm8, subs_reg)
 import packio as PK  # noqa: E402
 import fxdiag as FD  # noqa: E402
 import build_sc16 as S16  # noqa: E402
+import sckn as SK  # noqa: E402
 
 SC_VT, CT_VT = 0x0805AC2C, 0x0805A62C
 MODE_OFF, MODE_SC = 0x18C, 7
@@ -133,6 +134,7 @@ def arm_code(base, L, prev):
     E(movs_imm, 6, 0)
     a.label("dl_l")
     E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_sdval"); E(movs_imm, 1, 0x7F); E(raw, h(0x4008))       # ands r0, r1
+    if SK.CURVE: E(muls, 0, 0); E(lsrs_imm, 0, 0, 7)                                                   # (sckn.use_curve)
     E(adds_imm8, 0, 2); E(lsls_imm, 2, 0, 8); E(orrs_reg, 2, 7)
     E(mov_reg, 0, 6); E(adds_imm8, 0, 60); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
     E(adds_imm8, 6, 1); E(cmp_imm, 6, 4); E(b_cond, "dl_l", "lo")

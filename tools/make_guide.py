@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.6"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.9"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -29,7 +29,7 @@ PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1
 PART_OF = dict(convenciones="0", botones="0", setup="1", **{"advanced-setup": "1"}, **{"synth-nota": "2", "synth-fuente": "2", "synth-preset": "2"},
                **{"midi-preset": "3", "midi-voces": "3", "midi-knobs": "3", "midi-matriz": "3", "midi-fm": "3", "midi-cc": "3", "step-drummer": "3", "midi-muestra": "3"}, **{"pattern-settings": "4"}, probabilidad="4", micropasos="4",
                **{"drum-pista": "5", "drum-preset": "5", "drum-cromatica": "5"}, **{"master-fx": "6", "vista-fx": "7"}, sidechain="8",
-               escalas="2", patterns="9", mixer="9", projects="10", packs="10", instalar="A",
+               escalas="2", patterns="9", mixer="9", projects="10", packs="10", instalar="A", **{"app-sd": "A"},
                **{"datos-patron": "11", "guardado": "11", "datos-perdido": "11", "midi": "11", "destinos": "11"})
 V = []                                # the views: dict(id, part, title, how, detail, figs = [(old section id, figure index)])
 
@@ -48,8 +48,8 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- {ZB} = arreglo de **RC4.05** (también en la Beta 5.6; en RC4.02 y antes no).
-- {YB} = solo en la **Beta 5.6** (no está en RC4.05).
+- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.9; en RC4.02 y antes no).
+- {YB} = solo en la **Beta 5.9** (no está en RC4.07).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -68,7 +68,7 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Clear + el botón de un drum** | su vista | {B} Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
 | **Dos botones de pista de notas a la vez** | todas | Teclado partido {B}: Synth 1 + Synth 2; {NB} cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2. |
 | **Shift + Clear** | todas | Metrónomo en cuatro estados {B}: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / verde azulado (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. {XB} Con el modo cue del Mixer, el clic solo en el cue (salida derecha). |
-| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto, Record parpadea en rojo) y después arranca la grabación {B}. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
+| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto o, como esclavo, al del reloj externo, sin alinearse con su compás; Record parpadea en rojo) y después arranca la grabación {B}. {YB} Con el volumen del clic a 0 (K5 de Tempo / Swing), Clear destella en naranja en cada clic, también con el metrónomo. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
 | **Shift + Play** | todas | {B} **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
 | **Shift + Scales** | todas | Editor de la escala propia {B} (2.2). {XB}: también **Scales dos veces**. |
 | **Velocity dos veces** {XB} | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
@@ -105,11 +105,13 @@ view("synth-nota", "II", "Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)",
 | Pad 13 | Voicing abierto: la segunda nota una octava arriba |
 | Pad 14 | La fundamental añadida una octava abajo |
 | Pad 15 | Diatónico: el acorde con las terceras de la escala del proyecto (también la propia y Jankó): 3 notas, 4 si el tipo tiene 4 o más |
-| Pad 16 | Latch: el acorde sigue sonando al soltar el pad, hasta la siguiente fundamental (o hasta apagar latch o la pantalla) |
+| Pad 16 | {YB} **Acorde inverso**: el acorde reflejado hacia abajo desde la fundamental, que suena como nota más aguda (Do mayor → Do La♭ Fa = Fa menor; Do menor → Fa mayor; Do7 → Rem7(♭5)). Las notas que caen fuera de la escala se ajustan a ella al sonar. En las RC, el pad 16 sigue siendo el latch del acorde |
 | Filas 3-4 | Las fundamentales: las mismas notas que el teclado de la vista Note (escala, tónica, Octave, Jankó). Mientras mantienes el pad suena el acorde, hasta 6 notas, con la velocity del pad |
 
 - Pads 13-16 verdes encendidos, tenues apagados.
-- **El acorde cambia al momento**: si cambias el tipo, la inversión o un modificador (pads 13-15) con un acorde sonando (mantenido o fijado), suena el acorde nuevo sin volver a pulsar la fundamental: las notas que salen se apagan, las nuevas suenan y las que se quedan siguen sonando. El **arpegiador** recibe el cambio igual (su arpegio sigue con las notas nuevas).
+- **Dos acordes a la vez**: las notas que comparten suenan una sola vez y siguen sonando hasta soltar el último acorde que las tiene.
+- **Con el arpegiador**: el arpegio sigue aunque la pista esté silenciada en el Mixer (la secuencia de esa pista sigue callada), y guarda hasta **6 notas**: si dos acordes suman más, las que no caben no entran y no vuelven al soltar el otro.
+- **El acorde cambia al momento**: si cambias el tipo, la inversión o un modificador (pads 13-16) con un acorde sonando (mantenido o fijado), suena el acorde nuevo sin volver a pulsar la fundamental: las notas que salen se apagan, las nuevas suenan y las que se quedan siguen sonando. El **arpegiador** recibe el cambio igual (su arpegio sigue con las notas nuevas).
 - **Shift + fundamental = latch del acorde**: el acorde entero sigue sonando al soltar el pad, hasta **volver a pulsar esa fundamental** (que solo lo para), **Clear + el botón de la pista** o apagar la pantalla; puede haber varios fijados a la vez y cambian con el tipo y los modificadores. Con Shift, su fundamental se ve **verde azulado brillante**. En la vista Note, **Shift + paso** escribe sus notas en ese paso. El latch del pad 16 sigue como antes.
 - Lo que tocas suena y se graba con Record como **notas normales del patrón**: se reproduce igual sin la pantalla de acordes. Con el **arpegiador** encendido, el acorde se arpegia con un solo dedo.
 - El tipo y los modificadores de cada pista **no se guardan** (se pierden al apagar).
@@ -642,8 +644,10 @@ Las dos filas son una sola botonera, por paso:
 La misma botonera sobre el paso elegido (pads 1-16) y el mismo Octave (el factor del drum):
 
 - **Pads 18-20:** otro sample de su fila de 8 (±1). **Pads 21 / 22:** la fila siguiente (+8), probabilidad baja / alta. **Pads 23 / 24:** una fila más o menos (±8), probabilidad baja / alta. Parte del sample flip del paso, o del sample elegido; no se graba.
-- **Pads 25, 26 y 28:** dinámicas. Un golpe no tiene longitud: el pad 28 solo mueve la velocity ±16 y el pad 27 está apagado.
-- **Pad 32:** micropasos de **todo el drum**, no del paso (el paso no tiene bits libres), y solo retrasan: el golpe llega 1 o 2 micropasos tarde (un drum no puede sonar antes). Si en un paso con varios golpes ya hay uno retrasado, el siguiente suena a su hora. Funciona también en un paso sin golpe; los demás pads necesitan un paso con golpe.
+- **Pads 25 y 26:** dinámicas (acentos).
+- **Pad 27:** {YB} **roller de velocity**: con probabilidad de 25 % × factor, el golpe mueve su velocity ±16 y se repite en la mitad del paso (3 micropasos después), con su velocity y su sample.
+- **Pad 28:** {YB} **roller de tresillo**: con la misma probabilidad, el golpe se repite 2 y 4 micropasos después: tres golpes en el paso. Solo suenan las repeticiones que caben en el paso; cada drum guarda un roller a la vez.
+- **Pad 32:** micropasos de **todo el drum**, no del paso (el paso no tiene bits libres), y solo retrasan: el golpe llega 1 o 2 micropasos tarde (un drum no puede sonar antes). En un paso con roller manda el roller. Si en un paso con varios golpes ya hay uno retrasado, el siguiente suena a su hora. Funciona también en un paso sin nada elegido.
 
 ### Random-mutate en las RC (fila 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |
@@ -702,6 +706,7 @@ view("mixer", "VI", "Vista Mixer y escenas",
 | **Página de panorama: Shift + knob a la derecha / izquierda** {B} | **Modo cue** encendido / apagado (Octave ▼ rosa / blanco; se guarda en el aparato). |
 | **Modo cue: un knob de panorama** {B} | El envío de esa pista al **cue** (salida derecha), del centro a la derecha (a la izquierda nada); Clear + knob = sin cue. Los knobs en rosa, más brillantes cuanto más envío. |
 | **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. {B} |
+| **Pad 16 mantenido + pads 1-8** {YB} | **Solo**: las pistas que pulses siguen sonando y se silencian todas las demás, al momento. Al soltar el pad 16, los mutes se quedan como están. Cada vez que lo mantienes, la elección empieza de nuevo. El pad 16 se ve tenue y brillante mientras lo mantienes. |
 | **Shift + pads 1-8** {B} | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
 | **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). {B} Sonando, con Shift, **la repetición que suena en blanco** (pad 9 = la primera vez; en la última, el pad verde parpadea blanco / verde). {XB} |
 | Pistas que parpadean | Están siguiendo una regla de cadena. {B} |
@@ -775,7 +780,7 @@ view("sidechain", "VI", "Vista Sidechain",
      f"""
 | Control | Qué hace |
 |---|---|
-| **K1-K4** {B} | Ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno); LEDs del color de la pista. |
+| **K1-K4** {B} | Ataque, hold, decay y profundidad del sidechain de la pista del último preset tocado (Synth 1 si ninguno); LEDs del color de la pista. Desde RC4.07 su brillo sube en curva, para que los presets se distingan a la vista. |
 | **K7 / K8** {B} | Ataque / release del compresor master (el que se activa en Advanced Setup), en blanco. Se guardan con el proyecto. |
 | **Pads 1-4 de la fila 1** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 como fuente** del sidechain de la pista elegida (la del último preset tocado), junto a los drums 1-4 de los pads 5-8: cada nota del **patrón** de esa pista dispara la envolvente, como un golpe de drum (las notas tocadas en directo no). La elegida, en el color de la pista; las demás, tenues. Un pad 5-8 vuelve a un drum. Se guarda con el proyecto. |
 | **Octave ▼** con los drums | **Sidechain entre drums**: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). |
@@ -1004,6 +1009,70 @@ view("instalar", "VIII", "Instalar y volver atrás",
 3. **Haz antes una copia de la tarjeta.** Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si no arranca: **Scales + Preset + Note** al encender.
 - **Versiones nuevas:** en el paso 2, **Buscar versiones nuevas** consulta las publicadas (hace falta internet) y añade a la lista las que tu instalador no lleva; se eligen y se envían como las demás.
+""")
+
+view("app-sd", "VIII", "App de la tarjeta y del aparato",
+     "[Descarga `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), descomprímelo y abre `sd_app.html` en Chrome o Edge. No necesita instalación ni servidor.",
+     """
+Ordena desde el ordenador lo que hay en la microSD o en el aparato conectado por USB. También funciona con el firmware oficial; los parches custom son lo único propio del mod.
+
+### Abrir
+- **Abrir carpeta…**: elige la carpeta `Tracks` de la tarjeta o de una copia en el ordenador.
+- **Aparato…**: el Circuit Tracks por USB. Cierra Components y acepta el permiso de MIDI. Guarda antes el proyecto. El transporte se para y el panel queda bloqueado hasta **Desconectar aparato**; si cierras la página sin desconectar, también se libera.
+- **↻** vuelve a leer lo abierto. **Copias:** elige la carpeta del ordenador donde se guarda lo que la app sustituye o borra.
+
+### Las dos columnas
+Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un clic elige una fila; Ctrl añade y Shift elige un tramo.
+- **Copiar** y **Mover** pasan lo elegido a la otra columna: al hueco elegido allí o, sin elegir, al primero libre. Si está ocupado, pregunta: sobrescribir o, al mover, intercambiar.
+- **Eliminar** borra lo elegido, tras preguntar. **Editar** abre lo elegido en **Parches custom**, **Patrones** y **Presets CC**; también con doble clic.
+
+### Las pestañas
+| Pestaña | Qué hay | Qué se hace |
+|---|---|---|
+| **Packs** | Los packs de la tarjeta o del aparato | Copiar, mover, eliminar y exportar packs enteros. El pack interno no aparece |
+| **Sintes Nova** | Los patches de Synth 1 / 2 de cada pack | Copiar, mover, eliminar, exportar |
+| **Drums** | Los samples del pack y la memoria de samples que ocupan | Escuchar con ▶ o doble clic, copiar, mover, eliminar, exportar |
+| **Parches custom** | Los patches del sinte propio de MIDI 1 / 2 | Editar el motor, sus parámetros y el nombre; copiar, mover, eliminar, exportar |
+| **Patrones** | Los 64 patrones de una sesión: 8 por pista | Ver, copiar, mover, borrar, exportar; editar las pistas de notas |
+| **Presets CC** | Las 8 plantillas de CC de las pistas MIDI | **Leer del aparato**, cambiar, **Enviar al aparato**; **Abrir…** y **Guardar…** como `.ctcc`; **De fábrica** |
+
+### Patrones
+- Arriba eliges el pack y la sesión. El tercer selector filtra: **Con contenido**, **Todas** o una pista.
+- Cada fila dice pista y patrón (`Synth 1·3`), lo que contiene y sus pasos, con una cuadrícula de sus notas. Con el aparato conectado, también el **canal** de la pista; el canal se guarda en el aparato, no en la sesión.
+- Al elegir una fila, debajo aparece el patrón en grande: piano roll en las pistas de notas, barras de velocity en los drums, con los sample flips en ámbar y los rollers divididos.
+- Doble clic edita una pista de notas: primer y último paso, sync rate, dirección, orden, notas y carriles de automatización. **Los patrones de drums se ven, se copian y se exportan, pero aún no se editan.**
+- Un patrón de drums solo se copia a otra pista de drums. Al copiar se quedan en el destino las reglas de cadena y los datos del proyecto guardados en los ajustes del patrón; en los drums, también la frecuencia y el random-mutate por paso.
+
+### Exportar
+**Exportar…** guarda en el ordenador lo elegido, sin carpeta de tarjeta ni volcado completo. Sin nada elegido, exporta todo lo que hay en la lista (en **Packs** hay que elegir). Un elemento pide nombre de fichero; varios, una carpeta.
+
+| Pestaña | Fichero |
+|---|---|
+| **Sintes Nova** | `.syx` de 350 B, el formato de un patch en los packs de Components |
+| **Parches custom** | `.ctm` |
+| **Drums** | `.wav` |
+| **Patrones** | `.mid` y `.ctpat` (los datos exactos); con uno solo, eliges cuál |
+| **Presets CC** | Un `.ctcc` con los 8; con el aparato conectado, los lee antes de él |
+| **Packs** | Una carpeta por pack, con todos sus ficheros |
+
+- El `.mid` es una vuelta del patrón, hacia delante, del primer paso al último, en el canal de la pista. No lleva dirección, sample flips ni automatización, y una nota larga se corta al final.
+- Lo exportado todavía no se vuelve a cargar desde la app, salvo los `.ctcc`.
+
+### Snapshot y Restaurar
+Con el aparato conectado:
+- **Snapshot…** crea una carpeta `Circuit_<fecha>` con todos los packs, el pack interno y los presets de CC. Esa carpeta se abre también con **Abrir carpeta…**, como una tarjeta.
+- **Restaurar…** pide esa carpeta, compara cada fichero por tamaño y CRC y enseña un plan: qué escribe, qué borra y qué ya es igual. Solo cambia lo que difiere, y lo que sustituye va antes a tu carpeta de copias.
+- El pack interno no se escribe de vuelta y los packs que no están en el snapshot se quedan.
+- **No entran:** los ajustes del aparato, porque no se pueden escribir, y lo que no hayas guardado del proyecto.
+
+La barra de abajo enseña el avance: porcentaje, MB, velocidad, tiempo restante y fichero. Con parches y patrones avanza por elementos.
+
+### Precauciones
+- **Haz antes un snapshot o una copia de la tarjeta.** La escritura por USB está probada en un aparato real, pero puede haber fallos aún sin descubrir.
+- **Por USB, cada escritura borra primero el fichero antiguo.** Por eso con el aparato la carpeta de copias es obligatoria.
+- **Nunca dejes copias dentro de un pack:** el aparato busca los ficheros por su prefijo `NN_` y una copia puede ocupar el lugar del original. Si la app avisa de ficheros que pueden tapar a los del pack, quítalos desde el ordenador.
+- **El pack cargado:** si escribes en él, se recarga al desconectar y se pierde lo no guardado.
+- Conectar pisa unos 1,7 s del sample capturado sin guardar. No uses Components a la vez.
 """)
 
 

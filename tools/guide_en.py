@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in Beta 5.6 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.6** (not in RC4.05).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.9 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.9** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -41,7 +41,7 @@ VIEWS = {
 | **Clear + a drum's button** | its view | {B} Deletes the automation of its knobs in the playing pattern and puts its eight knobs back to their defaults. |
 | **Two note-track buttons together** | all | Split keyboard {B}: Synth 1 + Synth 2; {NB} any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2. |
 | **Shift + Clear** | all | Metronome in four states {B}: no metronome → metronome → count-in only → count-in and metronome. While Shift is held the Clear LED shows the state: red (no metronome) / green (metronome) / magenta (count-in only) / teal (both). The click's volume is the stock's: **Tempo/Swing** and **K5**. {XB} With the Mixer's cue mode, the click in the cue only (right output). |
-| **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo, Record blinks red), then recording starts {B}. Play during the count cancels it. The count-in is saved with the project. |
+| **Play** with Record armed and the count-in | stopped | One bar of count-in (4 clicks at the project's tempo or, as a slave, at the external clock's, not aligned to its bar; Record blinks red), then recording starts {B}. {YB} With the click's level at 0 (K5 of Tempo / Swing), Clear flashes orange on each click, with the metronome too. Play during the count cancels it. The count-in is saved with the project. |
 | **Shift + Play** | all | {B} **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
 | **Shift + Scales** | all | Custom scale editor {B} (2.2). {XB}: also **Scales twice**. |
 | **Velocity twice** {XB} | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
@@ -99,11 +99,13 @@ VIEWS = {
 | Pad 13 | Open voicing: the second note an octave up |
 | Pad 14 | The root added an octave down |
 | Pad 15 | Diatonic: the chord made of thirds of the project's scale (the custom one and Jankó too): 3 notes, 4 when the type has 4 or more |
-| Pad 16 | Latch: the chord keeps sounding after the pad is let go, until the next root (or until latch or the screen is turned off) |
+| Pad 16 | {YB} **Inverse chord**: the chord mirrored downwards from the root, which sounds as the highest note (C major → C A♭ F = F minor; C minor → F major; C7 → Dm7(♭5)). Notes out of the scale fit it as they sound. On the RCs, pad 16 is still the chord latch |
 | Rows 3-4 | The roots: the same notes as the Note view's keyboard (scale, root, Octave, Jankó). While you hold the pad its chord sounds, up to 6 notes, with the pad's velocity |
 
 - Pads 13-16 green on, dim off.
-- **The chord changes at once**: change the type, the inversion or a modifier (pads 13-15) while a chord sounds (held or latched) and the new chord sounds without pressing the root again: the notes that leave stop, the new ones sound and the ones that stay keep sounding. The **arpeggiator** follows the change too (its arpeggio goes on with the new notes).
+- **Two chords at once**: the notes they share sound once and go on until the last chord that has them is let go.
+- **With the arpeggiator**: the arpeggio goes on with the track muted in the Mixer (that track's sequence stays silent), and it holds up to **6 notes**: if two chords add up to more, those that do not fit stay out and do not come back when the other is let go.
+- **The chord changes at once**: change the type, the inversion or a modifier (pads 13-16) while a chord sounds (held or latched) and the new chord sounds without pressing the root again: the notes that leave stop, the new ones sound and the ones that stay keep sounding. The **arpeggiator** follows the change too (its arpeggio goes on with the new notes).
 - **Shift + a root = chord latch**: the whole chord keeps sounding after you let go of the pad, until you **press that root again** (which only stops it), **Clear + the track's button** or the screen goes off; several can be latched at once and they follow the type and modifiers. With Shift, its root lights **bright teal**. In the Note view, **Shift + a step** writes its notes into that step. Pad 16's latch is as before.
 - What you play sounds and is recorded with Record as **plain notes of the pattern**: it plays back the same without the chord screen. With the **arpeggiator** on, the chord is arpeggiated from one finger.
 - Each track's type and modifiers are **not saved** (lost at power-off).
@@ -510,8 +512,10 @@ The two rows are one set of pads, per step:
 The same pads on the chosen step (pads 1-16) and the same Octave (the drum's factor):
 
 - **Pads 18-20:** another sample of its row of 8 (±1). **Pads 21 / 22:** the next row (+8), low / high chance. **Pads 23 / 24:** a row up or down (±8), low / high chance. It starts from the step's sample flip, or the chosen sample; it is not recorded.
-- **Pads 25, 26 and 28:** dynamics. A hit has no length: pad 28 only moves the velocity ±16 and pad 27 is dark.
-- **Pad 32:** micro steps of **the whole drum**, not of the step (the step has no spare bits), and they only delay: the hit comes 1 or 2 micro steps late (a drum cannot play earlier). If a step with several hits already has one delayed, the next one plays on time. It also works on a step without a hit; the other pads need a step with a hit.
+- **Pads 25 and 26:** dynamics (accents).
+- **Pad 27:** {YB} **velocity roller**: at a chance of 25 % × the factor, the hit moves its velocity ±16 and repeats halfway through the step (3 micro steps later), with its velocity and sample.
+- **Pad 28:** {YB} **triplet roller**: at the same chance, the hit repeats 2 and 4 micro steps later: three hits in the step. Only the repeats that fit in the step sound; each drum keeps one roller at a time.
+- **Pad 32:** micro steps for the **whole drum**, not the step (the step has no free bits), and they only delay: the hit comes 1 or 2 micro steps late (a drum cannot sound earlier). On a step with a roller, the roller wins. If a step with several hits already has one delayed, the next one sounds on time. It also works on a step with nothing chosen.
 
 ### Random-mutate in the RCs (row 4)
 | Pad | 25 | 26 | 27 | 28 | 29 | 30 | 31 | 32 |
@@ -689,7 +693,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
     "**Shift + FX**. Each track's sidechain presets as always, plus the knobs:", f"""
 | Control | What it does |
 |---|---|
-| **K1-K4** {B} | Attack, hold, decay and depth of the sidechain of the track of the last preset touched (Synth 1 if none); LEDs in the track's colour. |
+| **K1-K4** {B} | Attack, hold, decay and depth of the sidechain of the track of the last preset touched (Synth 1 if none); LEDs in the track's colour. Since RC4.07 their brightness rises in a curve, so the presets can be told apart by eye. |
 | **K7 / K8** {B} | Attack / release of the master compressor (switched on in Advanced Setup), white. Saved with the project. |
 | **Row 1 pads 1-4** {B} | **Synth 1, Synth 2, MIDI 1, MIDI 2 as the source** of the chosen track's side-chain (the last preset touched), next to drums 1-4 on pads 5-8: every **pattern** note of that track fires the envelope, as a drum hit does (notes played live do not). The chosen one in the track's colour, the others dim. A pad 5-8 goes back to a drum. Saved with the project. |
 | **Octave ▼** with the drums | **Sidechain between drums**: ducking pages per drum (rows 3-4) and which drum triggers (row 1, pads 5-8). |
@@ -717,6 +721,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Pan page: Shift + knob to the right / left** {B} | **Cue mode** on / off (Octave ▼ pink / white; stored in the unit). |
 | **Cue mode: a pan knob** {B} | That track's send to the **cue** (right output), from the centre to the right (to the left nothing); Clear + knob = no cue. The knobs pink, brighter with more send. |
 | **Scene pads** | As always; a scene saved in **chain mode** shows **peach** and loading it brings the mode back; a normal one turns it off. {B} |
+| **Pad 16 held + pads 1-8** {YB} | **Solo**: the tracks you press go on sounding and all the others are muted at once. When you let go of pad 16 the mutes stay as they are. Each time you hold it the choice starts anew. Pad 16 is dim, bright while held. |
 | **Shift + pads 1-8** {B} | **Mute / unmute that track on the next bar**: the pad blinks while it waits; again cancels it. Stopped, at once. |
 | **Shift + pads 9-16** | **Repeats** of the current scene (1-8; with Shift the row is yellow, the chosen one green). {B} While playing, with Shift, **the repeat now playing is white** (pad 9 = the first time; on the last one the green pad blinks white / green). {XB} |
 | Blinking tracks | They are following a chain rule. {B} |
@@ -895,6 +900,68 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
 - **New builds:** in step 2, **Check for new builds** looks up the published ones (it needs the internet) and adds to the list those your installer does not carry; you pick and send them like the others.
+"""),
+"app-sd": ("Card and device app",
+    "[Download `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), unzip it and open `sd_app.html` in Chrome or Edge. It needs no installation and no server.", """
+It organises, from the computer, what is on the microSD card or on the device connected by USB. It also works with the official firmware; only the custom patches belong to the mod.
+
+### Opening
+- **Open folder…**: choose the `Tracks` folder of the card or of a copy on the computer.
+- **Device…**: the Circuit Tracks over USB. Close Components and accept the MIDI permission. Save the project first. The transport stops and the panel stays locked until **Disconnect device**; closing the page without disconnecting releases it too.
+- **↻** reads what is open again. **Backups:** choose the folder on the computer where the app keeps what it replaces or deletes.
+
+### The two columns
+Each column opens a folder, a card or the device, with its own pack. A click chooses a row; Ctrl adds and Shift chooses a range.
+- **Copy** and **Move** send the selection to the other column: to the slot chosen there or, with none chosen, to the first free one. If it is in use, the app asks: overwrite or, when moving, swap.
+- **Delete** removes the selection, after asking. **Edit** opens the selection in **Custom patches**, **Patterns** and **CC presets**; so does a double click.
+
+### The tabs
+| Tab | What is there | What you do |
+|---|---|---|
+| **Packs** | The packs of the card or the device | Copy, move, delete and export whole packs. The internal pack is not shown |
+| **Nova synths** | The Synth 1 / 2 patches of each pack | Copy, move, delete, export |
+| **Drums** | The pack's samples and the sample memory they take | Listen with ▶ or a double click, copy, move, delete, export |
+| **Custom patches** | The patches of the MIDI 1 / 2 own synth | Edit the engine, its parameters and the name; copy, move, delete, export |
+| **Patterns** | The 64 patterns of a session: 8 per track | See, copy, move, clear, export; edit the note tracks |
+| **CC presets** | The MIDI tracks' 8 CC templates | **Read from device**, change, **Send to device**; **Open…** and **Save…** as `.ctcc`; **Factory** |
+
+### Patterns
+- At the top you choose the pack and the session. The third selector filters: **With content**, **All** or one track.
+- Each row gives the track and pattern (`Synth 1·3`), what it holds and its steps, with a grid of its notes. With the device connected, also the track's **channel**; the channel is kept on the device, not in the session.
+- Choosing a row shows the pattern large below: a piano roll for note tracks, velocity bars for drums, with sample flips in amber and rollers split.
+- A double click edits a note track: first and last step, sync rate, direction, order, notes and automation lanes. **Drum patterns can be seen, copied and exported, but not edited yet.**
+- A drum pattern only goes to another drum track. A copy leaves in the destination the chain rules and the project data kept in the pattern's settings; on drums, also the per-step frequency and random-mutate.
+
+### Export
+**Export…** saves the selection on the computer, with no card folder and no full dump. With nothing chosen, it exports everything in the list (in **Packs** you have to choose). One item asks for a file name; several, for a folder.
+
+| Tab | File |
+|---|---|
+| **Nova synths** | A 350 B `.syx`, the format of a patch in Components' packs |
+| **Custom patches** | `.ctm` |
+| **Drums** | `.wav` |
+| **Patterns** | `.mid` and `.ctpat` (the exact data); with just one, you choose which |
+| **CC presets** | One `.ctcc` with all 8; with the device connected, read from it first |
+| **Packs** | One folder per pack, with all its files |
+
+- The `.mid` is one loop of the pattern, forward from its first step to its last, on the track's channel. It has no direction, sample flips or automation, and a long note stops at the end.
+- Exported files cannot be loaded back from the app yet, except `.ctcc`.
+
+### Snapshot and Restore
+With the device connected:
+- **Snapshot…** makes a `Circuit_<date>` folder with all the packs, the internal pack and the CC presets. That folder also opens with **Open folder…**, like a card.
+- **Restore…** asks for that folder, compares each file by size and CRC and shows a plan: what it writes, what it deletes and what is already equal. It only changes what differs, and what it replaces goes to your backups folder first.
+- The internal pack is not written back, and packs that are not in the snapshot stay.
+- **Left out:** the device's settings, which cannot be written, and whatever is unsaved in the project.
+
+The bar at the bottom shows the progress: percentage, MB, speed, time left and file. With patches and patterns it moves by items.
+
+### Precautions
+- **Take a snapshot or a copy of the card first.** Writing over USB has been tested on a real device, but there may be bugs still undiscovered.
+- **Over USB, each write deletes the old file first.** That is why the backups folder is compulsory with the device.
+- **Never leave copies inside a pack:** the device finds files by their `NN_` prefix and a copy can take the original's place. If the app warns about files that can hide the pack's own, remove them from the computer.
+- **The loaded pack:** if you write to it, it reloads on disconnect and unsaved edits are lost.
+- Connecting overwrites about 1.7 s of an unsaved captured sample. Do not use Components at the same time.
 """),
 }
 

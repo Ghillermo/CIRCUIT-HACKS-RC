@@ -30,6 +30,16 @@ ST_OFF, MAGIC = FD.ST_OFF + 4, 0x5C
 COL = (0x32, 0x17, 0x09, 0x3B)        # the knob LEDs by track: Synth 1 magenta, Synth 2 green, MIDI 1 orange, MIDI 2 purple (steady codes)
 
 
+CURVE = False                         # SC50.6 / RC4.07 (use_curve)
+
+
+def use_curve():
+    """SC50.6 / RC4.07 (a fix; the user, 2026-11-02: «en sidechain, cambiar entre presets no cambia el estado de los knobs», «sólo se actualizan los leds entre apagado y un preset»):
+    the presets are close (K1 5 in all, K3 70-95, K4 80-127) and the stock's knob LED scale is linear, 10-100 %: only off stands out.  K1..K4 show v x v / 128."""
+    global CURVE
+    CURVE = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
@@ -96,6 +106,7 @@ def arm_code(base, L, prev):
     a.label("kl_l")
     E(movs_imm, 2, 0); E(cmp_imm, 6, 4); E(b_cond, "kl_w", "hs")
     E(movs_imm, 0, TYPE); E(mov_reg, 1, 4); E(adds_reg, 1, 1, 6); E(bl, GETTER); E(movs_imm, 1, 0x7F); E(ands_reg, 0, 1)
+    if CURVE: E(muls, 0, 0); E(lsrs_imm, 0, 0, 7)
     E(adds_imm8, 0, 2); E(lsls_imm, 2, 0, 8); E(orrs_reg, 2, 7)
     a.label("kl_w"); E(mov_reg, 0, 6); E(adds_imm8, 0, 60); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
     E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "kl_l", "lo")

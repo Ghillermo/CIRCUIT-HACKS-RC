@@ -997,6 +997,19 @@ run python3 tools/emu_mutate2.py firmware/sc50.3/circuittracks-4486-SC50.3.bin f
 run python3 tools/emu_mutate2.py firmware/b5.6/circuittracks-4486-B5.6.bin firmware/b5.6/manifest.json
 run python3 tools/emu_actfix_dsp.py firmware/b5.5/circuittracks-4486-B5.5.bin
 run python3 tools/emu_actfix_dsp.py firmware/r405/circuittracks-4486-R405.bin
+# SC50.6 / Beta 5.9 / RC4.07: use_roll, use_curve
+run python3 tools/emu_mutate2.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
+run python3 tools/emu_sccurve.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
+run python3 tools/emu_sccurve.py firmware/r407/circuittracks-4486-R407.bin firmware/r407/manifest.json
+run python3 tools/emu_sccurve.py firmware/r407s/circuittracks-4486-R407S.bin firmware/r407s/manifest.json
+# SC50.5 / Beta 5.8: mixsolo, use_nogoff
+run python3 tools/emu_mixsolo.py firmware/sc50.5/circuittracks-4486-SC50.5.bin firmware/sc50.5/manifest.json
+run python3 tools/emu_mixsolo.py firmware/b5.8/circuittracks-4486-B5.8.bin firmware/b5.8/manifest.json
+# SC50.4 / Beta 5.7 / RC4.06: arpmute, chords.use_shared / use_inverse, cibpm, use_bpm0, clickflash
+run python3 tools/emu_chordfix.py firmware/sc50.4/circuittracks-4486-SC50.4.bin firmware/sc50.4/manifest.json
+run python3 tools/emu_chordfix.py firmware/b5.7/circuittracks-4486-B5.7.bin firmware/b5.7/manifest.json
+run python3 tools/emu_chordfix.py firmware/r406/circuittracks-4486-R406.bin firmware/r406/manifest.json
+run python3 tools/emu_chordfix.py firmware/r406s/circuittracks-4486-R406S.bin firmware/r406s/manifest.json
 run python3 tools/emu_nudge2.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404/circuittracks-4486-R404.bin firmware/r404/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404s/circuittracks-4486-R404S.bin firmware/r404s/manifest.json

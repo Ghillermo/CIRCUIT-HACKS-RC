@@ -54,6 +54,13 @@ S_N, S_MAG, S_DRUM, S_K, S_FG, S_FP, S_SMP, S_VEL, S_FIRST, S_FL, S_NEXT, S_SEEN
 
 
 NOTEOFF = False                                          # SC43.1 (use_noteoff)
+BPM0 = False                                             # SC50.4 / RC4.06 (use_bpm0)
+
+
+def use_bpm0():
+    """SC50.4 / RC4.06 (a fix, the same as arp.use_bpm0): the drums' arpeggio with the transport stopped took p1 of the tempo store 0x20011404, which is not the tempo (about 120): now p0."""
+    global BPM0
+    BPM0 = True
 
 
 def use_noteoff():
@@ -380,7 +387,7 @@ def arm_code(base, L, prev):
     E(ldr_imm, 1, 4, S_NEXT); E(subs_reg, 0, 5, 1); bc("lt_x", "mi")
     E(mov_reg, 0, 4); E(bl, "c_dafire")
     E(ldrb_imm, 0, 4, S_DRUM); E(bl, "c_dati"); E(mov_reg, 6, 0)                              # the next time: + 2500 ticks / BPM ms
-    imm32(0, TEMPO); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "lt_b", "hs"); E(movs_imm, 1, 120)
+    imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "lt_b", "hs"); E(movs_imm, 1, 120)
     a.label("lt_b"); imm32(0, 2500); E(muls, 0, 6); E(raw, udiv(0, 0, 1))
     E(ldr_imm, 1, 4, S_NEXT); E(adds_reg, 1, 1, 0); E(subs_reg, 2, 5, 1); E(b_cond, "lt_w", "mi"); E(adds_reg, 1, 5, 0)   # still behind: from now
     a.label("lt_w"); E(str_imm, 1, 4, S_NEXT)

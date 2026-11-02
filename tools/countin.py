@@ -130,7 +130,7 @@ def arm_code(base, L, prev):
     E(bl, "c_citail"); E(cmp_imm, 0, 0); E(b_cond, "cl_x", "eq"); E(mov_reg, 4, 0)
     E(raw, ldr_w_(0, 4, O_T0)); E(cmp_imm, 0, 0); E(b_cond, "cl_sh", "eq")
     imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, "c_cip0"); E(cmp_imm, 0, 0); E(b_cond, "cl_end", "ne")    # started otherwise: no count
-    imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); E(bl, "c_cip0"); E(cmp_imm, 0, 30); E(b_cond, "cl_bt", "hs"); E(movs_imm, 0, 120)
+    imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1); a.label("ci_bpm"); E(bl, "c_cip0"); E(cmp_imm, 0, 30); E(b_cond, "cl_bt", "hs"); E(movs_imm, 0, 120)
     a.label("cl_bt"); E(mov_reg, 1, 0); imm32(0, 60000); E(raw, udiv(6, 0, 1))                          # r6 = ms per beat
     imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(raw, ldr_w_(1, 4, O_T0)); E(subs_reg, 7, 0, 1)                # r7 = ms since the press
     E(b_cond, "cl_pos", "pl"); E(movs_imm, 7, 0)                                                         # (a start time of 1 for 0)
@@ -139,7 +139,7 @@ def arm_code(base, L, prev):
     E(cmp_imm, 0, BEATS); E(b_cond, "cl_go", "hs")
     E(raw, ldrb_w_(1, 4, O_N)); E(cmp_reg, 0, 1); E(b_cond, "cl_led", "lo")
     E(adds_imm8, 0, 1); E(raw, strb_w_(0, 4, O_N))
-    E(movs_imm, 0, 0xFF); E(movs_imm, 1, 0); E(movs_imm, 2, 0x60); E(bl, CLICK)
+    E(movs_imm, 0, 0xFF); E(movs_imm, 1, 0); E(movs_imm, 2, 0x60); a.label("ci_clk"); E(bl, CLICK)
     a.label("cl_led")                                                                                     # Record blinks: red the first half of each beat
     E(raw, udiv(0, 7, 6)); E(muls, 0, 6); E(subs_reg, 0, 7, 0); E(lsls_imm, 0, 0, 1)
     E(movs_imm, 1, 0); E(cmp_reg, 0, 6); E(b_cond, "cl_lw", "hs"); E(movs_imm, 1, COL_REC)

@@ -64,6 +64,30 @@ def tables():
     return t
 
 
+REPEAT = False                                               # SC50.5 (use_repeat)
+ROLL = False                                                 # SC50.6 (use_roll)
+
+
+def use_repeat():
+    """SC50.5 / Beta 5.8 (the user, 2026-11-02: «en drums la funcion de mutate duracion microstep no hace nada», «Utilizarla como roller para probabilidad de repetir una nota»):
+    pad 32 of the drums' mode 2: the hit sounds on time and, at 25 % x the factor, once more 2 or 3 micro steps later (with the sample and the velocity it had), through the same
+    kept hit that delayed it: one a drum, none past the step's micro step 5 (a hit that late has no room: it does not repeat)."""
+    global REPEAT
+    REPEAT = True
+
+
+def use_roll():
+    """SC50.6 / Beta 5.9 (the user, 2026-11-02: «velocity roller (repetición en tercera nota del microstep 25%) roller tresillo (repetición en segunda y cuarta nota del microstep 25%)
+    microsteps en el 32», «Si no caben roller doble y triple en pads separados, un solo pad roller»): pad 32 of a drum is the micro steps again (the delay, use_repeat goes); by step,
+    at 25 % x the factor: pad 27 = the velocity roller: the hit moves +- 16 and repeats 3 micro steps later (half the step), pad 28 = the triplet roller: it repeats 2 and 4 micro steps
+    later (a step has 6: 0, 2, 4 are its triplets), each with the hit's velocity and sample; a repeat past micro step 5 is left out.  The kept hit's slot, bit 7 of its micro step = one
+    more 2 micro steps on.  The old pad 28 (+- 16 alone) is the velocity roller's first half.  One slot a drum: a roller wins over the delay of pad 32."""
+    global REPEAT, ROLL
+    REPEAT = False
+    ROLL = True
+    MU.ROLL27 = True
+
+
 def arm_code(base, L, prev):
     a = Asm(base)
     E = a.emit
@@ -202,8 +226,14 @@ def arm_code(base, L, prev):
     a.label("pl_w"); E(strb_imm, 0, 7, 0); E(lsrs_imm, 0, 0, 8); E(strb_imm, 0, 7, 1)
     # a hit kept for a later micro step
     a.label("pl_pd")
-    E(ldrb_imm, 0, 7, 3); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq"); E(ldr_sp, 1, 12); E(adds_imm8, 1, 1); E(cmp_reg, 0, 1); E(b_cond, "pl_h", "ne")
-    E(movs_imm, 0, 0); E(strb_imm, 0, 7, 3); E(mov_reg, 0, 4); E(ldrb_imm, 1, 7, 4); E(ldrb_imm, 2, 7, 5); E(bl, "c_dqhit")
+    E(ldrb_imm, 0, 7, 3); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq")
+    if ROLL:                                                                            # bit 7: one more, 2 micro steps on
+        a.label("c_dqroll"); E(lsls_imm, 1, 0, 25); E(lsrs_imm, 1, 1, 25); E(ldr_sp, 2, 12); E(adds_imm8, 2, 1); E(cmp_reg, 1, 2); E(b_cond, "pl_h", "ne")
+        E(movs_imm, 1, 0); E(lsrs_imm, 0, 0, 7); E(b_cond, "pl_r0", "eq"); E(adds_imm8, 2, 2); E(cmp_imm, 2, 6); E(b_cond, "pl_r0", "hi"); E(mov_reg, 1, 2)
+        a.label("pl_r0"); E(strb_imm, 1, 7, 3)
+    else:
+        E(ldr_sp, 1, 12); E(adds_imm8, 1, 1); E(cmp_reg, 0, 1); E(b_cond, "pl_h", "ne"); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 3)
+    E(mov_reg, 0, 4); E(ldrb_imm, 1, 7, 4); E(ldrb_imm, 2, 7, 5); E(bl, "c_dqhit")
     a.label("pl_h")
     E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(ldr_sp, 2, 12); E(ldr_imm, 3, 4, 4); E(bl, HIT); E(cmp_imm, 0, 0); bc("pl_x", "eq")
     E(mov_reg, 0, 5); E(ldr_sp, 1, 8); E(bl, "c_dqbyte"); E(mov_reg, 8, 0)               # r8 = our byte
@@ -225,13 +255,18 @@ def arm_code(base, L, prev):
         E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mi", "eq")
         E(lsls_imm, 0, 1, 22); E(lsrs_imm, 0, 0, 22)
         E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 30); E(lsrs_imm, 1, 1, 30)                   # r1 = the dynamics: 3 = +- 16, else - 32..+ 64
+        if ROLL:                                                                         # 2 / 3: r9 = the roller << 8; 2 with +- 16
+            E(cmp_imm, 1, 1); E(b_cond, "pl_ac", "eq")
+            E(subs_imm8, 1, 1); E(lsls_imm, 2, 1, 8); E(mov_reg, 9, 2); E(cmp_imm, 1, 2); bc("pl_mi", "eq"); E(movs_imm, 1, 3)
+            a.label("pl_ac")
         E(bl, L["c_mgdv"]); E(adds_reg, 6, 6, 0)
         E(cmp_imm, 6, 1); E(b_cond, "pl_v1", "ge"); E(movs_imm, 6, 1)
         a.label("pl_v1"); E(cmp_imm, 6, 127); E(b_cond, "pl_mi", "le"); E(movs_imm, 6, 127)
         a.label("pl_mi")                                                                 # the drum's micro steps: 1 or 2 later (a drum cannot play earlier)
+        if ROLL: E(mov_reg, 0, 9); E(cmp_imm, 0, 0); bc("pl_mu", "ne")                   # a roller has the slot
         E(bl, "c_dqtk"); E(bl, L["c_mgget"]); E(movs_imm, 1, MU.FAC_MICRO); E(tst_reg, 0, 1); bc("pl_mu", "eq")
         E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mu", "eq")
-        E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(adds_imm8, 0, 1)
+        E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(adds_imm8, 0, 2 if REPEAT else 1)
         E(ldr_sp, 1, 12); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 5); E(b_cond, "pl_m5", "le"); E(movs_imm, 1, 5)
         a.label("pl_m5"); E(ldr_sp, 2, 12); E(subs_reg, 0, 1, 2); E(mov_reg, 9, 0)
         # the mutate: the sample (level = bits 6-7 | bit 2)
@@ -259,10 +294,18 @@ def arm_code(base, L, prev):
         E(push_list, [3]); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(ldr_sp, 2, 8 + 8); E(bl, "c_dqsmp"); E(pop_list, [1])
         E(cmp_imm, 0, 63); E(b_cond, "pl_go", "hi"); E(bl, "c_dqmut"); E(adds_imm8, 0, 1); E(str_sp, 0, 0)
     a.label("pl_go")
-    E(mov_reg, 0, 9); E(cmp_imm, 0, 0); E(b_cond, "pl_now", "eq")
+    E(mov_reg, 0, 9)
+    if ROLL:                                                                            # r1 = the roller: 1 double, 2 triplet; the hit sounds now, the repeat kept
+        E(lsrs_imm, 1, 0, 8); E(b_cond, "pl_gn", "eq")
+        E(ldrb_imm, 2, 7, 3); E(cmp_imm, 2, 0); E(b_cond, "pl_now", "ne")
+        E(ldr_sp, 2, 12 + 4); E(movs_imm, 3, 4); E(subs_reg, 3, 3, 1); E(adds_reg, 2, 2, 3); E(cmp_imm, 2, 5); E(b_cond, "pl_now", "hi")
+        E(adds_imm8, 2, 1); E(cmp_imm, 1, 2); E(b_cond, "pl_gs", "ne"); E(movs_imm, 3, 0x80); E(orrs_reg, 2, 3)
+        a.label("pl_gs"); E(strb_imm, 2, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5); E(b, "pl_now")
+        a.label("pl_gn")
+    E(cmp_imm, 0, 0); E(b_cond, "pl_now", "eq")
     if MU.MUT2: E(ldrb_imm, 1, 7, 3); E(cmp_imm, 1, 0); E(b_cond, "pl_now", "ne")        # one hit kept already (one slot a drum): this one at once
     E(ldr_sp, 1, 12 + 4); E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 1); E(strb_imm, 0, 7, 3); E(strb_imm, 6, 7, 4); E(ldr_sp, 0, 0); E(strb_imm, 0, 7, 5)
-    E(add_sp_imm, 4); E(b, "pl_x")
+    if not REPEAT: E(add_sp_imm, 4); E(b, "pl_x")                                       # (REPEAT) the hit sounds now too
     a.label("pl_now"); E(pop_list, [2]); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_dqhit"); E(b, "pl_x")
     a.label("pl_plain"); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(movs_imm, 2, 0); E(bl, "c_dqhit"); E(b, "pl_x")
     a.label("pl_stock"); E(ldr_sp, 0, 0); E(ldr_sp, 1, 4); E(ldr_sp, 2, 8); E(ldr_sp, 3, 12); E(bl, DP_PLAY)
@@ -317,7 +360,8 @@ def arm_code(base, L, prev):
         # pad 32 = the drum's micro steps, whatever the step; pads 17-24 the level (bits 6-7 | bit 2), 25 on / off, 26 / 28 the dynamics (a step with a hit)
         E(cmp_imm, 7, 15); E(b_cond, "dp_a", "ne")
         E(ldr_sp, 0, 0); E(bl, "c_dqview"); E(bl, "c_dqmic"); E(b, "dp_t")
-        a.label("dp_a"); E(cmp_imm, 7, 12); bc("dp_t", "hs"); E(cmp_imm, 7, 10); bc("dp_t", "eq")
+        a.label("dp_a"); E(cmp_imm, 7, 12); bc("dp_t", "hs")
+        if not ROLL: E(cmp_imm, 7, 10); bc("dp_t", "eq")
         E(ldr_sp, 0, 0); E(bl, "c_dqhas"); E(cmp_imm, 0, 0); bc("dp_t", "eq")
         E(bl, "c_dqmark")
         E(ldr_sp, 0, 0); E(bl, "c_dqview"); E(adds_reg, 1, 1, 2); E(adds_imm8, 1, DQ_OFF); E(mov_reg, 4, 1); E(ldrb_imm, 0, 4, 0)

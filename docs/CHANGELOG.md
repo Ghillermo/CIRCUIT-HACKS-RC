@@ -7,6 +7,15 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.9 — 2026-11-02
+
+**Beta 5.9** (marca `B5.9`; = SC50.6; las Betas 5.7 y 5.8, = SC50.4 y SC50.5, no se publicaron: esta las incluye) = la Beta 5.6 + los arreglos de RC4.07 + lo siguiente, sin probar en el aparato.
+
+- **Solo en el Mixer:** pad 16 mantenido + pads 1-8: esas pistas suenan y las demás se silencian; al soltarlo, los mutes se quedan. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
+- **Rollers en el random-mutate de los drums:** pad 27 = roller de velocity (el golpe mueve su velocity ±16 y se repite en la mitad del paso), pad 28 = roller de tresillo (se repite 2 y 4 micropasos después), con probabilidad de 25 % × factor. El ±16 del pad 28 pasa al roller de velocity; el pad 32 sigue siendo los micropasos. → [Guía: Vista de probabilidad (pistas de notas y drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#probabilidad)
+- **Acorde inverso:** el pad 16 de la pantalla de acordes refleja el acorde hacia abajo desde la fundamental, que suena como nota más aguda. Sustituye al latch de ese pad; **Shift + fundamental** sigue fijando el acorde. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **Destello del clic:** con el volumen del clic a 0 (K5 de Tempo / Swing), Clear destella en naranja en cada clic de la cuenta atrás y del metrónomo. → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#botones)
+
 ### Beta 5.6 — 2026-11-02
 
 **Beta 5.6** (marca `B5.6`; = SC50.3; la Beta 5.5, = SC50.2, no se publicó: esta la incluye) = la Beta 5.4 + los arreglos de [Arreglos](#arreglos) + lo siguiente, sin probar en el aparato.
@@ -493,6 +502,16 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.07 / RC4.07S / Beta 5.9 — 2026-11-02
+
+**RC4.07** (marca `R407`) / **RC4.07S** (`R407S`), con lo de RC4.06, que no se publicó; sin probar en el aparato:
+
+- **LEDs de Sidechain:** los knobs K1-K4 enseñaban su valor con un brillo casi igual en todos los presets; ahora suben en curva y los presets se distinguen.
+- **Arpegio en una pista silenciada:** con la pista silenciada en el Mixer y el transporte en marcha, el arpegio de lo que tocas se quedaba en la primera nota; ahora sigue, a tiempo.
+- **Dos acordes con notas comunes:** en la pantalla de acordes, soltar un acorde ya no quita las notas que comparte con otro; cada nota suena una vez.
+- **Cuenta atrás con reloj externo:** como esclavo, va al tempo del reloj, no al del proyecto (no se alinea con su compás).
+- **Rollers y arpegio de drums parados:** seguían a unos 120 BPM; ahora, al tempo del proyecto.
+
 ### RC4.05 / RC4.05S / Beta 5.6 — 2026-11-02
 
 **RC4.05** (marca `R405`; = RC4.02 + estos arreglos; RC4.03 y RC4.04 no se publicaron) / **RC4.05S** (`R405S`, sin escrituras propias en la tarjeta), sin probar en el aparato.
@@ -765,6 +784,15 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.9 — 2026-11-02
+
+**Beta 5.9** (marker `B5.9`; = SC50.6; Betas 5.7 and 5.8, = SC50.4 and SC50.5, were not released: this one holds them) = Beta 5.6 + the RC4.07 fixes + the following, untested on the device.
+
+- **Solo in the Mixer:** pad 16 held + pads 1-8: those tracks sound and the others are muted; when you let go, the mutes stay. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+- **Rollers in the drums' random-mutate:** pad 27 = velocity roller (the hit moves its velocity ±16 and repeats halfway through the step), pad 28 = triplet roller (it repeats 2 and 4 micro steps later), at a chance of 25 % × the factor. The ±16 of pad 28 moves to the velocity roller; pad 32 stays the micro steps. → [Guide: Probability view (note tracks and drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
+- **Inverse chord:** pad 16 of the chord screen mirrors the chord downwards from the root, which sounds as the highest note. It replaces that pad's latch; **Shift + a root** still latches the chord. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Click flash:** with the click's level at 0 (K5 of Tempo / Swing), Clear flashes orange on each click of the count-in and the metronome. → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#botones)
 
 ### Beta 5.6 — 2026-11-02
 
@@ -1251,6 +1279,16 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.07 / RC4.07S / Beta 5.9 — 2026-11-02
+
+**RC4.07** (marker `R407`) / **RC4.07S** (`R407S`), with what RC4.06 held, which was not released; untested on the device:
+
+- **Sidechain LEDs:** knobs K1-K4 showed their value at nearly the same brightness in every preset; they now rise in a curve, so the presets can be told apart.
+- **Arpeggio on a muted track:** with the track muted in the Mixer and the transport running, the arpeggio of what you play stayed on the first note; it now goes on, in time.
+- **Two chords sharing notes:** on the chord screen, letting a chord go no longer takes away the notes it shares with another; each note sounds once.
+- **Count-in with an external clock:** as a slave it runs at the clock's tempo, not the project's (it does not align to its bar).
+- **Rollers and the drums' arpeggio, stopped:** they stayed near 120 BPM; now they follow the project's tempo.
 
 ### RC4.05 / RC4.05S / Beta 5.6 — 2026-11-02
 
