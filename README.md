@@ -78,7 +78,7 @@ Una página para ordenar packs, sintes, samples, patrones y presets desde el ord
 5. **Exportar…** guarda lo elegido en el ordenador sin hacer un volcado completo: parches (`.syx` / `.ctm`), samples (`.wav`), patrones (`.mid` y `.ctpat`), presets (`.ctcc`) y packs enteros. Lo exportado todavía no se puede volver a cargar desde la app, salvo los `.ctcc`.
 6. **Snapshot…** y **Restaurar…** (con el aparato conectado) guardan en el ordenador todos los packs, el pack interno y los presets de CC, y devuelven al aparato solo lo que haya cambiado, tras enseñarte un plan. El pack interno no se escribe de vuelta, y los packs que no estén en el snapshot se quedan. No incluye los ajustes del aparato ni lo que no hayas guardado del proyecto.
 
-**Antes de escribir:** la app guarda lo que sustituye en una carpeta tuya del ordenador, nunca en la tarjeta: el aparato busca los ficheros por su prefijo `NN_` y una copia dentro de un pack puede ocupar el lugar del original. Por USB, cada escritura borra primero el fichero antiguo. **La escritura por USB y Restaurar aún no se han probado en un aparato real:** haz antes un snapshot o una copia de la tarjeta. Al escribir en el pack cargado, se recarga al desconectar y se pierde lo no guardado.
+**Antes de escribir:** la app guarda lo que sustituye en una carpeta tuya del ordenador, nunca en la tarjeta: el aparato busca los ficheros por su prefijo `NN_` y una copia dentro de un pack puede ocupar el lugar del original. Por USB, cada escritura borra primero el fichero antiguo. **La escritura por USB ya está probada en un aparato real, pero puede haber fallos aún sin descubrir:** haz antes un snapshot o una copia de la tarjeta. Al escribir en el pack cargado, se recarga al desconectar y se pierde lo no guardado.
 
 ### Con Python (`tools/patch_official.py`)
 
@@ -195,7 +195,7 @@ A page to organise packs, synths, samples, patterns and presets from the compute
 5. **Export…** saves the selection on the computer without a full dump: patches (`.syx` / `.ctm`), samples (`.wav`), patterns (`.mid` and `.ctpat`), presets (`.ctcc`) and whole packs. Exported files cannot be loaded back from the app yet, except `.ctcc`.
 6. **Snapshot…** and **Restore…** (with the device connected) save all the packs, the internal pack and the CC presets on the computer, and send back only what has changed, after showing you a plan. The internal pack is not written back, and packs that are not in the snapshot stay. The device's settings and anything unsaved in the project are not included.
 
-**Before writing:** the app keeps what it replaces in a folder of yours on the computer, never on the card: the device finds files by their `NN_` prefix and a copy inside a pack can take the original's place. Over USB, each write deletes the old file first. **Writing over USB and Restore have not been tried on a real device yet:** take a snapshot or a copy of the card first. Writing to the loaded pack makes it reload on disconnect, and unsaved edits are lost.
+**Before writing:** the app keeps what it replaces in a folder of yours on the computer, never on the card: the device finds files by their `NN_` prefix and a copy inside a pack can take the original's place. Over USB, each write deletes the old file first. **Writing over USB has been tested on a real device, but there may be bugs still undiscovered:** take a snapshot or a copy of the card first. Writing to the loaded pack makes it reload on disconnect, and unsaved edits are lost.
 
 ### Build
 
