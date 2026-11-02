@@ -28,6 +28,12 @@ SUB_PROB, DRUM_PROB = 5, 41
 COL, SHOW_MS = MU.COL_LIT, 1500
 
 
+def use_short():
+    """SC50.3 / Beta 5.6 (the user, 2026-11-01: «El tiempo que se muestra el factor de multiplicación en pantalla, más corto (la mitad o menos)»): 0.6 s."""
+    global SHOW_MS
+    SHOW_MS = 600
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 

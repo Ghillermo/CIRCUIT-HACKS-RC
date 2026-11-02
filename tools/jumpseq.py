@@ -59,6 +59,16 @@ MGR, S_CUR = 0x20040B10, 0x152
 PAD = MS.PAD
 POP_LR = h(0xF85D) + h(0xEB04)                                                      # ldr lr, [sp], #4
 RET = h(0x4770)
+V2 = False                                                                          # SC50.2 (use_v2)
+HAL_TICK = 0x2000081C
+
+
+def use_v2():
+    """SC50.2 / Beta 5.5 (the user, 2026-11-01): the transport stopped, a pad sounds the target's step (jumpx.c_jsa), until it is let go; pad 27 blinks while pointing, bright / dim of the
+    target's colour, 256 ms each («para distinguirlo de los modos de voz»); pointing and the engines exclude each other («sólo una de las dos funciones activas»): choosing a track
+    turns the engine off through the row's pad 17, an engine that comes on clears the pointing (the template view's LEDs see it, whatever chose it)."""
+    global V2
+    V2 = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -77,19 +87,38 @@ def arm_code(base, L, prev):
     a.label("c_jsnon")
     E(push_list, [0, 1, 2, 3, 4], lr=True)
     E(subs_imm3, 0, 1, 2); E(cmp_imm, 0, 1); E(b_cond, "on_q", "hi"); E(bl, CAVE); E(cmp_imm, 0, 0); E(b_cond, "on_q", "eq"); E(mov_reg, 4, 0)
-    imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "on_x", "eq")
+    def step():                                                                      # r0 = the note -> the step
+        imm32(3, MU.KB_CTX); E(ldr_imm, 1, 3, 0x10); E(ldrb_imm, 1, 1, 0); E(subs_imm8, 0, NOTE0); E(subs_reg, 0, 0, 1)
+        E(movs_imm, 2, 1); E(ands_reg, 2, 0); E(lsls_imm, 2, 2, 3); E(lsrs_imm, 1, 0, 1); E(movs_imm, 3, 7); E(ands_reg, 1, 3); E(orrs_reg, 1, 2)
+        E(movs_imm, 3, 16); E(ands_reg, 0, 3); E(orrs_reg, 0, 1)
+    if V2:
+        E(bl, "c_jsrun"); E(b_cond, "on_st", "eq")
+    else:
+        imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "on_x", "eq")
     E(raw, h(0x9802))                                                                # ldr r0, [sp, #8]: the note
-    imm32(3, MU.KB_CTX); E(ldr_imm, 1, 3, 0x10); E(ldrb_imm, 1, 1, 0); E(subs_imm8, 0, NOTE0); E(subs_reg, 0, 0, 1)
-    E(movs_imm, 2, 1); E(ands_reg, 2, 0); E(lsls_imm, 2, 2, 3); E(lsrs_imm, 1, 0, 1); E(movs_imm, 3, 7); E(ands_reg, 1, 3); E(orrs_reg, 1, 2)
-    E(movs_imm, 3, 16); E(ands_reg, 0, 3); E(orrs_reg, 0, 1); E(adds_imm8, 0, 1)    # the step + 1
+    if V2: E(bl, "c_jsstp")
+    else: step()
+    E(adds_imm8, 0, 1)                                                               # the step + 1
     imm32(1, RAM); E(adds_reg, 1, 1, 4); E(strb_imm, 0, 1, 3)
     a.label("on_x"); E(pop_list, [0, 1, 2, 3, 4], pc=True)
+    if V2:
+        a.label("c_jsrun"); E(raw, h(0xB500)); imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(raw, h(0xBD00))   # flags ne = running
+        a.label("c_jsstp"); step(); E(raw, RET)
+        a.label("on_st"); E(movs_imm, 2, 1)
+        a.label("on_au"); E(push_list, [2]); E(raw, h(0x9803)); E(bl, "c_jsstp")     # ldr r0, [sp, #12]: the note
+        E(mov_reg, 1, 0); E(subs_imm3, 0, 4, 1); E(pop_list, [2]); E(bl, L["c_jsa"]); E(b, "on_x")
     a.label("on_q"); E(raw, popw([0, 1, 2, 3, 4], lr=True)); E(b_w, prev["on"])
 
     # ---- c_jsnof (the transmitter's note-off): a pointing track's goes nowhere
     a.label("c_jsnof")
     E(push_list, [0, 1, 2, 3, 4], lr=True)
-    E(subs_imm3, 0, 1, 2); E(cmp_imm, 0, 1); E(b_cond, "of_q", "hi"); E(bl, CAVE); E(cmp_imm, 0, 0); E(b_cond, "on_x", "ne")
+    E(subs_imm3, 0, 1, 2); E(cmp_imm, 0, 1); E(b_cond, "of_q", "hi"); E(bl, CAVE); E(cmp_imm, 0, 0)
+    if V2:
+        E(b_cond, "of_q", "eq"); E(mov_reg, 4, 0)
+        E(bl, "c_jsrun"); E(b_cond, "on_x", "ne")
+        E(movs_imm, 2, 0); E(b, "on_au")
+    else:
+        E(b_cond, "on_x", "ne")
     a.label("of_q"); E(raw, popw([0, 1, 2, 3, 4], lr=True)); E(b_w, prev["off"])
 
     # ---- c_jslst (slot 0 of the note players: player, store): the clock's two stores of a player c_jsadv has served go nowhere
@@ -160,9 +189,14 @@ def arm_code(base, L, prev):
     a.label("jp_w")
     E(bl, "c_jsad"); E(b_cond, "jp_k", "eq"); E(movs_imm, 0, 0); E(strh_imm, 0, 1, 0); E(movs_imm, 0, SIG); E(strb_imm, 0, 1, 2)
     a.label("jp_k"); E(strb_reg, 5, 1, 4)
-    a.label("jp_x"); E(pop_list, [0, 1, 2, 4, 5], pc=True)
+    if V2:
+        E(cmp_imm, 5, 0); E(b_cond, "jp_x", "eq"); E(movs_imm, 1, 16); E(raw, h(0x9101))   # str r1, [sp, #4]: the engine off, the row's pad 17
+    else:
+        a.label("jp_x"); E(pop_list, [0, 1, 2, 4, 5], pc=True)
     a.label("jp_o"); E(raw, popw([0, 1, 2, 4, 5], lr=True))
     a.label("jp_f"); E(b_w, prev["pad"])
+    if V2:
+        a.label("jp_x"); E(pop_list, [0, 1, 2, 4, 5], pc=True)
 
     # ---- c_jsled (slot 7 of the template view: view) -> r0 = the LED buffer: the eight tracks while the row is open, pad 27 in the target's colour
     a.label("c_jsled")
@@ -180,7 +214,15 @@ def arm_code(base, L, prev):
     a.label("ld_o"); E(strh_reg, 2, 5, 1); E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "ld_l", "lo")
     a.label("ld_c")
     E(cmp_imm, 6, 0); E(b_cond, "ld_x", "eq")
-    E(lsls_imm, 2, 6, 1); E(ldrh_reg, 2, 7, 2); E(movs_imm, 1, 2 * PAD); E(strh_reg, 2, 5, 1)
+    if V2:                                                                          # an engine on: no pointing
+        E(mov_reg, 0, 4); E(bl, L["c_von"]); E(cmp_imm, 0, 0); E(b_cond, "ld_k", "eq")
+        E(bl, "c_jsad"); E(movs_imm, 0, 0); E(strb_reg, 0, 1, 4); E(b, "ld_x")
+        a.label("ld_k")
+    E(lsls_imm, 2, 6, 1)
+    if V2:
+        E(movs_imm, 3, HAL_TICK >> 24); E(lsls_imm, 3, 3, 24); E(raw, h(0xF8D0 | 3) + h(3 << 12 | HAL_TICK & 0xFFF)); E(lsls_imm, 3, 3, 23); E(b_cond, "ld_b", "pl"); E(adds_imm8, 2, 16)   # ldr.w r3, [r3, #..]
+        a.label("ld_b")
+    E(ldrh_reg, 2, 7, 2); E(movs_imm, 1, 2 * PAD); E(strh_reg, 2, 5, 1)
     a.label("ld_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 
@@ -194,6 +236,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = dict(c_mpon=lab("mpatch", "c_mpon"), c_jktrk=lab("janko", "c_jktrk"), c_jkoct=lab("janko", "c_jkoct"), c_jkram=lab("janko", "c_jkram"))
+    if V2: L.update(c_jsa=lab("jumpx", "c_jsa"), c_von=lab("vcf20", "c_von"))
     prev = dict(on=u(TX_VT) & ~1, off=u(TX_VT + 4) & ~1, pad=u(MP.TMPL_VT) & ~1, leds=u(MP.TMPL_VT + 28) & ~1, new=MP.bw_target(img, P19.NEW_TAIL, BASE),
                 ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert JK.JUMP and lab("cave", "c_txf") == CAVE

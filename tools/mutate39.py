@@ -77,6 +77,12 @@ def use_mut2():
     MUT2 = True
 
 
+def use_white25():
+    """SC50.3 / Beta 5.6 (the user, 2026-11-01: «los pads de mutate 17 y 25 (desactivado) color blanco»): pad 25 as pad 17: white bright while off, white dim while the dynamics are on."""
+    global MG_COLS
+    MG_COLS = MG_COLS[:8] + ((0x01, 0x02),) + MG_COLS[9:]
+
+
 def use_mut3():
     """SC50.1 / Beta 5.4 (the user, 2026-11-01: «los dos primeros pads de octave pasan a ser octave up lo y up hi, los dos últimos serán octave both lo y octave
     both hi»): level 4 = octave up (1 unit), 5 = octave up (2 units), 6 = octave down or up (1 unit), 7 = down or up (2 units).  Nothing moves the note only down."""

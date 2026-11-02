@@ -628,6 +628,15 @@ def algs2():
     return bytes(out)
 
 
+KSLOW = False                                                           # SC50.2 (use_kslow)
+
+
+def use_kslow():
+    """SC50.2 / Beta 5.5: the algorithm (Shift + K5) takes 16 clicks instead of 8 (vcf21.use_kslow)."""
+    global KSLOW
+    KSLOW = True
+
+
 def use_v2():
     """SC46.6 (the user, 2026-10-24 / 25: «Mejora el motor FM»; the study's plan and the answers): with vcf21_dsp's use_fmvca / fmwide / fmcompact /
     fmorder / fmsine / fmsmooth / fbavg (one builder):
@@ -1100,6 +1109,10 @@ def arm_code2(base, L, prev):
     E(movs_imm, 0, 0); E(cmp_imm, 5, P_ALG); E(b_cond, "kn_st", "eq")                    # Clear: the algorithm = the stack, the rest = the voicing's
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_fmvoc"); E(b, "kn_st")
     a.label("kn_add")
+    if KSLOW:
+        E(cmp_imm, 5, P_ALG); E(b_cond, "kn_a2", "ne")
+        E(ldr_sp, 0, 8); E(movs_imm, 1, 16); E(bl, L["c_kslow"]); E(lsls_imm, 0, 0, 3); E(str_sp, 0, 8)     # whole algorithms, 8 positions each
+        a.label("kn_a2")
     E(ldrb_reg, 0, 4, 5); E(ldr_sp, 2, 8); E(adds_reg, 0, 0, 2)
     E(cmp_imm, 0, 0); E(b_cond, "kn_c1", "ge"); E(movs_imm, 0, 0)
     a.label("kn_c1"); E(cmp_imm, 0, 127); E(b_cond, "kn_st", "le"); E(movs_imm, 0, 127)
@@ -1361,7 +1374,7 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
-    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vsetpage", "c_vclr")}
+    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vsetpage", "c_vclr") + (("c_kslow",) if KSLOW else ())}
     L["c_shift"] = lab("sc15", "c_shift")
     for k in ("c_mpon", "c_mpr", "c_mpload", "c_mpsave"): L[k] = lab("mpatch", k)
     for k in ("c_msmode", "c_msheld"): L[k] = lab("modesel", k)

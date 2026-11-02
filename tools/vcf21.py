@@ -464,6 +464,8 @@ def use_fxseq2():
 
 V2SAVE = False                                    # SC43.8 (see use_v2save)
 LFOSHAPE = False                                  # SC43.9 (see use_lfoshape)
+KSLOW = None                                      # SC50.2 (see use_kslow): the RAM of the accumulator of c_kslow
+ROUTEDEF = False                                  # SC50.2 (see use_routedef)
 SAMPLER = False                                   # SC44 (see use_sampler)
 SM_PEND = (953, 997)                              # (SAMPLER) the project's tail: + 953 / + 997 = 0xC0 | the next note's sample (MIDI 1 / 2; RAM: a flip, then 0)
 COL_SM = 0x4D                                     # pad 27 in the sample state (cyan)
@@ -516,6 +518,22 @@ LS_TAG, LS_N, LS_STEP = 0xB0, 6, 4                 # 6 shapes; one step every 4 
 LS_COLS = (0x09, 0x32, 0x17, 0x53, 0x4D, 0x01)     # reverse saw orange, saw magenta, triangle green, square red, sine cyan, sample & hold white
 LS_PAGE, LS_KNOB = 4, 15                          # page 5 (KNOB_CODES_E), Shift + K8 (its free slot)
 LS_DEF = 0                                        # the shape without the project's tag (SC44.3 use_lfoshape2: the triangle)
+
+
+def use_routedef():
+    """SC50.2 / Beta 5.5 (the user, 2026-11-01: «filtro,vca,fx debería ser el modo por defecto, y el otro el alternativo»): pad 29 off = filter -> VCA -> FX, on = VCA -> FX -> filter.
+    The stored bit (bit 7 of RT_NOTE) keeps its place; it is inverted when it goes to the DSP (DFLAGS bit 0), so a project or patch saved with pad 29 on or off keeps the pad but swaps the order."""
+    global ROUTEDEF
+    ROUTEDEF = True
+
+
+def use_kslow(ram):
+    """SC50.2 / Beta 5.5 (the user, 2026-11-01: «el knob de tipo de lfo es muy rápido, hazlo más lento (necesita más acción para cambiar) este es un criterio para todos los knobs
+    que incluyen tipos»): at least 16 clicks a type: the LFO shape (was 4), the granular's note mode (was 1), the FM algorithm (was 8; fmeng.use_kslow).  The others already take
+    18 or more: filter, effect and BITSYNC types 18, the drums' filter mode and distortion type about 25-32, the granular's source about 25, LFO 2 32, the sample's mode 42.
+    c_kslow(r0 = delta, r1 = clicks) -> r0 = whole steps; one accumulator byte shared by all: two type knobs at once are not a use."""
+    global KSLOW, LS_STEP
+    KSLOW, LS_STEP = ram, 16
 
 
 def use_lfoshape():
@@ -1926,11 +1944,20 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
         a.emit(adds_imm8, 4, 1); a.emit(cmp_imm, 4, 2); bc("fb_t", "lo")
         a.label("fb_x"); a.emit(mov_reg, 0, 7); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
+    if KSLOW:
+        a.label("c_kslow")                                                        # r0 = delta, r1 = clicks a step -> r0 = whole steps, the rest kept; clobbers r1-r3
+        a.emit(movw, 2, KSLOW & 0xFFFF); a.emit(movt, 2, KSLOW >> 16); a.emit(ldrb_imm, 3, 2, 0); a.emit(raw, sxtb(3, 3)); a.emit(adds_reg, 3, 3, 0)
+        a.emit(raw, h(0xFB90 | 3) + h(0xF0F0 | 0 << 8 | 1)); a.emit(muls, 1, 0); a.emit(subs_reg, 3, 3, 1); a.emit(strb_imm, 3, 2, 0); a.emit(raw, h(0x4770))     # sdiv r0, r3, r1
     a.label("c_grknob")                                                           # r0 = track, r1 = index, r2 = delta: the value of the code of GR_TAB[index], clamped to its range
     a.emit(push_list, [4, 5, 6, 7], lr=True)
     a.emit(mov_reg, 7, 0); a.emit(mov_reg, 6, 2)
     gtab(4, 1)                                                                    # r4 = the entry, r5 = its code
     a.emit(ldrb_imm, 5, 4, 0)
+    if KSLOW:                                                                     # the note mode: a step every 16 clicks
+        a.emit(cmp_imm, 5, 26); bc("gk_o", "ne")
+        a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, LS_STEP); a.emit(bl, "c_kslow"); a.emit(mov_reg, 6, 0); a.emit(cmp_imm, 6, 0); bc("gk_d", "ne");
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("gk_o")
     a.emit(ldrb_imm, 3, 4, 3); a.emit(movs_imm, 2, 1); a.emit(tst_reg, 3, 2); a.emit(b_cond, "gk_d", "eq")          # one step per turn: delta = sign(delta)
     a.emit(cmp_imm, 6, 0); a.emit(b_cond, "gk_d", "eq"); a.emit(b_cond, "gk_p", "gt"); a.emit(movs_imm, 6, 0); a.emit(subs_imm8, 6, 1); a.emit(b, "gk_d")
     a.label("gk_p"); a.emit(movs_imm, 6, 1)
@@ -3808,7 +3835,9 @@ def arm_code(base, L):
         a.emit(ldrb_w, 1, 5, O_FLAGS); a.emit(mov_reg, 3, 1); a.emit(lsrs_reg, 1, 6); a.emit(movs_imm, 2, 1); a.emit(ands_reg, 1, 2)
         a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(lsrs_reg, 3, 0); a.emit(ands_reg, 3, 2); a.emit(ands_reg, 3, 1); a.emit(adds_reg, 1, 1, 3)
         if DUALUI:                                                                # + the chain order (bit 7 of RT_NOTE) << 8 + the two-oscillator flag (bit 7 of RT_VEL) << 9
-            a.emit(ldrb_imm, 2, 7, RT_NOTE); a.emit(lsrs_imm, 2, 2, 7); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 1, 2)
+            a.emit(ldrb_imm, 2, 7, RT_NOTE); a.emit(lsrs_imm, 2, 2, 7)
+            if ROUTEDEF: a.emit(movs_imm, 0, 1); a.emit(eors_reg, 2, 0)
+            a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 1, 2)
             a.emit(ldrb_imm, 2, 7, RT_VEL); a.emit(lsrs_imm, 2, 2, 7); a.emit(lsls_imm, 2, 2, 9); a.emit(orrs_reg, 1, 2)
         if VADRUM:                                                                # + the VA-drum flag << 10 + velocity -> envelopes << 11
             a.emit(ldrb_w, 2, 5, O_SIG); a.emit(lsrs_reg, 2, 6); a.emit(movs_imm, 0, 1)

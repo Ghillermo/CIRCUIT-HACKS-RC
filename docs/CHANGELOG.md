@@ -7,6 +7,17 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.6 — 2026-11-02
+
+**Beta 5.6** (marca `B5.6`; = SC50.3; la Beta 5.5, = SC50.2, no se publicó: esta la incluye) = la Beta 5.4 + los arreglos de [Arreglos](#arreglos) + lo siguiente, sin probar en el aparato.
+
+- **Saltos parados:** con el transporte parado, un pad de una pista que apunta a otra hace sonar ese paso de la otra pista mientras lo mantienes, sin saltar. En los drums, su golpe con el sample elegido. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Saltos o motor:** el pad 27 parpadea en el color de la pista apuntada; apuntar apaga el motor y encender un motor deja de apuntar. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Saltos, solo 32 pasos:** al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32; el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Filtro, VCA, efecto de fábrica:** el orden de la cadena del sinte propio pasa a ser filtro → VCA → efecto; con el pad 29 encendido, VCA → efecto → filtro. Un proyecto o patch guardado conserva el pad, así que su orden se invierte. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Knobs de tipos más lentos:** al menos 16 clics por tipo en la forma del LFO, el algoritmo FM y el modo de nota del granular. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Random-mutate:** los pads 17 y 25 en blanco; el número del factor se ve 0,6 s. → [Guía: Vista de probabilidad (pistas de notas y drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#probabilidad)
+
 ### Beta 5.4 — 2026-11-01
 
 **Beta 5.4** (marca `B5.4`; = SC50.1; las Betas 5.1, 5.2 y 5.3, = SC49.8, SC49.9 y SC50, no se publicaron: esta las incluye) = la Beta 5.0 + los arreglos de [Arreglos](#arreglos) + lo siguiente, sin probar en el aparato.
@@ -482,15 +493,19 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
-### Beta 5.4 — 2026-11-01
+### RC4.05 / RC4.05S / Beta 5.6 — 2026-11-02
 
-De momento solo en la Beta 5.4: ninguna RC publicada los lleva todavía.
+**RC4.05** (marca `R405`; = RC4.02 + estos arreglos; RC4.03 y RC4.04 no se publicaron) / **RC4.05S** (`R405S`, sin escrituras propias en la tarjeta), sin probar en el aparato.
 
-- **Colores de la documentación:** la guía, la lista de características y sus dibujos daban nombres de color cambiados (se leía la tabla de colores de los LEDs al revés): por ejemplo, el Nudge y la longitud fija son azules, no naranjas; el VA-drum es naranja, no rojo. Ahora dicen el color real.
-
+- **Formas del LFO:** con seno, sample & hold y sample & hold suavizado (verde azulado, blanco y violeta) el motor del sinte propio se quedaba sin sonar. Fallo desde RC2.
+- **Pad 23 de la fila de motores:** apagado se veía casi igual que encendido; ahora es un azul tenue.
 - **Record con el modo 2 de la vista de probabilidad:** lo que suena se escribía también en los patrones de las demás pistas de notas, sin verlas en pantalla. Ahora solo en la pista de la vista. Sin probar en el aparato.
 - **Nudge:** movía el primer y el último paso, pero la vista no enseñaba el contenido movido hasta el siguiente Play: parecía que las notas no se movían. Ahora **mueve el contenido del tramo** un paso atrás (Shift + pad 26, adelante), lo que sale por un extremo entra por el otro, **el primer y el último paso se quedan** y la vista lo enseña al momento, en notas y drums. Sin probar en el aparato.
 - **Guardar mientras suena vuelve a ser como en el original, con opción:** el guardado que espera a que pares (RC4.02 / Beta 5.0) pasa a ser un interruptor, **Advanced Setup, pad 22** (verde encendido, tenue apagado), apagado de fábrica. Apagarlo con un guardado pendiente lo escribe en ese momento. Sin probar en el aparato.
+
+### Beta 5.4 — 2026-11-01
+
+- **Colores de la documentación:** la guía, la lista de características y sus dibujos daban nombres de color cambiados (se leía la tabla de colores de los LEDs al revés): por ejemplo, el Nudge y la longitud fija son azules, no naranjas; el VA-drum es naranja, no rojo. Ahora dicen el color real.
 
 ### RC4.02 / RC4.02S / Beta 5.0 — 2026-10-29
 
@@ -750,6 +765,17 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.6 — 2026-11-02
+
+**Beta 5.6** (marker `B5.6`; = SC50.3; Beta 5.5, = SC50.2, was not released: this one holds it) = Beta 5.4 + the fixes in [Fixes](#fixes) + the following, untested on the device.
+
+- **Jumps while stopped:** with the transport stopped, a pad of a track pointing at another one sounds that step of the other track while you hold it, with no jump. On the drums, its hit with the chosen sample. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Jumps or an engine:** pad 27 blinks in the colour of the track pointed at; pointing turns the engine off and turning an engine on stops pointing. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Jumps, only 32 steps:** when it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32; the Octave that cannot move any further goes dark, both in the expanded Note view. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Filter, VCA, effect by default:** the own synth's chain order becomes filter → VCA → effect; with pad 29 on, VCA → effect → filter. A saved project or patch keeps the pad, so its order swaps. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Slower type knobs:** at least 16 clicks a type on the LFO shape, the FM algorithm and the granular's note mode. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Random-mutate:** pads 17 and 25 in white; the factor's number shows for 0.6 s. → [Guide: Probability view (note tracks and drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
 
 ### Beta 5.4 — 2026-11-01
 
@@ -1226,15 +1252,19 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 <a id="fixes"></a>
 ## Fixes
 
-### Beta 5.4 — 2026-11-01
+### RC4.05 / RC4.05S / Beta 5.6 — 2026-11-02
 
-For now in Beta 5.4 only: no published RC carries them yet.
+**RC4.05** (marker `R405`; = RC4.02 + these fixes; RC4.03 and RC4.04 were not released) / **RC4.05S** (`R405S`, without the mod's own writes to the card), untested on the device.
 
-- **Colours in the documentation:** the guide, the feature list and their drawings gave swapped colour names (the LED colour table was read backwards): for instance the Nudge and the fixed length are blue, not orange; the VA-drum is orange, not red. They now give the real colour.
-
+- **LFO shapes:** with sine, sample & hold and slewed sample & hold (teal, white and violet) the own synth's engine went silent. A bug since RC2.
+- **Pad 23 of the engine row:** off it looked almost the same as on; now it is a dim blue.
 - **Record with mode 2 of the probability view:** what plays was also written into the patterns of the other note tracks, with no view of them on the screen. Now only into the view's track. Not tested on the device.
 - **Nudge:** it moved the first and last steps, but the view did not show the moved content until the next Play: the notes seemed not to move. Now it **moves the content of the range** one step back (Shift + pad 26, forward), what leaves at one end comes in at the other, **the first and last steps stay** and the view shows it at once, on notes and drums. Not tested on the device.
 - **Saving while it plays is back to the original's, with an option:** the save that waits until you stop (RC4.02 / Beta 5.0) is now a switch, **Advanced Setup, pad 22** (green on, dim off), off by default. Turning it off with a save pending writes it right then. Not tested on the device.
+
+### Beta 5.4 — 2026-11-01
+
+- **Colours in the documentation:** the guide, the feature list and their drawings gave swapped colour names (the LED colour table was read backwards): for instance the Nudge and the fixed length are blue, not orange; the VA-drum is orange, not red. They now give the real colour.
 
 ### RC4.02 / RC4.02S / Beta 5.0 — 2026-10-29
 

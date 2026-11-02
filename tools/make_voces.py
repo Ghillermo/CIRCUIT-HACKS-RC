@@ -4,7 +4,7 @@ The texts live in the two Markdown files; <!--fig:NAME--> marks a diagram, drawn
     python tools/make_voces.py
 """
 from __future__ import annotations
-import html, re, sys
+import html, json, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import make_manual as M  # noqa: E402
@@ -15,7 +15,7 @@ ACC, INK, QUIET, EDGE, TINT = "var(--accent)", "var(--fg)", "var(--muted)", "var
 RUTA = dict(h=628, title=("Cada nota pasa por el modo de voz antes de llegar al motor", "Every note goes through the voice mode before it reaches the engine"),
     paths="M104 128V152H456 M280 128V152 M134 152V176| M456 128V176| M632 128V176| M544 248V368| M104 336V368| M280 336V368| M456 336V368| M632 336V368| M216 436H240| M376 436H400| M536 436H560| M188 516V540| M352 572H384|",
     notes=[(24, 60, "Origen de las notas", "Where notes come from"), (642, 156, "no se reenvía", "not forwarded"), (552, 266, "1, 4 o 6 voces", "1, 4 or 6 voices"), (24, 270, "Modulación", "Modulation"),
-           (40, 498, "El pad 29 cambia el orden: filtro, VCA, efecto", "Pad 29 changes the order: filter, VCA, effect")],
+           (40, 498, "El pad 29 cambia el orden: VCA, efecto, filtro", "Pad 29 changes the order: VCA, effect, filter")],
     tint=[(24, 368, 688, 148, "Motor de la pista", "The track's engine")],
     boxes=[(24, 72, 160, 56, 0, "Pads y teclado", "Pads and keyboard", [("Notas, acordes, latch", "Notes, chords, latch")]),
            (200, 72, 160, 56, 0, "Secuenciador", "Sequencer", [("Pasos del patrón", "Steps of the pattern")]),
@@ -28,9 +28,9 @@ RUTA = dict(h=628, title=("Cada nota pasa por el modo de voz antes de llegar al 
            (376, 280, 160, 56, 0, "Automatización", "Automation", [("8 carriles del patrón", "8 lanes of the pattern")]),
            (552, 280, 160, 56, 0, "Step-drummer", "Step-drummer", [("Pares de pasos", "Pairs of steps")]),
            (40, 400, 176, 72, 0, "Fuente", "Source", [("Oscilador, VA-drum, FM,", "Oscillator, VA-drum, FM,"), ("granular, muestra, línea", "granular, sample, line")]),
-           (240, 400, 136, 72, 0, "VCA", "VCA", [("ADSR y velocity", "ADSR and velocity"), ("Gain, saturación", "Gain, saturation")]),
-           (400, 400, 136, 72, 0, "Efecto", "Effect", [("7 tipos", "7 types"), ("Cantidad", "Amount")]),
-           (560, 400, 136, 72, 0, "Filtro", "Filter", [("7 tipos", "7 types"), ("Resonancia", "Resonance")]),
+           (240, 400, 136, 72, 0, "Filtro", "Filter", [("7 tipos", "7 types"), ("Resonancia", "Resonance")]),
+           (400, 400, 136, 72, 0, "VCA", "VCA", [("ADSR y velocity", "ADSR and velocity"), ("Gain, saturación", "Gain, saturation")]),
+           (560, 400, 136, 72, 0, "Efecto", "Effect", [("7 tipos", "7 types"), ("Cantidad", "Amount")]),
            (24, 540, 328, 64, 0, "Tira de la pista en el Mixer", "The track's strip in the Mixer", [("Nivel, panorama, mute, envíos, sidechain", "Level, pan, mute, sends, sidechain")]),
            (384, 540, 328, 64, 0, "Mezcla y salida", "Mix and output", [("Filtro master y Master FX", "Master filter and Master FX")])])
 MAPA = dict(h=620, title=("La vista Preset concentra el sonido; las demás, el patrón", "The Preset view holds the sound; the others, the pattern"),
@@ -62,6 +62,71 @@ MODOS = dict(h=492, title=("El modo de voz elige entre una voz, unísono o poly"
            (584, 232, 152, 72, 0, "VCA de la pista", "The track's VCA", [("Filtro y efecto", "Filter and effect"), ("siempre de la pista", "always the track's")]),
            (160, 392, 392, 72, 0, "Límite de voces", "Voice limit", [("Con dos voces o más, cada 2 ms mira el tiempo del DSP.", "With two voices or more, it checks the DSP's time every 2 ms."), ("Apaga la voz soltada más baja, o la mantenida más antigua.", "It turns off the lowest released voice, or the oldest held one.")])])
 FIGS = dict(ruta=RUTA, mapa=MAPA, modos=MODOS)
+
+# The drawings of the views: the LEDs come from docs/voces_panels.json (tools/capture_voces.py, the firmware itself); here only the words.
+BTN_LED = {"Scales": 50, "Oct ▼": 51, "Oct ▲": 52, "1-16 / 17-32": 53, "Clear": 55, "Duplicate": 56, "Save": 57, "Preset": 40, "Synth 1": 32, "Synth 2": 33, "MIDI 1": 34, "MIDI 2": 35,
+           "Drum 1": 36, "Drum 2": 37, "Drum 3": 38, "Drum 4": 39, "Patterns": 45, "Note": 41, "Velocity": 42, "Gate": 43, "Pattern Settings": 44, "Mixer": 46, "FX": 47, "Record": 48, "Play": 49}
+K1 = (("Ataque", "Release", "Env → nivel", "Env → filtro", "Filtro", "Reso", "Vel. LFO", "Efecto"), ("Attack", "Release", "Env → level", "Env → filter", "Filter", "Reso", "LFO speed", "Effect"))
+ENG = (("Apagado", "Línea", "Osc", "VA-drum", "Gran.", "Muestra", "FX seq", "FM"), ("Off", "Line", "Osc", "VA-drum", "Gran.", "Sample", "FX seq", "FM"))
+TRK = ("Synth 1", "Synth 2", "MIDI 1", "MIDI 2", "Drum 1", "Drum 2", "Drum 3", "Drum 4")
+VM = ("Retrig", "Legato", "Glide", "Uni\nretrig", "Uni\nlegato", "Uni\nglide", "Uni\nalways", "Poly")
+PRE_PADS = {1: ("VCA\nVCF", "VCA\nVCF"), 2: ("OSC 1", "OSC 1"), 3: ("OSC 2", "OSC 2"), 4: ("Sec.", "Seq."), 5: ("Mod.", "Mod."), 6: ("Matriz", "Matrix"), 7: ("FM", "FM"), 8: ("FM", "FM"),
+            26: ("Flip", "Flip"), 27: ("Motor", "Engine"), 28: ("2 osc", "2 osc"), 29: ("Orden", "Order"), 30: ("Step\ndrum", "Step\ndrum"), 31: ("Vel", "Vel"), 32: ("Modo\nvoz", "Voice\nmode")}
+ROWS = {n: (ENG[0][n - 17], ENG[1][n - 17]) for n in range(17, 25)}
+PANELS = {
+    "preset": dict(cap=("Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.", "Preset view with the oscillator: pads 9-24 are patches (violet = empty); pads 3 and 7 go dark when they do not apply."),
+                   view=("Preset", "Preset"), pads={**PRE_PADS, **{n: ("Patch", "Patch") for n in range(9, 25)}}, knobs=K1),
+    "motores": dict(cap=("Fila de motores abierta (toque al pad 27): pads 17-24 los motores; pads 9-16 las pistas del secuenciador de saltos.", "Engine row open (tap pad 27): pads 17-24 the engines; pads 9-16 the tracks of the jump sequencer."),
+                    view=("Motores", "Engines"), pads={**PRE_PADS, **ROWS, **{9 + i: (t, t) for i, t in enumerate(TRK)}}, knobs=K1),
+    "voz": dict(cap=("Modos de voz abiertos (toque al pad 32): poly brillante, el modo de fábrica. K1 glide, K2 desafinación.", "Voice modes open (tap pad 32): poly bright, the default mode. K1 glide, K2 detune."),
+                view=("Modos de voz", "Voice modes"), pads={**PRE_PADS, **{17 + i: (v, v) for i, v in enumerate(VM)}}, knobs=(("Glide", "Unísono"), ("Glide", "Unison"))),
+    "fm": dict(cap=("Página FM (pad 7): K1-K4 ratios, K5-K8 niveles; el pad 27 en violeta.", "FM page (pad 7): K1-K4 ratios, K5-K8 levels; pad 27 violet."),
+               view=("FM", "FM"), pads={**PRE_PADS, **{n: ("Patch", "Patch") for n in range(9, 25)}}, knobs=(("Ratio 1", "Ratio 2", "Ratio 3", "Ratio 4", "Nivel 1", "Nivel 2", "Nivel 3", "Nivel 4"), ("Ratio 1", "Ratio 2", "Ratio 3", "Ratio 4", "Level 1", "Level 2", "Level 3", "Level 4"))),
+    "algos": dict(cap=("Pad 7 mantenido: los 16 algoritmos, por familias; el elegido brillante.", "Pad 7 held: the 16 algorithms, by family; the chosen one bright."),
+                  view=("Algoritmos", "Algorithms"), pads={**PRE_PADS, **{9 + i: (str(i + 1), str(i + 1)) for i in range(16)}}, knobs=(("Ratio 1", "Ratio 2", "Ratio 3", "Ratio 4", "Nivel 1", "Nivel 2", "Nivel 3", "Nivel 4"), ("Ratio 1", "Ratio 2", "Ratio 3", "Ratio 4", "Level 1", "Level 2", "Level 3", "Level 4"))),
+    "partida": dict(cap=("Pad 8 mantenido: los 16 sonidos de partida, por familias.", "Pad 8 held: the 16 starter sounds, by family."),
+                    view=("Sonidos de partida", "Starter sounds"), pads={**PRE_PADS, **{9 + i: (a, b) for i, (a, b) in enumerate(zip(("Piano", "E-piano", "Órgano", "Pluck", "Arpa", "Marimba", "Bajo", "Campana", "Cuerdas", "Pad", "Flauta", "Clarin.", "Metales", "Bombo", "Caja", "Hi-hat"), ("Piano", "E-piano", "Organ", "Pluck", "Harp", "Marimba", "Bass", "Bell", "Strings", "Pad", "Flute", "Clarin.", "Brass", "Kick", "Snare", "Hi-hat")))}}, knobs=()),
+    "step": dict(cap=("Step-drummer: pads 1-16 los pasos por pares, pads 17-24 los destinos, K1-K8 los pares.", "Step-drummer: pads 1-16 the steps by pairs, pads 17-24 the destinations, K1-K8 the pairs."),
+                 view=("Step-drummer", "Step-drummer"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: (d, e) for i, (d, e) in enumerate(zip(("Tono", "OSC 2", "WAVE", "FM", "MIX", "Env F", "SHAPE", "Decay"), ("Pitch", "OSC 2", "WAVE", "FM", "MIX", "Env F", "SHAPE", "Decay")))}, 26: ("Flip", "Flip"), 27: ("Motor", "Engine"), 28: ("2 osc", "2 osc"), 29: ("Orden", "Order"), 30: ("Step\ndrum", "Step\ndrum"), 32: ("Pitch\nvel", "Pitch\nvel")},
+                 knobs=(tuple("Par %d" % k for k in range(1, 9)), tuple("Pair %d" % k for k in range(1, 9)))),
+    "muestra": dict(cap=("Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).", "Expanded Note in sample mode: pads 1-16 the steps (bright = with a note), pads 17-32 the samples (the chosen one teal)."),
+                    view=("Selector de samples", "Sample picker"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: ("S%d" % (i + 1), "S%d" % (i + 1)) for i in range(16)}}, knobs=()),
+    "saltos": dict(cap=("Fila de motores apuntando a Drum 1: su pad brillante, el motor apagado y el pad 27 parpadeando en su color.", "Engine row pointing at Drum 1: its pad bright, the engine off and pad 27 blinking in its colour."),
+                   view=("Saltos", "Jumps"), pads={**PRE_PADS, **ROWS, **{9 + i: (t, t) for i, t in enumerate(TRK)}}, knobs=()),
+    "saltosnote": dict(cap=("Vista Note apuntando a otra pista: los pads 17-32 son los pasos 1-16 de esa pista.", "Note view pointing at another track: pads 17-32 are steps 1-16 of that track."),
+                       view=("Note: saltos", "Note: jumps"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: ("→%d" % (i + 1), "→%d" % (i + 1)) for i in range(16)}}, knobs=()),
+    "ps": dict(cap=("Pattern Settings: pads 1-16 primer y último paso, 17-24 sync rate, 25 modo 2, 26 Nudge, 27 / 28 órdenes, 29-32 dirección.", "Pattern Settings: pads 1-16 first and last step, 17-24 sync rate, 25 mode 2, 26 Nudge, 27 / 28 orders, 29-32 direction."),
+               view=("Pattern Settings", "Pattern Settings"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: (r, r) for i, r in enumerate(("1/4", "1/4T", "1/8", "1/8T", "1/16", "1/16T", "1/32", "1/32T"))}, 25: ("Modo 2", "Mode 2"), 26: ("Nudge", "Nudge"), 27: ("Fractal", "Fractal"), 28: ("Decons.", "Decon."), 29: ("Adel.", "Fwd"), 30: ("Atrás", "Back"), 31: ("Ping\npong", "Ping\npong"), 32: ("Azar", "Random")}, knobs=()),
+    "mutate": dict(cap=("Random-mutate (modo 2) con un paso elegido: el pad 22, las dinámicas (pad 26) y los micropasos (pad 32) encendidos.", "Random-mutate (mode 2) with a step chosen: pad 22, the dynamics (pad 26) and the micro steps (pad 32) on."),
+                   view=("Random-mutate", "Random-mutate"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, 17: ("Off", "Off"), 18: ("×1", "×1"), 19: ("×2", "×2"), 20: ("×4", "×4"), 21: ("Oct ↑\nbaja", "Oct ↑\nlow"), 22: ("Oct ↑\nalta", "Oct ↑\nhigh"), 23: ("Oct ↕\nbaja", "Oct ↕\nlow"), 24: ("Oct ↕\nalta", "Oct ↕\nhigh"), 25: ("Din.", "Dyn."), 26: ("Acent.", "Accent"), 27: ("Acent.\nlong.", "Accent\nlength"), 28: ("Long.", "Length"), 32: ("Micro", "Micro")}, knobs=()),
+    "micro": dict(cap=("Micro Step: micropasos y Tie; pad 31 longitud fija, pad 32 gate por pulsación.", "Micro Step: micro steps and Tie; pad 31 fixed length, pad 32 gate by press."),
+                  view=("Micro Step", "Micro Step"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: ("μ%d" % (i + 1), "μ%d" % (i + 1)) for i in range(6)}, 24: ("Tie", "Tie"), 25: ("Nota", "Note"), 31: ("Fija", "Fixed"), 32: ("Pulsar", "Hold")}, knobs=()),
+}
+DATA = json.loads((ROOT / "docs/voces_panels.json").read_text(encoding="utf-8")) if (ROOT / "docs/voces_panels.json").exists() else {}
+
+
+def lit(c):
+    return (30 * int(c[1:3], 16) + 59 * int(c[3:5], 16) + 11 * int(c[5:7], 16)) // 100        # luma
+
+
+def panel(name, lang):
+    k = 1 if lang == "en" else 0
+    P, D = PANELS[name], DATA[name]
+    pads = {}
+    for n in range(1, 33):
+        if D["codes"][n - 1] == 0: continue                                                # dark on the device: drawn dark, no label
+        col = D["rgb"][n - 1]
+        lab = P["pads"].get(n, ("", ""))[k]
+        pads[n] = (col, lab, False, "#111" if lit(col) > 110 else "#e8eaed")
+    kl = {i + 1: t for i, t in enumerate(P["knobs"][k])} if P["knobs"] else {}
+    kcol = {}
+    for i in range(8):
+        c, b = D["codes"][60 + i], max(D["bright"][60 + i] - 2, 0)
+        if c: kcol[i + 1] = D["rgb"][60 + i] if b == 0 or b > 60 else "#" + "".join("%02x" % (int(D["rgb"][60 + i][j:j + 2], 16) * (20 + b) // 90) for j in (1, 3, 5))
+    btn = {nm: D["rgb"][led] for nm, led in BTN_LED.items() if D["codes"][led]}
+    fig = M.fig(P["cap"][k], pads=pads, knobs=kl, buttons=btn, view=P["view"][k])
+    fig["kcol"] = kcol
+    return f"<figure>{M.svg(fig)}<figcaption>{html.escape(P['cap'][k])}</figcaption></figure>"
 
 
 def svg(fig, lang):
@@ -102,16 +167,18 @@ def page(lang):
     title = head.strip().lstrip("# ").strip()
     h = [f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(title)}</title><style>{M.CSS}'
          ".feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>",
-         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · Beta 5.4</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
+         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · Beta 5.6</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
          f'<nav class="toc"><h2>{U["toc"]}</h2><ol>']
     parts = []
     for i, s in enumerate(secs, 1):
         name, _, body = s.partition("\n")
         h.append(f'<li><a href="#s{i}">{html.escape(name)}</a></li>')
+        body = re.sub(r"<!--panel:(\w+)-->", lambda m: "<!--fig:panel_" + m.group(1) + "-->", body)
         chunks = re.split(r"<!--fig:(\w+)-->", body)
         o = [f'<section class="feat" id="s{i}"><h3>{html.escape(name)}</h3>']
         for k, c in enumerate(chunks):
-            o.append(f"<figure>{svg(FIGS[c], lang)}</figure>" if k % 2 else M.md2html(c.strip("\n")))
+            if k % 2: o.append(panel(c[6:], lang) if c.startswith("panel_") else f"<figure>{svg(FIGS[c], lang)}</figure>")
+            else: o.append(M.md2html(c.strip("\n")))
         o.append("</section>")
         parts.append("\n".join(o))
     h.append("</ol></nav>")

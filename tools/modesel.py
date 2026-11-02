@@ -30,6 +30,13 @@ ROW = 16                                  # pads 17-23: the modes
 CLOSE_MS = 300
 COLS = ((0x01, 0x02), (0x2B, 0x2C), (0x17, 0x18), (0x45, 0x46), (0x32, 0x37), (0x4D, 0x4E), (0x09, 0x0A))   # bright / dim per mode
 INV = V.INV
+def use_bluedim():
+    """SC50.2 / Beta 5.5 / RC4.05 (the user, 2026-11-01: «el pad 23 (azul) apenas se distingue cuando no está iluminado, parece que está siempre activo»): the FX sequencer's dim was
+    0x0A = 22, 61, 219, barely dimmer than 0x09; 0x0F = 4, 11, 41, the stock's dim blue."""
+    global COLS
+    COLS = COLS[:6] + ((0x09, 0x0F),)
+
+
 VDFIX = False                             # SC48.7 (use_vdfix): the VA-drum with pad 31 on reads as the VA-drum, not the granular
 
 

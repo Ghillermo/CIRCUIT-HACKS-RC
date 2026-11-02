@@ -31,6 +31,9 @@ def extra(img, report):
     import build_sc41_5
     centab.shrink(img, report)
     centab.add(img, report, "mutfac", mutfac)
+    if jumpseq.V2:
+        import jumpx
+        centab.add(img, report, "jumpx", jumpx)
     build_sc41_5.add(img, report, "jumpseq", jumpseq)
     hole.check(img, report)
 

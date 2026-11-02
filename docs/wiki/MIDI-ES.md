@@ -17,11 +17,11 @@ Synth 1 = canal 1, Synth 2 = canal 2, drums = canal 10, proyecto y Master FX = c
 | **Teclado externo en MIDI 1 / 2** *(desde RC2)* | Las notas que entran por el canal de MIDI 1 / 2 (USB o DIN) tocan su sinte propio y se graban; no se reenvían a la salida. |
 | **Teclado externo al arpegiador** *(desde RC4)* | Setup, botón Note: las notas que entran por el canal de Synth 1 / 2 o MIDI 1 / 2 pasan por su arpegiador. |
 | **Patch flip** | Vista Preset de MIDI 1 / 2, pad 26: cada nota de la pista sale como Program Change por el canal de la pista. |
-| **Secuenciador de saltos** *(solo Beta 5.4)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. |
+| **Secuenciador de saltos** *(solo Beta 5.6)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. El pad 27 parpadea. Apuntar apaga el motor y encender un motor deja de apuntar. |
 | **Program Change del proyecto** *(desde RC2)* | Setup, pads 29 / 30: canal de escucha y canal de salida (16 de fábrica); lo recibido en el de escucha se reenvía por el de salida. |
 | **MIDI Thru: Merge y Filter** | Advanced Setup, Duplicate: Thru (hardware), Out 2, Merge (DIN In + el MIDI del aparato), Filter (DIN In sin los canales del aparato). Sin SysEx. |
 | **Fusión USB** *(desde RC4)* | Advanced Setup, pad 23: lo que entra por el DIN In sale también por USB (sin el reloj con Clock Tx, sin SysEx). |
-| **Guardado diferido** *(solo Beta 5.4)* | Advanced Setup, pad 22: guardar el proyecto mientras suena espera a que pares (Save parpadea en amarillo). De fábrica, apagado: como el original. |
+| **Guardado diferido** *(desde RC4.05)* | Advanced Setup, pad 22: guardar el proyecto mientras suena espera a que pares (Save parpadea en amarillo). De fábrica, apagado: como el original. |
 | **Modo General MIDI de los drums** *(desde RC4)* | Setup, K4 / K5-K8: los golpes de Drum 1-4 salen con la nota GM elegida en lugar de 60 / 62 / 64 / 65. Dentro suena igual. |
 | **Pareja estéreo de drums** *(desde RC4)* | Las notas de Drum 2 / 4 lo tocan solo, a la derecha; su patrón no suena ni sale por MIDI mientras dura la pareja. |
 | **Grabar los ruteos internos** *(desde RC2)* | Setup, Record: lo que una pista MIDI manda a un sinte por el mismo canal se graba también en el sinte; *(desde RC4)* nada se graba en una pista silenciada en el Mixer. |

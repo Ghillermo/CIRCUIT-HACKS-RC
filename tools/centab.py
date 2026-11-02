@@ -30,10 +30,10 @@ def shrink(img, report):
     img[low - BASE:tab + 4 * N - BASE] = bytes([0xFF]) * (tab + 4 * N - low)
 
 
-def add(img, report, name, mod):
+def add(img, report, name, mod, gap="centab"):
     """mod's code in the freed bytes"""
     import build_shared_channels as sc
-    c = report["centab"]
+    c = report[gap]
     at = (int(c["next"], 16) + 3) & ~3
     n0 = len(img)
     labels, code, prev = mod.install(img, report, at)

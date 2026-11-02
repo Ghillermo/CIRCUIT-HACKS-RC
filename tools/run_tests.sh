@@ -987,6 +987,16 @@ run python3 tools/emu_nudge2.py firmware/sc50/circuittracks-4486-SC50.bin firmwa
 # SC50.1 / Beta 5.4: octave pads of the random-mutate, the resonance on Octave (the last line of emu_fxres, Shift's LEDs as SC44.3, is older than this build)
 run python3 tools/emu_mutate2.py firmware/sc50.1/circuittracks-4486-SC50.1.bin firmware/sc50.1/manifest.json
 run python3 tools/emu_mutate2.py firmware/b5.4/circuittracks-4486-B5.4.bin firmware/b5.4/manifest.json
+# SC50.2 / Beta 5.5 / RC4.05: the ACT slot with every LFO shape, type knobs, the default order
+run python3 tools/emu_jumpseq.py firmware/b5.5/circuittracks-4486-B5.5.bin firmware/b5.5/manifest.json
+run python3 tools/emu_sc50_2.py firmware/sc50.2/circuittracks-4486-SC50.2.bin firmware/sc50.2/manifest.json
+# SC50.3 / Beta 5.6: jumpoct, semitab, use_white25, use_short
+run python3 tools/emu_jumpseq.py firmware/sc50.3/circuittracks-4486-SC50.3.bin firmware/sc50.3/manifest.json
+run python3 tools/emu_jumpseq.py firmware/b5.6/circuittracks-4486-B5.6.bin firmware/b5.6/manifest.json
+run python3 tools/emu_mutate2.py firmware/sc50.3/circuittracks-4486-SC50.3.bin firmware/sc50.3/manifest.json
+run python3 tools/emu_mutate2.py firmware/b5.6/circuittracks-4486-B5.6.bin firmware/b5.6/manifest.json
+run python3 tools/emu_actfix_dsp.py firmware/b5.5/circuittracks-4486-B5.5.bin
+run python3 tools/emu_actfix_dsp.py firmware/r405/circuittracks-4486-R405.bin
 run python3 tools/emu_nudge2.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404/circuittracks-4486-R404.bin firmware/r404/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404s/circuittracks-4486-R404S.bin firmware/r404s/manifest.json

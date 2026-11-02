@@ -15,7 +15,7 @@ from __future__ import annotations
 import gc, json, struct, sys
 from pathlib import Path
 from unicorn import UC_HOOK_CODE
-from unicorn.arm_const import UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R3
+from unicorn.arm_const import UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import emu_sc48_8 as S  # noqa: E402
 import emu_sc42_6 as X  # noqa: E402
@@ -55,6 +55,8 @@ def main(img, man):
     pad = lambda q: (e.call(PRESS, MGR, q, 100, maxins=8_000_000), e.call(RELEASE, MGR, q, maxins=8_000_000))
     pal = lambda i: struct.unpack_from("<H", img, J.PAL + 2 * i - 0x08010000)[0]
     bright, dim = [pal(1 + k) for k in range(8)], [pal(9 + k) for k in range(8)]
+    V2 = "jumpx" in R
+    blink = lambda k: (dim if V2 and t[0] & 0x100 else bright)[k]                       # SC50.2: pad 27 blinks
     # ---- the row
     e.uc.mem_write(rec, bytes(3))
     e.btn(2); e.btn(8); at(10)
@@ -65,10 +67,19 @@ def main(img, man):
     check(e.r8(MS.RAM) == 1 and f[8:16] == want, f"pad 27: the eight tracks dim, MIDI 1 dark ({[hex(x) for x in f[8:16]]})")
     p27 = f[J.PAD]
     pad(8); at(10); f = X.frame(e)
-    check(tail() == bytes([1, 0, J.SIG]) and f[8] == bright[0] and f[J.PAD] == bright[0], f"pad 9: Synth 1 bright, pad 27 in its colour ({tail().hex()}, {f[8]:#x}, {f[J.PAD]:#x})")
+    check(tail() == bytes([1, 0, J.SIG]) and f[8] == bright[0] and f[J.PAD] == blink(0), f"pad 9: Synth 1 bright, pad 27 in its colour ({tail().hex()}, {f[8]:#x}, {f[J.PAD]:#x})")
     pad(12); at(10); f = X.frame(e)
-    check(tail() == bytes([5, 0, J.SIG]) and f[12] == bright[4] and f[8] == dim[0] and f[J.PAD] == bright[4], f"pad 13: Drum 1 instead ({tail().hex()})")
+    check(tail() == bytes([5, 0, J.SIG]) and f[12] == bright[4] and f[8] == dim[0] and f[J.PAD] == blink(4), f"pad 13: Drum 1 instead ({tail().hex()})")
     pad(10); check(tail() == bytes([5, 0, J.SIG]), "the track's own pad: nothing")
+    if V2:
+        at(256); f1 = X.frame(e); at(256); f2 = X.frame(e)
+        check({f1[J.PAD], f2[J.PAD]} == {bright[4], dim[4]}, f"pad 27 blinks, bright / dim of the target's colour, 256 ms each ({f1[J.PAD]:#x}, {f2[J.PAD]:#x})")
+        von = lambda: (e.call(int(R["vcf20"]["labels"]["c_von"], 16), 0, maxins=1_000_000), e.uc.reg_read(UC_ARM_REG_R0))[1]
+        check(von() == 0, "an engine off while pointing")
+        pad(17); at(10); f = X.frame(e)
+        check(von() != 0 and tail()[0] == 0 and f[12] == dim[4], f"an engine on stops the pointing ({von()}, {tail().hex()})")
+        pad(12); at(10); f = X.frame(e)
+        check(von() == 0 and tail()[0] == 5 and f[12] == bright[4], f"pointing turns the engine off ({von()}, {tail().hex()})")
     pad(12); at(10); f = X.frame(e)
     check(tail()[0] == 0 and f[12] == dim[4] and f[J.PAD] == p27, f"the same pad again: off, pad 27 back ({tail().hex()}, {f[J.PAD]:#x})")
     e.uc.mem_write(rec, bytes([0x5B, 0x5B, 0x5B])); at(10); f = X.frame(e)
@@ -207,7 +218,58 @@ def main(img, man):
     check(pending == 11 and steps(0)[3] == 10, f"pad 27 while it plays: step 11 on the target's next step (pending {pending}, {steps(0)[:5]})")
     e.transport(0); e.uc.mem_write(J.RAM + 4, bytes(8))
     e.call(PRESS, MGR, 26, 100, maxins=8_000_000); e.call(RELEASE, MGR, 26, maxins=8_000_000)
-    check(bytes(e.uc.mem_read(J.RAM + 4, 8)) == bytes(8), "stopped: a pad does nothing")
+    check(bytes(e.uc.mem_read(J.RAM + 4, 8)) == bytes(8), "stopped: a pad makes no jump")
+    if "c_jsa" in R.get("jumpx", {}).get("labels", {}):                                  # SC50.2: stopped, a pad sounds the target's step
+        heard = []
+        ifc = e.r32(PLAYERS[0] + 0x4C); on_ = e.r32(e.r32(ifc)) & ~1; off_ = e.r32(e.r32(ifc) + 4) & ~1
+        def h_on(uc, a, s_, d):
+            if uc.reg_read(UC_ARM_REG_R0) == ifc: heard.append(("on", uc.reg_read(UC_ARM_REG_R1), uc.reg_read(UC_ARM_REG_R2)))
+        def h_of(uc, a, s_, d):
+            if uc.reg_read(UC_ARM_REG_R0) == ifc: heard.append(("off", uc.reg_read(UC_ARM_REG_R1), 0))
+        e.uc.hook_add(UC_HOOK_CODE, h_on, begin=on_, end=on_); e.uc.hook_add(UC_HOOK_CODE, h_of, begin=off_, end=off_)
+        e.call(int(R["vcf20"]["labels"]["c_sdpat"], 16), 2, maxins=1_000_000); bs = e.uc.reg_read(UC_ARM_REG_R0)
+        e.uc.mem_write(bs, empty); e.uc.mem_write(bs + 28 * 10, S.chord([(70, 3, 0, 90)], 1))
+        heard.clear(); e.transport(0); e.call(PRESS, MGR, 26, 100, maxins=8_000_000); on_h = list(heard); e.call(RELEASE, MGR, 26, maxins=8_000_000)
+        check(on_h == [("on", 70, 90)] and heard[1:] == [("off", 70, 0)], f"stopped: the pad sounds the target's step until it is let go ({heard})")
+        DP = 0x20040810
+        dh = []
+        ifd = e.r32(DP + 0x4C); don = e.r32(e.r32(ifd)) & ~1; dof = e.r32(e.r32(ifd) + 4) & ~1
+        def d_on(uc, a, s_, d):
+            if uc.reg_read(UC_ARM_REG_R0) == ifd: dh.append(("on", uc.reg_read(UC_ARM_REG_R1), uc.reg_read(UC_ARM_REG_R2)))
+        def d_of(uc, a, s_, d):
+            if uc.reg_read(UC_ARM_REG_R0) == ifd: dh.append(("off", uc.reg_read(UC_ARM_REG_R1), 0))
+        e.uc.hook_add(UC_HOOK_CODE, d_on, begin=don, end=don); e.uc.hook_add(UC_HOOK_CODE, d_of, begin=dof, end=dof)
+        point(0, 4)
+        e.call(int(R["drumarp"]["labels"]["c_dapat"], 16), 0, maxins=1_000_000); pn = e.uc.reg_read(UC_ARM_REG_R0)
+        vbase = e.r32(DP + 0x48) + pn * 0x6A8
+        e.uc.mem_write(vbase + 10, bytes([77])); dnote = e.r8(DP + 0x58)
+        e.call(PRESS, MGR, 26, 100, maxins=8_000_000); d1 = list(dh); e.call(RELEASE, MGR, 26, maxins=8_000_000)
+        check(d1 == [("on", dnote, 77)] and dh[1:] == [("off", dnote, 0)], f"stopped: a drum target sounds its hit with its step's velocity ({dh})")
+        e.uc.mem_write(vbase + 10, bytes(1)); dh.clear()
+        e.call(PRESS, MGR, 26, 100, maxins=8_000_000); e.call(RELEASE, MGR, 26, maxins=8_000_000)
+        check(dh == [], f"and an empty step is silent ({dh})")
+    # the octave of a pointing track: 64 / 65 only
+    if "jumpoct" in R:
+        VIEW = 0x200412E0 + 0x2F4 * 2
+        ost = e.r32(VIEW + 0x34)
+        oc = lambda: e.r8(e.ptr(ost, 8))
+        fr2 = lambda: (at(10), X.frame(e), X.frame(e))[2]
+        e.transport(0); e.uc.mem_write(rec, bytes(3)); goto(NOTE)
+        for o0 in (61, 67):
+            e.uc.mem_write(rec, bytes(3)); fr2(); EAm.EA.setp(e, ost, 8, bytes([o0])); fr2()
+            k0 = oc(); e.uc.mem_write(rec, bytes([1, 0, J.SIG])); fr2()
+            check(k0 == o0 and oc() == 64, f"starting to point with the octave at {o0}: 64 ({k0} -> {oc()})")
+        f = fr2(); check(f[51] & 0xFF == 0 and f[52] & 0xFF != 0, f"steps 1-16: Octave ▼ dark, ▲ lit ({f[51]:#x}, {f[52]:#x})")
+        e.btn(19); f = fr2(); check(oc() == 64, f"Octave ▼ there: nothing below ({oc()})")
+        e.btn(20); f = fr2(); check(oc() == 65 and f[52] & 0xFF == 0 and f[51] & 0xFF != 0, f"Octave ▲: steps 17-32, ▲ dark, ▼ lit ({oc()}, {f[51]:#x}, {f[52]:#x})")
+        e.btn(20); e.btn(20); f = fr2(); check(oc() == 65, f"Octave ▲ again: nothing above ({oc()})")
+        goto(EXP); f = fr2(); check(f[51] & 0xFF == 0 and f[52] & 0xFF == 0, f"expanded view: both dark ({f[51]:#x}, {f[52]:#x})")
+        goto(NOTE); e.uc.mem_write(rec, bytes(3)); fr2(); e.btn(20); fr2(); check(oc() == 66, f"not pointing: the octave free ({oc()})")
+        EAm.EA.setp(e, ost, 8, bytes([64])); fr2()
+        import semitab as ST
+        bad = [v for v in range(128) if (e.call(0x0802878C, v, maxins=1_000), e.uc.reg_read(UC_ARM_REG_R0))[1] != ST.word(v)]
+        check(not bad, f"the drums' semitones from one octave: the 128 words ({bad[:4]})")
+        goto(NOTE); point(0, 0); fr2()
     # 1 in 2
     e.transport(1); seq(0, 4, note_of(9), b3=1); point(0, 4); rewind(); run(6 * 34)
     s4 = steps(4)

@@ -28,8 +28,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A18 Destinos de los macro knobs](#a18-destinos-macro)
 - [A19 Copiar proyectos a otro hueco o a otro pack](#a19-copiar-proyectos)
 - [A20 Patches del sinte propio a otro pack](#a20-patches-entre-packs)
-- [A21 Shift = destello de cada nota (solo Beta 5.4)](#a21-luces-disparo)
-- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.4)](#a22-proyecto-init)
+- [A21 Shift = destello de cada nota (solo Beta 5.6)](#a21-luces-disparo)
+- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.6)](#a22-proyecto-init)
 
 **B. Controles expuestos**
 
@@ -60,10 +60,10 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C14 Escala propia (desde RC2)](#c14-escala-propia)
 - [C15 Pantalla de acordes (desde RC4)](#c15-acordes)
 - [C16 Parejas estéreo de drums (desde RC4)](#c16-pareja-estereo)
-- [C17 Carril extra de los drums (solo Beta 5.4)](#c17-carril-extra)
+- [C17 Carril extra de los drums (solo Beta 5.6)](#c17-carril-extra)
 - [C18 Modo muestra de las pistas MIDI (desde RC2)](#c18-modo-muestra)
 - [C19 Matriz de modulación del sinte propio (desde RC2.02)](#c19-matriz-mod)
-- [C20 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.4)](#c20-saltos)
+- [C20 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.6)](#c20-saltos)
 - [C21 FM de 4 operadores (desde RC4)](#c21-fm4)
 - [C22 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c22-master-fx-beta)
 
@@ -171,18 +171,18 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 <a id="a21-luces-disparo"></a>
-### A21. Shift = destello de cada nota (solo Beta 5.4)
+### A21. Shift = destello de cada nota (solo Beta 5.6)
 - Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.
 
 <a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.4)
+### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.6)
 - Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.
 
 ## B. Controles expuestos
 
 <a id="b1-knobs-drums"></a>
 ### B1. Knobs de los drums según el panel
-- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.4), tilt), LFO, start point, bitcrush y distorsión.
+- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.6), tilt), LFO, start point, bitcrush y distorsión.
 
 <a id="b2-rev-delay"></a>
 ### B2. Parámetros de reverb y delay
@@ -290,8 +290,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC4.** **Mantén Drum 1 y pulsa Drum 2** (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.
 
 <a id="c17-carril-extra"></a>
-### C17. Carril extra de los drums (solo Beta 5.4)
-- **Solo Beta 5.4.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
+### C17. Carril extra de los drums (solo Beta 5.6)
+- **Solo Beta 5.6.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
 
 <a id="c18-modo-muestra"></a>
 ### C18. Modo muestra de las pistas MIDI (desde RC2)
@@ -304,7 +304,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
 
 <a id="c20-saltos"></a>
-### C20. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.4)
+### C20. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.6)
 - Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.
 
 <a id="c21-fm4"></a>
@@ -345,7 +345,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="d7-drums-dsp"></a>
 ### D7. DSP de los drums
-- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.4) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
+- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.6) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
 
 <a id="d8-entradas"></a>
 ### D8. Entradas de audio y retornos

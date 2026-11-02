@@ -74,6 +74,7 @@ VD_EF, VD_EP, VD_NS, VD_NL = 22, 23, 24, 25
 LCG_K, LCG_C = 0x0343FD, 0x269EC3               # the noise: s = (s x K + C) mod 2^24 (full period)
 KEYF_OFF = 19                                   # word of the oscillator block that holds the key follow (the block uses +0..+18)
 LFOSHAPE = False                                # SC43.9 (see use_lfoshape)
+ACTFIX = False                                  # SC50.2 / RC4.05 (see use_actfix)
 SAMPLER = False                                 # SC44 (see use_sampler)
 SM_P, SM_F, SM_S, SM_L, SM_ON, SM_N = 40, 41, 44, 45, 46, 47   # (SAMPLER) words of the OSC1 block: position, fraction (1.23), start, length, playing, the new note's TRIG
 SM_TAB, SM_CAP, SM_CAPLEN = 0x1D8D, 0xE80000, 0x3D09           # the pack's sample table (X: start, length, ...), the capture and its length
@@ -96,6 +97,14 @@ def use_sampler():
 N_LSHAPES = 6                                   # (LFOSHAPE) 0 reverse saw (as before), 1 saw, 2 triangle, 3 square, 4 sine, 5 sample & hold
 LS_SLEW = False                                 # SC44.3 (use_lfoshape2): shape 6 = slewed sample & hold
 SL_PREV = 26                                    # (LS_SLEW) the word of the OSC1 block with the last random value (words 26..39 are free)
+
+
+def use_actfix():
+    """SC50.2 / Beta 5.5 / RC4.05 (the user, 2026-11-01: «los modos turquesa, blanco y lavanda no hacen nada»): shapes 4, 5, 6 of the LFO set bit 15 of the ACT message, so the
+    mailbox's value is negative (bipolar codes) and A2 = $FF; after `and #>3,a` the ACT slot was written from the whole accumulator, and the limiter saturated it to $800000: no engine.
+    The slot is now written from A1.  Wrong since SC43.9: the tests looked at the LFO's value, never at the slot."""
+    global ACTFIX
+    ACTFIX = True
 
 
 def use_lfoshape():
@@ -613,7 +622,7 @@ def code(base, tabs, premix, ret_old):
                 a.emit(J("al"), p + "mbd")
             if DUAL:                                                              # ACT: the value = act | route << 8 | dual << 9 -> the ACT slot keeps act, DFLAGS keeps the two flags
                 L(p + "z19")
-                e("move a1,y0", "and #>3,a", "move a,x:(r7)", "move y0,a", "lsr #8,a", "and #>%d,a" % (255 if LFOSHAPE else 31 if GRAN else 15 if VADRUM else 3), "move a1,y0")
+                e("move a1,y0", "and #>3,a", "move a1,x:(r7)" if ACTFIX else "move a,x:(r7)", "move y0,a", "lsr #8,a", "and #>%d,a" % (255 if LFOSHAPE else 31 if GRAN else 15 if VADRUM else 3), "move a1,y0")
                 e("move r6,b", "sub #>%d,b" % (VB0 - OSB0 - DFLAGS_OFF), "move b,r0"); a.emit(D.NOP)
                 e("move y0,a", "move a,x:(r0)")
                 a.emit(J("al"), p + "mbd")

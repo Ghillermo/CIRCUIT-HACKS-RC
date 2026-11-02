@@ -37,6 +37,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC50.3 / Beta 5.6 (2026-11-01):** imagen `0x6fffc` (4 B libres), hueco de `semitab` `0x0805D3A4..0x0805D4A7`: `jumpoct` 180 B, **260 B libres**; RAM: bytes `+ 29` de Jankó. `semitab` = 440 B liberados de la tabla de SC09.
+> **SC50.2 / Beta 5.5 (2026-11-01):** imagen `0x6fffc` (**4 B libres: llena**); hueco de `centab` con `jumpx` (~4 B); RAM `MXR + 0x21EC`; RC4.05 `0x6fee4` (284 B), RC4.05S `0x6fed4` (300 B).
 > **SC50.1 / Beta 5.4 (2026-11-01):** imagen `0x6ff78` (**136 B libres**), zona libre 4 B; 20 B más que SC50 (`fxres.use_v2`). Sin RAM nueva.
 > **SC50 (2026-11-01):** random-mutate nuevo (`mutate39.use_mut2`, `mutfac`), sweep (`autorel.use_sweep`) y secuenciador de saltos (`jumpseq`, 556 B): imagen `0x6FF64` (**156 B libres**), 140 B en `centab` (la tabla de cents en 16 bits: `0x0805DA68..0x0805DAF3`), zona libre 4 B; RC4.04 `0X6FEE4` (284 B), RC4.04S `0X6FED4` (300 B), con `playmode.use_nudge3` y `stepmod.use_rectrack`. RAM `modmx.MXR + 0x21E8..0x21EB` y `+ 0x21F0..0x2203`. **Cola + 364..366** = el secuenciador de saltos; **+ 536..543** = el factor de cada pista (libres en + 357..543: solo + 363 y + 367..375). DSP sin cambios.
 

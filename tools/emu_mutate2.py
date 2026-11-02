@@ -105,9 +105,10 @@ def view_part(img, man, check):
     check(d0 == MU.COL_LIT and u0 == MU.COL_LIT, f"garbage in the byte = x 1: Octave ▼ / ▲ in peach ({d0:#x}, {u0:#x})")
     t0 = e.t; n0 = X.frame(e)[:32]
     e.btn(ID_UP); e.btn(ID_UP); g3 = e.r8(a); n1 = X.frame(e)[:32]
-    e.at(t0 + MU.FAC_MAX * 0 + 1000); n2 = X.frame(e)[:32]; e.at(t0 + 1600); n3 = X.frame(e)[:32]
+    sh = 600 if "jumpoct" in man["report"] else 1500
+    e.at(t0 + sh - 100); n2 = X.frame(e)[:32]; e.at(t0 + sh + 100); n3 = X.frame(e)[:32]
     check(g3 == MU.FAC_TAG | 3, f"Octave ▲ twice: x 3 ({g3:#x})")
-    check(n1 != n0 and n2 == n1 and n3 == n0, "the number on the pads for 1.5 s after a change, then the view again")
+    check(n1 != n0 and n2 == n1 and n3 == n0, f"the number on the pads for {sh} ms after a change, then the view again")
     for _ in range(9): e.btn(ID_UP)
     fr = X.frame(e); gm = e.r8(a)
     check(gm == MU.FAC_TAG | MU.FAC_MAX and fr[LED_UP] & 0xFF == 0 and fr[LED_DOWN] & 0xFF == MU.COL_LIT, f"the top: x 8, Octave ▲ dark ({gm:#x})")
@@ -458,6 +459,7 @@ def sweep_part(img, man, check):
 
 
 def main(img, man):
+    if "jumpoct" in man["report"]: MU.use_white25()
     fails = 0
     def check(c, m):
         nonlocal fails
