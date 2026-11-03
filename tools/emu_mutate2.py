@@ -49,6 +49,7 @@ def fac_addr(e, t): return e.r32(MU.SESSION_OBJ + 0x14) + MU.TAIL + MU.O_FAC + t
 
 ROLL = [False]                                               # drumpat.use_roll: a drum's pad 27 lit
 ROLL2 = [False]                                              # drumpat.use_roll2: a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
+DYN4 = [False]                                               # SC50.9 (drumpat.use_dyn4): pad 25 off; ghost / accent staccato / length; drums lo + roller / hi; factor 0, 1, 2, 4, 8
 
 
 def row(level, dyn, micro, note=True, drum=False):
@@ -59,7 +60,9 @@ def row(level, dyn, micro, note=True, drum=False):
         v = lit if on else dim
         if not note and not (drum and i == 15): v = 0
         if drum and i == 10 and not ROLL[0] and not ROLL2[0]: v = 0
-        if drum and ROLL2[0] and 8 <= i <= 11:
+        if drum and ROLL2[0] and 8 <= i <= 11 and DYN4[0]:
+            v = v if note and i < 11 else 0
+        elif drum and ROLL2[0] and 8 <= i <= 11:
             v = (lit if i - 7 == dyn else dim) if note and i < 11 else 0
         out.append(v)
     return out
@@ -85,9 +88,9 @@ def view_part(img, man, check):
         if s[2] != k or s[1] != b0[1] or s[3] != b0[3] or L[:8] != row(k, 0, False)[:8]: bad.append((k, s.hex(), [hex(x) for x in L[:8]]))
     check(not bad, f"pads 17-24: the level 0..7 in byte [2], the chosen one bright, bytes [1] / [3] kept {bad[:3]}")
     seq = []
-    for q, want in ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)):
+    for q, want in ((8, 0), (9, 1), (8, 0), (10, 2), (11, 3), (8, 0), (11, 3)) if DYN4[0] else ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)):
         e.pad(16 + q); seq.append(((b()[3] >> 4) & 3, want))
-    check(all(a_ == w for a_, w in seq), f"pad 25 on / off, pads 26-28 the three modes, pad 25 turns any mode off ({seq})")
+    check(all(a_ == w for a_, w in seq), f"pad 25 {'off' if DYN4[0] else 'on / off'}, pads 26-28 the three modes, pad 25 turns any mode off ({seq})")
     L = pads()
     check(L == row(0, 3, False), f"their LEDs: pad 25 and the mode bright ({[hex(x) for x in L]})")
     s0 = b()
@@ -113,7 +116,7 @@ def view_part(img, man, check):
     e.btn(ID_UP); e.btn(ID_UP); g3 = e.r8(a); n1 = X.frame(e)[:32]
     sh = 600 if "jumpoct" in man["report"] else 1500
     e.at(t0 + sh - 100); n2 = X.frame(e)[:32]; e.at(t0 + sh + 100); n3 = X.frame(e)[:32]
-    check(g3 == MU.FAC_TAG | 3, f"Octave ▲ twice: x 3 ({g3:#x})")
+    check(g3 == MU.FAC_TAG | (4 if DYN4[0] else 3), f"Octave ▲ twice: x {4 if DYN4[0] else 3} ({g3:#x})")
     check(n1 != n0 and n2 == n1 and n3 == n0, f"the number on the pads for {sh} ms after a change, then the view again")
     for _ in range(9): e.btn(ID_UP)
     fr = X.frame(e); gm = e.r8(a)
@@ -155,11 +158,14 @@ def dyn_model(mode, g, rnd, vel, gate):
     ok, bits = roll(MU.DYN_UNITS, g, rnd)
     if not ok: return vel, gate
     lo, hi = bits & 0x3FF, bits >> 10
-    span, bias = (33, 16) if mode == 3 else (97, 32)
-    dv = lo % span - bias
+    if DYN4[0]:
+        dv = (lo % 33 - 32, lo % 33, 0)[mode - 1]
+    else:
+        span, bias = (33, 16) if mode == 3 else (97, 32)
+        dv = lo % span - bias
     v2 = min(max(vel + dv, 1), 127)
     if mode == 1 or gate & 0x80: return v2, gate
-    s = hi % 65 - 32 if mode == 3 else (-dv >> 1 if dv > 0 else -dv)
+    s = hi % 65 - 32 if mode == 3 else (-dv if DYN4[0] else (-dv >> 1 if dv > 0 else -dv))
     L = gate + ((gate * s) >> 5 if s >= 0 else (gate * s + 63) >> 6)
     return v2, min(max(L, 1), SM.MAX_LEN)
 
@@ -359,10 +365,10 @@ def drum_part(img, man, check):
     flag = bytes(e.uc.mem_read(e.r32(T.LZ.SESSION_OBJ + 0x14) + 0x27024 + Q.O_FLAG, 2))
     check(flag == b"DQ", f"the project marked ({flag})")
     seq = []
-    for q, want in ((8, 1), (8, 0), (9, 2), (10, 3), (11, 3), (9, 2), (9, 0), (10, 3)) if ROLL2[0] else ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)) if ROLL[0] else ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
+    for q, want in ((9, 1), (9, 0), (10, 2), (11, 2), (9, 1), (8, 0), (10, 2), (9, 1)) if DYN4[0] else ((8, 1), (8, 0), (9, 2), (10, 3), (11, 3), (9, 2), (9, 0), (10, 3)) if ROLL2[0] else ((8, 1), (8, 0), (9, 1), (10, 2), (11, 3), (8, 0), (11, 3)) if ROLL[0] else ((8, 1), (8, 0), (9, 1), (11, 3), (10, 3), (8, 0), (11, 3)):
         e.pad(16 + q); X.frame(e); seq.append((byte() & 3, want))
     check(all(p == w for p, w in seq), f"pad 25 on / off, pads 26 / 28 the dynamics, pad 27 nothing ({seq})")
-    check(leds() == row(0, 3, False, True, True), f"their LEDs ({[hex(x) for x in leds()]})")
+    check(leds() == row(0, 1 if DYN4[0] else 3, False, True, True), f"their LEDs ({[hex(x) for x in leds()]})")
     b0 = byte(); e.uc.mem_write(base + Q.DQ_OFF, bytes([b0 | 3 << 3])); e.pad(16 + 5); bm = byte()
     check((bm >> 3) & 7 == 3, f"the frequency kept ({bm:#x})")
     e.uc.mem_write(base + Q.DQ_OFF, bytes([0]))
@@ -374,9 +380,10 @@ def drum_part(img, man, check):
     # the factor
     e.uc.mem_write(a, bytes([MU.FAC_TAG | 1])); e.btn(ID_UP); e.btn(ID_UP); fr = X.frame(e); g3 = e.r8(a)
     e.btn(ID_DOWN); g2 = e.r8(a)
-    check(g3 == MU.FAC_TAG | 3 and g2 == MU.FAC_TAG | 2 and fr[LED_UP] & 0xFF == MU.COL_LIT, f"Octave: the drum's factor ({g3:#x}, {g2:#x})")
+    up2, dn1 = (4, 2) if DYN4[0] else (3, 2)
+    check(g3 == MU.FAC_TAG | up2 and g2 == MU.FAC_TAG | dn1 and fr[LED_UP] & 0xFF == MU.COL_LIT, f"Octave: the drum's factor ({g3:#x}, {g2:#x})")
     e.pad(16 + 15); X.frame(e); e.btn(ID_UP); m4 = e.r8(a); e.pad(16 + 15)
-    check(m4 == MU.FAC_TAG | MU.FAC_MICRO | 3, f"the factor keeps the micro steps' bit ({m4:#x})")
+    check(m4 == MU.FAC_TAG | MU.FAC_MICRO | up2, f"the factor keeps the micro steps' bit ({m4:#x})")
     # played (the stock generator)
     e.transport(1)
     slot2 = e.r32(D.DP_VT + 8) & ~1
@@ -389,7 +396,21 @@ def drum_part(img, man, check):
         return list(hits), list(sets)
     def setb(b_, g=8, micro=False): e.uc.mem_write(base + Q.DQ_OFF, bytes([b_])); e.uc.mem_write(a, bytes([MU.FAC_TAG | g | (MU.FAC_MICRO if micro else 0)]))
     setb(1); h_, _ = play(40); vs = [v for _, v in h_]
-    if ROLL2[0]:
+    if DYN4[0]:
+        on = [v for c, v in h_ if c[2] == 0]; m_ = sorted(set(c[2] for c, _ in h_)); steps = {}
+        for c, v in h_: steps.setdefault(c[:2], []).append((c[2], v))
+        kinds = set(tuple(m for m, _ in hs) for hs in steps.values())
+        check(len(on) == 40 and min(on) >= 68 and max(on) <= 100 and len(set(on)) > 5, f"pad 26 (lo) at x 8: velocity - 32..0 ({min(on)}..{max(on)}, {len(set(on))} kinds)")
+        check(kinds == {(0, 3), (0, 2, 5)} and all(len(set(v for _, v in hs)) == 1 for hs in steps.values()), f"pad 26: a roller every time, one of the two at random, with the hit's velocity ({sorted(kinds)})")
+        setb(2); h_, _ = play(40); vs = [v for _, v in h_]
+        check(len(h_) == 40 and all(c[2] == 0 for c, _ in h_) and min(vs) >= 100 and max(vs) <= 127 and len(set(vs)) > 5, f"pad 27 (hi) at x 8: velocity 0..+ 32, no roller ({min(vs)}..{max(vs)})")
+        setb(3); h_, _ = play(20); m_ = sorted(set(c[2] for c, _ in h_))
+        check(m_ != [0] and all(v <= 100 for _, v in h_), f"an old 3 plays as lo ({m_})")
+        setb(1, 1); h2, _ = play(200); r_ = len(set(c[:2] for c, _ in h2 if c[2] != 0)) / 200
+        check(0.15 <= r_ <= 0.35, f"pad 26 at x 1: about a quarter of the hits ({r_:.2f})")
+        setb(1, 3); h2, _ = play(200); r_ = len(set(c[:2] for c, _ in h2 if c[2] != 0)) / 200
+        check(0.35 <= r_ <= 0.65, f"a saved x 3 plays as x 2: about half ({r_:.2f})")
+    if ROLL2[0] and not DYN4[0]:
         check(len(vs) == 40 and min(vs) >= 84 and max(vs) <= 116 and len(set(vs)) > 5, f"pad 25 at x 8: velocity +- 16 ({min(vs)}..{max(vs)}, {len(set(vs))} kinds)")
         setb(2); h_, _ = play(40); m_ = sorted(set(c[2] for c, _ in h_))
         check(len(h_) == 80 and m_ == [0, 3] and all(v == 100 for _, v in h_), f"pad 26 at x 8: once more on micro step 4 ({len(h_)}, {m_})")
@@ -398,6 +419,7 @@ def drum_part(img, man, check):
         for d_, nm, mm in ((2, "pad 26", 3), (3, "pad 27", 2)):
             setb(d_, 1); h2, _ = play(200); r_ = sum(1 for c, _ in h2 if c[2] == mm) / 200
             check(0.15 <= r_ <= 0.35, f"{nm} at x 1: rolls in about a quarter of the hits ({r_:.2f})")
+    if ROLL2[0]:
         def moved(mask, g=8, n=40):
             e.uc.mem_write(base + 0x60, bytes([mask])); setb(0, g, True); h3, _ = play(n); e.uc.mem_write(base + 0x60, bytes([1]))
             return h3, sorted(set(c[2] for c, _ in h3))
@@ -511,6 +533,7 @@ def main(img, man):
     if "jumpoct" in man["report"]: MU.use_white25()
     ROLL[0] = "c_dqroll" in man["report"]["drumpat"]["labels"]
     ROLL2[0] = "pl_le" in man["report"]["drumpat"]["labels"]
+    DYN4[0] = "dv_b" in man["report"]["mutate39"]["labels"]
     fails = 0
     def check(c, m):
         nonlocal fails

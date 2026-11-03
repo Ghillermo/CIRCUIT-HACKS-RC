@@ -88,7 +88,7 @@ def dz_split(img: bytes, man):
     return bytes(u), dz, post
 
 
-def main(versions):
+def main(versions, out="tools/rc_uploader.html"):
     stock = (ROOT / "stock/circuittracks-firmware-4486-STOCK.bin").read_bytes()
     assert hashlib.sha256(stock).hexdigest() == ct_fw.STOCK_4486["image_sha256"]
     dirs = {json.loads((ROOT / "firmware" / d / "manifest.json").read_text()).get("marker", d): d for d, _, _ in BUILDS if (ROOT / "firmware" / d / "manifest.json").exists()}
@@ -108,8 +108,8 @@ def main(versions):
     page = TEMPLATE.replace("__PATCHES__", json.dumps(patches, separators=(",", ":"))).replace("__STOCK_SYX__", ct_fw.STOCK_4486["syx_sha256"]) \
         .replace("__STOCK_IMG__", ct_fw.STOCK_4486["image_sha256"]).replace("__VERSIONS__", ", ".join(versions)) \
         .replace("__SAFER__", next((v for v in versions if v.endswith("S")), versions[0]))
-    (ROOT / "tools/rc_uploader.html").write_text(page, encoding="utf-8", newline="")
-    print("tools/rc_uploader.html", len(page), "bytes")
+    (ROOT / out).write_text(page, encoding="utf-8", newline="")
+    print(out, len(page), "bytes")
 
 
 DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado diferido como interruptor (Advanced Setup, pad 22; de fábrica, el guardado del original) + el Nudge mueve el contenido del tramo y deja quietos el primer y el último paso + con Record y el modo 2 solo se escribe la pista de la vista",
@@ -335,12 +335,13 @@ DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado di
 
 # 2026-11-03 (the user: «publica sólo la última RC y las betas posteriores. el nombre y su descripción no pueden superar 50 caracteres»): the
 # installer's list; a label (name + description) at most 50 characters.
+DESC["B5.12"] = ("Beta 5.12 — solo flip y dinámicas del mutate", "Beta 5.12 — solo flip, mutate dynamics")
 DESC["R407"] = ("RC4.07 — versión candidata actual", "RC4.07 — current release candidate")
 DESC["R407S"] = ("RC4.07S — sin escrituras propias en la SD", "RC4.07S — no own writes to the SD card")
 DESC["B5.11"] = ("Beta 5.11 — programas del DSP comprimidos", "Beta 5.11 — DSP programs compressed")
 DESC["B5.10"] = ("Beta 5.10 — pads del mutate de drums", "Beta 5.10 — drums’ mutate pads redone")
 DESC["B5.9"] = ("Beta 5.9 — solo, acorde inverso, rollers", "Beta 5.9 — solo, inverse chord, rollers")
-assert all(len(t) <= 50 for k in ("R407", "R407S", "B5.11", "B5.10", "B5.9") for t in DESC[k])
+assert all(len(t) <= 50 for k in ("B5.12", "R407", "R407S", "B5.11", "B5.10", "B5.9") for t in DESC[k])
 
 
 TEMPLATE = r"""<!doctype html>
@@ -738,5 +739,14 @@ setLang(LANG); updateSend();
 </html>
 """
 
+OLD = ["R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
+       "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"]
+
+
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R407", "R407S", "B5.11", "B5.10", "B5.9"])
+    # 2026-11-03 (the user: «las versiones antiguas estarán disponibles en el instalador antiguo (descarga separada)»): --old = tools/rc_uploader_old.html
+    # with the versions taken out of the installer (publish_rc puts it on the pages as rc_uploader_old.zip)
+    if sys.argv[1:] == ["--old"]:
+        main(OLD, "tools/rc_uploader_old.html")
+    else:
+        main(sys.argv[1:] or ["R407", "R407S", "B5.12", "B5.11", "B5.10", "B5.9"])

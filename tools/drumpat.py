@@ -89,6 +89,16 @@ def use_roll():
 
 
 ROLL2 = False                                                # SC50.7 (use_roll2)
+DYN4 = False                                                 # SC50.9 (use_dyn4)
+
+
+def use_dyn4():
+    """SC50.9 / Beta 5.12: a drum's pads 25 off, 26 lo (velocity - 32..0 and a roller at random: micro step 4, or 3 and 6), 27 hi (0..+ 32, no roller); see
+    mutate39.use_dyn4."""
+    global DYN4
+    assert ROLL2
+    DYN4 = True
+    MU.use_dyn4()
 
 
 def use_roll2():
@@ -308,7 +318,11 @@ def arm_code(base, L, prev):
         E(bl, "c_dqtk"); E(movs_imm, 1, MU.DYN_UNITS); E(bl, L["c_mgroll"]); E(cmp_imm, 0, 0); bc("pl_mi", "eq")
         E(lsls_imm, 0, 1, 22); E(lsrs_imm, 0, 0, 22)
         E(mov_reg, 1, 8); E(lsls_imm, 1, 1, 30); E(lsrs_imm, 1, 1, 30)                   # r1 = the dynamics: 3 = +- 16, else - 32..+ 64
-        if ROLL2:                                                                        # 1 = +- 16; 2 / 3: r9 = the roller << 8
+        if ROLL2 and DYN4:                                                               # 2 = hi; 1 (3) = lo with a roller, one of the two
+            E(cmp_imm, 1, 2); E(b_cond, "pl_ac", "eq")
+            E(lsrs_imm, 2, 0, 9); E(movs_imm, 3, 1); E(ands_reg, 2, 3); E(adds_imm8, 2, 1); E(lsls_imm, 2, 2, 8); E(mov_reg, 9, 2); E(movs_imm, 1, 1)
+            a.label("pl_ac")
+        elif ROLL2:                                                                      # 1 = +- 16; 2 / 3: r9 = the roller << 8
             E(cmp_imm, 1, 1); E(b_cond, "pl_ro", "ne"); E(movs_imm, 1, 3); E(b, "pl_ac")
             a.label("pl_ro"); E(subs_imm8, 1, 1); E(lsls_imm, 2, 1, 8); E(mov_reg, 9, 2); E(b, "pl_mi")
             a.label("pl_ac")
@@ -437,7 +451,7 @@ def arm_code(base, L, prev):
         E(movs_imm, 1, 0xC4); E(bics_reg, 0, 1); E(movs_imm, 1, 4); E(ands_reg, 1, 7); E(orrs_reg, 0, 1)
         E(lsls_imm, 1, 7, 30); E(lsrs_imm, 1, 1, 24); E(orrs_reg, 0, 1); E(b, "dp_w")
         if ROLL2:                                                                        # pads 25-27 = the dynamics 1-3, the same again = none
-            a.label("dp_r"); E(movs_imm, 1, 3); E(subs_imm8, 7, 7); E(mov_reg, 2, 0); E(ands_reg, 2, 1); E(bics_reg, 0, 1)
+            a.label("dp_r"); E(movs_imm, 1, 3); E(subs_imm8, 7, 8 if DYN4 else 7); E(mov_reg, 2, 0); E(ands_reg, 2, 1); E(bics_reg, 0, 1)
             E(cmp_reg, 2, 7); E(b_cond, "dp_w", "eq"); E(orrs_reg, 0, 7)
         else:
             a.label("dp_r"); E(movs_imm, 1, 3); E(cmp_imm, 7, 8); E(b_cond, "dp_g", "ne")

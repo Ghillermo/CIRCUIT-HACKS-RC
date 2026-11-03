@@ -37,6 +37,7 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC50.9 (2026-11-03):** `mixsolo` v2 (480 B) en el primer hueco de `dspz` (`0x080648F0..0x08064AD0`; quedan 19 373 B en ese hueco y 2 135 B en el otro); `mutfac` + 2 B en el hueco de `centab` (2 B libres); imagen `0x6FF38`. RAM `modmx.MXR + 0x2220..0x2228`.
 > **SC50.8 (2026-11-03):** imagen `0x6ff40` como SC50.7, pero **192 B + 21 988 B libres**: `dspz` comprime los programas del DSP en su sitio; huecos `0x080648F0-0x0806967D` (19 853 B) y `0x08074C9C-0x080754F3` (2 135 B). RAM: `0x20048000-0x2004821B` (búfer y estado, solo durante el envío al DSP). ITCM: `0x2000-0x3FFF` (ventana, solo durante el envío; la mitad baja libre).
 > **SC50.7 / Beta 5.10 (2026-11-02):** imagen `0x6ff40` (**192 B libres**). `drumpat.use_roll2` +68 B.
 > **SC50.6 / Beta 5.9 (2026-11-02):** imagen `0x6fefc` (**260 B libres**); RC4.07 `0x6ff6c`, RC4.07S `0x6ff5c`. `drumpat.use_roll` +84 B, `sckn.use_curve` +4 B.

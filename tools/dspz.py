@@ -225,3 +225,27 @@ def install(img, report):
     report["dspz"] = dict(info, labels={k: hex(v) for k, v in labels.items()}, arm_start=hex(code_at), ring=hex(RING), stage=hex(STAGE), state=hex(S),
                           gaps=gaps, freed=sum(int(b_, 16) - int(a_, 16) for a_, b_ in gaps), listing=sc.disasm(bytes(code), code_at))
     return labels
+
+
+def add(img, report, name, mod):
+    """After install(): put an ARM module in the freed flash, in the first gap (19 853 B), as hole.add does for the old blocks.  mod.install(img,
+    report, base) appends its code at the end as for build_sc41_5.add; that tail moves into the gap and the image is cut back.  The gap is above
+    MOD_START (0x0805CDDC): rodisk's guard and lazysave see code here as the mod's."""
+    import build_shared_channels as sc
+    d = report["dspz"]
+    lo, hi = d["gaps"][0]
+    at = (int(d.setdefault("next", lo), 16) + 3) & ~3
+    n0 = len(img)
+    labels, code, prev = mod.install(img, report, at)
+    blob = bytes(img[n0:])
+    assert blob[:len(code)] == bytes(code), f"{name}: install did not append its code at the end"
+    del img[n0:]
+    end = at + len(blob)
+    assert end <= int(hi, 16), f"{name}: the gap is full ({end:#x} > {hi})"
+    assert all(b_ == 0xFF for b_ in img[at - BASE:end - BASE]), f"{name}: the gap is not empty"
+    img[at - BASE:end - BASE] = blob
+    d["next"] = hex(end)
+    d.setdefault("blocks", {})[name] = [hex(at), hex(end)]
+    report[name] = dict(arm_start=hex(at), labels={k: hex(v) for k, v in labels.items()}, prev={k: hex(v) for k, v in prev.items()},
+                        listing=sc.disasm(bytes(code), at), dspz_gap=True)
+    return labels

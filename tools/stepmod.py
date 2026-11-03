@@ -329,7 +329,8 @@ def arm_code(base, L, prev):
         E(pop_list, [1])
         E(cmp_imm, 7, 1); E(b_cond, "fn_w", "eq"); E(cmp_imm, 6, 0x80); E(b_cond, "fn_w", "hs")   # a tied unit keeps its length
         E(cmp_imm, 7, 3); E(b_cond, "fn_r", "eq")
-        E(raw, h(0x4241)); E(b_cond, "fn_s", "ge"); E(raw, h(0x1049)); E(b, "fn_s")   # negs r1, r0; asrs r1, r1, #1
+        if MU.DYN4: E(raw, h(0x4241)); E(b, "fn_s")                                   # accent staccato: + 32 = a half
+        else: E(raw, h(0x4241)); E(b_cond, "fn_s", "ge"); E(raw, h(0x1049)); E(b, "fn_s")   # negs r1, r0; asrs r1, r1, #1
         a.label("fn_r"); E(mov_reg, 0, 1); E(movs_imm, 3, 65); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 1, 0, 2); E(subs_imm8, 1, 32)
         a.label("fn_s")                                                               # r1 = - 32 (a half) .. 0 .. + 32 (double)
         E(muls, 1, 6); E(movs_imm, 3, 5); E(cmp_imm, 1, 0); E(b_cond, "fn_t", "ge"); E(adds_imm8, 1, 63); E(movs_imm, 3, 6)   # (toward 0)
@@ -381,7 +382,8 @@ def arm_code(base, L, prev):
         E(cmp_imm, 5, 15); E(b_cond, "se_d", "ne"); E(movs_imm, 2, 0x40); E(raw, h(0x4051)); E(b, "se_w")   # eors r1, r2
         a.label("se_d"); E(cmp_imm, 5, 11); E(b_cond, "se_c", "hi")
         E(movs_imm, 2, 0x30); E(cmp_imm, 5, 8); E(b_cond, "se_m", "ne")
-        E(tst_reg, 1, 2); E(b_cond, "se_o", "eq"); E(bics_reg, 1, 2); E(b, "se_w")
+        if MU.DYN4: E(bics_reg, 1, 2); E(b, "se_w")                                   # pad 25 = off
+        else: E(tst_reg, 1, 2); E(b_cond, "se_o", "eq"); E(bics_reg, 1, 2); E(b, "se_w")
         a.label("se_o"); E(movs_imm, 2, 0x10); E(orrs_reg, 1, 2); E(b, "se_w")
         a.label("se_m"); E(bics_reg, 1, 2); E(subs_imm8, 5, 8); E(lsls_imm, 5, 5, SH_DYN); E(orrs_reg, 1, 5)
         a.label("se_w"); E(strb_imm, 1, 0, STEP_BYTE); E(b, "se_c")

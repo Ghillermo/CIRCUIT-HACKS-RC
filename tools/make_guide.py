@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.11"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.12"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -48,8 +48,8 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.11; en RC4.02 y antes no).
-- {YB} = solo en la **Beta 5.11** (no está en RC4.07).
+- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.12; en RC4.02 y antes no).
+- {YB} = solo en la **Beta 5.12** (no está en RC4.07).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -627,24 +627,24 @@ Las dos filas son una sola botonera, por paso:
 | 18 / 19 / 20 | **Otra nota de la escala**, en la misma octava: probabilidad ×1 / ×2 / ×4 (melocotón) |
 | 21 / 22 | **Una octava arriba**: probabilidad baja / alta, ×1 / ×2 (arena) |
 | 23 / 24 | **Una octava arriba o abajo**, al azar: probabilidad baja / alta, ×1 / ×2 (arena) |
-| 25 | **Dinámicas** encendidas / apagadas (blanco); al encenderlas, las del pad 26 |
-| 26 | **Acentos**: velocity de −32 a +64 |
-| 27 | **Acentos y longitud**: lo mismo, y las notas fuertes solo se acortan (hasta la mitad) y las débiles solo se alargan (hasta el doble) |
-| 28 | **Longitud al azar**, de la mitad al doble, y velocity ±16 |
+| 25 | **Sin dinámicas** (blanco) |
+| 26 | **Dynamics lo (ghost)**: velocity de −32 a 0; la longitud no cambia {YB} |
+| 27 | **Dynamics hi + longitud (accent staccato)**: velocity de 0 a +32 y la nota se acorta en proporción (+32 = la mitad) {YB} |
+| 28 | **Longitud**: el gate de la mitad al doble, al azar; la velocity no cambia {YB} |
 | 29-31 | Sin función (apagados) |
 | 32 | **Micropasos** encendidos / apagados (verde azulado): la nota se adelanta o se atrasa 0, 1 o 2 micropasos, sin salir de su paso |
 
-- **Octave ▼ / ▲ con esta vista abierta = el factor de la pista**, de ×0 a ×8 (de fábrica ×1), que multiplica todas sus probabilidades. Los pads enseñan el número 0,6 s; el Octave que ya no puede moverse se apaga. Se guarda con el proyecto.
+- **Octave ▼ / ▲ con esta vista abierta = el factor de la pista**: ×0, ×1, ×2, ×4 u ×8 (de fábrica ×1; Octave lo dobla o lo parte por la mitad) {YB}, que multiplica todas sus probabilidades. Los pads enseñan el número 0,6 s; el Octave que ya no puede moverse se apaga. Se guarda con el proyecto.
 - **Probabilidades con el factor ×1:** nota y octava, 6 % por cada ×1 del pad; dinámicas y micropasos, 25 %. Con ×4: 25 % y 100 %. Con ×0 no cambia nada.
 - **Con ×8, el pad 24 cambia todas las notas:** la del paso ya no suena nunca y solo quedan una octava arriba y una abajo. El sorteo es mitad y mitad, pero sin la nota original de referencia el oído toma la de abajo como base y parece que casi todas suben. Con el pad 22 suben todas.
 - Nota, dinámicas y micropasos se sortean aparte, y cada nota de un acorde aparte; los micropasos, una vez por paso. Una nota en el primer micropaso no puede adelantarse, ni en el último atrasarse. Sin Record cambia solo esa vez; con Record y esta vista en pantalla se escribe en el patrón de esa pista (la secuencia deriva). Las ligadas no cambian de nota, longitud ni micropaso.
-- Un proyecto de una versión anterior conserva los valores de sus pasos, que ahora significan lo de esta tabla.
+- Un proyecto de una versión anterior conserva los valores de sus pasos, que ahora significan lo de esta tabla; un factor guardado de ×3 suena como ×2, y ×5-×7 como ×4.
 
 ### Modo 2 en los drums {YB}
 La misma botonera sobre el paso elegido (pads 1-16) y el mismo Octave (el factor del drum):
 
 - **Pads 18-20:** otro sample de su fila de 8 (±1). **Pads 21 / 22:** la fila siguiente (+8), probabilidad baja / alta. **Pads 23 / 24:** una fila más o menos (±8), probabilidad baja / alta. Parte del sample flip del paso, o del sample elegido; no se graba.
-- **Pads 25-27:** {YB} uno de los tres a la vez por paso (el mismo otra vez lo quita), con probabilidad de 25 % × factor. **Pad 25 = velocity**: el golpe mueve su velocity ±16. **Pad 26 = roller**: el golpe se repite en el micropaso 4 (3 después). **Pad 27 = roller de tres**: se repite en los micropasos 3 y 6 (2 y 5 después). Las repeticiones llevan la velocity y el sample del golpe y solo suenan las que caben en el paso. El pad 28 está apagado.
+- **Pads 25-27:** {YB} uno de los tres a la vez por paso (el mismo otra vez lo quita), con probabilidad de 25 % × factor. **Pad 25 = sin dinámicas.** **Pad 26 = dynamics lo**: el golpe baja su velocity de 0 a −32 y se repite con un roller, uno de los dos al azar: en el micropaso 4, o en los 3 y 6. **Pad 27 = dynamics hi**: la velocity sube de 0 a +32, sin roller. Las repeticiones llevan la velocity y el sample del golpe y solo suenan las que caben en el paso. El pad 28 está apagado.
 - **Pad 32:** micropasos de **todo el drum**, no del paso (el paso no tiene bits libres): {YB} con la misma probabilidad, el paso entero se adelanta o se atrasa 1 o 2 micropasos sin salir de él (un golpe en el primer micropaso solo se atrasa, en el último solo se adelanta; un paso con golpes en el primero y el último no se mueve). Funciona también en un paso sin nada elegido.
 
 ### Random-mutate en las RC (fila 4)
@@ -704,7 +704,8 @@ view("mixer", "VI", "Vista Mixer y escenas",
 | **Página de panorama: Shift + knob a la derecha / izquierda** {B} | **Modo cue** encendido / apagado (Octave ▼ rosa / blanco; se guarda en el aparato). |
 | **Modo cue: un knob de panorama** {B} | El envío de esa pista al **cue** (salida derecha), del centro a la derecha (a la izquierda nada); Clear + knob = sin cue. Los knobs en rosa, más brillantes cuanto más envío. |
 | **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. {B} |
-| **Pad 16 mantenido + pads 1-8** {YB} | **Solo**: las pistas que pulses siguen sonando y se silencian todas las demás, al momento. Al soltar el pad 16, los mutes se quedan como están. Cada vez que lo mantienes, la elección empieza de nuevo. El pad 16 se ve tenue y brillante mientras lo mantienes. |
+| **Pad 16 mantenido + pads 1-8** {YB} | **Solo**: se guardan los mutes del Mixer, las pistas que pulses siguen sonando y se silencian todas las demás. El pad 16 queda en **blanco** mientras el solo está activo; mantenerlo otra vez con otras pistas las pone en solo a ellas. **Un toque al pad 16** solo (sin pistas) vuelve a los mutes de antes del solo. |
+| **Toque al pad 16 sin solo** {YB} | **Solo flip**: el pad 16 en **naranja**. Mientras mantienes una o varias pistas (silenciadas o no), suenan solo ellas; al soltarlas, el Mixer vuelve a como estaba. Pad 16 mantenido + pistas = solo (sale del flip); otro toque al pad 16 sale. Cargar otro proyecto apaga el solo y el flip sin tocar sus mutes. |
 | **Shift + pads 1-8** {B} | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
 | **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). {B} Sonando, con Shift, **la repetición que suena en blanco** (pad 9 = la primera vez; en la última, el pad verde parpadea blanco / verde). {XB} |
 | Pistas que parpadean | Están siguiendo una regla de cadena. {B} |

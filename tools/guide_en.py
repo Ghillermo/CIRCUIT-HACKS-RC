@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.11 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.11** (not in RC4.07).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.12 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.12** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -495,24 +495,24 @@ The two rows are one set of pads, per step:
 | 18 / 19 / 20 | **Another note of the scale**, in the same octave: chance ×1 / ×2 / ×4 (peach) |
 | 21 / 22 | **An octave up**: low / high chance, ×1 / ×2 (sand) |
 | 23 / 24 | **An octave up or down**, at random: low / high chance, ×1 / ×2 (sand) |
-| 25 | **Dynamics** on / off (white); turning them on picks pad 26's |
-| 26 | **Accents**: velocity −32 to +64 |
-| 27 | **Accents and length**: the same, and stronger notes only get shorter (down to a half), weaker ones only longer (up to double) |
-| 28 | **Random length**, a half to double, and velocity ±16 |
+| 25 | **No dynamics** (white) |
+| 26 | **Dynamics lo (ghost)**: velocity −32 to 0; the length is kept {YB} |
+| 27 | **Dynamics hi + length (accent staccato)**: velocity 0 to +32 and the note shorter in proportion (+32 = a half) {YB} |
+| 28 | **Length**: the gate a half to double, at random; the velocity is kept {YB} |
 | 29-31 | No function (dark) |
 | 32 | **Micro steps** on / off (teal): the note moves 0, 1 or 2 micro steps earlier or later, staying inside its step |
 
-- **Octave ▼ / ▲ with this view open = the track's factor**, ×0 to ×8 (×1 from the factory), which multiplies all its chances. The pads show the number for 0.6 s; the Octave that cannot move any further goes dark. Saved with the project.
+- **Octave ▼ / ▲ with this view open = the track's factor**: ×0, ×1, ×2, ×4 or ×8 (×1 from the factory; Octave doubles or halves it) {YB}, which multiplies all its chances. The pads show the number for 0.6 s; the Octave that cannot move any further goes dark. Saved with the project.
 - **Chances at factor ×1:** note and octave, 6 % for each ×1 of the pad; dynamics and micro steps, 25 %. At ×4: 25 % and 100 %. At ×0 nothing changes.
 - **At ×8, pad 24 changes every note:** the step's own note never sounds and only an octave up and an octave down are left. The draw is half and half, but without the original note as a reference the ear takes the lower one as the base and it seems that nearly all go up. With pad 22 all of them go up.
 - Note, dynamics and micro steps are drawn apart, each note of a chord apart; the micro steps once a step. A note on the first micro step cannot go earlier, nor one on the last later. Without Record it changes only that time; with Record and this view on screen it is written into that track's pattern (the sequence drifts). Tied notes keep their note, length and micro step.
-- A project from an earlier version keeps the values of its steps, which now mean what this table says.
+- A project from an earlier version keeps the values of its steps, which now mean what this table says; a saved factor of ×3 plays as ×2, and ×5-×7 as ×4.
 
 ### Mode 2 on the drums {YB}
 The same pads on the chosen step (pads 1-16) and the same Octave (the drum's factor):
 
 - **Pads 18-20:** another sample of its row of 8 (±1). **Pads 21 / 22:** the next row (+8), low / high chance. **Pads 23 / 24:** a row up or down (±8), low / high chance. It starts from the step's sample flip, or the chosen sample; it is not recorded.
-- **Pads 25-27:** {YB} one of the three at a time on each step (the same again removes it), at a chance of 25 % × the factor. **Pad 25 = velocity**: the hit moves its velocity ±16. **Pad 26 = roller**: the hit repeats on micro step 4 (3 after it). **Pad 27 = three-hit roller**: it repeats on micro steps 3 and 6 (2 and 5 after it). The repeats carry the hit's velocity and sample, and only the ones that fit in the step sound. Pad 28 is dark.
+- **Pads 25-27:** {YB} one of the three at a time on each step (the same again removes it), at a chance of 25 % × the factor. **Pad 25 = no dynamics.** **Pad 26 = dynamics lo**: the hit lowers its velocity by 0 to 32 and repeats with a roller, one of the two at random: on micro step 4, or on 3 and 6. **Pad 27 = dynamics hi**: the velocity goes up by 0 to 32, no roller. The repeats carry the hit's velocity and sample, and only the ones that fit in the step sound. Pad 28 is dark.
 - **Pad 32:** micro steps for the **whole drum**, not the step (the step has no free bits): {YB} at the same chance, the whole step moves 1 or 2 micro steps earlier or later without leaving it (a hit on the first micro step only moves later, one on the last only earlier; a step with hits on both the first and the last does not move). It also works on a step with nothing chosen.
 
 ### Random-mutate in the RCs (row 4)
@@ -719,7 +719,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Pan page: Shift + knob to the right / left** {B} | **Cue mode** on / off (Octave ▼ pink / white; stored in the unit). |
 | **Cue mode: a pan knob** {B} | That track's send to the **cue** (right output), from the centre to the right (to the left nothing); Clear + knob = no cue. The knobs pink, brighter with more send. |
 | **Scene pads** | As always; a scene saved in **chain mode** shows **peach** and loading it brings the mode back; a normal one turns it off. {B} |
-| **Pad 16 held + pads 1-8** {YB} | **Solo**: the tracks you press go on sounding and all the others are muted at once. When you let go of pad 16 the mutes stay as they are. Each time you hold it the choice starts anew. Pad 16 is dim, bright while held. |
+| **Pad 16 held + pads 1-8** {YB} | **Solo**: the Mixer's mutes are saved, the tracks you press go on sounding and all the others are muted. Pad 16 stays **white** while the solo is on; holding it again with other tracks puts those in solo. **A tap on pad 16** alone (no tracks) brings back the mutes from before the solo. |
+| **A tap on pad 16 with no solo** {YB} | **Solo flip**: pad 16 **orange**. While you hold one or more tracks (muted or not), only they sound; when you let go, the Mixer goes back to how it was. Pad 16 held + tracks = solo (flip off); another tap on pad 16 leaves. Loading another project turns solo and flip off without touching its mutes. |
 | **Shift + pads 1-8** {B} | **Mute / unmute that track on the next bar**: the pad blinks while it waits; again cancels it. Stopped, at once. |
 | **Shift + pads 9-16** | **Repeats** of the current scene (1-8; with Shift the row is yellow, the chosen one green). {B} While playing, with Shift, **the repeat now playing is white** (pad 9 = the first time; on the last one the green pad blinks white / green). {XB} |
 | Blinking tracks | They are following a chain rule. {B} |

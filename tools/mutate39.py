@@ -49,6 +49,7 @@ TRIMSL = False                        # SC49.3 (use_trimsl)
 MUT2 = False                          # SC50 / Beta 5.3 (use_mut2): the redesign of mode 2 of the probability view
 ROLL27 = False                        # SC50.6 (drumpat.use_roll): a drum's pad 27 lit
 ROLL3 = False                         # SC50.7 (drumpat.use_roll2): a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
+DYN4 = False                          # SC50.9 / Beta 5.12 (use_dyn4): ghost / accent staccato / length; drums lo + roller / hi; factor 0, 1, 2, 4, 8
 MUT3 = False                          # SC50.1 / Beta 5.4 (use_mut3): pads 21 / 22 = octave up, low / high; pads 23 / 24 = both, low / high
 SESSION_OBJ, TAIL, O_FAC = 0x2003D71C, 0x27024, 536   # (MUT2) the record's tail + 536 + track (0..3 notes, 4..7 drums) = 0xA0 | micro on (drums) << 4 | the factor
 PLAYER0, PLAYER_SZ = 0x20040200, 0x184
@@ -83,6 +84,18 @@ def use_white25():
     """SC50.3 / Beta 5.6 (the user, 2026-11-01: «los pads de mutate 17 y 25 (desactivado) color blanco»): pad 25 as pad 17: white bright while off, white dim while the dynamics are on."""
     global MG_COLS
     MG_COLS = MG_COLS[:8] + ((0x01, 0x02),) + MG_COLS[9:]
+
+
+def use_dyn4():
+    """SC50.9 / Beta 5.12 (the user, 2026-11-03: «off, dynamics lo (ghost), dynamics hi+length enlazado a dynamics (accent stacatto), length (aumenta o disminuye el gate
+    length al 50-200% (fuera del microstep)»; «en drums: off, dynamics lo (roller), dynamics Hi (sin roller)»; «factores de multiplicación quedan en 1,2,4 y 8»):
+    notes: pad 25 = off (always, no more on / off), 26 = 1 ghost: velocity - 32..0, the length kept; 27 = 2 accent staccato: velocity 0..+ 32 and the gate shorter
+    in proportion (+ 32 = a half); 28 = 3 length: the gate a half to double at random, the velocity kept; the micro step never moves.  Drums (drumpat.use_dyn4):
+    pad 25 = off, 26 = 1 lo: velocity - 32..0 and a roller, one of the two at random (micro step 4, or 3 and 6), 27 = 2 hi: velocity 0..+ 32, no roller; pad 28
+    dark (an old 3 plays as 1).  The factor: 0, 1, 2, 4, 8 (Octave halves / doubles it; a saved 3 plays and shows as 2, 5-7 as 4)."""
+    global DYN4
+    assert MUT2 and ROLL3
+    DYN4 = True
 
 
 def use_mut3():
@@ -190,7 +203,13 @@ def arm_code(base):
 
         # ---- c_mgfac(r0 = track) -> r0 = its factor; clobbers r1, r2
         a.label("c_mgfac")
-        E(raw, h(0xB500)); E(bl, "c_mgget"); E(movs_imm, 1, 15); E(ands_reg, 0, 1); E(raw, h(0xBD00))
+        E(raw, h(0xB500)); E(bl, "c_mgget"); E(movs_imm, 1, 15); E(ands_reg, 0, 1)
+        if DYN4:
+            E(cmp_imm, 0, 2); E(b_cond, "mf_x", "lo"); E(movs_imm, 1, 8); E(cmp_imm, 0, 8); E(b_cond, "mf_s", "hs")
+            E(movs_imm, 1, 4); E(cmp_imm, 0, 4); E(b_cond, "mf_s", "hs"); E(movs_imm, 1, 2)
+            a.label("mf_s"); E(mov_reg, 0, 1)
+            a.label("mf_x")
+        E(raw, h(0xBD00))
 
         # ---- c_mgtrk(r0 = a player of a note track) -> r0 = the track; clobbers r1
         a.label("c_mgtrk")
@@ -218,10 +237,16 @@ def arm_code(base):
 
         # ---- c_mgdv(r0 = 10 random bits, r1 = the dynamics 1..3) -> r0 = the velocity's change: - 32..+ 64, or +- 16 with 3; clobbers r2, r3
         a.label("c_mgdv")
-        E(movs_imm, 3, 97); E(cmp_imm, 1, 3); E(b_cond, "dv_a", "ne"); E(movs_imm, 3, 33)
-        a.label("dv_a"); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 0, 0, 2)
-        E(subs_imm8, 0, 16); E(cmp_imm, 1, 3); E(b_cond, "dv_x", "eq"); E(subs_imm8, 0, 16)
-        a.label("dv_x"); E(raw, h(0x4770))
+        if DYN4:                                                                        # 1 = - 32..0 (ghost), 2 = 0..+ 32 (accent), 3 = 0 (length only)
+            E(movs_imm, 3, 33); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 0, 0, 2)
+            E(cmp_imm, 1, 1); E(b_cond, "dv_b", "ne"); E(subs_imm8, 0, 32)
+            a.label("dv_b"); E(cmp_imm, 1, 3); E(b_cond, "dv_y", "ne"); E(movs_imm, 0, 0)
+            a.label("dv_y"); E(raw, h(0x4770))
+        else:
+            E(movs_imm, 3, 97); E(cmp_imm, 1, 3); E(b_cond, "dv_a", "ne"); E(movs_imm, 3, 33)
+            a.label("dv_a"); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 0, 0, 2)
+            E(subs_imm8, 0, 16); E(cmp_imm, 1, 3); E(b_cond, "dv_x", "eq"); E(subs_imm8, 0, 16)
+            a.label("dv_x"); E(raw, h(0x4770))
 
         # ---- c_mgmut(r0 = track, r1 = a level 1..7, r2 = a note) -> r0 = the note, through the level; clobbers r1-r3
         a.label("c_mgmut")
@@ -247,12 +272,12 @@ def arm_code(base):
         E(movs_imm, 7, 1); E(cmp_imm, 6, 8); E(b_cond, "gr_4", "hs")
         E(cmp_reg, 6, 5); E(b_cond, "gr_c", "eq"); E(b, "gr_0")
         a.label("gr_4"); E(b_cond, "gr_5", "ne")
-        if ROLL3: E(lsls_imm, 0, 3, 29); E(b_cond, "gr_d", "mi")                       # a drum's pad 25 = the dynamics 1
+        if ROLL3 and not DYN4: E(lsls_imm, 0, 3, 29); E(b_cond, "gr_d", "mi")          # a drum's pad 25 = the dynamics 1
         E(cmp_imm, 2, 0); E(b_cond, "gr_c", "ne"); E(b, "gr_0")
         a.label("gr_5"); E(cmp_imm, 6, 15); E(b_cond, "gr_6", "ne")
         E(lsls_imm, 0, 3, 30); E(b_cond, "gr_c", "mi"); E(b, "gr_0")
         a.label("gr_6")
-        if ROLL3:                                                                       # a drum: pads 25-27 = the dynamics 1-3
+        if ROLL3 and not DYN4:                                                          # a drum: pads 25-27 = the dynamics 1-3
             E(lsls_imm, 0, 3, 29); E(b_cond, "gr_e", "pl")
             a.label("gr_d"); E(mov_reg, 0, 6); E(subs_imm8, 0, 7); E(cmp_reg, 0, 2); E(b_cond, "gr_c", "eq"); E(b, "gr_0")
             a.label("gr_e")

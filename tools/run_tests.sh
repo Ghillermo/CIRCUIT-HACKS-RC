@@ -1001,6 +1001,8 @@ run python3 tools/emu_actfix_dsp.py firmware/r405/circuittracks-4486-R405.bin
 run python3 tools/emu_mutate2.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.7/manifest.json
 # SC50.8: dspz (the DSP programs packed)
 run python3 tools/emu_dspz.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.8/circuittracks-4486-SC50.8.bin
+run python3 tools/emu_mixsolo2.py firmware/sc50.9/circuittracks-4486-SC50.9.bin firmware/sc50.9/manifest.json
+run python3 tools/emu_mutate2.py firmware/sc50.9/circuittracks-4486-SC50.9.bin firmware/sc50.9/manifest.json
 # SC50.6 / Beta 5.9 / RC4.07: use_roll, use_curve
 run python3 tools/emu_mutate2.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
 run python3 tools/emu_sccurve.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json

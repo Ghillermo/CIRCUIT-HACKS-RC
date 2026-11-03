@@ -7,6 +7,13 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.12 — 2026-11-03
+
+**Beta 5.12** (marca `B5.12`; = SC50.9) = la Beta 5.11 + lo siguiente, sin probar en el aparato.
+
+- **Solo y solo flip en el Mixer:** pad 16 mantenido + pistas = solo, que se queda (pad 16 blanco) hasta otro toque al pad 16, que devuelve los mutes de antes. Sin solo, un toque al pad 16 = flip (naranja): mientras mantienes pistas suenan solo ellas y al soltarlas el Mixer vuelve a como estaba. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#mixer)
+- **Dinámicas del random-mutate rehechas:** pad 25 sin dinámicas, pad 26 ghost (velocity −32 a 0), pad 27 accent staccato (velocity 0 a +32 y la nota más corta en proporción), pad 28 longitud (gate de la mitad al doble). En los drums: pad 26 = más suave con un roller al azar, pad 27 = más fuerte sin roller. El factor de Octave queda en ×0, ×1, ×2, ×4, ×8. → [Guía: Vista de probabilidad (pistas de notas y drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#probabilidad)
+
 ### Beta 5.11 — 2026-11-03
 
 **Beta 5.11** (marca `B5.11`; = SC50.8) = la Beta 5.10 + lo siguiente, sin probar en el aparato.
@@ -796,6 +803,13 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.12 — 2026-11-03
+
+**Beta 5.12** (marker `B5.12`; = SC50.9) = Beta 5.11 + the following, not tested on the device.
+
+- **Solo and solo flip in the Mixer:** pad 16 held + tracks = a solo that stays (pad 16 white) until another tap on pad 16, which brings back the mutes from before. With no solo, a tap on pad 16 = flip (orange): while you hold tracks only they sound, and when you let go the Mixer goes back to how it was. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+- **The random-mutate's dynamics redone:** pad 25 no dynamics, pad 26 ghost (velocity −32 to 0), pad 27 accent staccato (velocity 0 to +32 and the note shorter in proportion), pad 28 length (the gate a half to double). On the drums: pad 26 = softer with a random roller, pad 27 = louder with no roller. The Octave factor becomes ×0, ×1, ×2, ×4, ×8. → [Guide: Probability view (note tracks and drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
 
 ### Beta 5.11 — 2026-11-03
 
