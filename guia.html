@@ -4616,6 +4616,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td><strong>Patrones</strong></td><td>Los 64 patrones de una sesión: 8 por pista</td><td>Ver, copiar, mover, borrar, exportar; editar las pistas de notas</td></tr>
 <tr><td><strong>Presets CC</strong></td><td>Las 8 plantillas de CC de las pistas MIDI</td><td><strong>Leer del aparato</strong>, cambiar, <strong>Enviar al aparato</strong>; <strong>Abrir…</strong> y <strong>Guardar…</strong> como <code>.ctcc</code>; <strong>De fábrica</strong></td></tr>
 </tbody></table>
+<h4>Qué proyectos usan cada cosa</h4>
+<p>En <strong>Sintes Nova</strong>, <strong>Drums</strong> y <strong>Parches custom</strong>, antes del nombre: <strong>● n</strong> = lo usan n proyectos del pack; <strong>○</strong> = ninguno. Al pasar el ratón, o al elegir una sola fila, aparece la lista: proyecto y pista. Al eliminar algo en uso, la app lo avisa.</p>
+<ul>
+<li><strong>Sintes Nova:</strong> el patch al que apunta Synth 1 / 2 en cada proyecto. El proyecto lleva su propia copia, que es la que suena al cargarlo; si ya no se llama igual que el hueco, la lista da su nombre.</li>
+<li><strong>Drums:</strong> el sample de cada drum, los sample flips de sus pasos y, con el sinte propio de MIDI 1 / 2, el sample del granular o del modo muestra y sus flips.</li>
+<li><strong>Parches custom:</strong> un proyecto no guarda el número del parche. Cuenta cuando el sinte propio guardado con el proyecto suena igual: mismo motor y mismos valores, aunque el nombre cambie.</li>
+<li>Con el aparato conectado, la lista no se lee sola: pulsa <strong>Ver qué proyectos los usan</strong> (lee todas las sesiones del pack por USB).</li>
+</ul>
 <h4>Patrones</h4>
 <ul>
 <li>Arriba eliges el pack y la sesión. El tercer selector filtra: <strong>Con contenido</strong>, <strong>Todas</strong> o una pista.</li>
