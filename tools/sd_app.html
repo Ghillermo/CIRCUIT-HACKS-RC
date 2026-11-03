@@ -33,6 +33,7 @@
   .prow { display:flex; gap:6px; align-items:center; flex-wrap:wrap; min-width:0; }
   .prow .grow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   select, input[type=text], input[type=number] { font:inherit; color:var(--ink); background:#0f1114; border:1px solid var(--line); border-radius:6px; padding:4px 6px; }
+  input.badin { border-color:var(--bad); }
   select { max-width:100%; min-width:0; flex:1; }
   input[type=number] { width:68px; }
   input[type=range] { accent-color:var(--acc); width:100%; }
@@ -273,6 +274,70 @@ async function movePack(pack, card, slot, ctx = {}) {       // the API has no fo
   return out;
 }
 
+// ---------------------------------------------------------------- names: what the firmware, the card's FAT and the USB protocol all accept
+/* A file or folder name: printable ASCII without the characters FAT refuses (\ / : * ? " < > |), no space or dot at either end (FAT drops a trailing
+   one, so the name on the card would not be the name asked), and the whole name, NN_ and extension included, within 30 characters: the device's
+   own names stop there, and over USB a name over 31 overwrites the firmware's stack.  The NN_ prefix is the slot and is never typed: every
+   reference (sessions to samples and patches, the device to its packs) goes by that number, so a new name changes nothing but the name.
+   Names inside a file (Nova patch 16, custom patch 16, CC preset 32): printable ASCII. */
+const NAME_RULE = {packs: {file: true, max: FOLDER_MAX - 3}, drums: {file: true, max: 30 - 7}, nova: {max: 16, need: true}, custom: {max: NAME_LEN}, cc: {max: 32}};
+const FAT_BAD = /[\\/:*?"<>|]/;
+function checkName(kind, raw) {
+  const r = NAME_RULE[kind], s = String(raw).trim();
+  if (!r) throw new Error("name-kind");
+  if (!/^[ -~]*$/.test(s) || (r.file && FAT_BAD.test(s))) throw new Error(r.file ? "name-chars-file" : "name-chars");
+  if (r.file && /[ .]$/.test(s)) throw new Error("name-end");
+  if (s.length > r.max) throw new Error("name-long");
+  if (!s.length && (r.file || r.need)) throw new Error("name-empty");
+  return s;
+}
+const caseOnly = (a, b) => a !== b && a.toLowerCase() === b.toLowerCase();
+async function renameHandle(h, to) {                        // the browser's own move when it has one (no data copied); false = not done
+  if (typeof h.move !== "function") return false;
+  try { await h.move(to); return true; } catch (_) { return false; }
+}
+async function renamePack(pack, name, ctx = {}) {
+  name = checkName("packs", name);
+  const card = pack.card, to = folderName(pack.slot, name);
+  if (to === pack.folder) return pack;
+  if (card.tracks.renameEntry) await card.tracks.renameEntry(pack.folder, to);            // the device: a FatFs rename
+  else if (!await renameHandle(pack.dir, to)) {                                            // a folder: a verified copy, then the old one goes
+    const all = await treeInfo(pack.dir); let done = 0;
+    const copy = async (src, n) => {
+      const d = await card.tracks.getDirectoryHandle(n, {create: true});
+      try { await copyTree(src, d, f => { done++; if (ctx.progress) ctx.progress(f, done, all.files * (caseOnly(pack.folder, to) ? 2 : 1)); }); if (!await sameTree(src, d)) throw new Error("verify"); }
+      catch (e) { await card.tracks.removeEntry(n, {recursive: true}); throw e; }
+      return d;
+    };
+    if (caseOnly(pack.folder, to)) {                        // a case-insensitive file system: the same folder; through a name the device ignores
+      const tmp = "_renaming_" + pack.folder, t = await copy(pack.dir, tmp);
+      await card.tracks.removeEntry(pack.folder, {recursive: true});
+      await copy(t, to); await card.tracks.removeEntry(tmp, {recursive: true});
+    } else {
+      if (await subdir(card.tracks, to)) throw new Error("name-taken");
+      await copy(pack.dir, to); await card.tracks.removeEntry(pack.folder, {recursive: true});
+    }
+  }
+  await card.reset();
+  return card.pack(pack.slot);
+}
+async function renameFile(dir, from, to, ctx = {}, parts = []) {   // one file of a folder; the device renames, the PC moves or copies
+  if (from === to) return;
+  if (dir.renameEntry) return dir.renameEntry(from, to);
+  const h = await dir.getFileHandle(from);
+  if (await renameHandle(h, to)) return;
+  const b = await readHandle(h);
+  if (caseOnly(from, to)) {                                 // the same file: out, then in again (put back if the write fails)
+    if (ctx.backup) await ctx.backup.file(parts, from, b);
+    await dir.removeEntry(from);
+    try { await writeFile(dir, to, b); } catch (e) { await writeFile(dir, from, b); throw e; }
+    return;
+  }
+  await writeFile(dir, to, b);
+  if ((await readHandle(await dir.getFileHandle(to))).length !== b.length) throw new Error("verify");
+  await dir.removeEntry(from);
+}
+
 // the firmware's lookup by prefix: what can shadow a real file of the pack
 async function audit(pack) {
   const out = [], kinds = [["Sessions", /^\d\d_.+\.ncs$/i], ["Patches", /^\d\d_PATCHBANK\.cpb$/i], ["PCM", /^\d\d_.+\.wav$/i], ["meta", /^\d\d_.+\.ncm$/i]];
@@ -331,6 +396,12 @@ const Nova = {
   async get(pl, n) { const p = recordOf(await banksOf(pl.pack), n).nova; return p.length < PSZ || isFF(p, 0, 16) ? null : p.slice(); },
   async put(pl, n, data, ctx) { if (!data) return Nova.clear(pl, n, ctx); await writeRecord(pl.pack, n, 0, data, ctx); },
   async clear(pl, n, ctx) { if (await Nova.get(pl, n)) await writeRecord(pl.pack, n, 0, new Uint8Array(PSZ).fill(0xFF), ctx); },
+  async setName(pl, n, name, ctx) {                         // its first 16 bytes, padded with spaces as the device's own
+    name = checkName("nova", name);
+    if (!await Nova.get(pl, n)) throw new Error("name-none");
+    const b = new Uint8Array(16).fill(32); [...name].forEach((c, i) => { b[i] = c.charCodeAt(0); });
+    await writeRecord(pl.pack, n, 0, b, ctx);
+  },
 };
 
 // ---------------------------------------------------------------- custom patches: the padding of a record (its Nova patch stays)
@@ -392,6 +463,12 @@ const Custom = {
   },
   async put(pl, n, pad, ctx) { if (!pad) return Custom.clear(pl, n, ctx); await writeRecord(pl.pack, n, PSZ, pad, ctx); },
   async clear(pl, n, ctx) { if (await Custom.get(pl, n)) await writeRecord(pl.pack, n, PSZ, new Uint8Array(PADN).fill(0xFF), ctx); },
+  async setName(pl, n, name, ctx) {                         // padding + 44, outside the sum (bytes 4..39) and outside what projects compare
+    name = checkName("custom", name);
+    const pad = await Custom.get(pl, n);
+    if (!pad) throw new Error("name-none");
+    ctmSetName(pad, name); await writeRecord(pl.pack, n, PSZ + NAME_AT, pad.subarray(NAME_AT, NAME_AT + NAME_LEN), ctx);
+  },
 };
 
 // ---------------------------------------------------------------- drums: PCM/NN_Name.wav
@@ -437,6 +514,13 @@ const Drums = {
   async rename(pl, n, m) {
     const pack = pl.pack, old = (await samplesOf(pack)).get(n);
     await (await subdir(pack.dir, "PCM")).renameEntry(old.file, pad2(m) + old.file.slice(2));
+    pack._samples = null;
+  },
+  async setName(pl, n, name, ctx = {}) {                   // PCM/NN_Name.wav: the slot stays, so does every project's reference to it
+    name = checkName("drums", name);
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    if (!old) throw new Error("name-none");
+    await renameFile(await subdir(pack.dir, "PCM"), old.file, pad2(n) + "_" + name + ".wav", ctx, [pack.folder, "PCM"]);
     pack._samples = null;
   },
   async clear(pl, n, ctx = {}) {
@@ -677,6 +761,87 @@ async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, 
   return pack._usage = out;
 }
 
+// ---------------------------------------------------------------- a new order: the slot changes, and every project of the pack follows (the user, 2026-11-04)
+/* The projects find a Nova patch and a sample by its number (the places sessionUses reads): a new number is written in every session of the pack
+   that had the old one, so each project plays what it played before.  An occupied target = the two swap places (and numbers).  Custom patches go
+   by sound (projsyn), packs by nothing in a project: only the move.  CC presets are not reordered: the projects of every pack choose them by number. */
+function projSynthSet(b, t, i, v) {                         // byte i of projsyn's patch of track t, and its sum again
+  const at = k => MIDI0 + PAT * (8 * t + Math.floor(k / 30)) + SETT + 8 + 2 + k % 30;
+  b[at(i)] = v;
+  let sum = 0x5AC6; for (let k = 0; k < 124; k++) sum += b[at(k)];
+  b[at(124)] = sum & 0xFF; b[at(125)] = (sum >> 8) & 0xFF;
+}
+function remapSession(b, kind, map) {                       // -> how many references changed
+  let n = 0;
+  const f = at => { if (map.has(b[at])) { b[at] = map.get(b[at]); n++; } };
+  if (kind === "nova") { for (let s = 0; s < 2; s++) f(SYNTH0 + 16 * PAT + 8 * s); return n; }
+  for (let d = 0; d < 4; d++) {
+    if (b[0x26FBC + 11 * d] < NSAMPLES) f(0x26FBC + 11 * d);
+    for (let p = 0; p < 8; p++) for (let st = 0; st < NSTEPS; st++) { const at = DRUM0 + DPAT * (8 * d + p) + 64 + st; if (b[at] < NSAMPLES) f(at); }
+  }
+  for (let t = 0; t < 2; t++) {
+    for (let p = 0; p < 8; p++) {
+      const o = MIDI0 + PAT * (8 * t + p) + LANE0 + 192 * 8;
+      for (let i = 0; i < 192; i++) { const v = b[o + i]; if (v >= 0x80 && v < 0x80 + NSAMPLES && map.has(v & 63)) { b[o + i] = 0x80 | map.get(v & 63); n++; } }
+    }
+    const img = projSynth(b, t);
+    if (img && ((img[4] & 15) === 9 || (img[4] & 15) === 11) && img[30] < NSAMPLES && map.has(img[30])) { projSynthSet(b, t, 30, map.get(img[30])); n++; }
+  }
+  return n;
+}
+async function remapSessions(pack, kind, map, ctx = {}) {   // -> the sessions rewritten
+  const all = [...(await sessionsOf(pack)).values()], out = [];
+  for (let i = 0; i < all.length; i++) {
+    const e = all[i], o = await openSession(pack, e.slot);
+    if (remapSession(o.bytes, kind, map)) { o.dirty = true; await Patterns.flush({pack, sess: e.slot}, ctx); out.push(e.slot); }
+    if (ctx.progress) ctx.progress(e.file, i + 1, all.length);
+  }
+  pack._usage = null;
+  return out;
+}
+const ORDER_KIND = {nova: Nova, drums: Drums, custom: Custom};
+async function reorder(kind, pl, from, to, ctx = {}) {      // -> the sessions rewritten
+  const K = ORDER_KIND[kind];
+  if (!K) throw new Error("order-kind");
+  if (to < 0 || to >= K.size) throw new Error("order-range");
+  if (from === to) return [];
+  const items = await K.list(pl);
+  if (items[from].empty) throw new Error("name-none");
+  const swap = !items[to].empty;
+  if (kind === "drums") {
+    const d = await subdir(pl.pack.dir, "PCM"), m = await samplesOf(pl.pack), a = m.get(from), b = m.get(to), parts = [pl.pack.folder, "PCM"];
+    const tmp = items.findIndex((x, i) => x.empty && i !== to && i !== from);
+    if (swap && tmp < 0) await transfer(K, pl, [from], pl, [to], {move: true, swap: true}, ctx);    // 64 samples: no free number to pass through
+    else {                                                  // renames only: the device moves no data, the PC the least
+      const re = (f, n) => pad2(n) + f.slice(2);
+      if (swap) await renameFile(d, b.file, re(b.file, tmp), ctx, parts);
+      await renameFile(d, a.file, re(a.file, to), ctx, parts);
+      if (swap) await renameFile(d, re(b.file, tmp), re(b.file, from), ctx, parts);
+    }
+    pl.pack._samples = null; pl.pack._info = null;
+  } else await transfer(K, pl, [from], pl, [to], {move: true, swap}, ctx);
+  if (kind === "custom") return [];
+  return remapSessions(pl.pack, kind, new Map([[from, to], [to, from]]), ctx);     // both ways even to a free number: a project that pointed at it (silence) still does
+}
+async function slotPack(pack, slot, ctx = {}) {             // a pack to a free number of its card
+  const card = pack.card;
+  if (card.pack(slot)) throw new Error("slot-used");
+  if (!card.tracks.renameEntry && await renameHandle(pack.dir, folderName(slot, pack.name))) { await card.reset(); return card.pack(slot); }
+  return movePack(pack, card, slot, ctx);
+}
+async function reorderPack(pack, to, ctx = {}) {            // an occupied number: the two swap, through a free one
+  const card = pack.card, from = pack.slot;
+  if (to < 0 || to >= NPACKS) throw new Error("order-range");
+  if (to === from) return pack;
+  if (!card.pack(to)) return slotPack(pack, to, ctx);
+  let tmp = -1; for (let i = NPACKS - 1; i >= 0; i--) if (!card.pack(i)) { tmp = i; break; }
+  if (tmp < 0) throw new Error("order-full");
+  await slotPack(card.pack(to), tmp, ctx);
+  await slotPack(card.pack(from), to, ctx);
+  await slotPack(card.pack(tmp), from, ctx);
+  return card.pack(to);
+}
+
 // ---------------------------------------------------------------- the 8 CC presets: 120 B each; + 4 the name (32 B), + 0x28 8 records: type, channel, flags (bit 0 the track's channel, bit 1 bipolar), 0, u16 number, u16 bottom, u16 top
 const ccName = t => latin(t, 4, 32).replace(/\0.*$/, "");
 function ccSetName(t, s) { t.fill(0, 4, 36); [...String(s).replace(/[^ -~]/g, "_").slice(0, 32)].forEach((c, i) => { t[4 + i] = c.charCodeAt(0); }); }
@@ -705,6 +870,7 @@ const CC = {
   async get(pl, n) { return pl.set.bytes.slice(TPL * n, TPL * (n + 1)); },
   async put(pl, n, t) { pl.set.bytes.set(t, TPL * n); pl.set.dirty = true; },
   async clear(pl, n) { pl.set.bytes.set(ccDefault().subarray(0, TPL), TPL * n); pl.set.dirty = true; },
+  async setName(pl, n, name) { name = checkName("cc", name); const t = pl.set.bytes.subarray(TPL * n, TPL * (n + 1)); ccSetName(t, name); pl.set.dirty = true; },
 };
 
 // ---------------------------------------------------------------- the device over USB: the stock file protocol, F0 00 20 29 01 64 03 CMD ... (docs/NOTAS.md)
@@ -1071,7 +1237,7 @@ async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
 }
 
 return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
-  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
+  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
   Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
   patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
 })();
@@ -1139,6 +1305,12 @@ const errText = e => ({"no-packs": T("En esa carpeta no hay packs (NN_Nombre con
   "device-read": T("Lo leído no coincide con la suma del aparato.", "What was read does not match the device's checksum."),
   "device-name": T("Ese nombre no vale para el aparato (hasta 31 caracteres ASCII, con el número).", "That name is not valid for the device (up to 31 ASCII characters, number included)."),
   "device-cc": T("El aparato ha rechazado el preset.", "The device refused the preset."),
+  "name-chars-file": T("Solo letras, números, espacios y signos ASCII; sin \\ / : * ? \" < > |.", "Only ASCII letters, digits, spaces and signs; no \\ / : * ? \" < > |."),
+  "name-chars": T("Solo letras, números, espacios y signos ASCII (sin acentos ni ñ).", "Only ASCII letters, digits, spaces and signs (no accents)."),
+  "name-end": T("El nombre no puede acabar en espacio ni en punto: la tarjeta lo quitaría.", "The name cannot end in a space or a dot: the card would drop it."),
+  "name-long": T("Demasiado largo.", "Too long."), "name-empty": T("Falta el nombre.", "The name is missing."),
+  "name-none": T("Ese hueco está vacío.", "That slot is empty."), "order-full": T("No queda ningún número de pack libre para el intercambio.", "No free pack number is left for the swap."),
+  "order-range": T("Ese número no existe.", "That number does not exist."), "order-kind": T("Aquí no se cambia el orden.", "No new order here."), "name-taken": T("Ya hay una carpeta con ese nombre.", "A folder already has that name."),
   "device-status-1": T("El aparato está ocupado con otra transferencia.", "The device is busy with another transfer."),
   "device-status-3": T("La operación ha fallado en el aparato.", "The operation failed on the device."),
   "device-status-4": T("La suma no coincide tras escribir: el fichero del aparato no es bueno. Vuelve a enviarlo.", "The checksum does not match after writing: the file on the device is bad. Send it again."),
@@ -1337,7 +1509,7 @@ function headHtml(p) {
   if (p.issues.length) s += `<div class="prow warn"><button type="button" data-act="issues">⚠ ${p.issues.length} ${T("ficheros que pueden tapar a los del pack", "files that can hide the pack's own")}</button></div>`;
   const canEdit = tab === "custom" || tab === "patterns" || tab === "cc";
   s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? side + " " : ""}${T("Copiar", "Copy")}${p.i ? "" : " " + side}</button><button type="button" data-act="move">${p.i ? side + " " : ""}${T("Mover", "Move")}${p.i ? "" : " " + side}</button>` +
-       `<button type="button" data-act="export">${T("Exportar…", "Export…")}</button><button type="button" class="dng" data-act="del">${T("Eliminar", "Delete")}</button>${canEdit ? `<button type="button" data-act="edit">${T("Editar", "Edit")}</button>` : ""}<span class="hint" data-hint></span></div>`;
+       `<button type="button" data-act="export">${T("Exportar…", "Export…")}</button><button type="button" class="dng" data-act="del">${T("Eliminar", "Delete")}</button>${SD.NAME_RULE[tab] ? `<button type="button" data-act="rename">${T("Renombrar / orden…", "Rename / order…")}</button>` : ""}${canEdit ? `<button type="button" data-act="edit">${T("Editar", "Edit")}</button>` : ""}<span class="hint" data-hint></span></div>`;
   return s;
 }
 async function loadItems(p) {
@@ -1542,6 +1714,61 @@ async function deleteAct(p) {
     const K = KIND[tab];
     for (let i = 0; i < from.length; i++) { await K.clear(pl, from[i], ctx); ctx.progress("", i + 1, from.length); }
     if (K.flush) await K.flush(pl, ctx);
+  });
+}
+
+// ---- rename and new order: one row.  A new name changes only the name; a new number moves it (an occupied one swaps) and the projects of the pack follow
+async function renameAct(p) {
+  const tab = state.tab, from = selected(p), R = SD.NAME_RULE[tab];
+  if (from.length !== 1) return say(T("Una sola fila", "One row only"), T("Elige una sola fila con contenido.", "Choose a single row with content."));
+  const n = from[0], it = p.items[n], pack = tab === "packs" ? p.card.pack(n) : null, order = tab !== "cc", size = pack ? SD.NPACKS : p.items.length;
+  const cur = pack ? pack.name : it.name || "";
+  const rule = R.file ? T(`Hasta ${R.max} caracteres ASCII, sin \\ / : * ? " < > | ni espacio o punto al final.`, `Up to ${R.max} ASCII characters, no \\ / : * ? " < > | and no space or dot at the end.`)
+                      : T(`Hasta ${R.max} caracteres ASCII (sin acentos ni ñ).`, `Up to ${R.max} ASCII characters (no accents).`);
+  const num = order ? `<p><label>${T("Número", "Number")} <input type="number" data-rnum min="0" max="${size - 1}" value="${n}" style="width:5em"></label> <span class="dim" data-rinfo></span></p>` : "";
+  const pr = ask(T("Renombrar", "Rename"), `<p>${esc(pack ? pack.folder : itemName(tab, it))}</p><p><input type="text" data-rn maxlength="${R.max}" spellcheck="false" style="width:100%" value="${esc(cur)}"></p><p class="dim">${rule}</p>${num}`,
+    [[T("Aplicar", "Apply"), true, "pri"], [T("Cancelar", "Cancel"), false]]);
+  const D = $("dlg"), inp = D.querySelector("[data-rn]"), nin = D.querySelector("[data-rnum]"), info = D.querySelector("[data-rinfo]"), go = D.querySelector('[data-i="0"]');
+  const target = () => nin ? Number(nin.value) : n;
+  const check = () => {
+    let ok = true; try { SD.checkName(tab, inp.value); inp.title = ""; } catch (e) { ok = false; inp.title = errText(e); }
+    inp.classList.toggle("badin", !ok);
+    if (nin) {
+      const t = target(), good = Number.isInteger(t) && t >= 0 && t < size;
+      nin.classList.toggle("badin", !good); ok = ok && good;
+      const other = good && t !== n ? (pack ? p.card.pack(t) : p.items[t] && !p.items[t].empty ? p.items[t] : null) : null;
+      info.textContent = !good ? T(`de 0 a ${size - 1}`, `0 to ${size - 1}`) : t === n ? "" : other ? T(`se intercambia con ${pack ? other.folder : itemName(tab, other)}`, `swaps with ${pack ? other.folder : itemName(tab, other)}`) : T("hueco libre", "free slot");
+      if (good && t !== n && (tab === "nova" || tab === "drums")) info.textContent += T(" · los proyectos del pack se actualizan", " · the pack's projects are updated");
+    }
+    go.disabled = !ok;
+  };
+  for (const x of [inp, nin].filter(Boolean)) { x.oninput = check; x.onkeydown = e => { if (e.key === "Enter" && !go.disabled) go.click(); }; }
+  inp.focus(); inp.select(); check();
+  if (!await pr) return;
+  let name; try { name = SD.checkName(tab, inp.value); } catch (e) { return say(T("Ese nombre no vale", "That name is not valid"), esc(errText(e))); }
+  const to = target();
+  if (!Number.isInteger(to) || to < 0 || to >= size) return say(T("Ese número no vale", "That number is not valid"), T(`De 0 a ${size - 1}.`, `0 to ${size - 1}.`));
+  if (name === cur && to === n) return;
+  if (tab === "cc") { await SD.CC.setName(p.place(), n, name); return renderAll(); }
+  if (pack) {
+    const dv = p.card.device, other = to !== n ? p.card.pack(to) : null;
+    if (dv && [pack, other].some(x => x && dv.loaded === x.slot + 1)) return say(T("Es el pack cargado", "It is the loaded pack"), T("No renombres ni muevas por USB el pack que el aparato tiene cargado: el aparato recargaría el proyecto y perderías lo no guardado. Carga otro antes.", "Do not rename or move over USB the pack the device has loaded: the device would reload the project and unsaved edits would be lost. Load another one first."));
+    if (!await ready(p.card)) return;
+    p.sel.clear();
+    await run(`${T("Renombrar", "Rename")} ${pack.folder}`, async ctx => {
+      let q = await SD.reorderPack(pack, to, ctx);
+      if (name !== cur) q = await SD.renamePack(q, name, ctx);
+      if (q) p.sel.add(q.slot);
+    });
+    return;
+  }
+  const pl = p.place();
+  if (!await ready(pl.pack.card) || !await loadedOK(pl.pack)) return;
+  if (to !== n) p.sel.clear();
+  await run(`${T("Renombrar", "Rename")} ${itemName(tab, it)}`, async ctx => {
+    if (to !== n) { const done = await SD.reorder(tab, pl, n, to, ctx); if (done.length) log(T(`Proyectos actualizados: ${done.map(SD.pad2).join(", ")}`, `Projects updated: ${done.map(SD.pad2).join(", ")}`)); }
+    if (name !== cur) await KIND[tab].setName(pl, to, name, ctx);
+    p.sel.add(to);
   });
 }
 
@@ -2024,6 +2251,7 @@ for (const p of panes) {
     if (act === "copy") return transferAct(p, false);
     if (act === "move") return transferAct(p, true);
     if (act === "del") return deleteAct(p);
+    if (act === "rename") return renameAct(p);
     if (act === "export") return exportAct(p);
     if (act === "edit") return editAct(p);
     if (act === "ccopen") return ccOpen(p);
