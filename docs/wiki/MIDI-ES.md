@@ -17,7 +17,7 @@ Synth 1 = canal 1, Synth 2 = canal 2, drums = canal 10, proyecto y Master FX = c
 | **Teclado externo en MIDI 1 / 2** *(desde RC2)* | Las notas que entran por el canal de MIDI 1 / 2 (USB o DIN) tocan su sinte propio y se graban; no se reenvían a la salida. |
 | **Teclado externo al arpegiador** *(desde RC4)* | Setup, botón Note: las notas que entran por el canal de Synth 1 / 2 o MIDI 1 / 2 pasan por su arpegiador. |
 | **Patch flip** | Vista Preset de MIDI 1 / 2, pad 26: cada nota de la pista sale como Program Change por el canal de la pista. |
-| **Secuenciador de saltos** *(solo Beta 5.6)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. El pad 27 parpadea. Apuntar apaga el motor y encender un motor deja de apuntar. |
+| **Secuenciador de saltos** *(solo Beta 5.12)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. El pad 27 parpadea. Apuntar apaga el motor y encender un motor deja de apuntar. |
 | **Program Change del proyecto** *(desde RC2)* | Setup, pads 29 / 30: canal de escucha y canal de salida (16 de fábrica); lo recibido en el de escucha se reenvía por el de salida. |
 | **MIDI Thru: Merge y Filter** | Advanced Setup, Duplicate: Thru (hardware), Out 2, Merge (DIN In + el MIDI del aparato), Filter (DIN In sin los canales del aparato). Sin SysEx. |
 | **Fusión USB** *(desde RC4)* | Advanced Setup, pad 23: lo que entra por el DIN In sale también por USB (sin el reloj con Clock Tx, sin SysEx). |

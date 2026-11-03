@@ -227,7 +227,9 @@ $("ver").onchange = () => { updateAck(true); prepare(); updateSend(); };
 // ---------- new builds: the public pages' list; only what passes these checks reaches the page, and the patched image still has to match its SHA-256
 const PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/";
 const getJson = async f => { const r = await fetch(PAGES + "builds/" + f, { cache: "no-store" }); if (!r.ok) throw Error(r.status); return r.json(); };
-const okPatch = P => P && Array.isArray(P.ops) && (!P.dz || Array.isArray(P.dz) && Array.isArray(P.post)) && /^[0-9a-f]{64}$/.test(P.image_sha256) && /^[0-9a-f]{64}$/.test(P.syx_sha256);
+// a version with packed DSP programs comes with its ops as zops (publish_rc): an installer older than Beta 5.11, which cannot pack them, rejects it and
+// says to download the new installer (before, it built the image and failed on its SHA-256)
+const okPatch = P => { if (P && !P.ops && Array.isArray(P.zops)) P.ops = P.zops; return P && Array.isArray(P.ops) && (!P.dz || Array.isArray(P.dz) && Array.isArray(P.post)) && /^[0-9a-f]{64}$/.test(P.image_sha256) && /^[0-9a-f]{64}$/.test(P.syx_sha256); };
 $("chk").onclick = async ev => {
   ev.preventDefault(); const say = m => { $("chkInfo").textContent = m; }; say(t("buscando…", "checking…"));
   try {

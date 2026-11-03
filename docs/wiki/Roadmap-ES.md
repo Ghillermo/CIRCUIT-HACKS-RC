@@ -2,20 +2,21 @@
 
 *[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Cambios](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Actualizada el 2026-11-02. Versiones actuales: **RC4.05 / RC4.05S** (arreglos) y la **Beta 5.6** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
+Actualizada el 2026-11-03. Versiones actuales: **RC4.07 / RC4.07S** (arreglos) y la **Beta 5.12** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
 
 El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantidad**: que lo que ya existe suene mejor, sea más fácil de usar, sea sólido y esté bien documentado. Las funciones nuevas grandes esperan hasta entonces.
 
 ## En marcha
 
-- **Interfaz nueva del random-mutate** (Beta 5.4): una botonera por paso para la nota, la octava, las dinámicas y los micropasos, y un factor en Octave para toda la pista, en notas y drums.
+- **Interfaz nueva del random-mutate** (Beta 5.4; dinámicas rehechas en la Beta 5.12): una botonera por paso para la nota, la octava, las dinámicas (ghost, accent staccato, longitud; en los drums más suave con roller o más fuerte) y los micropasos, y un factor en Octave (×0, ×1, ×2, ×4, ×8) para toda la pista, en notas y drums.
+- **Solo y solo flip en el Mixer** (Beta 5.12, por probar en el aparato): pad 16 + pistas = un solo que se queda hasta un toque al pad 16; un toque sin solo = flip, donde las pistas que mantienes suenan solas hasta que las sueltas.
 - **Vista de automatización de los drums** (Beta 5.0, por probar en el aparato): la vista Velocity con Shift de un drum funciona como en las pistas de sinte: los pasos con automatización en amarillo, Shift + un paso amarillo = escuchar sus valores, Shift + otro paso = una marca donde los knobs del drum vuelven a los valores del proyecto, Clear + paso = borrar su automatización; además el carril extra de automatización de los drums, los bloqueos de estado y las rampas.
 - **Parejas estéreo de drums** (Betas 3.36 / 3.37, por probar en el aparato): mantén Drum 1 y pulsa Drum 2 (o Drum 3 + Drum 4). Drum 1 / 3 toca su sample a la izquierda y Drum 2 / 4 el sample siguiente a la derecha, los dos con los controles y el patrón de Drum 1 / 3. Los knobs de Drum 2 / 4 ajustan la apertura estéreo, la desafinación y pequeñas desviaciones. Se guarda con el proyecto; el mismo gesto vuelve a dos drums separados.
 
 ## Ahora
 
 ### 1. Mejorar las funciones de sonido que ya existen
-- **Hacer sitio para las mejoras.** Al motor de sonido le queda poco espacio, así que lo primero es ordenar lo que hay para dejar sitio a las mejoras de abajo.
+- **Hacer sitio para las mejoras.** Desde la Beta 5.11 los programas del motor de sonido van comprimidos, lo que deja unos 22 KB de memoria del firmware para funciones nuevas; al motor de sonido en sí le queda poco espacio, así que lo primero es ordenar lo que hay.
 - **Filtro más suave con envolventes rápidas.** Los barridos rápidos del filtro del sinte de MIDI 1 / 2 pueden dejar un leve zumbido escalonado: que sean suaves.
 - **Wavefold más brillante y limpio en los agudos.** Desde la Beta 3.35 el pliegue se suaviza en las notas agudas para evitar tonos ásperos; otro método conservaría el brillo sin ellos.
 - **Conocer los límites reales.** Probar en el aparato las combinaciones más pesadas (dos pistas polifónicas con supersaw, todos los drums, Master FX) y fijar con eso el número de voces.

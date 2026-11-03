@@ -23,8 +23,8 @@ Every track has 8 patterns per project. What is in a pattern travels with it (Du
 | **FX sequencer values** | MIDI 1 / 2 | [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer) |
 | **Sample-mode sample flips** (in the track's level lane) *(since RC2)* | MIDI 1 / 2 | [Sample picker](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-muestra) |
 | **Drum chromatic steps** (in the drum's pitch lane) *(since RC2)* | drums | [Chromatic view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-cromatica) with Record |
-| *(Beta 5.6 only)* **The drums' extra lane** (the chromatic pitch or the assigned knob; in each step's spare bits; code 126 = the automation view's **mark**) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) with Record; the automation view |
-| *(Beta 5.6 only)* **The drums' states and ramps** (state locks: in the same bits, the state's number or «ramp»; the states, in the project) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) with Record; the automation view |
+| *(Beta 5.12 only)* **The drums' extra lane** (the chromatic pitch or the assigned knob; in each step's spare bits; code 126 = the automation view's **mark**) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) with Record; the automation view |
+| *(Beta 5.12 only)* **The drums' states and ramps** (state locks: in the same bits, the state's number or «ramp»; the states, in the project) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) with Record; the automation view |
 | Hits of the **rollers** and of the **drum arpeggio** | drums | With Record, as normal hits |
 | *(since RC4)* The **copy of the own synth** of MIDI 1 / 2 (in the settings of patterns 1-5, without changing what they play) | MIDI 1 / 2 | On its own, when the project is saved |
 
@@ -60,10 +60,10 @@ Five places: the **pattern**, the **project** (both when the project is saved), 
 | **Custom scale** and *(since RC4)* **Jankó** | [Scales](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#escalas) |
 | MIDI 1 / 2 own synth: **gate retrigger**, **LFO shape**, the step-drummer's pitch-vel toggle and page 2 destination | [Knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs), [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer) |
 | *(since RC4)* **Stereo drum pairs**: on, distance, width and deviations | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) |
-| *(Beta 5.6 only)* **The random-mutate factor** of each track and each drum's **micro steps** (mode 2) | [Probability view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad) |
-| *(Beta 5.6 only)* **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) |
-| *(Beta 5.6 only)* **What each drum's extra lane carries** (lane or state locks) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) |
-| *(Beta 5.6 only)* **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) |
+| *(Beta 5.12 only)* **The random-mutate factor** of each track and each drum's **micro steps** (mode 2) | [Probability view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad) |
+| *(Beta 5.12 only)* **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) |
+| *(Beta 5.12 only)* **What each drum's extra lane carries** (lane or state locks) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) |
+| *(Beta 5.12 only)* **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista) |
 | *(since RC4)* **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and *(since RC4)* non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was) | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) |
 
 ### The pack (written to the card when you do the gesture)

@@ -21,5 +21,5 @@
 
 - [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) · [Guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)
 - [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog)
-- [Download](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)
+- [Download](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip) · [older versions](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)
 - [Circuit Remix (Rhythm)](https://github.com/Ghillermo/CIRCUIT-REMIX)

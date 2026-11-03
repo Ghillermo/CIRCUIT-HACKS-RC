@@ -2,20 +2,21 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-11-02. Current versions: **RC4.05 / RC4.05S** (fixes) and **Beta 5.6** (new features; the betas that extend RC4 are numbered 5.x).
+Updated 2026-11-03. Current versions: **RC4.07 / RC4.07S** (fixes) and **Beta 5.12** (new features; the betas that extend RC4 are numbered 5.x).
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 
 ## In progress
 
-- **New random-mutate interface** (Beta 5.4): one set of pads per step for the note, the octave, the dynamics and the micro steps, a factor on Octave for the whole track, on notes and drums.
+- **New random-mutate interface** (Beta 5.4; dynamics redone in Beta 5.12): one set of pads per step for the note, the octave, the dynamics (ghost, accent staccato, length; on the drums softer with a roller or louder) and the micro steps, a factor on Octave (×0, ×1, ×2, ×4, ×8) for the whole track, on notes and drums.
+- **Solo and solo flip in the Mixer** (Beta 5.12, to be tested on the device): pad 16 + tracks = a solo that stays until pad 16 is tapped; a tap with no solo = flip, where the tracks you hold sound alone until you let go.
 - **The drums' automation view** (Beta 5.0, to be tested on the device): a drum's Velocity view with Shift works as on the synth tracks: the steps with automation yellow, Shift + a yellow step = hear its values, Shift + another step = a mark where the drum's knobs go back to the project's values, Clear + step = erase its automation; also the drums' extra automation lane, state locks and ramps.
 - **Stereo drum pairs** (Beta 3.36 / 3.37, to be tested on the device): hold Drum 1 and press Drum 2 (or Drum 3 + Drum 4). Drum 1 / 3 plays its sample on the left and Drum 2 / 4 plays the next sample on the right, both driven by Drum 1 / 3's controls and pattern. Drum 2 / 4's knobs set the pan spread, the detune and small deviations. Saved with the project; the same gesture goes back to two separate drums.
 
 ## Now
 
 ### 1. Improve the existing sound functions
-- **Make room for improvements.** The sound engine has little space left, so the first step is tidying what is there to make room for the improvements below.
+- **Make room for improvements.** Since Beta 5.11 the sound engine's programs are stored compressed, which frees about 22 KB of firmware memory for new features; the sound engine itself still has little room, so tidying what is there comes first.
 - **Smoother filter on fast envelopes.** Fast filter sweeps of the MIDI 1 / 2 synth can leave a faint zipper noise: make them smooth.
 - **Brighter, cleaner wavefold on high notes.** Since Beta 3.35 the fold is softened on high notes to avoid harsh tones; a better method would keep the brightness without them.
 - **Know the real limits.** Try the heaviest combinations on the device (two polyphonic tracks with supersaw, all drums, Master FX) and set the number of voices from the result.

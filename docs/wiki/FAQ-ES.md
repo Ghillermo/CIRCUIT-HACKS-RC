@@ -13,9 +13,9 @@ Un conjunto de parches para el firmware oficial 1.2.1 (build 4486) del **Novatio
 El bootloader de Novation no se toca nunca: siempre se puede enviar otra vez el firmware oficial. Si el aparato no arranca, mantén **Scales + Preset + Note** al encenderlo: es el modo bootloader de Novation, y desde ahí se puede enviar cualquier firmware. **Haz una copia de la tarjeta SD antes de instalar** cualquier versión. Ver [Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#instalar).
 
 **3. RC, RC «S» o Beta: ¿cuál instalo?**
-- **RC** (versión candidata, ahora RC4): las funciones probadas en conjunto.
-- **RC S** (RC4S): lo mismo, pero el mod nunca escribe ficheros propios en la tarjeta SD (sin guardar patches propios, samples ni copias entre packs). La opción más segura.
-- **Beta** (ahora ninguna: todo lo de las betas está en RC4; la siguiente beta llevará las funciones nuevas): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
+- **RC** (versión candidata, ahora RC4.07): las funciones probadas en conjunto.
+- **RC S** (RC4.07S): lo mismo, pero el mod nunca escribe ficheros propios en la tarjeta SD (sin guardar patches propios, samples ni copias entre packs). La opción más segura.
+- **Beta** (ahora la Beta 5.12, sin probar en el aparato): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
 
 **4. ¿Funciona en el Circuit original o en el Circuit Rhythm?**
 No: CIRCUIT-HACKS es solo para el **Circuit Tracks** (firmware 1.2.1, build 4486). Para el **Circuit Rhythm** hay un proyecto aparte, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), que lleva estas funciones y añade otras propias.
@@ -24,6 +24,8 @@ No: CIRCUIT-HACKS es solo para el **Circuit Tracks** (firmware 1.2.1, build 4486
 1. Descarga [`rc_uploader.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip), descomprímelo y abre `rc_uploader.html` en **Chrome o Edge** (admiten Web MIDI con SysEx).
 2. Descarga el firmware oficial 1.2.1 (build 4486) de [Novation Components](https://components.novationmusic.com/api/v2/firmwares/168/file) y cárgalo en la página.
 3. Conecta el Circuit Tracks por USB, elige la versión y envía.
+
+El instalador lleva la última RC y las betas posteriores; las versiones anteriores están en el [instalador antiguo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip) (`rc_uploader_old.zip`), que se usa igual.
 
 **6. El instalador no encuentra el aparato o rechaza el fichero.**
 Usa Chrome o Edge y permite el acceso a MIDI / SysEx cuando lo pida el navegador. Cierra cualquier programa que tenga el puerto MIDI abierto (Components, un DAW). El fichero tiene que ser exactamente el `.syx` oficial 1.2.1 build 4486: el instalador lo comprueba y rechaza cualquier otro.
