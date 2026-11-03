@@ -4615,6 +4615,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td><strong>Patterns</strong></td><td>The 64 patterns of a session: 8 per track</td><td>See, copy, move, clear, export; edit the note tracks</td></tr>
 <tr><td><strong>CC presets</strong></td><td>The MIDI tracks&#x27; 8 CC templates</td><td><strong>Read from device</strong>, change, <strong>Send to device</strong>; <strong>Open…</strong> and <strong>Save…</strong> as <code>.ctcc</code>; <strong>Factory</strong></td></tr>
 </tbody></table>
+<h4>Which projects use what</h4>
+<p>In <strong>Nova synths</strong>, <strong>Drums</strong> and <strong>Custom patches</strong>, before the name: <strong>● n</strong> = n projects of the pack use it; <strong>○</strong> = none. Hovering, or choosing a single row, shows the list: project and track. Deleting something in use, the app warns.</p>
+<ul>
+<li><strong>Nova synths:</strong> the patch Synth 1 / 2 points at in each project. The project carries its own copy, which is what a load plays; when it is no longer named like the slot, the list gives its name.</li>
+<li><strong>Drums:</strong> each drum&#x27;s sample, the sample flips of its steps and, with the MIDI 1 / 2 own synth, the sample of the granular or sample engine and its flips.</li>
+<li><strong>Custom patches:</strong> a project keeps no patch number. It counts when the own synth saved with the project sounds the same: same engine and same values, even with another name.</li>
+<li>With the device connected the list is not read by itself: press <strong>See which projects use them</strong> (it reads every session of the pack over USB).</li>
+</ul>
 <h4>Patterns</h4>
 <ul>
 <li>At the top you choose the pack and the session. The third selector filters: <strong>With content</strong>, <strong>All</strong> or one track.</li>

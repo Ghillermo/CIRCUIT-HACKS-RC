@@ -1430,6 +1430,13 @@ Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un 
 | **Patrones** | Los 64 patrones de una sesión: 8 por pista | Ver, copiar, mover, borrar, exportar; editar las pistas de notas |
 | **Presets CC** | Las 8 plantillas de CC de las pistas MIDI | **Leer del aparato**, cambiar, **Enviar al aparato**; **Abrir…** y **Guardar…** como `.ctcc`; **De fábrica** |
 
+### Qué proyectos usan cada cosa
+En **Sintes Nova**, **Drums** y **Parches custom**, antes del nombre: **● n** = lo usan n proyectos del pack; **○** = ninguno. Al pasar el ratón, o al elegir una sola fila, aparece la lista: proyecto y pista. Al eliminar algo en uso, la app lo avisa.
+- **Sintes Nova:** el patch al que apunta Synth 1 / 2 en cada proyecto. El proyecto lleva su propia copia, que es la que suena al cargarlo; si ya no se llama igual que el hueco, la lista da su nombre.
+- **Drums:** el sample de cada drum, los sample flips de sus pasos y, con el sinte propio de MIDI 1 / 2, el sample del granular o del modo muestra y sus flips.
+- **Parches custom:** un proyecto no guarda el número del parche. Cuenta cuando el sinte propio guardado con el proyecto suena igual: mismo motor y mismos valores, aunque el nombre cambie.
+- Con el aparato conectado, la lista no se lee sola: pulsa **Ver qué proyectos los usan** (lee todas las sesiones del pack por USB).
+
 ### Patrones
 - Arriba eliges el pack y la sesión. El tercer selector filtra: **Con contenido**, **Todas** o una pista.
 - Cada fila dice pista y patrón (`Synth 1·3`), lo que contiene y sus pasos, con una cuadrícula de sus notas. Con el aparato conectado, también el **canal** de la pista; el canal se guarda en el aparato, no en la sesión.

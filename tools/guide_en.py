@@ -924,6 +924,13 @@ Each column opens a folder, a card or the device, with its own pack. A click cho
 | **Patterns** | The 64 patterns of a session: 8 per track | See, copy, move, clear, export; edit the note tracks |
 | **CC presets** | The MIDI tracks' 8 CC templates | **Read from device**, change, **Send to device**; **Open…** and **Save…** as `.ctcc`; **Factory** |
 
+### Which projects use what
+In **Nova synths**, **Drums** and **Custom patches**, before the name: **● n** = n projects of the pack use it; **○** = none. Hovering, or choosing a single row, shows the list: project and track. Deleting something in use, the app warns.
+- **Nova synths:** the patch Synth 1 / 2 points at in each project. The project carries its own copy, which is what a load plays; when it is no longer named like the slot, the list gives its name.
+- **Drums:** each drum's sample, the sample flips of its steps and, with the MIDI 1 / 2 own synth, the sample of the granular or sample engine and its flips.
+- **Custom patches:** a project keeps no patch number. It counts when the own synth saved with the project sounds the same: same engine and same values, even with another name.
+- With the device connected the list is not read by itself: press **See which projects use them** (it reads every session of the pack over USB).
+
 ### Patterns
 - At the top you choose the pack and the session. The third selector filters: **With content**, **All** or one track.
 - Each row gives the track and pattern (`Synth 1·3`), what it holds and its steps, with a grid of its notes. With the device connected, also the track's **channel**; the channel is kept on the device, not in the session.

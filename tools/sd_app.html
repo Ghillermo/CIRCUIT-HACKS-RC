@@ -54,6 +54,12 @@
   canvas.wave { width:100%; height:44px; display:block; background:#0f1114; border-top:1px solid var(--line); }
   .row canvas.mini { vertical-align:middle; margin-right:8px; }
   .plist .row { grid-template-columns:34px 78px minmax(0,1fr) minmax(0,auto) 30px; }
+  .use { display:inline-block; min-width:30px; margin-right:6px; font-size:.78rem; font-weight:600; color:var(--ok); }
+  .use.free { color:#5c626d; font-weight:400; }
+  .use.ghost { color:var(--warn); }
+  .usebox { border-top:1px solid var(--line); padding:4px 10px; font-size:.82rem; color:var(--dim); max-height:7.5em; overflow:auto; }
+  .usebox[hidden] { display:none; }
+  .usebox b { color:var(--ink); font-weight:600; }
   .pvw { border-top:1px solid var(--line); }
   .pvw[hidden] { display:none; }
   .pvw .cap { padding:4px 10px; font-size:.82rem; color:var(--dim); }
@@ -205,7 +211,7 @@ class Backup {
 // ---------------------------------------------------------------- the card
 class Pack {
   constructor(card, slot, name, folder, dir) { this.card = card; this.slot = slot; this.name = name; this.folder = folder; this.dir = dir; this.drop(); }
-  drop() { this._banks = null; this._samples = null; this._sessions = null; this._open = new Map(); this._info = null; }
+  drop() { this._banks = null; this._samples = null; this._sessions = null; this._open = new Map(); this._info = null; this._usage = null; }
 }
 class Card {
   constructor(root, tracks) { this.root = root; this.tracks = tracks; this.packs = []; }
@@ -598,6 +604,78 @@ const Patterns = {
   },
   discard(pl) { pl.pack._open.delete(pl.sess); },
 };
+
+/* ---------------------------------------------------------------- what the projects of a pack use (checked on the 173 sessions of a card copy)
+  * Synth 1 / 2: the slot the project points at, bytes 0x0CD64 / 0x0CD6C (0..127); the project carries its own copy of the patch (0x26D14 + 0x154 s),
+    which a load brings back: its name differs from the slot's when the patch was edited or the pack's slot changed since (29 of 346 outside the
+    Shadow Child pack, which was rearranged);
+  * the drums: the sample of each drum, byte 0 of its 11 at 0x26FBC (all 692 in the packs' range); the sample flips of the drum patterns (+ 64 + step,
+    0xFF none; a flip on a step without a hit counted too: the step can get one);
+  * the own synth of MIDI 1 / 2 (projsyn, SC46 on): its patch in bytes 8..39 of the settings of the track's patterns 0..4; it uses a sample (code 25,
+    0..63) in the granular or sample engine; its sample flips are 0x80 | s in lane 8 of MIDI 1 / 2's patterns (smpick).  A project keeps no slot
+    number for it: a custom patch counts as used when the project's sound is the same (the flags, the step-drummer, the 34 values and, when both have
+    it, the FM block; not the name). */
+function projSynth(b, t) {                                  // projsyn's patch of MIDI 1 / 2 (t = 0 / 1): the padding's first 124 bytes, or null
+  const img = new Uint8Array(150);
+  for (let k = 0; k < 5; k++) {
+    const o = MIDI0 + PAT * (8 * t + k) + SETT + 8;
+    if (b[o] !== 0xC6 || b[o + 1] !== (t << 4 | k)) return null;
+    img.set(b.subarray(o + 2, o + 32), 30 * k);
+  }
+  let s = 0x5AC6; for (let i = 0; i < 124; i++) s += img[i];
+  return (s & 0xFFFF) === (img[124] | img[125] << 8) && latin(img, 0, 4) === "CTM1" ? img.subarray(0, 124) : null;
+}
+const sameSound = (a, b) => { for (let i = 4; i < 40; i++) if (a[i] !== b[i]) return false; const f = fmGet(a), g = fmGet(b); return !f || !g || (f.on === g.on && f.params.every((v, i) => v === g.params[i])); };
+function sessionUses(b) {                                   // -> [{kind, slot, track, flip, copy}] or, for the own synth, {kind: "own", track, img}
+  const out = [];
+  for (let s = 0; s < 2; s++) {
+    const n = b[SYNTH0 + 16 * PAT + 8 * s];                 // 0x0CD64 + 8 s: right after Synth 2's patterns
+    if (n < SLOTS) out.push({kind: "nova", slot: n, track: s, copy: latin(b, 0x26D14 + 0x154 * s, 16)});
+  }
+  for (let d = 0; d < 4; d++) {
+    const n = b[0x26FBC + 11 * d], flips = new Set();
+    if (n < NSAMPLES) out.push({kind: "drums", slot: n, track: 4 + d});
+    for (let p = 0; p < 8; p++) { const o = DRUM0 + DPAT * (8 * d + p) + 64; for (let st = 0; st < NSTEPS; st++) if (b[o + st] < NSAMPLES) flips.add(b[o + st]); }
+    for (const f of flips) out.push({kind: "drums", slot: f, track: 4 + d, flip: true});
+  }
+  for (let t = 0; t < 2; t++) {
+    const img = projSynth(b, t);
+    if (img) {
+      out.push({kind: "own", track: 2 + t, img});
+      const e = img[4] & 15, v = img[30];
+      if ((e === 9 || e === 11) && v < NSAMPLES) out.push({kind: "drums", slot: v, track: 2 + t});
+    }
+    const flips = new Set();
+    for (let p = 0; p < 8; p++) { const o = MIDI0 + PAT * (8 * t + p) + LANE0 + 192 * 8; for (let i = 0; i < 192; i++) if (b[o + i] >= 0x80 && b[o + i] < 0x80 + NSAMPLES) flips.add(b[o + i] & 63); }
+    for (const f of flips) out.push({kind: "drums", slot: f, track: 2 + t, flip: true});
+  }
+  return out;
+}
+async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, custom}: Map slot -> [{sess, label, track, flip, copy}]
+  if (pack._usage) return pack._usage;
+  const m = await sessionsOf(pack), out = {nova: new Map(), drums: new Map(), custom: new Map()}, own = [];
+  const add = (kind, slot, u) => { const l = out[kind].get(slot) || []; if (!l.some(x => x.sess === u.sess && x.track === u.track && !!x.flip === !!u.flip)) l.push(u); out[kind].set(slot, l); };
+  let i = 0;
+  for (const e of m.values()) {
+    if (ctx.progress) ctx.progress(e.file, ++i, m.size);
+    const o = pack._open.get(e.slot), b = o ? o.orig : await readHandle(e.handle);
+    if (b.length !== SESS_SIZE || latin(b, 0, 4) !== "USER") continue;
+    const label = e.label || latin(b, 0x10, 32);
+    for (const u of sessionUses(b)) {
+      const r = {sess: e.slot, label, track: u.track, flip: !!u.flip, copy: u.copy};
+      if (u.kind === "own") own.push([u.img, r]); else add(u.kind, u.slot, r);
+    }
+  }
+  if (own.length) {
+    const banks = await banksOf(pack);
+    for (let n = 0; n < SLOTS; n++) {
+      const pad = recordOf(banks, n).pad;
+      if (ctmState(pad) !== "ok") continue;
+      for (const [img, r] of own) if (sameSound(pad, img)) add("custom", n, r);
+    }
+  }
+  return pack._usage = out;
+}
 
 // ---------------------------------------------------------------- the 8 CC presets: 120 B each; + 4 the name (32 B), + 0x28 8 records: type, channel, flags (bit 0 the track's channel, bit 1 bipolar), 0, u16 number, u16 bottom, u16 top
 const ccName = t => latin(t, 4, 32).replace(/\0.*$/, "");
@@ -995,7 +1073,7 @@ async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
 return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
   entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
   Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
-  patParse, patBuild, patEmpty, patMerge, patSummary, patOff, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
+  patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
 })();
 if (typeof window !== "undefined") window.SD = SD;
 </script>
@@ -1088,7 +1166,7 @@ function ask(title, html, buttons) {
 }
 const say = (title, html) => ask(title, html, [["OK", true, "pri"]]);
 const nameList = (names, max = 12) => `<ul>${names.slice(0, max).map(n => `<li>${esc(n)}</li>`).join("")}</ul>` + (names.length > max ? `<p class="dim">… ${T("y", "and")} ${names.length - max} ${T("más", "more")}</p>` : "");
-async function run(title, fn) {
+async function run(title, fn, keep = false) {
   if (state.busy) return;
   state.busy = true; const prog = $("prog"); prog.hidden = false; prog.removeAttribute("value");
   log(title + " …");
@@ -1110,7 +1188,11 @@ async function run(title, fn) {
   if (state.dev) state.dev.dev.meter = ctx.add;
   try { const before = ctx.backup ? ctx.backup.count : 0; await fn(ctx); log(title + ": " + T("hecho", "done") + (ctx.backup && ctx.backup.count > before ? ` (${ctx.backup.count - before} ${T("copias de seguridad", "backups")})` : ""), "ok"); }
   catch (e) { log(title + ": " + errText(e), "bad"); await say(T("No se ha podido", "It failed"), esc(errText(e))); }
-  finally { state.busy = false; prog.hidden = true; txt.hidden = true; if (state.dev) state.dev.dev.meter = null; await renderAll(); }
+  finally {
+    state.busy = false; prog.hidden = true; txt.hidden = true; if (state.dev) state.dev.dev.meter = null;
+    if (!keep) for (const q of panes) if (q.card) for (const x of q.card.packs) x._usage = null;     // a write may change what the projects use
+    await renderAll();
+  }
 }
 
 // ---- permissions and the backup folder
@@ -1200,9 +1282,43 @@ function cols(tab, it) {
     case "cc": return [String(it.slot + 1), where(tab, it.slot), it.recs.map(ccShort).join(" "), it.name];
   }
 }
+// ---- which projects of the pack use a sample, a Nova patch or a custom patch (SD.usageOf: every session read once, kept until something changes)
+const USED = new Set(["nova", "drums", "custom"]);
+const usesOf = (p, n) => { const u = p.pack && p.pack._usage; return u && u[state.tab] ? u[state.tab].get(n) || [] : null; };
+const useLine = (tab, it, u) => `${SD.pad2(u.sess)} ${u.label} (${TRACKS[u.track]}${u.flip ? ", flip" : ""}` +
+  (tab === "nova" && u.copy && u.copy !== it.name ? `; ${T("su copia es", "its copy is")} «${u.copy}»` : "") + ")";
+const useNote = tab => ({nova: T("El proyecto apunta a este hueco y lleva su propia copia del patch: es la que suena al cargarlo.", "The project points at this slot and carries its own copy of the patch: that copy is what a load plays."),
+  drums: T("El sample de un drum, un sample flip de sus pasos, o el sinte propio de MIDI 1 / 2 (granular, muestra, flips).", "A drum's sample, a sample flip of its steps, or the MIDI 1 / 2 own synth (granular, sample, flips)."),
+  custom: T("Un proyecto no guarda el número del parche custom: cuenta cuando el sinte propio guardado con el proyecto suena igual (motor y valores, no el nombre).", "A project keeps no custom patch number: it counts when the own synth saved with the project sounds the same (engine and values, not the name).")})[tab];
+function paintUse(p) {                                      // the badges, and the list of the selected row under the list
+  if (!USED.has(state.tab)) return;
+  for (const r of p.el.querySelectorAll(".row")) {
+    const b = r.querySelector("[data-use]"), it = p.items[+r.dataset.n], l = usesOf(p, +r.dataset.n);
+    if (!b || !it) continue;
+    const ss = l ? new Set(l.map(u => u.sess)).size : 0;
+    b.className = "use" + (!l || !ss ? " free" : it.empty ? " ghost" : "");
+    b.textContent = !l ? "" : ss ? "● " + ss : it.empty ? "" : "○";
+    b.title = !l ? "" : ss ? (it.empty ? T("Hueco vacío, pero lo usan:", "Empty slot, but used by:") : T("En uso en:", "In use in:")) + "\n" + l.map(u => useLine(state.tab, it, u)).join("\n") : T("Ningún proyecto del pack lo usa", "No project of the pack uses it");
+  }
+  const box = p.el.querySelector(".usebox");
+  if (!box) return;
+  const n = p.sel.size === 1 ? [...p.sel][0] : null, it = n === null ? null : p.items[n], l = n === null ? null : usesOf(p, n);
+  box.hidden = !it || !l || (it.empty && !l.length);
+  if (box.hidden) return;
+  box.innerHTML = !l.length ? T("Ningún proyecto del pack lo usa.", "No project of the pack uses it.") :
+    `<b>${T("En uso en", "In use in")} ${new Set(l.map(u => u.sess)).size} ${T("proyecto(s)", "project(s)")}:</b> ` + l.map(u => esc(useLine(state.tab, it, u))).join(" · ") + `<br><span class="dim">${esc(useNote(state.tab))}</span>`;
+}
+async function fillUsage(p, token, force) {                 // a folder: at once; the device (a whole session each over USB): on request
+  const pack = p.pack;
+  if (!USED.has(state.tab) || !pack || (pack.dir.device && !pack._usage && !force)) return;
+  if (!pack._usage) { try { await SD.usageOf(pack); } catch (e) { log(T("Uso en proyectos: ", "Use in projects: ") + errText(e), "bad"); return; } }
+  if (token !== p.token) return;
+  for (const q of panes) if (q.pack === pack) paintUse(q);
+}
 function rowHtml(tab, it) {
   const c = cols(tab, it), mini = tab === "patterns" && it.cells.length ? `<canvas class="mini" width="176" height="20" data-mini="${it.slot}"></canvas>` : "";
-  return `<div class="row${it.empty ? " empty" : ""}${it.bad ? " badrow" : ""}" data-n="${it.slot}"><span class="c0">${c[0]}</span><span class="c1">${c[1]}</span><span class="c2" title="${esc(c[2])}">${mini}${esc(c[2])}</span><span class="c3">${esc(c[3])}</span>` +
+  const use = USED.has(tab) ? `<span class="use" data-use></span>` : "";
+  return `<div class="row${it.empty ? " empty" : ""}${it.bad ? " badrow" : ""}" data-n="${it.slot}"><span class="c0">${c[0]}</span><span class="c1">${c[1]}</span><span class="c2" title="${esc(c[2])}">${use}${mini}${esc(c[2])}</span><span class="c3">${esc(c[3])}</span>` +
          (tab === "drums" && !it.empty ? `<button type="button" class="play" data-play="${it.slot}" title="${T("Escuchar", "Listen")}">▶</button>` : "<span></span>") + "</div>";
 }
 function headHtml(p) {
@@ -1217,6 +1333,7 @@ function headHtml(p) {
     s += "</div>";
   }
   if (tab === "drums" && pack) s += `<div class="prow dim" data-gauge></div>`;
+  if (USED.has(tab) && pack && pack.dir.device && !pack._usage) s += `<div class="prow"><button type="button" data-act="usage">${T("Ver qué proyectos los usan", "See which projects use them")}</button><span class="dim">${T("lee todas las sesiones del pack por USB", "reads every session of the pack over USB")}</span></div>`;
   if (p.issues.length) s += `<div class="prow warn"><button type="button" data-act="issues">⚠ ${p.issues.length} ${T("ficheros que pueden tapar a los del pack", "files that can hide the pack's own")}</button></div>`;
   const canEdit = tab === "custom" || tab === "patterns" || tab === "cc";
   s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? side + " " : ""}${T("Copiar", "Copy")}${p.i ? "" : " " + side}</button><button type="button" data-act="move">${p.i ? side + " " : ""}${T("Mover", "Move")}${p.i ? "" : " " + side}</button>` +
@@ -1248,7 +1365,7 @@ async function render(p) {
   for (const n of [...p.sel]) if (!items[n]) p.sel.delete(n);
   const body = !p.card && tab !== "cc" ? `<div class="blank">${T("Elige la carpeta <b>Tracks</b> de la tarjeta microSD (o de una copia en el PC).", "Choose the <b>Tracks</b> folder of the microSD card (or of a copy on the PC).")}<br><button type="button" class="pri" data-act="open">${T("Abrir carpeta…", "Open folder…")}</button></div>`
            : err ? `<div class="blank bad">${esc(errText(err))}</div>` : (tab === "patterns" && items.length && !shown(p, items).some(it => !it.empty) ? `<div class="blank dim" style="padding:6px 10px;text-align:left">${T("Aquí no hay notas ni automatización: prueba otra sesión o pista.", "No notes or automation here: try another session or track.")}</div>` : "") + `<div class="list${tab === "patterns" ? " plist" : ""}">${shown(p, items).map(it => rowHtml(tab, it)).join("")}</div>`;
-  p.el.innerHTML = `<div class="phead">${headHtml(p)}</div>${tab === "cc" ? `<div class="blank dim" style="padding:6px 10px;text-align:left">${state.dev ? T("Estas asignaciones viven en la memoria interna del aparato: léelas, cámbialas aquí y envíalas.", "These assignments live in the device's internal memory: read them, change them here and send them.") : T("Estas asignaciones viven en la memoria interna del aparato, no en la tarjeta: sin el aparato conectado, aquí se editan como fichero .ctcc.", "These assignments live in the device's internal memory, not on the card: with no device connected they are edited here as a .ctcc file.")}</div>` : ""}${body}${tab === "drums" ? `<canvas class="wave" width="600" height="44"></canvas>` : ""}${tab === "patterns" ? `<div class="pvw" hidden><div class="cap"></div><canvas></canvas></div>` : ""}`;
+  p.el.innerHTML = `<div class="phead">${headHtml(p)}</div>${tab === "cc" ? `<div class="blank dim" style="padding:6px 10px;text-align:left">${state.dev ? T("Estas asignaciones viven en la memoria interna del aparato: léelas, cámbialas aquí y envíalas.", "These assignments live in the device's internal memory: read them, change them here and send them.") : T("Estas asignaciones viven en la memoria interna del aparato, no en la tarjeta: sin el aparato conectado, aquí se editan como fichero .ctcc.", "These assignments live in the device's internal memory, not on the card: with no device connected they are edited here as a .ctcc file.")}</div>` : ""}${body}${USED.has(tab) ? `<div class="usebox" hidden></div>` : ""}${tab === "drums" ? `<canvas class="wave" width="600" height="44"></canvas>` : ""}${tab === "patterns" ? `<div class="pvw" hidden><div class="cap"></div><canvas></canvas></div>` : ""}`;
   if (tab === "patterns" && p.pack) {
     const m = await SD.sessionsOf(p.pack), sel = p.el.querySelector('[data-sel="sess"]');
     if (sel) sel.innerHTML = [...m.values()].map(e => `<option value="${e.slot}"${e.slot === p.sess ? " selected" : ""}>${SD.pad2(e.slot)} ${esc(e.label)}</option>`).join("");
@@ -1260,6 +1377,7 @@ async function render(p) {
   }
   paint(p);
   if (tab === "packs") fillPackInfo(p, token);
+  fillUsage(p, token);
 }
 async function fillPackInfo(p, token) {                     // row by row: a slow card should not hold the list back
   for (const it of p.items) {
@@ -1324,6 +1442,7 @@ function paintPat(p) {
 function paint(p) {
   for (const r of p.el.querySelectorAll(".row")) r.classList.toggle("sel", p.sel.has(+r.dataset.n));
   paintPat(p);
+  paintUse(p);
   const h = p.el.querySelector("[data-hint]"), q = p.other;
   if (h) h.textContent = q.sel.size ? T("Destino: ", "Target: ") + (Math.min(...q.sel) + (state.tab === "patterns" || state.tab === "cc" ? 1 : 0)) : T("Destino: primer hueco libre", "Target: first free slot");
 }
@@ -1415,7 +1534,8 @@ async function deleteAct(p) {
   }
   const pl = p.place();
   if (tab === "cc") { if (await ask(T("Volver a fábrica", "Back to factory"), T("Estos presets vuelven a los CC de fábrica:", "These presets go back to the factory CCs:") + nameList(names), [[T("Seguir", "Go on"), true, "dng"], [T("Cancelar", "Cancel"), false]])) { for (const n of from) await SD.CC.clear(pl, n); p.sel.clear(); await renderAll(); } return; }
-  const c = await ask(T("Eliminar", "Delete"), nameList(names) + (state.backup ? T("<p class=dim>Se guarda antes una copia.</p>", "<p class=dim>A backup is kept first.</p>") : ""), [[T("Eliminar", "Delete"), true, "dng"], [T("Cancelar", "Cancel"), false]]);
+  const inUse = USED.has(tab) ? from.filter(n => (usesOf(p, n) || []).length) : [];
+  const c = await ask(T("Eliminar", "Delete"), nameList(names) + (inUse.length ? `<p class="warn">${T("En uso en proyectos del pack:", "In use in projects of the pack:")}</p>` + nameList(inUse.map(n => `${itemName(tab, p.items[n])} → ${[...new Set(usesOf(p, n).map(u => SD.pad2(u.sess) + " " + u.label))].join(", ")}`)) : "") + (state.backup ? T("<p class=dim>Se guarda antes una copia.</p>", "<p class=dim>A backup is kept first.</p>") : ""), [[T("Eliminar", "Delete"), true, "dng"], [T("Cancelar", "Cancel"), false]]);
   if (!c || !await ready(pl.pack.card) || !await loadedOK(pl.pack)) return;
   p.sel.clear();
   await run(`${T("Eliminar", "Delete")} ${from.length}`, async ctx => {
@@ -1899,6 +2019,7 @@ for (const p of panes) {
     if (act === "device") return connectDevice(p);
     if (act === "ccget") return ccGet(p);
     if (act === "ccput") return ccPut(p);
+    if (act === "usage") { const pack = p.pack; if (pack) await run(T("Uso en proyectos", "Use in projects"), ctx => SD.usageOf(pack, ctx), true); return; }
     if (act === "reload") { if (p.card) { await p.card.reset(); for (const q of panes) if (q.card === p.card) q.sel.clear(); await renderAll(); } return; }
     if (act === "copy") return transferAct(p, false);
     if (act === "move") return transferAct(p, true);
