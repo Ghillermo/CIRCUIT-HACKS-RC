@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -24,7 +24,6 @@ from verify_builds import BUILDS  # noqa: E402
 import dspz  # noqa: E402
 
 MIN = 8
-
 
 def make_patch(src: bytes, dst: bytes):
     idx = {}
@@ -85,7 +84,7 @@ def dz_split(img: bytes, man):
             post.append([i, base64.b64encode(bytes(img[i:j])).decode()]); v[i:j] = img[i:j]; i = j
         else:
             i += 1
-    assert bytes(v) == img and sum(len(base64.b64decode(x[1])) for x in post) < 1024
+    assert bytes(v) == img and sum(len(base64.b64decode(x[1])) for x in post) <= rep["freed"] + 1024
     return bytes(u), dz, post
 
 
@@ -334,6 +333,16 @@ DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado di
         "RC0S": ("RC0S — versión más segura (= SC362S): nada del mod escribe ficheros en la SD",
                  "RC0S — safer build (= SC362S): nothing of the mod writes files to the SD card")}
 
+# 2026-11-03 (the user: «publica sólo la última RC y las betas posteriores. el nombre y su descripción no pueden superar 50 caracteres»): the
+# installer's list; a label (name + description) at most 50 characters.
+DESC["R407"] = ("RC4.07 — versión candidata actual", "RC4.07 — current release candidate")
+DESC["R407S"] = ("RC4.07S — sin escrituras propias en la SD", "RC4.07S — no own writes to the SD card")
+DESC["B5.11"] = ("Beta 5.11 — programas del DSP comprimidos", "Beta 5.11 — DSP programs compressed")
+DESC["B5.10"] = ("Beta 5.10 — pads del mutate de drums", "Beta 5.10 — drums’ mutate pads redone")
+DESC["B5.9"] = ("Beta 5.9 — solo, acorde inverso, rollers", "Beta 5.9 — solo, inverse chord, rollers")
+assert all(len(t) <= 50 for k in ("R407", "R407S", "B5.11", "B5.10", "B5.9") for t in DESC[k])
+
+
 TEMPLATE = r"""<!doctype html>
 <html lang="en">
 <head>
@@ -441,7 +450,7 @@ const hex = a => Array.from(a, b => b.toString(16).padStart(2, "0")).join(" ");
 let midi = null, packets = null, stockImg = null, stockSyx = null, xfer = null, idPending = null;
 
 // ---------- the versions ("Oficial" = the official firmware, its value in either language)
-const verLabel = v => v === "Oficial" ? t("Oficial — el firmware de Novation sin cambios (para volver atrás)", "Official — Novation’s firmware unchanged (to go back)")
+const verLabel = v => v === "Oficial" ? t("Oficial — Novation sin cambios (volver atrás)", "Official — Novation unchanged (to go back)")
   : (DESC[v] ? DESC[v][LANG === "en" ? 1 : 0] : v);
 for (const v of [...Object.keys(PATCHES), "Oficial"]) { const o = document.createElement("option"); o.value = v; o.textContent = verLabel(v); $("ver").appendChild(o); }
 let midiNote = null;                                       // the MIDI state shown, [es, en, class]
@@ -730,4 +739,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R407", "R407S", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R407", "R407S", "B5.11", "B5.10", "B5.9"])
