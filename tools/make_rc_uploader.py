@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import ct_fw  # noqa: E402
 from verify_builds import BUILDS  # noqa: E402
+import dspz  # noqa: E402
 
 MIN = 8
 
@@ -58,6 +59,36 @@ def apply(src: bytes, ops):
     return bytes(out)
 
 
+def dz_split(img: bytes, man):
+    """SC50.8 / Beta 5.11 on (tools/dspz.py): the DSP programs are packed in the image, and packed they would be Novation's DSP code shipped as our bytes.  The patch
+    goes to the image with the programs unpacked in place (copied from the official one as before); the page packs them itself (dzPack, the same LZSS as
+    dspz._pack, byte for byte) and then writes `post`, our own bytes inside the freed area (the unpacker).  Returns (unpacked image, dz, post) or (img, None, None)."""
+    rep = man.get("report", {}).get("dspz")
+    if not rep:
+        return img, None, None
+    u, v, dz = bytearray(img), None, []
+    for k in ("core0", "core1"):
+        o = int(rep[k]["block"], 16) - dspz.BASE
+        raw = dspz.block_at(img, o + dspz.BASE)
+        assert len(raw) == rep[k]["raw"]
+        u[o:o + len(raw)] = raw
+        dz.append([o, len(raw)])
+    v = bytearray(u)
+    for o, n in dz:
+        blob = dspz.pack(bytes(u[o:o + n]))
+        v[o:o + len(blob)] = blob; v[o + len(blob):o + n] = bytes([0xFF]) * (n - len(blob))
+    post, i = [], 0
+    while i < len(img):
+        if v[i] != img[i]:
+            j = i
+            while j < len(img) and v[j] != img[j]: j += 1
+            post.append([i, base64.b64encode(bytes(img[i:j])).decode()]); v[i:j] = img[i:j]; i = j
+        else:
+            i += 1
+    assert bytes(v) == img and sum(len(base64.b64decode(x[1])) for x in post) < 1024
+    return bytes(u), dz, post
+
+
 def main(versions):
     stock = (ROOT / "stock/circuittracks-firmware-4486-STOCK.bin").read_bytes()
     assert hashlib.sha256(stock).hexdigest() == ct_fw.STOCK_4486["image_sha256"]
@@ -66,11 +97,14 @@ def main(versions):
     for v in versions:
         d = dirs[v]; man = json.loads((ROOT / "firmware" / d / "manifest.json").read_text())
         img = next((ROOT / "firmware" / d).glob("*.bin")).read_bytes()
-        ops = make_patch(stock, img)
-        assert apply(stock, ops) == img
-        lit = sum(len(base64.b64decode(o[1])) for o in ops if o[0] == 1)
+        u, dz, post = dz_split(img, man)
+        ops = make_patch(stock, u)
+        assert apply(stock, ops) == u
+        lit = sum(len(base64.b64decode(o[1])) for o in ops if o[0] == 1) + sum(len(base64.b64decode(x[1])) for x in post or [])
         assert hashlib.sha256(ct_fw.encode(img)).hexdigest() == man["syx_sha256"]
         patches[v] = dict(dir=d, image_sha256=man["image_sha256"], syx_sha256=man["syx_sha256"], size=len(img), ops=ops)
+        if dz:
+            patches[v].update(dz=dz, post=post)
         print(f"{v}: {len(ops)} ops, {lit} bytes of our own, {len(img) - lit} copied from the official image")
     page = TEMPLATE.replace("__PATCHES__", json.dumps(patches, separators=(",", ":"))).replace("__STOCK_SYX__", ct_fw.STOCK_4486["syx_sha256"]) \
         .replace("__STOCK_IMG__", ct_fw.STOCK_4486["image_sha256"]).replace("__VERSIONS__", ", ".join(versions)) \
@@ -87,6 +121,8 @@ DESC = {"R404": ("RC4.04 — la versión candidata 4.04: RC4.02 + el guardado di
                  "RC4.07 — release candidate 4.07: RC4.05 + fixes (the arpeggio on a muted track, notes shared by two chords, the count-in with an external clock, rollers and the drums' arpeggio at the project's tempo when stopped, Sidechain LEDs); not tested on the device"),
         "R407S": ("RC4.07S — versión más segura: RC4.07, pero nada del mod escribe ni borra ficheros en la SD ni en la memoria interna (esas funciones no hacen nada)",
                   "RC4.07S — safer build: RC4.07, but nothing of the mod writes or deletes files on the SD card or in the internal memory (those features do nothing)"),
+        "B5.11": ("Beta 5.11 — beta (= SC50.8): Beta 5.10 con los programas del DSP comprimidos en el firmware (unos 22 KB libres para funciones futuras); nada cambia en el uso; sin probar en el aparato",
+                 "Beta 5.11 — beta (= SC50.8): Beta 5.10 with the DSP programs stored compressed in the firmware (about 22 KB free for future features); nothing changes in use; not tested on the device"),
         "B5.10": ("Beta 5.10 — beta (= SC50.7): Beta 5.9 con los pads del random-mutate de los drums rehechos: pad 25 velocity, pad 26 repetición en el 4.º micropaso, pad 27 repeticiones en el 3.º y el 6.º, pad 32 adelanta o retrasa el paso dentro de sí; sin probar en el aparato",
                  "Beta 5.10 — beta (= SC50.7): Beta 5.9 with the drums' random-mutate pads redone: pad 25 velocity, pad 26 a repeat on the 4th micro step, pad 27 repeats on the 3rd and the 6th, pad 32 moves the step earlier or later inside itself; not tested on the device"),
         "B5.9": ("Beta 5.9 — beta (= SC50.6): Beta 5.6 + RC4.07 + acorde inverso en el pad 16 de la pantalla de acordes + solo en el Mixer + rollers de drums en el random-mutate + destello de Clear con el clic a 0; sin probar en el aparato",
@@ -461,6 +497,50 @@ function applyPatch(src, ops) {
   }
   return out;
 }
+// SC50.8 / Beta 5.11 on: the DSP programs are packed in the firmware.  The patch gives them unpacked (copied from the official file); they are packed here,
+// with the same LZSS as tools/dspz.py byte for byte, and the image's SHA-256 checks the result.
+const CRCT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u) { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRCT[(c ^ u[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function dzPack(raw) {
+  const n = raw.length, WIN = 0x2000, MAXL = 265, bestL = new Int32Array(n), bestO = new Int32Array(n), heads = new Map();
+  for (let i = 0; i < n; i++) {
+    let bl = 0, bo = 0;
+    if (i + 3 <= n) {
+      const key = raw[i] << 16 | raw[i + 1] << 8 | raw[i + 2], chain = heads.get(key);
+      if (chain) {
+        for (let k = chain.length - 1, stop = Math.max(-1, chain.length - 1 - 2048); k > stop; k--) {
+          const j = chain[k]; if (i - j > WIN) break;
+          let l = 0; while (l < MAXL && i + l < n && raw[j + l] === raw[i + l]) l++;
+          if (l > bl) { bl = l; bo = i - j; } if (l === MAXL) break;
+        }
+        chain.push(i);
+      } else heads.set(key, [i]);
+    }
+    bestL[i] = bl; bestO[i] = bo;
+  }
+  const cost = new Float64Array(n + 1), pick = new Int32Array(n);
+  for (let i = n - 1; i >= 0; i--) {
+    let c = 9 + cost[i + 1], p = 0;
+    for (let l = 3; l <= bestL[i]; l++) { const mc = (l >= 10 ? 25 : 17) + cost[i + l]; if (mc < c) { c = mc; p = l; } }
+    cost[i] = c; pick[i] = p;
+  }
+  const words = n / 3, crc = crc32(raw), out = [0x44, 0x5A, 0x31, 0, words & 255, words >> 8 & 255, words >> 16 & 255, words >>> 24, crc & 255, crc >> 8 & 255, crc >> 16 & 255, crc >>> 24];
+  let flags = 0, items = [], nf = 0, i = 0;
+  while (i < n) {
+    const l = pick[i];
+    if (l === 0) { flags |= 1 << nf; items.push(raw[i]); i++; }
+    else { const o = bestO[i] - 1, code = l >= 10 ? 7 : l - 3; items.push(o & 255, (o >> 8) | code << 5); if (code === 7) items.push(l - 10); i += l; }
+    if (++nf === 8) { out.push(flags, ...items); flags = 0; items = []; nf = 0; }
+  }
+  if (nf) out.push(flags, ...items);
+  return Uint8Array.from(out);
+}
+function applyDz(img, P) {
+  if (!P.dz) return img;
+  for (const [o, n] of P.dz) { const b = dzPack(img.slice(o, o + n)); if (b.length > n) throw Error("dz"); img.set(b, o); img.fill(0xFF, o + b.length, o + n); }
+  for (const [o, s64] of P.post) { const s = atob(s64); for (let i = 0; i < s.length; i++) img[o + i] = s.charCodeAt(i); }
+  return img;
+}
 async function sha256(buf) { const h = await crypto.subtle.digest("SHA-256", buf); return hex(new Uint8Array(h)).replace(/ /g, ""); }
 function concat(msgs) { let n = 0; for (const m of msgs) n += m.length; const u = new Uint8Array(n); let p = 0; for (const m of msgs) { u.set(m, p); p += m.length; } return u; }
 
@@ -483,7 +563,7 @@ $("ver").onchange = () => { updateAck(true); prepare(); updateSend(); };
 // ---------- new builds: the public pages' list; only what passes these checks reaches the page, and the patched image still has to match its SHA-256
 const PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/";
 const getJson = async f => { const r = await fetch(PAGES + "builds/" + f, { cache: "no-store" }); if (!r.ok) throw Error(r.status); return r.json(); };
-const okPatch = P => P && Array.isArray(P.ops) && /^[0-9a-f]{64}$/.test(P.image_sha256) && /^[0-9a-f]{64}$/.test(P.syx_sha256);
+const okPatch = P => P && Array.isArray(P.ops) && (!P.dz || Array.isArray(P.dz) && Array.isArray(P.post)) && /^[0-9a-f]{64}$/.test(P.image_sha256) && /^[0-9a-f]{64}$/.test(P.syx_sha256);
 $("chk").onclick = async ev => {
   ev.preventDefault(); const say = m => { $("chkInfo").textContent = m; }; say(t("buscando…", "checking…"));
   try {
@@ -504,7 +584,7 @@ async function prepare() {
   const v = $("ver").value;
   try {
     if (v === "Oficial") { packets = stockSyx; $("verInfo").innerHTML = `<span class="ok">✔ ${t("firmware oficial sin cambios", "official firmware unchanged")} · ${packets.length} ${t("mensajes", "messages")}</span>`; updateSend(); return; }
-    const P = PATCHES[v]; const img = applyPatch(stockImg, P.ops);
+    const P = PATCHES[v]; const img = applyDz(applyPatch(stockImg, P.ops), P);
     const hi = await sha256(img); if (hi !== P.image_sha256) throw Error(t("la imagen parcheada no coincide con la publicada (", "the patched image does not match the published one (") + hi.slice(0, 16) + "…)");
     const msgs = encodeSyx(img); const hs = await sha256(concat(msgs)); if (hs !== P.syx_sha256) throw Error(t("el .syx no coincide con el publicado (", "the .syx does not match the published one (") + hs.slice(0, 16) + "…)");
     packets = msgs;
@@ -650,4 +730,4 @@ setLang(LANG); updateSend();
 """
 
 if __name__ == "__main__":
-    main(sys.argv[1:] or ["R407", "R407S", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])
+    main(sys.argv[1:] or ["R407", "R407S", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S", "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"])

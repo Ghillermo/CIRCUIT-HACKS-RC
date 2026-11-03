@@ -23,6 +23,7 @@ import gatediag as GD  # noqa: E402
 import emu_sc05  # noqa: E402
 
 RD.DSPX = RD.DSPW = RD.ITCM = RD.CORE1 = True
+RD.ITEXEC = True
 KEY = 0x5AC3A53C
 
 
@@ -48,8 +49,8 @@ def main(img, man):
     gc.collect(); e = E(img, man)
     def ask(make, cmd, seq=9):
         e.sysex(list(make(seq))); return CR.parse(e.out[0][2], cmd, seq) if len(e.out) == 1 else None
-    ver = RD.VERSION + 0x10 + 0x40 + 0x100 + 0x200
-    check(CR.dec_ping(ask(CR.req_ping, 1))["version"] == ver, f"ping: version {ver:#x} (DSPX, DSPW, ITCM, CORE1)")
+    ver = RD.VERSION + 0x10 + 0x40 + 0x100 + 0x200 + (0x400 if "rc_itexec" in man["report"]["rdiag"]["labels"] else 0)
+    check(CR.dec_ping(ask(CR.req_ping, 1))["version"] == ver, f"ping: version {ver:#x} (DSPX, DSPW, ITCM, CORE1, ITEXEC 0x400)")
     e.uc.mem_write(0x40, bytes(range(0x30, 0x40)))
     check(CR.dec_mem(ask(lambda s: CR.req_mem(s, 0x40, 16), 2)) == dict(status=0, data=bytes(range(0x30, 0x40))), "mem reads the ITCM (0x40, 16 B)")
     check(CR.dec_mem(ask(lambda s: CR.req_mem(s, 0x3FF8, 16), 2))["status"] == 1, "mem past the ITCM (0x3FF8 + 16): status 1")
@@ -69,6 +70,15 @@ def main(img, man):
     d = CR.dec_itchk(ask(lambda s: CR.req_itchk(s, KEY), 14))
     check(d == dict(status=0, itcmcr=0x29, bad=2, first=0x1234, value=0xDEADBEEF), f"itchk after two writes: {d}")
     check(CR.dec_itchk(ask(lambda s: CR.req_itchk(s, KEY ^ 1), 14))["bad"] == 4096 - 64, "itchk with another key: every word bad")
+    if "rc_itexec" in man["report"]["rdiag"]["labels"]:        # S494D2: run a routine from the ITCM, the two words put back
+        e.uc.mem_write(RD.IT_X, struct.pack("<2I", 0x11223344, 0x55667788))
+        d = CR.dec_itexec(ask(lambda s: CR.req_itexec(s, KEY), 15))
+        check(d == dict(status=0, itcmcr=0x29, result=KEY ^ 0x5A) and struct.unpack("<2I", bytes(e.uc.mem_read(RD.IT_X, 8))) == (0x11223344, 0x55667788),
+              f"itexec: the routine ran from {RD.IT_X:#x} (key ^ 0x5A), its two words put back ({d})")
+        e.uc.mem_write(RD.ITCMCR, struct.pack("<I", 0))
+        d = CR.dec_itexec(ask(lambda s: CR.req_itexec(s, KEY), 15))
+        check(d["status"] == 2 and struct.unpack("<2I", bytes(e.uc.mem_read(RD.IT_X, 8))) == (0x11223344, 0x55667788), f"itexec without ITCM: refused ({d})")
+        e.uc.mem_write(RD.ITCMCR, struct.pack("<I", 0x29))
     for sp, core, base in ((0, 0, 0), (1, 0, 0x8000), (2, 1, 0), (3, 1, 0x8000)):
         e.dsp.clear()
         d = CR.dec_dspr(ask(lambda s: CR.req_dspr(s, sp, 0x4000, 3), 3))

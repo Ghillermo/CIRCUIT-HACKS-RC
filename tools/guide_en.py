@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.10 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.10** (not in RC4.07).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.11 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.11** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",

@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.11 — 2026-11-03
+
+**Beta 5.11** (marca `B5.11`; = SC50.8) = la Beta 5.10 + lo siguiente, sin probar en el aparato.
+
+- **Sitio para funciones nuevas:** los programas del DSP van comprimidos en el firmware y se descomprimen al cargarlos en el DSP, al encender. Deja libres unos 22 KB de memoria del firmware para funciones futuras; nada cambia en el uso ni en el sonido. Si el aparato no arranca: Scales + Preset + Note e instalar la Beta 5.10. → [Guía: Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#instalar)
+
 ### Beta 5.10 — 2026-11-02
 
 **Beta 5.10** (marca `B5.10`; = SC50.7) = la Beta 5.9 + lo siguiente, sin probar en el aparato.
@@ -790,6 +796,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.11 — 2026-11-03
+
+**Beta 5.11** (marker `B5.11`; = SC50.8) = Beta 5.10 + the following, not tested on the device.
+
+- **Room for new features:** the DSP programs are stored compressed in the firmware and unpacked as they are loaded into the DSP at power-on. This frees about 22 KB of firmware memory for future features; nothing changes in use or in the sound. If the device does not start: Scales + Preset + Note and install Beta 5.10. → [Guide: Installing and going back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#instalar)
 
 ### Beta 5.10 — 2026-11-02
 

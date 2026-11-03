@@ -999,6 +999,8 @@ run python3 tools/emu_actfix_dsp.py firmware/b5.5/circuittracks-4486-B5.5.bin
 run python3 tools/emu_actfix_dsp.py firmware/r405/circuittracks-4486-R405.bin
 # SC50.7 / Beta 5.10: use_roll2
 run python3 tools/emu_mutate2.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.7/manifest.json
+# SC50.8: dspz (the DSP programs packed)
+run python3 tools/emu_dspz.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.8/circuittracks-4486-SC50.8.bin
 # SC50.6 / Beta 5.9 / RC4.07: use_roll, use_curve
 run python3 tools/emu_mutate2.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
 run python3 tools/emu_sccurve.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
@@ -1015,4 +1017,7 @@ run python3 tools/emu_chordfix.py firmware/r406s/circuittracks-4486-R406S.bin fi
 run python3 tools/emu_nudge2.py firmware/b5.3/circuittracks-4486-B5.3.bin firmware/b5.3/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404/circuittracks-4486-R404.bin firmware/r404/manifest.json
 run python3 tools/emu_nudge2.py firmware/r404s/circuittracks-4486-R404S.bin firmware/r404s/manifest.json
+# S494D / S494D2: the ITCM canary, code run from the ITCM, the DSP core select
+run python3 tools/emu_s494d.py firmware/s494d/circuittracks-4486-S494D.bin firmware/s494d/manifest.json
+run python3 tools/emu_s494d.py firmware/s494d2/circuittracks-4486-S494D2.bin firmware/s494d2/manifest.json
 [ -f tools/emu_sdsysex.py ] && run python3 tools/emu_sdsysex.py

@@ -16,6 +16,7 @@
     python tools/ctremote.py dspw ADDR VALUE                         writes one DSP X word (SC35DB; S494D: ADDR bit 31 = core 1)
   S494D (rdiag.ITCM / CORE1): dspr X1|Y1 = DSP core 1; mem reads the ITCM (0x0-0x3FFF) too
     python tools/ctremote.py itfill [KEY]                            every word of the ITCM 0x100-0x3FFF = its address XOR KEY
+    python tools/ctremote.py itexec [KEY]                            S494D2: a 3-instruction routine run from the ITCM: result = KEY ^ 0x5A
     python tools/ctremote.py itchk [KEY]                             the words that changed since: count, the first one (address, value)
   SEQWD (rdiag.WATCH): the DWT data watchpoint and its log of the code that touched the address
     python tools/ctremote.py watch ADDR [read|write|rw|off] [MASK]   arms comparator 0 (MASK = low address bits ignored) and clears the log
@@ -92,6 +93,8 @@ def dec_delpack(p): return dict(status=un32(p[:8]), reselect_exists=un32(p[8:16]
 def req_dspw(seq, addr, v): return build(9, seq, nib32(addr) + nib32(v))
 def req_itfill(seq, key): return build(13, seq, nib32(key))
 def req_itchk(seq, key): return build(14, seq, nib32(key))
+def req_itexec(seq, key): return build(15, seq, nib32(key))
+def dec_itexec(p): return dict(zip(("status", "itcmcr", "result"), [un32(p[i:i + 8]) for i in range(0, min(len(p), 24), 8)]))
 def dec_itchk(p): return dict(zip(("status", "itcmcr", "bad", "first", "value"), [un32(p[i:i + 8]) for i in range(0, min(len(p), 40), 8)]))
 def dec_dspr(p): return dict(status=un32(p[:8]), words=[un32([0, 0] + p[i:i + 6]) for i in range(8, len(p), 6)])
 def dec_dspx(p): return dict(status=un32(p[:8]), samples=[un32([0] * 4 + p[i:i + 4]) for i in range(8, len(p), 4)])
@@ -267,6 +270,10 @@ def main(argv):
             key = num(argv[1]) if len(argv) > 1 else IT_KEY
             if cmd == "itfill": print(dec_itchk(L.ask(lambda s: req_itfill(s, key), 13)))
             else: print({k: (hex(v) if k != "bad" else v) for k, v in dec_itchk(L.ask(lambda s: req_itchk(s, key), 14)).items()})
+        elif cmd == "itexec":                       # S494D2: run 3 instructions from the ITCM (a fault stops the device: power it off and on)
+            key = num(argv[1]) if len(argv) > 1 else IT_KEY
+            d = dec_itexec(L.ask(lambda s: req_itexec(s, key), 15))
+            print({k: hex(v) for k, v in d.items()}, "runs code" if d.get("status") == 0 and d.get("result") == key ^ 0x5A else "")
         elif cmd == "dspw":
             addr, v = num(argv[1]), num(argv[2])
             print(dec_write(L.ask(lambda s: req_dspw(s, addr, v), 9)))

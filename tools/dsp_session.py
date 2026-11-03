@@ -28,15 +28,15 @@ DSP_TABLE = 0x08029700                 # [core0 mode0, core0 mode1, core1 mode0,
 
 def dsp_block(img: bytes, core=0):
     """(flash address, word count) of the mode-0 bootstrap block of a core, via the ARM pointer table."""
+    import dspz
     a = int.from_bytes(img[DSP_TABLE - 0x08010000 + 8 * core:][:4], 'little')
-    o = a - 0x08010000
-    return a, int.from_bytes(img[o:o + 3], 'big')
+    return a, int.from_bytes(dspz.block_at(img, a)[:3], 'big')            # packed (SC50.8 dspz) or plain
 
 
 def dsp_program(img: bytes, core=0):
+    import dspz
     a, n = dsp_block(img, core)
-    o = a - 0x08010000
-    return img[o + 6:o + 6 + 3 * n]
+    return dspz.block_at(img, a)[6:6 + 3 * n]
 
 
 class Session:
