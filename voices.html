@@ -37,7 +37,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ol></nav>
 <section class="feat" id="s1"><h3>Summary</h3>
 <p>MIDI 1 and MIDI 2 are two complete synths inside the Circuit Tracks: each track keeps sending MIDI and also sounds through its own engine, with up to 4 voices (6 in FM). The <strong>voice mode</strong> decides how notes are shared out among those voices: eight modes on pad 32 of the Preset view.</p>
-<p>This document describes <strong>Beta 5.10</strong>, not tested on the device. Nearly all of it is already in RC4 and RC4.07; what is only in the beta is marked <em>(Beta 5.10 only)</em>.</p>
+<p>This document describes <strong>Beta 5.11</strong>, not tested on the device. Nearly all of it is already in RC4 and RC4.07; what is only in the beta is marked <em>(Beta 5.11 only)</em>.</p>
 <p>The voice mode has no CC or NRPN: it is chosen on the device and saved with the patch and the project.</p>
 </section>
 <section class="feat" id="s2"><h3>Block diagram</h3>
@@ -74,7 +74,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>26</td><td>Patch flip: each note goes out as a Program Change. Excludes the engine.</td></tr>
 <tr><td>27</td><td>Opens the engine row. Shift + pad 27 steps to the next engine.</td></tr>
 <tr><td>28</td><td>One or two oscillators (oscillator and VA-drum).</td></tr>
-<tr><td>29</td><td>Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter <em>(Beta 5.10 only)</em>. Shift + pad 29 steps through the eight voice modes.</td></tr>
+<tr><td>29</td><td>Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter <em>(Beta 5.11 only)</em>. Shift + pad 29 steps through the eight voice modes.</td></tr>
 <tr><td>30</td><td>Opens the step-drummer. Shift + pad 30 turns it off.</td></tr>
 <tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes.</td></tr>
 <tr><td>32</td><td>Opens the voice mode menu, in the colour of the current mode.</td></tr>
@@ -259,7 +259,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Menus on the pads</h4>
 <p>A menu takes over pads 9-24 while it is open; those pads stop loading patches.</p>
 <table><thead><tr><th>Menu</th><th>Open</th><th>Content</th><th>Close</th></tr></thead><tbody>
-<tr><td>Engine row</td><td>Tap pad 27</td><td>Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. Pads 9-16: which track the jump sequencer points at <em>(Beta 5.10 only)</em></td><td>Pad 27 again. Choosing does not close it.</td></tr>
+<tr><td>Engine row</td><td>Tap pad 27</td><td>Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. Pads 9-16: which track the jump sequencer points at <em>(Beta 5.11 only)</em></td><td>Pad 27 again. Choosing does not close it.</td></tr>
 <tr><td>Voice modes</td><td>Tap pad 32</td><td>Pads 17-24: the eight modes. K1 = glide, K2 = unison detune</td><td>Pad 32 again, or leave the view</td></tr>
 <tr><td>FM algorithms</td><td>Hold pad 7</td><td>Pads 9-24: the 16 algorithms</td><td>Release pad 7</td></tr>
 <tr><td>Starter sounds</td><td>Hold pad 8 with FM</td><td>Pads 9-24: 16 instruments</td><td>Release pad 8</td></tr>
@@ -615,7 +615,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Clear + the track&#x27;s button</td><td>Engine values back to their initial ones, and latched notes let go. The chosen engine stays.</td></tr>
 <tr><td>Clear + pad 1-5</td><td>That page back to its initial values.</td></tr>
 <tr><td>Clear + knob</td><td>To the right, default value (lavender). To the left, erases its automation (red).</td></tr>
-<tr><td>Shift + Preset</td><td>The own synth saved with the project comes back. <em>(Beta 5.10 only)</em></td></tr>
+<tr><td>Shift + Preset</td><td>The own synth saved with the project comes back. <em>(Beta 5.11 only)</em></td></tr>
 <tr><td>Clear + patch pad, twice</td><td>Saves the patch in that slot.</td></tr>
 <tr><td>Duplicate + A + B</td><td>Swaps two patches. With another pack loaded in between, copies.</td></tr>
 <tr><td>Shift + patch pad</td><td>Loads the patch without the root note sounding.</td></tr>
@@ -1456,7 +1456,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <p>The mode, the glide time and the detune are saved with the own patch and with the project. A patch without them leaves the current values.</p>
 </section>
 <section class="feat" id="s6"><h3>Knob pages</h3>
-<p>With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type&#x27;s colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type <em>(Beta 5.10 only)</em>: the LFO shape, the FM algorithm and the granular&#x27;s note mode go to 16.</p>
+<p>With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type&#x27;s colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type <em>(Beta 5.11 only)</em>: the LFO shape, the FM algorithm and the granular&#x27;s note mode go to 16.</p>
 <h4>Page 1: VCA-VCF</h4>
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Attack</td><td>Sustain</td></tr>
@@ -1535,7 +1535,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <section class="feat" id="s7"><h3>Modulation</h3>
 <p>The engine has its own ADSR and LFO, and the matrix adds eight sources that move any of 33 parameters. The matrix is added when sending: the parameter&#x27;s saved value does not change.</p>
 <h4>LFO</h4>
-<p>K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks <em>(Beta 5.10 only; before, 4)</em>.</p>
+<p>K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks <em>(Beta 5.11 only; before, 4)</em>.</p>
 <table><thead><tr><th>Shape</th><th>Colour</th></tr></thead><tbody>
 <tr><td>Triangle, the initial one</td><td>Green</td></tr>
 <tr><td>Reverse saw</td><td>Blue</td></tr>
@@ -1576,11 +1576,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Automation</h4>
 <p>The 8 sequenceable knobs record with Record + Play into 8 lanes of the pattern. There are several per-step gestures:</p>
 <table><thead><tr><th>Gesture</th><th>View</th><th>Effect</th></tr></thead><tbody>
-<tr><td>Record held + step</td><td>Note</td><td>Snapshot: writes on that step the parameters that are not at their initial value. <em>(Beta 5.10 only)</em> The step shows yellow while held</td></tr>
+<tr><td>Record held + step</td><td>Note</td><td>Snapshot: writes on that step the parameters that are not at their initial value. <em>(Beta 5.11 only)</em> The step shows yellow while held</td></tr>
 <tr><td>Shift + step</td><td>Velocity</td><td>Marks the step: no lane sounds there and what was automated goes back to the synth saved with the project</td></tr>
-<tr><td>Shift + yellow step</td><td>Velocity</td><td><em>(Beta 5.10 only)</em> Hear its values until Shift is released, with the knobs it moves in yellow</td></tr>
-<tr><td>Clear + step</td><td>Velocity</td><td><em>(Beta 5.10 only)</em> Erases the knobs&#x27; automation on that step; the notes stay</td></tr>
-<tr><td>Yellow step held + another yellow step</td><td>Velocity, with Shift</td><td><em>(Beta 5.10 only)</em> Sweep: every lane with a value at both steps becomes a straight line between them</td></tr>
+<tr><td>Shift + yellow step</td><td>Velocity</td><td><em>(Beta 5.11 only)</em> Hear its values until Shift is released, with the knobs it moves in yellow</td></tr>
+<tr><td>Clear + step</td><td>Velocity</td><td><em>(Beta 5.11 only)</em> Erases the knobs&#x27; automation on that step; the notes stay</td></tr>
+<tr><td>Yellow step held + another yellow step</td><td>Velocity, with Shift</td><td><em>(Beta 5.11 only)</em> Sweep: every lane with a value at both steps becomes a straight line between them</td></tr>
 </tbody></table>
 <p>In the snapshot, a parameter with no lane takes one whose parameter is at its initial value, and that lane is erased first. If they do not fit, the first ones in the matrix&#x27;s order stay.</p>
 <h4>Step-drummer</h4>
@@ -1776,9 +1776,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>FX sequencer</h4>
 <p>With this engine, each step-drummer knob chooses a slot of the bottom row of Master FX: none, pads 26-31 or random. A slot with no effect plays the effect at the top of its column.</p>
 <h4>Jump sequencer</h4>
-<p>The track&#x27;s notes make another track&#x27;s pattern jump to the step they indicate, on the note&#x27;s own step. <em>(Beta 5.10 only)</em></p>
+<p>The track&#x27;s notes make another track&#x27;s pattern jump to the step they indicate, on the note&#x27;s own step. <em>(Beta 5.11 only)</em></p>
 <table><thead><tr><th>Control</th><th>Function</th></tr></thead><tbody>
-<tr><td>Pads 9-16 of the engine row</td><td>The eight tracks: a tap points at that track, the same one turns it off. Pad 27 takes its colour and <em>(Beta 5.10 only)</em> blinks</td></tr>
+<tr><td>Pads 9-16 of the engine row</td><td>The eight tracks: a tap points at that track, the same one turns it off. Pad 27 takes its colour and <em>(Beta 5.11 only)</em> blinks</td></tr>
 <tr><td>Note view, pads 17-32</td><td>Steps 1-16; Octave ▲, steps 17-32. The scale changes nothing</td></tr>
 <tr><td>Expanded Note, the 32 pads</td><td>Steps 1-32</td></tr>
 </tbody></table>
@@ -2312,14 +2312,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <table><thead><tr><th>Function</th><th>Where</th><th>What it does</th></tr></thead><tbody>
 <tr><td>Probability</td><td>Probability view, row 3</td><td>The step sounds sometimes</td></tr>
 <tr><td>Frequency</td><td>Mode 1, row 4</td><td>The step sounds on the last of every n turns, 1 to 8</td></tr>
-<tr><td>Dynamics</td><td>Mode 2, pads 25-28</td><td>Accents, accents and length, or random length. <em>(Beta 5.10 only)</em></td></tr>
-<tr><td>Random-mutate</td><td>Mode 2, pads 17-24</td><td>Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). <em>(Beta 5.10 only)</em></td></tr>
+<tr><td>Dynamics</td><td>Mode 2, pads 25-28</td><td>Accents, accents and length, or random length. <em>(Beta 5.11 only)</em></td></tr>
+<tr><td>Random-mutate</td><td>Mode 2, pads 17-24</td><td>Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). <em>(Beta 5.11 only)</em></td></tr>
 <tr><td>Gate by press</td><td>Micro Step, pad 32</td><td>What you hold while entering a note is its length</td></tr>
 <tr><td>Fixed length</td><td>Micro Step, pad 31</td><td>All notes entered by hand with the same gate, 1 to 16 steps</td></tr>
-<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Moves the content of the range one step back; Shift, forward. The first and last steps do not move. <em>(Beta 5.10 only)</em></td></tr>
+<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Moves the content of the range one step back; Shift, forward. The first and last steps do not move. <em>(Beta 5.11 only)</em></td></tr>
 <tr><td>Fractal and deconstructed</td><td>Pattern Settings, pads 27 and 28</td><td>Another order through the pattern</td></tr>
-<tr><td>Micro steps</td><td>Mode 2, pad 32</td><td>The note moves up to 2 micro steps earlier or later, inside its step. <em>(Beta 5.10 only)</em></td></tr>
-<tr><td>Track factor</td><td>Octave, with mode 2 open</td><td>×0 to ×8, multiplies all the track&#x27;s chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. <em>(Beta 5.10 only)</em></td></tr>
+<tr><td>Micro steps</td><td>Mode 2, pad 32</td><td>The note moves up to 2 micro steps earlier or later, inside its step. <em>(Beta 5.11 only)</em></td></tr>
+<tr><td>Track factor</td><td>Octave, with mode 2 open</td><td>×0 to ×8, multiplies all the track&#x27;s chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. <em>(Beta 5.11 only)</em></td></tr>
 </tbody></table>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Random-mutate (mode 2) with a step chosen: pad 22, the dynamics (pad 26) and the micro steps (pad 32) on.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2667,7 +2667,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Chord screen</td><td>Shift + pad 8 in expanded Note</td><td>Type, inversion and modifiers; rows 3-4 play the chord, up to 6 notes</td></tr>
 <tr><td>Split keyboard</td><td>Hold one track and press another</td><td>Two tracks on the pads. Holding a track button gives its knobs</td></tr>
 <tr><td>Chord bank</td><td>Setup&#x27;s Record in yellow</td><td>Nothing is recorded on a muted track: it sounds and is recorded on the synth of the shared channel</td></tr>
-<tr><td>Note flash</td><td>Shift held, in any view</td><td><em>(Beta 5.10 only)</em> Each track&#x27;s button flashes white for 100 ms on every note</td></tr>
+<tr><td>Note flash</td><td>Shift held, in any view</td><td><em>(Beta 5.11 only)</em> Each track&#x27;s button flashes white for 100 ms on every note</td></tr>
 </tbody></table>
 <p>Each note of the chord goes through the voice mode: in poly it sounds up to the engine&#x27;s maximum of voices.</p>
 </section>
@@ -2696,8 +2696,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>LFO shape</td><td>—</td><td>Yes</td><td>Yes</td><td>—</td></tr>
 <tr><td>Sample mode stereo: distance to the second sample</td><td>—</td><td>Yes</td><td>Yes</td><td>—</td></tr>
 <tr><td>Patch flip</td><td>—</td><td>—</td><td>—</td><td>Yes</td></tr>
-<tr><td>Random-mutate factor, per track <em>(Beta 5.10 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
-<tr><td>Track the jump sequencer points at <em>(Beta 5.10 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
+<tr><td>Random-mutate factor, per track <em>(Beta 5.11 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
+<tr><td>Track the jump sequencer points at <em>(Beta 5.11 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
 </tbody></table>
 <h4>What is lost at power-off</h4>
 <ul>
