@@ -66,7 +66,9 @@ def main(img, man):
     e.btn(14); check(led() == M.COL_FLIP, "back to the Mixer: still flip")
     # ---- a project load turns it off
     w = bytes(e.uc.mem_read(P19.LOAD_END, 4))
-    check(w == b_w(P19.LOAD_END, lab["c_soload"]), "the end of «apply session» goes through c_soload")
+    lc = man["report"].get("loopcarry")                                        # SC51.1: loopcarry's head in front, chaining to c_soload
+    via = lc and w == b_w(P19.LOAD_END, int(lc["labels"]["c_lcload"], 16)) and int(lc["prev"]["load"], 16) == lab["c_soload"]
+    check(w == b_w(P19.LOAD_END, lab["c_soload"]) or via, "the end of «apply session» goes through c_soload")
     e.press(1); e.frame()
     st = M.RAM2
     e.r0(lab["c_soload"]) if False else None

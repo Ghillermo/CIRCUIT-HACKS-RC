@@ -50,6 +50,7 @@ MUT2 = False                          # SC50 / Beta 5.3 (use_mut2): the redesign
 ROLL27 = False                        # SC50.6 (drumpat.use_roll): a drum's pad 27 lit
 ROLL3 = False                         # SC50.7 (drumpat.use_roll2): a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
 DYN4 = False                          # SC50.9 / Beta 5.12 (use_dyn4): ghost / accent staccato / length; drums lo + roller / hi; factor 0, 1, 2, 4, 8
+ACC64 = False                         # SC51 / Beta 5.13 (use_acc64): the accent up to + 64 (ghost still - 32)
 MUT3 = False                          # SC50.1 / Beta 5.4 (use_mut3): pads 21 / 22 = octave up, low / high; pads 23 / 24 = both, low / high
 SESSION_OBJ, TAIL, O_FAC = 0x2003D71C, 0x27024, 536   # (MUT2) the record's tail + 536 + track (0..3 notes, 4..7 drums) = 0xA0 | micro on (drums) << 4 | the factor
 PLAYER0, PLAYER_SZ = 0x20040200, 0x184
@@ -96,6 +97,14 @@ def use_dyn4():
     global DYN4
     assert MUT2 and ROLL3
     DYN4 = True
+
+
+def use_acc64():
+    """SC51 / Beta 5.13 (the user, 2026-11-03: «if velocity is 0-127, make the mutates up to -32 and +64»): use_dyn4's accent (notes pad 27, drums
+    pad 27) = velocity 0..+ 64; ghost / lo stays - 32..0.  The accent staccato's length: + 64 = a half (stepmod: - dv / 2)."""
+    global ACC64
+    assert DYN4
+    ACC64 = True
 
 
 def use_mut3():
@@ -238,7 +247,9 @@ def arm_code(base):
         # ---- c_mgdv(r0 = 10 random bits, r1 = the dynamics 1..3) -> r0 = the velocity's change: - 32..+ 64, or +- 16 with 3; clobbers r2, r3
         a.label("c_mgdv")
         if DYN4:                                                                        # 1 = - 32..0 (ghost), 2 = 0..+ 32 (accent), 3 = 0 (length only)
-            E(movs_imm, 3, 33); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 0, 0, 2)
+            E(movs_imm, 3, 33)
+            if ACC64: E(cmp_imm, 1, 2); E(b_cond, "dv_6", "ne"); E(movs_imm, 3, 65); a.label("dv_6")   # the accent: 0..+ 64
+            E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 0, 0, 2)
             E(cmp_imm, 1, 1); E(b_cond, "dv_b", "ne"); E(subs_imm8, 0, 32)
             a.label("dv_b"); E(cmp_imm, 1, 3); E(b_cond, "dv_y", "ne"); E(movs_imm, 0, 0)
             a.label("dv_y"); E(raw, h(0x4770))

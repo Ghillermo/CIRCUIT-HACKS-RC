@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.12 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.12** (not in RC4.07).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.16 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.16** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -66,13 +66,14 @@ VIEWS = {
 | **Note** {XB} | **External keyboard to the arpeggiator**: the notes coming in over MIDI (DIN or USB) on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator (when on in the pattern that plays) like the pads. Green = on, dim red = off (the default); saved in the settings. |
 | **K4** {XB} | **General MIDI** mode of the drums: to the right on (green), to the left off (dim): **turning it off closes the number** and the drums go out as on stock again. While on, every hit of Drum 1-4 goes out over MIDI with **its GM note** instead of the stock one (60 / 62 / 64 / 65), on the drums' channel (10 by default, the one you pick here). Inside the device it sounds the same. |
 | **K5-K8** {XB} | With the mode on, the GM note of Drum 1-4 (the knobs over the drum tracks; off, they do nothing): 35-81, two clicks a note; by default 36 kick, 38 snare, 42 closed hat, 46 open hat. **Every new note sounds** once on the drums' channel and **its number shows on the pads**, in the drum's colour; **Shift** or leaving Setup confirms it (saved in the settings) and the Setup pads come back. While the number shows, the Setup pads do nothing. LEDs: each drum's colour, brighter for a higher note (dark with the mode off). |
+| **K1 / K2** {YB} | **velocity → amplitude / velocity → filter**: from 0 (off, the default: as the original) to 127, for Synth 1 / 2 and the own synth of MIDI 1 / 2. **K1** gives velocity to the volume of patches that have none (amp velocity at 0): to the right, soft notes sound quieter (at the maximum, about 22 dB between velocity 20 and 120). **K2** gives velocity to the filter frequency of patches with no velocity in their matrix: hard notes brighter (on Synth 1 / 2 it takes the matrix's last free slot). On the own synth they work while its velocity source (page 6, K1) is at 0: soft notes quieter and darker. A patch that already uses velocity does not change. Their LEDs white, brighter the higher; saved in the settings. |
 
 - Patch flip always goes out on its MIDI track's channel.
 """),
 "advanced-setup": ("Advanced Setup view",
     "Open it as on the original. Besides its stock settings (master compressor, etc.):", f"""
 - **Duplicate** = mode of the MIDI Thru jack {B}: Thru (dim red, DIN In by hardware) → Out 2 (green) → **Merge** (yellow: DIN In + the device's MIDI) → **Filter** (blue: DIN In without the channels the device listens to). No SysEx in Merge / Filter. Saved in the settings.
-- **K1 = the pads' velocity curve** {XB}: −8 to +8 (2 clicks a step); the centre (0) is the original response, the default. **To the right, more sensitive** (soft hits sound louder); **to the left, harder** (you have to hit harder). While you turn it, the pads show the number (green to the right, orange to the left, white at the centre) and **Velocity** lights for 1.5 s. It applies to every pad in every view; fixed velocity (Shift + Velocity = 96) does not change. Saved in the settings.
+- **K1 = the pads' velocity curve** {XB} (in the RCs; the beta has no curve: K1 / K2 of the [Setup view](#setup) are the global velocity): −8 to +8 (2 clicks a step); the centre (0) is the original response, the default. **To the right, more sensitive** (soft hits sound louder); **to the left, harder** (you have to hit harder). While you turn it, the pads show the number (green to the right, orange to the left, white at the centre) and **Velocity** lights for 1.5 s. It applies to every pad in every view; fixed velocity (Shift + Velocity = 96) does not change. Saved in the settings.
 - **Pad 23 = USB merge** {XB}: what comes in on the **DIN In** (a keyboard on a MIDI cable) also goes out over **USB** to the computer, together with the device's own MIDI. Green on, dim off; saved in the settings. With Clock Tx on, the DIN In's clock and transport are not copied (the computer would get two clocks); SysEx is not copied; what comes in over USB is not sent on.
 - **Pad 22 = delayed save** {ZB}: off (the default), Save saves at once, as the original. On, saving with the sequencer running waits until you stop, so the clock does not stumble ([what happens while it waits](#guardado)). Green on, dim off; saved in the settings.
 - The master compressor's attack / release are set in the Sidechain view, K7 / K8.
@@ -497,7 +498,7 @@ The two rows are one set of pads, per step:
 | 23 / 24 | **An octave up or down**, at random: low / high chance, ×1 / ×2 (sand) |
 | 25 | **No dynamics** (white) |
 | 26 | **Dynamics lo (ghost)**: velocity −32 to 0; the length is kept {YB} |
-| 27 | **Dynamics hi + length (accent staccato)**: velocity 0 to +32 and the note shorter in proportion (+32 = a half) {YB} |
+| 27 | **Dynamics hi + length (accent staccato)**: velocity 0 to +64 and the note shorter in proportion (+64 = a half) {YB} |
 | 28 | **Length**: the gate a half to double, at random; the velocity is kept {YB} |
 | 29-31 | No function (dark) |
 | 32 | **Micro steps** on / off (teal): the note moves 0, 1 or 2 micro steps earlier or later, staying inside its step |
@@ -512,7 +513,7 @@ The two rows are one set of pads, per step:
 The same pads on the chosen step (pads 1-16) and the same Octave (the drum's factor):
 
 - **Pads 18-20:** another sample of its row of 8 (±1). **Pads 21 / 22:** the next row (+8), low / high chance. **Pads 23 / 24:** a row up or down (±8), low / high chance. It starts from the step's sample flip, or the chosen sample; it is not recorded.
-- **Pads 25-27:** {YB} one of the three at a time on each step (the same again removes it), at a chance of 25 % × the factor. **Pad 25 = no dynamics.** **Pad 26 = dynamics lo**: the hit lowers its velocity by 0 to 32 and repeats with a roller, one of the two at random: on micro step 4, or on 3 and 6. **Pad 27 = dynamics hi**: the velocity goes up by 0 to 32, no roller. The repeats carry the hit's velocity and sample, and only the ones that fit in the step sound. Pad 28 is dark.
+- **Pads 25-27:** {YB} one of the three at a time on each step (the same again removes it), at a chance of 25 % × the factor. **Pad 25 = no dynamics.** **Pad 26 = dynamics lo**: the hit lowers its velocity by 0 to 32 and repeats with a roller, one of the two at random: on micro step 4, or on 3 and 6. **Pad 27 = dynamics hi**: the velocity goes up by 0 to 64, no roller. The repeats carry the hit's velocity and sample, and only the ones that fit in the step sound. Pad 28 is dark.
 - **Pad 32:** micro steps for the **whole drum**, not the step (the step has no free bits): {YB} at the same chance, the whole step moves 1 or 2 micro steps earlier or later without leaving it (a hit on the first micro step only moves later, one on the last only earlier; a step with hits on both the first and the last does not move). It also works on a step with nothing chosen.
 
 ### Random-mutate in the RCs (row 4)
@@ -664,6 +665,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 ### Captured sample (pads 7 and 32)
 - **Pad 32:** hold = records while held (up to 3.46 s); short tap = until the next; **Shift + pad 32** = armed (records the next bar; stopped, from Play). The capture records the output without Master FX's effects; the playing sample goes through them. **Since RC2.01** the capture and the sample sit before the master filter: the filter acts on the sample as it plays and the capture does not hold it.
 - **Pad 7:** play; **Shift + pad 7** = latched loop until pressed again. Loop mode (K2 blue) sounds only while held.
+- **The loop goes on through a project or pack change** {YB}: with the latched loop playing, load another project or pack (with the transport stopped, as always): the loop keeps playing, with its pitch and points. **Play** does not start at once: it blinks green and the new project starts right when the loop comes round, in time with it; **the loop keeps playing** (with its knobs) and stops as always (pad 7, pad 8). **Play again** while it blinks = start now. The captured sample is not erased. Without a latched loop, loading works as always. The captured samples a pack saved (drums replaced by a capture) load as drums and do not touch the loop.
 - It can be assigned to a slot (pad 7 + a pad below) and replace a drum (drum Preset view). When the project is saved it goes into the pack if it fits.
 
 ### Bottom row (pads 26-31)
@@ -818,7 +820,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | As on the original: channels, CC / note / Program Change filters, clock, master compressor on, brightness, Save Lock | [Setup](#setup), [Advanced Setup](#advanced-setup) |
 | **MIDI 1 / 2 engine**: the engine chosen, all its values, oscillators and order (pads 28 / 29), step-drummer on and its destination, FX sequencer, patch flip | [MIDI Preset view](#midi-preset) |
 | **MIDI Thru jack mode** (Thru, Out 2, Merge, Filter), the project's **Program Change channels**, **cue mode** | [Advanced Setup](#advanced-setup), [Setup](#setup), [Mixer](#mixer) |
-| {XB} The drums' **General MIDI mode** and its notes; **USB merge**; **external keyboard to the arpeggiator**; the pads' **velocity curve** | [Setup](#setup), [Advanced Setup](#advanced-setup) |
+| {XB} The drums' **General MIDI mode** and its notes; **USB merge**; **external keyboard to the arpeggiator**; the pads' **velocity curve**; {YB} **velocity → amplitude / filter** (Setup K1 / K2) | [Setup](#setup), [Advanced Setup](#advanced-setup) |
 | {ZB} **Delayed save** | [Advanced Setup](#advanced-setup) |
 """),
 "datos-perdido": ("What is lost at a restart",

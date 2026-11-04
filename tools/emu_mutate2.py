@@ -49,6 +49,7 @@ def fac_addr(e, t): return e.r32(MU.SESSION_OBJ + 0x14) + MU.TAIL + MU.O_FAC + t
 
 ROLL = [False]                                               # drumpat.use_roll: a drum's pad 27 lit
 ROLL2 = [False]                                              # drumpat.use_roll2: a drum's pads 25-27 = the dynamics 1-3, pad 28 dark
+ACC64 = [False]                                              # SC51 (mutate39.use_acc64): the accent up to + 64
 DYN4 = [False]                                               # SC50.9 (drumpat.use_dyn4): pad 25 off; ghost / accent staccato / length; drums lo + roller / hi; factor 0, 1, 2, 4, 8
 
 
@@ -159,13 +160,13 @@ def dyn_model(mode, g, rnd, vel, gate):
     if not ok: return vel, gate
     lo, hi = bits & 0x3FF, bits >> 10
     if DYN4[0]:
-        dv = (lo % 33 - 32, lo % 33, 0)[mode - 1]
+        dv = (lo % 33 - 32, lo % (65 if ACC64[0] else 33), 0)[mode - 1]
     else:
         span, bias = (33, 16) if mode == 3 else (97, 32)
         dv = lo % span - bias
     v2 = min(max(vel + dv, 1), 127)
     if mode == 1 or gate & 0x80: return v2, gate
-    s = hi % 65 - 32 if mode == 3 else (-dv if DYN4[0] else (-dv >> 1 if dv > 0 else -dv))
+    s = hi % 65 - 32 if mode == 3 else (-dv if DYN4[0] and not ACC64[0] else (-dv >> 1 if dv > 0 else -dv))
     L = gate + ((gate * s) >> 5 if s >= 0 else (gate * s + 63) >> 6)
     return v2, min(max(L, 1), SM.MAX_LEN)
 
@@ -534,6 +535,7 @@ def main(img, man):
     ROLL[0] = "c_dqroll" in man["report"]["drumpat"]["labels"]
     ROLL2[0] = "pl_le" in man["report"]["drumpat"]["labels"]
     DYN4[0] = "dv_b" in man["report"]["mutate39"]["labels"]
+    ACC64[0] = "dv_6" in man["report"]["mutate39"]["labels"]
     fails = 0
     def check(c, m):
         nonlocal fails

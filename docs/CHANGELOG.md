@@ -7,6 +7,14 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.16 — 2026-11-04
+
+**Beta 5.16** (marca `B5.16`; = SC51.3; incluye las 5.13-5.15, que no se publicaron) = la Beta 5.12 + lo siguiente, sin probar en el aparato.
+
+- **El bucle del sample capturado sigue al cambiar de proyecto o de pack:** con el bucle enganchado (Shift + pad 7 en Master FX) sonando, cargar otro proyecto u otro pack ya no lo para. Play parpadea en verde y el proyecto nuevo empieza cuando el bucle da la vuelta, a tiempo con él; el bucle sigue sonando y el sample capturado no se borra. Play otra vez = empezar ya. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#master-fx)
+- **Accent del random-mutate más fuerte:** pad 27 (accent staccato en las notas, hi en los drums) sube la velocity de 0 a +64 (antes +32); en las notas, +64 = la mitad de la longitud. El ghost sigue de 0 a −32. → [Guía: Vista de probabilidad (pistas de notas y drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#probabilidad)
+- **Velocity global para los sintes:** vista Setup, **K1** = velocity → amplitud y **K2** = velocity → filtro (0 = apagado, de fábrica), para los patches de Synth 1 / 2 que no usan velocity y el sinte propio de MIDI 1 / 2 con su fuente velocity a 0. LEDs en blanco. La curva de velocity de los pads (K1 de Advanced Setup) desaparece. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#setup)
+
 ### Beta 5.12 — 2026-11-03
 
 **Beta 5.12** (marca `B5.12`; = SC50.9) = la Beta 5.11 + lo siguiente, sin probar en el aparato.
@@ -803,6 +811,14 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.16 — 2026-11-04
+
+**Beta 5.16** (marker `B5.16`; = SC51.3; holds 5.13-5.15, which were not released) = Beta 5.12 + the following, not tested on the device.
+
+- **The captured sample's loop goes on through a project or pack change:** with the latched loop (Shift + pad 7 in Master FX) playing, loading another project or pack no longer stops it. Play blinks green and the new project starts when the loop comes round, in time with it; the loop keeps playing and the captured sample is not erased. Play again = start now. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#master-fx)
+- **A stronger random-mutate accent:** pad 27 (accent staccato on notes, hi on drums) raises the velocity by 0 to 64 (was 32); on notes, +64 = half the length. Ghost stays 0 to −32. → [Guide: Probability view (note tracks and drums)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
+- **Global velocity for the synths:** Setup view, **K1** = velocity → amplitude and **K2** = velocity → filter (0 = off, the default), for Synth 1 / 2 patches that use no velocity and the MIDI 1 / 2 own synth with its velocity source at 0. White LEDs. The pads' velocity curve (Advanced Setup K1) goes. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#setup)
 
 ### Beta 5.12 — 2026-11-03
 

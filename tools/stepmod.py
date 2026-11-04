@@ -329,7 +329,7 @@ def arm_code(base, L, prev):
         E(pop_list, [1])
         E(cmp_imm, 7, 1); E(b_cond, "fn_w", "eq"); E(cmp_imm, 6, 0x80); E(b_cond, "fn_w", "hs")   # a tied unit keeps its length
         E(cmp_imm, 7, 3); E(b_cond, "fn_r", "eq")
-        if MU.DYN4: E(raw, h(0x4241)); E(b, "fn_s")                                   # accent staccato: + 32 = a half
+        if MU.DYN4 and not MU.ACC64: E(raw, h(0x4241)); E(b, "fn_s")                # accent staccato: + 32 = a half (ACC64: the stock path below, + 64 = a half)
         else: E(raw, h(0x4241)); E(b_cond, "fn_s", "ge"); E(raw, h(0x1049)); E(b, "fn_s")   # negs r1, r0; asrs r1, r1, #1
         a.label("fn_r"); E(mov_reg, 0, 1); E(movs_imm, 3, 65); E(raw, udiv(2, 0, 3)); E(muls, 2, 3); E(subs_reg, 1, 0, 2); E(subs_imm8, 1, 32)
         a.label("fn_s")                                                               # r1 = - 32 (a half) .. 0 .. + 32 (double)

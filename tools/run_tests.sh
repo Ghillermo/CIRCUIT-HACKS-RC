@@ -1003,6 +1003,13 @@ run python3 tools/emu_mutate2.py firmware/sc50.7/circuittracks-4486-SC50.7.bin f
 run python3 tools/emu_dspz.py firmware/sc50.7/circuittracks-4486-SC50.7.bin firmware/sc50.8/circuittracks-4486-SC50.8.bin
 run python3 tools/emu_mixsolo2.py firmware/sc50.9/circuittracks-4486-SC50.9.bin firmware/sc50.9/manifest.json
 run python3 tools/emu_mutate2.py firmware/sc50.9/circuittracks-4486-SC50.9.bin firmware/sc50.9/manifest.json
+run python3 tools/emu_mutate2.py firmware/sc51/circuittracks-4486-SC51.bin firmware/sc51/manifest.json
+run python3 tools/emu_velglob.py firmware/sc51/circuittracks-4486-SC51.bin firmware/sc51/manifest.json
+# SC51.1 / Beta 5.14: loopcarry
+run python3 tools/emu_loopcarry.py firmware/sc51.1/circuittracks-4486-SC51.1.bin firmware/sc51.1/manifest.json
+run python3 tools/emu_velglob.py firmware/sc51.1/circuittracks-4486-SC51.1.bin firmware/sc51.1/manifest.json
+run python3 tools/emu_velglob.py firmware/sc51.2/circuittracks-4486-SC51.2.bin firmware/sc51.2/manifest.json
+run python3 tools/emu_loopcarry.py firmware/sc51.3/circuittracks-4486-SC51.3.bin firmware/sc51.3/manifest.json
 # SC50.6 / Beta 5.9 / RC4.07: use_roll, use_curve
 run python3 tools/emu_mutate2.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
 run python3 tools/emu_sccurve.py firmware/sc50.6/circuittracks-4486-SC50.6.bin firmware/sc50.6/manifest.json
