@@ -484,6 +484,7 @@ view("drum-pista", "IV", "Vista de pista de un drum (knobs)",
 | K7 Modulation | Cantidad del LFO: derecha = trémolo; izquierda = vibrato ({XB}: izquierda = **scan del inicio**: cada golpe empieza donde está el LFO, desde el inicio de Shift + K3 hasta un 64avo del sample más allá por cada paso del knob (a la izquierda del todo, todo el sample), sin pasar el corte; el LFO ya no vuelve a empezar con cada golpe) | Velocidad del LFO (bipolar {XB}: derecha libre, izquierda a tempo; 0.2; a tempo, el scan empieza en el inicio en el primer tiempo) |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
+- **Shift + K5, el color del LED = el modo de filtro**: **verde** = EQ tilt de stock, **amarillo** = paso banda, **magenta** = notch, **verde azulado** = comb (no en la {YBETA}: ahí suena el EQ tilt) y **blanco** = DJ.
 - **K3:** girando a la izquierda el ataque vuelve a 0 antes de que baje el decay; con Shift, uno de los dos (inicio o corte) vuelve a 0 antes de que se mueva el otro. LED: ataque en blanco; con Shift, inicio en el color del drum, corte en blanco.
 - **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte; **Clear + K8 a la derecha** quita también el bitcrush {B}. Clear + knob restablece las dos capas en los demás.
 - **Clear + el botón del drum** {B} (con una de sus vistas en pantalla): los ocho knobs del drum, con su capa Shift, a sus valores por defecto.

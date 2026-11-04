@@ -400,6 +400,7 @@ sec("knobs-drums", "Drum knobs as printed on the panel",
 | K7 Modulation | LFO amount (right tremolo; left vibrato; since RC4: left = start scan) | LFO speed |
 | K8 FX | Distortion; left of 0, **bitcrush** | **Distortion type**: stock, soft, hard, folded |
 
+- **Shift + K5, the LED's colour = the filter mode**: green = stock EQ tilt, yellow = band pass, magenta = notch, teal = comb (not in Beta 5.16: the tilt EQ plays instead) and white = DJ.
 - The LED brightness shows the value; Clear + knob resets both layers.
 - Everything is saved with the project and has NRPN (E4).
 """, ["Knobs of a drum."])
