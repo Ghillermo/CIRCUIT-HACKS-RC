@@ -23,8 +23,8 @@ VIEWS = {
 - {B} = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - {NB} = new in RC2.02 (not in RC2.01).
 - {XB} = new in **RC4** (not in RC2.11 or earlier).
-- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.16 too; not in RC4.02 or earlier).
-- {YB} = only in **Beta 5.16** (not in RC4.07).
+- {ZB} = a fix of **RC4.05** (in RC4.07 and Beta 5.25 too; not in RC4.02 or earlier).
+- {YB} = only in **Beta 5.25** (not in RC4.07).
 - The **feature list** (the previous manual) sums up every feature in one line, by topic.
 """),
 "botones": ("Buttons that work in every view",
@@ -90,7 +90,7 @@ VIEWS = {
 - **Velocity view, Shift + a step pad** {XB} (Synth 1 / 2 and MIDI 1 / 2): that step **lets go of the automation**: no lane plays there and the parameters the automation had moved go back to **the project's values** *(since RC4.01; before, to their knob's position)*: on Synth 1 / 2, the macros of the patch as the project saved it (or as it was loaded: turning knobs afterwards does not count); on MIDI 1 / 2, the own synth saved with the project (a project without it: its defaults). A knob turned by hand after the automation stays where you left it. Again = off. With Shift, in the Velocity view, the step pads are yellow and the marked ones red; on the 17-32 page, steps 17-32. Saved with the pattern. {YB} With Shift, the steps **keep their colour** and only **the ones with automation are yellow** (the marked ones, red); **Shift + a yellow step** does not mark it: it **puts its automation values on the knobs and into the sound** until Shift is let go, and letting go puts everything back as it was (Shift + any other step marks or unmarks it as always); meanwhile **the knobs it moves light yellow**, as bright as their value. {YB} **Clear + a step** in the Velocity view (with or without Shift; Clear first, since Shift + Clear is the metronome) **erases that step's knob automation** and keeps its notes, its mark and the level / pan / send automation.
 - **Sweep between two steps** {YB} (Synth 1 / 2 and MIDI 1 / 2): in the Velocity view with Shift, **hold a yellow step and press another yellow step**, in either order: every lane with a value at both becomes a straight line between them, on the steps in between (one value a step, what the playback reads). The two ends do not change; a lane with a value at only one of them is left alone. With a step without automation as the second one nothing happens. It is the gesture of the drums' ramps.
 - **Snapshot of the macros into a step** {YB}: in the track view (Note), **Record held + a step pad** (pads 1-16; with 17-32, steps 17-32) writes into that step the **macros that are not where the loaded patch keeps them** (where Clear + Synth would put them back), each into its lane. The step keeps its notes and Record stays as it was. Mixer and FX are left alone (scenes already keep them). {YB} While you hold the step, it lights **yellow**.
-- **Shift + a key = latch** {XB} (Synth 1 / 2 and MIDI 1 / 2, Note and expanded Note view, no step held): the note sounds and **keeps sounding when you let go of the pad**; the **next press of that note** (on any pad that has it, with or without Shift) stops it, and that press does nothing else. **While Shift is held, the keys of the latched notes light bright teal**; the other keys keep their colours (without Shift, a sounding note lights white as always). *(Up to Beta 3.39, with Shift the keys lit yellow and the latched ones green; in Beta 3.40, no colours.)* With the **arpeggiator** on, the latched notes stay in the arpeggio: an **arpeggio latch**. **Clear + the track's button** lets go of all its latched notes (and its latched chords). **Shift + a step** (Note view, pads 1-16) with notes latched on the track: **the latched notes are written into that step** (notes already there are not repeated; up to 6 a step; one step long, velocity 100); while Shift is held with notes latched, the step pads light **yellow**; with nothing latched, Shift + step is the stock one. On the chord screen, **Shift + a root** latches the whole chord (below). Not on the sample picker (Shift + pad already does something else there); not saved.
+- **Shift + a key = latch** {XB} (Synth 1 / 2 and MIDI 1 / 2, Note and expanded Note view, no step held): the note sounds and **keeps sounding when you let go of the pad**; the **next press of that note** (on any pad that has it, with or without Shift) stops it, and that press does nothing else. **While Shift is held, the keys of the latched notes light bright teal**; the other keys keep their colours (without Shift, a sounding note lights white as always). *(Up to Beta 3.39, with Shift the keys lit yellow and the latched ones green; in Beta 3.40, no colours.)* With the **arpeggiator** on, the latched notes stay in the arpeggio: an **arpeggio latch**. **Clear + the track's button** lets go of all its latched notes (and its latched chords). **Shift + a step** (Note view, pads 1-16) with notes latched on the track: **the latched notes are written into that step** (notes already there are not repeated; up to 6 a step; one step long, velocity 100); while Shift is held with notes latched, the step pads light **yellow** (in {YB}, not: the steps keep their colours and the step being written lights **teal**, the latch colour, while it is held, until you let go); with nothing latched, Shift + step is the stock one. On the chord screen, **Shift + a root** latches the whole chord (below). Not on the sample picker (Shift + pad already does something else there); not saved.
 - **Chord screen** {XB} (Synth 1 / 2 and MIDI 1 / 2, only in the **expanded Note view**: Note twice): **Shift + pad 8** turns it on and off (with Shift pad 8 is yellow, green with the screen on).
 
 | Pads | What they do |
@@ -182,7 +182,7 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 | 32 | {XB} **Voice mode** (a row): see «Voice mode» below. |
 
 ### Voice mode (pad 32) {XB}
-With the engine on, **a touch on pad 32** opens the voice modes on **pads 17-24** (modes with the same name share a colour) (the current one bright, the others dim; pads 9-24 do not load patches meanwhile); touching one picks it; pad 32 again (or leaving the view) closes it. Pad 32 always shows the mode's colour. With the row open, **K1 = the glide's amount** (teal: its time; fully left, no glide; up to about 2 s) and **K2 = the unison's detune** (blue; up to ±50 cents between the outer voices). The mode, the time and the detune are saved with the own-synth patch and with the project.
+{YB} Pad 32 (and Shift + pad 29) only show and work with an engine that uses them (oscillator, FM, VA-drum, sample); with no voice, VCA / VCF / FX only, granular or the FX sequencer they go dark. With the engine on, **a touch on pad 32** opens the voice modes on **pads 17-24** (modes with the same name share a colour) (the current one bright, the others dim; pads 9-24 do not load patches meanwhile); touching one picks it; pad 32 again (or leaving the view) closes it. Pad 32 always shows the mode's colour. With the row open, **K1 = the glide's amount** (teal: its time; fully left, no glide; up to about 2 s) and **K2 = the unison's detune** (blue; up to ±50 cents between the outer voices). The mode, the time and the detune are saved with the own-synth patch and with the project.
 
 | Pad | Mode |
 |---|---|
@@ -200,7 +200,7 @@ How many voices each mode gives, the chord level and the voice limiter when the 
 ### Jump sequencer {YB}
 A MIDI track can move another track's pattern: instead of sounding, its notes make that track **jump to the step they indicate**.
 
-- **Pointing:** with the engine row open (a tap on pad 27), **pads 9-16** are the eight tracks, in the order of their buttons and in their colours. A tap points at that track (it lights bright, and pad 27 **blinks** in its colour); another track changes it; the same one turns it off. The track's own pad stays dark.
+- **Pointing (step flip):** turn **patch flip** on (pad 26, as always): **pads 17-24** become the eight tracks, in the order of their buttons and in their colours (the track's own dark; pads 9-16 go dark). A tap on a track = **step flip**: the track points at it (it lights bright, patch flip goes off and **pad 26 blinks** in its colour); another track changes it; **the same one again goes back to patch flip**; **pad 26 turns everything off**. {YB} (before, in pad 27's engine row).
 - **Jumps or an engine:** pointing turns the track's engine off, and turning an engine on stops pointing: only one of the two at a time.
 - **While pointing, the track plays no notes:** not on its engine, not over MIDI, not on a shared channel. Each of its notes, from the sequencer, the pads or the arpeggiator, is a jump: it lands on the note's own step and the other track goes on from there.
 - **Which step:** in its Note view, **pads 17-32 are steps 1-16** and with **Octave ▲ steps 17-32**; in the **expanded Note view the 32 pads are steps 1-32 in order**. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded view. The scale and the root change nothing: while you see that track, its keyboard is a Jankó layout with a different note on every pad, and the other tracks keep theirs.
@@ -212,12 +212,13 @@ A MIDI track can move another track's pattern: instead of sounding, its notes ma
 ### Own-synth patches (pads 9-24) {B}
 - 16 slots per page; **Octave ▼ / ▲** = 4 pages (64 slots per pack, shared by MIDI 1 and MIDI 2); {XB} **8 pages, 128 slots**.
 - **Touch** = load (the tonic sounds while you hold the pad; {XB}: **Shift + pad** = load without the sound). **Clear + pad** twice = save. **Duplicate + A + B** = swap; **Duplicate + A**, another pack, **Duplicate + B** = copy to another pack (Duplicate yellow while one is waiting).
-- Colours: dim peach = has a patch, bright = the last used, violet = empty.
+- Colours: dim peach = has a patch, bright = the last used, violet = empty. {YB}: each patch in **its engine's colour** (the pad 27 row's; FM violet), bright = the last used; **empty = dim white**.
 - A patch stores the whole engine: chosen engine, oscillators, order, every value and the step-drummer setting *(writes to the card)*.
 - **Clear + the track button** {B} puts every engine value back to its default (the chosen engine stays; {XB}: the FM's too, and the matrix keeps its destinations with the amounts at zero).
 
 ### The engines (pad 27)
-- **Choosing the engine** {XB}: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (before RC4, every tap of pad 27).
+- **Choosing the engine** {XB}: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. {YB}: **pads 17-24** = no voice (white), VCA / VCF / FX only (the line input), oscillator, oscillator VA-drum, oscillator wavetable (sand), sample, granular and FM; **the FX sequencer leaves the row: it is pad 31** with «no voice» (dim blue; a tap turns it on, bright, and the row keeps showing «no voice»; another tap turns it off). Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (before RC4, every tap of pad 27).
+- **Wavetable** {YB} (sand, pad 21): the oscillator reading a table of up to 9 frames, for both oscillators; **K7** of OSC 1 / OSC 2 = the position, K8 = LFO → position, Shift + K8 = envelope → position, SHAPE = warp. While it plays, **pad 7 held** = the stock's 16 wavetables (a tap fills the table) and **pad 8 held** = the pack's samples (Octave = page; a tap adds or takes out a cycle of the sample).
 - **Line input** (yellow): the track's audio input (line 1 on MIDI 1, line 2 on MIDI 2) goes through the VCA-VCF; the track's notes trigger it.
 - **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony (with one oscillator, {B}: the last note has priority and releasing it goes back to the previous one).
 - **VA-drum** (orange): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
@@ -255,7 +256,7 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 - With **a single own voice** (the mono modes, or poly with one note) the limiter does not act: the device shares the DSP as always.
 
 ### Tips
-- For more voices at once: shorter releases, fewer loud operators in FM, or just one track in FM poly (6 voices instead of 3 + 3).
+- For more voices at once: shorter releases, fewer loud operators in FM, or just one track in FM poly (6 voices instead of 3 + 3). {YB} The FM voices are computed by the DSP's **other core**: 6 a track even with MIDI 1 and MIDI 2 both in FM poly (12 in all), and they take no time from the rest; when that core cannot keep up (about 10 FM voices, about 8 with the granular playing), the limiter switches an FM voice off as above. FM sounds 1.3 ms later than the rest, as the granular does.
 - If a long chord loses notes, try the patch with a shorter release or a lighter engine (one oscillator, VA-drum, sample).
 - The mono modes (retrigger, legato, glide) use one voice: they never reach the limiter.
 """),
@@ -314,7 +315,7 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 - **Stereo granular** {XB}: with **Shift + K4** above 0, each grain goes to one side at random, further apart the higher it is; the **track's pan** (Mixer) sets the proportion: centred, half and half; to the right, more grains on the right. The stereo part (what differs between the sides) follows the track's VCA, level, pan, mute and sidechain; the engine's filter and effect and the sends act on the centre only.
 
 ### Pages 3-5
-- **Page 3 (OSC 2):** {B}: the eight values without Shift, following the printed labels: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (in RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
+- **Page 3 (OSC 2):** {B}: the eight values without Shift, following the printed labels: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (in RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2). {YB} With the oscillator, the VA-drum and the wavetable: **K1 = OSC 2's ratio to its note** (centre = 1; to the left ½ and ¼; to the right 2, 3, 4 … 31, about two clicks a ratio), **K2 = detune** (±50 cents, centre = in tune), K3 SHAPE 2, K4 MIX OSC 1 ↔ OSC 2, K5 FM, K6 BITSYNC, K7 WAVE 2, K8 RING. With the granular, page 3 stays as before. With two notes held, OSC 2 plays the second note × its ratio.
 - **Page 4 — sequenceable knobs:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect). {XB}: **Shift + knob** = that knob's **destination**: the engine's 33 parameters in the modulation matrix's order and colours (the LED in its page's colour; 4 clicks a parameter); with **Clear held before Shift**, the factory one. While you pick, **pads 9-24 show where the destination lives**, as when a matrix knob turns: its page's pad bright and that page's knobs (K1-K8 above, Shift + K1-K8 below; the destination bright). The lane records and plays the new destination (what it already held now moves that parameter). They are saved with the own-synth patches (MIDI 1 / 2's Preset view); a patch without them loads the factory ones.
 - **Non-sequenceable knobs** {XB} (**Shift + pad 4**; pad 4 pink while they are on the knobs, dim pink with Shift): 8 knobs with an **assignable destination** like the sequenceable ones (**Shift + knob** = the destination among the 33 parameters, in its page's colour; **Clear held, then Shift + knob** = the factory one; while you pick, pads 9-24 show where it lives). By default: Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2, VCA gain. They move that parameter's value **without recording it** (a destination that is also on the sequenceable knobs is recorded, as from any page). Their destinations are saved with the own patches.
 - **Snapshot of the values into a step** {XB}: in MIDI 1 / 2's track view (engine on), **Record held + a step pad** (pads 1-16; with 17-32, steps 17-32) writes into that step's lanes the parameters that are **not at their initial value** (the one of Clear + knob to the right), and only those. A parameter without a lane takes one whose parameter is at its initial value (in lane order), and that lane is cleared in the pattern first; when they do not fit, the first ones in the matrix's order. The step keeps its notes and Record stays as it was. {YB} Also on **Synth 1 / 2** (their macros) and the **drums** (pitch, decay, distortion, EQ): [Synth 1 / 2 track view](#synth-nota), [a drum's track view](#drum-pista). {YB} While you hold the step, it lights **yellow**.
@@ -366,6 +367,44 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 | 14 | tubular bell: 2 and 3 → 1 (× 2.76, × 5.4), 4 a carrier | | tubular bell |
 | 15 | strings: two stacks (2 → 1, 4 → 3) detuned against each other | strings (green) | strings (slow attack) |
 | 16 | ensemble: 4 → 1, 2 and 3, three detuned carriers | | ensemble |
+
+{YB} This 4-operator FM is replaced by the **8-operator FM** (next chapter); its patches load into it with the same sound.
+"""),
+"midi-fm8": ("8-operator FM",
+    f"{YB} MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.", """
+It replaces the 4-operator FM: **up to 8 operators**, each with a **DX7-style envelope** (4 rates and 4 levels). **56 algorithms**: the 4-operator FM's 16, the DX7's 32 and 8 with eight operators (two 4-stacks, four pairs, an 8-stack, seven modulators on one carrier, eight carriers, three stacks 3-3-2, two pairs and a 4-stack, the DX7's algorithm 1 plus a pair). The engine works out only the operators the algorithm uses: with 4, about 10 voices; with 6 (the DX7's), about 6-7; with 8, about 5.
+
+**Pads of the FM page** (with the engine row closed):
+
+| Pad | What it does |
+|---|---|
+| 9-16 | Picks **operator 1-8**: the ones the algorithm uses lit (carriers green, modulators light blue; the picked one bright), the others off |
+| 3 | The **pitch envelope** (violet, FM's colour; bright while you edit it), like a ninth operator. From any knob page it opens the FM page with it picked |
+| 17-24 | **The engine row**: no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand), sample, granular and FM (bright); a tap changes the engine (no patches load) |
+| 7 held | (Bright only while held.) **The 56 algorithms** on pads 9-32, in three pages: **Octave ▼ / ▲** while you hold it (lit = there is another page). Page 1: the 16 four-operator ones (teal) and the 8 eight-operator ones (amber); page 2: the DX7's 1-24 (white); page 3: the DX7's 25-32. The current one bright; press one: chosen, and it sounds |
+| 8 held | **24 instruments** on pads 9-32, in their type's colour: keys orange (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), basses blue (FM Bass, Synth Bass, Deep Bass), leads and brass red (Brass, Sync Lead, Flute), pads and strings green (Strings, Warm Pad, Choir, Glass Pad), plucks yellow (Harp, Koto, Nylon), percussion white (Kick, Snare, Hi-Hat), bells and fx violet (Tubular Bell, Space Sweep); the loaded one bright. Press one: loaded, and it sounds |
+
+With the FM page showing, pads 9-24 load no patches: load them from another knob page. With FM, **pad 28** (two oscillators) goes dark and does nothing (the setting stays for when FM is off), and **pad 3** leaves the OSC 2 page and becomes the pitch envelope. The pad 7 / 8 lists also show with the engine row open or a flip mode on.
+
+**Knobs with an operator picked:**
+
+| Knob | Alone | With Shift |
+|---|---|---|
+| K1 | **Ratio**: 0.5, 1 … 31, then fixed 1 / 10 / 100 / 1000 Hz (red); 3 clicks a step | **Algorithm** (56, for the whole engine; 16 clicks a step). Turning it shows the algorithms on the pads for 1.5 s (the old 16 on pads 9-24, the DX7's 32 on all 32 pads, the 8 eight-operator ones on pads 1-8) |
+| K2 | **Fine** (0-99) | **Feedback** (0-127, for the whole engine) |
+| K3 | **Output level** (0-99) | **Rate scaling** (0-7: higher notes faster) |
+| K4 | **Velocity sensitivity** (0-7, 4 clicks) | **Level scaling** (centre = none; right = higher notes softer, left = lower notes softer) |
+| K5-K8 | **Rates R1-R4** of its envelope (0-99) | **Levels L1-L4** (0-99) |
+
+**Knobs with the pitch envelope (pad 3):** K1 transpose (0-48, 24 = none), K3 noise (0-127), K4 the noise's operator (1-8, 16 clicks), K5-K8 R1-R4; with Shift K1 / K2 as above and K5-K8 L1-L4 (50 = no shift).
+
+- **The envelope** rises at R1 to L1, R2 to L2, R3 to L3 and stays at L3 while the note is held; on release it goes at R4 to L4. As on the DX7: rate 99 = instant.
+- **Clear + knob** = the initial value; **Clear + pad 7** = a playable voice of the chosen algorithm; **Clear + MIDI 1 / 2** = the whole engine to its defaults.
+- **Patches from Beta 5.19 or earlier** (4-operator FM) load converted: same algorithms, ratios, levels and envelopes, the same sound.
+- **Saved with the own-synth patches**: each patch's FM goes in an extra slot of the same bank on the card (`Patches/NN_PATCHBANK.cpb`), after the 8 stock patches; the bank grows up to 8 KB. Swapping patches (Duplicate + A + B) or copying them from another pack takes the FM along.
+- **Saved with the project**: MIDI 1 / 2's FM goes in the settings of Synth 1 / 2's patterns (changing nothing of theirs); loading a project brings its sound back.
+- **Components**: reading the pack and sending one patch leave the FM alone. **«Send patches» / «Send pack»** change the stock patches as always and **the device puts the own-synth patches and the FM back** in each bank (they used to be lost); if Components deletes a bank that holds own-synth patches, it stays with its 8 stock patches empty. Not on the internal pack. A copy saved by Components (its zip) has no own-synth patches: the card app's copy (Snapshot) has them.
+- Polyphony, unison and glide as with the 4-operator FM (chapter «Voices»). No CC / NRPN.
 """),
 "midi-matriz": ("Mod matrix",
     f"{NB} MIDI 1 / 2 with the engine on: Preset view, **pad 6**. The 8 knobs become 8 modulation sources.", """
@@ -804,13 +843,13 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | {YB} **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](#midi-preset) |
 | {YB} **What each drum's extra lane carries** (lane or state locks) | [Drums](#drum-pista) |
 | {YB} **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](#drum-pista) |
-| {XB} **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and {XB} non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was) | [MIDI Preset view](#midi-preset) |
+| {XB} **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and {XB} non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was); {YB} the 8-operator FM, in the settings of Synth 1 / 2's patterns | [MIDI Preset view](#midi-preset), [8-operator FM](#midi-fm8) |
 
 ### The pack (written to the card when you do the gesture)
 | What | Where it is used |
 |---|---|
 | **Saved Synth 1 / 2 patches** {B} (Clear + pad twice); swaps and copies between packs | [Synth Preset view](#synth-preset) |
-| **Own-synth patches** of MIDI 1 / 2 (64 per pack, {XB} 128; shared by both tracks: engine, values, step-drummer, {NB} matrix, {XB} FM, destinations of the sequenceable and {XB} non-sequenceable knobs, voice mode) | [MIDI Preset view](#midi-preset) |
+| **Own-synth patches** of MIDI 1 / 2 (64 per pack, {XB} 128; shared by both tracks: engine, values, step-drummer, {NB} matrix, {XB} FM, destinations of the sequenceable and {XB} non-sequenceable knobs, voice mode; {YB} the 8-operator FM in an extra slot of the same bank, after its 8 patches; Components' «Send patches» no longer erases them) | [MIDI Preset view](#midi-preset), [8-operator FM](#midi-fm8) |
 | **Samples**: swaps, copies between packs and the **capture** replacing a drum (this one when the project is saved, if it fits) | [Drum Preset view](#drum-preset) |
 | **Projects copied** to another slot or pack; **deleted packs** | [Projects](#projects), [Packs](#packs) |
 
@@ -903,7 +942,7 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 - **New builds:** in step 2, **Check for new builds** looks up the published ones (it needs the internet) and adds to the list those your installer does not carry; you pick and send them like the others.
 """),
 "app-sd": ("Card and device app",
-    "[Download `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), unzip it and open `sd_app.html` in Chrome or Edge. It needs no installation and no server.", """
+    "[Download `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), unzip it and open `sd_app.html` in Chrome or Edge. It needs no installation and no server. To move samples, patterns and FM patches between a Circuit Tracks and a Circuit Rhythm: the **Hacks + Remix** app: [download `hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip), unzip it and open `hr_app.html` in Chrome or Edge.", """
 It organises, from the computer, what is on the microSD card or on the device connected by USB. It also works with the official firmware; only the custom patches belong to the mod.
 
 ### Opening
@@ -915,7 +954,7 @@ It organises, from the computer, what is on the microSD card or on the device co
 Each column opens a folder, a card or the device, with its own pack. A click chooses a row; Ctrl adds and Shift chooses a range.
 - **Copy** and **Move** send the selection to the other column: to the slot chosen there or, with none chosen, to the first free one. If it is in use, the app asks: overwrite or, when moving, swap.
 - **Delete** removes the selection, after asking. **Edit** opens the selection in **Custom patches**, **Patterns** and **CC presets**; so does a double click.
-- **Rename / order…** changes the name or the number of one chosen row in **Packs**, **Nova synths**, **Drums** and **Custom patches** (in **CC presets**, the name only: the projects of every pack choose presets by their number). **An occupied number = the two swap.** A new name changes only the name. **A new number for a sample or a Nova synth rewrites the pack's projects** so each one still sounds the same: each drum's sample and its sample flips, the MIDI 1 / 2 own synth's sample and its flips, and the Synth 1 / 2 patch (the log says which projects were updated). Custom patches are found by their sound and no project names a pack: they just move. The app only takes names the device and the card accept: ASCII letters, digits, spaces and signs (no accents); for packs and samples, no `\\ / : * ? " < > |` and no space or dot at the end, and at most 27 characters for a pack and 23 for a sample (30 with the number and the extension); patches 16; CC presets 32. Over USB the pack the device has loaded is not renamed or moved (it would reload the project); in the loaded pack the app warns before rewriting its projects.
+- **Rename / order…** changes the name or the number of one chosen row in **Packs**, **Nova synths**, **Drums** and **Custom patches** (in **CC presets**, the name only: the projects of every pack choose presets by their number). **An occupied number = the two swap.** A new name changes only the name. **A new number for a sample or a Nova synth that projects of the pack use asks what to do with them: «Move their references»** rewrites those projects so each one still sounds the same; **«Leave them»** keeps them on the old number, which now holds something else. What gets rewritten: each drum's sample and its sample flips, the MIDI 1 / 2 own synth's sample and its flips, and the Synth 1 / 2 patch (the log says which projects were updated). Custom patches are found by their sound and no project names a pack: they just move. The app only takes names the device and the card accept: ASCII letters, digits, spaces and signs (no accents); for packs and samples, no `\\ / : * ? " < > |` and no space or dot at the end, and at most 27 characters for a pack and 23 for a sample (30 with the number and the extension); patches 16; CC presets 32. Over USB the pack the device has loaded is not renamed or moved (it would reload the project); in the loaded pack the app warns before rewriting its projects.
 
 ### The tabs
 | Tab | What is there | What you do |
@@ -923,7 +962,7 @@ Each column opens a folder, a card or the device, with its own pack. A click cho
 | **Packs** | The packs of the card or the device | Copy, move, delete and export whole packs. The internal pack is not shown |
 | **Nova synths** | The Synth 1 / 2 patches of each pack | Copy, move, delete, export |
 | **Drums** | The pack's samples and the sample memory they take | Listen with ▶ or a double click, copy, move, delete, export |
-| **Custom patches** | The patches of the MIDI 1 / 2 own synth | Edit the engine, its parameters and the name; copy, move, delete, export |
+| **Custom patches** | The patches of the MIDI 1 / 2 own synth | Edit the engine, its parameters and the name; copy, move, delete, export; **Import DX7…** |
 | **Patterns** | The 64 patterns of a session: 8 per track | See, copy, move, clear, export; edit the note tracks |
 | **CC presets** | The MIDI tracks' 8 CC templates | **Read from device**, change, **Send to device**; **Open…** and **Save…** as `.ctcc`; **Factory** |
 
@@ -934,11 +973,18 @@ In **Nova synths**, **Drums** and **Custom patches**, before the name: **● n**
 - **Custom patches:** a project keeps no patch number. It counts when the own synth saved with the project sounds the same: same engine and same values, even with another name.
 - With the device connected the list is not read by itself: press **See which projects use them** (it reads every session of the pack over USB).
 
+### Importing DX7 voices
+In **Custom patches**, **Import DX7…** opens a DX7 `.syx`: a 32-voice bank (4104 bytes), a single voice (163 bytes), several messages in one file or a 4096-byte bank without a header. The list shows each voice with the slot it goes to: **From slot** picks the first (by default the chosen row or the first free slot), **Skip the slots in use** overwrites no patch (unticked, the ones replaced carry ⚠), **All** / **None** and the boxes choose the voices.
+- Each voice becomes a custom patch: the oscillator with the **8-operator FM** on (the DX7's 6 operators; 7 and 8 silent), poly voice mode and the voice's name. Envelopes, levels, ratios, scaling, velocity, algorithm, feedback and transpose, in the DX7's units. The DX7's LFO is kept in the patch but does not play yet.
+- It needs Beta 5.20 or later on the device: the 8-operator FM is stored in an own record at the end of the patch bank. Copy, move, delete and export carry that record with the patch; in the **Editor**, such a patch shows its algorithm and its operators are edited on the device.
+- A wrong check byte does not stop the import: the app says so.
+
 ### Patterns
 - At the top you choose the pack and the session. The third selector filters: **With content**, **All** or one track.
 - Each row gives the track and pattern (`Synth 1·3`), what it holds and its steps, with a grid of its notes. With the device connected, also the track's **channel**; the channel is kept on the device, not in the session.
 - Choosing a row shows the pattern large below: a piano roll for note tracks, velocity bars for drums, with sample flips in amber and rollers split.
 - A double click edits a note track: first and last step, sync rate, direction, order, notes and automation lanes. **Drum patterns can be seen, copied and exported, but not edited yet.**
+- **Project sounds…** (at the top, with the chosen session): what that project loads. **Synth 1 / 2** = the Nova slot it points at and the copy a load plays (its initial state: **Take the slot's** replaces it with that slot's patch); **MIDI 1 / 2** = the project's own synth (from a custom patch, with its 8-operator FM and its wavetable; **Edit its initial state…** opens the patch editor on the project's copy); **Drum 1-4** = each one's sample. **Save to the project** writes that session only; the pack's slots do not change.
 - A drum pattern only goes to another drum track. A copy leaves in the destination the chain rules and the project data kept in the pattern's settings; on drums, also the per-step frequency and random-mutate.
 
 ### Export
@@ -947,7 +993,7 @@ In **Nova synths**, **Drums** and **Custom patches**, before the name: **● n**
 | Tab | File |
 |---|---|
 | **Nova synths** | A 350 B `.syx`, the format of a patch in Components' packs |
-| **Custom patches** | `.ctm` |
+| **Custom patches** | `.ctm` (172 bytes; 396 with the 8-operator FM) |
 | **Drums** | `.wav` |
 | **Patterns** | `.mid` and `.ctpat` (the exact data); with just one, you choose which |
 | **CC presets** | One `.ctcc` with all 8; with the device connected, read from it first |

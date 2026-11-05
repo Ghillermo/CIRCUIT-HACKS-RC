@@ -7,6 +7,24 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.25 — 2026-11-05
+
+**Beta 5.25** (marca `B5.25`; = SC52.2; incluye las 5.17-5.24, que no se publicaron) = la Beta 5.16 + lo siguiente. Del FM de 8 operadores se probó en el aparato la Beta 5.20; lo demás, sin probar en el aparato.
+
+- **FM de 8 operadores:** el motor FM del sinte propio de MIDI 1 / 2 pasa a 8 operadores con las envolventes del DX7 (rates / levels separados), 56 algoritmos (8 de ellos con los ocho operadores) y 24 instrumentos de partida; pad 7 mantenido = los algoritmos (tres páginas con Octave), pad 8 mantenido = los instrumentos, pad 3 = la envolvente de pitch. Los patches FM antiguos se cargan en el nuevo. Se guarda con cada patch propio y con el proyecto. → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-fm8)
+- **Fila de motores nueva** (pad 27 de la vista Preset de MIDI 1 / 2): sin voz, VCA / VCF / FX, oscilador, VA-drum, wavetable, muestra, granular y FM; el secuenciador de efectos pasa al pad 31; los huecos de patches en el color de su motor. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Motor wavetable** (pad 21 de la fila de motores): el oscilador lee una tabla de hasta 9 cuadros, para los dos osciladores; K7 de OSC 1 / OSC 2 = la posición, K8 = LFO → posición, Shift + K8 = envolvente → posición, SHAPE = warp. Pad 7 mantenido = las 16 wavetables del sinte de stock (un toque llena la tabla); pad 8 mantenido = los samples del pack (un toque añade o quita un ciclo del sample). Se guarda con los patches propios y con el proyecto. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+- **Página OSC 2 nueva** (oscilador, VA-drum, wavetable): K1 = **ratio** de OSC 2 respecto a su nota (centro = 1; ½ y ¼ a la izquierda; 2 … 31 a la derecha), K2 = **detune** ±50 cents, K3 SHAPE, K4 mezcla, K5 FM, K6-K8 como antes. Con el granular, la página sigue igual. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs)
+- **Latch en la vista Note:** con Shift y notas fijadas, los pasos ya no se ponen amarillos; el paso en que escribes las notas fijadas (Shift + paso) se ve turquesa, el color del latch, mientras lo mantienes. → [Guía: Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+- **App de la tarjeta:** **Importar DX7…** (pestaña Parches custom) convierte un `.syx` del DX7 en parches custom con el FM de 8 operadores; reordenar un sinte Nova o un sample que usan proyectos pregunta si sus referencias se mueven; **Sonidos del proyecto…** (pestaña Patrones) cambia el sonido inicial de cada pista de un proyecto. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#app-sd)
+- **App Hacks + Remix** ([`hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)): samples, patrones (del Tracks al Rhythm, la nota más grave de cada paso) y parches FM de 8 operadores entre tarjetas de un Circuit Tracks y de un Circuit Rhythm, carpetas y snapshots. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#app-sd)
+
+- **Step flip desde el patch flip:** el destino del secuenciador de saltos se elige ahora con el patch flip encendido (pad 26 de la vista Preset de MIDI 1 / 2): los pads 17-24 son las ocho pistas; una pista = step flip hacia ella (el pad 26 parpadea en su color), la misma otra vez = patch flip, el pad 26 lo apaga todo. La fila de motores (pad 27) ya no apunta. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+
+- **Sitio para funciones nuevas:** el segundo núcleo del DSP arranca con 8 K palabras de programa en lugar de 2 K (el mismo modo de memoria que el aparato usa en el primero); nada cambia en el uso ni en el sonido. Si el aparato no arranca: Scales + Preset + Note e instalar la Beta 5.16. → [Guía: Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#instalar)
+
+- **Más voces FM:** las voces FM del sinte propio de MIDI 1 / 2 las calcula ahora el otro núcleo del DSP: 6 por pista también con las dos pistas en FM poly (12 en total; antes 3 + 3), sin quitar tiempo al resto del sonido. Si ese núcleo no llega (unas 10 voces FM, unas 8 con el granular sonando), el límite de voces apaga una voz FM. El FM suena 1,3 ms más tarde que el resto, como el granular. → [Guía: Voces del sinte propio: polifonía y límite de voces](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-voces)
+
 ### Beta 5.16 — 2026-11-04
 
 **Beta 5.16** (marca `B5.16`; = SC51.3; incluye las 5.13-5.15, que no se publicaron) = la Beta 5.12 + lo siguiente, sin probar en el aparato.
@@ -529,6 +547,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 5.25 — 2026-11-05
+
+**Beta 5.25** (marca `B5.25`); sin probar en el aparato. Los dos están también en RC4.07 y van a la próxima RC:
+
+- **Intercambio de patches propios** (Duplicate + A + B en la vista Preset de MIDI 1 / 2): estropeaba las páginas de knobs no secuenciables y el modo de voz de los dos patches; ahora se intercambian enteros.
+- **Destinos en los pads con la fila de motores abierta:** con la fila de motores (pad 27) o un modo flip a la vista, Shift + knob en las páginas 4 / 8 y los knobs de la matriz no enseñaban su destino en los pads 9-24 (y un pad de la fila podía cambiar de motor mientras tanto); ahora el destino se ve encima.
+
 ### RC4.07 / RC4.07S / Beta 5.9 — 2026-11-02
 
 **RC4.07** (marca `R407`) / **RC4.07S** (`R407S`), con lo de RC4.06, que no se publicó; sin probar en el aparato:
@@ -811,6 +836,24 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.25 — 2026-11-05
+
+**Beta 5.25** (marker `B5.25`; = SC52.2; holds 5.17-5.24, which were not released) = Beta 5.16 + the following. Of the 8-operator FM, Beta 5.20 was tested on the device; the rest is untested on the device.
+
+- **8-operator FM:** the FM engine of MIDI 1 / 2's own synth becomes 8 operators with the DX7's envelopes (rates / levels apart), 56 algorithms (8 of them with all eight operators) and 24 starting instruments; pad 7 held = the algorithms (three pages with Octave), pad 8 held = the instruments, pad 3 = the pitch envelope. Old FM patches load into the new one. Saved with every own patch and with the project. → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-fm8)
+- **New engine row** (pad 27 of the MIDI 1 / 2 Preset view): no voice, VCA / VCF / FX, oscillator, VA-drum, wavetable, sample, granular and FM; the FX sequencer moves to pad 31; patch slots in their engine's colour. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **Wavetable engine** (pad 21 of the engine row): the oscillator reads a table of up to 9 frames, for both oscillators; K7 of OSC 1 / OSC 2 = the position, K8 = LFO → position, Shift + K8 = envelope → position, SHAPE = warp. Pad 7 held = the stock synth's 16 wavetables (a tap fills the table); pad 8 held = the pack's samples (a tap adds or removes a cycle of the sample). Saved with own patches and with the project. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+- **New OSC 2 page** (oscillator, VA-drum, wavetable): K1 = OSC 2's **ratio** to its note (centre = 1; ½ and ¼ to the left; 2 … 31 to the right), K2 = **detune** ±50 cents, K3 SHAPE, K4 mix, K5 FM, K6-K8 as before. With the granular the page stays as it was. → [Guide: Knob pages of the MIDI 1 / 2 engine](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
+- **Latch in the Note view:** with Shift and latched notes the steps no longer turn yellow; the step you write the latched notes into (Shift + step) lights teal, the latch colour, while you hold it. → [Guide: Synth 1 / 2 track view (Note, Velocity, Gate)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+- **Card app:** **Import DX7…** (Custom patches tab) turns a DX7 `.syx` into custom patches with the 8-operator FM; reordering a Nova synth or a sample used by projects asks whether their references move; **Project sounds…** (Patterns tab) changes the starting sound of each track of a project. → [Guide: Card and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#app-sd)
+- **Hacks + Remix app** ([`hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)): samples, patterns (Tracks to Rhythm, each step's lowest note) and 8-operator FM patches between Circuit Tracks and Circuit Rhythm cards, folders and snapshots. → [Guide: Card and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#app-sd)
+
+- **Step flip from patch flip:** the jump sequencer's destination is now chosen with patch flip on (pad 26 of the MIDI 1 / 2 Preset view): pads 17-24 are the eight tracks; a track = step flip to it (pad 26 blinks in its colour), the same one again = patch flip, pad 26 turns everything off. The engine row (pad 27) no longer points. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+
+- **Room for new features:** the DSP's second core starts with 8 K words of program memory instead of 2 K (the memory mode the device already uses on the first one); nothing changes in use or in the sound. If the device does not start: Scales + Preset + Note and install Beta 5.16. → [Guide: Installing and going back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#instalar)
+
+- **More FM voices:** the own synth's FM voices on MIDI 1 / 2 are now computed by the DSP's other core: 6 a track even with both tracks in FM poly (12 in all; was 3 + 3), without taking time from the rest of the sound. When that core cannot keep up (about 10 FM voices, about 8 with the granular playing), the voice limiter switches an FM voice off. FM sounds 1.3 ms later than the rest, as the granular does. → [Guide: Own-synth voices: polyphony and the voice limiter](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-voces)
 
 ### Beta 5.16 — 2026-11-04
 
@@ -1333,6 +1376,13 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 5.25 — 2026-11-05
+
+**Beta 5.25** (marker `B5.25`); untested on the device. Both are also in RC4.07 and go into the next RC:
+
+- **Swapping own patches** (Duplicate + A + B in the MIDI 1 / 2 Preset view): spoiled both patches' non-sequenceable knob pages and voice mode; they now swap whole.
+- **Destinations on the pads with the engine row open:** with the engine row (pad 27) or a flip mode on screen, Shift + knob on pages 4 / 8 and the matrix's knobs did not show their destination on pads 9-24 (and a row pad could change the engine meanwhile); the destination now shows on top.
 
 ### RC4.07 / RC4.07S / Beta 5.9 — 2026-11-02
 

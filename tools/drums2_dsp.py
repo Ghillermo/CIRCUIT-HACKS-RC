@@ -35,6 +35,7 @@ SLOPE_PASS = False                            # with XTRA: EXT bit 10 = filter s
 GENTAB = False                                # SC49.7 (gentab.py): TEXP / TLFO / TATK / TDEC / TF built at DSP start at their GEN_ addresses; the program keeps
                                               # TEXP's and TDEC's top octave (TEXP_S, TDEC_S; with COMPACT); TLFO / TF are multiplied up from a constant, TATK divided
 GEN_TATK, GEN_TDEC, GEN_TF = 0x3E0D, 0x3E4E, 0x3E8E   # (GENTAB) 65 / 64 / 64 words (gentab)
+XTABS = set()                                   # (gentab.use_xtab) the generated tables read from core 0's X instead of P
 GEN_TEXP, GEN_TLFO = 0x3F4F, 0x3F80           # (GENTAB) 49 / 128 words (gentab)
 COMPACT = False                               # SC36: TATK stored as its first 65 words (the rest is 0) and TDEC as its last 64 (the first 65 are equal): the
                                               # envelope index is clamped instead (ENVS <= 0 for TATK, ENVS >= 0 for TDEC); label TDEC = old TDEC + 64 (vcf21 compensates)
@@ -136,7 +137,7 @@ def code(base):
         e("move r1,b" if src == "r1" else "move x:>$1ed6,b")
         e("sub #>$9f,b", "asl #%d,b,b" % SHIFT, "add #>$%x,b" % DB, "move b,r6"); a.emit(D.NOP)
     def ld_tab(name, idx_reg, dst):  # dst = TABLE[idx_reg] (idx_reg is a or b, clobbered; uses r0)
-        tab(idx_reg, name); e("move %s,r0" % idx_reg); a.emit(D.NOP); e("move p:(r0),%s" % dst)
+        tab(idx_reg, name); e("move %s,r0" % idx_reg); a.emit(D.NOP); e("move %s:(r0),%s" % ("x" if name in XTABS else "p", dst))
 
     def pmod(t):                     # as SC18 (drums_dsp), offsets of this layout
         e("move %s,x1" % X(BASE), "move x1,a", "tst a"); a.emit(J("eq"), "pm_x" + t)

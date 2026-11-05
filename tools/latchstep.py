@@ -4,7 +4,8 @@ track (Synth 1 / 2, MIDI 1 / 2), with Shift held and notes latched on that track
 or with the chord screen's latch: chords' c_chlat), a step pad writes the latched notes into that step: each one not there yet goes into a free
 unit (6 at most), one step long (6 ticks), velocity 100, micro step 0; then the stock is told (the step editor's pattern store, as smnote does)
 so the step lights at once.  The press and its release are swallowed.  Without latched notes Shift + step stays the stock's.  While Shift is
-held in that Note view with notes latched, the 16 step pads light yellow (the user's Shift convention; asked: «Yellow steps with Shift»).
+held in that Note view with notes latched, the 16 step pads light yellow (the user's Shift convention; asked: «Yellow steps with Shift»);
+from SC52.2 (use_heldcue) no yellow: the step being written lights cyan while it is held.
 
 Heads of slots 0 / 1 of the step objects (class 0x0805ADB4: 0x20041EB0 + 0x170 t; the step = pad + 16 on the 17-32 page), in front of autorel
 (Shift + step in the Velocity view); the LED task calls (in front of the chain).  The pattern = autorel's c_arpat (the step-drummer's c_sdpat: the pattern the track plays / shows).
@@ -31,6 +32,17 @@ STORE_W, COMMIT = 0x08035456, 0x080353C0
 GATE, VEL, UNITS = V.SD_LEN, 100, 6
 BUF = 96                                                      # the chords' latched notes (16 slots x 6) on the stack
 COL_AV = 0x2D                                                 # with Shift: the step pads yellow
+HELDCUE = False                                               # SC52.2 (use_heldcue)
+COL_HELD = 0x4D                                               # (HELDCUE) the step being written, the latch's cyan (arpx.COL_CYAN)
+
+
+def use_heldcue():
+    """SC52.2 / Beta 5.25 (the user, 2026-11-05: «simplemente no les cambies el color. En su lugar, mientras se mantiene el pad con shift (para
+    escribir en él) se pone del mismo color que el latch (turquesa) para avisar de que se escribe en él. este coloreado desaparece al soltar el
+    pad»): no yellow steps with Shift; the step whose Shift press wrote the latched notes lights 0x4D while it is held (the swallowed pad, + 4 of
+    our RAM, cleared by its release)."""
+    global HELDCUE
+    HELDCUE = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -125,11 +137,16 @@ def arm_code(base, L, prev, chords):
     a.label("c_lsled")
     E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 5, 1)
     E(bl, prev["ledtask"])
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "le_x", "eq")
-    E(bl, "c_lsnote"); E(cmp_imm, 0, 3); E(b_cond, "le_x", "hi")
-    E(bl, "c_lsany"); E(cmp_imm, 0, 0); E(b_cond, "le_x", "eq")
-    E(movs_imm, 1, COL_AV); E(movs_imm, 0, 0)
-    a.label("le_l"); E(raw, h(0x5229)); E(adds_imm8, 0, 2); E(cmp_imm, 0, 32); E(b_cond, "le_l", "lo")   # strh r1, [r5, r0]
+    if HELDCUE:                                                                        # the held step being written: cyan
+        E(bl, "c_lsst"); E(ldrb_imm, 4, 0, 4); E(cmp_imm, 4, 0); E(b_cond, "le_x", "eq")
+        E(bl, "c_lsnote"); E(cmp_imm, 0, 3); E(b_cond, "le_x", "hi")
+        E(raw, h(0x3C01)); E(lsls_imm, 4, 4, 1); E(movs_imm, 1, COL_HELD); E(raw, h(0x5329))   # subs r4, #1; strh r1, [r5, r4]
+    else:
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "le_x", "eq")
+        E(bl, "c_lsnote"); E(cmp_imm, 0, 3); E(b_cond, "le_x", "hi")
+        E(bl, "c_lsany"); E(cmp_imm, 0, 0); E(b_cond, "le_x", "eq")
+        E(movs_imm, 1, COL_AV); E(movs_imm, 0, 0)
+        a.label("le_l"); E(raw, h(0x5229)); E(adds_imm8, 0, 2); E(cmp_imm, 0, 32); E(b_cond, "le_l", "lo")   # strh r1, [r5, r0]
     a.label("le_x"); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_lsrel (slot 1 of the step objects: obj, pad): the release of a swallowed press swallowed too

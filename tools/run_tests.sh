@@ -1030,3 +1030,44 @@ run python3 tools/emu_nudge2.py firmware/r404s/circuittracks-4486-R404S.bin firm
 run python3 tools/emu_s494d.py firmware/s494d/circuittracks-4486-S494D.bin firmware/s494d/manifest.json
 run python3 tools/emu_s494d.py firmware/s494d2/circuittracks-4486-S494D2.bin firmware/s494d2/manifest.json
 [ -f tools/emu_sdsysex.py ] && run python3 tools/emu_sdsysex.py
+run python3 tools/emu_fmload_core1.py
+run python3 tools/emu_dspload.py firmware/s513d/circuittracks-4486-S513D.bin firmware/s513d/manifest.json
+run python3 tools/emu_sc35d8.py firmware/s513d/circuittracks-4486-S513D.bin firmware/s513d/manifest.json --dspx --dspw
+run python3 tools/emu_fmc1_core1.py
+run python3 tools/emu_fmc1_core0.py firmware/sc51.4/circuittracks-4486-SC51.4.bin firmware/sc51.4/manifest.json
+run python3 tools/emu_poly3.py firmware/sc51.4/circuittracks-4486-SC51.4.bin firmware/sc51.4/manifest.json
+run python3 tools/emu_vguard.py firmware/sc51.4/circuittracks-4486-SC51.4.bin firmware/sc51.4/manifest.json
+run python3 tools/emu_s514d.py firmware/s514d/circuittracks-4486-S514D.bin firmware/s514d/manifest.json
+run python3 tools/emu_s514d.py firmware/s514d2/circuittracks-4486-S514D2.bin firmware/s514d2/manifest.json
+run python3 -c "import sys; sys.path.insert(0, 'tools'); import granular_dsp as GD; GD.FMC1 = True; GD.use_c1ms(); GD.FMC1 = False; import emu_fmc1_core1 as T; sys.exit(T.main())"
+run python3 tools/emu_jumpflip.py firmware/sc51.6/circuittracks-4486-SC51.6.bin firmware/sc51.6/manifest.json
+run python3 tools/emu_s516d.py firmware/s516d/circuittracks-4486-S516D.bin firmware/s516d/manifest.json
+run python3 tools/emu_s516d.py firmware/s516d2/circuittracks-4486-S516D2.bin firmware/s516d2/manifest.json
+run python3 tools/emu_sc35d8.py firmware/s516d3/circuittracks-4486-S516D3.bin firmware/s516d3/manifest.json --delete --dspx --dspw
+run python3 tools/emu_fm8arm.py
+run python3 tools/emu_fm8_core1.py firmware/b5.20/circuittracks-4486-B5.20.bin firmware/b5.20/manifest.json
+run python3 tools/emu_fm8_core0.py firmware/b5.20/circuittracks-4486-B5.20.bin firmware/b5.20/manifest.json
+run python3 tools/emu_fm8.py firmware/b5.20/circuittracks-4486-B5.20.bin firmware/b5.20/manifest.json
+run python3 tools/emu_fm8poly.py firmware/b5.20/circuittracks-4486-B5.20.bin firmware/b5.20/manifest.json
+run python3 tools/emu_fm8store.py firmware/b5.20/circuittracks-4486-B5.20.bin firmware/b5.20/manifest.json
+run python3 tools/emu_fm8_core0.py firmware/b5.21/circuittracks-4486-B5.21.bin firmware/b5.21/manifest.json
+run python3 tools/emu_fm8.py firmware/b5.21/circuittracks-4486-B5.21.bin firmware/b5.21/manifest.json
+run python3 tools/emu_fm8poly.py firmware/b5.21/circuittracks-4486-B5.21.bin firmware/b5.21/manifest.json
+run python3 tools/emu_fm8store.py firmware/b5.21/circuittracks-4486-B5.21.bin firmware/b5.21/manifest.json
+run python3 tools/emu_fm8v2.py firmware/b5.21/circuittracks-4486-B5.21.bin firmware/b5.21/manifest.json
+run python3 tools/emu_fm8.py firmware/b5.22/circuittracks-4486-B5.22.bin firmware/b5.22/manifest.json
+run python3 tools/emu_fm8v2.py firmware/b5.22/circuittracks-4486-B5.22.bin firmware/b5.22/manifest.json
+run python3 tools/emu_fm8.py firmware/b5.23/circuittracks-4486-B5.23.bin firmware/b5.23/manifest.json
+run python3 tools/emu_fm8v2.py firmware/b5.23/circuittracks-4486-B5.23.bin firmware/b5.23/manifest.json
+run python3 tools/emu_dx7imp.py firmware/b5.23/circuittracks-4486-B5.23.bin firmware/b5.23/manifest.json
+run python3 tools/emu_wtui.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
+run python3 tools/emu_wtcopy_core1.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
+run python3 tools/emu_wt_dsp.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json firmware/sc52/circuittracks-4486-SC52.bin firmware/sc52/manifest.json
+run python3 tools/emu_gentab_dsp.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json --xtab
+run python3 tools/emu_dx7imp.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
+run python3 tools/emu_fm8v2.py firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
+run python3 tools/emu_latchstep.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --heldcue
+run python3 tools/emu_osc2pg2.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --ratio
+run python3 tools/emu_ratio2_dsp.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
+run python3 tools/emu_wtui.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --smpcyc
+run python3 tools/emu_p4ovl.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --top

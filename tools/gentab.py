@@ -47,23 +47,47 @@ def use():
     VD.GENTAB = DD.GENTAB = True
 
 
+XTAB = False
+XT_TINC, XT_TLFO = 0x5000, 0x5100                         # (use_xtab) core 0's X (free: $4700-$5FEF, S494D2 / S514D)
+POST_INIT = 0x2071                                          # (use_xtab) the stock routine P:$111 calls, after the init that clears X / Y $0-$5FFF
+
+
+def use_xtab():
+    """(the wavetable engine needs core-0 program room) TINC and TLFO generated into core 0's X RAM (XT_TINC / XT_TLFO, read with x:) and the
+    other four tables moved to the last 242 words of program RAM: the program may end at the new GEN_TATK (+257 words)."""
+    global XTAB, GEN_TATK, GEN_TDEC, GEN_TF, GEN_TEXP
+    use()
+    XTAB = True
+    GEN_TATK = 0x4000 - (N_TATK + N_TDEC + N_TF + N_TEXP)
+    GEN_TDEC, GEN_TF = GEN_TATK + N_TATK, GEN_TATK + N_TATK + N_TDEC
+    GEN_TEXP = GEN_TF + N_TF
+    DD.GEN_TATK, DD.GEN_TDEC, DD.GEN_TF, DD.GEN_TEXP, DD.GEN_TLFO = GEN_TATK, GEN_TDEC, GEN_TF, GEN_TEXP, XT_TLFO
+    VD.GEN_TINC = XT_TINC
+    s16_ = __import__("build_sc16"); s16_.POST_INIT_LABEL = "init3"          # (B5.24 on the device: silent) the stock's init zeroes X:$0-$5FFF after init2
+    DD.XTABS.add("TLFO"); VD.XTABS.update(("TINC", "TLFO"))
+    import build_sc16 as s16
+    if s16.CODE_P_END == 0x3E0D: s16.CODE_P_END = GEN_TATK                  # (install_dsp ran already: the new end)
+
+
 def code(base, l, T, do_imm):
     a = D.Asm(base)
     e = lambda *ls: [a.emit(T(x)) for x in ls]
     a.label("init2")
-    for seed, at, n in ((l["TINC_S"], GEN_TINC, N_TINC), (l["TEXP_S"], GEN_TEXP, N_TEXP), (l["TDEC_S"], GEN_TDEC, N_TDEC)):
-        tag = "%x" % at
+    def octs(seed, at, n):
+        tag, m = "%x" % at, "x" if XTAB and at == XT_TINC else "p"            # (XTAB) TINC into X
         e("move #>$%x,r1" % seed, "move #>$%x,r0" % (at + n - 12))              # the top octave copied
         a.emit(do_imm, 12, "gs" + tag)
         e("move p:(r1)+,a")
-        a.label("gs" + tag); e("move a,p:(r0)+")
+        a.label("gs" + tag); e("move a,%s:(r0)+" % m)
         e("move #>$%x,r1" % (at + n - 1), "move #>$%x,r0" % (at + n - 13))     # then downwards: each word from the one an octave up
         a.emit(do_imm, n - 12, "gh" + tag)
         if at == GEN_TDEC:                                                      # TDEC: its square
             e("move p:(r1)-,x0", "mpyr x0,x0,a")
         else:                                                                   # TINC / TEXP: (it + 1) >> 1
-            e("move p:(r1)-,a", "add #>1,a", "asr a")
-        a.label("gh" + tag); e("move a1,p:(r0)-")
+            e("move %s:(r1)-,a" % m, "add #>1,a", "asr a")
+        a.label("gh" + tag); e("move a1,%s:(r0)-" % m)
+    if not XTAB: octs(l["TINC_S"], GEN_TINC, N_TINC)
+    octs(l["TEXP_S"], GEN_TEXP, N_TEXP); octs(l["TDEC_S"], GEN_TDEC, N_TDEC)
     e("move #>$%x,r0" % GEN_TATK, "move #>$400000,b", "move #>$10000,y1", "move #>$%x,x1" % TATK_C)   # TATK: (C / 128) / (n / 128), n = 64..1
     a.emit(do_imm, N_TATK - 1, "ga")
     e("move b,x0", "move x1,a", "andi #$fe,ccr", "rep #24", "div x0,a", "sub y1,b")
@@ -78,12 +102,16 @@ def code(base, l, T, do_imm):
       "move x0,b", "sub a,b", "asl b", "move b,p:(r0)+",                       # 2 (x - x s (...))
       "move #>$%x,x1" % TF_RH, "mpyr x1,x0,a", "asl a")
     a.label("gf"); e("move a,y1")
-    e("move #>$%x,a" % DD.tables()["TLFO"][0], "move #>$%x,r0" % GEN_TLFO, "move #>$%x,y0" % TLFO_QH)   # TLFO: up from its first word
+    if XTAB:                                                                    # (XTAB) the stock's init (P:$2779, from P:$10F) zeroes X / Y $0-$5FFF:
+        a.emit(D.jmp(l["sc_init"]))                                             #   TINC / TLFO are made after it, P:$111 -> init3 (then the stock's $2071)
+        a.label("init3"); octs(l["TINC_S"], XT_TINC, N_TINC)
+    tl = "x" if XTAB else "p"                                                   # (XTAB) TLFO into X
+    e("move #>$%x,a" % DD.tables()["TLFO"][0], "move #>$%x,r0" % (XT_TLFO if XTAB else GEN_TLFO), "move #>$%x,y0" % TLFO_QH)   # TLFO: up from its first word
     a.emit(do_imm, N_TLFO - 1, "gl")
-    e("move a1,p:(r0)+", "move a1,x0", "mpy y0,x0,a", "asl a")
+    e("move a1,%s:(r0)+" % tl, "move a1,x0", "mpy y0,x0,a", "asl a")
     a.label("gl"); e("rnd a")
-    e("move a1,p:(r0)")
-    a.emit(D.jmp(l["sc_init"]))
+    e("move a1,%s:(r0)" % tl)
+    a.emit(D.jmp(POST_INIT if XTAB else l["sc_init"]))
     return a.assemble()
 
 

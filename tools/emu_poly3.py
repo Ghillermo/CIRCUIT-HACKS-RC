@@ -35,7 +35,8 @@ def main(img, man):
         print(("ok  : " if c else "FAIL: ") + m); fails += 0 if c else 1
     R = man["report"]
     v5 = P.adopt(R)                                                                   # (SC47.6: six records, six FM voices alone, 3 + 3)
-    N1, N2 = (6, 3) if v5 else (4, 2)
+    v10 = bool(R["poly"]["prev"].get("v10"))                                          # (SC51.4: six FM voices a track always, slot 6 t + v)
+    N1, N2 = (6, 6) if v10 else (6, 3) if v5 else (4, 2)
     e = T.EL(img)
     vl = {k: int(v, 16) for k, v in R["vcf20"]["labels"].items()}
     sl = {k: int(v, 16) for k, v in R["sc06"]["labels"].items()}
@@ -64,7 +65,7 @@ def main(img, man):
     def poly_on(t=0):
         if "c_vmset" in pl: e.call(pl["c_vmset"], t, 3, maxins=1_000_000); return    # (SC47.5: the voice mode; Shift + pad 29 steps through five)
         for _ in range(2): e.set_p0(e.r32(MGR + 0xC), 1); e.pad(P.PAD29); e.set_p0(e.r32(MGR + 0xC), 0)     # retrigger -> legato -> poly
-    def voices(t, n): return [v for v in range(4) if dsp.get(rec(t, v, VD.PV_NOTE)) == n and dsp.get(rec(t, v, VD.PV_TGT))]
+    def voices(t, n): return [v for v in range(VD.PV_N) if dsp.get(rec(t, v, VD.PV_NOTE)) == n and dsp.get(rec(t, v, VD.PV_TGT))]
     blk = lambda t: F.FMR + F.B0 + F.BS * t
     setp = lambda t, i, x: e.uc.mem_write(blk(t) + i, bytes([x]))
     vmax = lambda t: e.r8(P.PY + 4 + P.TBS * t + P.O_VMAX)
@@ -107,12 +108,13 @@ def main(img, man):
     e.btn(3); e.btn(8); mode(F.ROWPAD - MS.ROW); poly_on(1)
     log.clear(); tick(4)
     check(vmax(0) == N2 and vmax(1) == N2 and dsp.get(PVW(1)) == VD.PV_REC0 + VD.PV_RS * VD.PV_N, f"both in FM poly: {N2} voices each ({vmax(0)}, {vmax(1)})")
-    check(all(dsp.get(rec(0, v, VD.PV_G)) == 0 and dsp.get(rec(0, v, VD.PV_TGT)) == 0 for v in range(VD.PV_N)), "MIDI 1's voices silent at once (G / target 0)")
+    if not v10:                                                                       # (SC51.4: the allowance stays six: nothing cut)
+        check(all(dsp.get(rec(0, v, VD.PV_G)) == 0 and dsp.get(rec(0, v, VD.PV_TGT)) == 0 for v in range(VD.PV_N)), "MIDI 1's voices silent at once (G / target 0)")
     log.clear(); on(48, 80, t=1); on(55, 70, t=1); tick(2)
     w48, w55 = voices(1, 48), voices(1, 55)
-    check(len(w48) == 1 and len(w55) == 1 and {dsp.get(rec(1, w48[0], VD.PV_FMB)), dsp.get(rec(1, w55[0], VD.PV_FMB))} == {FV(N2), FV(N2 + 1)},
+    check(len(w48) == 1 and len(w55) == 1 and {dsp.get(rec(1, w48[0], VD.PV_FMB)), dsp.get(rec(1, w55[0], VD.PV_FMB))} == ({FV(6 + w48[0]), FV(6 + w55[0])} if v10 else {FV(N2), FV(N2 + 1)}),
           f"MIDI 2's notes on X:FV0 + 96 / + 144 ({w48}, {w55})")
-    held = [60, 62, 63][:N2]
+    held = [60, 62, 63, 65, 67, 69][:N2]
     on(held[0], 100); tick(1)
     for n_ in held[1:]: on(n_, 100); tick(1)
     tick(1); old = voices(0, 60)

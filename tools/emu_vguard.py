@@ -59,10 +59,10 @@ def main(img, man):
         ad_, v_ = uc.reg_read(UC_ARM_REG_R2), uc.reg_read(UC_ARM_REG_R1) >> 8
         dsp[ad_] = v_; wlog.append((e.t, ad_, v_)); skip(uc)
     e.uc.hook_add(UC_HOOK_CODE, w, begin=P.DSP_WRITE, end=P.DSP_WRITE)
-    st = dict(isr=0x1100, blk=0x1100 + 250); reads = []
+    st = dict(isr=0x1100, blk=0x1100 + 250, late=0); reads = []
     def rd(uc, a, s, d):
         ad = uc.reg_read(UC_ARM_REG_R1)
-        v = st["isr"] if ad == G.Y_ISR else st["blk"] if ad == G.Y_BLK else 0
+        v = st["isr"] if ad == G.Y_ISR else st["blk"] if ad == G.Y_BLK else st["late"] if ad == getattr(G, "C1_X", -1) else 0
         if ad in (G.Y_ISR, G.Y_BLK): reads.append(ad)
         uc.reg_write(UC_ARM_REG_R0, (v & 0xFFFFFF) << 8); skip(uc)
     e.uc.hook_add(UC_HOOK_CODE, rd, begin=G.DSP_READ, end=G.DSP_READ)
@@ -163,6 +163,11 @@ def main(img, man):
     check(len(u2) == 2 and cap() == 2, f"margin 50: one unison voice freed, the cap 2 ({u2}, cap {cap()})")
     off(60); tick(4); margin(200); on(62); tick(6); u3 = vl_(); ut3 = [t for t in tgts() if t]
     check(len(u3) == 2 and set(u3) == {62} and ut3 == [lvl(256)] * 2, f"the next unison note: two voices at full level ({u3}, {ut3})")
+    if "vc1_k" in gl:                                                                  # (SC51.4, use_c1late) core 1 late = a voice freed
+        e.uc.mem_write(G.RAM + G.O_CAP, bytes([0])); margin(200); e.at(e.t + G.GAP + 1); e.call(gl["c_vgtick"], maxins=20_000_000); n0 = len(vl_())
+        st["late"] += 1; margin(200); e.at(e.t + G.GAP + 1); e.call(gl["c_vgtick"], maxins=20_000_000); n1 = len(vl_())
+        margin(200); e.at(e.t + G.GAP + 1); e.call(gl["c_vgtick"], maxins=20_000_000); n2 = len(vl_())
+        check(n0 == 2 and n1 == 1 and n2 == 1, f"margin 200, core 1 late once: one voice freed, then nothing ({n0}, {n1}, {n2})")
     del e; gc.collect()
     print(f"{man.get('marker', '?')} VGUARD RESULT: {'ALL PASS' if not fails else f'{fails} FAIL'}")
     return fails

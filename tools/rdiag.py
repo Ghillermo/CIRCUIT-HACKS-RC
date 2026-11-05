@@ -73,6 +73,8 @@ INV = {"eq": "ne", "ne": "eq", "lo": "hs", "hs": "lo", "hi": "ls", "ls": "hi", "
 ITCM = False                                     # S494D: the core's 16 KB of ITCM (address 0, unused by the stock: Arrhythmia's canary on the Rhythm; tools/itcm
 ITCMCR = 0xE000EF90                              #   of RYTHM): mem reads 0x0-0x3FFF; 13 itfill key = every word of 0x100-0x3FFF = its address XOR key (only with
 IT_START, IT_END = 0x100, 0x4000                 #   ITCMCR.EN and SZ >= 5); 14 itchk key -> bad words, the first one (address, value); nothing set right
+RAMCK = False                                    # S514D: 16 rfill lo len key = every word of [lo, lo + len) = its address XOR key (RAM only, below the
+                                                 #   stack pointer - 256); 17 rchk lo len key -> status, bad words, the first (address, value), the last address
 ITEXEC = False                                   # S494D2: 15 itexec key = a 3-instruction routine written at IT_X, run (blx) and the two words
 IT_X = 0x3F00                                    #   put back: status, ITCMCR, key ^ 0x5A when the ITCM runs code (a fault = no answer, the device stops)
 CORE1 = False                                    # S494D: dspr space bit 1 / dspw address bit 31 = DSP core 1 (the stock read / write take the core in r0)
@@ -155,12 +157,12 @@ def arm_code(base, router_ptr):
     for o in range(0, 40, 4): a.emit(str_imm, 0, 7, o)
     a.emit(ldrb_imm, 0, 4, 4); a.emit(movs_imm, 1, 0x40); a.emit(orrs_reg, 1, 0); a.emit(strb_imm, 1, 4, 4)   # cmd | 0x40 (r0 = cmd)
     a.emit(push_list, [0]); a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(mov_reg, 1, 0); a.emit(pop_list, [0])  # r1 = payload pointer
-    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()) + (((13, "rc_itfill"), (14, "rc_itchk")) if ITCM else ()) + (((15, "rc_itexec"),) if ITEXEC else ()):
+    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()) + (((13, "rc_itfill"), (14, "rc_itchk")) if ITCM else ()) + (((15, "rc_itexec"),) if ITEXEC else ()) + (((16, "rc_rfill"), (17, "rc_rchk")) if RAMCK else ()):
         a.emit(cmp_imm, 0, cmd); bc(lab, "eq")
     a.emit(mov_reg, 0, 1); imm32(1, 0xFFFFFFFF); a.emit(bl, "c_p32"); a.emit(b, "rc_send")   # unknown command: status -1
 
     a.label("rc_ping")
-    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0) + (0x100 if ITCM else 0) + (0x200 if CORE1 else 0) + (0x400 if ITEXEC else 0)); a.emit(bl, "c_p32")
+    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0) + (0x100 if ITCM else 0) + (0x200 if CORE1 else 0) + (0x400 if ITEXEC else 0) + (0x800 if RAMCK else 0)); a.emit(bl, "c_p32")
     a.emit(mov_reg, 1, 6); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
 
     def item_from(off):                          # the item {kind, idx, pack} from buf[off..off+2] into the frame; pack 0x7F -> 0xFF
@@ -413,6 +415,40 @@ def arm_code(base, router_ptr):
         a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32")
         for o in (0, 4, 12, 16): a.emit(ldr_imm, 1, 7, o); a.emit(bl, "c_p32")
         a.emit(b, "rc_send")
+    if RAMCK:
+        def rargs():                             # r2 = lo, r3 = hi, r5 = key; Z set (eq) when the range is allowed
+            a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_g32"); a.emit(push_list, [0])
+            a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 14); a.emit(bl, "c_g32"); a.emit(push_list, [0])
+            a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 22); a.emit(bl, "c_g32"); a.emit(mov_reg, 5, 0)
+            a.emit(pop_list, [3]); a.emit(pop_list, [2]); a.emit(adds_reg, 3, 3, 2)
+            a.emit(movs_imm, 0, 3); a.emit(ands_reg, 0, 2); a.emit(movs_imm, 1, 3); a.emit(ands_reg, 1, 3); a.emit(orrs_reg, 0, 1); bc("rr_bad", "ne")
+            imm32(1, 0x20000000); a.emit(cmp_reg, 2, 1); bc("rr_bad", "lo"); a.emit(cmp_reg, 3, 2); bc("rr_bad", "ls")
+            a.emit(raw, h(0x4668)); a.emit(subs_imm8, 0, 255); a.emit(subs_imm8, 0, 1); a.emit(cmp_reg, 3, 0); bc("rr_bad", "hi")     # below sp - 256
+            a.emit(movs_imm, 0, 0); a.emit(cmp_imm, 0, 0)
+        # ---- rfill: lo, len, key -> status (3 = range refused)
+        a.label("rc_rfill")
+        rargs()
+        a.label("rf_l")
+        a.emit(mov_reg, 0, 2); a.emit(eors_reg, 0, 5); a.emit(str_imm, 0, 2, 0)
+        a.emit(adds_imm8, 2, 4); a.emit(cmp_reg, 2, 3); a.emit(b_cond, "rf_l", "lo")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
+        a.label("rr_bad")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 3); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
+        # ---- rchk: lo, len, key -> status, bad words, first bad address, its value, last bad address
+        a.label("rc_rchk")
+        rargs()
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 4); a.emit(str_imm, 0, 7, 12); a.emit(str_imm, 0, 7, 16); a.emit(str_imm, 0, 7, 20)
+        a.label("rk_l")
+        a.emit(ldr_imm, 0, 2, 0); a.emit(mov_reg, 1, 2); a.emit(eors_reg, 1, 5); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "rk_n", "eq")
+        a.emit(ldr_imm, 1, 7, 4); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "rk_c", "ne")
+        a.emit(str_imm, 2, 7, 12); a.emit(str_imm, 0, 7, 16)
+        a.label("rk_c")
+        a.emit(adds_imm8, 1, 1); a.emit(str_imm, 1, 7, 4); a.emit(str_imm, 2, 7, 20)
+        a.label("rk_n")
+        a.emit(adds_imm8, 2, 4); a.emit(cmp_reg, 2, 3); a.emit(b_cond, "rk_l", "lo")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32")
+        for o in (4, 12, 16, 20): a.emit(ldr_imm, 1, 7, o); a.emit(bl, "c_p32")
+        a.emit(b, "rc_send")
     if ITEXEC:
         # ---- itexec: key -> status (2 = no ITCM), ITCMCR, the routine's answer (key ^ 0x5A)
         a.label("rc_itexec")
@@ -479,7 +515,7 @@ def install(img, report, base_addr):
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    assert len(img) <= 0x70000 or base_addr < 0x0805CDDC          # (in the hole the code sits at the end only until hole.add moves it)
+    assert len(img) <= 0x70000 or base_addr < 0x0805CDDC or "dspz" in report   # (in the hole / the dspz gap the code sits at the end only until it moves)
     img[HOOK - BASE:HOOK - BASE + 4] = b_w(HOOK, labels["c_rdin"])
     if WATCH:                                    # the app's DebugMonitor vector (the stock's default handler) -> c_dmon
         assert struct.unpack_from("<I", img, VEC_DEBUGMON - BASE)[0] == 0x0805998B

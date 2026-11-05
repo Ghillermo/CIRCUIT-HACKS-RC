@@ -197,6 +197,9 @@ def arm_code(base):
     return a.assemble()
 
 
+OVERRIDE = {}                                       # core -> raw block -> the block to pack instead (granular_dsp.use_fmc1)
+
+
 def install(img, report):
     """Last step of a build: pack the two mode-0 blocks in place, the unpacker after the core-0 blob, the two sites to it."""
     from thumb import bl as bl_enc
@@ -208,7 +211,9 @@ def install(img, report):
         o = at - BASE
         raw = block_at(img, at)
         assert bytes(img[o:o + len(raw)]) == raw, f"core {core}: block already packed"
-        blob = pack(raw)
+        new = OVERRIDE[core](raw) if core in OVERRIDE else raw                # (granular_dsp.use_fmc1) a longer core 1 block, packed into the old one's place
+        blob = pack(new)
+        assert len(blob) <= len(raw)
         img[o:o + len(raw)] = blob + b"\xFF" * (len(raw) - len(blob))
         end = (at + len(blob) + 3) & ~3
         if core == 0:
@@ -218,7 +223,7 @@ def install(img, report):
             end = (code_at + len(code) + 3) & ~3
         assert end <= at + len(raw)
         gaps.append([hex(end), hex(at + len(raw))])
-        info[f"core{core}"] = dict(block=hex(at), raw=len(raw), packed=len(blob), crc32=hex(zlib.crc32(raw)))
+        info[f"core{core}"] = dict(block=hex(at), raw=len(new), packed=len(blob), crc32=hex(zlib.crc32(new)))
     for s in SITES:
         img[s - BASE:s - BASE + 4] = bl_enc(s, labels["c_dspz"])
     import build_shared_channels as sc
@@ -227,14 +232,15 @@ def install(img, report):
     return labels
 
 
-def add(img, report, name, mod):
+def add(img, report, name, mod, gap=0):
     """After install(): put an ARM module in the freed flash, in the first gap (19 853 B), as hole.add does for the old blocks.  mod.install(img,
     report, base) appends its code at the end as for build_sc41_5.add; that tail moves into the gap and the image is cut back.  The gap is above
     MOD_START (0x0805CDDC): rodisk's guard and lazysave see code here as the mod's."""
     import build_shared_channels as sc
     d = report["dspz"]
-    lo, hi = d["gaps"][0]
-    at = (int(d.setdefault("next", lo), 16) + 3) & ~3
+    lo, hi = d["gaps"][gap]
+    nk = "next" if gap == 0 else f"next{gap}"                                    # (gap 1: the second gap, SC52.2's ovltop)
+    at = (int(d.setdefault(nk, lo), 16) + 3) & ~3
     n0 = len(img)
     labels, code, prev = mod.install(img, report, at)
     blob = bytes(img[n0:])
@@ -244,7 +250,7 @@ def add(img, report, name, mod):
     assert end <= int(hi, 16), f"{name}: the gap is full ({end:#x} > {hi})"
     assert all(b_ == 0xFF for b_ in img[at - BASE:end - BASE]), f"{name}: the gap is not empty"
     img[at - BASE:end - BASE] = blob
-    d["next"] = hex(end)
+    d[nk] = hex(end)
     d.setdefault("blocks", {})[name] = [hex(at), hex(end)]
     report[name] = dict(arm_start=hex(at), labels={k: hex(v) for k, v in labels.items()}, prev={k: hex(v) for k, v in prev.items()},
                         listing=sc.disasm(bytes(code), at), dspz_gap=True)

@@ -15,7 +15,7 @@ Jens
 If you want your name or website in this list, add it on your message when you send your contribution or send me a DM.
 
 
-> 📢 **RC4.07 y la Beta 5.16.** RC4.07 = RC4 (todo lo de las betas hasta la 3.43: polifonía y modos de voz del sinte propio, FM, Jankó, pantalla de acordes, granular en estéreo…) + arreglos: los pads cromáticos de los drums graban golpe y tono en su paso, la envolvente de Digitise, el paso marcado de la vista Velocity, que vuelve a los valores del proyecto, el Nudge, que mueve el contenido del tramo, tres formas del LFO que callaban el motor propio, el arpegio en una pista silenciada, las notas comunes de dos acordes, la cuenta atrás con un reloj externo, los LEDs de Sidechain y, como opción (Advanced Setup, pad 22), guardar el proyecto mientras suena esperando a que pares. La **Beta 5.16** (las betas que amplían RC4 se numeran 5.x) añade, sin probar en el aparato, la vista de automatización de los drums, un carril de automatización más por drum con bloqueos de estado y rampas, la foto de Record + paso en todas las pistas, Shift + Preset = el sonido del proyecto, el random-mutate rediseñado en notas y drums, el sweep entre dos pasos de automatización, el secuenciador de saltos de MIDI 1 / 2, Jankó rediseñado, el destello de cada nota con Shift, filtro → VCA → efecto como orden de fábrica, knobs de tipos más lentos, el acorde inverso, solo y solo flip en el Mixer (pad 16), las dinámicas del random-mutate rehechas (ghost, accent staccato, longitud; en los drums, más suave con roller o más fuerte) el paso entero de un drum adelantado o atrasado, el accent del random-mutate hasta +64, la velocity global para los sintes (vista Setup, K1 → amplitud, K2 → filtro, para los patches que no usan velocity) y el bucle del sample capturado que sigue sonando al cambiar de proyecto o de pack; además, los programas del DSP van comprimidos en el firmware, lo que deja sitio para funciones futuras. RC4.07S es la misma RC sin escrituras propias en la SD. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md) · pistas MIDI y modos de voz: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html).
+> 📢 **RC4.07 y la Beta 5.25.** RC4.07 = RC4 (todo lo de las betas hasta la 3.43: polifonía y modos de voz del sinte propio, FM, Jankó, pantalla de acordes, granular en estéreo…) + arreglos: los pads cromáticos de los drums graban golpe y tono en su paso, la envolvente de Digitise, el paso marcado de la vista Velocity, que vuelve a los valores del proyecto, el Nudge, que mueve el contenido del tramo, tres formas del LFO que callaban el motor propio, el arpegio en una pista silenciada, las notas comunes de dos acordes, la cuenta atrás con un reloj externo, los LEDs de Sidechain y, como opción (Advanced Setup, pad 22), guardar el proyecto mientras suena esperando a que pares. La **Beta 5.25** (las betas que amplían RC4 se numeran 5.x) añade, casi todo sin probar en el aparato, la vista de automatización de los drums, un carril de automatización más por drum con bloqueos de estado y rampas, la foto de Record + paso en todas las pistas, Shift + Preset = el sonido del proyecto, el random-mutate rediseñado en notas y drums, el sweep entre dos pasos de automatización, el secuenciador de saltos de MIDI 1 / 2, Jankó rediseñado, el destello de cada nota con Shift, filtro → VCA → efecto como orden de fábrica, knobs de tipos más lentos, el acorde inverso, solo y solo flip en el Mixer (pad 16), las dinámicas del random-mutate rehechas (ghost, accent staccato, longitud; en los drums, más suave con roller o más fuerte) el paso entero de un drum adelantado o atrasado, el accent del random-mutate hasta +64, la velocity global para los sintes (vista Setup, K1 → amplitud, K2 → filtro, para los patches que no usan velocity) el bucle del sample capturado que sigue sonando al cambiar de proyecto o de pack, el **FM de 8 operadores** (envolventes del DX7, 56 algoritmos, 24 instrumentos; probado en el aparato), más voces FM, la fila de motores nueva, el **motor wavetable**, la página OSC 2 con ratio y detune, y el latch en la vista Note con el paso que se escribe en turquesa; además, los programas del DSP van comprimidos en el firmware, lo que deja sitio para funciones futuras. RC4.07S es la misma RC sin escrituras propias en la SD. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge ([cómo](#instalar-sin-compilar-toolsrc_uploaderhtml)). Novedades de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md) · lista de características: [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md) · pistas MIDI y modos de voz: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voces.html).
 
 Nota legal: el firmware proporcionado por Novation es propietario, no está permitido instalarlo en cualquier dispositivo que no sea Circuit Tracks. Este instalador lo comprueba y no permite instalar en ningún otro dispositivo.
 
@@ -35,7 +35,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - No trabajes con proyectos importantes guardados en el aparato mientras lo pruebas.
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
 > - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC4.07S](firmware/r407s/PRUEBA.md)**: es RC4.07 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
-> - **[B5.16](firmware/b5.16/PRUEBA.md)** es una versión beta: RC4.07 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
+> - **[B5.25](firmware/b5.25/PRUEBA.md)** es una versión beta: RC4.07 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
 ## Repositorio público (rama RC, release candidate)
@@ -58,7 +58,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC4.07, la versión más segura RC4.07S, la beta B5.16 (o las Betas 5.9-5.12), u «Oficial» para volver atrás. Las versiones anteriores (RC4.05, RC4.02, RC4, las RC2 y las betas hasta la 5.6) están en el **[instalador antiguo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), que se usa igual.
+3. **Elige el `.syx` oficial y la versión**: RC4.07, la versión más segura RC4.07S, la beta B5.25 (o las Betas 5.9-5.16), u «Oficial» para volver atrás. Las versiones anteriores (RC4.05, RC4.02, RC4, las RC2 y las betas hasta la 5.6) están en el **[instalador antiguo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), que se usa igual.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -80,13 +80,21 @@ Una página para ordenar packs, sintes, samples, patrones y presets desde el ord
 
 **Antes de escribir:** la app guarda lo que sustituye en una carpeta tuya del ordenador, nunca en la tarjeta: el aparato busca los ficheros por su prefijo `NN_` y una copia dentro de un pack puede ocupar el lugar del original. Por USB, cada escritura borra primero el fichero antiguo. **La escritura por USB ya está probada en un aparato real, pero puede haber fallos aún sin descubrir:** haz antes un snapshot o una copia de la tarjeta. Al escribir en el pack cargado, se recarga al desconectar y se pierde lo no guardado.
 
+### App Hacks + Remix: `tools/hr_app.html`
+
+Para pasar samples, patrones y parches FM entre un Circuit Tracks (Hacks) y un Circuit Rhythm ([Remix](https://github.com/Ghillermo/CIRCUIT-REMIX)), o guardarlos en carpetas del ordenador y snapshots. **[Descarga la app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), descomprímela y abre `hr_app.html` en Chrome o Edge.
+
+- **Dos columnas:** cada una abre una tarjeta del Tracks (carpeta con `Tracks/`), una del Rhythm (`Rhythm/`), un snapshot o una carpeta de ficheros sueltos.
+- **Samples:** el WAV tal cual. **Patrones:** del Tracks al Rhythm, cada paso con la nota más grave del acorde; del Rhythm al Tracks, una nota por paso; los drums con golpes, velocity, probabilidad y micropasos. Los carriles de automatización y los sample flips no pasan de un aparato a otro. **Parches FM:** el FM de 8 operadores, el mismo en los dos.
+- Sin probar aún con tarjetas reales: haz antes una copia.
+
 ### Con Python (`tools/patch_official.py`)
 
 📖 [Manual ilustrado en color](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html)
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R407`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R407S`. La beta: `--version B5.16`.
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R407`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R407S`. La beta: `--version B5.25`.
 4. Envía `firmware/r407/circuittracks-4486-R407.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
@@ -94,7 +102,7 @@ La herramienta comprueba que el firmware oficial es el correcto y que el resulta
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC4.07**; **más segura: RC4.07S** (sin escrituras propias en la SD); **beta: B5.16** (funciones nuevas sin probar). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC4.07**; **más segura: RC4.07S** (sin escrituras propias en la SD); **beta: B5.25** (funciones nuevas sin probar). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -111,7 +119,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R407
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R407S` = la versión más segura; `--version B5.16` = la beta; `--list` enseña todas; `--all` las construye todas.
+- `--version R407S` = la versión más segura; `--version B5.25` = la beta; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -137,7 +145,7 @@ La **lista de características** está en [`docs/CARACTERISTICAS.md`](docs/CARAC
 <a id="english"></a>
 # CIRCUIT-HACKS (English)
 
-> 📢 **RC4.07 and Beta 5.16.** RC4.07 = RC4 (everything from the betas up to 3.43: polyphony and voice modes for the own synth, FM, Jankó, the chord screen, stereo granular…) + fixes: the drums' chromatic pads record hit and pitch on their step, Digitise's envelope, the Velocity view's marked step, which goes back to the project's values, the Nudge, which moves the content of the range, three LFO shapes that silenced the own engine, the arpeggio on a muted track, notes shared by two chords, the count-in with an external clock, the Sidechain LEDs and, as an option (Advanced Setup, pad 22), saving the project while it plays by waiting until you stop. **Beta 5.16** (the betas that extend RC4 are numbered 5.x) adds, untested on the device, the drums' automation view, one more automation lane per drum with state locks and ramps, the Record + step snapshot on every track, Shift + Preset = the project's sound, the random-mutate redesigned on notes and drums, a sweep between two automation steps, the jump sequencer of MIDI 1 / 2, Jankó redesigned, the flash of each note with Shift, filter → VCA → effect as the default order, slower type knobs, the inverse chord, solo and solo flip in the Mixer (pad 16), the random-mutate's dynamics redone (ghost, accent staccato, length; on the drums, softer with a roller or louder) a drum's whole step moved earlier or later, the random-mutate's accent up to +64, global velocity for the synths (Setup view, K1 → amplitude, K2 → filter, for patches that don't use velocity) and the captured sample's loop that keeps playing across a project or pack change; the DSP programs are also stored compressed in the firmware, which leaves room for future features. RC4.07S is the same RC without the mod's own writes to the SD card. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new in every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog) · feature list: [`docs/FEATURES.md`](docs/FEATURES.md) · MIDI tracks and voice modes: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html).
+> 📢 **RC4.07 and Beta 5.25.** RC4.07 = RC4 (everything from the betas up to 3.43: polyphony and voice modes for the own synth, FM, Jankó, the chord screen, stereo granular…) + fixes: the drums' chromatic pads record hit and pitch on their step, Digitise's envelope, the Velocity view's marked step, which goes back to the project's values, the Nudge, which moves the content of the range, three LFO shapes that silenced the own engine, the arpeggio on a muted track, notes shared by two chords, the count-in with an external clock, the Sidechain LEDs and, as an option (Advanced Setup, pad 22), saving the project while it plays by waiting until you stop. **Beta 5.25** (the betas that extend RC4 are numbered 5.x) adds, mostly untested on the device, the drums' automation view, one more automation lane per drum with state locks and ramps, the Record + step snapshot on every track, Shift + Preset = the project's sound, the random-mutate redesigned on notes and drums, a sweep between two automation steps, the jump sequencer of MIDI 1 / 2, Jankó redesigned, the flash of each note with Shift, filter → VCA → effect as the default order, slower type knobs, the inverse chord, solo and solo flip in the Mixer (pad 16), the random-mutate's dynamics redone (ghost, accent staccato, length; on the drums, softer with a roller or louder) a drum's whole step moved earlier or later, the random-mutate's accent up to +64, global velocity for the synths (Setup view, K1 → amplitude, K2 → filter, for patches that don't use velocity) the captured sample's loop that keeps playing across a project or pack change, the **8-operator FM** (DX7 envelopes, 56 algorithms, 24 instruments; tested on the device), more FM voices, the new engine row, the **wavetable engine**, the OSC 2 page with ratio and detune, and the Note view's latch with the step being written in teal; the DSP programs are also stored compressed in the firmware, which leaves room for future features. RC4.07S is the same RC without the mod's own writes to the SD card. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge ([how](#install-without-building-toolsrc_uploaderhtml)). What's new in every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog) · feature list: [`docs/FEATURES.md`](docs/FEATURES.md) · MIDI tracks and voice modes: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html).
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
@@ -154,7 +162,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - Do not work on important projects stored on the device while you test it.
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
 > - If you would rather not risk the card, use the **safer build, [RC4.07S](firmware/r407s/PRUEBA.md)**: RC4.07 without any feature that creates, changes or deletes files on the SD card on its own.
-> - **[B5.16](firmware/b5.16/PRUEBA.md)** is a beta: RC4.07 + new features not yet tested on the device. Use it only with a backup of the SD card.
+> - **[B5.25](firmware/b5.25/PRUEBA.md)** is a beta: RC4.07 + new features not yet tested on the device. Use it only with a backup of the SD card.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
 **Manual:** [short](docs/MANUAL.en.md) · [illustrated](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). Public repository: <https://github.com/Ghillermo/CIRCUIT-HACKS-RC>.
@@ -175,7 +183,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC4.07, the safer RC4.07S, the beta B5.16 (or Betas 5.9-5.12), or “Official” to go back. The earlier versions (RC4.05, RC4.02, RC4, the RC2s and the betas up to 5.6) are in the **[old installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), used the same way.
+3. **Pick the official `.syx` and the version**: RC4.07, the safer RC4.07S, the beta B5.25 (or Betas 5.9-5.16), or “Official” to go back. The earlier versions (RC4.05, RC4.02, RC4, the RC2s and the betas up to 5.6) are in the **[old installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), used the same way.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -197,6 +205,14 @@ A page to organise packs, synths, samples, patterns and presets from the compute
 
 **Before writing:** the app keeps what it replaces in a folder of yours on the computer, never on the card: the device finds files by their `NN_` prefix and a copy inside a pack can take the original's place. Over USB, each write deletes the old file first. **Writing over USB has been tested on a real device, but there may be bugs still undiscovered:** take a snapshot or a copy of the card first. Writing to the loaded pack makes it reload on disconnect, and unsaved edits are lost.
 
+### Hacks + Remix app: `tools/hr_app.html`
+
+To move samples, patterns and FM patches between a Circuit Tracks (Hacks) and a Circuit Rhythm ([Remix](https://github.com/Ghillermo/CIRCUIT-REMIX)), or keep them in folders on the computer and in snapshots. **[Download the app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), unzip it and open `hr_app.html` in Chrome or Edge.
+
+- **Two columns:** each opens a Tracks card (a folder with `Tracks/`), a Rhythm card (`Rhythm/`), a snapshot or a folder of loose files.
+- **Samples:** the WAV as it is. **Patterns:** Tracks to Rhythm, each step takes the chord's lowest note; Rhythm to Tracks, one note a step; drums with hits, velocity, probability and micro steps. Automation lanes and sample flips do not cross from one device to the other. **FM patches:** the 8-operator FM, the same on both.
+- Not yet tested with real cards: make a backup first.
+
 ### Build
 
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
@@ -208,7 +224,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R407
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R407S` = the safer build; `--version B5.16` = the beta; `--list` shows them all; `--all` builds them all.
+- `--version R407S` = the safer build; `--version B5.25` = the beta; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -224,7 +240,7 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC4.07**; **safer: RC4.07S**; **beta: B5.16** (new features not yet tested).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC4.07**; **safer: RC4.07S**; **beta: B5.25** (new features not yet tested).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).

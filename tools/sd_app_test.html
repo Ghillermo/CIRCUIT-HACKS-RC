@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>sd_app tests</title>
+<style>body { background:#111317; color:#e8e9ec; font:13px/1.45 ui-monospace,Consolas,monospace; padding:12px; } .bad { color:#ff7b72; } .ok { color:#7ee787; }</style>
+</head>
+<body>
+<pre id="out"></pre>
+<script>
+/* The data layer of sd_app.html on the browser's own file system (OPFS: the same handles a real folder gives, without the folder dialog), over a card of
+real files, and its result compared file by file with what tools/sd_app_fixture.py did on its own.  Run: python tools/sd_app_fixture.py, then open
+http://127.0.0.1:8765/tools/sd_app_test.html (preview "repo-http"); window.RESULT = {pass, fail, lines}. */
+const out = document.getElementById("out"), lines = [];
+let pass = 0, fail = 0;
+function check(ok, text) { ok ? pass++ : fail++; lines.push((ok ? "ok   " : "FAIL ") + text); const s = document.createElement("span"); s.className = ok ? "ok" : "bad"; s.textContent = (ok ? "ok   " : "FAIL ") + text + "\n"; out.append(s); }
+const hex = b => [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+const eq = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+const sha = async b => hex(new Uint8Array(await crypto.subtle.digest("SHA-256", b)));
+async function walk(dir, pre = "", o = {}) {
+  for await (const [n, h] of dir.entries()) {
+    if (h.kind === "directory") await walk(h, pre + n + "/", o);
+    else o[pre + n] = new Uint8Array(await (await h.getFile()).arrayBuffer());
+  }
+  return o;
+}
+function bridge() {                                        // ?device=1 (served by tools/sd_bridge.py): the same steps, on the firmware's protocol handlers instead of a folder
+  let chain = Promise.resolve();
+  const tx = {slow: 40, onmessage: null, sent: [], send(b) {
+    const h = hex(b); tx.sent.push(h.slice(0, 18));
+    chain = chain.then(async () => { for (const m of await (await fetch("/sysex", {method: "POST", body: h})).json()) tx.onmessage(Uint8Array.from(m.match(/../g), x => parseInt(x, 16))); });
+  }};
+  return tx;
+}
+const useList = u => { const o = new Set(); for (const k of ["nova", "drums", "custom"]) for (const [n, l] of u[k]) for (const x of l) o.add(`${k} ${n} ${x.sess} ${x.track} ${x.flip ? 1 : 0}`); return [...o].sort(); };
+async function main() {
+  const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
+  (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
+  const SD = window.SD, E = await (await fetch("../build/sdapp_fixture/expected.json", {cache: "no-store"})).json();
+  const DEV = new URLSearchParams(location.search).get("device");
+  const opfs = await navigator.storage.getDirectory();
+  try { await opfs.removeEntry("sdtest", {recursive: true}); } catch (_) { /* first run */ }
+  const top = await opfs.getDirectoryHandle("sdtest", {create: true}), folder = await top.getDirectoryHandle("card", {create: true}), tracks = await folder.getDirectoryHandle("Tracks", {create: true});
+  const bak = await top.getDirectoryHandle("backups", {create: true});
+  let card = folder, dev = null, tx = null;
+  if (DEV) {
+    await fetch("/reset", {method: "POST"});
+    tx = bridge(); dev = new SD.Device(tx);
+    await dev.identify();
+    check(dev.loaded === 0, `the inquiry answers; the loaded pack: ${dev.loaded}`);
+    check(await dev.open() === "opened" && dev.sess, "session open: the probe got no reply, so 40 was sent");
+    const second = new SD.Device(tx);
+    check(await second.open() === "adopted", "a page that comes back finds the session open and does not send 40 again");
+    tx.onmessage = m => dev.rx(m);
+    card = new SD.DevRoot(dev);
+  }
+  for (const path of DEV ? [] : E.start) {
+    const parts = path.split("/"), name = parts.pop(); let d = tracks;
+    for (const p of parts) d = await d.getDirectoryHandle(p, {create: true});
+    const r = await fetch("../build/sdapp_fixture/card/Tracks/" + path.split("/").map(encodeURIComponent).join("/"), {cache: "no-store"});
+    if (!r.ok) throw new Error("fixture: " + path);
+    await SD.writeFile(d, name, new Uint8Array(await r.arrayBuffer()));
+  }
+  const originals = DEV ? {} : await walk(tracks);
+  if (DEV) for (const path of E.start) if (!/\.bak$|SC34D/.test(path)) originals[path] = new Uint8Array(await (await fetch("../build/sdapp_fixture/card/Tracks/" + path.split("/").map(encodeURIComponent).join("/"))).arrayBuffer());
+
+  // ---- the card
+  const c = await SD.Card.open(card);
+  check(c.packs.length === 2 && c.packs[0].slot === 0 && c.packs[1].slot === 3, `card root -> Tracks: ${c.packs.map(p => p.folder)}`);
+  let threw = null;
+  if (!DEV) {
+    const c2 = await SD.Card.open(tracks);
+    check(c2.packs.length === 2, "the Tracks folder itself opens too");
+    try { await SD.Card.open(await top.getDirectoryHandle("backups")); } catch (e) { threw = e.message; }
+    check(threw === "no-packs", "a folder without packs is refused");
+  }
+  const A = c.pack(0), B = c.pack(3), pa = {pack: A}, pb = {pack: B}, ctx = {backup: new SD.Backup(bak)};
+  check(A.name === "Alpha" && B.folder === E.beta, "names and folders");
+  check(SD.folderName(7, "x".repeat(40)).length === 30 && SD.folderName(7, "abcdefghijklmnopqrstuvwxy z  ") === "07_abcdefghijklmnopqrstuvwxy z", "a folder name is cut at 30, without a trailing space");
+  const au = await SD.audit(B);
+  if (!DEV) check(au.length === 2 && au.some(i => i.file === "Patches/00_PATCHBANK.cpb.bak") && au.some(i => i.file === "Sessions/05_SC34D.bin") && !(await SD.audit(A)).length, `the audit reports the stray NN_ files: ${au.map(i => i.file)}`);
+
+  // ---- names, against patchtool
+  for (const [p, key] of [[pa, E.alpha], [pb, E.beta]]) {
+    const nv = await SD.Nova.list(p), cu = await SD.Custom.list(p), dr = await SD.Drums.list(p);
+    check(nv.every((x, i) => x.name === E.names.nova[key][i]), `Nova names of ${key}: ${nv.filter(x => !x.empty).length} patches, as patchtool reads them`);
+    check(cu.every((x, i) => (x.bad ? "bad" : x.empty ? "empty" : "ok") === E.names.custom[key][i].state && x.name === E.names.custom[key][i].name), `custom patches of ${key}: ${cu.filter(x => !x.empty).length}, as patchtool reads them`);
+    check(dr.filter(x => !x.empty).every(x => E.names.drums[key][SD.pad2(x.slot)] === x.name) && dr.filter(x => !x.empty).length === Object.keys(E.names.drums[key]).length, `sample names of ${key}`);
+    check(await SD.Drums.words(p) === E.words[key], `sample memory of ${key}: ${E.words[key]} words`);
+  }
+  for (const [p, key] of [[pa, E.alpha], [pb, E.beta]]) {
+    const u = useList(await SD.usageOf(p.pack)), want = E.usage[key];
+    check(u.join("|") === want.join("|"), `what the projects of ${key} use: ${u.length} uses, as the fixture reads them` + (u.join("|") === want.join("|") ? "" : ` (got ${u.filter(x => !want.includes(x))}, missing ${want.filter(x => !u.includes(x))})`));
+  }
+  const ua = await SD.usageOf(A);
+  check((ua.custom.get(10) || []).some(x => x.sess === 1 && x.track === 3) && !ua.custom.get(12) && (ua.drums.get(2) || []).some(x => x.sess === 1 && x.track === 2 && !x.flip) && (ua.drums.get(5) || []).some(x => x.sess === 1 && x.track === 2 && x.flip),
+        "Alpha: custom 10 = MIDI 2's sound of session 01 (another name), sample 2 = MIDI 1's sample engine, sample 5 = its flip");
+  const wi = SD.wavInfo((await SD.Drums.get(pa, 0)).bytes);
+  check(wi && wi.format === 1 && wi.rate === 48000 && wi.bits === 16 && wi.channels >= 1, `a sample's format: ${JSON.stringify(wi)}`);
+
+  // ---- Nova
+  await SD.transfer(SD.Nova, pa, [3], pb, [20], {}, ctx);
+  await SD.transfer(SD.Nova, pa, [5], pa, [100], {move: true}, ctx);
+  await SD.Nova.clear(pb, 1, ctx);
+  check((await SD.Nova.get(pa, 5)) === null && (await SD.Nova.get(pa, 100)) !== null, "Nova: moved, the source slot empty");
+
+  // ---- custom patches
+  await SD.transfer(SD.Custom, pa, [10], pb, [11], {}, ctx);
+  await SD.transfer(SD.Custom, pa, [12], pb, [70], {move: true}, ctx);
+  const pad = await SD.Custom.get(pb, 11);
+  check(SD.ctmName(pad) === "BASS" && SD.ctmState(pad) === "ok" && SD.ctmCode(pad, 1) === -20 && SD.ctmCode(pad, 10) === 33, "custom: copied with its values");
+  const fm = SD.fmGet(pad);
+  check(fm && fm.ver === 2 && fm.on === 1 && fm.params[0] === 100 && SD.vmGet(pad).mode === 3, "custom: the FM block and the voice mode travel with it");
+  SD.ctmSetCode(pad, 1, -10); SD.ctmSetCode(pad, 2, 77); SD.ctmSetName(pad, "EDITED");
+  fm.on = 0; fm.params[12] = 9; SD.fmSet(pad, fm);
+  SD.vmSet(pad, {mode: 3, time: 10, detune: 20});
+  await SD.Custom.put(pb, 11, pad, ctx);
+  const nw = SD.ctmNew();
+  check(SD.ctmState(nw) === "ok" && SD.ctmCode(nw, 7) === 127 && SD.ctmCode(nw, 20) === 50 && nw[41] === 2 && nw[42] === 2, "a new patch: the initial values, the triangle");
+
+  // ---- drums
+  await SD.transfer(SD.Drums, pa, [2], pb, [40], {}, ctx);
+  await SD.transfer(SD.Drums, pa, [1], pb, [0], {}, ctx);
+  await SD.Drums.clear(pa, 3, ctx);
+  await SD.transfer(SD.Drums, pa, [4], pa, [50], {move: true}, ctx);
+  const dra = await SD.Drums.list(pa);
+  check(dra[3].empty && dra[4].empty && !dra[50].empty, "drums: deleted and moved");
+
+  // ---- patterns
+  const sa = {pack: A, sess: 0}, sb = {pack: B, sess: 0}, off = SD.patOff;
+  const M = 16, li = await SD.Patterns.list(sa), full = li.filter(x => x.notes && x.slot >> 4 === 1).map(x => x.slot);      // MIDI 1 = slots 16..23 of the eight tracks
+  check(full.map(n => n - M).join() === E.full.join(), `MIDI patterns with notes: ${full}`);
+  let same = true;
+  for (let n = 0; n < 32; n++) { const b = await SD.Patterns.get(sa, n); if (!eq(SD.patBuild(SD.patParse(b), b), b)) same = false; }
+  check(same, "a note pattern parsed and built again = the same 3 240 bytes (32 patterns: Synth 1 / 2, MIDI 1 / 2)");
+  check(li.length === 64 && SD.patOff(0) === 0x2E4 && SD.patOff(16) === SD.MIDI0 && SD.patOff(32) === SD.DRUM0 && SD.patOff(63) + SD.DPAT === 0x1A274, "the eight tracks: 64 patterns, end of the drums at 0x1A274");
+  const hitz = li.filter(x => x.slot >= 32 && x.notes);
+  if (hitz.length) {
+    const d0 = hitz[0], db = await SD.Patterns.get(sa, d0.slot);
+    check(db.length === SD.DPAT && d0.cells.every(u => u.vel === (db[u.s] & 127)), `drum pattern ${d0.slot}: ${d0.notes} hits`);
+    const mid = SD.patMidi(db, d0.slot, 9);
+    check(String.fromCharCode(...mid.subarray(0, 4)) === "MThd" && String.fromCharCode(...mid.subarray(14, 18)) === "MTrk", "a drum pattern as a MIDI file: its chunks");
+    const body = mid.subarray(22); let on = 0; for (let i = 0; i + 2 < body.length; i++) if (body[i] === 0x99) on++;
+    check(on >= d0.cells.filter(u => u.s >= Math.min(d0.first, d0.last) && u.s <= Math.max(d0.first, d0.last)).length, `its hits are note-ons on channel 10: ${on}`);
+    let refused = null; try { await SD.Patterns.put(sa, 16, db); } catch (e) { refused = e.message; }
+    check(refused === "pat-kind", "a drum pattern does not go on a note track");
+  }
+  const mp = SD.patMidi(await SD.Patterns.get(sa, full[0]), full[0], 2), hd = new DataView(mp.buffer);
+  check(hd.getUint32(4) === 6 && hd.getUint16(8) === 0 && hd.getUint16(12) === 480 && hd.getUint32(18) === mp.length - 22, "a note pattern as a MIDI file: format 0, 480 ticks, its length");
+  {
+    let i = 22, t = 0; const pm = SD.patParse(await SD.Patterns.get(sa, full[0])), vlq = () => { let v = 0, c; do { c = mp[i++]; v = v << 7 | (c & 127); } while (c > 127); return v; };
+    while (i < mp.length) { t += vlq(); i += mp[i] === 0xFF ? 3 + mp[i + 2] : 3; }
+    const stepT = [40, 60, 80, 120, 160, 240, 320, 480][pm.rate], len = (Math.abs(pm.last - pm.first) + 1) * stepT;
+    check(t === len, `the file is one loop of the pattern: ${t} ticks = ${len}`);
+  }
+  const m = SD.patParse(await SD.Patterns.get(sa, full[0]));
+  check(m.steps.some(s => s.units.some(u => u.on)) && m.lanes.length === 12 && m.lanes[0].length === 192, "the pattern's notes and lanes parsed");
+  const edit = SD.patParse(await SD.Patterns.get(sb, M + 3)), base = await SD.Patterns.get(sb, M + 3);
+  edit.steps[5].units[0] = {on: true, note: 60, gate: 6, tie: 0, micro: 2, vel: 100}; edit.steps[5].b3 = 0x80 | 2;
+  const built = SD.patBuild(edit, base);
+  check(built[5 * 28] === 1 && hex(built.subarray(5 * 28 + 4, 5 * 28 + 8)) === "3c060264" && built[5 * 28 + 3] === 0x82, "a note added: the unit's four bytes, the mask, the step's byte [3]");
+  edit.steps[5].units[0] = {...edit.steps[5].units[0], on: false}; edit.steps[5].b3 = base[5 * 28 + 3];
+  check(eq(SD.patBuild(edit, built), base), "and removed: back to the empty unit (00 00 00 60)");
+  await SD.transfer(SD.Patterns, sa, [full[0]], sb, [M + 10], {}, ctx);
+  await SD.transfer(SD.Patterns, sa, [full[1]], sa, [M + 15], {move: true}, ctx);
+  await SD.Patterns.clear(sa, full[2]); await SD.Patterns.flush(sa, ctx);
+  check((await SD.Patterns.list(sa))[full[1]].empty && (await SD.Patterns.list(sb))[M + 10].notes > 0, "patterns: copied, moved, cleared");
+
+  // ---- CC presets
+  const fac = hex(SD.ccDefault());
+  check(fac === E.ccFactory, "the factory presets = the 960 bytes of a running device's RAM");
+  const set = {bytes: SD.ccDefault(), dirty: false}, ps = {set};
+  const r = SD.ccParse(await SD.CC.get(ps, 2));
+  check(r.map(x => x.param).join() === "1,2,5,11,12,13,71,74" && r.every(x => x.type === 1 && x.start === 0 && x.end === 127), "the factory records parsed");
+  r[0].param = 300; r[0].type = 2; r[0].end = 16383; r[1].flags |= 2;
+  await SD.CC.put(ps, 2, SD.ccBuild(r, await SD.CC.get(ps, 2)));
+  const r2 = SD.ccParse(await SD.CC.get(ps, 2));
+  check(r2[0].param === 300 && r2[0].type === 2 && r2[0].end === 16383 && r2[1].flags === 3 && set.dirty, "a record edited: 14-bit NRPN, inverted");
+  await SD.transfer(SD.CC, ps, [2], ps, [5], {swap: true}, {});
+  check(SD.ccParse(await SD.CC.get(ps, 5))[0].param === 300 && SD.ccParse(await SD.CC.get(ps, 2))[0].param === 1, "presets swapped");
+  await SD.CC.clear(ps, 5);
+  check(hex(await SD.CC.get(ps, 5)) === fac.slice(0, 240), "a preset back to factory");
+
+  // ---- swap and overlap, on samples (a scratch pack copy would hide nothing: Alpha's own slots)
+  const nb = await SD.Nova.list(pb), before = (await SD.Nova.get(pb, 0)).slice(), other = (await SD.Nova.get(pb, 2)).slice();
+  await SD.transfer(SD.Nova, pb, [0], pb, [2], {move: true, swap: true}, ctx);
+  check(eq(await SD.Nova.get(pb, 0), other) && eq(await SD.Nova.get(pb, 2), before), `Nova swapped (${nb[0].name} <-> ${nb[2].name})`);
+  await SD.transfer(SD.Nova, pb, [0], pb, [2], {move: true, swap: true}, ctx);
+  const n3 = (await SD.Nova.get(pb, 3)).slice(), n4 = (await SD.Nova.get(pb, 4)).slice(), n5 = (await SD.Nova.get(pb, 5)).slice();
+  await SD.transfer(SD.Nova, pb, [3, 4], pb, [4, 5], {move: true}, ctx);              // the two ranges overlap
+  check((await SD.Nova.get(pb, 3)) === null && eq(await SD.Nova.get(pb, 4), n3) && eq(await SD.Nova.get(pb, 5), n4), "a move over itself: read first, slot 3 emptied");
+  await SD.transfer(SD.Nova, pb, [4, 5], pb, [3, 4], {move: true}, ctx);
+  await SD.Nova.put(pb, 5, n5, ctx);
+  check(eq(await SD.Nova.get(pb, 3), n3) && eq(await SD.Nova.get(pb, 4), n4), "and back");
+
+  // ---- packs
+  const cp = await SD.copyPack(B, c, 7, ctx);
+  check(cp && cp.slot === 7 && cp.folder === "07" + E.beta.slice(2), `pack copied: ${cp.folder}`);
+  threw = null; try { await SD.copyPack(A, c, 7, ctx); } catch (e) { threw = e.message; }
+  check(threw === "slot-used", "a pack does not land on a pack");
+  const mv = await SD.movePack(A, c, 9, ctx);
+  check(mv.folder === "09_Alpha" && !c.pack(0) && c.packs.length === 3, `pack moved: ${c.packs.map(p => p.folder)}`);
+
+  // ---- the result, file by file, against the other implementation
+  const got = DEV ? await (await fetch("/tree")).json() : await walk(tracks), want = {...E.tree};
+  if (DEV) for (const n of Object.keys(want)) if (/\.bak$|SC34D/.test(n)) delete want[n];
+  const names = new Set([...Object.keys(got), ...Object.keys(want)]);
+  let bad = 0;
+  for (const n of names) {
+    const h = got[n] ? (DEV ? got[n] : await sha(got[n])) : null;
+    if (h !== want[n]) { bad++; lines.push(`  differs: ${n} (${got[n] ? got[n].length : "missing"})`); check(false, "differs: " + n); }
+  }
+  check(!bad, `the whole card = what tools/sd_app_fixture.py did on its own (${names.size} files)`);
+
+  // ---- delete, and the backups
+  await SD.deletePack(c.pack(7), ctx);
+  check(c.packs.length === 2 && !c.pack(7), "pack deleted");
+  const kept = await walk(bak), stamp = Object.keys(kept)[0].split("/")[0];
+  const backed = n => kept[`${stamp}/${n}`];
+  const orig = n => originals[n];
+  check(eq(backed(`${E.beta}/Sessions/00_Garbage.ncs`), orig(`${E.beta}/Sessions/00_Garbage.ncs`)), "backup: a session as it was on the card");
+  check(eq(backed("00_Alpha/Patches/00_PATCHBANK.cpb"), orig("00_Alpha/Patches/00_PATCHBANK.cpb")), "backup: the bank's first version, not a later one");
+  const samp = Object.keys(originals).find(k => k.startsWith("00_Alpha/PCM/03_"));
+  check(eq(backed(samp), originals[samp]), "backup: a deleted sample");
+  check(Object.keys(kept).some(k => k.startsWith(`${stamp}/07${E.beta.slice(2)}/`)), "backup: the deleted pack");
+
+  // ---- rename: only the name changes (the slot, the bytes, what the projects use stay)
+  {
+    const why = (kind, s) => { try { SD.checkName(kind, s); return "ok"; } catch (e) { return e.message; } };
+    check(why("drums", "Kick 01") === "ok" && why("drums", "x".repeat(23)) === "ok" && why("drums", "x".repeat(24)) === "name-long" && why("drums", "a/b") === "name-chars-file" &&
+          why("drums", 'a"b') === "name-chars-file" && why("drums", "Kick.") === "name-end" && why("drums", "Caña") === "name-chars-file" && why("drums", "  ") === "name-empty" && why("packs", "x".repeat(28)) === "name-long",
+          "names: ASCII without FAT's characters, no trailing dot, within the length (sample 23 + NN_ + .wav = 30, pack 27 + NN_ = 30)");
+    check(SD.folderName(1, SD.checkName("packs", "x".repeat(27))).length === 30 && why("nova", "A/B 'x'") === "ok" && why("nova", "") === "name-empty" && why("custom", "") === "ok" && why("custom", "é") === "name-chars",
+          "a pack name fills the 30 characters; inside a file / and ' are fine, accents are not");
+    const m9 = c.pack(9), pm = {pack: m9}, useBefore = useList(await SD.usageOf(m9));
+    const dl = await SD.Drums.list(pm), k = dl.findIndex(x => !x.empty), sb0 = (await SD.Drums.get(pm, k)).bytes;
+    await SD.Drums.setName(pm, k, "Renamed Kick", ctx);
+    const dl2 = await SD.Drums.list(pm);
+    check(dl2[k].name === "Renamed Kick" && eq((await SD.Drums.get(pm, k)).bytes, sb0) && dl2.filter(x => !x.empty).length === dl.filter(x => !x.empty).length,
+          `a sample renamed: ${dl[k].name} -> ${dl2[k].name}, the same slot and bytes`);
+    await SD.Drums.setName(pm, k, "RENAMED KICK", ctx);
+    check((await SD.Drums.list(pm))[k].name === "RENAMED KICK" && eq((await SD.Drums.get(pm, k)).bytes, sb0), "a rename in the case only");
+    const diff = (a, b) => { const o = []; for (let i = 0; i < Math.max(a.length, b.length); i++) if (a[i] !== b[i]) o.push(i); return o; };
+    const nk = (await SD.Nova.list(pm)).findIndex(x => !x.empty), bank = async n => (await SD.banksOf(m9)).get(n >> 3).bytes.slice();
+    const nb0 = await bank(nk);
+    await SD.Nova.setName(pm, nk, "Night Pad/2"); m9.drop();
+    const nd = diff(nb0, await bank(nk)), no = 512 * (nk & 7);
+    check((await SD.Nova.list(pm))[nk].name === "Night Pad/2" && nd.length && nd.every(i => i >= no && i < no + 16), `a Nova patch renamed: only its 16 name bytes change (${nd.length})`);
+    const ck = (await SD.Custom.list(pm)).findIndex(x => !x.empty && !x.bad);
+    if (ck >= 0) {
+      const cb0 = await bank(ck);
+      await SD.Custom.setName(pm, ck, "Wobble", ctx); m9.drop();
+      const cd = diff(cb0, await bank(ck)), co = 512 * (ck & 7) + SD.PSZ + 44, pad = await SD.Custom.get(pm, ck);
+      check(SD.ctmName(pad) === "Wobble" && SD.ctmState(pad) === "ok" && cd.every(i => i >= co && i < co + 16), "a custom patch renamed: only its name bytes, the patch still good");
+    }
+    check(useList(await SD.usageOf(m9)).join("|") === useBefore.join("|"), "the projects use the same things after the renames");
+    const t0 = await SD.treeInfo(m9.dir);
+    const rn = await SD.renamePack(m9, "Alpha Renamed", ctx);
+    check(rn && rn.slot === 9 && rn.folder === "09_Alpha Renamed" && !c.packs.some(p => p.folder === "09_Alpha") && c.packs.length === 2, `a pack renamed: ${c.packs.map(p => p.folder)}`);
+    const t1 = await SD.treeInfo(rn.dir);
+    check(t1.files === t0.files && t1.bytes === t0.bytes && useList(await SD.usageOf(rn)).join("|") === useBefore.join("|"), `its files moved with it (${t1.files} files) and its projects use the same`);
+    const rc = await SD.renamePack(rn, "ALPHA RENAMED", ctx);
+    check(rc && rc.folder === "09_ALPHA RENAMED" && c.packs.length === 2 && (await SD.treeInfo(rc.dir)).bytes === t0.bytes && !(await SD.entries(c.tracks)).some(([n]) => /^_renaming_/.test(n)),
+          "a pack renamed in the case only: through a folder the device ignores, none left");
+    await SD.renamePack(rc, "Alpha", ctx);
+    let bad2 = null; try { await SD.renamePack(c.pack(9), "Al:pha", ctx); } catch (e) { bad2 = e.message; }
+    check(bad2 === "name-chars-file" && c.pack(9).folder === "09_Alpha", "a pack name with a FAT character is refused, nothing changes");
+    // ---- a new order: the slot moves (an occupied one swaps) and every project of the pack follows
+    const a9 = c.pack(9), p9 = {pack: a9}, swapUse = (l, kind, M) => l.map(x => { const f = x.split(" "); if (f[0] === kind && M.has(+f[1])) f[1] = String(M.get(+f[1])); return f.join(" "); }).sort();
+    const u0 = useList(await SD.usageOf(a9)), dr0 = await SD.Drums.list(p9);
+    const usedS = [...new Set(u0.filter(x => x.startsWith("drums ")).map(x => +x.split(" ")[1]))], ks = usedS[0], free = dr0.findIndex(x => x.empty);
+    const kb = (await SD.Drums.get(p9, ks)).bytes;
+    const done1 = await SD.reorder("drums", p9, ks, free, ctx); a9.drop();
+    const u1 = useList(await SD.usageOf(a9));
+    check(done1.length > 0 && u1.join("|") === swapUse(u0, "drums", new Map([[ks, free], [free, ks]])).join("|") && eq((await SD.Drums.get(p9, free)).bytes, kb) && (await SD.Drums.list(p9))[ks].empty,
+          `a sample to a free number (${ks} -> ${free}): its bytes there, ${done1.length} project(s) rewritten, every use follows it` + (u1.join("|") === swapUse(u0, "drums", new Map([[ks, free], [free, ks]])).join("|") ? "" : ` got ${u1.filter(x => !swapUse(u0, "drums", new Map([[ks, free], [free, ks]])).includes(x))}`));
+    const dr1 = await SD.Drums.list(p9), ks2 = dr1.findIndex((x, i) => !x.empty && i !== free), b1 = (await SD.Drums.get(p9, ks2)).bytes;
+    const done2 = await SD.reorder("drums", p9, free, ks2, ctx); a9.drop();
+    const u2 = useList(await SD.usageOf(a9));
+    check(u2.join("|") === swapUse(u1, "drums", new Map([[free, ks2], [ks2, free]])).join("|") && eq((await SD.Drums.get(p9, ks2)).bytes, kb) && eq((await SD.Drums.get(p9, free)).bytes, b1),
+          `two samples swapped (${free} <-> ${ks2}): the bytes and the uses (${done2.length} project(s)), the own synth's patch still sums right`);
+    let sumsOk = true;
+    for (const e of (await SD.sessionsOf(a9)).values()) { const o = await SD.openSession(a9, e.slot); for (let t = 0; t < 2; t++) { const at = 0x1A27C + 0xCA8 * 8 * t + 0x380 + 8; if (o.bytes[at] === 0xC6 && !SD.projSynth(o.bytes, t)) sumsOk = false; } }
+    check(sumsOk, "every own-synth patch of the pack still has a good sum");
+    const nv0 = await SD.Nova.list(p9), nu = [...new Set(u2.filter(x => x.startsWith("nova ")).map(x => +x.split(" ")[1]))].filter(i => !nv0[i].empty), na = nu.length ? nu[0] : nv0.findIndex(x => !x.empty), nbb = nv0.findIndex((x, i) => !x.empty && i !== na);
+    const nA = await SD.Nova.get(p9, na), nB = await SD.Nova.get(p9, nbb);
+    await SD.reorder("nova", p9, na, nbb, ctx); a9.drop();
+    const u3 = useList(await SD.usageOf(a9));
+    check(eq(await SD.Nova.get(p9, nbb), nA) && eq(await SD.Nova.get(p9, na), nB) && u3.join("|") === swapUse(u2, "nova", new Map([[na, nbb], [nbb, na]])).join("|"),
+          `two Nova patches swapped (${na} <-> ${nbb}): Synth 1 / 2 of the projects follow`);
+    const done4 = await SD.reorder("nova", p9, nbb, na, ctx, false); a9.drop();                 // «Leave them»: the slots swap back, the projects keep their numbers
+    check(!done4.length && eq(await SD.Nova.get(p9, na), nA) && useList(await SD.usageOf(a9)).join("|") === u3.join("|"),
+          `swapped back with «leave them»: the patches move, no project rewritten, the uses stay on their numbers`);    const cu0 = await SD.Custom.list(p9), cka = cu0.findIndex(x => !x.empty && !x.bad), cfree = cu0.findIndex(x => x.empty), cA = await SD.Custom.get(p9, cka);
+    await SD.reorder("custom", p9, cka, cfree, ctx); a9.drop();
+    check(eq(await SD.Custom.get(p9, cfree), cA) && (await SD.Custom.list(p9))[cka].empty && useList(await SD.usageOf(a9)).join("|") === swapUse(u3, "custom", new Map([[cka, cfree], [cfree, cka]])).join("|"),
+          `a custom patch to another number (${cka} -> ${cfree}): the projects find it by its sound there`);
+    const before = c.packs.map(p => p.folder).join(), t9 = await SD.treeInfo(a9.dir);
+    const sw = await SD.reorderPack(a9, 3, ctx);
+    check(sw.slot === 3 && sw.name === "Alpha" && c.pack(9) && c.pack(9).folder === "09" + E.beta.slice(2) && (await SD.treeInfo(sw.dir)).bytes === t9.bytes && c.packs.length === 2,
+          `two packs swapped: ${c.packs.map(p => p.folder)} (was ${before})`);
+    const back = await SD.reorderPack(c.pack(9), 3, ctx);
+    check(back.folder === E.beta && c.pack(9).folder === "09_Alpha", "and back");
+    const cs = {bytes: SD.ccDefault(), dirty: false};
+    await SD.CC.setName({set: cs}, 1, "My Synth");
+    check(SD.ccName(cs.bytes.subarray(SD.TPL, 2 * SD.TPL)) === "My Synth" && cs.dirty, "a CC preset renamed");
+  }
+
+  if (DEV) {
+    // ---- a move inside the device: a rename, no data
+    const m9 = c.pack(9), pm = {pack: m9}, sent0 = tx.sent.length, was = (await SD.Drums.list(pm))[50].name;
+    await SD.transfer(SD.Drums, pm, [50], pm, [60], {move: true}, ctx);
+    const after = await SD.Drums.list(pm);
+    check(after[50].empty && after[60].name === was && !tx.sent.slice(sent0).some(x => x.startsWith("f0002029016403" + "02")), "a sample moved inside the device: a 07, no data packet");
+    // ---- the 03 / 02 write and read at the protocol's own level
+    const blob = crypto.getRandomValues(new Uint8Array(30000));
+    await dev.write(5, 10, 7, blob);
+    check(eq(await dev.read(5, 10, 7), blob), "a 30 000 B file written and read back");
+    check(await dev.crc(5, 10, 7) === SD.crc32(blob) && await dev.size(5, 10, 7) === blob.length, "its size and CRC, from the device, equal the file's");
+    check(await dev.read(5, 10, 9) === null, "a missing file reads as null");
+    await dev.del(5, 10, 7);
+    check(await dev.size(5, 10, 7) === 0, "deleted");
+    // ---- the CC presets: stock messages, no file session
+    await dev.close();
+    check(!dev.sess, "session closed");
+    const n41 = tx.sent.filter(x => x === "f0002029016403" + "41" + "00").length;
+    await dev.close();
+    check(tx.sent.filter(x => x === "f0002029016403" + "41" + "00").length === n41, "a second close sends nothing (41 with no session would damage the loaded project)");
+    const ram = async (n, k = 120) => (await (await fetch(`/ram?a=${0x2003D2AC + 120 * n}&n=${k}`)).json());
+    const c0 = await dev.ccRead(3);
+    check(hex(c0.subarray(4)) === (await ram(3)).slice(8), "preset 4 read: the 116 bytes after the head, as in the device's RAM");
+    const t = c0.slice(), r = SD.ccParse(t);
+    SD.ccSetName(t, "My Keys");
+    r[0].param = 74; r[0].start = 10; r[0].end = 100; r[1].type = 0; r[2].type = 2; r[2].param = 300; r[2].end = 16383; r[3].flags = 2; r[3].chan = 5; r[4].flags = 3; r[5].type = 4; r[5].param = 1234; r[5].end = 127;
+    const out = SD.ccBuild(r, t); SD.ccSetName(out, "My Keys");
+    await dev.ccWrite(3, out);
+    const nowRam = await ram(3);
+    const back = await dev.ccRead(3), rb = SD.ccParse(back);
+    check(SD.ccName(back) === "My Keys" && rb[0].param === 74 && rb[0].start === 10 && rb[0].end === 100 && rb[1].type === 0 && rb[2].type === 2 && rb[2].param === 300 && rb[2].end === 16383 && rb[3].flags === 2 && rb[3].chan === 5 && rb[4].flags === 3 && rb[5].type === 4 && rb[5].param === 1234,
+      `a preset written and read back: name, CC, off, NRPN 14 / 7 bits, channel, bipolar (${JSON.stringify(rb.slice(0, 6).map(x => [x.type, x.chan, x.flags, x.param, x.start, x.end]))})`);
+    check(nowRam.slice(8, 8 + 14) === hex(new TextEncoder().encode("My Keys")) && nowRam.slice(8 + 72, 8 + 72 + 20) === hex(back.subarray(40, 50)), "and it is in the device's RAM record");
+    let refused = false; try { await dev.ccRead(9); } catch (e) { refused = e.message === "device-cc"; }
+    check(refused, "a preset that does not exist is refused");
+    check(await dev.open() === "opened" && (await dev.close(), !dev.sess), "a session opens and closes again after the CC messages");
+  }
+  const res = {pass, fail, lines};
+  window.RESULT = res;
+  const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
+}
+async function sweep() {                                     // ?full=1: every file of the card copy through the data layer, against tools/sd_app_fixture.py --full
+  const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
+  (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
+  const SD = window.SD, F = await (await fetch("../build/sdapp_fixture/full.json", {cache: "no-store"})).json();
+  const opfs = await navigator.storage.getDirectory();
+  try { await opfs.removeEntry("sdfull", {recursive: true}); } catch (_) { /* first run */ }
+  const tracks = await opfs.getDirectoryHandle("sdfull", {create: true});
+  for (const path of F.files) {
+    const parts = path.split("/"), name = parts.pop(); let d = tracks;
+    for (const p of parts) d = await d.getDirectoryHandle(p, {create: true});
+    await SD.writeFile(d, name, new Uint8Array(await (await fetch("../build/sdapp_fixture/full/" + path.split("/").map(encodeURIComponent).join("/"))).arrayBuffer()));
+  }
+  const c = await SD.Card.open(tracks);
+  check(c.packs.length === Object.keys(F.packs).length, `${c.packs.length} packs`);
+  let sessions = 0, patterns = 0, samples = 0, patches = 0, weird = 0;
+  for (const p of c.packs) {
+    const X = F.packs[p.folder], pl = {pack: p};
+    const nv = await SD.Nova.list(pl);
+    check(nv.every((x, i) => x.name === X.nova[i]), `${p.folder}: Nova names`);
+    patches += nv.filter(x => !x.empty).length;
+    const dr = (await SD.Drums.list(pl)).filter(x => !x.empty);
+    check(dr.length === Object.keys(X.wav).length && dr.every(x => X.wav[SD.pad2(x.slot)] === x.name), `${p.folder}: ${dr.length} samples`);
+    check(await SD.Drums.words(pl) === X.words, `${p.folder}: sample memory ${X.words}`);
+    for (const x of dr.slice(0, 64)) {
+      const w = SD.wavInfo((await SD.Drums.get(pl, x.slot)).bytes);
+      if (!w || w.format !== 1 || w.bits !== 16 || w.rate !== 48000 || w.at !== 44) weird++;
+      samples++;
+    }
+    const m = await SD.sessionsOf(p);
+    check(m.size === Object.keys(X.sessions).length, `${p.folder}: ${m.size} sessions`);
+    const u = useList(await SD.usageOf(p));
+    check(u.join("|") === X.usage.join("|"), `${p.folder}: ${u.length} uses by its projects`);
+    for (const e of m.values()) {
+      const s = {pack: p, sess: e.slot}, li = await SD.Patterns.list(s);
+      let same = true;
+      for (let n = 0; n < 32; n++) { const b = await SD.Patterns.get(s, n); if (!eq(SD.patBuild(SD.patParse(b), b), b)) same = false; patterns++; }
+      if (!same || li.filter(x => x.slot >> 4 === 1).reduce((a, x) => a + x.notes, 0) !== X.sessions[SD.pad2(e.slot)]) check(false, `${p.folder}/${e.file}: a pattern does not read back`);
+      sessions++;
+    }
+    p.drop();
+  }
+  check(!weird, `${samples} samples: PCM, 16 bits, 48 kHz, data at byte 44 (${weird} others)`);
+  check(true, `${sessions} sessions, ${patterns} patterns read and rebuilt byte for byte; ${patches} Nova patches`);
+  window.RESULT = {pass, fail, lines};
+  const end = document.createElement("b"); end.textContent = `
+${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
+}
+async function snap() {                                      // ?snap=1 (served by tools/sd_bridge.py): snapshot of the device, the card changed, and back
+  const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
+  (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
+  const SD = window.SD, tree = async () => (await fetch("/tree")).json();
+  await fetch("/reset", {method: "POST"});
+  const dev = new SD.Device(bridge());
+  await dev.identify(); await dev.open();
+  check(dev.chans.join() === "0,1,2,3,9", `channels of the settings reply: ${dev.chans}`);
+  const card = await SD.Card.open(new SD.DevRoot(dev)); card.device = dev;
+  const opfs = await navigator.storage.getDirectory();
+  for (const n of ["snap", "snapbak"]) { try { await opfs.removeEntry(n, {recursive: true}); } catch (_) { /* first run */ } }
+  const top = await opfs.getDirectoryHandle("snap", {create: true}), backup = new SD.Backup(await opfs.getDirectoryHandle("snapbak", {create: true}));
+  const before = await tree();
+  await SD.snapshot(card, top);
+  const got = await walk(top);
+  let same = 0; for (const [k, v] of Object.entries(before)) if (got["Tracks/" + k] && await sha(got["Tracks/" + k]) === v) same++;
+  check(same === Object.keys(before).length && !!got[SD.SNAP_FILE], `every file of the card, same SHA-256: ${same}, and ${SD.SNAP_FILE} last`);
+  check(Object.keys(got).some(k => k.startsWith("Internal/")), "the internal pack too");
+  check((await SD.Card.open(top)).packs.length === card.packs.length, "the snapshot opens as a card");
+  const wav = Object.keys(got).find(k => /^Tracks\/00.*PCM\/.*\.wav$/.test(k)), I = +wav.split("/").pop().slice(0, 2), mod = got[wav].slice(); mod[100] ^= 0x55;
+  await dev.write(5, 1, I, mod);                             // same size, another CRC; the slot's name goes back to NN_PCM.wav
+  await dev.write(3, 1, 10, got[Object.keys(got).find(k => /^Tracks\/00.*\.ncs$/.test(k))]);      // a file the snapshot does not have
+  const gone = (await dev.items(3, 1))[0]; await dev.del(3, 1, gone.I);
+  for (const p of card.packs) for (const d of p.dir.sub.values()) d.cache = null;
+  await card.reset();
+  const plan = await SD.restorePlan(card, top);
+  check(plan.write.length === 2 && plan.del.length === 2 && plan.same === same - 2, `plan: ${plan.write.length} writes, ${plan.del.length} deletions, ${plan.same} equal`);
+  await SD.restoreApply(card, plan, {backup});
+  const after = await tree();
+  check(Object.keys(after).length === Object.keys(before).length && Object.entries(before).every(([k, v]) => after[k] === v), "the card is back, file by file");
+  check(backup.count === 2, `the two files it took away went to the backups: ${backup.count}`);
+  const again = await SD.restorePlan(card, top);
+  check(!again.write.length && !again.del.length, "a second restore has nothing to do");
+  let refused = null;
+  try { await SD.restorePlan(card, await opfs.getDirectoryHandle("snapbak")); } catch (e) { refused = e.message; }
+  check(refused === "snap-bad", "a folder that is not a finished snapshot is refused");
+  await dev.close();
+  window.RESULT = {pass, fail, lines};
+  const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
+}
+async function dx7() {                                      // ?dx7=1 (python tools/dx7ref.py first): the DX7 import against fm8.from_dx7, then on a card
+  const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
+  (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
+  const SD = window.SD, X = await (await fetch("../build/sdapp_fixture/dx7.json", {cache: "no-store"})).json();
+  const un = s => Uint8Array.from(s.match(/../g), x => parseInt(x, 16));
+  const bulk = un(X.bulk), b = SD.dx7Parse(bulk);
+  check(b.voices.length === 32 && !b.bad, `a bulk dump: ${b.voices.length} voices, check byte good`);
+  check(b.voices.every((v, i) => v.name === X.voices[i].name && hex(v.params) === X.voices[i].params), "every voice's name and 216 parameters = fm8.from_dx7 (noise voices: every field masked and limited)");
+  const s = SD.dx7Parse(un(X.single));
+  check(s.voices.length === 1 && s.voices[0].name === X.one.name && hex(s.voices[0].params) === X.one.params && !s.bad, "a single voice (VCED) = fm8.from_dx7");
+  const bare = SD.dx7Parse(bulk.subarray(6, 6 + 4096));
+  check(bare.voices.length === 32 && bare.voices.every((v, i) => hex(v.params) === X.voices[i].params), "a bare 4096-byte bank");
+  const two = new Uint8Array(bulk.length + un(X.single).length); two.set(bulk); two.set(un(X.single), bulk.length); two[100] ^= 1;
+  const t = SD.dx7Parse(two);
+  check(t.voices.length === 33 && t.bad === 1, `two messages in one file, one with a wrong check byte: ${t.voices.length} voices, ${t.bad} bad`);
+  check(!SD.dx7Parse(new Uint8Array(200)).voices.length, "a file without DX7 voices: none");
+  check(hex(SD.fm8Rec(b.voices[0].params)) === X.record0, "the FM record = fm8.record (fm8store's format)");
+  // on a card: bank 0 = 7 records (3924 bytes), bank 1 absent
+  const opfs = await navigator.storage.getDirectory();
+  try { await opfs.removeEntry("dx7card", {recursive: true}); } catch (_) { /* first run */ }
+  const pk = await (await (await (await opfs.getDirectoryHandle("dx7card", {create: true})).getDirectoryHandle("Tracks", {create: true})).getDirectoryHandle("05_DX", {create: true})).getDirectoryHandle("Patches", {create: true});
+  const stock = Uint8Array.from({length: 3924}, (_, i) => i % 512 < 340 ? (i * 7 + 3) & 127 : 0xFF);
+  await SD.writeFile(pk, "00_PATCHBANK.cpb", stock);
+  const card = await SD.Card.open(await opfs.getDirectoryHandle("dx7card")), pl = {pack: card.packs[0]};
+  await SD.Custom.putMany(pl, [[3, SD.dx7Patch(b.voices[0])], [9, SD.dx7Patch(b.voices[1])], [2, SD.dx7Patch(s.voices[0])]], {});
+  const bank = n => card.packs[0]._banks.get(n).bytes, b0 = bank(0), r3 = 4096 + 512 * 3;
+  check(b0.length === r3 + SD.RECN && eq(b0.subarray(0, 3924).filter((_, i) => i % 512 < 340), stock.filter((_, i) => i % 512 < 340)), `bank 0: ${b0.length} bytes (up to slot 3's record), the stock's patches untouched`);
+  check(hex(b0.subarray(r3, r3 + SD.RECN)) === X.record0 && b0.subarray(3924, 4096 + 512 * 2).every(x => x === 0xFF), "slot 3's record = voice 0's; 0xFF from 3924 to slot 2's");
+  const pad = b0.subarray(512 * 3 + 340, 512 * 4), fm = SD.fmGet(pad), vm = SD.vmGet(pad);
+  check(SD.ctmState(pad) === "ok" && SD.ctmName(pad) === "E.PIANO 1" && fm.ver === 3 && fm.on === 1 && fm.params.every(x => !x) && vm.mode === 3, "slot 3's padding: the own patch, its name, FM version 3 on, poly");
+  check(bank(1).length === 4096 + 512 + SD.RECN, "slot 9 made bank 1 (empty records, its padding, its record)");
+  const li = await SD.Custom.list(pl);
+  check(li[3].fm8 && hex(li[3].fm8) === X.voices[0].params && li[2].fm8 && li[2].name === "SINGLE  V" && !li[4].fm8, "the list: the FM records read back");
+  await SD.transfer(SD.Custom, pl, [3], pl, [20], {move: true}, {});
+  const b2 = bank(2), r20 = 4096 + 512 * 4;
+  check(hex(b2.subarray(r20, r20 + SD.RECN)) === X.record0 && bank(0).subarray(r3, r3 + SD.RECN).every(x => x === 0xFF) && (await SD.Custom.list(pl))[3].empty, "a move 3 -> 20: the record goes with the padding, the old one 0xFF");
+  const g = await SD.Custom.get(pl, 20);
+  check(g.length === SD.PADN + SD.RECN && hex(g.subarray(SD.PADN)) === X.record0, "get: padding + record (the .ctm export keeps both)");
+  await SD.Custom.clear(pl, 20, {});
+  check(bank(2).subarray(512 * 4 + 340, 512 * 5).every(x => x === 0xFF) && bank(2).subarray(r20, r20 + SD.RECN).every(x => x === 0xFF), "a delete: padding and record 0xFF");
+  // a project's FM record (fm8store: Synth 1 / 2's patterns 0..7, bytes 8..39)
+  const ses = new Uint8Array(SD.SESS_SIZE), rec = SD.fm8Rec(b.voices[4].params);
+  for (let k = 0; k < 8; k++) { const o = 0x2E4 + 0xCA8 * (8 + k) + 0x380 + 8; ses[o] = 0xC8; ses[o + 1] = 16 | k; ses.set(rec.subarray(30 * k, Math.min(30 * k + 30, SD.RECN)), o + 2); }
+  check(hex(SD.projFm(ses, 1)) === X.voices[4].params && SD.projFm(ses, 0) === null, "MIDI 2's FM record read from a project; none for MIDI 1");
+  // ---- a project's default sounds: a session made here, the own synth from a DX7 patch with a wavetable record
+  const sdir = await (await (await (await opfs.getDirectoryHandle("dx7card")).getDirectoryHandle("Tracks")).getDirectoryHandle("05_DX")).getDirectoryHandle("Sessions", {create: true});
+  const sb = new Uint8Array(SD.SESS_SIZE); sb.set([0x55, 0x53, 0x45, 0x52]); await SD.writeFile(sdir, "00_TEST.ncs", sb);
+  const card2 = await SD.Card.open(await opfs.getDirectoryHandle("dx7card")), pl2 = {pack: card2.packs[0]};
+  const own = SD.dx7Patch(b.voices[3]); own.set([0xB7, 1, 2, 54, 160], 150); { let c = 0x5A; for (let i = 150; i < 162; i++) c += own[i]; own[162] = c & 0xFF; }
+  const nova = new Uint8Array(SD.PSZ).fill(7); nova.set([0x41, 0x42, 0x43], 0);
+  await SD.setProjectSounds(pl2, 0, {nova: [[5, nova], null], own: [null, own], drums: [null, null, 33, null]}, {});
+  const sb2 = await SD.readHandle(await sdir.getFileHandle("00_TEST.ncs")), ps = SD.projectSounds(sb2), back = ps.own[1];
+  check(ps.nova[0].slot === 5 && ps.nova[0].copy.startsWith("ABC") && ps.drums[2] === 33 && !ps.own[0], `project sounds: Synth 1 = slot 5 with the new copy, Drum 3 = sample 33 (${JSON.stringify(ps.nova[0])}, ${ps.drums})`);
+  check(back && eq(back.subarray(0, 124), own.subarray(0, 124)) && eq(back.subarray(150, 163), own.subarray(150, 163)) && hex(SD.fm8Get(back.subarray(SD.PADN))) === hex(b.voices[3].params),
+        "MIDI 2's own synth = the custom patch: its padding, its wavetable record and its 8-operator FM record, read back from the project");
+  window.RESULT = {pass, fail, lines};
+  const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
+}
+const QS = new URLSearchParams(location.search);
+(QS.get("full") ? sweep() : QS.get("snap") ? snap() : QS.get("dx7") ? dx7() : main()).catch(e => { check(false, "exception: " + (e && e.stack || e)); window.RESULT = {pass, fail, lines}; });
+</script>
+</body>
+</html>

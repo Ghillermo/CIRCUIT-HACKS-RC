@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>hr_app tests</title>
+<style>body { background:#111317; color:#e8e9ec; font:13px/1.45 ui-monospace,Consolas,monospace; padding:12px; } .bad { color:#ff7b72; } .ok { color:#7ee787; } iframe { width:1100px; height:600px; border:1px solid #333; }</style>
+</head>
+<body>
+<pre id="out"></pre>
+<iframe id="app" src="hr_app.html"></iframe>
+<script>
+/* tools/hr_app.html (python tools/make_hr_app.py) in an iframe: the adapters (HR) on built patterns, then whole copies between a synthetic Tracks
+card, a synthetic Rhythm card and a plain folder, all in the browser's own file system (OPFS).  Preview "repo-http": /tools/hr_app_test.html;
+window.RESULT = {pass, fail, lines}. */
+const out = document.getElementById("out"), lines = [];
+let pass = 0, fail = 0;
+function check(ok, text) { ok ? pass++ : fail++; lines.push((ok ? "ok   " : "FAIL ") + text); const s = document.createElement("span"); s.className = ok ? "ok" : "bad"; s.textContent = (ok ? "ok   " : "FAIL ") + text + "\n"; out.append(s); }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function wav(n, f) {                                       // a 16-bit mono 48 kHz WAV of n samples of a sine at f Hz
+  const b = new Uint8Array(44 + 2 * n), v = new DataView(b.buffer);
+  const w = (o, s) => [...s].forEach((c, i) => { b[o + i] = c.charCodeAt(0); });
+  w(0, "RIFF"); v.setUint32(4, 36 + 2 * n, true); w(8, "WAVE"); w(12, "fmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 48000, true); v.setUint32(28, 96000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, 2 * n, true);
+  for (let i = 0; i < n; i++) v.setInt16(44 + 2 * i, Math.round(12000 * Math.sin(2 * Math.PI * f * i / 48000)), true);
+  return b;
+}
+async function main() {
+  const app = document.getElementById("app");
+  await new Promise(r => { if (app.contentWindow && app.contentWindow.HRAPP) r(); else app.onload = r; });
+  await sleep(300);
+  const W = app.contentWindow, SDT = W.SDT, SDR = W.SDR, HR = W.HR, RFM = W.RFM, A = W.HRAPP;
+  const eq = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+  // ---- the adapters
+  const tb = SDT.patEmpty ? null : null;
+  const tbase = new Uint8Array(SDT.PAT), rbase = new Uint8Array(SDR.PAT);
+  for (let s = 0; s < 32; s++) { for (let u = 0; u < 6; u++) tbase[28 * s + 4 + 4 * u + 3] = 0x60; tbase[28 * s + 1] = 7; rbase.set(SDR.STEP_EMPTY, 8 * s); }
+  tbase.fill(0xFF, SDT.LANE0, SDT.LANE0 + 12 * 192); rbase.fill(0xFF, SDR.LANE0, SDR.LANE0 + 12 * 192);
+  const m = SDT.patParse(tbase);
+  m.steps[0].units[0] = {on: true, note: 67, gate: 12, tie: 0, micro: 2, vel: 90}; m.steps[0].units[1] = {on: true, note: 60, gate: 12, tie: 0, micro: 2, vel: 90};
+  m.steps[0].units[2] = {on: true, note: 64, gate: 12, tie: 0, micro: 2, vel: 90}; m.steps[5].units[3] = {on: true, note: 72, gate: 6, tie: 1, micro: 0, vel: 127};
+  m.steps[5].prob = 4; m.last = 15; m.first = 0; m.rate = 3;
+  const tpat = SDT.patBuild(m, tbase), rp = HR.t2rNote(tpat, rbase), rm = SDR.patParse(rp);
+  check(rm.steps[0].on && rm.steps[0].note === 60 && rm.steps[0].mask === 4 && rm.steps[0].vel === 90 && rm.steps[0].gate === 12, `Tracks chord (67, 60, 64) -> Rhythm: the root 60, micro 2 = mask 4, its velocity and gate (${JSON.stringify(rm.steps[0])})`);
+  check(rm.steps[5].note === 72 && rm.steps[5].tie === 1 && rm.steps[5].prob === 4 && !rm.steps[1].on && rm.last === 15 && rm.rate === 3, "a tie, a probability, empty steps and the settings travel");
+  const back = SDT.patParse(HR.r2tNote(rp, tbase));
+  check(back.steps[0].units[0].on && back.steps[0].units[0].note === 60 && back.steps[0].units[0].micro === 2 && !back.steps[0].units[1].on && back.steps[5].units[0].note === 72,
+        "Rhythm -> Tracks: one note a step (the root), its micro-step from the mask");
+  const db = new Uint8Array(SDT.DPAT); db.fill(0xFF, 64, 96); db.fill(7, 32, 64); db[2] = 100; db[96 + 2] = 0b101; db[9] = 50; db[0x80] = 31;
+  const rd = SDR.patParse(HR.t2rDrum(db, rbase)), dback = HR.r2tDrum(HR.t2rDrum(db, rbase), new Uint8Array(SDT.DPAT));
+  check(rd.steps[2].on && rd.steps[2].mask === 5 && rd.steps[2].vel === 100 && rd.steps[9].mask === 1 && !rd.steps[3].on && rd.last === 31, "Tracks drums -> Rhythm: hits, micro masks (none = the first), velocities, the settings");
+  check(dback[2] === 100 && dback[96 + 2] === 5 && dback[9] === 50 && dback[64 + 2] === 0xFF && !dback[3], "and back: the same hits");
+  // ---- the cards (OPFS)
+  const op = await navigator.storage.getDirectory();
+  for (const n of ["hrT", "hrR", "hrF"]) { try { await op.removeEntry(n, {recursive: true}); } catch (_) { /* first run */ } }
+  const mk = async (root, path) => { let d = await op.getDirectoryHandle(root, {create: true}); for (const p of path) d = await d.getDirectoryHandle(p, {create: true}); return d; };
+  const tS = await mk("hrT", ["Tracks", "04_TT", "Sessions"]), tP = await mk("hrT", ["Tracks", "04_TT", "PCM"]);
+  const ts = new Uint8Array(SDT.SESS_SIZE); ts.set([0x55, 0x53, 0x45, 0x52]); ts.set(tpat, SDT.MIDI0); ts.set(db, SDT.DRUM0 + SDT.DPAT * 0);
+  await SDT.writeFile(tS, "00_ProjT.ncs", ts); await SDT.writeFile(tP, "00_Sine.wav", wav(4800, 440));
+  const tPa = await mk("hrT", ["Tracks", "04_TT", "Patches"]), fmPatch = SDT.dx7Patch({name: "TESTFM", params: Uint8Array.from({length: 216}, (_, i) => (i * 7) % 100)});
+  const bank = new Uint8Array(4096 + 512 * 2 + 224).fill(0xFF); bank.set(fmPatch.subarray(0, SDT.PADN), 512 * 2 + 340); bank.set(fmPatch.subarray(SDT.PADN), 4096 + 512 * 2);
+  await SDT.writeFile(tPa, "00_PATCHBANK.cpb", bank);
+  const rS = await mk("hrR", ["Rhythm", "05_RR", "Sessions"]); await mk("hrR", ["Rhythm", "05_RR", "PCM"]);
+  const rs = new Uint8Array(SDR.SESS_SIZE); rs.set([0x52, 0x55, 0x53, 0x45]); for (let k = 0; k < 64; k++) rs.set(rbase, SDR.patOff(k));
+  await SDT.writeFile(rS, "00_ProjR.ncs", rs);
+  const F = await op.getDirectoryHandle("hrF", {create: true});
+  const [pT, pR] = A.panes;
+  await A.openPane(pT, await op.getDirectoryHandle("hrT")); await A.openPane(pR, await op.getDirectoryHandle("hrR"));
+  check(pT.kind === "tracks" && pR.kind === "rhythm", `the two cards recognised (${pT.kind}, ${pR.kind})`);
+  // samples: Tracks 0 -> Rhythm 7
+  A.state.tab = "samples"; await A.renderAll();
+  pT.sel = new Set([0]); pR.sel = new Set([7]); await A.copyAct(pT); await sleep(200);
+  const rsm = await SDR.Samples.get({pack: pR.card.pack(5)}, 7);
+  check(rsm && rsm.bytes.length === 44 + 9600, `a sample Tracks -> Rhythm slot 7 (${rsm ? rsm.name + ", " + rsm.bytes.length + " B" : "none"})`);
+  // FM patch: Tracks custom 2 -> Rhythm 3 -> Tracks custom 9
+  A.state.tab = "fm"; await A.renderAll();
+  pT.sel = new Set([2]); pR.sel = new Set([3]); await A.copyAct(pT); await sleep(200);
+  const rr = await RFM.get({pack: pR.card.pack(5)}, 3);
+  check(rr && eq(rr, fmPatch.subarray(SDT.PADN)), "an FM patch Hacks -> Remix slot 3: the same record");
+  await A.renderAll(); pR.sel = new Set([3]); pT.sel = new Set([9]); await A.copyAct(pR); await sleep(200);
+  const tc = await SDT.Custom.get({pack: pT.card.pack(4)}, 9);
+  check(tc && SDT.fmGet(tc).ver === 3 && eq(tc.subarray(SDT.PADN), fmPatch.subarray(SDT.PADN)), "and Remix -> Hacks custom 9: a patch with FM on and the same record");
+  // patterns: Tracks MIDI 1 · 1 (16) -> Rhythm Track 1 · 2 (1); Tracks Drum 1 · 1 (32) -> Rhythm Track 2 · 1 (8)
+  A.state.tab = "patterns"; await A.renderAll();
+  pT.sel = new Set([16]); pR.sel = new Set([1]); await A.copyAct(pT); await sleep(200);
+  pT.sel = new Set([32]); pR.sel = new Set([8]); await A.copyAct(pT); await sleep(200);
+  const ro = await SDR.openSession(pR.card.pack(5), 0); pR.card.pack(5)._open.clear();
+  const rf = await SDR.readHandle(await rS.getFileHandle("00_ProjR.ncs")), p1 = SDR.patParse(rf.subarray(SDR.patOff(1), SDR.patOff(1) + SDR.PAT)), p8 = SDR.patParse(rf.subarray(SDR.patOff(8), SDR.patOff(8) + SDR.PAT));
+  check(p1.steps[0].note === 60 && p1.steps[0].mask === 4 && p8.steps[2].on && p8.steps[2].mask === 5, "patterns into the Rhythm project: MIDI 1's chord as its root, Drum 1's hits");
+  void ro;
+  // a folder: everything as files
+  await A.openPane(pR, F);
+  for (const [tab, n] of [["samples", 0], ["fm", 2], ["patterns", 16]]) { A.state.tab = tab; await A.renderAll(); pT.sel = new Set([n]); await A.copyAct(pT); await sleep(150); }
+  const names = []; for await (const [n] of F.entries()) names.push(n);
+  check(names.some(n => /\.wav$/.test(n)) && names.some(n => /\.ctm$/.test(n)) && names.some(n => /\.ctpat$/.test(n)), `to a folder: ${names.join(", ")}`);
+  window.RESULT = {pass, fail, lines};
+  const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
+}
+main().catch(e => { check(false, "exception: " + (e && e.stack || e)); window.RESULT = {pass, fail, lines}; });
+</script>
+</body>
+</html>

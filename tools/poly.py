@@ -96,6 +96,27 @@ def use_v5():
 
 
 O_JPEND, O_JCNT = 123, 124            # (V5) a track block's bytes: a jump to send, the counter
+V10 = False                           # SC51.4 (use_v10)
+
+
+def use_v10():
+    """SC51.4 (the user, 2026-11-04: «amplía el número de voces ahora»; vcf21_dsp.use_fmc1, granular_dsp.use_fmc1: the FM voices on DSP core 1):
+    six FM voices a track always (12 in all; was 3 + 3 with both tracks in FM poly): FM slot s = 6 t + v (vcf21_dsp.FV_ADDRS: X:$4000 + 48 s); the
+    voices' ARM blocks twelve, moved to FVB = 0x20049000 (+ 768 the signature).  The limiter (vguard.use_c1late) frees voices when core 1 is late."""
+    global V10, FVB, FVSIG_AT
+    assert V5 and VD.FMC1 and len(VD.FV_ADDRS) == 2 * VD.PV_N
+    V10 = True
+    FVB = 0x20049000
+    FVSIG_AT = FVB + 64 * len(VD.FV_ADDRS)
+V11 = False                           # SC51.7 (use_v11)
+
+
+def use_v11():
+    """SC51.7 (fmeng.use_fm8: the 8-operator FM): a voice's FM is fm8's: c_pyfm1 = fm8arm's c_fm8poly (the same arguments: its own voice state,
+    the envelopes, the writes), the shed's loudness of a ringing FM voice = c_fmloud(slot)."""
+    global V11
+    assert V10
+    V11 = True
 V6 = False                            # SC47.7 (use_v6)
 
 
@@ -206,7 +227,7 @@ def arm_code(base, L, prev, head_on, head_off):
     NV = VD.PV_N                                                                 # the voices a track
     if V3:                                                                       # (V3) the notes' increments (a table at the start)
         T["inc"] = base; E(raw, struct.pack("<128I", *INCS))
-    if V5: T["fva"] = base + 512; E(raw, struct.pack("<6I", *VD.FV_ADDRS))     # (V5) the FM slots' operator blocks
+    if V5: T["fva"] = base + 512; E(raw, struct.pack("<%dI" % len(VD.FV_ADDRS), *VD.FV_ADDRS))     # (V5) the FM slots' operator blocks
     zc = [0]
     def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
     def bc(target, cond):
@@ -560,7 +581,8 @@ def arm_code(base, L, prev, head_on, head_off):
         a.label("sh_t"); imm32(7, PY + 4); E(lsls_imm, 0, 6, TSH); E(adds_reg, 7, 7, 0)
         E(ldrb_imm, 0, 7, O_ACT); E(cmp_imm, 0, 0); bc("sh_tn", "eq")
         E(mov_reg, 0, 6); E(bl, L["c_fmact"]); E(mov_reg, 11, 0)
-        E(movs_imm, 0, 0); E(ldrb_w, 1, 7, O_VMAX); E(cmp_imm, 1, NV // 2); E(b_cond, "sh_s", "ne"); E(lsls_imm, 0, 6, 1); E(adds_reg, 0, 0, 6)
+        if V10: E(movs_imm, 0, NV); E(muls, 0, 6)                                # (V10) the track's first slot: 6 t
+        else: E(movs_imm, 0, 0); E(ldrb_w, 1, 7, O_VMAX); E(cmp_imm, 1, NV // 2); E(b_cond, "sh_s", "ne"); E(lsls_imm, 0, 6, 1); E(adds_reg, 0, 0, 6)
         a.label("sh_s"); E(mov_reg, 8, 0)
         E(movs_imm, 2, 0)
         a.label("sh_v"); E(movs_imm, 3, VS_); E(muls, 3, 2); E(adds_reg, 3, 3, 7); E(adds_imm8, 3, 4)
@@ -568,8 +590,11 @@ def arm_code(base, L, prev, head_on, head_off):
         E(movs_imm, 1, PEND); E(tst_reg, 0, 1); E(b_cond, "sh_n", "ne")                                      # not about to start
         E(movs_imm, 1, HELD); E(tst_reg, 0, 1); E(b_cond, "sh_h", "ne")
         E(mov_reg, 1, 11); E(cmp_imm, 1, 0); E(b_cond, "sh_ro", "eq")                                        # ringing, FM: its envelopes
-        E(mov_reg, 1, 8); E(adds_reg, 1, 1, 2); E(lsls_imm, 1, 1, 6); imm32(5, FVB + GD.FE.B_ENV); E(adds_reg, 5, 5, 1)
-        E(ldrh_imm, 1, 5, 0); E(ldrh_imm, 0, 5, 2); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 4); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 6); E(adds_reg, 1, 1, 0)
+        if V11:                                                                  # (V11) fm8's loudness of the slot
+            E(push_list, [2, 3]); E(mov_reg, 0, 8); E(adds_reg, 0, 0, 2); E(bl, L["c_fmloud"]); E(mov_reg, 1, 0); E(pop_list, [2, 3])
+        else:
+            E(mov_reg, 1, 8); E(adds_reg, 1, 1, 2); E(lsls_imm, 1, 1, 6); imm32(5, FVB + GD.FE.B_ENV); E(adds_reg, 5, 5, 1)
+            E(ldrh_imm, 1, 5, 0); E(ldrh_imm, 0, 5, 2); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 4); E(adds_reg, 1, 1, 0); E(ldrh_imm, 0, 5, 6); E(adds_reg, 1, 1, 0)
         E(b, "sh_c")
         a.label("sh_ro"); E(movs_imm, 1, GD.S_REL_OTHER >> 16); E(lsls_imm, 1, 1, 16); E(b, "sh_c")
         a.label("sh_h")                                                          # held: the oldest (the counter - its age), FM first
@@ -692,7 +717,8 @@ def arm_code(base, L, prev, head_on, head_off):
         E(movs_imm, 6, 4)
         E(mov_reg, 0, 4); E(bl, "c_pyfmp"); E(cmp_imm, 0, 0); E(b_cond, "vm_w", "eq")
         if V5: E(movs_imm, 6, NV)                                                # (V5) FM alone: six
-        E(movs_imm, 0, 1); E(subs_reg, 0, 0, 4); E(bl, "c_pyfmp"); E(cmp_imm, 0, 0); E(b_cond, "vm_w", "eq"); E(movs_imm, 6, NV // 2 if V5 else 2)
+        if not V10:                                                              # (V10) six each with both
+            E(movs_imm, 0, 1); E(subs_reg, 0, 0, 4); E(bl, "c_pyfmp"); E(cmp_imm, 0, 0); E(b_cond, "vm_w", "eq"); E(movs_imm, 6, NV // 2 if V5 else 2)
         a.label("vm_w"); E(strb_w, 6, 5, O_VMAX)
         E(ldrb_w, 0, 5, O_VPRV); E(cmp_reg, 0, 6); E(b_cond, "vm_x", "eq"); E(strb_w, 6, 5, O_VPRV)
         E(movs_imm, 6, 0)
@@ -705,7 +731,8 @@ def arm_code(base, L, prev, head_on, head_off):
 
         # ---- c_pyslot(r4 = track, r5 = block, r6 = voice) -> r0 = its FM slot; clobbers r1
         a.label("c_pyslot")
-        if V5: E(mov_reg, 0, 6); E(ldrb_w, 1, 5, O_VMAX); E(cmp_imm, 1, NV // 2); E(b_cond, "sl_x", "ne"); E(lsls_imm, 1, 4, 1); E(adds_reg, 1, 1, 4); E(adds_reg, 0, 0, 1)   # 3 t + v
+        if V10: E(mov_reg, 0, 6); E(movs_imm, 1, NV); E(muls, 1, 4); E(adds_reg, 0, 0, 1)     # (V10) 6 t + v
+        elif V5: E(mov_reg, 0, 6); E(ldrb_w, 1, 5, O_VMAX); E(cmp_imm, 1, NV // 2); E(b_cond, "sl_x", "ne"); E(lsls_imm, 1, 4, 1); E(adds_reg, 1, 1, 4); E(adds_reg, 0, 0, 1)   # 3 t + v
         else: E(mov_reg, 0, 6); E(ldrb_w, 1, 5, O_VMAX); E(cmp_imm, 1, 2); E(b_cond, "sl_x", "ne"); E(lsls_imm, 1, 4, 1); E(adds_reg, 0, 0, 1)
         a.label("sl_x"); E(raw, RET)
 
@@ -724,7 +751,7 @@ def arm_code(base, L, prev, head_on, head_off):
         E(mov_reg, 0, 4); E(bl, L["c_fmact"]); E(cmp_imm, 0, 0); bc("fv_x", "eq")
         E(ldrb_imm, 0, 5, O_ACT); E(cmp_imm, 0, 0); bc("fv_x", "eq")
         imm32(0, FVSIG_AT if V5 else FVB + 256); E(ldr_imm, 1, 0, 0); imm32(2, FVSIG); E(cmp_reg, 1, 2); E(b_cond, "fv_s", "eq")   # the voices' blocks: signed
-        E(str_imm, 2, 0, 0); imm32(0, FVB); E(movs_imm, 1, 0); E(movs_imm, 2, 16 * NV if V5 else 64)
+        E(str_imm, 2, 0, 0); imm32(0, FVB); E(movs_imm, 1, 0); E(movs_imm, 2, 16 * len(VD.FV_ADDRS) if V10 else 16 * NV if V5 else 64)
         a.label("fv_z"); E(str_imm, 1, 0, 0); E(adds_imm8, 0, 4); E(subs_imm8, 2, 1); E(b_cond, "fv_z", "ne")
         a.label("fv_s")
         if V4: imm32(0, FE.SHC); E(movs_imm, 1, 0); E(str_imm, 1, 0, 0)               # (V4) fmeng reads the shape again
@@ -747,66 +774,68 @@ def arm_code(base, L, prev, head_on, head_off):
         # ---- c_pyfm1(r0 = slot, r1 = the voice's RAM, r2 = voice, r3 = 1: not its tick, r4 = track, r9 = the track's FM block, r10 = now)
         #      frame: [sp] slot, [sp + 4] RAM, [sp + 8] voice, [sp + 12] track, [sp + 16] state, [sp + 20] new
         a.label("c_pyfm1")
-        E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, h(0xB086))           # sub sp, #24
-        E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 4, 12); E(mov_reg, 11, 3)
-        E(lsls_imm, 0, 0, 6); imm32(7, FVB); E(adds_reg, 7, 7, 0)                       # r7 = the voice's block
-        E(mov_reg, 1, 9); E(ldrb_w, 0, 1, FE.B_DIRTY); E(cmp_imm, 0, 0); E(b_cond, "p1_nd", "eq"); E(strb_w, 0, 7, FE.B_DIRTY)   # the track's dirty flag
-        a.label("p1_nd"); E(ldr_sp, 1, 4)
-        E(ldrb_imm, 2, 1, VS); E(str_sp, 2, 16)
-        E(ldrh_imm, 3, 1, VG); E(ldrh_imm, 0, 7, 48); E(movs_imm, 5, 0); E(cmp_reg, 0, 3); E(b_cond, "p1_o", "eq")
-        E(strh_imm, 3, 7, 48); E(lsrs_imm, 0, 2, 1); E(b_cond, "p1_o", "lo"); E(movs_imm, 5, 1)      # a new TRIG while sounding (else only seen)
-        a.label("p1_o"); E(str_sp, 5, 20)
-        E(cmp_imm, 5, 0); E(b_cond, "p1_g", "ne")
-        E(lsrs_imm, 2, 2, 1); bc("p1_x", "lo")                                          # not sounding: nothing
-        E(mov_reg, 0, 11); E(cmp_imm, 0, 0); bc("p1_x", "ne")                           # not its tick
-        a.label("p1_g")
-        E(ldr_imm, 0, 7, FE.B_LAST); E(mov_reg, 1, 10); E(str_imm, 1, 7, FE.B_LAST); E(subs_reg, 5, 1, 0)   # r5 = dt
-        E(cmp_imm, 5, 50); E(b_cond, "p1_d", "ls"); E(movs_imm, 5, 50)
-        a.label("p1_d"); E(cmp_imm, 5, 0); E(b_cond, "p1_d1", "eq"); E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_d2", "eq")
-        a.label("p1_d1"); E(movs_imm, 5, 1)                                             # (a new note: 1 ms)
-        a.label("p1_d2")
-        if V5: E(ldr_sp, 1, 4); E(ldrb_imm, 0, 1, VN); E(strb_w, 0, 7, FE.B_NOTE)          # (V5) its note (a legato move)
-        E(mov_reg, 1, 9)                                                                # the track's parameters (16 B)
-        for k in range(4): E(ldr_imm, 0, 1, 4 * k); E(str_imm, 0, 7, 4 * k)
-        E(mov_reg, 0, 7); E(bl, L["c_fmalg"]); E(mov_reg, 6, 0)                         # r6 = the algorithm
-        E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_n", "eq")                     # a new note: as fmeng's
-        E(ldr_sp, 1, 4); E(ldrb_imm, 0, 1, VV); E(strb_w, 0, 7, FE.B_VEL); E(ldrb_imm, 0, 1, VN); E(strb_w, 0, 7, FE.B_NOTE)
-        E(movs_imm, 0, 1); E(strb_w, 0, 7, FE.B_DIRTY); E(movs_imm, 0, 15); E(strb_w, 0, 7, FE.B_ATK)
-        E(ldrb_imm, 0, 6, FE.A_SUS); E(cmp_imm, 0, 0); E(b_cond, "p1_pz", "ne"); E(movs_imm, 0, 15); E(strb_w, 0, 7, FE.B_PHR)
-        a.label("p1_pz"); E(movs_imm, 1, 0)
-        a.label("p1_z")
-        E(adds_reg, 0, 7, 1); E(ldrb_imm, 0, 0, FE.P_ATK); E(cmp_imm, 0, FE.CENTRE); E(b_cond, "p1_zz", "lo")
-        E(ldrb_imm, 0, 6, FE.A_SUS); E(lsrs_reg, 0, 1); E(movs_imm, 2, 1); E(ands_reg, 0, 2); E(cmp_imm, 0, 0); E(b_cond, "p1_zn", "ne")
-        a.label("p1_zz"); E(lsls_imm, 0, 1, 1); E(adds_reg, 0, 0, 7); E(movs_imm, 2, 0); E(strh_imm, 2, 0, FE.B_ENV)
-        a.label("p1_zn"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 4); E(b_cond, "p1_z", "lo")
-        if V4: E(ldrb_w, 0, 7, 50); E(cmp_imm, 0, 0); E(b_cond, "p1_n", "ne"); E(movs_imm, 0, 1); E(strb_w, 0, 7, 50)   # (V4) the slot's first use only
-        if V5: E(ldr_sp, 0, 0); E(lsls_imm, 0, 0, 2); imm32(1, T["fva"]); E(raw, FE.ldr_reg(0, 1, 0)); E(adds_imm8, 0, VD.F_AS); E(mov_reg, 8, 0)
-        else: E(ldr_sp, 0, 0); E(movs_imm, 1, 48); E(muls, 0, 1); imm32(1, VD.FV0 + VD.F_AS); E(adds_reg, 0, 0, 1); E(mov_reg, 8, 0)   # the DSP's AMP_s / y[n - 2] 0
-        E(movs_imm, 0, 4); E(mov_reg, 11, 0)
-        a.label("p1_w"); E(mov_reg, 0, 8); E(movs_imm, 1, 0); E(bl, L["c_fmw"]); E(mov_reg, 0, 8); E(adds_imm8, 0, VD.F_O2 - VD.F_AS); E(movs_imm, 1, 0); E(bl, L["c_fmw"])
-        E(mov_reg, 0, 8); E(adds_imm8, 0, VD.FMS); E(mov_reg, 8, 0); E(mov_reg, 0, 11); E(subs_imm8, 0, 1); E(mov_reg, 11, 0); E(b_cond, "p1_w", "ne")
-        a.label("p1_n")
-        E(movs_imm, 0, 1); E(ldr_sp, 1, 20); E(cmp_imm, 1, 0); E(b_cond, "p1_gt", "ne")   # the gate: new, or held
-        E(ldr_sp, 1, 16); E(lsrs_imm, 1, 1, 2); E(b_cond, "p1_gt", "hs"); E(movs_imm, 0, 0)
-        a.label("p1_gt")
-        E(mov_reg, 4, 7); E(mov_reg, 7, 0); E(bl, L["c_fmenv"])                         # r4 = the block, r5 = dt, r6 = alg, r7 = gate
-        if V5: imm32(3, FE.CTX); E(ldr_sp, 1, 0); E(lsls_imm, 1, 1, 2); imm32(0, T["fva"]); E(raw, FE.ldr_reg(0, 0, 1)); E(str_imm, 0, 3, 0)
-        else: imm32(3, FE.CTX); E(ldr_sp, 1, 0); E(movs_imm, 2, 48); E(muls, 2, 1); imm32(0, VD.FV0); E(adds_reg, 0, 0, 2); E(str_imm, 0, 3, 0)   # its blocks
-        E(ldrb_w, 1, 4, FE.B_NOTE); E(lsls_imm, 1, 1, 2); imm32(2, T["inc"]); E(FE.ldr_reg, 1, 2, 1); E(str_imm, 1, 3, 4)                  # its increment
-        E(ldr_sp, 0, 12); E(ldr_sp, 1, 8); E(bl, "c_pyrec"); E(adds_imm8, 0, VD.NZ_OFF - 28); imm32(3, FE.CTX); E(str_imm, 0, 3, 8)        # its noise
-        imm32(0, FE.CTXSIG); E(str_imm, 0, 3, 12)
-        E(ldr_sp, 7, 12); E(bl, L["c_fmsend"])                                          # r4 = the block, r6 = alg, r7 = track
-        imm32(3, FE.CTX); E(movs_imm, 0, 0); E(str_imm, 0, 3, 0); E(str_imm, 0, 3, 4); E(str_imm, 0, 3, 8); E(str_imm, 0, 3, 12)
-        E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_x", "ne")                     # let go and its envelopes down: freed
-        E(ldr_sp, 0, 16); E(movs_imm, 1, HELD | PEND); E(tst_reg, 0, 1); E(b_cond, "p1_x", "ne")
-        E(movs_imm, 1, 0)
-        a.label("p1_e"); E(lsls_imm, 2, 1, 1); E(adds_reg, 2, 2, 4); E(ldrh_imm, 2, 2, FE.B_ENV); E(cmp_imm, 2, 64); E(b_cond, "p1_x", "hs")
-        E(adds_imm8, 1, 1); E(cmp_imm, 1, 4); E(b_cond, "p1_e", "lo")
-        E(ldr_sp, 1, 4); E(raw, MRS7); E(raw, CPSID)
-        E(ldrb_imm, 0, 1, VS); E(movs_imm, 2, HELD | PEND); E(tst_reg, 0, 2); E(b_cond, "p1_f", "ne")
-        E(movs_imm, 2, SND); E(bics_reg, 0, 2); E(movs_imm, 2, DIRTY); E(orrs_reg, 0, 2); E(strb_imm, 0, 1, VS); E(movs_imm, 0, 0); E(strb_imm, 0, 1, VO)
-        a.label("p1_f"); E(raw, MSR7)
-        a.label("p1_x"); E(raw, h(0xB006)); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, RET)       # add sp, #24
+        if V11: E(b_w, L["c_fm8poly"])                                                   # (V11) fm8's voice
+        if not V11:                                                              # (the 4-operator voice)
+            E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, h(0xB086))           # sub sp, #24
+            E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 4, 12); E(mov_reg, 11, 3)
+            E(lsls_imm, 0, 0, 6); imm32(7, FVB); E(adds_reg, 7, 7, 0)                       # r7 = the voice's block
+            E(mov_reg, 1, 9); E(ldrb_w, 0, 1, FE.B_DIRTY); E(cmp_imm, 0, 0); E(b_cond, "p1_nd", "eq"); E(strb_w, 0, 7, FE.B_DIRTY)   # the track's dirty flag
+            a.label("p1_nd"); E(ldr_sp, 1, 4)
+            E(ldrb_imm, 2, 1, VS); E(str_sp, 2, 16)
+            E(ldrh_imm, 3, 1, VG); E(ldrh_imm, 0, 7, 48); E(movs_imm, 5, 0); E(cmp_reg, 0, 3); E(b_cond, "p1_o", "eq")
+            E(strh_imm, 3, 7, 48); E(lsrs_imm, 0, 2, 1); E(b_cond, "p1_o", "lo"); E(movs_imm, 5, 1)      # a new TRIG while sounding (else only seen)
+            a.label("p1_o"); E(str_sp, 5, 20)
+            E(cmp_imm, 5, 0); E(b_cond, "p1_g", "ne")
+            E(lsrs_imm, 2, 2, 1); bc("p1_x", "lo")                                          # not sounding: nothing
+            E(mov_reg, 0, 11); E(cmp_imm, 0, 0); bc("p1_x", "ne")                           # not its tick
+            a.label("p1_g")
+            E(ldr_imm, 0, 7, FE.B_LAST); E(mov_reg, 1, 10); E(str_imm, 1, 7, FE.B_LAST); E(subs_reg, 5, 1, 0)   # r5 = dt
+            E(cmp_imm, 5, 50); E(b_cond, "p1_d", "ls"); E(movs_imm, 5, 50)
+            a.label("p1_d"); E(cmp_imm, 5, 0); E(b_cond, "p1_d1", "eq"); E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_d2", "eq")
+            a.label("p1_d1"); E(movs_imm, 5, 1)                                             # (a new note: 1 ms)
+            a.label("p1_d2")
+            if V5: E(ldr_sp, 1, 4); E(ldrb_imm, 0, 1, VN); E(strb_w, 0, 7, FE.B_NOTE)          # (V5) its note (a legato move)
+            E(mov_reg, 1, 9)                                                                # the track's parameters (16 B)
+            for k in range(4): E(ldr_imm, 0, 1, 4 * k); E(str_imm, 0, 7, 4 * k)
+            E(mov_reg, 0, 7); E(bl, L["c_fmalg"]); E(mov_reg, 6, 0)                         # r6 = the algorithm
+            E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_n", "eq")                     # a new note: as fmeng's
+            E(ldr_sp, 1, 4); E(ldrb_imm, 0, 1, VV); E(strb_w, 0, 7, FE.B_VEL); E(ldrb_imm, 0, 1, VN); E(strb_w, 0, 7, FE.B_NOTE)
+            E(movs_imm, 0, 1); E(strb_w, 0, 7, FE.B_DIRTY); E(movs_imm, 0, 15); E(strb_w, 0, 7, FE.B_ATK)
+            E(ldrb_imm, 0, 6, FE.A_SUS); E(cmp_imm, 0, 0); E(b_cond, "p1_pz", "ne"); E(movs_imm, 0, 15); E(strb_w, 0, 7, FE.B_PHR)
+            a.label("p1_pz"); E(movs_imm, 1, 0)
+            a.label("p1_z")
+            E(adds_reg, 0, 7, 1); E(ldrb_imm, 0, 0, FE.P_ATK); E(cmp_imm, 0, FE.CENTRE); E(b_cond, "p1_zz", "lo")
+            E(ldrb_imm, 0, 6, FE.A_SUS); E(lsrs_reg, 0, 1); E(movs_imm, 2, 1); E(ands_reg, 0, 2); E(cmp_imm, 0, 0); E(b_cond, "p1_zn", "ne")
+            a.label("p1_zz"); E(lsls_imm, 0, 1, 1); E(adds_reg, 0, 0, 7); E(movs_imm, 2, 0); E(strh_imm, 2, 0, FE.B_ENV)
+            a.label("p1_zn"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 4); E(b_cond, "p1_z", "lo")
+            if V4: E(ldrb_w, 0, 7, 50); E(cmp_imm, 0, 0); E(b_cond, "p1_n", "ne"); E(movs_imm, 0, 1); E(strb_w, 0, 7, 50)   # (V4) the slot's first use only
+            if V5: E(ldr_sp, 0, 0); E(lsls_imm, 0, 0, 2); imm32(1, T["fva"]); E(raw, FE.ldr_reg(0, 1, 0)); E(adds_imm8, 0, VD.F_AS); E(mov_reg, 8, 0)
+            else: E(ldr_sp, 0, 0); E(movs_imm, 1, 48); E(muls, 0, 1); imm32(1, VD.FV0 + VD.F_AS); E(adds_reg, 0, 0, 1); E(mov_reg, 8, 0)   # the DSP's AMP_s / y[n - 2] 0
+            E(movs_imm, 0, 4); E(mov_reg, 11, 0)
+            a.label("p1_w"); E(mov_reg, 0, 8); E(movs_imm, 1, 0); E(bl, L["c_fmw"]); E(mov_reg, 0, 8); E(adds_imm8, 0, VD.F_O2 - VD.F_AS); E(movs_imm, 1, 0); E(bl, L["c_fmw"])
+            E(mov_reg, 0, 8); E(adds_imm8, 0, VD.FMS); E(mov_reg, 8, 0); E(mov_reg, 0, 11); E(subs_imm8, 0, 1); E(mov_reg, 11, 0); E(b_cond, "p1_w", "ne")
+            a.label("p1_n")
+            E(movs_imm, 0, 1); E(ldr_sp, 1, 20); E(cmp_imm, 1, 0); E(b_cond, "p1_gt", "ne")   # the gate: new, or held
+            E(ldr_sp, 1, 16); E(lsrs_imm, 1, 1, 2); E(b_cond, "p1_gt", "hs"); E(movs_imm, 0, 0)
+            a.label("p1_gt")
+            E(mov_reg, 4, 7); E(mov_reg, 7, 0); E(bl, L["c_fmenv"])                         # r4 = the block, r5 = dt, r6 = alg, r7 = gate
+            if V5: imm32(3, FE.CTX); E(ldr_sp, 1, 0); E(lsls_imm, 1, 1, 2); imm32(0, T["fva"]); E(raw, FE.ldr_reg(0, 0, 1)); E(str_imm, 0, 3, 0)
+            else: imm32(3, FE.CTX); E(ldr_sp, 1, 0); E(movs_imm, 2, 48); E(muls, 2, 1); imm32(0, VD.FV0); E(adds_reg, 0, 0, 2); E(str_imm, 0, 3, 0)   # its blocks
+            E(ldrb_w, 1, 4, FE.B_NOTE); E(lsls_imm, 1, 1, 2); imm32(2, T["inc"]); E(FE.ldr_reg, 1, 2, 1); E(str_imm, 1, 3, 4)                  # its increment
+            E(ldr_sp, 0, 12); E(ldr_sp, 1, 8); E(bl, "c_pyrec"); E(adds_imm8, 0, VD.NZ_OFF - 28); imm32(3, FE.CTX); E(str_imm, 0, 3, 8)        # its noise
+            imm32(0, FE.CTXSIG); E(str_imm, 0, 3, 12)
+            E(ldr_sp, 7, 12); E(bl, L["c_fmsend"])                                          # r4 = the block, r6 = alg, r7 = track
+            imm32(3, FE.CTX); E(movs_imm, 0, 0); E(str_imm, 0, 3, 0); E(str_imm, 0, 3, 4); E(str_imm, 0, 3, 8); E(str_imm, 0, 3, 12)
+            E(ldr_sp, 0, 20); E(cmp_imm, 0, 0); E(b_cond, "p1_x", "ne")                     # let go and its envelopes down: freed
+            E(ldr_sp, 0, 16); E(movs_imm, 1, HELD | PEND); E(tst_reg, 0, 1); E(b_cond, "p1_x", "ne")
+            E(movs_imm, 1, 0)
+            a.label("p1_e"); E(lsls_imm, 2, 1, 1); E(adds_reg, 2, 2, 4); E(ldrh_imm, 2, 2, FE.B_ENV); E(cmp_imm, 2, 64); E(b_cond, "p1_x", "hs")
+            E(adds_imm8, 1, 1); E(cmp_imm, 1, 4); E(b_cond, "p1_e", "lo")
+            E(ldr_sp, 1, 4); E(raw, MRS7); E(raw, CPSID)
+            E(ldrb_imm, 0, 1, VS); E(movs_imm, 2, HELD | PEND); E(tst_reg, 0, 2); E(b_cond, "p1_f", "ne")
+            E(movs_imm, 2, SND); E(bics_reg, 0, 2); E(movs_imm, 2, DIRTY); E(orrs_reg, 0, 2); E(strb_imm, 0, 1, VS); E(movs_imm, 0, 0); E(strb_imm, 0, 1, VO)
+            a.label("p1_f"); E(raw, MSR7)
+            a.label("p1_x"); E(raw, h(0xB006)); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, RET)       # add sp, #24
 
     # ---- c_pypad (the template view's slot 0: view, pad, velocity): Shift + pad 29 with the engine on = retrigger -> legato -> poly
     a.label("c_pypad")
@@ -853,8 +882,8 @@ def install(img, report, base_addr):
     L["c_fmact"] = lab("fmeng", "c_fmact"); L["c_ssk"] = lab("smst", "c_ssk")
     if V4: L["c_rtoff"] = lab("retrig", "c_rtoff")
     if V3:
-        for k in ("c_fmblk", "c_fmalg", "c_fmenv", "c_fmsend", "c_fmw"): L[k] = lab("fmeng", k)
-        assert (FVB + 64 * VD.PV_N <= MX.MXR + 0x980 and FVSIG_AT + 4 <= MX.MXR + 0x9B0) if V5 else FVB + 260 <= MX.MXR + 0x980
+        for k in (("c_fmblk", "c_fmalg", "c_fmw", "c_fm8poly", "c_fmloud") if V11 else ("c_fmblk", "c_fmalg", "c_fmenv", "c_fmsend", "c_fmw")): L[k] = lab("fmeng", k)
+        assert (FVSIG_AT + 4 <= 0x20049400) if V10 else (FVB + 64 * VD.PV_N <= MX.MXR + 0x980 and FVSIG_AT + 4 <= MX.MXR + 0x9B0) if V5 else FVB + 260 <= MX.MXR + 0x980
     want = pushw([0, 1, 2, 3, 4, 5, 6], lr=True)
     head_on, head_off = bytes(img[L["c_vnon"] - BASE:L["c_vnon"] - BASE + 4]), bytes(img[L["c_vnoff"] - BASE:L["c_vnoff"] - BASE + 4])
     assert head_on == want and head_off == want, (head_on.hex(), head_off.hex())
@@ -871,6 +900,7 @@ def install(img, report, base_addr):
     if V4: img[L["c_rtoff"] - BASE:L["c_rtoff"] - BASE + 4] = b_w(L["c_rtoff"], labels["c_vmrtoff"])     # (V4) retrig's answer from the voice mode
     if V5: prev["v5"] = 1                                                        # (V5) the tests adopt the layout (adopt)
     if V6: prev["v6"] = 1
+    if V10: prev["v10"] = 1                                                      # (V10) the twelve FM slots at X:$4000
     return labels, code, prev
 
 
@@ -883,5 +913,8 @@ def adopt(report):
         VD.PV_SCR, VD.PV_PC, VD.PV_EFF, VD.PV_R2 = 0x3FE4, 0x3FE5, 0x3FE6, 0x3FE7
         VD.FV_ADDRS = [0x3C00 + 48 * s_ for s_ in range(5)] + [0x3FB4]
         if report["poly"]["prev"].get("v6"): g.update(V6=True, MODE_N=8)
+        if report["poly"]["prev"].get("v10"):
+            g.update(V10=True, FVB=0x20049000, FVSIG_AT=0x20049000 + 64 * 12)
+            VD.FMC1 = True; VD.FV0 = 0x4000; VD.FV_ADDRS = [0x4000 + 48 * s_ for s_ in range(12)]; VD.FMB0 = 0x4000 + 12 * 48
         return True
     return False

@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.16"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.25"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -27,7 +27,7 @@ PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("11", "Datos: guardado, MIDI y modulación"), ("A", "Apéndice")]
 # the chapters the user listed (2026-10-15): setup, sintes de stock, pistas MIDI, pattern settings, drums, Master FX, FX, sidechain, scenes y patterns, projects y packs
 PART_OF = dict(convenciones="0", botones="0", setup="1", **{"advanced-setup": "1"}, **{"synth-nota": "2", "synth-fuente": "2", "synth-preset": "2"},
-               **{"midi-preset": "3", "midi-voces": "3", "midi-knobs": "3", "midi-matriz": "3", "midi-fm": "3", "midi-cc": "3", "step-drummer": "3", "midi-muestra": "3"}, **{"pattern-settings": "4"}, probabilidad="4", micropasos="4",
+               **{"midi-preset": "3", "midi-voces": "3", "midi-knobs": "3", "midi-matriz": "3", "midi-fm": "3", "midi-fm8": "3", "midi-cc": "3", "step-drummer": "3", "midi-muestra": "3"}, **{"pattern-settings": "4"}, probabilidad="4", micropasos="4",
                **{"drum-pista": "5", "drum-preset": "5", "drum-cromatica": "5"}, **{"master-fx": "6", "vista-fx": "7"}, sidechain="8",
                escalas="2", patterns="9", mixer="9", projects="10", packs="10", instalar="A", **{"app-sd": "A"},
                **{"datos-patron": "11", "guardado": "11", "datos-perdido": "11", "midi": "11", "destinos": "11"})
@@ -48,8 +48,8 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.16; en RC4.02 y antes no).
-- {YB} = solo en la **Beta 5.16** (no está en RC4.07).
+- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.25; en RC4.02 y antes no).
+- {YB} = solo en la **Beta 5.25** (no está en RC4.07).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -95,7 +95,7 @@ view("synth-nota", "II", "Vista de pista de Synth 1 / 2 (Note, Velocity, Gate)",
 - **Vista Velocity, Shift + pad de paso** {XB} (Synth 1 / 2 y MIDI 1 / 2): ese paso **suelta la automatización**: ahí no suena ningún carril y los parámetros que la automatización había movido vuelven a **los valores del proyecto** *(desde RC4.01; antes, a la posición de su knob)*: en Synth 1 / 2, los macros del patch tal como está guardado en el proyecto (o como se cargó: lo que se gira después no cuenta); en MIDI 1 / 2, el sinte propio guardado con el proyecto (un proyecto sin él: sus valores por defecto). Un knob girado a mano después de la automatización se queda donde lo dejaste. Otra vez = quitarlo. Con Shift, en la vista Velocity, los pads de paso se ven amarillos y los marcados en rojo; en la página 17-32, los pasos 17-32. Se guarda con el patrón. {YB} Con Shift, los pasos **conservan su color** y solo se ven en **amarillo los que tienen automatización** (los marcados, en rojo); **Shift + un paso amarillo** no lo marca: **pone sus valores de automatización en los knobs y en el sonido** hasta soltar Shift, y al soltarlo todo vuelve a como estaba (Shift + cualquier otro paso lo marca o lo desmarca como siempre); mientras tanto, **los knobs que mueve se encienden en amarillo**, con el brillo de su valor. {YB} **Clear + paso** en la vista Velocity (con o sin Shift; Clear primero, porque Shift + Clear es el metrónomo) **borra la automatización de los knobs de ese paso** y deja sus notas, su marca y la automatización de nivel / panorama / envíos.
 - **Sweep entre dos pasos** {YB} (Synth 1 / 2 y MIDI 1 / 2): en la vista Velocity con Shift, **mantén un paso amarillo y pulsa otro paso amarillo**, en cualquier orden: cada carril con valor en los dos queda en línea recta entre ellos, en los pasos de en medio (un valor por paso, el que lee la reproducción). Los dos extremos no cambian; un carril con valor en uno solo de ellos no se toca. Con un paso sin automatización como segundo no pasa nada. Es el gesto de las rampas de los drums.
 - **Foto de los macros en un paso** {YB}: en la vista de pista (Note), **Record mantenido + un pad de paso** (pads 1-16; con 17-32, los pasos 17-32) escribe en ese paso los **macros que no están donde los guarda el patch cargado** (donde los devolvería Clear + Synth), cada uno en su carril. El paso no cambia sus notas y Record queda como estaba. Mixer y FX no se tocan (ya los guardan las escenas). {YB} Mientras mantienes el paso, se ve en **amarillo**.
-- **Shift + tecla = latch** {XB} (Synth 1 / 2 y MIDI 1 / 2, vista Note y Note ampliada, sin un paso mantenido): la nota suena y **sigue sonando al soltar el pad**; la **siguiente pulsación de esa nota** (en cualquier pad que la tenga, con o sin Shift) la para, y esa pulsación no hace nada más. **Con Shift mantenido, las teclas de las notas fijadas se ven verde azulado brillante**; las demás teclas no cambian de color (sin Shift, la nota que suena se ve blanca como siempre). *(Hasta la Beta 3.39, con Shift las teclas se veían en amarillo y las fijadas en verde; en la Beta 3.40, sin colores.)* Con el **arpegiador** encendido, las notas fijadas siguen en el arpegio: un **latch del arpegio**. **Clear + el botón de la pista** suelta todas sus notas fijadas (y sus acordes fijados). **Shift + un paso** (vista Note, pads 1-16) con notas fijadas en la pista: **las notas fijadas se escriben en ese paso** (las que ya están no se repiten; hasta 6 por paso; un paso de largo, velocity 100); con Shift mantenido y notas fijadas, los pads de paso se ven **amarillos**; sin notas fijadas, Shift + paso es el de stock. En la pantalla de acordes, **Shift + fundamental** fija el acorde entero (abajo). No en el selector de samples (allí Shift + pad ya hace otra cosa); no se guarda.
+- **Shift + tecla = latch** {XB} (Synth 1 / 2 y MIDI 1 / 2, vista Note y Note ampliada, sin un paso mantenido): la nota suena y **sigue sonando al soltar el pad**; la **siguiente pulsación de esa nota** (en cualquier pad que la tenga, con o sin Shift) la para, y esa pulsación no hace nada más. **Con Shift mantenido, las teclas de las notas fijadas se ven verde azulado brillante**; las demás teclas no cambian de color (sin Shift, la nota que suena se ve blanca como siempre). *(Hasta la Beta 3.39, con Shift las teclas se veían en amarillo y las fijadas en verde; en la Beta 3.40, sin colores.)* Con el **arpegiador** encendido, las notas fijadas siguen en el arpegio: un **latch del arpegio**. **Clear + el botón de la pista** suelta todas sus notas fijadas (y sus acordes fijados). **Shift + un paso** (vista Note, pads 1-16) con notas fijadas en la pista: **las notas fijadas se escriben en ese paso** (las que ya están no se repiten; hasta 6 por paso; un paso de largo, velocity 100); con Shift mantenido y notas fijadas, los pads de paso se ven **amarillos** (en la {YB}, no: los pasos no cambian de color y el paso en que se escribe se ve **verde azulado**, el color del latch, mientras se mantiene, hasta soltarlo); sin notas fijadas, Shift + paso es el de stock. En la pantalla de acordes, **Shift + fundamental** fija el acorde entero (abajo). No en el selector de samples (allí Shift + pad ya hace otra cosa); no se guarda.
 - **Pantalla de acordes** {XB} (Synth 1 / 2 y MIDI 1 / 2, solo en la **Note ampliada**: Note dos veces): **Shift + pad 8** la enciende y la apaga (con Shift el pad 8 se ve amarillo, verde con la pantalla encendida).
 
 | Pads | Qué hacen |
@@ -196,7 +196,7 @@ view("midi-preset", "III", "Vista Preset de MIDI 1 / 2",
 | 32 | {XB} **Modo de voz** (desplegable): ver «Modo de voz» abajo. |
 
 ### Modo de voz (pad 32) {XB}
-Con el motor encendido, **un toque al pad 32** abre los modos de voz en los **pads 17-24** (los que se llaman igual, del mismo color) (el actual brillante, los demás tenues; los pads 9-24 dejan de cargar patches mientras); tocar uno lo elige; el pad 32 otra vez (o salir de la vista) lo cierra. El pad 32 se ve siempre en el color del modo. Con el desplegable abierto, **K1 = cantidad del glide** (verde azulado: su tiempo; a la izquierda del todo, sin glide; hasta unos 2 s) y **K2 = desafinación del unísono** (azul; hasta ±50 cents entre las voces de los extremos). El modo, el tiempo y la desafinación se guardan con el patch del sinte propio y con el proyecto.
+{YB} El pad 32 (y Shift + pad 29) solo se ven y funcionan con un motor que los usa (oscilador, FM, VA-drum, muestra); sin voz, solo VCA / VCF / FX, granular o secuenciador de efectos se apagan. Con el motor encendido, **un toque al pad 32** abre los modos de voz en los **pads 17-24** (los que se llaman igual, del mismo color) (el actual brillante, los demás tenues; los pads 9-24 dejan de cargar patches mientras); tocar uno lo elige; el pad 32 otra vez (o salir de la vista) lo cierra. El pad 32 se ve siempre en el color del modo. Con el desplegable abierto, **K1 = cantidad del glide** (verde azulado: su tiempo; a la izquierda del todo, sin glide; hasta unos 2 s) y **K2 = desafinación del unísono** (azul; hasta ±50 cents entre las voces de los extremos). El modo, el tiempo y la desafinación se guardan con el patch del sinte propio y con el proyecto.
 
 | Pad | Modo |
 |---|---|
@@ -214,7 +214,7 @@ Cuántas voces da cada modo, el volumen de los acordes y el límite de voces cua
 ### Secuenciador de saltos {YB}
 Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen **saltar esa pista al paso que indican**.
 
-- **Apuntar:** con la fila de motores abierta (un toque al pad 27), los **pads 9-16** son las ocho pistas, en el orden de sus botones y en sus colores. Un toque apunta a esa pista (brilla, y el pad 27 **parpadea** en su color); otra pista la cambia; la misma lo apaga. El pad de la propia pista queda sin luz.
+- **Apuntar (step flip):** enciende el **patch flip** (pad 26, como siempre): los **pads 17-24** pasan a ser las ocho pistas, en el orden de sus botones y en sus colores (la propia sin luz; los pads 9-16 se apagan). Un toque a una pista = **step flip**: la pista apunta a ella (brilla, el patch flip se apaga y el **pad 26 parpadea** en su color); otra pista la cambia; **la misma otra vez vuelve al patch flip**; **el pad 26 lo apaga todo**. {YB} (antes, en la fila de motores del pad 27).
 - **O saltos o motor:** apuntar apaga el motor de la pista, y encender un motor deja de apuntar: solo una de las dos funciones a la vez.
 - **Mientras apunta, la pista no toca notas:** ni su motor, ni por MIDI, ni por el canal compartido. Cada nota suya, del secuenciador, de los pads o del arpegiador, es un salto: cae en el mismo paso que la nota y la pista apuntada sigue desde ahí.
 - **Qué paso:** en su vista Note, los **pads 17-32 son los pasos 1-16** y con **Octave ▲ los pasos 17-32**; en la **Note ampliada, los 32 pads son los pasos 1-32 en orden**. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la ampliada los dos. La escala y la tónica no cambian nada: mientras ves esa pista, su teclado es una disposición Jankó con una nota distinta en cada pad, y las demás pistas conservan el suyo.
@@ -226,12 +226,13 @@ Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen
 ### Patches del sinte propio (pads 9-24) {B}
 - 16 huecos por página; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack, comunes a MIDI 1 y MIDI 2); {XB} **8 páginas, 128 huecos**.
 - **Tocar** = cargar (suena la tónica mientras mantienes el pad; {XB}: **Shift + pad** = cargar sin que suene). **Clear + pad** dos veces = guardar. **Duplicate + A + B** = intercambiar; **Duplicate + A**, otro pack, **Duplicate + B** = copiar a otro pack (Duplicate en amarillo mientras hay uno esperando).
-- Colores: melocotón tenue = con patch, brillante = el último usado, violeta = vacío.
+- Colores: melocotón tenue = con patch, brillante = el último usado, violeta = vacío. {YB}: cada patch en **el color de su motor** (el de la fila del pad 27; FM violeta), brillante = el último usado; **vacío = blanco tenue**.
 - Un patch guarda el motor entero: motor elegido, osciladores, orden, todos los valores y el ajuste del step-drummer *(escribe en la tarjeta)*.
 - **Clear + el botón de la pista** {B} devuelve todos los valores del motor a los iniciales (el motor elegido se queda; {XB}: también los del FM, y la matriz se queda con sus destinos y la cantidad a cero).
 
 ### Los motores (pad 27)
-- **Elegir el motor** {XB}: un toque al **pad 27** abre la **fila de motores** en los **pads 17-23**: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. Tocar uno lo elige y la fila sigue abierta; **pad 27 otra vez** la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (antes de RC4, cada toque del pad 27).
+- **Elegir el motor** {XB}: un toque al **pad 27** abre la **fila de motores** en los **pads 17-23**: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. {YB}: **pads 17-24** = sin voz (blanco), solo VCA / VCF / FX (la entrada de línea), oscilador, oscilador VA-drum, oscilador wavetable (arena), muestra, granular y FM; **el secuenciador de efectos sale de la fila: es el pad 31** con «sin voz» (azul tenue; un toque lo enciende, brillante, y la fila sigue marcando «sin voz»; otro toque lo apaga). Tocar uno lo elige y la fila sigue abierta; **pad 27 otra vez** la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (antes de RC4, cada toque del pad 27).
+- **Wavetable** {YB} (arena, pad 21): el oscilador leyendo una tabla de hasta 9 cuadros, para los dos osciladores; **K7** de OSC 1 / OSC 2 = la posición, K8 = LFO → posición, Shift + K8 = envolvente → posición, SHAPE = warp. Con ella sonando, **pad 7 mantenido** = las 16 wavetables del stock (un toque llena la tabla) y **pad 8 mantenido** = los samples del pack (Octave = página; un toque añade o quita un ciclo del sample).
 - **Entrada de línea** (amarillo): la entrada de audio de la pista (línea 1 en MIDI 1, línea 2 en MIDI 2) pasa por el VCA-VCF; las notas de la pista lo disparan.
 - **Oscilador** (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, {B}: la última nota manda y al soltarla vuelve la anterior).
 - **VA-drum** (naranja): VCA de un disparo, envolventes de decay para pitch (knob Sustain) y filtro (knob Release), ruido blanco (velocidad del LFO) y valores aleatorios en lugar del LFO.
@@ -272,7 +273,7 @@ El audio se calcula en el DSP por bloques, y todo lo que suena comparte su tiemp
 - Con **una sola voz propia** (los modos mono, o poly con una nota) el límite no actúa: el DSP lo reparte el aparato como siempre.
 
 ### Consejos
-- Para tener más voces a la vez: releases más cortos, en FM menos operadores con nivel alto, o una sola pista en FM poly (6 voces en lugar de 3 + 3).
+- Para tener más voces a la vez: releases más cortos, en FM menos operadores con nivel alto, o una sola pista en FM poly (6 voces en lugar de 3 + 3). {YB} Las voces FM las calcula el **otro núcleo del DSP**: 6 por pista también con MIDI 1 y MIDI 2 en FM poly (12 en total) y no quitan tiempo a lo demás; si ese núcleo no llega a tiempo (unas 10 voces FM, unas 8 con el granular sonando), el límite apaga una voz FM igual que arriba. El FM suena 1,3 ms más tarde que el resto, como el granular.
 - Si un acorde largo pierde notas, prueba el patch con un release más corto o con un motor más ligero (un oscilador, VA-drum, muestra).
 - Los modos mono (retrigger, legato, glide) usan una sola voz: nunca entran en el límite.
 """)
@@ -333,7 +334,7 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 - **Granular en estéreo** {XB}: con **Shift + K4** por encima de 0, cada grano sale a un lado al azar, tanto más separado cuanto más alto; el **panorama de la pista** (Mixer) decide la proporción: al centro, mitad y mitad; a la derecha, más granos a la derecha. La parte estéreo (lo que difiere entre los lados) sigue el VCA, el nivel, el panorama, el mute y el sidechain de la pista; el filtro y el efecto del motor y los envíos actúan solo sobre el centro.
 
 ### Páginas 3-5
-- **Página 3 (OSC 2):** {B}: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2).
+- **Página 3 (OSC 2):** {B}: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2). {YB} Con el oscilador, el VA-drum y la wavetable: **K1 = ratio de OSC 2 respecto a su nota** (centro = 1; a la izquierda ½ y ¼; a la derecha 2, 3, 4 … 31, unos dos clics por ratio), **K2 = detune** (±50 cents, centro = afinado), K3 SHAPE 2, K4 MIX OSC 1 ↔ OSC 2, K5 FM, K6 BITSYNC, K7 WAVE 2, K8 RING. Con el granular la página 3 sigue como antes. Con dos notas pulsadas, OSC 2 toca la segunda nota × su ratio.
 - **Página 4 — knobs secuenciables:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica.
 - **Knobs no secuenciables** {XB} (**Shift + pad 4**; el pad 4 en rosa mientras están en los knobs, rosa tenue con Shift): 8 knobs con **destino asignable** como los secuenciables (**Shift + knob** = el destino entre los 33 parámetros, en el color de su página; **Clear mantenido, luego Shift + knob** = el de fábrica; mientras eliges, los pads 9-24 enseñan dónde vive). De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA. Mueven el valor de ese parámetro **sin grabarlo** (un destino que también esté en los knobs secuenciables sí se graba, como desde cualquier página). Sus destinos se guardan con los patches propios.
 - **Foto de los valores en un paso** {XB}: con la vista de pista de MIDI 1 / 2 (motor encendido), **Record mantenido + un pad de paso** (pads 1-16; con 17-32, los pasos 17-32) escribe en los carriles de ese paso los parámetros que **no están en su valor inicial** (el de Clear + knob a la derecha), y solo esos. Un parámetro que no tiene carril toma uno cuyo parámetro sí está en el inicial (en orden de carril), y ese carril se borra antes en el patrón; si no caben, los primeros en el orden de la matriz. El paso no cambia sus notas y Record queda como estaba. {YB} También en **Synth 1 / 2** (sus macros) y en los **drums** (pitch, decay, distorsión y EQ): [vista de pista de Synth 1 / 2](#synth-nota), [vista de pista de un drum](#drum-pista). {YB} Mientras mantienes el paso, se ve en **amarillo**.
@@ -412,6 +413,46 @@ view("midi-fm", "III", "FM de 4 operadores",
 | 14 | campana tubular: 2 y 3 → 1 (× 2,76, × 5,4), el 4 portador | | campana tubular |
 | 15 | cuerdas: dos pilas (2 → 1, 4 → 3) desafinadas entre sí | cuerdas (verde) | cuerdas (ataque lento) |
 | 16 | ensemble: 4 → 1, 2 y 3, tres portadores desafinados | | ensemble |
+
+{YB} Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
+""", [])
+
+view("midi-fm8", "III", "FM de 8 operadores",
+     f"{YB} MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.",
+     """
+Sustituye al FM de 4 operadores: **hasta 8 operadores** con **envolventes como las del DX7** (4 rates y 4 niveles) en cada uno. **56 algoritmos**: los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores (dos pilas de 4, cuatro parejas, una pila de 8, siete moduladores sobre un portador, ocho portadores, tres pilas 3-3-2, dos parejas y una pila de 4, el algoritmo 1 del DX7 más una pareja). El motor calcula solo los operadores que usa el algoritmo: con 4, unas 10 voces; con 6 (los del DX7), unas 6-7; con 8, unas 5.
+
+**Pads de la página FM** (con la fila de motores cerrada):
+
+| Pad | Qué hace |
+|---|---|
+| 9-16 | Elige el **operador 1-8**: los que usa el algoritmo encendidos (portadores verdes, moduladores azul claro; el elegido brillante), los demás apagados |
+| 3 | La **envolvente de pitch** (violeta, el color del FM; brillante mientras la editas), como un noveno operador. Desde cualquier página de knobs abre la página FM con ella elegida |
+| 17-24 | **La fila de motores**: sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena), muestra, granular y FM (brillante); un toque cambia de motor (no cargan patches) |
+| 7 mantenido | (Brillante solo mientras lo mantienes.) **Los 56 algoritmos** en los pads 9-32, en tres páginas: **Octave ▼ / ▲** mientras lo mantienes (encendido = hay otra página). Página 1: los 16 de 4 operadores (verde azulado) y los 8 de 8 (ámbar); página 2: los del DX7 1-24 (blanco); página 3: los del DX7 25-32. El actual brillante; pulsa uno: elegido y suena |
+| 8 mantenido | **24 instrumentos** en los pads 9-32, en el color de su tipo: teclados naranja (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), bajos azul (FM Bass, Synth Bass, Deep Bass), leads y metales rojo (Brass, Sync Lead, Flute), pads y cuerdas verde (Strings, Warm Pad, Choir, Glass Pad), punteados amarillo (Harp, Koto, Nylon), percusión blanco (Kick, Snare, Hi-Hat), campanas y efectos violeta (Tubular Bell, Space Sweep); el cargado brillante. Pulsa uno: se carga y suena |
+
+Con la página FM en pantalla, los pads 9-24 no cargan patches: cárgalos desde la página de otro knob. Con el FM, el **pad 28** (dos osciladores) se apaga y no hace nada (el ajuste se queda para cuando el FM se apaga), y el **pad 3** deja la página OSC 2 y es la envolvente de pitch. Las listas del pad 7 / 8 se ven también con la fila de motores abierta o un modo flip encendido.
+
+**Knobs con un operador elegido:**
+
+| Knob | Solo | Con Shift |
+|---|---|---|
+| K1 | **Ratio**: 0,5, 1 … 31, después fijo 1 / 10 / 100 / 1000 Hz (rojo); 3 clics por paso | **Algoritmo** (56, de todo el motor; 16 clics por paso). Al girarlo los pads enseñan los algoritmos 1,5 s (los 16 antiguos en los pads 9-24, los 32 del DX7 en los 32 pads, los 8 de 8 operadores en los pads 1-8) |
+| K2 | **Fino** (0-99) | **Feedback** (0-127, de todo el motor) |
+| K3 | **Nivel de salida** (0-99) | **Rate scaling** (0-7: las notas agudas más rápidas) |
+| K4 | **Sensibilidad a la velocity** (0-7, 4 clics) | **Level scaling** (centro = ninguno; derecha = las notas agudas más bajas, izquierda = las graves) |
+| K5-K8 | **Rates R1-R4** de su envolvente (0-99) | **Niveles L1-L4** (0-99) |
+
+**Knobs con la envolvente de pitch (pad 3):** K1 transposición (0-48, 24 = ninguna), K3 ruido (0-127), K4 el operador del ruido (1-8, 16 clics), K5-K8 R1-R4; con Shift K1 / K2 como arriba y K5-K8 L1-L4 (50 = sin desplazamiento).
+
+- **La envolvente** sube por R1 a L1, R2 a L2, R3 a L3 y se queda en L3 mientras la nota sigue; al soltar va por R4 a L4. Como en el DX7: rate 99 = inmediato.
+- **Clear + knob** = el valor inicial; **Clear + pad 7** = una voz tocable del algoritmo elegido; **Clear + MIDI 1 / 2** = todo el motor a los valores iniciales.
+- **Los patches de la Beta 5.19 o anterior** (FM de 4 operadores) se cargan convertidos: mismos algoritmos, ratios, niveles y envolventes, el mismo sonido.
+- **Se guarda con los patches del sinte propio**: el FM de cada patch va en una ranura extra del mismo banco de la tarjeta (`Patches/NN_PATCHBANK.cpb`), después de los 8 patches de stock; el banco crece hasta 8 KB. Intercambiar patches (Duplicate + A + B) o copiarlos de otro pack lleva el FM con ellos.
+- **Se guarda con el proyecto**: el FM de MIDI 1 / 2 va en los ajustes de los patrones de Synth 1 / 2 (sin cambiar nada de ellos); al cargar un proyecto vuelve su sonido.
+- **Components**: leer el pack y mandar un patch no tocan el FM. **«Send patches» / «Send pack»** cambian los patches de stock como siempre y **el aparato devuelve los patches propios y el FM** a cada banco (antes se perdían); si Components borra un banco que tiene patches propios, queda con los 8 patches de stock vacíos. No en el pack interno. Una copia guardada por Components (su zip) no lleva los patches propios: la copia de la app de la tarjeta (Snapshot) sí.
+- Polifonía, unísono y glide como el FM de 4 operadores (capítulo «Voces»). No tiene CC / NRPN.
 """, [])
 
 view("midi-cc", "III", "Editor de CC de los macros MIDI (pad 25)",
@@ -904,13 +945,13 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | {YB} **Secuenciador de saltos** de MIDI 1 / 2: a qué pista apunta cada una | [Vista Preset de MIDI](#midi-preset) |
 | {YB} **Qué lleva el carril extra** de cada drum (carril o bloqueos de estado) | [Drums](#drum-pista) |
 | {YB} **Los estados de los drums** (hasta 80, con sus 14 valores; guardados con el proyecto y sus escenas) | [Drums](#drum-pista) |
-| {XB} **El sinte propio entero** de MIDI 1 / 2: motor, valores, matriz, destinos de los knobs secuenciables y {XB} no secuenciables, FM, modo de voz, estéreo (al cargar un proyecto que lo lleva manda el del proyecto; uno anterior deja el sonido como estaba) | [Vista Preset de MIDI](#midi-preset) |
+| {XB} **El sinte propio entero** de MIDI 1 / 2: motor, valores, matriz, destinos de los knobs secuenciables y {XB} no secuenciables, FM, modo de voz, estéreo (al cargar un proyecto que lo lleva manda el del proyecto; uno anterior deja el sonido como estaba); {YB} el FM de 8 operadores, en los ajustes de los patrones de Synth 1 / 2 | [Vista Preset de MIDI](#midi-preset), [FM de 8 operadores](#midi-fm8) |
 
 ### El pack (se escribe en la tarjeta al hacer el gesto)
 | Qué | Dónde se usa |
 |---|---|
 | **Patches de Synth 1 / 2 guardados** {B} (Clear + pad dos veces); intercambios y copias entre packs | [Vista Preset de Synth](#synth-preset) |
-| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, {XB} 128; comunes a las dos pistas: motor, valores, step-drummer, {NB} matriz, {XB} FM, destinos de los knobs secuenciables y {XB} no secuenciables, modo de voz) | [Vista Preset de MIDI](#midi-preset) |
+| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, {XB} 128; comunes a las dos pistas: motor, valores, step-drummer, {NB} matriz, {XB} FM, destinos de los knobs secuenciables y {XB} no secuenciables, modo de voz; {YB} el FM de 8 operadores en una ranura extra del mismo banco, después de sus 8 patches; «Send patches» de Components ya no los borra) | [Vista Preset de MIDI](#midi-preset), [FM de 8 operadores](#midi-fm8) |
 | **Samples**: intercambios, copias entre packs y la **captura** que sustituye a un drum (esta, al guardar el proyecto, si cabe) | [Vista Preset de drums](#drum-preset) |
 | **Proyectos copiados** a otro hueco o pack; **packs borrados** | [Projects](#projects), [Packs](#packs) |
 
@@ -1013,7 +1054,7 @@ view("instalar", "VIII", "Instalar y volver atrás",
 """)
 
 view("app-sd", "VIII", "App de la tarjeta y del aparato",
-     "[Descarga `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), descomprímelo y abre `sd_app.html` en Chrome o Edge. No necesita instalación ni servidor.",
+     "[Descarga `sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), descomprímelo y abre `sd_app.html` en Chrome o Edge. No necesita instalación ni servidor. Para pasar samples, patrones y parches FM entre un Circuit Tracks y un Circuit Rhythm: la app **Hacks + Remix**: [descarga `hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip), descomprímelo y abre `hr_app.html` en Chrome o Edge.",
      """
 Ordena desde el ordenador lo que hay en la microSD o en el aparato conectado por USB. También funciona con el firmware oficial; los parches custom son lo único propio del mod.
 
@@ -1026,7 +1067,7 @@ Ordena desde el ordenador lo que hay en la microSD o en el aparato conectado por
 Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un clic elige una fila; Ctrl añade y Shift elige un tramo.
 - **Copiar** y **Mover** pasan lo elegido a la otra columna: al hueco elegido allí o, sin elegir, al primero libre. Si está ocupado, pregunta: sobrescribir o, al mover, intercambiar.
 - **Eliminar** borra lo elegido, tras preguntar. **Editar** abre lo elegido en **Parches custom**, **Patrones** y **Presets CC**; también con doble clic.
-- **Renombrar / orden…** cambia el nombre o el número de una fila elegida en **Packs**, **Sintes Nova**, **Drums** y **Parches custom** (en **Presets CC**, solo el nombre: los proyectos de todos los packs eligen los presets por su número). **Un número ocupado = los dos se intercambian.** Un nombre nuevo solo cambia el nombre. **Un número nuevo de un sample o un sinte Nova reescribe los proyectos del pack** para que cada uno siga sonando igual: el sample de cada drum y sus sample flips, el sample del sinte propio de MIDI 1 / 2 y sus flips, y el patch de Synth 1 / 2 (el registro dice qué proyectos se han actualizado). Los parches custom los encuentran los proyectos por su sonido y los packs no los nombra ningún proyecto: solo se mueven. La app solo acepta nombres que el aparato y la tarjeta admiten: letras, números, espacios y signos ASCII (sin acentos ni ñ); en packs y samples, sin `\\ / : * ? " < > |` ni espacio o punto al final, y como mucho 27 caracteres un pack y 23 un sample (con el número y la extensión, 30); los patches, 16; los presets CC, 32. Por USB no se renombra ni se mueve el pack que el aparato tiene cargado (recargaría el proyecto); en el pack cargado, la app avisa antes de reescribir sus proyectos.
+- **Renombrar / orden…** cambia el nombre o el número de una fila elegida en **Packs**, **Sintes Nova**, **Drums** y **Parches custom** (en **Presets CC**, solo el nombre: los proyectos de todos los packs eligen los presets por su número). **Un número ocupado = los dos se intercambian.** Un nombre nuevo solo cambia el nombre. **Un número nuevo de un sample o un sinte Nova que usan proyectos del pack pregunta qué hacer con ellos: «Mover sus referencias»** reescribe esos proyectos para que cada uno siga sonando igual; **«Dejarlos»** los deja apuntando al número de antes, que ahora tiene otro contenido. Lo que se reescribe: el sample de cada drum y sus sample flips, el sample del sinte propio de MIDI 1 / 2 y sus flips, y el patch de Synth 1 / 2 (el registro dice qué proyectos se han actualizado). Los parches custom los encuentran los proyectos por su sonido y los packs no los nombra ningún proyecto: solo se mueven. La app solo acepta nombres que el aparato y la tarjeta admiten: letras, números, espacios y signos ASCII (sin acentos ni ñ); en packs y samples, sin `\\ / : * ? " < > |` ni espacio o punto al final, y como mucho 27 caracteres un pack y 23 un sample (con el número y la extensión, 30); los patches, 16; los presets CC, 32. Por USB no se renombra ni se mueve el pack que el aparato tiene cargado (recargaría el proyecto); en el pack cargado, la app avisa antes de reescribir sus proyectos.
 
 ### Las pestañas
 | Pestaña | Qué hay | Qué se hace |
@@ -1034,7 +1075,7 @@ Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un 
 | **Packs** | Los packs de la tarjeta o del aparato | Copiar, mover, eliminar y exportar packs enteros. El pack interno no aparece |
 | **Sintes Nova** | Los patches de Synth 1 / 2 de cada pack | Copiar, mover, eliminar, exportar |
 | **Drums** | Los samples del pack y la memoria de samples que ocupan | Escuchar con ▶ o doble clic, copiar, mover, eliminar, exportar |
-| **Parches custom** | Los patches del sinte propio de MIDI 1 / 2 | Editar el motor, sus parámetros y el nombre; copiar, mover, eliminar, exportar |
+| **Parches custom** | Los patches del sinte propio de MIDI 1 / 2 | Editar el motor, sus parámetros y el nombre; copiar, mover, eliminar, exportar; **Importar DX7…** |
 | **Patrones** | Los 64 patrones de una sesión: 8 por pista | Ver, copiar, mover, borrar, exportar; editar las pistas de notas |
 | **Presets CC** | Las 8 plantillas de CC de las pistas MIDI | **Leer del aparato**, cambiar, **Enviar al aparato**; **Abrir…** y **Guardar…** como `.ctcc`; **De fábrica** |
 
@@ -1045,11 +1086,18 @@ En **Sintes Nova**, **Drums** y **Parches custom**, antes del nombre: **● n** 
 - **Parches custom:** un proyecto no guarda el número del parche. Cuenta cuando el sinte propio guardado con el proyecto suena igual: mismo motor y mismos valores, aunque el nombre cambie.
 - Con el aparato conectado, la lista no se lee sola: pulsa **Ver qué proyectos los usan** (lee todas las sesiones del pack por USB).
 
+### Importar voces del DX7
+En **Parches custom**, **Importar DX7…** abre un `.syx` del DX7: un banco de 32 voces (4104 bytes), una voz suelta (163 bytes), varios mensajes en un fichero o un banco de 4096 bytes sin cabecera. La lista enseña cada voz con el hueco al que irá: **Desde el hueco** elige el primero (de fábrica, la fila elegida o el primer hueco libre), **Saltar los ocupados** no pisa ningún parche (sin marcarlo, los que se sustituyen llevan ⚠), **Todas** / **Ninguna** y las casillas eligen las voces.
+- Cada voz pasa a un parche custom: el oscilador con el **FM de 8 operadores** encendido (los 6 operadores del DX7; el 7 y el 8 callados), modo de voz poly y el nombre de la voz. Envolventes, niveles, ratios, escalado, velocity, algoritmo, feedback y transposición, en las unidades del DX7. El LFO del DX7 se guarda en el parche, pero aún no suena.
+- Necesita la Beta 5.20 o posterior en el aparato: guarda el FM de 8 operadores en un registro propio al final del banco de patches. Copiar, mover, eliminar y exportar llevan ese registro con el parche; en el **Editor**, un parche así dice su algoritmo y sus operadores se editan en el aparato.
+- Un byte de comprobación mal no impide la importación: la app lo avisa.
+
 ### Patrones
 - Arriba eliges el pack y la sesión. El tercer selector filtra: **Con contenido**, **Todas** o una pista.
 - Cada fila dice pista y patrón (`Synth 1·3`), lo que contiene y sus pasos, con una cuadrícula de sus notas. Con el aparato conectado, también el **canal** de la pista; el canal se guarda en el aparato, no en la sesión.
 - Al elegir una fila, debajo aparece el patrón en grande: piano roll en las pistas de notas, barras de velocity en los drums, con los sample flips en ámbar y los rollers divididos.
 - Doble clic edita una pista de notas: primer y último paso, sync rate, dirección, orden, notas y carriles de automatización. **Los patrones de drums se ven, se copian y se exportan, pero aún no se editan.**
+- **Sonidos del proyecto…** (arriba, con la sesión elegida): lo que carga ese proyecto. **Synth 1 / 2** = el hueco Nova al que apunta y la copia que suena al cargarlo (su estado inicial: **Tomar la del hueco** la sustituye por el patch de ese hueco); **MIDI 1 / 2** = el sinte propio del proyecto (desde un parche custom, con su FM de 8 operadores y su wavetable; **Editar su estado inicial…** abre el editor de parches sobre la copia del proyecto); **Drum 1-4** = el sample de cada uno. **Guardar en el proyecto** escribe solo esa sesión; los huecos del pack no cambian.
 - Un patrón de drums solo se copia a otra pista de drums. Al copiar se quedan en el destino las reglas de cadena y los datos del proyecto guardados en los ajustes del patrón; en los drums, también la frecuencia y el random-mutate por paso.
 
 ### Exportar
@@ -1058,7 +1106,7 @@ En **Sintes Nova**, **Drums** y **Parches custom**, antes del nombre: **● n** 
 | Pestaña | Fichero |
 |---|---|
 | **Sintes Nova** | `.syx` de 350 B, el formato de un patch en los packs de Components |
-| **Parches custom** | `.ctm` |
+| **Parches custom** | `.ctm` (172 bytes; 396 con el FM de 8 operadores) |
 | **Drums** | `.wav` |
 | **Patrones** | `.mid` y `.ctpat` (los datos exactos); con uno solo, eliges cuál |
 | **Presets CC** | Un `.ctcc` con los 8; con el aparato conectado, los lee antes de él |

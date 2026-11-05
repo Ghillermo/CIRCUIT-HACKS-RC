@@ -151,4 +151,6 @@ if __name__ == "__main__":
         RD.DELETE = True
     if "--dspx" in a:                                                  # PATCHD: the image also carries the DSP read commands
         RD.DSPX = True
+    if "--dspw" in a:                                                  # S513D: the DSP write command too (the version's 0x40)
+        RD.DSPW = True
     sys.exit(1 if main(Path(a[1]).read_bytes(), json.loads(Path(a[2]).read_text())) else 0)

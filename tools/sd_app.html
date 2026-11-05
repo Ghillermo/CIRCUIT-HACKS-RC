@@ -89,6 +89,8 @@
   .line2 { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
   .line2 label { display:flex; gap:6px; align-items:center; font-size:.85rem; }
   .line2 select { flex:none; }
+  .dxl { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:2px 12px; max-height:55vh; overflow:auto; font-size:.85rem; }
+  .dxl label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .edgrid { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:12px; }
   .roll { height:44vh; overflow:auto; border:1px solid var(--line); border-radius:6px; background:#0f1114; }
   .roll canvas, .bars canvas { display:block; }
@@ -370,17 +372,18 @@ function recordOf(banks, n) {                               // -> {nova, pad} of
   const e = banks.get(n >> 3); const o = REC * (n & 7), b = e ? e.bytes : new Uint8Array(0);
   return {nova: b.subarray(o, Math.min(o + PSZ, b.length)), pad: b.subarray(Math.min(o + PSZ, b.length), Math.min(o + REC, b.length))};
 }
-async function writeRecord(pack, n, off, data, ctx = {}) {  // data into record n at off; what is missing up to its end = 0xFF, what the device leaves empty
-  const banks = await banksOf(pack), b = n >> 3, e = banks.get(b);
+async function writeBank(pack, b, parts, ctx = {}) {       // each [offset in the file, data] into bank b, one write; what is missing up to the end = 0xFF,
+  const banks = await banksOf(pack), e = banks.get(b);      // what the device leaves empty
   const dir = await subdir(pack.dir, "Patches", true);
   if (e && ctx.backup) await ctx.backup.file([pack.folder, "Patches"], e.name, e.bytes);
-  const old = e ? e.bytes : new Uint8Array(0), at = REC * (n & 7) + off;
-  const out = new Uint8Array(Math.max(old.length, at + data.length)).fill(0xFF);
-  out.set(old); out.set(data, at);
+  const old = e ? e.bytes : new Uint8Array(0);
+  const out = new Uint8Array(Math.max(old.length, ...parts.map(([o, d]) => o + d.length))).fill(0xFF);
+  out.set(old); for (const [o, d] of parts) out.set(d, o);
   const name = e ? e.name : pad2(b) + "_PATCHBANK.cpb";
   await writeFile(dir, name, out);
   banks.set(b, {name, bytes: out});
 }
+const writeRecord = (pack, n, off, data, ctx = {}) => writeBank(pack, n >> 3, [[REC * (n & 7) + off, data]], ctx);    // data into record n at off
 
 // ---------------------------------------------------------------- Nova synths: the 340 B of a record (its padding, the custom patch n, stays)
 const Nova = {
@@ -445,24 +448,117 @@ function vmSet(pad, vm) {
   if (vm) pad.set([VM_TAG, VM_BASE + vm.mode, vm.time & 127, vm.detune & 127], VM_AT);
   else pad.fill(0xFF, VM_AT, VM_AT + 4);
 }
+/* ---------------------------------------------------------------- the 8-operator FM of a custom patch (SC51.7 on, tools/fm8store.py)
+   The padding says "FM" version 3 and on / off; the 216 parameters are in the slot's record past the bank's 8: 4096 + 512 (n & 7), "FM8" 1, the
+   parameters, their 16-bit sum (0x5A38 + the bytes), 0xFF to 224.  A custom patch here = its padding (172) + that record (224, 0xFF = none). */
+const EXT0 = 4096, RECN = 224, FPLEN = 216, FREC_SUM0 = 0x5A38;
+function extOf(banks, n) { const e = banks.get(n >> 3), o = EXT0 + REC * (n & 7), b = e ? e.bytes : new Uint8Array(0); return b.subarray(Math.min(o, b.length), Math.min(o + RECN, b.length)); }
+function fm8Rec(params) {
+  const r = new Uint8Array(RECN).fill(0xFF);
+  r.set([0x46, 0x4D, 0x38, 1]); r.set(params, 4);
+  let s = FREC_SUM0; for (const v of params) s += v;
+  r[4 + FPLEN] = s & 0xFF; r[5 + FPLEN] = (s >> 8) & 0xFF;
+  return r;
+}
+function fm8Get(rec) {                                      // -> the 216 parameters of a valid record, or null
+  if (!rec || rec.length < FPLEN + 6 || rec[0] !== 0x46 || rec[1] !== 0x4D || rec[2] !== 0x38 || rec[3] !== 1) return null;
+  let s = FREC_SUM0; for (let i = 4; i < 4 + FPLEN; i++) s += rec[i];
+  return (s & 0xFFFF) === (rec[4 + FPLEN] | rec[5 + FPLEN] << 8) ? rec.slice(4, 4 + FPLEN) : null;
+}
+
+/* ---------------------------------------------------------------- DX7 voices -> the 8-operator FM (tools/fm8.py dx7_voices / from_dx7, byte for byte)
+   A bulk dump (F0 43 0n 09 20 00, 32 x 128 packed bytes) or a single voice (F0 43 0n 00 01 1B, 155 bytes), several messages in a file, or a bare
+   4096-byte bank; bad check bytes accepted (counted).  The DX7 keeps operator 6 first; DX7 operator k + 1 = fm8's operator k; every field masked,
+   then limited to its range; operators 7-8 silent; the LFO kept for later. */
+const DX_OP = ["r1", "r2", "r3", "r4", "l1", "l2", "l3", "l4", "bp", "ld", "rd", "lc", "rc", "rs", "ams", "kvs", "ol", "mode", "crs", "fine", "det"];
+const DX_OMAX = [99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 3, 3, 7, 3, 7, 99, 1, 31, 99, 14];    // fm8's O_R .. O_DET: the same order
+const DX_G = ["pr1", "pr2", "pr3", "pr4", "pl1", "pl2", "pl3", "pl4", "alg", "fb", "oks", "lfs", "lfd", "pmd", "amd", "lks", "lfw", "pms", "trn"];
+const DX_GMAX = [99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48];
+const DX_FB = [0, 16, 23, 32, 45, 64, 90, 127];
+const DX_OPDEF = [99, 99, 99, 60, 99, 99, 99, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 7, 0, 0, 0];   // fm8.op_default: silent, ratio 1, held
+const dxName = b => String.fromCharCode(...[...b].map(c => c & 127).map(c => c >= 32 && c < 127 ? c : 32)).trimEnd();
+function dxPacked(v) {                                      // 128 bytes -> {ops: [op 1 .. 6 as arrays in DX_OP order], g, name}
+  const ops = [];
+  for (let i = 0; i < 6; i++) {
+    const b = v.subarray(17 * i, 17 * i + 17);
+    ops[5 - i] = [...b.subarray(0, 11), b[11] & 3, b[11] >> 2 & 3, b[12] & 7, b[13] & 3, b[13] >> 2 & 7, b[14], b[15] & 1, b[15] >> 1 & 31, b[16], b[12] >> 3 & 15];
+  }
+  const g = [...v.subarray(102, 110), v[110] & 31, v[111] & 7, v[111] >> 3 & 1, v[112], v[113], v[114], v[115], v[116] & 1, v[116] >> 1 & 7, v[116] >> 4 & 7, v[117]];
+  return {ops, g, name: dxName(v.subarray(118, 128))};
+}
+function dxVced(v) {                                        // 155 bytes, each field in its own byte
+  const ops = [];
+  for (let i = 0; i < 6; i++) ops[5 - i] = [...v.subarray(21 * i, 21 * i + 21)];
+  return {ops, g: [...v.subarray(126, 145)], name: dxName(v.subarray(145, 155))};
+}
+function dx7ToFm8(x) {                                      // -> the 216 parameters
+  const out = new Uint8Array(FPLEN);
+  for (let k = 0; k < 6; k++) DX_OP.forEach((_, i) => { out[24 * k + i] = Math.min(DX_OMAX[i], x.ops[k][i] & 127); });
+  for (let k = 6; k < 8; k++) out.set(DX_OPDEF, 24 * k);
+  const q = DX_G.map((_, i) => Math.min(DX_GMAX[i], x.g[i] & 127)), G = 200;
+  out.set(q.slice(0, 8), 192);
+  out[G] = 16 + q[8]; out[G + 1] = DX_FB[q[9]]; out[G + 2] = q[10]; out[G + 3] = q[18];
+  out.set([q[11], q[12], q[13], q[14], q[15], q[16], q[17]], G + 4);
+  return out;
+}
+function dx7Parse(data) {                                   // -> {voices: [{name, params}], bad: messages with a wrong check byte}
+  const voices = [], add = x => voices.push({name: x.name, params: dx7ToFm8(x)});
+  let bad = 0;
+  if (data.length === 4096 && data[0] !== 0xF0) { for (let k = 0; k < 32; k++) add(dxPacked(data.subarray(128 * k, 128 * k + 128))); return {voices, bad}; }
+  for (let i = 0; ;) {
+    const s = data.indexOf(0xF0, i); if (s < 0) break;
+    const e = data.indexOf(0xF7, s); if (e < 0) break;
+    const m = data.subarray(s, e + 1); i = e + 1;
+    const sum = (a, b) => { let t = 0; for (let j = a; j < b; j++) t += m[j]; return t; };
+    if (m.length >= 4104 && m[1] === 0x43 && m[3] === 9) {
+      if ((sum(6, 4102) + m[4102] & 127) !== 0) bad++;
+      for (let k = 0; k < 32; k++) add(dxPacked(m.subarray(6 + 128 * k, 6 + 128 * k + 128)));
+    } else if (m.length >= 163 && m[1] === 0x43 && m[3] === 0) {
+      if ((sum(6, 161) + m[161] & 127) !== 0) bad++;
+      add(dxVced(m.subarray(6, 161)));
+    }
+  }
+  return {voices, bad};
+}
+function dx7Patch(v) {                                      // a voice -> a custom patch (padding + record): the oscillator with FM on, poly, the name
+  const p = ctmNew();
+  fmSet(p, {ver: 3, on: 1, params: new Array(16).fill(0)});
+  vmSet(p, {mode: 3, time: 48, detune: 40});                // vmode: poly; its default glide and detune
+  ctmSetName(p, v.name || "DX7");
+  const out = new Uint8Array(PADN + RECN); out.set(p); out.set(fm8Rec(v.params), PADN);
+  return out;
+}
+
 const Custom = {
   size: SLOTS,
   async list(pl) {
     const banks = await banksOf(pl.pack), out = [];
     for (let n = 0; n < SLOTS; n++) {
-      const pad = recordOf(banks, n).pad, st = ctmState(pad);
-      out.push({slot: n, empty: st === "empty", bad: st === "bad", name: st === "empty" ? "" : ctmName(pad), flags: st === "empty" ? 0 : pad[4], fm: st === "empty" ? null : fmGet(pad)});
+      const pad = recordOf(banks, n).pad, st = ctmState(pad), fm = st === "empty" ? null : fmGet(pad);
+      out.push({slot: n, empty: st === "empty", bad: st === "bad", name: st === "empty" ? "" : ctmName(pad), flags: st === "empty" ? 0 : pad[4], fm,
+                fm8: fm && fm.ver === 3 ? fm8Get(extOf(banks, n)) : null, wt: st !== "empty" && pad[150] === 0xB7 && pad[151] === 1});   // (SC52.1) the wavetable's record
     }
     return out;
   },
-  async get(pl, n) {                                        // the whole padding, the fields of the newer builds with it
-    const pad = recordOf(await banksOf(pl.pack), n).pad;
+  async get(pl, n) {                                        // the whole padding, the fields of the newer builds with it, then the FM record (0xFF: none)
+    const banks = await banksOf(pl.pack), pad = recordOf(banks, n).pad;
     if (ctmState(pad) === "empty") return null;
-    const out = new Uint8Array(PADN).fill(0xFF); out.set(pad);
+    const out = new Uint8Array(PADN + RECN).fill(0xFF); out.set(pad); out.set(extOf(banks, n), PADN);
     return out;
   },
-  async put(pl, n, pad, ctx) { if (!pad) return Custom.clear(pl, n, ctx); await writeRecord(pl.pack, n, PSZ, pad, ctx); },
-  async clear(pl, n, ctx) { if (await Custom.get(pl, n)) await writeRecord(pl.pack, n, PSZ, new Uint8Array(PADN).fill(0xFF), ctx); },
+  async put(pl, n, data, ctx) { if (!data) return Custom.clear(pl, n, ctx); await Custom.putMany(pl, [[n, data]], ctx); },
+  async putMany(pl, list, ctx = {}) {                       // [[slot, patch]]: one write per bank; the record written when there is one, or when the bank
+    const banks = await banksOf(pl.pack), by = new Map();   // reaches its place (an old one goes)
+    for (const [n, data] of list) {
+      const e = banks.get(n >> 3), r = REC * (n & 7), ext = data.length > PADN ? data.subarray(PADN, PADN + RECN) : null, l = by.get(n >> 3) || [];
+      l.push([r + PSZ, data.subarray(0, PADN)]);
+      if (ext && (!isFF(ext, 0, ext.length) || (e && e.bytes.length > EXT0 + r))) l.push([EXT0 + r, ext]);
+      by.set(n >> 3, l);
+    }
+    let i = 0;
+    for (const [b, parts] of by) { await writeBank(pl.pack, b, parts, ctx); if (ctx.progress && list.length > 1) ctx.progress(pad2(b) + "_PATCHBANK.cpb", ++i, by.size); }
+  },
+  async clear(pl, n, ctx) { if (await Custom.get(pl, n)) await Custom.put(pl, n, new Uint8Array(PADN + RECN).fill(0xFF), ctx); },
   async setName(pl, n, name, ctx) {                         // padding + 44, outside the sum (bytes 4..39) and outside what projects compare
     name = checkName("custom", name);
     const pad = await Custom.get(pl, n);
@@ -709,6 +805,16 @@ function projSynth(b, t) {                                  // projsyn's patch o
   let s = 0x5AC6; for (let i = 0; i < 124; i++) s += img[i];
   return (s & 0xFFFF) === (img[124] | img[125] << 8) && latin(img, 0, 4) === "CTM1" ? img.subarray(0, 124) : null;
 }
+function projFm(b, t) {                                    // fm8store: MIDI 1 / 2's FM record in bytes 8..39 of Synth 1 / 2's patterns 0..7 -> its parameters, or null
+  const r = new Uint8Array(240);
+  for (let k = 0; k < 8; k++) {
+    const o = SYNTH0 + PAT * (8 * t + k) + SETT + 8;
+    if (b[o] !== 0xC8 || b[o + 1] !== (t << 4 | k)) return null;
+    r.set(b.subarray(o + 2, o + 32), 30 * k);
+  }
+  return fm8Get(r);
+}
+const sameFm = (a, b) => !a || !b || a.every((v, i) => v === b[i]);
 const sameSound = (a, b) => { for (let i = 4; i < 40; i++) if (a[i] !== b[i]) return false; const f = fmGet(a), g = fmGet(b); return !f || !g || (f.on === g.on && f.params.every((v, i) => v === g.params[i])); };
 function sessionUses(b) {                                   // -> [{kind, slot, track, flip, copy}] or, for the own synth, {kind: "own", track, img}
   const out = [];
@@ -725,7 +831,7 @@ function sessionUses(b) {                                   // -> [{kind, slot, 
   for (let t = 0; t < 2; t++) {
     const img = projSynth(b, t);
     if (img) {
-      out.push({kind: "own", track: 2 + t, img});
+      out.push({kind: "own", track: 2 + t, img, fm8: projFm(b, t)});
       const e = img[4] & 15, v = img[30];
       if ((e === 9 || e === 11) && v < NSAMPLES) out.push({kind: "drums", slot: v, track: 2 + t});
     }
@@ -747,7 +853,7 @@ async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, 
     const label = e.label || latin(b, 0x10, 32);
     for (const u of sessionUses(b)) {
       const r = {sess: e.slot, label, track: u.track, flip: !!u.flip, copy: u.copy};
-      if (u.kind === "own") own.push([u.img, r]); else add(u.kind, u.slot, r);
+      if (u.kind === "own") own.push([u.img, r, u.fm8]); else add(u.kind, u.slot, r);
     }
   }
   if (own.length) {
@@ -755,7 +861,8 @@ async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, 
     for (let n = 0; n < SLOTS; n++) {
       const pad = recordOf(banks, n).pad;
       if (ctmState(pad) !== "ok") continue;
-      for (const [img, r] of own) if (sameSound(pad, img)) add("custom", n, r);
+      const f = fmGet(pad), x = f && f.ver === 3 ? fm8Get(extOf(banks, n)) : null;
+      for (const [img, r, y] of own) if (sameSound(pad, img) && sameFm(x, y)) add("custom", n, r);
     }
   }
   return pack._usage = out;
@@ -799,8 +906,54 @@ async function remapSessions(pack, kind, map, ctx = {}) {   // -> the sessions r
   pack._usage = null;
   return out;
 }
+/* ---------------------------------------------------------------- a project's default sounds (the user, 2026-11-05: «Changing which patches are default in a
+   project and editing their init state»): Synth 1 / 2 = the Nova slot the project points at (SYNTH0 + 16 PAT + 8 s) and the copy a load plays
+   (0x26D14 + 0x154 s, 340 bytes: its initial state); MIDI 1 / 2's own synth = projsyn's image (MIDI t's patterns 0..4, 0xC6 blocks: the custom
+   patch's padding 0..149, its sum at 124), the 8-operator FM's record (Synth t + 1's patterns 0..7, 0xC8 blocks: fm8store) and the wavetable's
+   record (MIDI 2's pattern 5 + t: 0xCA, t, padding 150..162: wtui); the drums = the sample of each (0x26FBC + 11 d). */
+const NOVA_PTR = s => SYNTH0 + 16 * PAT + 8 * s, NOVA_COPY = s => 0x26D14 + 0x154 * s, DRUM_SMP = d => 0x26FBC + 11 * d;
+const WT_BLK = t => MIDI0 + PAT * (8 + 5 + t) + SETT + 8;
+function projOwn(b, t) {                                    // -> the own synth as a custom patch (padding 172 + FM record 224), or null
+  const img = projSynth(b, t);
+  if (!img) return null;
+  const out = new Uint8Array(PADN + RECN).fill(0xFF);
+  for (let k = 0; k < 5; k++) { const o = MIDI0 + PAT * (8 * t + k) + SETT + 8; out.set(b.subarray(o + 2, o + 32), 30 * k); }
+  out.fill(0xFF, 124, 126);
+  const w = WT_BLK(t);
+  if (b[w] === 0xCA && b[w + 1] === t) out.set(b.subarray(w + 2, w + 15), 150);
+  const fm = projFm(b, t);
+  if (fm) out.set(fm8Rec(fm), PADN);
+  return out;
+}
+function setProjOwn(b, t, pad) {                            // a custom patch (padding, its FM record) as the project's own synth of MIDI t
+  const img = new Uint8Array(150); img.set(pad.subarray(0, 150));
+  let sum = 0x5AC6; for (let i = 0; i < 124; i++) sum += img[i];
+  img[124] = sum & 0xFF; img[125] = (sum >> 8) & 0xFF;
+  for (let k = 0; k < 5; k++) { const o = MIDI0 + PAT * (8 * t + k) + SETT + 8; b[o] = 0xC6; b[o + 1] = t << 4 | k; b.set(img.subarray(30 * k, 30 * k + 30), o + 2); }
+  const rec = pad.length > PADN ? pad.subarray(PADN, PADN + RECN) : null, f = fmGet(pad);
+  if (rec && f && f.ver === 3 && fm8Get(rec)) {
+    const r = new Uint8Array(240); r.set(rec);
+    for (let k = 0; k < 8; k++) { const o = SYNTH0 + PAT * (8 * t + k) + SETT + 8; b[o] = 0xC8; b[o + 1] = t << 4 | k; b.set(r.subarray(30 * k, 30 * k + 30), o + 2); }
+  }
+  const w = WT_BLK(t);
+  if (pad[150] === 0xB7) { b[w] = 0xCA; b[w + 1] = t; b.set(pad.subarray(150, 163), w + 2); } else b[w] = 0;
+}
+function projectSounds(b) {
+  return {nova: [0, 1].map(s => ({slot: b[NOVA_PTR(s)], copy: latin(b, NOVA_COPY(s), 16)})), own: [0, 1].map(t => projOwn(b, t)),
+          drums: [0, 1, 2, 3].map(d => b[DRUM_SMP(d)])};
+}
+async function setProjectSounds(pl, sess, ch, ctx = {}) {   // ch: {nova: [[slot, copy 340 B or null] or null] x 2, own: [pad or null] x 2, drums: [sample or null] x 4}
+  const o = await openSession(pl.pack, sess), b = o.bytes;
+  (ch.nova || []).forEach((x, s) => { if (!x) return; b[NOVA_PTR(s)] = x[0]; if (x[1]) b.set(x[1].subarray(0, PSZ), NOVA_COPY(s)); });
+  (ch.own || []).forEach((pad, t) => { if (pad) setProjOwn(b, t, pad); });
+  (ch.drums || []).forEach((v, d) => { if (v !== null && v !== undefined) b[DRUM_SMP(d)] = v; });
+  o.dirty = true;
+  await Patterns.flush({pack: pl.pack, sess}, ctx);
+  pl.pack._usage = null;
+}
+
 const ORDER_KIND = {nova: Nova, drums: Drums, custom: Custom};
-async function reorder(kind, pl, from, to, ctx = {}) {      // -> the sessions rewritten
+async function reorder(kind, pl, from, to, ctx = {}, remap = true) {   // -> the sessions rewritten (remap false: the projects keep their numbers)
   const K = ORDER_KIND[kind];
   if (!K) throw new Error("order-kind");
   if (to < 0 || to >= K.size) throw new Error("order-range");
@@ -820,7 +973,7 @@ async function reorder(kind, pl, from, to, ctx = {}) {      // -> the sessions r
     }
     pl.pack._samples = null; pl.pack._info = null;
   } else await transfer(K, pl, [from], pl, [to], {move: true, swap}, ctx);
-  if (kind === "custom") return [];
+  if (kind === "custom" || !remap) return [];
   return remapSessions(pl.pack, kind, new Map([[from, to], [to, from]]), ctx);     // both ways even to a free number: a project that pointed at it (silence) still does
 }
 async function slotPack(pack, slot, ctx = {}) {             // a pack to a free number of its card
@@ -1239,6 +1392,7 @@ async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
 return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
   entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
   Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
+  RECN, extOf, fm8Rec, fm8Get, dx7Parse, dx7ToFm8, dx7Patch, projFm, projOwn, setProjOwn, projectSounds, setProjectSounds,
   patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
 })();
 if (typeof window !== "undefined") window.SD = SD;
@@ -1266,7 +1420,7 @@ const audio = {ctx: null, src: null, key: null};
 // ---- labels
 const ENGINES = [[0, "Apagado", "Off"], [1, "Entrada de línea", "Line in"], [3, "Oscilador", "Oscillator"], [7, "VA-drum", "VA-drum"], [15, "VA-drum, velocity → envolventes", "VA-drum, velocity → envelopes"],
                  [11, "Granular", "Granular"], [9, "Muestra", "Sample"], [5, "Secuenciador de efectos", "FX sequencer"]];
-const engineName = (f, fm) => { const k = f & 1 ? f & 15 : 0, e = ENGINES.find(x => x[0] === k); return k === 3 && fm && fm.on ? "FM" : e ? T(e[1], e[2]) : "?"; };
+const engineName = (f, fm, wt) => { const k = f & 1 ? f & 15 : 0, e = ENGINES.find(x => x[0] === k); return k === 3 && fm && fm.on ? "FM" : k === 3 && wt ? "Wavetable" : e ? T(e[1], e[2]) : "?"; };
 const VOICE = [[0, "Retrigger", "Retrigger"], [1, "Legato", "Legato"], [2, "Glide", "Glide"], [4, "Uni retrig", "Uni retrig"], [5, "Uni legato", "Uni legato"], [6, "Uni glide", "Uni glide"], [7, "Uni always-glide", "Uni always-glide"], [3, "Poly", "Poly"]];
 const LFOS = [["Sierra inversa", "Reverse saw"], ["Sierra", "Saw"], ["Triángulo", "Triangle"], ["Cuadrada", "Square"], ["Seno", "Sine"], ["Sample & hold", "Sample & hold"], ["Sample & hold suavizado", "Slewed sample & hold"]];
 const ALGS = ["stack 4-3-2-1", "3+4 → 2 → 1", "4 → 1, 3-2-1", "4-3 → 1, 2 → 1", "two stacks", "4 → three", "4-3, 2, 1", "organ", "kick", "snare", "metal / hat", "tom / zap", "bell", "tubular", "strings", "ensemble"];
@@ -1449,7 +1603,7 @@ function cols(tab, it) {
     case "packs": return [SD.pad2(it.slot), `Pad ${it.slot + 2}`, it.empty ? dash : it.name, it.info || ""];
     case "nova": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (["Mono", "Mono AG", "Poly"][it.mode] || "")];
     case "drums": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (Math.max(0, it.size - 44) / 96000).toFixed(2) + " s"];
-    case "custom": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.bad ? T("dañado", "damaged") : it.name || T("(sin nombre)", "(no name)"), it.empty ? "" : engineName(it.flags, it.fm)];
+    case "custom": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.bad ? T("dañado", "damaged") : it.name || T("(sin nombre)", "(no name)"), it.empty ? "" : engineName(it.flags, it.fm, it.wt)];
     case "patterns": return [String(it.slot + 1), `${TRACKS[it.slot >> 3]}·${(it.slot & 7) + 1}`, it.empty ? dash : `${it.notes} ${it.slot >= 32 ? T("golpes", "hits") : T("notas", "notes")}` + (it.lanes ? ` · ${it.lanes} ${T("carriles", "lanes")}` : ""), (state.dev && state.dev.dev.chans ? `${T("Canal", "Ch")} ${state.dev.dev.chans[Math.min(4, it.slot >> 3)] + 1} · ` : "") + `${it.first + 1}-${it.last + 1}`];
     case "cc": return [String(it.slot + 1), where(tab, it.slot), it.recs.map(ccShort).join(" "), it.name];
   }
@@ -1501,13 +1655,14 @@ function headHtml(p) {
   else s += `<button type="button" data-act="open">${T("Abrir carpeta…", "Open folder…")}</button><button type="button" data-act="device">${T("Aparato…", "Device…")}</button><button type="button" data-act="reload" title="${T("Volver a leer la carpeta", "Read the folder again")}">↻</button></div>`;
   if (tab !== "packs" && tab !== "cc" && p.card) {
     s += `<div class="prow"><select data-sel="pack" aria-label="Pack">${p.card.packs.map(x => `<option value="${x.slot}"${x.slot === p.packSlot ? " selected" : ""}>${SD.pad2(x.slot)} ${esc(x.name)}</option>`).join("")}</select>`;
-    if (tab === "patterns") s += `<select data-sel="sess" aria-label="${T("Sesión", "Session")}"></select><select data-sel="track" aria-label="${T("Pista", "Track")}">${[[-2, T("Con contenido", "With content")], [-1, T("Todas", "All")], ...TRACKS.map((t, i) => [i, t])].map(([v, l]) => `<option value="${v}"${v === p.track ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    if (tab === "patterns") s += `<button type="button" data-act="psnd">${T("Sonidos del proyecto…", "Project sounds…")}</button><select data-sel="sess" aria-label="${T("Sesión", "Session")}"></select><select data-sel="track" aria-label="${T("Pista", "Track")}">${[[-2, T("Con contenido", "With content")], [-1, T("Todas", "All")], ...TRACKS.map((t, i) => [i, t])].map(([v, l]) => `<option value="${v}"${v === p.track ? " selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
     s += "</div>";
   }
   if (tab === "drums" && pack) s += `<div class="prow dim" data-gauge></div>`;
   if (USED.has(tab) && pack && pack.dir.device && !pack._usage) s += `<div class="prow"><button type="button" data-act="usage">${T("Ver qué proyectos los usan", "See which projects use them")}</button><span class="dim">${T("lee todas las sesiones del pack por USB", "reads every session of the pack over USB")}</span></div>`;
   if (p.issues.length) s += `<div class="prow warn"><button type="button" data-act="issues">⚠ ${p.issues.length} ${T("ficheros que pueden tapar a los del pack", "files that can hide the pack's own")}</button></div>`;
   const canEdit = tab === "custom" || tab === "patterns" || tab === "cc";
+  if (tab === "custom" && pack) s += `<div class="prow"><button type="button" data-act="dx7">${T("Importar DX7…", "Import DX7…")}</button><span class="dim">${T("voces de un .syx del DX7 como parches FM de 8 operadores", "voices of a DX7 .syx as 8-operator FM patches")}</span></div>`;
   s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? side + " " : ""}${T("Copiar", "Copy")}${p.i ? "" : " " + side}</button><button type="button" data-act="move">${p.i ? side + " " : ""}${T("Mover", "Move")}${p.i ? "" : " " + side}</button>` +
        `<button type="button" data-act="export">${T("Exportar…", "Export…")}</button><button type="button" class="dng" data-act="del">${T("Eliminar", "Delete")}</button>${SD.NAME_RULE[tab] ? `<button type="button" data-act="rename">${T("Renombrar / orden…", "Rename / order…")}</button>` : ""}${canEdit ? `<button type="button" data-act="edit">${T("Editar", "Edit")}</button>` : ""}<span class="hint" data-hint></span></div>`;
   return s;
@@ -1738,7 +1893,7 @@ async function renameAct(p) {
       nin.classList.toggle("badin", !good); ok = ok && good;
       const other = good && t !== n ? (pack ? p.card.pack(t) : p.items[t] && !p.items[t].empty ? p.items[t] : null) : null;
       info.textContent = !good ? T(`de 0 a ${size - 1}`, `0 to ${size - 1}`) : t === n ? "" : other ? T(`se intercambia con ${pack ? other.folder : itemName(tab, other)}`, `swaps with ${pack ? other.folder : itemName(tab, other)}`) : T("hueco libre", "free slot");
-      if (good && t !== n && (tab === "nova" || tab === "drums")) info.textContent += T(" · los proyectos del pack se actualizan", " · the pack's projects are updated");
+      if (good && t !== n && (tab === "nova" || tab === "drums")) info.textContent += T(" · se pregunta por los proyectos que lo usan", " · you are asked about the projects that use it");
     }
     go.disabled = !ok;
   };
@@ -1763,10 +1918,23 @@ async function renameAct(p) {
     return;
   }
   const pl = p.place();
+  let remap = true;                                          // (the user, 2026-11-05) a moved Nova patch / sample in use: ask what the projects do
+  if (to !== n && (tab === "nova" || tab === "drums")) {
+    const ua = usesOf(p, n), ub = usesOf(p, to), uses = ua === null || ub === null ? null : [...ua, ...ub];
+    if (uses === null || uses.length) {
+      const list = uses ? nameList([...new Set(uses.map(u => `${SD.pad2(u.sess)} ${u.label}`))]) : `<p class="dim">${T("Con el aparato conectado no se ha leído qué proyectos lo usan.", "With the device connected, which projects use it has not been read.")}</p>`;
+      const c = await ask(T("Proyectos que lo usan", "Projects that use it"), list +
+        T("<p><b>Mover sus referencias</b>: los proyectos apuntan al nuevo número y suenan igual. <b>Dejarlos</b>: siguen apuntando al número de antes, que ahora tiene otro contenido.</p>",
+          "<p><b>Move their references</b>: the projects point at the new number and sound the same. <b>Leave them</b>: they keep the old number, which now holds something else.</p>"),
+        [[T("Mover sus referencias", "Move their references"), "move", "pri"], [T("Dejarlos", "Leave them"), "keep"], [T("Cancelar", "Cancel"), null]]);
+      if (!c) return;
+      remap = c === "move";
+    }
+  }
   if (!await ready(pl.pack.card) || !await loadedOK(pl.pack)) return;
   if (to !== n) p.sel.clear();
   await run(`${T("Renombrar", "Rename")} ${itemName(tab, it)}`, async ctx => {
-    if (to !== n) { const done = await SD.reorder(tab, pl, n, to, ctx); if (done.length) log(T(`Proyectos actualizados: ${done.map(SD.pad2).join(", ")}`, `Projects updated: ${done.map(SD.pad2).join(", ")}`)); }
+    if (to !== n) { const done = await SD.reorder(tab, pl, n, to, ctx, remap); if (done.length) log(T(`Proyectos actualizados: ${done.map(SD.pad2).join(", ")}`, `Projects updated: ${done.map(SD.pad2).join(", ")}`)); }
     if (name !== cur) await KIND[tab].setName(pl, to, name, ctx);
     p.sel.add(to);
   });
@@ -1805,16 +1973,18 @@ async function play(p, n, btn) {
 const opt = (v, text, cur) => `<option value="${v}"${v === cur ? " selected" : ""}>${esc(text)}</option>`;
 function field(key, label, min, max, v) { return `<label class="fld"><span title="${esc(label)}">${esc(label)}</span><input type="range" min="${min}" max="${max}" value="${v}" data-k="${key}"><input type="number" min="${min}" max="${max}" value="${v}" data-k="${key}"></label>`; }
 function closeEd() { const d = $("ed"); d.close(); d.innerHTML = ""; d.onclick = d.oninput = d.onchange = d.onkeydown = null; }
-async function editCustom(p, n) {
+async function editCustom(p, n, src = null) {                // src: {pad, title, save(pad)} = a patch not in a slot (a project's own synth)
   const pl = p.place(), d = $("ed");
-  let pad = await SD.Custom.get(pl, n);
+  let pad = src ? src.pad : await SD.Custom.get(pl, n);
   const isNew = !pad; pad = isNew ? SD.ctmNew() : pad.slice();
   let fm = SD.fmGet(pad) || {ver: 2, on: 0, params: SD.FM_DEF.slice()};
   const draw = () => {
     const k = pad[4] & 1 ? pad[4] & 15 : 0, gran = k === 11, vm = SD.vmGet(pad), lfo = pad[41] >= 2 && pad[42] < 7 ? pad[42] : 0;
     const groups = GROUPS.map(g => `<fieldset><legend>${esc(T(g[1], g[2]))}</legend>${PARAMS.filter(x => x[1] === g[0]).map(x => { const [lo, hi] = range(x[0]); return field("c" + x[0], gran && x[4] ? T(x[4], x[5]) : T(x[2], x[3]), lo, hi, SD.ctmCode(pad, x[0])); }).join("")}</fieldset>`).join("");
-    const fmHtml = k === 3 && fm.on ? `<fieldset><legend>FM</legend><label class="fld"><span>${T("Algoritmo", "Algorithm")}</span><select data-k="alg">${ALGS.map((a, i) => opt(i, `${i + 1} ${a}`, fm.params[12])).join("")}</select></label>${fm.params.map((v, i) => FM_LABELS[i] ? field("f" + i, T(FM_LABELS[i][0], FM_LABELS[i][1]), 0, 127, v) : "").join("")}</fieldset>` : "";
-    d.innerHTML = `<h3>${T("Parche custom", "Custom patch")} ${n} · ${esc(pl.pack.name)}${isNew ? " · " + T("nuevo", "new") : ""}</h3>
+    const f8 = fm.ver === 3 ? SD.fm8Get(pad.subarray(SD.PADN)) : null, a8 = f8 ? f8[200] : -1;
+    const fmHtml = k === 3 && fm.on && fm.ver === 3 ? `<fieldset><legend>FM</legend><p class="dim" style="margin:0">${T("FM de 8 operadores", "8-operator FM")}${a8 < 0 ? "" : `: ${a8 < 16 ? `${T("algoritmo", "algorithm")} ${a8 + 1} ${ALGS[a8] || ""}` : a8 < 48 ? `DX7 ${a8 - 15}` : `${T("8 operadores", "8 operators")} ${a8 - 47}`}`}. ${T("Sus operadores se editan en el aparato.", "Its operators are edited on the device.")}</p></fieldset>`
+      : k === 3 && fm.on ? `<fieldset><legend>FM</legend><label class="fld"><span>${T("Algoritmo", "Algorithm")}</span><select data-k="alg">${ALGS.map((a, i) => opt(i, `${i + 1} ${a}`, fm.params[12])).join("")}</select></label>${fm.params.map((v, i) => FM_LABELS[i] ? field("f" + i, T(FM_LABELS[i][0], FM_LABELS[i][1]), 0, 127, v) : "").join("")}</fieldset>` : "";
+    d.innerHTML = `<h3>${src ? esc(src.title) : `${T("Parche custom", "Custom patch")} ${n} · ${esc(pl.pack.name)}${isNew ? " · " + T("nuevo", "new") : ""}`}</h3>
       <div class="line2"><label>${T("Nombre", "Name")} <input type="text" maxlength="16" data-k="name" value="${esc(SD.ctmName(pad))}"></label>
       <label>${T("Motor", "Engine")} <select data-k="engine">${ENGINES.map(e => opt(e[0], T(e[1], e[2]), k)).join("")}</select></label>
       ${k === 3 ? `<label><input type="checkbox" data-k="fm"${fm.on ? " checked" : ""}> FM</label>` : ""}
@@ -1853,11 +2023,122 @@ async function editCustom(p, n) {
       if (w !== "save") return;
       if (SD.fmGet(pad) || fm.on) SD.fmSet(pad, fm);
       closeEd();
-      if (await ready(pl.pack.card) && await loadedOK(pl.pack)) await run(`${T("Guardar parche", "Save patch")} ${n}`, ctx => SD.Custom.put(pl, n, pad, ctx));
+      if (src) await src.save(pad);
+      else if (await ready(pl.pack.card) && await loadedOK(pl.pack)) await run(`${T("Guardar parche", "Save patch")} ${n}`, ctx => SD.Custom.put(pl, n, pad, ctx));
       res();
     };
     d.oncancel = () => { d.innerHTML = ""; res(); };
     d.showModal();
+  });
+}
+
+// ---- DX7 import: the voices of a .syx into custom slots (SD.dx7Parse / dx7Patch; the firmware: SC51.7 on)
+async function dx7Act(p) {
+  const pl = p.place();
+  if (!pl) return;
+  let h; try { [h] = await window.showOpenFilePicker({types: [{description: "DX7 SysEx", accept: {"application/octet-stream": [".syx", ".SYX", ".bin"]}}]}); } catch (_) { return; }
+  const {voices, bad} = SD.dx7Parse(await SD.readHandle(h));
+  if (!voices.length) return say(T("Ese fichero no vale", "Not that file"), T("No hay voces del DX7: un .syx de 32 voces (4104 bytes) o de una (163 bytes).", "No DX7 voices: a 32-voice .syx (4104 bytes) or a single voice (163 bytes)."));
+  const items = p.items, used = n => !items[n].empty, d = $("ed");
+  const on = voices.map(() => true);
+  let start = p.sel.size ? Math.min(...p.sel) : Math.max(0, items.findIndex(x => x.empty)), skip = true;
+  const plan = () => {                                      // -> the slot of each chosen voice (null: none left)
+    const out = []; let n = start;
+    for (let i = 0; i < voices.length; i++) {
+      if (!on[i]) { out.push(-1); continue; }
+      while (skip && n < SD.SLOTS && used(n)) n++;
+      out.push(n < SD.SLOTS ? n++ : null);
+    }
+    return out;
+  };
+  const draw = () => {
+    const to = plan(), full = to.includes(null), over = to.filter(n => n >= 0 && n !== null && used(n));
+    d.innerHTML = `<h3>${T("Importar DX7", "Import DX7")} · ${esc(h.name)} → ${esc(pl.pack.name)}</h3>
+      <div class="line2"><label>${T("Desde el hueco", "From slot")} <select data-k="start">${items.map((x, n) => opt(n, `${SD.pad2(n)} ${where("custom", n)}${x.empty ? "" : " · " + (x.name || T("ocupado", "in use"))}`, start)).join("")}</select></label>
+      <label><input type="checkbox" data-k="skip"${skip ? " checked" : ""}> ${T("Saltar los ocupados", "Skip the slots in use")}</label>
+      <button type="button" data-do="all">${T("Todas", "All")}</button><button type="button" data-do="none">${T("Ninguna", "None")}</button></div>
+      <div class="dxl">${voices.map((v, i) => `<label><input type="checkbox" data-v="${i}"${on[i] ? " checked" : ""}> ${String(i + 1).padStart(2)} ${esc(v.name || "—")} <span class="dim">${!on[i] ? "" : to[i] === null ? T("no cabe", "does not fit") : `→ ${SD.pad2(to[i])} ${where("custom", to[i])}${used(to[i]) ? " ⚠" : ""}`}</span></label>`).join("")}</div>
+      <p class="dim" style="margin:8px 0 0;font-size:.82rem">${T("Cada voz va a un parche custom: el oscilador con el FM de 8 operadores (los 6 del DX7; 7 y 8 callados), polifónico, con el nombre de la voz. El LFO del DX7 se guarda pero aún no suena. Hace falta SC51.7 / Beta 5.20 o posterior.", "Each voice goes into a custom patch: the oscillator with the 8-operator FM (the DX7's 6; 7 and 8 silent), poly, with the voice's name. The DX7's LFO is kept but does not play yet. Needs SC51.7 / Beta 5.20 or later.")}${bad ? ` <span class="warn">${T(`${bad} mensaje(s) con el byte de comprobación mal: importados igual.`, `${bad} message(s) with a wrong check byte: imported anyway.`)}</span>` : ""}${over.length ? ` <span class="warn">${T(`Sustituye ${over.length} parche(s).`, `Replaces ${over.length} patch(es).`)}</span>` : ""}</p>
+      <div class="btns"><button type="button" data-do="cancel">${T("Cancelar", "Cancel")}</button><button type="button" class="pri" data-do="go"${full || !on.some(Boolean) ? " disabled" : ""}>${T("Importar", "Import")} ${on.filter(Boolean).length}</button></div>`;
+  };
+  draw();
+  d.onchange = e => {
+    const t = e.target, k = t.dataset ? t.dataset.k : null;
+    if (k === "start") start = +t.value; else if (k === "skip") skip = t.checked; else if (t.dataset && t.dataset.v !== undefined) on[+t.dataset.v] = t.checked; else return;
+    draw();
+  };
+  return new Promise(res => {
+    d.onclick = async e => {
+      const w = e.target.dataset ? e.target.dataset.do : null;
+      if (w === "all" || w === "none") { on.fill(w === "all"); draw(); return; }
+      if (w === "cancel") { closeEd(); res(); return; }
+      if (w !== "go") return;
+      const to = plan(), list = voices.map((v, i) => [to[i], v]).filter(([n]) => n !== null && n >= 0);
+      closeEd();
+      if (list.length && await ready(pl.pack.card) && await loadedOK(pl.pack)) {
+        p.sel.clear();
+        await run(`${T("Importar DX7", "Import DX7")} ${list.length}`, ctx => SD.Custom.putMany(pl, list.map(([n, v]) => [n, SD.dx7Patch(v)]), ctx));
+      }
+      res();
+    };
+    d.oncancel = () => { d.innerHTML = ""; res(); };
+    d.showModal();
+  });
+}
+
+// ---- a project's default sounds (the session chosen in Patterns)
+async function projSoundsAct(p) {
+  const pl = p.place();
+  if (!pl || p.sess === null) return say(T("Ninguna sesión", "No session"), T("Elige un pack con proyectos.", "Choose a pack with projects."));
+  const sess = p.sess, b = (await SD.openSession(pl.pack, sess)).bytes, cur = SD.projectSounds(b);
+  const nv = await SD.Nova.list(pl), cu = await SD.Custom.list(pl), dr = await SD.Drums.list(pl), d = $("ed");
+  const ch = {nova: [null, null], own: [null, null], drums: [null, null, null, null]};
+  const nvo = (sel, extra) => extra + nv.map(x => opt(x.slot, `${SD.pad2(x.slot)} ${x.empty ? "—" : x.name}`, sel)).join("");
+  const draw = () => {
+    const nr = s => { const c = ch.nova[s], slot = c ? c[0] : cur.nova[s].slot;
+      return `<label class="fld"><span>Synth ${s + 1}</span><select data-k="nv${s}">${nvo(slot, "")}</select></label>
+        <p class="dim" style="margin:0 0 6px">${T("Copia que suena al cargar", "The copy a load plays")}: «${esc(c && c[1] ? SD.latin(c[1], 0, 16) : cur.nova[s].copy)}»${c && c[1] ? " " + T("(nueva)", "(new)") : ""}
+        <button type="button" data-do="nc${s}">${T("Tomar la del hueco", "Take the slot's")}</button></p>`; };
+    const orow = t => { const pad = ch.own[t] || cur.own[t];
+      return `<label class="fld"><span>MIDI ${t + 1}</span><select data-k="ow${t}">${opt(-1, pad ? `${T("(el del proyecto)", "(the project's)")} ${SD.ctmName(pad) || ""}` : T("(ninguno)", "(none)"), -1)}${cu.filter(x => !x.empty && !x.bad).map(x => opt(x.slot, `${SD.pad2(x.slot)} ${x.name || T("(sin nombre)", "(no name)")}`, -2)).join("")}</select></label>
+        ${pad ? `<p style="margin:0 0 6px"><button type="button" data-do="oe${t}">${T("Editar su estado inicial…", "Edit its initial state…")}</button>${ch.own[t] ? " " + T("(cambiado)", "(changed)") : ""}</p>` : ""}`; };
+    const drow = k => `<label class="fld"><span>Drum ${k + 1}</span><select data-k="dr${k}">${dr.map(x => opt(x.slot, `${SD.pad2(x.slot)} ${x.empty ? "—" : x.name}`, ch.drums[k] !== null ? ch.drums[k] : cur.drums[k])).join("")}</select></label>`;
+    d.innerHTML = `<h3>${T("Sonidos del proyecto", "Project sounds")} ${SD.pad2(sess)} · ${esc(pl.pack.name)}</h3>
+      <div class="form"><fieldset><legend>Synth 1 / 2</legend>${nr(0)}${nr(1)}</fieldset><fieldset><legend>${T("Sinte propio", "Own synth")}</legend>${orow(0)}${orow(1)}</fieldset>
+      <fieldset><legend>Drums</legend>${[0, 1, 2, 3].map(drow).join("")}</fieldset></div>
+      <p class="dim" style="margin:8px 0 0;font-size:.82rem">${T("Lo que el proyecto carga: el patch al que apunta cada sinte y la copia que suena (su estado inicial), el sinte propio de MIDI 1 / 2 (desde un parche custom, con su FM y su wavetable) y el sample de cada drum. Nada cambia en los huecos del pack.", "What the project loads: the patch each synth points at and the copy that plays (its initial state), the own synth of MIDI 1 / 2 (from a custom patch, with its FM and wavetable) and each drum's sample. The pack's slots do not change.")}</p>
+      <div class="btns"><button type="button" data-do="cancel">${T("Cancelar", "Cancel")}</button><button type="button" class="pri" data-do="save">${T("Guardar en el proyecto", "Save to the project")}</button></div>`;
+  };
+  return new Promise(res => {
+    const bind = () => {
+      d.onchange = async e => {
+        const k = e.target.dataset ? e.target.dataset.k : null, v = +e.target.value;
+        if (!k) return;
+        if (k.startsWith("nv")) { const s = +k[2]; ch.nova[s] = [v, null]; }
+        else if (k.startsWith("ow")) { const t = +k[2]; ch.own[t] = v < 0 ? null : await SD.Custom.get(pl, v); }
+        else if (k.startsWith("dr")) ch.drums[+k[2]] = v;
+        draw();
+      };
+      d.onclick = async e => {
+        const w = e.target.dataset ? e.target.dataset.do : null;
+        if (!w) return;
+        if (w === "cancel") { closeEd(); res(); return; }
+        if (w.startsWith("nc")) { const s = +w[2], slot = ch.nova[s] ? ch.nova[s][0] : cur.nova[s].slot, c = await SD.Nova.get(pl, slot); if (c) ch.nova[s] = [slot, c]; draw(); return; }
+        if (w.startsWith("oe")) {                            // the custom editor on the project's copy; back here after
+          const t = +w[2], pad = ch.own[t] || cur.own[t];
+          closeEd();
+          await editCustom(p, -1, {pad, title: `${T("Sinte propio de MIDI", "Own synth of MIDI")} ${t + 1} · ${T("proyecto", "project")} ${SD.pad2(sess)}`, save: async x => { ch.own[t] = x; }});
+          bind(); return;
+        }
+        if (w !== "save") return;
+        closeEd();
+        if (await ready(pl.pack.card) && await loadedOK(pl.pack)) await run(`${T("Sonidos del proyecto", "Project sounds")} ${SD.pad2(sess)}`, ctx => SD.setProjectSounds(pl, sess, ch, ctx));
+        res();
+      };
+      d.oncancel = () => { d.innerHTML = ""; res(); };
+      draw(); d.showModal();
+    };
+    bind();
   });
 }
 
@@ -2173,7 +2454,7 @@ const EXPORTS = {
 async function exportFiles(p, n, it, ext) {                 // -> [[file name, bytes]]
   const pl = p.place(), tab = state.tab;
   if (tab === "nova") { const b = await SD.Nova.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(it.name)}.syx`, Uint8Array.from([0xF0, 0, 0x20, 0x29, 1, 0x64, 0, 0, 0, ...b.subarray(0, SD.PSZ), 0xF7])]]; }
-  if (tab === "custom") return [[`${SD.pad2(n)}_${fileSafe(it.name || "patch")}.ctm`, await SD.Custom.get(pl, n)]];
+  if (tab === "custom") { const c = await SD.Custom.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(it.name || "patch")}.ctm`, c.subarray(0, c.subarray(SD.PADN).every(x => x === 0xFF) ? SD.PADN : c.length)]]; }   // + the FM record when there is one
   if (tab === "drums") { const x = await SD.Drums.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(x.name)}.wav`, x.bytes]]; }
   const b = await SD.Patterns.get(pl, n), s = (await SD.sessionsOf(pl.pack)).get(pl.sess), base = fileSafe(`${s.label} ${TRACKS[n >> 3]} P${(n & 7) + 1}`), d = pl.pack.card.device;
   const ch = d && d.chans ? d.chans[Math.min(4, n >> 3)] : [0, 1, 2, 3, 9][Math.min(4, n >> 3)], out = [];
@@ -2254,6 +2535,8 @@ for (const p of panes) {
     if (act === "rename") return renameAct(p);
     if (act === "export") return exportAct(p);
     if (act === "edit") return editAct(p);
+    if (act === "dx7") return dx7Act(p);
+    if (act === "psnd") return projSoundsAct(p);
     if (act === "ccopen") return ccOpen(p);
     if (act === "ccsave") return ccSave(p);
     if (act === "ccnew") { p.cc = {bytes: SD.ccDefault(), title: null, handle: null, dirty: false}; p.sel.clear(); return renderAll(); }

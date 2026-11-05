@@ -48,6 +48,21 @@ def use_vdfix():
     VDFIX = True
 
 
+ROW2 = False                              # SC51.8 (use_row2)
+ROWMODE = (0, 1, 2, 3, 0xFF, 5, 4)        # (ROW2) pads 17-23: no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (none yet), sample, granular
+PAD_FXS = 30                              # (ROW2) pad 31: the FX sequencer, with no voice
+COL_FXS = (0x09, 0x0F)
+
+
+def use_row2():
+    """SC51.8 / Beta 5.21 (the user, 2026-11-05: «FX sequencer is not a voice, so it shouldn't belong in the menu. Instead, modes are now: no voice,
+    vcavcffx only, osc (normal), osc (vadrum), osc (wavetable), sampler, granular, FM», «relocate fx sequencer somewhere else» -> «pad 31, only lit
+    when no voice is selected»; the wavetable pad «Unlit, no effect» until it exists): the row = pads 17-24 in that order (24 = FM, fm8ui's); the FX
+    sequencer is pad 31 (dim blue with no voice, bright while on; elsewhere pad 31 is vcf21's as before), and the row shows it as «no voice»."""
+    global ROW2
+    ROW2 = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
@@ -61,6 +76,7 @@ def arm_code(base, L, prev):
         E(b_cond, n, INV[cond]); E(b, target); a.label(n)
     def now(rd): imm32(rd, V.HAL_TICK); E(ldr_imm, rd, rd, 0)
     a.label("ms_cols"); E(raw, bytes(c for pair in COLS for c in pair))
+    if ROW2: E(raw, bytes(ROWMODE) + b"\xff")                                                 # base + 14: the row's modes
 
     # ---- c_msmode(r0 = track 0 / 1) -> r0 = the mode 0..6; clobbers r1-r3
     a.label("c_msmode")
@@ -96,6 +112,12 @@ def arm_code(base, L, prev):
     E(mov_reg, 5, 1)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("sp_prev", "hi"); E(mov_reg, 4, 0)            # r4 = the track
     imm32(6, RAM); E(ldrb_imm, 7, 6, 0)                                                      # r7 = the open track + 1
+    if ROW2:                                                                                  # pad 31 with no voice: the FX sequencer on / off
+        E(cmp_imm, 5, PAD_FXS); E(b_cond, "sp_nf", "ne")
+        E(bl, "c_msheld"); E(cmp_imm, 0, 0); bc("sp_prev", "ne")
+        E(mov_reg, 0, 4); E(bl, "c_msmode"); E(movs_imm, 5, 6); E(cmp_imm, 0, 0); E(b_cond, "sp_go", "eq")
+        E(movs_imm, 5, 0); E(cmp_imm, 0, 6); bc("sp_prev", "ne"); E(b, "sp_go")
+        a.label("sp_nf")
     E(cmp_imm, 5, PAD); E(b_cond, "sp_nt", "ne")
     E(bl, "c_msheld"); E(cmp_imm, 0, 0); bc("sp_prev", "ne")
     E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(cmp_reg, 7, 0); E(b_cond, "sp_cl", "eq")        # open for this track: close
@@ -106,6 +128,9 @@ def arm_code(base, L, prev):
     E(cmp_imm, 5, 8); bc("sp_prev", "lo"); E(cmp_imm, 5, 23); bc("sp_prev", "hi")
     E(cmp_imm, 5, ROW); E(b_cond, "sp_x", "lo"); E(cmp_imm, 5, ROW + 6); E(b_cond, "sp_x", "hi")
     E(movs_imm, 0, ROW); E(subs_reg, 5, 5, 0)                                                # r5 = the chosen mode
+    if ROW2:                                                                                  # (ROW2) the pad's mode; the wavetable: nothing
+        imm32(0, base); E(adds_imm8, 0, 14); E(ldrb_reg, 5, 0, 5); E(cmp_imm, 5, 0xFF); bc("sp_x", "eq")
+        a.label("sp_go")
     E(movs_imm, 7, 8)                                                                         # at most 7 steps of the cycle
     a.label("sp_l")
     E(mov_reg, 0, 4); E(bl, "c_msmode"); E(cmp_reg, 0, 5); E(b_cond, "sp_x", "eq")
@@ -119,6 +144,11 @@ def arm_code(base, L, prev):
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(bl, prev["leds"]); E(mov_reg, 5, 0)
     E(mov_reg, 0, 4); E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("ml_x", "hi"); E(mov_reg, 4, 0)
+    if ROW2:                                                                                  # pad 31: dim blue with no voice, bright = the FX sequencer
+        E(bl, "c_msmode"); E(movs_imm, 1, COL_FXS[1]); E(cmp_imm, 0, 0); E(b_cond, "ml_fw", "eq")
+        E(movs_imm, 1, COL_FXS[0]); E(cmp_imm, 0, 6); E(b_cond, "ml_fn", "ne")
+        a.label("ml_fw"); E(movs_imm, 0, 2 * PAD_FXS); E(strh_reg, 1, 5, 0)
+        a.label("ml_fn")
     imm32(6, RAM); E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, 0); bc("ml_x", "eq")
     E(ldr_imm, 1, 6, 4); now(2); E(str_imm, 2, 6, 4); E(raw, h(0x1A52))                     # subs r2, r2, r1: since the last call
     imm32(1, CLOSE_MS); E(cmp_reg, 2, 1); E(b_cond, "ml_go", "ls")
@@ -128,8 +158,15 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, 0); E(movs_imm, 2, 8)
     a.label("ml_d"); E(lsls_imm, 3, 2, 1); E(strh_reg, 1, 5, 3); E(adds_imm8, 2, 1); E(cmp_imm, 2, 24); E(b_cond, "ml_d", "lo")
     E(mov_reg, 0, 4); E(bl, "c_msmode"); E(mov_reg, 6, 0); E(movs_imm, 7, 0)
-    a.label("ml_m")
-    imm32(1, base); E(lsls_imm, 2, 7, 1); E(adds_reg, 1, 1, 2); E(ldrb_imm, 2, 1, 1); E(cmp_reg, 7, 6); E(b_cond, "ml_c", "ne"); E(ldrb_imm, 2, 1, 0)
+    if ROW2:                                                                                  # (ROW2) the pad's mode; the FX sequencer shown as no voice
+        E(cmp_imm, 6, 6); E(b_cond, "ml_m", "ne"); E(movs_imm, 6, 0)
+        a.label("ml_m")
+        imm32(1, base); E(adds_imm8, 1, 14); E(ldrb_reg, 1, 1, 7); E(movs_imm, 2, 0); E(cmp_imm, 1, 0xFF); E(b_cond, "ml_c", "eq")
+        E(mov_reg, 3, 1); E(lsls_imm, 1, 1, 1); imm32(2, base); E(adds_reg, 1, 1, 2); E(ldrb_imm, 2, 1, 1)
+        E(cmp_reg, 3, 6); E(b_cond, "ml_c", "ne"); E(ldrb_imm, 2, 1, 0)
+    else:
+        a.label("ml_m")
+        imm32(1, base); E(lsls_imm, 2, 7, 1); E(adds_reg, 1, 1, 2); E(ldrb_imm, 2, 1, 1); E(cmp_reg, 7, 6); E(b_cond, "ml_c", "ne"); E(ldrb_imm, 2, 1, 0)
     a.label("ml_c"); E(movs_imm, 3, ROW); E(adds_reg, 3, 3, 7); E(lsls_imm, 3, 3, 1); E(strh_reg, 2, 5, 3)
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 7); E(b_cond, "ml_m", "lo")
     a.label("ml_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)

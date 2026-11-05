@@ -4,9 +4,11 @@ that step (latchstep), through the controller and the real LED source (emu_arpx'
   * Shift + pad 21 (67) and Shift + pad 18 (62) latched: with Shift their keys 0x4D, every other key as without Shift;
   * Shift + step 3: its record = 67 and 62 (one step long, velocity 100, micro step 0), the step pad lit as a step with notes;
   * Shift + step 1 (64, 60, 67 there): only 62 added (4 notes);
-  * the LED task's frame with Shift: nothing latched = the steps not yellow; latched = steps 1-16 yellow (0x2D); without Shift, not.
+  * the LED task's frame with Shift: nothing latched = the steps not yellow; latched = steps 1-16 yellow (0x2D); without Shift, not;
+  * SC52.2 / Beta 5.25 (latchstep.use_heldcue; --heldcue): never yellow; Shift + step 3 held = step 3 cyan (0x4D) in the frame, with or without
+    Shift, the other steps not; released = not cyan.
 
-    python tools/emu_latchstep.py SC48.4.bin SC48.4_manifest.json
+    python tools/emu_latchstep.py SC48.4.bin SC48.4_manifest.json [--heldcue]
 """
 from __future__ import annotations
 import gc, json, sys
@@ -26,7 +28,7 @@ def notes(rec):
     return sorted(rec[4 + 4 * u] for u in range(6) if m >> u & 1), [tuple(rec[4 + 4 * u:8 + 4 * u]) for u in range(6) if m >> u & 1]
 
 
-def main(img, man):
+def main(img, man, held=False):
     fails = 0
     def check(c, m):
         nonlocal fails
@@ -50,8 +52,18 @@ def main(img, man):
           f"with Shift: the latched keys cyan, the others as without Shift ({[hex(x) for x in ls[16:32]]})")
     check(ln[20] & 0xFF != X.COL_CYAN, f"without Shift: not cyan ({ln[20]:#x})")
     y1, y2 = frame(True), frame(False)
-    check(y1 == [LS.COL_AV] * 16 and y2 != [LS.COL_AV] * 16, f"latched, Shift: steps 1-16 yellow; without Shift not ({[hex(x) for x in y1]}, {[hex(x) for x in y2]})")
-    e.ifc.clear(); e.pad(2, shift=True); n2, u2 = notes(rec(2)); l2 = e.pads()
+    if held:
+        check(LS.COL_AV not in y1 and LS.COL_HELD not in y1, f"latched, Shift, nothing held: no yellow, no cyan step ({[hex(x) for x in y1]})")
+        e.ifc.clear(); e.pad(2, shift=True, up=False)
+        h1, h2 = frame(True), frame(False)
+        check(h1[2] == LS.COL_HELD and h2[2] == LS.COL_HELD and all(h1[i] != LS.COL_HELD for i in range(16) if i != 2),
+              f"Shift + step 3 held: step 3 cyan with and without Shift, the others not ({[hex(x) for x in h1]})")
+        e.unpad(2); h3 = frame(False)
+        check(h3[2] != LS.COL_HELD, f"step 3 released: not cyan ({h3[2]:#x})")
+    else:
+        check(y1 == [LS.COL_AV] * 16 and y2 != [LS.COL_AV] * 16, f"latched, Shift: steps 1-16 yellow; without Shift not ({[hex(x) for x in y1]}, {[hex(x) for x in y2]})")
+        e.ifc.clear(); e.pad(2, shift=True)
+    n2, u2 = notes(rec(2)); l2 = e.pads()
     check(n2 == [62, 67] and all(u[1:] == (LS.GATE, 0, LS.VEL) for u in u2), f"Shift + step 3: 62 and 67 written ({u2})")
     check(l2[2] != l0[2], f"step 3 lit as a step with notes ({l0[2]:#x} -> {l2[2]:#x})")
     e.pad(0, shift=True); n0, _ = notes(rec(0))
@@ -62,4 +74,4 @@ def main(img, man):
 
 
 if __name__ == "__main__":
-    sys.exit(1 if main(Path(sys.argv[1]).read_bytes(), json.loads(Path(sys.argv[2]).read_text())) else 0)
+    sys.exit(1 if main(Path(sys.argv[1]).read_bytes(), json.loads(Path(sys.argv[2]).read_text()), "--heldcue" in sys.argv) else 0)

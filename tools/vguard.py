@@ -62,6 +62,17 @@ HOLD_BLK, HOLD_MS = 48, 16                                    # written every HO
 DSP_WRITE = 0x080292F8
 
 
+C1LATE = False                                                # use_c1late
+C1_X, C1_RAM = 0x3FE8, MX.MXR + 0x2270                        # (C1LATE) core 0's copy of core 1's late blocks (granular_dsp.FLATE_X); the last one seen
+
+
+def use_c1late():
+    """SC51.4 (granular_dsp.use_fmc1: the FM voices on core 1): with core 1 late since the last reading (a block came before it had made every FM
+    voice) the margin counts as under SHED_AT: one voice freed (at most one every GAP ms).  One more DSP read every SAMPLE_MS ms while voices sound."""
+    global C1LATE
+    C1LATE = True
+
+
 def use_hold():
     """SC48.6 / Beta 3.43: the stock's DSP-time voice steal of Synth 1 / 2 held while our voices sound (see the docstring)."""
     global HOLD
@@ -110,11 +121,17 @@ def arm_code(base, L, prev):
         for k in range(2):
             E(movs_imm, 0, 0); E(movw, 1, HOLD_BLK << 8); E(movw, 2, STEAL_CNT + k); E(bl, DSP_WRITE)
         a.label("vh_x")
+    if C1LATE:                                                                          # r8 = core 1's late blocks since the last reading
+        rd_dsp(C1_X); E(lsrs_imm, 0, 0, 8); imm32(1, C1_RAM); E(ldr_imm, 2, 1, 0); E(str_imm, 0, 1, 0); E(subs_reg, 0, 0, 2)
+        E(cmp_imm, 0, 255); E(b_cond, "vc1_k", "ls"); E(movs_imm, 0, 0)                  # (the RAM's first reading, not signed: no step)
+        a.label("vc1_k"); E(raw, h(0x4680))                                              # mov r8, r0
     rd_dsp(Y_ISR); E(lsrs_imm, 6, 0, 8)
     rd_dsp(Y_BLK); E(lsrs_imm, 7, 0, 8)
     E(subs_reg, 0, 7, 6); E(lsls_imm, 0, 0, 22); E(lsrs_imm, 0, 0, 22); E(str_imm, 0, 4, O_M)      # r0 = the margin (10 bits)
     E(movw, 1, DRY); E(cmp_reg, 0, 1); E(b_cond, "vm_d", "ls"); E(movs_imm, 0, 0)                   # the ring ran dry: 0
-    a.label("vm_d"); E(cmp_imm, 0, SHED_AT); bc("vg_x", "hs")
+    a.label("vm_d")
+    if C1LATE: E(raw, h(0x4641)); E(cmp_imm, 1, 0); E(b_cond, "vm_c", "eq"); E(movs_imm, 0, SHED_AT - 1); a.label("vm_c")   # mov r1, r8
+    E(cmp_imm, 0, SHED_AT); bc("vg_x", "hs")
     E(ldr_imm, 1, 4, O_SHED); E(subs_reg, 1, 5, 1)                                     # r1 = since the last voice freed
     E(cmp_imm, 0, EMERG_AT); E(b_cond, "vm_g", "hs")
     E(cmp_imm, 1, GAP_E); bc("vg_x", "lo"); E(b, "vm_go")

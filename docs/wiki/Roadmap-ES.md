@@ -57,6 +57,9 @@ Nada de esto está decidido: los comentarios son bienvenidos en [Discussions](ht
 - **MIDI para lo que aún no lo tiene:** la matriz de modulación, el FM, el modo de voz y los destinos de la página 4 por NRPN, para controlarlos desde un DAW.
 - **Instantáneas por escena** de los knobs de Master FX, que vuelvan con la escena.
 
+### Sonido
+- **Importar wavetables externas:** ficheros de wavetable hechos en el ordenador (fotogramas de 2048 muestras, el formato de los sintes de wavetable por software más comunes) cargados en un pack con la app de la tarjeta, para el futuro oscilador de wavetables del sinte de MIDI 1 / 2.
+
 ### Reordenar los datos guardados
 - **Un solo sitio para el sinte de MIDI 1 / 2:** el proyecto. Hoy sus valores están en los ajustes del aparato (los mismos para todos los proyectos) y, en la beta, también en el proyecto; los ajustes del aparato solo darían el sonido inicial de un proyecto nuevo.
 - **Ajustes del patrón que viajen con el patrón:** el arpegiador (encendido, orden, resolución) se guarda en el proyecto por número de patrón, así que duplicar un patrón no lo copia. Podría ir dentro del propio patrón.

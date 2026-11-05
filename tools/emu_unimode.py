@@ -112,7 +112,7 @@ def main(img, man):
     dts = [s16(dsp.get(rec(0, v, P.O_DTW), 0)) for v in range(6)]
     want = [h * (2 * v - 5) // 5 if 2 * v - 5 >= 0 else -((h * (5 - 2 * v)) // 5) for v in range(6)]
     fmb = [dsp.get(rec(0, v, VD.PV_FMB)) for v in range(6)]
-    check(notes(6) == [60] * 6 and dts == want and fmb == VD.FV_ADDRS, f"FM in unison: six voices on the note, the offsets {dts} ({want}), their blocks {[hex(x) for x in fmb]}")
+    check(notes(6) == [60] * 6 and dts == want and fmb == VD.FV_ADDRS[:6], f"FM in unison: six voices on the note, the offsets {dts} ({want}), their blocks {[hex(x) for x in fmb]}")
     off(60); tick(2)
     del e; gc.collect()
     print(f"{man.get('marker', '?')} UNIMODE ARM RESULT:", "ALL PASS" if fails == 0 else f"{fails} FAILURES")

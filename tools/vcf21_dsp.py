@@ -378,6 +378,42 @@ def use_poly6():
     assert PV_REC0 + 2 * PV_RS * PV_N <= FV_ADDRS[5] and FV_ADDRS[5] + 48 <= PV_SCR
 
 
+FMC1 = False                                    # SC51.4 (use_fmc1)
+FC1_MARK = 0x5A0F5A                             # (FMC1) core 0 writes it into a slot's phases, smoothed AMPs and y[n - 2] after each block: another value = the ARM wrote
+
+
+def use_fmc1():
+    """SC51.4 (the user, 2026-11-04: «amplía el número de voces ahora»; granular_dsp.use_fmc1): the FM voices on DSP core 1.  The FM slots' operator
+    blocks together at X:$4000 (free: S494D2): 12 poly voices (6 a track: poly.use_v10) at X:$4000 + 48 s and the two tracks' own after them
+    (FMB0 = $4240).  Core 0's FM loop becomes a copy (fmb): the ARM's writes to a slot's state words (a phase, the smoothed AMP, y[n - 2]: a note's
+    start) seen against FC1_MARK step a reset count (its + 36), its stamp (+ 12, = CNT) and age (+ 24: blocks in a row, to 2); the increment, the
+    stamp, the reset count and the four operators' R, AMP, K, M1-M4, feedback's half go to the shared slot (granular_dsp.SHF + its offset); its
+    32 samples come from OUTF[RDOFS] + the offset once its age is 2 (core 1 is two blocks behind), zeros before."""
+    global FMC1, FV_ADDRS, FV0, FMB0
+    assert POLY6 and FMCOMPACT and FMORDER and FMSINE and FMSMOOTH and FBAVG and FMWIDE
+    FMC1 = True
+    FV0 = 0x4000
+    FV_ADDRS = [FV0 + 48 * s_ for s_ in range(12)]
+    FMB0 = FV0 + 12 * 48
+
+
+FM8 = False                                     # (use_fm8)
+F8_M, F8_AS, F8_O2, F8_HC, F8_N = 5, 13, 14, 15, 64     # (FM8) an operator's words on core 0 (16 each): + 0 OUT, + 1 PH, + 2 R, + 3 AMP, + 4 K, + 5..12 M1-M8,
+                                                #   + 13 AS, + 14 O2, + 15 HC; the slot's + 64 (operator 5's OUT) = N, the operators the algorithm uses (0 = 4)
+
+
+def use_fm8():
+    """The 8-operator FM (granular_dsp.use_fm8): a slot = 8 operators of 16 words on core 0 too, X:$4000 + 128 s (12 poly voices) and the tracks'
+    own at FMB0 + 128 t ($4600, $4680: X $4000-$46FF, free on core 0 to $5FFF).  fmb: the reset check on the N operators, the stamp (+ 16), the age
+    (+ 32), the reset count (+ 48) as before, then the shared slot = the increment, stamp, reset count, N, and for each of the N operators R, AMP, K,
+    M1..M_N, HC at + 4 + 12 k (+ 11 = HC); N = 0 (a slot the ARM never gave one) = 4."""
+    global FM8, FV_ADDRS, FMB0
+    assert FMC1
+    FM8 = True
+    FV_ADDRS = [FV0 + 128 * s_ for s_ in range(12)]
+    FMB0 = FV0 + 12 * 128
+
+
 def use_poly3():
     """SC47.4 (the user, 2026-10-26: «add polyphony to the remaing voices»; «FM: 4 voces en total»): FM polyphonic too.  Each FM voice has its own
     four operator blocks (X:FV0 + 48 s, the ARM's slot s: the phases, outputs, smoothed AMP, y[n - 2] stay there, no exchange) which the ARM fills
@@ -491,6 +527,41 @@ def use_lfoshape2():
 
 GENTAB = False                                  # SC49.7 (gentab.py): TINC built at DSP start at GEN_TINC; the program keeps its top octave (TINC_S)
 GEN_TINC = 0x3ECE                               # (GENTAB) 129 words, past the program's end (gentab.GEN_TINC)
+XTABS = set()                                   # (gentab.use_xtab) the generated tables read from core 0's X instead of P (TINC, TLFO)
+RATIO2 = False                                  # SC52.2 (use_ratio2)
+
+
+def use_ratio2():
+    """SC52.2 (the user, 2026-11-05: «haz que la afinación gruesa de osc2 haga ratios de osc1 y la fina, detune»): OSC 2's TUNE word (code 32) is
+    in 1/256 semitone (the ARM sends 12 log2(ratio) x 256, vcf21.use_ratio2); at the OSC 2 call of the oscillator subroutine a = note + W / 256 - W
+    (the fraction in a0), so the subroutine's 'add TUNE, asl #16' gives (note + W / 256) << 16 exactly.  FINE (1/128 semitone, +-50 cents) = the
+    detune, as before."""
+    global RATIO2
+    assert OSCSUB and DUAL
+    RATIO2 = True
+
+
+WT = False                                      # (use_wavetable)
+WT_N, WT_B = 39, 43                             # (WT) words of the OSC2 block (free in every mode), the ARM's: the table's frames (0 = the oscillator), its Y base
+WT_A, WT_B2, WT_W, WT_K, WT_S1, WT_S2 = 28, 29, 30, 31, 32, 33   # (WT) words of each oscillator block (the supersaw's phases: no supersaw in the
+                                                # wavetable): frame A's address at the level, frame B's, B's weight, the warp's knee, its two slopes / 16
+WT_F, WT_RS, WT_WS = 0x5200, 0x5201, 0x5202     # (WT) X of core 0: the voice's frames (0 = the waves), r4 and the weight kept around a sample
+WT_FRAME, WT_LEVEL = 0x4800, 0x400              # (WT) a frame = 18 levels of 1024 words (the Nova tables' layout); level L keeps WT_H[L] harmonics
+WT_H = (256, 256, 256, 192, 128, 96, 64, 48, 32, 24, 16, 12, 8, 6, 4, 3, 2, 1)
+
+
+def use_wavetable():
+    """The wavetable engine (the user, 2026-11-05: «Select wavetables in engine mode. Knob layout on osc1 and osc2 views»; one table per patch,
+    up to 9 frames, both oscillators, each its own position): the oscillator (ACT = 2) with the ARM's OSC2 + WT_N = the frames of the track's
+    table at Y:OSC2 + WT_B (external, 1024-aligned; frame f level L at + f $4800 + L $400, the Nova tables' layout).  Per block (osc_ctrl, each
+    oscillator): the morph position q (WAVE + LFO / env -> morph, as the waves' morph) x (frames - 1) = i + f: frame i, frame i + 1 at weight f;
+    the level = the first from 2 whose harmonics stay under Nyquist at the increment (inc <= 2^23 / WT_H[L]); the shape s = (m + 1) / 2 (SHAPE +
+    env / LFO -> shape, the supersaw's word) -> the warp's knee K = 0.95 - 0.9 s and its slopes 1/32 / K, 1/32 / (1 - K).  Per sample (the head
+    of the waves' subroutine): u = (phase + 1) / 2 bent through (K, 0.5), the two frames read with linear interpolation (m4 = $3FF: the frame's
+    1024 words wrap), mixed by f, half scale (the waves' level).  Needs SUPERSAW (the waves' subroutine and its shape word) and gentab.use_xtab."""
+    global WT
+    assert SUPERSAW and DUAL and OSCSUB and XTABS
+    WT = True
 GRAN = False                                    # SC36: the granular engine of DSP core 1 (granular_dsp): DFLAGS bit 4 (ACT bit 12) = this voice plays OUT instead of the oscillator; GNEW counted for core 1
 GATEREL = False                                  # SC23.3: release 0 = a ~2 ms release (a basic gate); see use_gaterel
 GATE_RKC = None                                  # set by use_gaterel: the release coefficient per block
@@ -568,6 +639,7 @@ q24 = D1.q24
 
 def code(base, tabs, premix, ret_old):
     tinc = GEN_TINC if GENTAB else "TINC"                                         # (GENTAB) the generated table's fixed address
+    ts = "x" if "TINC" in XTABS else "p"                                          # (gentab.use_xtab) TINC in X
     """tabs: P addresses of TATK, TDEC, TLFO, TF (drums2_dsp); premix / ret_old: where vpre / vret continue (SC10's premix, the old operand of the P:$D21 chain)."""
     a = D.Asm(base)
     L = a.label
@@ -575,7 +647,7 @@ def code(base, tabs, premix, ret_old):
         for l in lines: a.emit(T(short_imm(l) if SHORTIMM else l))
     def X(off): return "x:(r6+$%x)" % off
     def ld_tab(name, idx_reg, dst):           # dst = TABLE[idx_reg] (idx_reg is a or b, clobbered; uses r0)
-        e("add #>$%x,%s" % (tabs[name], idx_reg), "move %s,r0" % idx_reg); a.emit(D.NOP); e("move p:(r0),%s" % dst)
+        e("add #>$%x,%s" % (tabs[name], idx_reg), "move %s,r0" % idx_reg); a.emit(D.NOP); e("move %s:(r0),%s" % ("x" if name in XTABS else "p", dst))
     def ld(addr, reg): e("move x:>$%x,%s" % (addr, reg))
     def st(reg, addr): e("move %s,x:>$%x" % (reg, addr))
 
@@ -874,7 +946,7 @@ def code(base, tabs, premix, ret_old):
                 L(p + "s1" + lab); e("cmp #>$7effff,a"); a.emit(J("le"), p + "s2" + lab); e("move #>$7effff,a")
                 L(p + "s2" + lab); e("move a1,x1", "move x1,b", "asr #16,b,b")
                 e("move x1,a", "and #>$ffff,a", "asl #7,a,a", "move a,y1")
-                a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
+                a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move %s:(r0)+,x0" % ts, "move %s:(r0),y0" % ts)
                 e("move y0,a", "sub x0,a", "move a,y0", "mpy y1,y0,a", "move x0,b", "add a,b", "move b1,%s" % ox(OW, inc_off))
                 # the shape m = (PW - 50) / 50 + ENVW x ENV + LFOW x LV (saturating); fold drive / 8 = 0.125 + 0.86 max(m, 0); saw slope m; pulse threshold 0.94 m
                 e("move %s,a" % ox(OW, 3), "sub #>50,a", "asl #17,a,a", "move a,x0", "move #>$51eb85,y0", "mpy y0,x0,a", "asl a")
@@ -902,7 +974,26 @@ def code(base, tabs, premix, ret_old):
                 modterm(9, X(LV), 0x7fffff); e("add b,a")
                 e("tst a"); a.emit(J("ge"), p + "m1" + lab); e("clr a")
                 L(p + "m1" + lab); e("cmp #>$7fffff,a"); a.emit(J("le"), p + "m2" + lab); e("move #>$7fffff,a")
-                L(p + "m2" + lab); e("asr #2,a,a", "tfr a,b", "asl a", "add b,a")              # a = 3 q / 4 (22 bits)
+                L(p + "m2" + lab)
+                if WT:                                                                # the track's table: frames, level, the warp
+                    W2 = OS2B0 - OSB0
+                    e("move x:(r3+%d),b" % (W2 + WT_N), "move b,x:>$%x" % WT_F, "tst b"); a.emit(J("eq"), p + "nw" + lab)
+                    e("sub #>1,b", "move a,x0", "move b1,y0", "mpy y0,x0,a")                        # a1 = i, a0 = 2 f (q (n - 1))
+                    e("move a0,b", "lsr #1,b", "move b1,%s" % ox(OW, WT_W))                          # frame i + 1's weight
+                    e("move a1,b", "move b1,y1", "asl #11,b,b", "move b1,x0", "asl #3,b,b", "add x0,b")   # i x $4800
+                    e("move x:(r3+%d),x0" % (W2 + WT_B), "add x0,b", "add #>$%x,b" % (2 * WT_LEVEL), "move %s,a" % ox(OW, inc_off))
+                    a.emit(lambda t: [0x60F400, t + 2 if isinstance(t, int) else 0], "wt_tab"); a.emit(D.NOP)     # move #>wtt + 2,r0
+                    L(p + "lv" + lab); e("move p:(r0)+,x0", "cmp x0,a"); a.emit(J("le"), p + "lvd" + lab)
+                    e("add #>$%x,b" % WT_LEVEL); a.emit(J("al"), p + "lv" + lab)
+                    L(p + "lvd" + lab); e("move b1,%s" % ox(OW, WT_A), "move y1,a", "cmp y0,a"); a.emit(J("ge"), p + "wl" + lab)
+                    e("add #>$%x,b" % WT_FRAME)
+                    L(p + "wl" + lab); e("move b1,%s" % ox(OW, WT_B2))
+                    e("move %s,x0" % ox(OW, SS_W), "move #>$733333,y0", "mpy y0,x0,a", "move #>$79999a,b", "sub a,b", "move b1,%s" % ox(OW, WT_K))   # K
+                    e("move b1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S1))
+                    e("move #>$7fffff,a", "sub x0,a", "move a1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S2))
+                    a.emit(J("al"), p + "we" + lab)
+                    L(p + "nw" + lab)
+                e("asr #2,a,a", "tfr a,b", "asl a", "add b,a")              # a = 3 q / 4 (22 bits)
                 e("move a1,b", "and #>$1fffff,b", "asl #2,b,b", "move b1,y1", "asr #21,a,b")        # y1 = f (23 bit), b1 = i
                 e("clr a", "move a,%s" % ox(OW, 15), "move a,%s" % ox(OW, 16), "move a,%s" % ox(OW, 17), "move a,%s" % ox(OW, 18))
                 e("move %s,a" % OW, "add #>15,a", "add b,a", "move a,r0"); a.emit(D.NOP)
@@ -910,6 +1001,7 @@ def code(base, tabs, premix, ret_old):
                 if SUPERSAW:                                                              # the saw's weight w: the centre w (1 - s / 2) / 2, each side w s / 16
                     e("move %s,x0" % ox(OW, SS_W), "move %s,y0" % ox(OW, 17), "mpy y0,x0,b", "move y0,a", "asr b", "sub b,a", "asr a", "move a,%s" % ox(OW, 17),
                       "asr #3,b,b", "move b,%s" % ox(OW, SS_W))
+                if WT: L(p + "we" + lab)
             if OSCSUB and POLY:                                                       # (POLY) the set-up in the subroutine too: osc0 = OSC1 with the note at r2 + PV_NOTE
                 e("lua (r6-%d),r2" % (PV_NOTE - NOTE)); a.emit(lambda t: [0x0BF080, t], p + "osc0")          # one voice: r2 + PV_NOTE = X(NOTE)
                 subs.append(lambda: (L(p + "osc0"), e("move #>$ffffff,m4", "move r3,r4", "move #11,n4", "move x:(r2+%d),a" % PV_NOTE),
@@ -921,7 +1013,10 @@ def code(base, tabs, premix, ret_old):
             if DUAL:                                                                  # the second oscillator: its pitch (own note, tune, fine; the shared vibrato / envelope), shape, morph, and the interaction amounts
                 e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("eq"), p + "oi")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
-                if OSCSUB: e("move #19,n4", "move x:(r3+%d),a" % NOTE2_OFF); a.emit(lambda t: [0x0BF080, t], p + "osc")
+                if OSCSUB:
+                    e("move #19,n4", "move x:(r3+%d),a" % NOTE2_OFF)
+                    if RATIO2: e("asl #16,a,a", "move x:(r4),b", "asl #8,b,b", "add b,a", "asl #8,b,b", "sub b,a", "asr #16,a,a")   # note + W / 256 - W (the ratio)
+                    a.emit(lambda t: [0x0BF080, t], p + "osc")
                 else: osc_ctrl("r4", "x:(r3+%d)" % NOTE2_OFF, "b", 19)
                 e("move x:(r4+20),a", "tst a"); a.emit(J("eq"), p + "i2p")                  # the signed increment: the direction flag (soft sync) reverses it
                 e("move x:(r4+19),a", "neg a", "move a,x:(r4+11)"); a.emit(J("al"), p + "i2d")
@@ -948,7 +1043,7 @@ def code(base, tabs, premix, ret_old):
             L(p + "s1"); e("cmp #>$7effff,a"); a.emit(J("le"), p + "s2"); e("move #>$7effff,a")
             L(p + "s2"); e("move a1,x1", "move x1,b", "asr #16,b,b")              # b = the note index
             e("move x1,a", "and #>$ffff,a", "asl #7,a,a", "move a,y1")           # y1 = the fraction (23 bit)
-            a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move p:(r0)+,x0", "move p:(r0),y0")
+            a.emit(lambda x: T("add #>$%x,b" % x), tinc); e("move b,r0"); a.emit(D.NOP); e("move %s:(r0)+,x0" % ts, "move %s:(r0),y0" % ts)
             e("move y0,a", "sub x0,a", "move a,y0", "mpy y1,y0,a", "move x0,b", "add a,b", "move b1,x:(r3+9)")
             # the shape m (24 bit fraction, saturating) and what each waveform needs from it: sine / triangle: the fold drive / 8 = 0.125 + 0.86 max(m, 0); saw: m; pulse: the threshold 0.94 m
             e("move x:(r3+3),a", "sub #>64,a", "asl #17,a,a")
@@ -966,7 +1061,7 @@ def code(base, tabs, premix, ret_old):
             e("move r6,a", "sub #>%d,a" % (VB0 - OSB0), "move a,r3"); a.emit(D.NOP)
             e("move %s,a" % X(NOTE), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "o1"); e("clr a")
             L(p + "o1"); e("cmp #>127,a"); a.emit(J("le"), p + "o2"); e("move #>127,a")
-            L(p + "o2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r0"); a.emit(D.NOP); e("move p:(r0),x1")
+            L(p + "o2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r0"); a.emit(D.NOP); e("move %s:(r0),x1" % ts)
             e("move x:(r3+1),a", "asl #17,a,a", "move a,y0", "mpy x1,y0,b", "asr #5,b,b")
             e("move x:(r3+4),a", "asl #17,a,a", "move a,y0", "move %s,x0" % X(LV), "mpy x0,y0,a", "move a,y0", "mpy x1,y0,a", "asr #4,a,a", "add a,b")
             e("move x1,a", "add b,a", "move a1,x:(r3+6)")
@@ -1041,7 +1136,7 @@ def code(base, tabs, premix, ret_old):
                 e("move x:(r3+%d),a" % SM_ON, "tst a"); a.emit(J("eq"), p + "smz")
                 e("move %s,a" % ("x:(r2+%d)" % PV_NOTE if POLY else X(NOTE)), "move x:(r3),x0", "add x0,a", "tst a"); a.emit(J("ge"), p + "sm1"); e("clr a")
                 L(p + "sm1"); e("cmp #>127,a"); a.emit(J("le"), p + "sm2"); e("move #>127,a")
-                L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r4"); a.emit(D.NOP); e("move p:(r4),x0")
+                L(p + "sm2"); a.emit(lambda x: T("add #>$%x,a" % x), tinc); e("move a,r4"); a.emit(D.NOP); e("move %s:(r4),x0" % ts)
                 e("move #>$%x,y0" % y0k, "mpy y0,x0,a")                                     # a1 = the ratio in 9.15
                 e("move a1,b", "asr #15,b,b", "move b1,n4", "and #>$7fff,a", "asl #8,a,a", "move a1,y1")   # n4 = its integer part, y1 = the fraction (1.23)
                 if SMST2:                                                                 # the furthest position of the block: the left's end, then (stereo) the right's
@@ -1164,12 +1259,114 @@ def code(base, tabs, premix, ret_old):
             if DUAL:
                 if not POLY: a.emit(J("al"), p + "o3f")
                 if SUPERSAW:
-                    L(p + "wv"); waves("r4"); a.emit(D.RTS)
+                    L(p + "wv")
+                    if WT: e("move x:>$%x,b" % WT_F, "tst b"); a.emit(J("ne"), p + "wtv")
+                    waves("r4"); a.emit(D.RTS)
+                if WT:                                                                    # ---- the wavetable sample (OW = r4, x1 = the phase): a += it
+                    L(p + "wtv"); e("move x1,b", "asr b", "add #>$400000,b", "move x:(r4+%d),x0" % WT_K, "cmp x0,b"); a.emit(J("ge"), p + "wt2")
+                    e("move b1,y0", "move x:(r4+%d),x0" % WT_S1, "mpy y0,x0,b", "asl #4,b,b"); a.emit(J("al"), p + "wt3")
+                    L(p + "wt2"); e("sub x0,b", "move b1,y0", "move x:(r4+%d),x0" % WT_S2, "mpy y0,x0,b", "asl #4,b,b", "add #>$400000,b")
+                    L(p + "wt3"); e("move b,x1", "move x1,b", "lsr #13,b", "move b1,x0")                           # u' (limited below 1), the index
+                    e("move x1,b", "and #>$1fff,b", "asl #10,b,b", "move b1,y1")                                     # y1 = the fraction
+                    e("move x:(r4+%d),y0" % WT_W, "move y0,x:>$%x" % WT_WS)
+                    e("move x:(r4+%d),b" % WT_B2, "add x0,b", "move b1,x1", "move x:(r4+%d),b" % WT_A, "add x0,b")
+                    e("move r4,x:>$%x" % WT_RS, "move #>$3ff,m4", "move b1,r4"); a.emit(D.NOP)
+                    e("move y:(r4)+,x0", "move y:(r4),b", "sub x0,b", "move b,y0", "move x0,b", "mac y1,y0,b")      # frame i
+                    e("move x1,r4", "move b,x1"); a.emit(D.NOP)
+                    e("move y:(r4)+,x0", "move y:(r4),b", "sub x0,b", "move b,y0", "move x0,b", "mac y1,y0,b")      # frame i + 1
+                    e("sub x1,b", "move b,y0", "move x:>$%x,x0" % WT_WS, "mpy y0,x0,b", "add x1,b", "asr b", "add b,a")
+                    e("move x:>$%x,r4" % WT_RS, "move #>$ffffff,m4"); a.emit(D.RTS)
+                    L("wt_tab"); [a.emit([min(0x7fffff, (1 << 23) // h_)]) for h_ in WT_H]                 # the levels' increment limits (data)
                 if BLEP:                                                                  # bs: a += -sgn(y0) y1 r^2, r = (b - 1) / x0 (b = |u| + inc >= 1); keeps x0, x1, y1
                     L(p + "bs"); e("bclr #23,b1", "andi #$fe,ccr", "rep #24", "div x0,b", "btst #23,y0", "move b0,y0", "mpy y0,y0,b", "move b,y0")
                     a.emit(lambda t: [0x0AF0A8, t], p + "bln"); e("mac -y1,y0,a"); a.emit(D.RTS)       # jcs: u < 0
                     L(p + "bln"); e("mac y1,y0,a"); a.emit(D.RTS)
-                if FM and FMCOMPACT:                                                  # ---- the FM voice, compact (r2 = the operator, r4 / n4 = the outputs, r3 = OSC1)
+                if FM and FMCOMPACT and FMC1 and FM8:                                 # ---- (FM8) the FM voice on core 1, N of 8 operators
+                    import granular_dsp as GD
+                    S8 = 16
+                    L(p + "fm")
+                    e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                    e("move r6,b", "move #>$%x,x0" % VB0, "sub x0,b", "move #>$%x,a" % FMB0, "move #>$%x,x1" % (FMB0 + 8 * S8), "tst b", "tne x1,a")   # the track's: FMB0 + 128 t
+                    a.emit(lambda t: [0x0BF080, t], p + "fmb"); a.emit(J("al"), p + "o3f")
+                    L(p + "fmb")                                                      # a = the slot's operator blocks (X), r0 / n0 = the output
+                    e("move a,r2", "move a,r4", "move #>$ffffff,m2", "move #>$ffffff,m4", "move #>$%x,x0" % FC1_MARK, "clr b", "move #>1,y1", "move #%d,n2" % S8)
+                    e("move x:(r2+%d),a" % F8_N, "move #>4,x1", "tst a", "teq x1,a", "move a1,x1")      # x1 = N
+                    a.emit(lambda t: T("do x1,$%x" % (t + 1)), p + "c1r")             # the ARM wrote a state word?  then marked again
+                    e("move x:(r2+%d),a" % F_PH, "cmp x0,a", "tne y1,b", "move x:(r2+%d),a" % F8_AS, "cmp x0,a", "tne y1,b", "move x:(r2+%d),a" % F8_O2, "cmp x0,a", "tne y1,b",
+                      "move x0,x:(r2+%d)" % F_PH, "move x0,x:(r2+%d)" % F8_AS, "move x0,x:(r2+%d)" % F8_O2)
+                    L(p + "c1r"); e("move (r2)+n2")
+                    e("move r4,r2", "tst b"); a.emit(J("eq"), p + "c1n")
+                    e("move x:(r2+%d),a" % (3 * S8), "add #1,a", "move a1,x:(r2+%d)" % (3 * S8))
+                    L(p + "c1n")                                                      # the stamp (+ 16) and the age (+ 32)
+                    e("move x:>$%x,b" % GD.CNT, "move x:(r2+%d),a" % S8, "add #1,a", "cmp b,a", "move b1,x:(r2+%d)" % S8, "move x:(r2+%d),a" % (2 * S8))
+                    a.emit(J("eq"), p + "c1i"); e("clr a"); a.emit(J("al"), p + "c1w")
+                    L(p + "c1i"); e("cmp #2,a"); a.emit(J("ge"), p + "c1w"); e("add #1,a")
+                    L(p + "c1w"); e("move a1,x:(r2+%d)" % (2 * S8))
+                    e("move r2,a", "add #>$%x,a" % ((GD.SHF - FV0) & 0xFFFFFF), "move a1,r4")       # the shared slot: increment, stamp, resets, N, the parameters
+                    e("move x:(r3+11),x0", "move x0,x:(r4)+", "move x:(r2+%d),x0" % S8, "move x0,x:(r4)+", "move x:(r2+%d),x0" % (3 * S8), "move x0,x:(r4)+",
+                      "move x1,x:(r4)+")
+                    e("move x1,a", "add #3,a", "move a1,y0", "move #>10,a", "sub x1,a", "move a1,n2", "move #>8,a", "sub x1,a", "move a1,n4", "lua (r2+%d),r2" % F_R)                                  # (r2 = base + 16 N + 2 after)
+                    a.emit(lambda t: T("do x1,$%x" % (t + 1)), p + "c1o")             # N operators: R, AMP, K, M1..M_N; then HC at + 11
+                    a.emit(lambda t: T("do y0,$%x" % (t + 1)), p + "c1p")
+                    e("move x:(r2)+,x0"); L(p + "c1p"); e("move x0,x:(r4)+")
+                    e("move (r2)+n2", "move (r4)+n4", "move x:(r2)+,x0", "move x0,x:(r4)+")
+                    L(p + "c1o"); e("lua (r2+%d),r2" % F_R)
+                    e("move r2,a", "move x1,b", "asl #4,b,b", "add #%d,b" % F_R, "sub b,a", "move a1,r2")                                  # back to the slot's start
+                    e("move x:(r2+%d),a" % (2 * S8))
+                    e("cmp #2,a"); a.emit(J("lt"), p + "c1z")
+                    e("move r2,a", "add #>$%x,a" % ((GD.OUTF - FV0) & 0xFFFFFF), "move x:>$%x,b" % GD.RDOFS, "tst b"); a.emit(J("eq"), p + "c1q")
+                    e("add #>$%x,a" % (GD.FNS * GD.FBS))
+                    L(p + "c1q"); e("move a1,r4"); a.emit(D.NOP)
+                    a.emit(D.do_x, 0x3A, p + "c1s")
+                    e("move x:(r4)+,b")
+                    L(p + "c1s"); e("move b,%s:(r0)+n0" % sp)
+                    a.emit(J("al"), p + "c1f")
+                    L(p + "c1z"); e("clr b")
+                    a.emit(D.do_x, 0x3A, p + "c1y")
+                    L(p + "c1y"); e("move b,%s:(r0)+n0" % sp)
+                    L(p + "c1f"); e("move x:(r3+%d),x0" % NZ_OFF, "move x0,x:(r3+%d)" % VD_NL)
+                    a.emit(D.RTS)
+                elif FM and FMCOMPACT and FMC1:                                       # ---- (SC51.4) the FM voice on core 1: copy its slot, take its samples
+                    import granular_dsp as GD
+                    L(p + "fm")
+                    e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")
+                    e("move r6,a", "add #>$%x,a" % (FMB0 - VB0)); a.emit(lambda t: [0x0BF080, t], p + "fmb"); a.emit(J("al"), p + "o3f")
+                    L(p + "fmb")                                                      # a = the slot's operator blocks (X), r0 / n0 = the output
+                    e("move a,r2", "move #>$ffffff,m2", "move #>$ffffff,m4", "move #>$%x,x0" % FC1_MARK, "clr b", "move #>1,y1", "move #%d,n2" % FMS)
+                    a.emit(lambda t: [0x060480, t], p + "c1r")                        # do #4: the ARM wrote a state word?  then marked again
+                    e("move x:(r2+%d),a" % F_PH, "cmp x0,a", "tne y1,b", "move x:(r2+%d),a" % F_AS, "cmp x0,a", "tne y1,b", "move x:(r2+%d),a" % F_O2, "cmp x0,a", "tne y1,b",
+                      "move x0,x:(r2+%d)" % F_PH, "move x0,x:(r2+%d)" % F_AS, "move x0,x:(r2+%d)" % F_O2)
+                    L(p + "c1r"); e("move (r2)+n2")
+                    e("lua (r2-%d),r2" % (4 * FMS), "tst b"); a.emit(J("eq"), p + "c1n")
+                    e("move x:(r2+%d),a" % (3 * FMS), "add #1,a", "move a1,x:(r2+%d)" % (3 * FMS))
+                    L(p + "c1n")                                                      # the stamp (+ 12) and the age (+ 24)
+                    e("move x:>$%x,b" % GD.CNT, "move x:(r2+%d),a" % FMS, "add #1,a", "cmp b,a", "move b1,x:(r2+%d)" % FMS, "move x:(r2+%d),a" % (2 * FMS))
+                    a.emit(J("eq"), p + "c1i"); e("clr a"); a.emit(J("al"), p + "c1w")
+                    L(p + "c1i"); e("cmp #2,a"); a.emit(J("ge"), p + "c1w"); e("add #1,a")
+                    L(p + "c1w"); e("move a1,x:(r2+%d)" % (2 * FMS))
+                    e("move r2,a", "add #>$%x,a" % ((GD.SHF - FV0) & 0xFFFFFF), "move a1,r4")       # the shared slot: increment, stamp, resets, the parameters
+                    e("move x:(r3+11),x0", "move x0,x:(r4)+", "move x:(r2+%d),x0" % FMS, "move x0,x:(r4)+", "move x:(r2+%d),x0" % (3 * FMS), "move x0,x:(r4)+")
+                    e("lua (r2+%d),r2" % F_R)
+                    a.emit(lambda t: [0x060480, t], p + "c1o")                        # do #4
+                    a.emit(lambda t: [0x060780, t], p + "c1p")                        # do #7: R, AMP, K, M1-M4
+                    e("move x:(r2)+,x0"); L(p + "c1p"); e("move x0,x:(r4)+")
+                    e("move (r2)+", "move (r2)+", "move x:(r2)+,x0", "move x0,x:(r4)+")      # the feedback's half
+                    L(p + "c1o"); e("lua (r2+%d),r2" % F_R)
+                    e("lua (r2-%d),r2" % (4 * FMS + F_R), "move x:(r2+%d),a" % (2 * FMS))
+                    e("cmp #2,a"); a.emit(J("lt"), p + "c1z")
+                    e("move r2,a", "add #>$%x,a" % ((GD.OUTF - FV0) & 0xFFFFFF), "move x:>$%x,b" % GD.RDOFS, "tst b"); a.emit(J("eq"), p + "c1q")
+                    e("add #>$%x,a" % (GD.FNS * GD.FBS))
+                    L(p + "c1q"); e("move a1,r4"); a.emit(D.NOP)
+                    a.emit(D.do_x, 0x3A, p + "c1s")
+                    e("move x:(r4)+,b")
+                    L(p + "c1s"); e("move b,%s:(r0)+n0" % sp)
+                    a.emit(J("al"), p + "c1f")
+                    L(p + "c1z"); e("clr b")
+                    a.emit(D.do_x, 0x3A, p + "c1y")
+                    L(p + "c1y"); e("move b,%s:(r0)+n0" % sp)
+                    L(p + "c1f"); e("move x:(r3+%d),x0" % NZ_OFF, "move x0,x:(r3+%d)" % VD_NL)
+                    a.emit(D.RTS)
+                elif FM and FMCOMPACT:                                                # ---- the FM voice, compact (r2 = the operator, r4 / n4 = the outputs, r3 = OSC1)
                     L(p + "fm")
                     if POLY3:                                                         # the voices (pvl); one voice: fmb with the track's operator blocks
                         e("move x:(r6-%d),a" % (VB0 - OS2B0 - PV_OFF), "tst a", "move a1,r2"); a.emit(J("ne"), "pvl")

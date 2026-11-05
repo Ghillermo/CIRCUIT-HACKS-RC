@@ -128,11 +128,13 @@ def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 <
 def dests():
     """(code, page, index 0..15) of every code on the knob pages, the first place it appears (code 14 = the second note: not a value)"""
     rows = [V.KNOB_CODES, V.KNOB_CODES_B, V.KNOB_CODES_C, V.KNOB_CODES_D, V.KNOB_CODES_E]
+    order = list(rows)
+    if getattr(V, "KNOB_CODES_C_MX", None): order[2] = V.KNOB_CODES_C_MX     # (vcf21.use_osc2pg2) the destinations in the old order, the knob where it is now
     out, seen = [], set()
-    for pg, row in enumerate(rows):
+    for pg, row in enumerate(order):
         for i, c in enumerate(row):
             if c and c != 14 and c not in seen:
-                out.append((c, pg, i)); seen.add(c)
+                out.append((c, pg, rows[pg].index(c))); seen.add(c)
     return rows, out
 
 

@@ -1,6 +1,8 @@
 """SC49.7 DSP test (gentab): the core-0 tables built at DSP start, on the dsp56kEmu interpreter with the real core-0 program.
 
-    python tools/emu_gentab_dsp.py BUILD.bin manifest.json [PREVIOUS.bin PREVIOUS_manifest.json]
+    python tools/emu_gentab_dsp.py BUILD.bin manifest.json [PREVIOUS.bin PREVIOUS_manifest.json] [--xtab]
+  (--xtab: gentab.use_xtab's builds, TINC / TLFO in core 0's X: made by init3 at P:$111, after the stock's init P:$2779 zeroes X / Y $0-$5FFF;
+   the run = init2, P:$2779, init3, as at boot)
   * P:$10B calls init2; init2 = the tables, then sc_init (r0 = $2028 on return, as before);
   * P:GEN_<table>.. after init2 = gentab.tables()'s generated tables (the DSP's arithmetic modelled word for word), each within its bound of the
     exact table: TINC / TEXP 1 LSB (the top octave exact), TLFO / TF 0.1 %, TDEC 32 LSB (the top octave exact), TATK 0.01 %;
@@ -32,16 +34,24 @@ def main(img, man, prev=None, pman=None):
         print(("ok  : " if c else "FAIL: ") + m); fails += 0 if c else 1
     P = prog(img)
     dl = {k: int(v, 16) for k, v in man["report"]["sc16"]["dsp_labels"].items()}
-    at = {k: getattr(G, "GEN_" + k) for k in TABS}
+    if XTAB: G.use_xtab()
+    sp = {k: "x" if G.XTAB and k in ("TINC", "TLFO") else "p" for k in TABS}
+    at = {k: (G.XT_TINC if k == "TINC" else G.XT_TLFO) if sp[k] == "x" else getattr(G, "GEN_" + k) for k in TABS}
     n = {k: getattr(G, "N_" + k) for k in TABS}
     check(P[0x10B:0x10D] == D.jsr(dl["init2"]), f"P:$10B = jsr init2 (${dl['init2']:x})")
     check(len(P) <= G.GEN_TATK, f"the program ends at ${len(P):x}, before the tables (${G.GEN_TATK:x})")
-    res, ran = run(P + [0] * (0x4000 - len(P)), dl["init2"], dumps=[('p', at[k], n[k]) for k in TABS], regs_code=[], maxins=400_000)
+    if G.XTAB:                                                  # the boot's order: init2 (P:$10B), the stock's init that zeroes X / Y $0-$5FFF
+        check(P[0x111:0x113] == D.jsr(dl["init3"]), f"P:$111 = jsr init3 (${dl['init3']:x}), after the stock's init")   # (P:$2779), init3 (P:$111)
+        check(P[0x10F:0x111] == D.jsr(0x25DB) and P[0x25DE:0x25E0] == D.jsr(0x2779), "the stock's init P:$25DB -> P:$2779 (the clear) before P:$111")
+        res, ran = run(P + [0] * (0x4000 - len(P)), dl["init3"], mem=[("x", G.XT_TINC, [0x5A5A5A] * 0x200)],
+                       dumps=[(sp[k], at[k], n[k]) for k in TABS], regs_code=D.jsr(dl["init2"]) + D.jsr(0x2779), maxins=2_000_000)
+    else:
+        res, ran = run(P + [0] * (0x4000 - len(P)), dl["init2"], dumps=[(sp[k], at[k], n[k]) for k in TABS], regs_code=[], maxins=400_000)
     check('pc=00' in ran, f"init2 returns ({ran[:80]})")
     tabs = G.tables()
     for k in TABS:
         exact, model = tabs[k]
-        got = res[('p', at[k])]
+        got = res[(sp[k], at[k])]
         check(got == model, f"{k} as gentab.tables() models it ({sum(1 for a, b in zip(got, model) if a != b)} of {n[k]} words differ"
               + (f", first at {next(i for i, (a, b) in enumerate(zip(got, model)) if a != b)}: {got[next(i for i, (a, b) in enumerate(zip(got, model)) if a != b)]:#x} / "
                  f"{model[next(i for i, (a, b) in enumerate(zip(got, model)) if a != b)]:#x}" if got != model else "") + ")")
@@ -58,7 +68,10 @@ def main(img, man, prev=None, pman=None):
     return fails
 
 
+XTAB = False
+
 if __name__ == "__main__":
-    a = sys.argv[1:]
+    a = [x for x in sys.argv[1:] if x != "--xtab"]
+    XTAB = "--xtab" in sys.argv
     sys.exit(1 if main(Path(a[0]).read_bytes(), json.loads(Path(a[1]).read_text()), a[2] if len(a) > 2 else None,
                        json.loads(Path(a[3]).read_text()) if len(a) > 3 else None) else 0)

@@ -179,6 +179,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 - El mod baja el límite del heap y usa 236 B: estado de SC14 / SC16 (40 B), bloque de Master FX (196 B, con los valores volátiles del motor de las pistas MIDI). **Margen: 4 B.**
 - Además reutiliza bytes que el stock no usa: el final del registro de ajustes (75 B, guardado), los bytes reservados del proyecto (65 B, guardados), el búfer de LEDs ocioso de Master FX (84 B, copia de seguridad del editor de CC), bytes de relleno de objetos de vista (Preset de drums `+0x51..+0x53`, vista de packs) y bits de bytes de stock (`T0` de Vinyl, `S_JF`, el hueco 7).
 - Sin comprobar: la ITCM de 16 KB (`0x00000000`) y la SRAM de respaldo de 4 KB (`0x40024000`) podrían estar libres.
+- **SC51.7 / Beta 5.20 (FM de 8 operadores):** caché de escrituras al DSP `0x2004A400–0x2004C540`, motor `0x2004C600–0x2004D000`, guardado `0x2004D000–0x2004E468` (la imagen FM del proyecto, búferes, `KEEP` con los bytes propios de un banco durante una transferencia de Components); dentro de lo libre que midió S514D (`0x2004A3C0–0x2004FC00`).
+- **SC51.8 / Beta 5.21:** `ENGC` = `0x2004E480–0x2004E48F` (el motor de los 16 huecos de patches de la página: sus colores); flash: las listas, los 24 instrumentos (3 024 B, `fm8inst.table`) y lo demás en el hueco de `dspz` (siguiente libre `0x80690E4`, 1 625 B hasta su final); la imagen sigue en `0x6F97C`.
 
 ### CPU
 - No se ha medido el tiempo del ARM; no se han observado retrasos. Reglas para no cargarlo: trabajo acotado en el tick del servicio del DSP (y nunca tomar su semáforo), como mucho **un mensaje por voz cada 2 ms** al DSP (más un latido cada ~8 ms / ~1 s para que un mensaje perdido no deje una voz muda) y el envío MIDI desde la tarea de la interfaz se corta a 64 mensajes por pulsación.
@@ -190,6 +192,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 - **Datos internos:** libres y verificados X / Y:`$3339–$3BFF` y X:`$3D00–$3FFF`. Usados: X:`$3400–$37FF` (comb de los drums), `$38C0–$39FF` (registros guardados, bloques de los osciladores), `$3A00–$3BFF` (Master FX, drums, voces de las pistas MIDI), `$3D00–$3D24` (sampler, Glitch); Y:`$3A00–$3AFF` (entradas de línea, capturas de los retornos). La tabla de voces `X:$EB–$15A` es del stock y no se toca.
 - **CPU:** ≈ 166 000 instrucciones por bloque; SC19.9 (stock + Master FX + los drums nuevos) medía ≈ 54 200, así que el stock solo ronda las 48 000. Lo añadido después cuesta poco: dos voces de las pistas MIDI ≈ 2 700, VA-drum +626, lado del núcleo 0 del granular / Glitch 929, drums con todo encendido ≈ +10 000, cadena de Master FX 5 957; con todo apagado los ganchos cuestan unas decenas de instrucciones.
 - **Pila:** 15 niveles; el stock usa 6 y el mod no anida `jsr` / `do` nuevos encima (las pruebas comparan `SPMAX`).
+
+> **SC51.4 / Beta 5.17 (2026-11-04):** las voces FM en el núcleo 1: núcleo 1 en **2 038 de 2 048 palabras** (10 libres; el bloque más largo se empaqueta en el sitio del antiguo), X interna del núcleo 1 `$2B00-$2DAD`; núcleo 0 X `$4000-$42BF` (14 ranuras FM), X:$3FE8 (bloques tarde); memoria compartida `GB + 0x18..0x1C` y `GB + 0x800..0xFDF`; RAM `0x20049000-0x2004A3BF` (bloques de voz y caché de escrituras) y `MXR + 0x2270`; imagen `0x6FF70` (144 B libres). **CPU:** el núcleo 0 deja de calcular el FM (≈ 6 600 instrucciones por voz y bloque → ≈ 400: la copia y la recogida); el núcleo 1, ≈ 6 500 por voz (S513D: ≈ 10 voces, ≈ 8 con el granular). SPI: igual que SC51.3.
 
 ### Núcleo 1 (sin usar por el original, salvo un servicio de lecturas)
 - **Programa:** 2 048 palabras (SC35D.1). El stock carga 364: un bucle que sirve la lista de lecturas de la memoria externa que pide el núcleo 0. **Libres: 1 684.** El mod (granular + Glitch) llega a `$7C9`: **quedan 54**.
@@ -207,6 +211,7 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 - **Proyecto (fichero de sesión en la SD):** los 65 B reservados de los bloques de la sesión guardan drums, huecos de Master FX, fuente de los sintes y reverb / delay; quedan ≈ 7 bits.
 - **Ajustes del aparato:** los 75 B finales del registro guardan el motor de las pistas MIDI y el step-drummer; llenos.
 - **Pack en la SD:** RC0 escribe al guardar `PCM/NN_PCM.wav` (capturas usadas como drums), intercambia samples y borra packs; RC0.1 además copia samples y patches entre packs (`PCM/NN_*.wav`, `Patches/NN_PATCHBANK.cpb`); **RC0S / RC0.1S no escriben nada en la SD**. Los patrones del step-drummer y del secuenciador de efectos usan los carriles del patrón de stock (sin espacio nuevo).
+- **SC51.7 / Beta 5.20:** el FM de cada patch propio en una ranura extra del mismo banco (`4096 + 512 × (hueco & 7)`, 224 B; el banco hasta 8 KB, rellenado con registros vacíos 0xFF); el FM del proyecto en los bytes 8..39 de los ajustes de los patrones 0..7 de Synth 1 / 2 (512 B, 448 usados). La API de contenido no deja crear bancos 16 o más.
 - La flash NOR de 32 MB (samples, sesiones, actualizaciones) no se toca.
 
 ## Cómo se ha optimizado para que quepa más
@@ -267,6 +272,8 @@ Figures of **RC0** (= SC36.2) on the official firmware 1.2.1 (build 4486). They 
 - The mod lowers the heap limit and uses 236 B: SC14 / SC16 state (40 B), the Master FX block (196 B, with the volatile values of the MIDI track engine). **Margin: 4 B.**
 - It also reuses bytes stock does not use: the end of the settings record (75 B, saved), the reserved bytes of the project (65 B, saved), the idle Master FX LED buffer (84 B, backup of the CC editor), padding bytes of view objects (Drum Preset `+0x51..+0x53`, packs view) and bits of stock bytes (Vinyl `T0`, `S_JF`, slot 7).
 - Not checked: the 16 KB ITCM (`0x00000000`) and the 4 KB backup SRAM (`0x40024000`) may be free.
+- **SC51.7 / Beta 5.20 (8-operator FM):** DSP write cache `0x2004A400–0x2004C540`, engine `0x2004C600–0x2004D000`, storage `0x2004D000–0x2004E468` (the project's FM image, buffers, `KEEP` with a bank's own bytes during a Components transfer); inside the free RAM S514D measured (`0x2004A3C0–0x2004FC00`).
+- **SC51.8 / Beta 5.21:** `ENGC` = `0x2004E480–0x2004E48F` (the engine of the page's 16 patch slots: their colours); flash: the lists, the 24 instruments (3 024 B, `fm8inst.table`) and the rest in `dspz`'s gap (next free `0x80690E4`, 1 625 B to its end); the image stays at `0x6F97C`.
 
 ### CPU
 - ARM time has not been measured; no delays have been seen. Rules to keep it light: bounded work in the DSP service tick (and never taking its semaphore), at most **one message per voice every 2 ms** to the DSP (plus a heartbeat every ~8 ms / ~1 s so a lost message cannot leave a voice silent), and MIDI sent from the UI task is capped at 64 messages per press.
@@ -295,6 +302,7 @@ Figures of **RC0** (= SC36.2) on the official firmware 1.2.1 (build 4486). They 
 - **Project (session file on the SD card):** the 65 reserved bytes of the session blocks keep drums, Master FX slots, synth source and reverb / delay; ≈ 7 bits left.
 - **Device settings:** the last 75 B of the record keep the MIDI track engine and the step-drummer; full.
 - **Pack on the SD card:** on save RC0 writes `PCM/NN_PCM.wav` (captures used as drums), swaps samples and deletes packs; RC0.1 also copies samples and patches between packs (`PCM/NN_*.wav`, `Patches/NN_PATCHBANK.cpb`); **RC0S / RC0.1S write nothing to the SD card**. The step-drummer and FX sequencer patterns use the lanes of the stock pattern (no new space).
+- **SC51.7 / Beta 5.20:** each own patch's FM in an extra slot of the same bank (`4096 + 512 × (slot & 7)`, 224 B; the bank up to 8 KB, filled with empty 0xFF records); the project's FM in bytes 8..39 of the settings of Synth 1 / 2's patterns 0..7 (512 B, 448 used). The content API will not create banks 16 or above.
 - The 32 MB NOR flash (samples, sessions, updates) is never touched.
 
 ## How it was optimised to fit more

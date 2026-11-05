@@ -513,11 +513,24 @@ def use_wcache():
 WC6 = False                                                             # SC47.6 (use_wc6)
 
 
+WC12 = False                                                            # SC51.4 (use_wc12)
+
+
+def use_wc12():
+    """SC51.4 (vcf21_dsp.use_fmc1, poly.use_v10): the cache over the twelve FM slots and the tracks' own blocks (X:$4000.., 672 words) and the
+    records: 1008 words, moved to 0x20049400 (past poly's FVB)."""
+    global WC12, WC
+    assert WC6 and VD.FMC1
+    WC12 = True
+    WC = 0x20049400
+
+
 def wc_ranges():
     """(WC6) the cached ranges: (the first word, the words, the block size, the ARM-owned words' mask, the first index)."""
     r, i = [], 0
-    for base, ln, mod, mask in ((VD.FV0, 240, VD.FMS, FV_MASK), (VD.FV_ADDRS[5], 48, VD.FMS, FV_MASK), (VD.FMB0, 96, VD.FMS, FV_MASK),
-                                (VD.PV_REC0, 2 * VD.PV_N * VD.PV_RS, VD.PV_RS, REC_MASK)):
+    rs = (((VD.FV_ADDRS[0], 48 * len(VD.FV_ADDRS), VD.FMS, FV_MASK), (VD.FMB0, 96, VD.FMS, FV_MASK)) if WC12 else
+          ((VD.FV0, 240, VD.FMS, FV_MASK), (VD.FV_ADDRS[5], 48, VD.FMS, FV_MASK), (VD.FMB0, 96, VD.FMS, FV_MASK)))
+    for base, ln, mod, mask in rs + ((VD.PV_REC0, 2 * VD.PV_N * VD.PV_RS, VD.PV_RS, REC_MASK),):
         r.append((base, ln, mod, mask, i)); i += ln
     return r, i
 
@@ -1367,6 +1380,23 @@ def arm_code2(base, L, prev):
     return a.assemble(), T
 
 
+FM8 = False                                                             # (use_fm8)
+EXPORTS8 = ("c_fmtick", "c_fmnon", "c_fmknob", "c_fmkleds", "c_fmpad", "c_fmleds", "c_fmrel", "c_fmqsd", "c_fmvrst", "c_fmgath", "c_fmappl",
+            "c_fmact", "c_fmblk", "c_fmpg", "c_fmovk", "c_fmw", "c_fm8poly", "c_fmloud", "c_fmalg")
+
+
+def use_fm8():
+    """SC51.7 (the user, 2026-11-04: «use only the new FM and port the old patches», «Discard old FM»): the 4-operator engine's code goes; here (in
+    the hole) only a table of b.w trampolines, one per label the hooks and the other modules use (EXPORTS8), and the hooks as before.  fm8.install
+    (dspz.add, at the end: the code is too big for the hole) puts the 8-operator engine (fm8arm / fm8ui) in dspz's gap and points the trampolines
+    at it.  The block offsets the other modules read (vmode: B_P7; poly: B_DIRTY) follow fm8arm's layout."""
+    global FM8, B_P7, B_DIRTY
+    assert V2 and STARTER and WC12
+    import fm8arm as A
+    FM8 = True
+    B_P7, B_DIRTY = A.B_P7, A.B_DIRTY
+
+
 def install(img, report, base_addr):
     """The code at base_addr (hole.add); the heads: the DSP service chain, the note vtable, the macro handlers' slots 4 / 7, the template view's
     slots 0 / 7; p4dest's gather / apply calls in c_mpsave / c_mpload."""
@@ -1389,6 +1419,13 @@ def install(img, report, base_addr):
         L["c_rtoff"] = lab("retrig", "c_rtoff")
         if "c_mxzero" in report["modmx"]["labels"]: L["c_mxzero"] = lab("modmx", "c_mxzero")
         prev["rel"] = u(TP + 4) & ~1
+    if FM8:                                                             # the trampolines: b.w to itself until fm8.install points them
+        code = b""; labels = {}; T = {}
+        for i, k in enumerate(EXPORTS8):
+            at = base_addr + 4 * i
+            labels[k] = at; code += b_w(at, at)
+        report["fm8_L"] = {k: hex(v) for k, v in L.items()}
+    elif V2:
         (code, labels), T = arm_code2(base_addr, L, prev)
     else:
         (code, labels), T = arm_code(base_addr, L, prev)

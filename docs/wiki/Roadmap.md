@@ -57,6 +57,9 @@ None of these is decided: comments are welcome in [Discussions](https://github.c
 - **MIDI for what has none yet:** the mod matrix, FM, voice mode and page 4 destinations over NRPN, to control them from a DAW.
 - **Per-scene snapshots** of the Master FX knobs, recalled with the scene.
 
+### Sound
+- **Import external wavetables:** wavetable files made on a computer (2048-sample frames, the format of the common software wavetable synths) loaded through the card app into a pack, for the coming wavetable oscillator of the MIDI 1 / 2 synth.
+
 ### Re-arranging the saved data
 - **One home for the MIDI 1 / 2 synth:** the project. Today its values live in the device settings (the same for every project) and, in the Beta, also in the project; the device settings would only give the starting sound of a new project.
 - **Pattern settings that travel with the pattern:** the arpeggiator (on, order, rate) is saved in the project by pattern number, so duplicating a pattern does not copy it. It could live in the pattern itself.

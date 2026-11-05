@@ -1,0 +1,2478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hacks + Remix</title>
+<style>
+  :root { --bg:#111317; --panel:#1a1d23; --panel2:#14171c; --line:#2b2f38; --ink:#e8e9ec; --dim:#9aa0ab; --ok:#7ee787; --warn:#ffb86b; --bad:#ff7b72; --acc:#79c0ff; --sel:#23405e; --dst:#2f4a2f; }
+  * { box-sizing:border-box; }
+  html, body { height:100%; }
+  body { margin:0; display:flex; flex-direction:column; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui,"Segoe UI",sans-serif; }
+  header { display:flex; gap:12px; align-items:center; flex-wrap:wrap; padding:10px 16px 6px; }
+  h1 { font-size:1.1rem; margin:0; white-space:nowrap; }
+  header .sub { color:var(--dim); font-size:.85rem; }
+  header .right { margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  button { font:inherit; font-weight:600; background:#2b2f38; color:var(--ink); border:0; border-radius:6px; padding:5px 11px; cursor:pointer; }
+  button:hover:not(:disabled) { background:#363b45; }
+  button.pri { background:var(--acc); color:#0b0d10; }
+  button.pri:hover:not(:disabled) { background:#9ad0ff; }
+  button.dng { background:#5a2a28; color:#ffd7d3; }
+  button.dng:hover:not(:disabled) { background:#74332f; }
+  button:disabled { color:#6b717c; cursor:not-allowed; }
+  .lang button.on { background:var(--acc); color:#0b0d10; }
+  .lang { display:flex; gap:4px; }
+  nav { display:flex; gap:2px; padding:0 16px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  nav button { background:none; color:var(--dim); border-radius:6px 6px 0 0; padding:7px 14px; }
+  nav button.on { background:var(--panel); color:var(--ink); box-shadow:inset 0 -2px 0 var(--acc); }
+  #notice { padding:6px 16px; color:var(--warn); }
+  #notice:empty { display:none; }
+  main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 16px; }
+  .pane { min-width:0; min-height:0; display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .phead { padding:8px 10px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid var(--line); }
+  .prow { display:flex; gap:6px; align-items:center; flex-wrap:wrap; min-width:0; }
+  .prow .grow { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  select, input[type=text], input[type=number] { font:inherit; color:var(--ink); background:#0f1114; border:1px solid var(--line); border-radius:6px; padding:4px 6px; }
+  input.badin { border-color:var(--bad); }
+  select { max-width:100%; min-width:0; flex:1; }
+  input[type=number] { width:68px; }
+  input[type=range] { accent-color:var(--acc); width:100%; }
+  .dim { color:var(--dim); } .ok { color:var(--ok); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+  .tool { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .tool .hint { color:var(--dim); font-size:.82rem; margin-left:auto; }
+  .gauge { height:6px; background:#0f1114; border-radius:3px; overflow:hidden; }
+  .gauge i { display:block; height:100%; background:var(--acc); }
+  .gauge.over i { background:var(--bad); }
+  .list { flex:1; min-height:0; overflow:auto; font-variant-numeric:tabular-nums; }
+  .row { display:grid; grid-template-columns:34px 62px minmax(0,1fr) minmax(0,auto) 30px; gap:8px; align-items:center; padding:2px 10px; min-height:24px; border-bottom:1px solid #20242b; cursor:default; user-select:none; }
+  .row .c2 { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .row .c0, .row .c1, .row .c3 { color:var(--dim); font-size:.85rem; white-space:nowrap; }
+  .row.empty .c2 { color:#5c626d; }
+  .row.badrow .c2 { color:var(--bad); }
+  .row:hover { background:#20242c; }
+  .row.sel { background:var(--sel); }
+  .play { padding:0 6px; font-size:.75rem; line-height:18px; }
+  canvas.wave { width:100%; height:44px; display:block; background:#0f1114; border-top:1px solid var(--line); }
+  .row canvas.mini { vertical-align:middle; margin-right:8px; }
+  .plist .row { grid-template-columns:34px 78px minmax(0,1fr) minmax(0,auto) 30px; }
+  .use { display:inline-block; min-width:30px; margin-right:6px; font-size:.78rem; font-weight:600; color:var(--ok); }
+  .use.free { color:#5c626d; font-weight:400; }
+  .use.ghost { color:var(--warn); }
+  .usebox { border-top:1px solid var(--line); padding:4px 10px; font-size:.82rem; color:var(--dim); max-height:7.5em; overflow:auto; }
+  .usebox[hidden] { display:none; }
+  .usebox b { color:var(--ink); font-weight:600; }
+  .pvw { border-top:1px solid var(--line); }
+  .pvw[hidden] { display:none; }
+  .pvw .cap { padding:4px 10px; font-size:.82rem; color:var(--dim); }
+  .pvw canvas { width:100%; height:150px; display:block; background:#0f1114; }
+  .blank { padding:28px 20px; text-align:center; color:var(--dim); }
+  .blank button { margin-top:10px; }
+  footer { padding:0 16px 10px; }
+  #prog { width:100%; height:6px; display:block; margin-bottom:4px; }
+  #prog[hidden], #progtxt[hidden] { display:none; }
+  #progtxt { font-size:.8rem; color:var(--dim); margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
+  #log { height:84px; overflow:auto; background:#0b0d10; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font:12px/1.4 ui-monospace,Consolas,monospace; white-space:pre-wrap; }
+  dialog { background:var(--panel); color:var(--ink); border:1px solid var(--line); border-radius:10px; padding:16px; max-width:560px; }
+  dialog::backdrop { background:rgba(0,0,0,.6); }
+  dialog h3 { margin:0 0 8px; font-size:1rem; }
+  dialog .body { max-height:50vh; overflow:auto; }
+  dialog .btns { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap; }
+  dialog ul { margin:6px 0; padding-left:18px; }
+  dialog.wide { max-width:min(1180px,96vw); width:96vw; }
+  dialog.wide .body { max-height:none; }
+  .form { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:10px; max-height:62vh; overflow:auto; padding-right:6px; }
+  fieldset { border:1px solid var(--line); border-radius:8px; padding:6px 10px 8px; min-width:0; margin:0; }
+  legend { color:var(--dim); font-size:.8rem; padding:0 4px; }
+  .fld { display:grid; grid-template-columns:minmax(0,150px) minmax(0,1fr) 62px; gap:8px; align-items:center; min-height:26px; }
+  .fld > span { font-size:.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fld input[type=number] { width:62px; padding:2px 4px; }
+  .line2 { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+  .line2 label { display:flex; gap:6px; align-items:center; font-size:.85rem; }
+  .line2 select { flex:none; }
+  .dxl { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:2px 12px; max-height:55vh; overflow:auto; font-size:.85rem; }
+  .dxl label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .edgrid { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:12px; }
+  .roll { height:44vh; overflow:auto; border:1px solid var(--line); border-radius:6px; background:#0f1114; }
+  .roll canvas, .bars canvas { display:block; }
+  .bars { margin-top:6px; overflow-x:auto; border:1px solid var(--line); border-radius:6px; background:#0f1114; }
+  .insp fieldset { margin-bottom:8px; }
+  .insp .fld { grid-template-columns:minmax(0,1fr) 72px; }
+  .cct { width:100%; border-collapse:collapse; }
+  .cct th { color:var(--dim); font-size:.8rem; font-weight:600; text-align:left; padding:2px 6px; }
+  .cct td { padding:2px 6px; }
+  @media (max-width:900px) { main { grid-template-columns:1fr; grid-auto-rows:minmax(320px,1fr); overflow:auto; } .edgrid { grid-template-columns:1fr; } }
+
+  .kind { font-size:.75rem; padding:1px 6px; border-radius:4px; border:1px solid var(--line); color:var(--dim); }
+  .kind.t { color:#79c0ff; border-color:#79c0ff; } .kind.r { color:#ffb86b; border-color:#ffb86b; } .kind.f { color:#7ee787; border-color:#7ee787; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Hacks + Remix</h1>
+  <span class="sub" id="sub"></span>
+  <div class="right">
+    <button id="bBackup" type="button"></button>
+    <div class="lang" role="group" aria-label="Idioma / Language"><button type="button" data-lang="es">Español</button><button type="button" data-lang="en">English</button></div>
+  </div>
+</header>
+<nav id="tabs" role="tablist"></nav>
+<div id="notice"></div>
+<main><section class="pane" id="pane0"></section><section class="pane" id="pane1"></section></main>
+<footer><progress id="prog" hidden></progress><div id="progtxt" hidden></div><div id="log" role="log"></div></footer>
+<dialog id="dlg"></dialog>
+<script id="core-tracks">
+/* The microSD card of a Circuit Tracks, read and written from the browser (File System Access API).  No DOM here: the interface is the next script,
+and tools/sd_app_test.html runs this one on its own.
+
+The formats (docs/NOTAS.md, tools/patchtool.py, tools/mpatch.py, tools/projsyn.py):
+  * a pack = Tracks/NN_Name (NN 00..30 = the device's packs 1..31; pack 0 is the internal memory; names cut at 30 characters), with Sessions, Patches,
+    PCM, meta (and the effects folder, carried by a pack copy as any other folder);
+  * the firmware finds a file by its NN_ prefix alone: a stray NN_something in those folders can be taken instead of the real file (this happened: the
+    NN_SC34D.bin files of a diagnostic hid the sessions).  So nothing of ours is ever left in a pack: backups go to a folder outside it;
+  * Patches/NN_PATCHBANK.cpb = 8 records of 512 B: 340 of a Nova patch + 172 of padding; the padding of record n is the own-synth patch n;
+  * PCM/NN_Name.wav = 64 samples;
+  * Sessions/NN_Name.ncs = 160 780 B; MIDI 1 / 2's patterns = 2 x 8 x 3 240 B at 0x1A27C;
+  * the 8 CC presets (MIDI templates) are NOT on the card: the device keeps them in its internal memory (_GLOB.cg, volume 0, keys 0x1F + i).  Here they
+    are a file of 8 x 120 B, the device's own records, or the device itself over USB.
+The device, connected by USB, is one more folder: Device / DevRoot below speak the stock file protocol behind the same calls as a folder handle. */
+const SDT = (() => {
+"use strict";
+const REC = 512, PSZ = 340, PADN = 172, PER = 8, BANKS = 16, SLOTS = 128;
+const NSAMPLES = 64, NSESS = 64, NPACKS = 31, FOLDER_MAX = 30;
+const SYNTH0 = 0x2E4, DRUM0 = 0xCD74, DPAT = 0x6A8, DSETT = 0x80, DLANE0 = 0xA8, DLANES = 8, NPATS = 64, DRUM_NOTE = [60, 62, 64, 65];
+const SESS_SIZE = 0x2740C, MIDI0 = 0x1A27C, PAT = 0xCA8, NSTEPS = 32, STEP = 28, UNITS = 6, SETT = 0x380, SETN = 40, LANE0 = 0x3A8, NLANES = 12, MICRO = 6;
+const WORDS_MAX = 0x900000;                                 // the stock's loader stops at Y:$E80000: 9 437 184 words from $580000
+const TPL = 0x78, NTPL = 8, TPL_HEAD = 0x28, TPL_REC = 10, CC_DEF = [1, 2, 5, 11, 12, 13, 71, 74];
+const NAME_AT = 44, NAME_LEN = 16, FM_AT = 100, FM_LEN = 21, VM_AT = 126, VM_TAG = 0xB6, VM_BASE = 0x50;
+const FM_DEF = [11, 11, 11, 11, 127, 64, 48, 32, 64, 64, 64, 64, 0, 0, 0, 64];     // fmeng.DEFAULTS2
+const CTM_DEF = [0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 40, 0, 0, 60, 63, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 50, 64, 0, 0, 0];   // patchtool.DEFAULTS, codes 1..34
+
+const pad2 = n => String(n).padStart(2, "0");
+const TRACK_NAME = ["Synth 1", "Synth 2", "MIDI 1", "MIDI 2", "Drum 1", "Drum 2", "Drum 3", "Drum 4"];
+const isFF = (b, a, n) => { for (let i = a; i < a + n; i++) if (b[i] !== 0xFF) return false; return true; };
+function latin(b, a, n) { let s = ""; for (let i = a; i < a + n; i++) s += String.fromCharCode(b[i]); return s.replace(/[\s\0]+$/, ""); }
+const same = (a, b) => a === b || (!!a.pack && a.pack === b.pack && a.sess === b.sess) || (!!a.set && a.set === b.set);
+
+// ---------------------------------------------------------------- the file system
+async function entries(dir) {
+  const out = [];
+  for await (const [name, h] of dir.entries()) out.push([name, h]);
+  return out.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+}
+async function subdir(dir, name, create = false) {
+  try { return await dir.getDirectoryHandle(name, {create}); }
+  catch (e) { if (e.name === "NotFoundError" || e.name === "TypeMismatchError") return null; throw e; }
+}
+const readHandle = async h => new Uint8Array(await (await h.getFile()).arrayBuffer());
+async function writeFile(dir, name, bytes) {
+  const w = await (await dir.getFileHandle(name, {create: true})).createWritable();
+  try { await w.write(bytes); await w.close(); }
+  catch (e) { try { await w.abort(); } catch (_) { /* the write's own error is the one to report */ } throw e; }
+}
+async function treeInfo(dir) {
+  let files = 0, bytes = 0;
+  for (const [, h] of await entries(dir)) {
+    if (h.kind === "directory") { const t = await treeInfo(h); files += t.files; bytes += t.bytes; }
+    else { files++; bytes += (await h.getFile()).size; }
+  }
+  return {files, bytes};
+}
+async function copyTree(src, dst, tick) {
+  for (const [n, h] of await entries(src)) {
+    if (/\.crswap$/i.test(n) || (h.kind === "directory" && dst.accepts && !dst.accepts(n))) continue;     // the browser's temporary file; a folder the device has no type for
+    if (h.kind === "directory") await copyTree(h, await dst.getDirectoryHandle(n, {create: true}), tick);
+    else { const b = await readHandle(h); await writeFile(dst, n, b); if (tick) tick(n, b.length); }
+  }
+}
+async function sameTree(a, b) {                             // every file of a is in b with its size
+  for (const [n, h] of await entries(a)) {
+    if (/\.crswap$/i.test(n) || (h.kind === "directory" && b.accepts && !b.accepts(n))) continue;
+    if (h.kind === "directory") { const d = await subdir(b, n); if (!d || !await sameTree(h, d)) return false; continue; }
+    let f; try { f = await (await b.getFileHandle(n)).getFile(); } catch (_) { return false; }
+    if (f.size !== (await h.getFile()).size) return false;
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------- backups: a folder of the user's, outside the packs
+class Backup {
+  constructor(dir, title) {
+    this.dir = dir; this.title = title || dir.name; this.seen = new Set(); this.count = 0;
+    const d = new Date(); this.stamp = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
+  }
+  async folder(parts) { let h = await subdir(this.dir, this.stamp, true); for (const p of parts) h = await subdir(h, p, true); return h; }
+  async file(parts, name, bytes) {                          // only the first version of a file in this run: the one that was on the card
+    const key = parts.concat(name).join("/");
+    if (this.seen.has(key)) return;
+    await writeFile(await this.folder(parts), name, bytes); this.seen.add(key); this.count++;
+  }
+  async tree(src, parts) { await copyTree(src, await this.folder(parts), () => { this.count++; }); }
+}
+
+// ---------------------------------------------------------------- the card
+class Pack {
+  constructor(card, slot, name, folder, dir) { this.card = card; this.slot = slot; this.name = name; this.folder = folder; this.dir = dir; this.drop(); }
+  drop() { this._banks = null; this._samples = null; this._sessions = null; this._open = new Map(); this._info = null; this._usage = null; }
+}
+class Card {
+  constructor(root, tracks) { this.root = root; this.tracks = tracks; this.packs = []; }
+  static async open(root) {
+    const t = await subdir(root, "Tracks"), c = new Card(root, t || root);
+    await c.scan();
+    if (!c.packs.length && !t) throw new Error("no-packs");
+    return c;
+  }
+  async scan() {
+    const keep = new Map(this.packs.map(p => [p.folder, p])), out = [];
+    for (const [n, h] of await entries(this.tracks)) {
+      const m = /^(\d\d)_(.*)$/.exec(n);
+      if (!m || h.kind !== "directory" || +m[1] >= NPACKS) continue;
+      if (!(await subdir(h, "Patches") || await subdir(h, "PCM") || await subdir(h, "Sessions"))) continue;
+      out.push(keep.get(n) || new Pack(this, +m[1], m[2], n, h));
+    }
+    this.packs = out;
+  }
+  async reset() { this.packs = []; await this.scan(); }
+  pack(slot) { return this.packs.find(p => p.slot === slot) || null; }
+}
+function folderName(slot, name) { return (pad2(slot) + "_" + name).slice(0, FOLDER_MAX).replace(/[\s.]+$/, ""); }
+
+async function packInfo(pack) {
+  if (pack.dir.device) return null;                         // every pack's folders, one list at a time, is too slow over USB
+  if (pack._info) return pack._info;
+  const count = async (sub, re) => { const d = await subdir(pack.dir, sub); return d ? (await entries(d)).filter(e => re.test(e[0])).length : 0; };
+  return pack._info = {sessions: await count("Sessions", /\.ncs$/i), banks: await count("Patches", /_PATCHBANK\.cpb$/i), samples: await count("PCM", /\.wav$/i)};
+}
+async function copyPack(pack, card, slot, ctx = {}) {
+  if (card.packs.some(p => p.slot === slot)) throw new Error("slot-used");
+  const folder = folderName(slot, pack.name), dst = await card.tracks.getDirectoryHandle(folder, {create: true});
+  try {
+    const all = await treeInfo(pack.dir); let done = 0;
+    await copyTree(pack.dir, dst, n => { done++; if (ctx.progress) ctx.progress(n, done, all.files); });
+    if (dst.finish) await dst.finish();
+    if (!await sameTree(pack.dir, dst)) throw new Error("verify");
+  } catch (e) { await card.tracks.removeEntry(folder, {recursive: true}); throw e; }
+  await card.scan();
+  return card.pack(slot);
+}
+async function deletePack(pack, ctx = {}) {
+  if (ctx.backup) await ctx.backup.tree(pack.dir, [pack.folder]);
+  const card = pack.card;
+  await card.tracks.removeEntry(pack.folder, {recursive: true});
+  await card.scan();
+}
+async function movePack(pack, card, slot, ctx = {}) {       // the API has no folder rename: a verified copy, then the source goes (no backup needed: the copy is it)
+  if (pack.card === card && pack.slot === slot) return pack;
+  if (pack.card === card && card.tracks.renameEntry) {      // the device can
+    if (card.packs.some(p => p.slot === slot)) throw new Error("slot-used");
+    await card.tracks.renameEntry(pack.folder, folderName(slot, pack.name));
+    await card.reset();
+    return card.pack(slot);
+  }
+  const out = await copyPack(pack, card, slot, ctx);
+  await deletePack(pack, {});
+  return out;
+}
+
+// ---------------------------------------------------------------- names: what the firmware, the card's FAT and the USB protocol all accept
+/* A file or folder name: printable ASCII without the characters FAT refuses (\ / : * ? " < > |), no space or dot at either end (FAT drops a trailing
+   one, so the name on the card would not be the name asked), and the whole name, NN_ and extension included, within 30 characters: the device's
+   own names stop there, and over USB a name over 31 overwrites the firmware's stack.  The NN_ prefix is the slot and is never typed: every
+   reference (sessions to samples and patches, the device to its packs) goes by that number, so a new name changes nothing but the name.
+   Names inside a file (Nova patch 16, custom patch 16, CC preset 32): printable ASCII. */
+const NAME_RULE = {packs: {file: true, max: FOLDER_MAX - 3}, drums: {file: true, max: 30 - 7}, nova: {max: 16, need: true}, custom: {max: NAME_LEN}, cc: {max: 32}};
+const FAT_BAD = /[\\/:*?"<>|]/;
+function checkName(kind, raw) {
+  const r = NAME_RULE[kind], s = String(raw).trim();
+  if (!r) throw new Error("name-kind");
+  if (!/^[ -~]*$/.test(s) || (r.file && FAT_BAD.test(s))) throw new Error(r.file ? "name-chars-file" : "name-chars");
+  if (r.file && /[ .]$/.test(s)) throw new Error("name-end");
+  if (s.length > r.max) throw new Error("name-long");
+  if (!s.length && (r.file || r.need)) throw new Error("name-empty");
+  return s;
+}
+const caseOnly = (a, b) => a !== b && a.toLowerCase() === b.toLowerCase();
+async function renameHandle(h, to) {                        // the browser's own move when it has one (no data copied); false = not done
+  if (typeof h.move !== "function") return false;
+  try { await h.move(to); return true; } catch (_) { return false; }
+}
+async function renamePack(pack, name, ctx = {}) {
+  name = checkName("packs", name);
+  const card = pack.card, to = folderName(pack.slot, name);
+  if (to === pack.folder) return pack;
+  if (card.tracks.renameEntry) await card.tracks.renameEntry(pack.folder, to);            // the device: a FatFs rename
+  else if (!await renameHandle(pack.dir, to)) {                                            // a folder: a verified copy, then the old one goes
+    const all = await treeInfo(pack.dir); let done = 0;
+    const copy = async (src, n) => {
+      const d = await card.tracks.getDirectoryHandle(n, {create: true});
+      try { await copyTree(src, d, f => { done++; if (ctx.progress) ctx.progress(f, done, all.files * (caseOnly(pack.folder, to) ? 2 : 1)); }); if (!await sameTree(src, d)) throw new Error("verify"); }
+      catch (e) { await card.tracks.removeEntry(n, {recursive: true}); throw e; }
+      return d;
+    };
+    if (caseOnly(pack.folder, to)) {                        // a case-insensitive file system: the same folder; through a name the device ignores
+      const tmp = "_renaming_" + pack.folder, t = await copy(pack.dir, tmp);
+      await card.tracks.removeEntry(pack.folder, {recursive: true});
+      await copy(t, to); await card.tracks.removeEntry(tmp, {recursive: true});
+    } else {
+      if (await subdir(card.tracks, to)) throw new Error("name-taken");
+      await copy(pack.dir, to); await card.tracks.removeEntry(pack.folder, {recursive: true});
+    }
+  }
+  await card.reset();
+  return card.pack(pack.slot);
+}
+async function renameFile(dir, from, to, ctx = {}, parts = []) {   // one file of a folder; the device renames, the PC moves or copies
+  if (from === to) return;
+  if (dir.renameEntry) return dir.renameEntry(from, to);
+  const h = await dir.getFileHandle(from);
+  if (await renameHandle(h, to)) return;
+  const b = await readHandle(h);
+  if (caseOnly(from, to)) {                                 // the same file: out, then in again (put back if the write fails)
+    if (ctx.backup) await ctx.backup.file(parts, from, b);
+    await dir.removeEntry(from);
+    try { await writeFile(dir, to, b); } catch (e) { await writeFile(dir, from, b); throw e; }
+    return;
+  }
+  await writeFile(dir, to, b);
+  if ((await readHandle(await dir.getFileHandle(to))).length !== b.length) throw new Error("verify");
+  await dir.removeEntry(from);
+}
+
+// the firmware's lookup by prefix: what can shadow a real file of the pack
+async function audit(pack) {
+  const out = [], kinds = [["Sessions", /^\d\d_.+\.ncs$/i], ["Patches", /^\d\d_PATCHBANK\.cpb$/i], ["PCM", /^\d\d_.+\.wav$/i], ["meta", /^\d\d_.+\.ncm$/i]];
+  for (const [sub, re] of kinds) {
+    const d = await subdir(pack.dir, sub);
+    if (!d) continue;
+    const seen = new Map();
+    for (const [n] of await entries(d)) {
+      const m = /^(\d\d)_/.exec(n);
+      if (!m) continue;
+      if (!re.test(n)) { out.push({file: sub + "/" + n, why: "stray"}); continue; }
+      if (seen.has(m[1])) out.push({file: sub + "/" + n, why: "twin", with: sub + "/" + seen.get(m[1])});
+      else seen.set(m[1], n);
+    }
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- the patch banks
+async function banksOf(pack) {
+  if (pack._banks) return pack._banks;
+  const m = new Map(), d = await subdir(pack.dir, "Patches");
+  if (d) for (const [n, h] of await entries(d)) {
+    const r = /^(\d+)_PATCHBANK\.cpb$/i.exec(n);
+    if (r && h.kind === "file") m.set(+r[1], {name: n, bytes: await readHandle(h)});
+  }
+  return pack._banks = m;
+}
+function recordOf(banks, n) {                               // -> {nova, pad} of record n: subarrays, empty when not in the file
+  const e = banks.get(n >> 3); const o = REC * (n & 7), b = e ? e.bytes : new Uint8Array(0);
+  return {nova: b.subarray(o, Math.min(o + PSZ, b.length)), pad: b.subarray(Math.min(o + PSZ, b.length), Math.min(o + REC, b.length))};
+}
+async function writeBank(pack, b, parts, ctx = {}) {       // each [offset in the file, data] into bank b, one write; what is missing up to the end = 0xFF,
+  const banks = await banksOf(pack), e = banks.get(b);      // what the device leaves empty
+  const dir = await subdir(pack.dir, "Patches", true);
+  if (e && ctx.backup) await ctx.backup.file([pack.folder, "Patches"], e.name, e.bytes);
+  const old = e ? e.bytes : new Uint8Array(0);
+  const out = new Uint8Array(Math.max(old.length, ...parts.map(([o, d]) => o + d.length))).fill(0xFF);
+  out.set(old); for (const [o, d] of parts) out.set(d, o);
+  const name = e ? e.name : pad2(b) + "_PATCHBANK.cpb";
+  await writeFile(dir, name, out);
+  banks.set(b, {name, bytes: out});
+}
+const writeRecord = (pack, n, off, data, ctx = {}) => writeBank(pack, n >> 3, [[REC * (n & 7) + off, data]], ctx);    // data into record n at off
+
+// ---------------------------------------------------------------- Nova synths: the 340 B of a record (its padding, the custom patch n, stays)
+const Nova = {
+  size: SLOTS,
+  async list(pl) {
+    const banks = await banksOf(pl.pack), out = [];
+    for (let n = 0; n < SLOTS; n++) {
+      const p = recordOf(banks, n).nova, empty = p.length < 16 || isFF(p, 0, 16);
+      out.push({slot: n, empty, name: empty ? "" : latin(p, 0, 16), mode: empty || p.length <= 32 ? null : p[32]});
+    }
+    return out;
+  },
+  async get(pl, n) { const p = recordOf(await banksOf(pl.pack), n).nova; return p.length < PSZ || isFF(p, 0, 16) ? null : p.slice(); },
+  async put(pl, n, data, ctx) { if (!data) return Nova.clear(pl, n, ctx); await writeRecord(pl.pack, n, 0, data, ctx); },
+  async clear(pl, n, ctx) { if (await Nova.get(pl, n)) await writeRecord(pl.pack, n, 0, new Uint8Array(PSZ).fill(0xFF), ctx); },
+  async setName(pl, n, name, ctx) {                         // its first 16 bytes, padded with spaces as the device's own
+    name = checkName("nova", name);
+    if (!await Nova.get(pl, n)) throw new Error("name-none");
+    const b = new Uint8Array(16).fill(32); [...name].forEach((c, i) => { b[i] = c.charCodeAt(0); });
+    await writeRecord(pl.pack, n, 0, b, ctx);
+  },
+};
+
+// ---------------------------------------------------------------- custom patches: the padding of a record (its Nova patch stays)
+function ctmState(pad) {
+  if (pad.length < 42 || latin(pad, 0, 4) !== "CTM1") return "empty";
+  let s = 0; for (let i = 4; i < 40; i++) s += pad[i];
+  return (s & 0xFF) === pad[40] ? "ok" : "bad";
+}
+function ctmName(pad) {
+  const n = pad.subarray(NAME_AT, NAME_AT + NAME_LEN);
+  return n.length === NAME_LEN && n.every(c => c >= 32 && c < 127) ? String.fromCharCode(...n).trimEnd() : "";
+}
+function ctmSum(pad) { let s = 0; for (let i = 4; i < 40; i++) s += pad[i]; pad[40] = s & 0xFF; }
+function ctmNew() {
+  const p = new Uint8Array(PADN).fill(0xFF);
+  p.set([0x43, 0x54, 0x4D, 0x31, 3, 0]);                    // "CTM1", the oscillator, no step-drummer
+  CTM_DEF.forEach((v, i) => { p[6 + i] = v; });
+  p[41] = 2; p[42] = 2;                                     // version 2, the triangle (vcf21.LS_DEF)
+  ctmSum(p);
+  return p;
+}
+const ctmCode = (pad, c) => { const v = pad[5 + c]; return v >= 128 ? v - 256 : v; };
+const ctmSetCode = (pad, c, v) => { pad[5 + c] = v & 0xFF; ctmSum(pad); };
+function ctmSetName(pad, s) {
+  s = String(s).replace(/[^ -~]/g, "_").slice(0, NAME_LEN);
+  for (let i = 0; i < NAME_LEN; i++) pad[NAME_AT + i] = s ? (i < s.length ? s.charCodeAt(i) : 32) : 0xFF;
+}
+function fmGet(pad) {                                       // the FM block at padding + 100 ("FM", version, on, 16 parameters, a check byte), or null
+  if (pad[FM_AT] !== 0x46 || pad[FM_AT + 1] !== 0x4D) return null;
+  let s = 0x5A; for (let i = 0; i < FM_LEN - 1; i++) s += pad[FM_AT + i];
+  return (s & 0xFF) === pad[FM_AT + FM_LEN - 1] ? {ver: pad[FM_AT + 2], on: pad[FM_AT + 3], params: Array.from(pad.subarray(FM_AT + 4, FM_AT + 20))} : null;
+}
+function fmSet(pad, fm) {
+  pad.set([0x46, 0x4D, fm.ver || 2, fm.on ? 1 : 0], FM_AT);
+  pad.set(fm.params, FM_AT + 4);
+  let s = 0x5A; for (let i = 0; i < FM_LEN - 1; i++) s += pad[FM_AT + i];
+  pad[FM_AT + FM_LEN - 1] = s & 0xFF;
+}
+function vmGet(pad) { const m = pad[VM_AT + 1] - VM_BASE; return pad[VM_AT] === VM_TAG && m >= 0 && m < 8 ? {mode: m, time: pad[VM_AT + 2], detune: pad[VM_AT + 3]} : null; }
+function vmSet(pad, vm) {
+  if (vm) pad.set([VM_TAG, VM_BASE + vm.mode, vm.time & 127, vm.detune & 127], VM_AT);
+  else pad.fill(0xFF, VM_AT, VM_AT + 4);
+}
+/* ---------------------------------------------------------------- the 8-operator FM of a custom patch (SC51.7 on, tools/fm8store.py)
+   The padding says "FM" version 3 and on / off; the 216 parameters are in the slot's record past the bank's 8: 4096 + 512 (n & 7), "FM8" 1, the
+   parameters, their 16-bit sum (0x5A38 + the bytes), 0xFF to 224.  A custom patch here = its padding (172) + that record (224, 0xFF = none). */
+const EXT0 = 4096, RECN = 224, FPLEN = 216, FREC_SUM0 = 0x5A38;
+function extOf(banks, n) { const e = banks.get(n >> 3), o = EXT0 + REC * (n & 7), b = e ? e.bytes : new Uint8Array(0); return b.subarray(Math.min(o, b.length), Math.min(o + RECN, b.length)); }
+function fm8Rec(params) {
+  const r = new Uint8Array(RECN).fill(0xFF);
+  r.set([0x46, 0x4D, 0x38, 1]); r.set(params, 4);
+  let s = FREC_SUM0; for (const v of params) s += v;
+  r[4 + FPLEN] = s & 0xFF; r[5 + FPLEN] = (s >> 8) & 0xFF;
+  return r;
+}
+function fm8Get(rec) {                                      // -> the 216 parameters of a valid record, or null
+  if (!rec || rec.length < FPLEN + 6 || rec[0] !== 0x46 || rec[1] !== 0x4D || rec[2] !== 0x38 || rec[3] !== 1) return null;
+  let s = FREC_SUM0; for (let i = 4; i < 4 + FPLEN; i++) s += rec[i];
+  return (s & 0xFFFF) === (rec[4 + FPLEN] | rec[5 + FPLEN] << 8) ? rec.slice(4, 4 + FPLEN) : null;
+}
+
+/* ---------------------------------------------------------------- DX7 voices -> the 8-operator FM (tools/fm8.py dx7_voices / from_dx7, byte for byte)
+   A bulk dump (F0 43 0n 09 20 00, 32 x 128 packed bytes) or a single voice (F0 43 0n 00 01 1B, 155 bytes), several messages in a file, or a bare
+   4096-byte bank; bad check bytes accepted (counted).  The DX7 keeps operator 6 first; DX7 operator k + 1 = fm8's operator k; every field masked,
+   then limited to its range; operators 7-8 silent; the LFO kept for later. */
+const DX_OP = ["r1", "r2", "r3", "r4", "l1", "l2", "l3", "l4", "bp", "ld", "rd", "lc", "rc", "rs", "ams", "kvs", "ol", "mode", "crs", "fine", "det"];
+const DX_OMAX = [99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 3, 3, 7, 3, 7, 99, 1, 31, 99, 14];    // fm8's O_R .. O_DET: the same order
+const DX_G = ["pr1", "pr2", "pr3", "pr4", "pl1", "pl2", "pl3", "pl4", "alg", "fb", "oks", "lfs", "lfd", "pmd", "amd", "lks", "lfw", "pms", "trn"];
+const DX_GMAX = [99, 99, 99, 99, 99, 99, 99, 99, 31, 7, 1, 99, 99, 99, 99, 1, 5, 7, 48];
+const DX_FB = [0, 16, 23, 32, 45, 64, 90, 127];
+const DX_OPDEF = [99, 99, 99, 60, 99, 99, 99, 0, 39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 7, 0, 0, 0];   // fm8.op_default: silent, ratio 1, held
+const dxName = b => String.fromCharCode(...[...b].map(c => c & 127).map(c => c >= 32 && c < 127 ? c : 32)).trimEnd();
+function dxPacked(v) {                                      // 128 bytes -> {ops: [op 1 .. 6 as arrays in DX_OP order], g, name}
+  const ops = [];
+  for (let i = 0; i < 6; i++) {
+    const b = v.subarray(17 * i, 17 * i + 17);
+    ops[5 - i] = [...b.subarray(0, 11), b[11] & 3, b[11] >> 2 & 3, b[12] & 7, b[13] & 3, b[13] >> 2 & 7, b[14], b[15] & 1, b[15] >> 1 & 31, b[16], b[12] >> 3 & 15];
+  }
+  const g = [...v.subarray(102, 110), v[110] & 31, v[111] & 7, v[111] >> 3 & 1, v[112], v[113], v[114], v[115], v[116] & 1, v[116] >> 1 & 7, v[116] >> 4 & 7, v[117]];
+  return {ops, g, name: dxName(v.subarray(118, 128))};
+}
+function dxVced(v) {                                        // 155 bytes, each field in its own byte
+  const ops = [];
+  for (let i = 0; i < 6; i++) ops[5 - i] = [...v.subarray(21 * i, 21 * i + 21)];
+  return {ops, g: [...v.subarray(126, 145)], name: dxName(v.subarray(145, 155))};
+}
+function dx7ToFm8(x) {                                      // -> the 216 parameters
+  const out = new Uint8Array(FPLEN);
+  for (let k = 0; k < 6; k++) DX_OP.forEach((_, i) => { out[24 * k + i] = Math.min(DX_OMAX[i], x.ops[k][i] & 127); });
+  for (let k = 6; k < 8; k++) out.set(DX_OPDEF, 24 * k);
+  const q = DX_G.map((_, i) => Math.min(DX_GMAX[i], x.g[i] & 127)), G = 200;
+  out.set(q.slice(0, 8), 192);
+  out[G] = 16 + q[8]; out[G + 1] = DX_FB[q[9]]; out[G + 2] = q[10]; out[G + 3] = q[18];
+  out.set([q[11], q[12], q[13], q[14], q[15], q[16], q[17]], G + 4);
+  return out;
+}
+function dx7Parse(data) {                                   // -> {voices: [{name, params}], bad: messages with a wrong check byte}
+  const voices = [], add = x => voices.push({name: x.name, params: dx7ToFm8(x)});
+  let bad = 0;
+  if (data.length === 4096 && data[0] !== 0xF0) { for (let k = 0; k < 32; k++) add(dxPacked(data.subarray(128 * k, 128 * k + 128))); return {voices, bad}; }
+  for (let i = 0; ;) {
+    const s = data.indexOf(0xF0, i); if (s < 0) break;
+    const e = data.indexOf(0xF7, s); if (e < 0) break;
+    const m = data.subarray(s, e + 1); i = e + 1;
+    const sum = (a, b) => { let t = 0; for (let j = a; j < b; j++) t += m[j]; return t; };
+    if (m.length >= 4104 && m[1] === 0x43 && m[3] === 9) {
+      if ((sum(6, 4102) + m[4102] & 127) !== 0) bad++;
+      for (let k = 0; k < 32; k++) add(dxPacked(m.subarray(6 + 128 * k, 6 + 128 * k + 128)));
+    } else if (m.length >= 163 && m[1] === 0x43 && m[3] === 0) {
+      if ((sum(6, 161) + m[161] & 127) !== 0) bad++;
+      add(dxVced(m.subarray(6, 161)));
+    }
+  }
+  return {voices, bad};
+}
+function dx7Patch(v) {                                      // a voice -> a custom patch (padding + record): the oscillator with FM on, poly, the name
+  const p = ctmNew();
+  fmSet(p, {ver: 3, on: 1, params: new Array(16).fill(0)});
+  vmSet(p, {mode: 3, time: 48, detune: 40});                // vmode: poly; its default glide and detune
+  ctmSetName(p, v.name || "DX7");
+  const out = new Uint8Array(PADN + RECN); out.set(p); out.set(fm8Rec(v.params), PADN);
+  return out;
+}
+
+const Custom = {
+  size: SLOTS,
+  async list(pl) {
+    const banks = await banksOf(pl.pack), out = [];
+    for (let n = 0; n < SLOTS; n++) {
+      const pad = recordOf(banks, n).pad, st = ctmState(pad), fm = st === "empty" ? null : fmGet(pad);
+      out.push({slot: n, empty: st === "empty", bad: st === "bad", name: st === "empty" ? "" : ctmName(pad), flags: st === "empty" ? 0 : pad[4], fm,
+                fm8: fm && fm.ver === 3 ? fm8Get(extOf(banks, n)) : null, wt: st !== "empty" && pad[150] === 0xB7 && pad[151] === 1});   // (SC52.1) the wavetable's record
+    }
+    return out;
+  },
+  async get(pl, n) {                                        // the whole padding, the fields of the newer builds with it, then the FM record (0xFF: none)
+    const banks = await banksOf(pl.pack), pad = recordOf(banks, n).pad;
+    if (ctmState(pad) === "empty") return null;
+    const out = new Uint8Array(PADN + RECN).fill(0xFF); out.set(pad); out.set(extOf(banks, n), PADN);
+    return out;
+  },
+  async put(pl, n, data, ctx) { if (!data) return Custom.clear(pl, n, ctx); await Custom.putMany(pl, [[n, data]], ctx); },
+  async putMany(pl, list, ctx = {}) {                       // [[slot, patch]]: one write per bank; the record written when there is one, or when the bank
+    const banks = await banksOf(pl.pack), by = new Map();   // reaches its place (an old one goes)
+    for (const [n, data] of list) {
+      const e = banks.get(n >> 3), r = REC * (n & 7), ext = data.length > PADN ? data.subarray(PADN, PADN + RECN) : null, l = by.get(n >> 3) || [];
+      l.push([r + PSZ, data.subarray(0, PADN)]);
+      if (ext && (!isFF(ext, 0, ext.length) || (e && e.bytes.length > EXT0 + r))) l.push([EXT0 + r, ext]);
+      by.set(n >> 3, l);
+    }
+    let i = 0;
+    for (const [b, parts] of by) { await writeBank(pl.pack, b, parts, ctx); if (ctx.progress && list.length > 1) ctx.progress(pad2(b) + "_PATCHBANK.cpb", ++i, by.size); }
+  },
+  async clear(pl, n, ctx) { if (await Custom.get(pl, n)) await Custom.put(pl, n, new Uint8Array(PADN + RECN).fill(0xFF), ctx); },
+  async setName(pl, n, name, ctx) {                         // padding + 44, outside the sum (bytes 4..39) and outside what projects compare
+    name = checkName("custom", name);
+    const pad = await Custom.get(pl, n);
+    if (!pad) throw new Error("name-none");
+    ctmSetName(pad, name); await writeRecord(pl.pack, n, PSZ + NAME_AT, pad.subarray(NAME_AT, NAME_AT + NAME_LEN), ctx);
+  },
+};
+
+// ---------------------------------------------------------------- drums: PCM/NN_Name.wav
+function wavInfo(b) {
+  if (b.length < 12 || latin(b, 0, 4) !== "RIFF" || latin(b, 8, 4) !== "WAVE") return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength), out = {};
+  for (let o = 12; o + 8 <= b.length;) {
+    const id = latin(b, o, 4), n = v.getUint32(o + 4, true);    // latin() trims: "fmt " reads "fmt"
+    if (id === "fmt") { out.format = v.getUint16(o + 8, true); out.channels = v.getUint16(o + 10, true); out.rate = v.getUint32(o + 12, true); out.bits = v.getUint16(o + 22, true); }
+    else if (id === "data") { out.at = o + 8; out.data = Math.min(n, b.length - o - 8); break; }
+    o += 8 + n + (n & 1);
+  }
+  return out;
+}
+const sampleWords = data => Math.floor(data / 512) * 256 + 0x100;      // the stock's loader: (data bytes & ~511) / 2 + 0x100
+async function samplesOf(pack) {
+  if (pack._samples) return pack._samples;
+  const m = new Map(), d = await subdir(pack.dir, "PCM");
+  if (d) for (const [n, h] of await entries(d)) {
+    const r = /^(\d\d)_(.*)\.wav$/i.exec(n);
+    if (!r || h.kind !== "file" || +r[1] >= NSAMPLES || m.has(+r[1])) continue;
+    m.set(+r[1], {slot: +r[1], name: r[2], file: n, handle: h, size: (await h.getFile()).size});
+  }
+  return pack._samples = m;
+}
+const Drums = {
+  size: NSAMPLES,
+  async list(pl) {
+    const m = await samplesOf(pl.pack), out = [];
+    for (let n = 0; n < NSAMPLES; n++) { const e = m.get(n); out.push(e ? {slot: n, empty: false, name: e.name, size: e.size} : {slot: n, empty: true, name: "", size: 0}); }
+    return out;
+  },
+  async words(pl) { let w = 0; for (const e of (await samplesOf(pl.pack)).values()) w += sampleWords(Math.max(0, e.size - 44)); return w; },
+  async get(pl, n) { const e = (await samplesOf(pl.pack)).get(n); return e ? {name: e.name, bytes: await readHandle(e.handle)} : null; },
+  async put(pl, n, item, ctx = {}) {
+    if (!item) return Drums.clear(pl, n, ctx);
+    const pack = pl.pack, d = await subdir(pack.dir, "PCM", true), old = (await samplesOf(pack)).get(n), file = (pad2(n) + "_" + item.name).slice(0, 26) + ".wav";
+    if (old && ctx.backup) await ctx.backup.file([pack.folder, "PCM"], old.file, await readHandle(old.handle));
+    await writeFile(d, file, item.bytes);
+    if (old && old.file !== file) await d.removeEntry(old.file);   // after the write: an old file gone before the new one lands would lose the slot
+    pack._samples = null; pack._info = null;
+  },
+  async rename(pl, n, m) {
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    await (await subdir(pack.dir, "PCM")).renameEntry(old.file, pad2(m) + old.file.slice(2));
+    pack._samples = null;
+  },
+  async setName(pl, n, name, ctx = {}) {                   // PCM/NN_Name.wav: the slot stays, so does every project's reference to it
+    name = checkName("drums", name);
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    if (!old) throw new Error("name-none");
+    await renameFile(await subdir(pack.dir, "PCM"), old.file, pad2(n) + "_" + name + ".wav", ctx, [pack.folder, "PCM"]);
+    pack._samples = null;
+  },
+  async clear(pl, n, ctx = {}) {
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    if (!old) return;
+    if (ctx.backup) await ctx.backup.file([pack.folder, "PCM"], old.file, await readHandle(old.handle));
+    await (await subdir(pack.dir, "PCM")).removeEntry(old.file);
+    pack._samples = null; pack._info = null;
+  },
+};
+
+// ---------------------------------------------------------------- MIDI 1 / 2's patterns: a session is read whole, changed in RAM and written once
+async function sessionsOf(pack) {
+  if (pack._sessions) return pack._sessions;
+  const m = new Map(), d = await subdir(pack.dir, "Sessions");
+  if (d) for (const [n, h] of await entries(d)) {
+    const r = /^(\d\d)_(.*)\.ncs$/i.exec(n);
+    if (!r || h.kind !== "file" || +r[1] >= NSESS || m.has(+r[1])) continue;
+    const unnamed = /^SESSION$/i.test(r[2]);
+    if (h.device) { m.set(+r[1], {slot: +r[1], file: n, label: unnamed ? `Session ${+r[1] + 1}` : r[2], handle: h}); continue; }      // a header would cost the whole file
+    const f = await h.getFile(), head = new Uint8Array(await f.slice(0x10, 0x30).arrayBuffer());
+    m.set(+r[1], {slot: +r[1], file: n, label: unnamed ? latin(head, 0, head.length) : r[2], handle: h, size: f.size});
+  }
+  return pack._sessions = m;
+}
+async function openSession(pack, s) {
+  let o = pack._open.get(s);
+  if (o) return o;
+  const e = (await sessionsOf(pack)).get(s);
+  if (!e) throw new Error("no-session");
+  const bytes = await readHandle(e.handle);
+  if (bytes.length !== SESS_SIZE || latin(bytes, 0, 4) !== "USER") throw new Error("bad-session");
+  o = {file: e.file, bytes, orig: bytes.slice(), dirty: false};
+  pack._open.set(s, o);
+  return o;
+}
+// n = 8 track + pattern: tracks 0 / 1 Synth 1 / 2, 2 / 3 MIDI 1 / 2, 4..7 the drums (a drum pattern: + 0 velocity, + 32 probability, + 64 sample flip, + 96 micro mask, 8 lanes)
+const patOff = n => n < 16 ? SYNTH0 + PAT * n : n < 32 ? MIDI0 + PAT * (n - 16) : DRUM0 + DPAT * (n - 32);
+const patSize = n => n < 32 ? PAT : DPAT;
+function jumpTarget(b, t) {                                 // SC50's jump sequencer: the track MIDI 1 / 2 points at (tail + 364: per project), or -1
+  const o = 0x27024 + 364;
+  return b[o + 2] === 0xA7 && b[o + t] >= 1 && b[o + t] <= 8 ? b[o + t] - 1 : -1;
+}
+function patEmpty(cur) {                                    // the steps, the lanes and the stock's settings cleared
+  const b = cur.slice();
+  if (b.length === DPAT) {
+    b.fill(0, 0, 32); b.fill(7, 32, 64); b.fill(0xFF, 64, 96); b.fill(0, 96, 128);
+    b[DSETT] = 0x0F; b[DSETT + 1] = 0; b[DSETT + 2] = 3; b[DSETT + 3] = 0; b[DSETT + 7] = 0;
+    b.fill(0xFF, DLANE0, DPAT);
+    return b;
+  }
+  for (let s = 0; s < NSTEPS; s++) {
+    b.fill(0, s * STEP, (s + 1) * STEP); b[s * STEP + 1] = 7;
+    for (let u = 0; u < UNITS; u++) b[s * STEP + 4 + 4 * u + 3] = 0x60;
+  }
+  b[SETT] = 0x0F; b[SETT + 1] = 0; b[SETT + 2] = 3; b[SETT + 3] = 0; b[SETT + 7] = 0;
+  b.fill(0xFF, LANE0, PAT);
+  return b;
+}
+function patMerge(cur, src) {
+  /* What travels with a pattern: its steps, its lanes, the stock's settings (0..3) and the play order (7).  What stays in the destination: the chain
+     rule (4..6: pattern numbers) and bytes 8..39, where the mod keeps data of the project, not of the pattern: patterns 0..4 hold the own synth of the
+     project (projsyn), MIDI 1's 5 / 6 the drum stereo pairs (stpair). */
+  const b = src.slice(), S = b.length === DPAT ? DSETT : SETT;
+  for (let i = 4; i < 7; i++) b[S + i] = cur[S + i];
+  for (let i = 8; i < SETN; i++) b[S + i] = cur[S + i];
+  return b;
+}
+function patParse(b) {
+  const steps = [];
+  for (let s = 0; s < NSTEPS; s++) {
+    const o = s * STEP, units = [];
+    for (let u = 0; u < UNITS; u++) { const q = o + 4 + 4 * u; units.push({on: !!(b[o] >> u & 1), note: b[q], gate: b[q + 1] & 127, tie: b[q + 1] >> 7, micro: b[q + 2], vel: b[q + 3]}); }
+    steps.push({prob: b[o + 1], mutate: b[o + 2], b3: b[o + 3], units});
+  }
+  const lanes = [];
+  for (let k = 0; k < NLANES; k++) lanes.push(b.slice(LANE0 + 192 * k, LANE0 + 192 * (k + 1)));
+  return {steps, last: b[SETT], first: b[SETT + 1], rate: b[SETT + 2], dir: b[SETT + 3], order: b[SETT + 7], lanes};
+}
+function patBuild(m, base) {                                // over base: a unit that was off and stays off keeps its bytes
+  const b = base.slice();
+  m.steps.forEach((st, s) => {
+    const o = s * STEP; let mask = 0;
+    st.units.forEach((u, i) => {
+      const q = o + 4 + 4 * i;
+      if (u.on) { mask |= 1 << i; b[q] = u.note; b[q + 1] = (u.gate & 127) | (u.tie ? 128 : 0); b[q + 2] = u.micro; b[q + 3] = u.vel; }
+      else if (b[o] >> i & 1) { b[q] = 0; b[q + 1] = 0; b[q + 2] = 0; b[q + 3] = 0x60; }
+    });
+    b[o] = mask; b[o + 1] = st.prob; b[o + 2] = st.mutate; b[o + 3] = st.b3;
+  });
+  b[SETT] = m.last; b[SETT + 1] = m.first; b[SETT + 2] = m.rate; b[SETT + 3] = m.dir; b[SETT + 7] = m.order;
+  m.lanes.forEach((l, k) => b.set(l, LANE0 + 192 * k));
+  return b;
+}
+function patSummary(b, o, n) {
+  if (n >= 32) {
+    let notes = 0;
+    for (let s = 0; s < NSTEPS; s++) if (b[o + s]) notes++;
+    const lanes = new Set();
+    for (let k = 0; k < DLANES; k++) if (!isFF(b, o + DLANE0 + 192 * k, 192)) lanes.add(k);
+    return {notes, lanes: lanes.size, last: b[o + DSETT], first: b[o + DSETT + 1], empty: !notes && !lanes.size};
+  }
+  let notes = 0;
+  for (let s = 0; s < NSTEPS; s++) { let m = b[o + s * STEP]; while (m) { notes += m & 1; m >>= 1; } }
+  const lanes = new Set();
+  for (let k = 0; k < NLANES; k++) if (!isFF(b, o + LANE0 + 192 * k, 192)) lanes.add(k);
+  return {notes, lanes: lanes.size, last: b[o + SETT], first: b[o + SETT + 1], empty: !notes && !lanes.size};
+}
+function patCells(b, o, n) {                                // the notes, or a drum's hits, for the previews and the MIDI file
+  const out = [];
+  if (n >= 32) {
+    for (let s = 0; s < NSTEPS; s++) if (b[o + s]) out.push({s, vel: b[o + s] & 127, prob: b[o + 32 + s] & 7, flip: b[o + 64 + s], micro: b[o + 96 + s] & 63});
+    return out;
+  }
+  for (let s = 0; s < NSTEPS; s++) {
+    const q = o + s * STEP;
+    for (let u = 0; u < UNITS; u++) if (b[q] >> u & 1) { const a = q + 4 + 4 * u; out.push({s, note: b[a], gate: b[a + 1] & 127, micro: b[a + 2], vel: b[a + 3]}); }
+  }
+  return out;
+}
+function patMidi(b, n, ch) {                                // a standard MIDI file of one pattern, forward from its first step to its last, at 480 ticks a quarter
+  const drum = n >= 32, S = drum ? DSETT : SETT, a = Math.min(b[S], b[S + 1]), z = Math.max(b[S], b[S + 1]), step = [40, 60, 80, 120, 160, 240, 320, 480][b[S + 2] & 7], ev = [];
+  const end = (z - a + 1) * step, note = (t, len, key, vel) => { ev.push([t, 1, 0x90 | ch, key, Math.max(1, vel)], [Math.min(end, t + Math.max(1, len)), 0, 0x80 | ch, key, 0]); };   // a note that rings past the end stops there: the file is one loop
+  for (const u of patCells(b, 0, n)) {
+    if (u.s < a || u.s > z) continue;
+    const t = (u.s - a) * step;
+    if (!drum) { note(t + Math.round(u.micro * step / 6), Math.round(u.gate * step / 6), u.note, u.vel); continue; }
+    for (let k = 0; k < 6; k++) if ((u.micro || 1) >> k & 1) note(t + Math.round(k * step / 6), step >> 2, DRUM_NOTE[(n >> 3) - 4], u.vel);
+  }
+  ev.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+  const vlq = v => { const o = [v & 127]; while (v > 127) { v >>= 7; o.unshift(128 | (v & 127)); } return o; };
+  const trk = [], name = [...TRACK_NAME[n >> 3] + " " + ((n & 7) + 1)].map(c => c.charCodeAt(0));
+  trk.push(0, 0xFF, 3, name.length, ...name);
+  let at = 0;
+  for (const e of ev) { trk.push(...vlq(e[0] - at), e[2], e[3], e[4]); at = e[0]; }
+  trk.push(...vlq(end - at), 0xFF, 0x2F, 0);
+  const u32 = v => [v >>> 24, v >> 16 & 255, v >> 8 & 255, v & 255];
+  return Uint8Array.from([0x4D, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 1, 0xE0, 0x4D, 0x54, 0x72, 0x6B, ...u32(trk.length), ...trk]);
+}
+const Patterns = {
+  size: NPATS,
+  async list(pl) {
+    const s = await openSession(pl.pack, pl.sess), out = [];
+    for (let n = 0; n < NPATS; n++) out.push({slot: n, ...patSummary(s.bytes, patOff(n), n), cells: patCells(s.bytes, patOff(n), n)});
+    return out;
+  },
+  async get(pl, n) { const s = await openSession(pl.pack, pl.sess); return s.bytes.slice(patOff(n), patOff(n) + patSize(n)); },
+  async put(pl, n, data) {
+    const s = await openSession(pl.pack, pl.sess), o = patOff(n);
+    if (data.length !== patSize(n)) throw new Error("pat-kind");
+    s.bytes.set(patMerge(s.bytes.subarray(o, o + data.length), data), o); s.dirty = true;
+  },
+  async putRaw(pl, n, data) { const s = await openSession(pl.pack, pl.sess); s.bytes.set(data, patOff(n)); s.dirty = true; },
+  async clear(pl, n) {
+    const s = await openSession(pl.pack, pl.sess), o = patOff(n);
+    s.bytes.set(patEmpty(s.bytes.subarray(o, o + patSize(n))), o); s.dirty = true;
+  },
+  async flush(pl, ctx = {}) {
+    const s = await openSession(pl.pack, pl.sess);
+    if (!s.dirty) return;
+    if (ctx.backup) await ctx.backup.file([pl.pack.folder, "Sessions"], s.file, s.orig);
+    await writeFile(await subdir(pl.pack.dir, "Sessions"), s.file, s.bytes);
+    s.orig = s.bytes.slice(); s.dirty = false;
+    pl.pack._sessions = null;
+  },
+  discard(pl) { pl.pack._open.delete(pl.sess); },
+};
+
+/* ---------------------------------------------------------------- what the projects of a pack use (checked on the 173 sessions of a card copy)
+  * Synth 1 / 2: the slot the project points at, bytes 0x0CD64 / 0x0CD6C (0..127); the project carries its own copy of the patch (0x26D14 + 0x154 s),
+    which a load brings back: its name differs from the slot's when the patch was edited or the pack's slot changed since (29 of 346 outside the
+    Shadow Child pack, which was rearranged);
+  * the drums: the sample of each drum, byte 0 of its 11 at 0x26FBC (all 692 in the packs' range); the sample flips of the drum patterns (+ 64 + step,
+    0xFF none; a flip on a step without a hit counted too: the step can get one);
+  * the own synth of MIDI 1 / 2 (projsyn, SC46 on): its patch in bytes 8..39 of the settings of the track's patterns 0..4; it uses a sample (code 25,
+    0..63) in the granular or sample engine; its sample flips are 0x80 | s in lane 8 of MIDI 1 / 2's patterns (smpick).  A project keeps no slot
+    number for it: a custom patch counts as used when the project's sound is the same (the flags, the step-drummer, the 34 values and, when both have
+    it, the FM block; not the name). */
+function projSynth(b, t) {                                  // projsyn's patch of MIDI 1 / 2 (t = 0 / 1): the padding's first 124 bytes, or null
+  const img = new Uint8Array(150);
+  for (let k = 0; k < 5; k++) {
+    const o = MIDI0 + PAT * (8 * t + k) + SETT + 8;
+    if (b[o] !== 0xC6 || b[o + 1] !== (t << 4 | k)) return null;
+    img.set(b.subarray(o + 2, o + 32), 30 * k);
+  }
+  let s = 0x5AC6; for (let i = 0; i < 124; i++) s += img[i];
+  return (s & 0xFFFF) === (img[124] | img[125] << 8) && latin(img, 0, 4) === "CTM1" ? img.subarray(0, 124) : null;
+}
+function projFm(b, t) {                                    // fm8store: MIDI 1 / 2's FM record in bytes 8..39 of Synth 1 / 2's patterns 0..7 -> its parameters, or null
+  const r = new Uint8Array(240);
+  for (let k = 0; k < 8; k++) {
+    const o = SYNTH0 + PAT * (8 * t + k) + SETT + 8;
+    if (b[o] !== 0xC8 || b[o + 1] !== (t << 4 | k)) return null;
+    r.set(b.subarray(o + 2, o + 32), 30 * k);
+  }
+  return fm8Get(r);
+}
+const sameFm = (a, b) => !a || !b || a.every((v, i) => v === b[i]);
+const sameSound = (a, b) => { for (let i = 4; i < 40; i++) if (a[i] !== b[i]) return false; const f = fmGet(a), g = fmGet(b); return !f || !g || (f.on === g.on && f.params.every((v, i) => v === g.params[i])); };
+function sessionUses(b) {                                   // -> [{kind, slot, track, flip, copy}] or, for the own synth, {kind: "own", track, img}
+  const out = [];
+  for (let s = 0; s < 2; s++) {
+    const n = b[SYNTH0 + 16 * PAT + 8 * s];                 // 0x0CD64 + 8 s: right after Synth 2's patterns
+    if (n < SLOTS) out.push({kind: "nova", slot: n, track: s, copy: latin(b, 0x26D14 + 0x154 * s, 16)});
+  }
+  for (let d = 0; d < 4; d++) {
+    const n = b[0x26FBC + 11 * d], flips = new Set();
+    if (n < NSAMPLES) out.push({kind: "drums", slot: n, track: 4 + d});
+    for (let p = 0; p < 8; p++) { const o = DRUM0 + DPAT * (8 * d + p) + 64; for (let st = 0; st < NSTEPS; st++) if (b[o + st] < NSAMPLES) flips.add(b[o + st]); }
+    for (const f of flips) out.push({kind: "drums", slot: f, track: 4 + d, flip: true});
+  }
+  for (let t = 0; t < 2; t++) {
+    const img = projSynth(b, t);
+    if (img) {
+      out.push({kind: "own", track: 2 + t, img, fm8: projFm(b, t)});
+      const e = img[4] & 15, v = img[30];
+      if ((e === 9 || e === 11) && v < NSAMPLES) out.push({kind: "drums", slot: v, track: 2 + t});
+    }
+    const flips = new Set();
+    for (let p = 0; p < 8; p++) { const o = MIDI0 + PAT * (8 * t + p) + LANE0 + 192 * 8; for (let i = 0; i < 192; i++) if (b[o + i] >= 0x80 && b[o + i] < 0x80 + NSAMPLES) flips.add(b[o + i] & 63); }
+    for (const f of flips) out.push({kind: "drums", slot: f, track: 2 + t, flip: true});
+  }
+  return out;
+}
+async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, custom}: Map slot -> [{sess, label, track, flip, copy}]
+  if (pack._usage) return pack._usage;
+  const m = await sessionsOf(pack), out = {nova: new Map(), drums: new Map(), custom: new Map()}, own = [];
+  const add = (kind, slot, u) => { const l = out[kind].get(slot) || []; if (!l.some(x => x.sess === u.sess && x.track === u.track && !!x.flip === !!u.flip)) l.push(u); out[kind].set(slot, l); };
+  let i = 0;
+  for (const e of m.values()) {
+    if (ctx.progress) ctx.progress(e.file, ++i, m.size);
+    const o = pack._open.get(e.slot), b = o ? o.orig : await readHandle(e.handle);
+    if (b.length !== SESS_SIZE || latin(b, 0, 4) !== "USER") continue;
+    const label = e.label || latin(b, 0x10, 32);
+    for (const u of sessionUses(b)) {
+      const r = {sess: e.slot, label, track: u.track, flip: !!u.flip, copy: u.copy};
+      if (u.kind === "own") own.push([u.img, r, u.fm8]); else add(u.kind, u.slot, r);
+    }
+  }
+  if (own.length) {
+    const banks = await banksOf(pack);
+    for (let n = 0; n < SLOTS; n++) {
+      const pad = recordOf(banks, n).pad;
+      if (ctmState(pad) !== "ok") continue;
+      const f = fmGet(pad), x = f && f.ver === 3 ? fm8Get(extOf(banks, n)) : null;
+      for (const [img, r, y] of own) if (sameSound(pad, img) && sameFm(x, y)) add("custom", n, r);
+    }
+  }
+  return pack._usage = out;
+}
+
+// ---------------------------------------------------------------- a new order: the slot changes, and every project of the pack follows (the user, 2026-11-04)
+/* The projects find a Nova patch and a sample by its number (the places sessionUses reads): a new number is written in every session of the pack
+   that had the old one, so each project plays what it played before.  An occupied target = the two swap places (and numbers).  Custom patches go
+   by sound (projsyn), packs by nothing in a project: only the move.  CC presets are not reordered: the projects of every pack choose them by number. */
+function projSynthSet(b, t, i, v) {                         // byte i of projsyn's patch of track t, and its sum again
+  const at = k => MIDI0 + PAT * (8 * t + Math.floor(k / 30)) + SETT + 8 + 2 + k % 30;
+  b[at(i)] = v;
+  let sum = 0x5AC6; for (let k = 0; k < 124; k++) sum += b[at(k)];
+  b[at(124)] = sum & 0xFF; b[at(125)] = (sum >> 8) & 0xFF;
+}
+function remapSession(b, kind, map) {                       // -> how many references changed
+  let n = 0;
+  const f = at => { if (map.has(b[at])) { b[at] = map.get(b[at]); n++; } };
+  if (kind === "nova") { for (let s = 0; s < 2; s++) f(SYNTH0 + 16 * PAT + 8 * s); return n; }
+  for (let d = 0; d < 4; d++) {
+    if (b[0x26FBC + 11 * d] < NSAMPLES) f(0x26FBC + 11 * d);
+    for (let p = 0; p < 8; p++) for (let st = 0; st < NSTEPS; st++) { const at = DRUM0 + DPAT * (8 * d + p) + 64 + st; if (b[at] < NSAMPLES) f(at); }
+  }
+  for (let t = 0; t < 2; t++) {
+    for (let p = 0; p < 8; p++) {
+      const o = MIDI0 + PAT * (8 * t + p) + LANE0 + 192 * 8;
+      for (let i = 0; i < 192; i++) { const v = b[o + i]; if (v >= 0x80 && v < 0x80 + NSAMPLES && map.has(v & 63)) { b[o + i] = 0x80 | map.get(v & 63); n++; } }
+    }
+    const img = projSynth(b, t);
+    if (img && ((img[4] & 15) === 9 || (img[4] & 15) === 11) && img[30] < NSAMPLES && map.has(img[30])) { projSynthSet(b, t, 30, map.get(img[30])); n++; }
+  }
+  return n;
+}
+async function remapSessions(pack, kind, map, ctx = {}) {   // -> the sessions rewritten
+  const all = [...(await sessionsOf(pack)).values()], out = [];
+  for (let i = 0; i < all.length; i++) {
+    const e = all[i], o = await openSession(pack, e.slot);
+    if (remapSession(o.bytes, kind, map)) { o.dirty = true; await Patterns.flush({pack, sess: e.slot}, ctx); out.push(e.slot); }
+    if (ctx.progress) ctx.progress(e.file, i + 1, all.length);
+  }
+  pack._usage = null;
+  return out;
+}
+/* ---------------------------------------------------------------- a project's default sounds (the user, 2026-11-05: «Changing which patches are default in a
+   project and editing their init state»): Synth 1 / 2 = the Nova slot the project points at (SYNTH0 + 16 PAT + 8 s) and the copy a load plays
+   (0x26D14 + 0x154 s, 340 bytes: its initial state); MIDI 1 / 2's own synth = projsyn's image (MIDI t's patterns 0..4, 0xC6 blocks: the custom
+   patch's padding 0..149, its sum at 124), the 8-operator FM's record (Synth t + 1's patterns 0..7, 0xC8 blocks: fm8store) and the wavetable's
+   record (MIDI 2's pattern 5 + t: 0xCA, t, padding 150..162: wtui); the drums = the sample of each (0x26FBC + 11 d). */
+const NOVA_PTR = s => SYNTH0 + 16 * PAT + 8 * s, NOVA_COPY = s => 0x26D14 + 0x154 * s, DRUM_SMP = d => 0x26FBC + 11 * d;
+const WT_BLK = t => MIDI0 + PAT * (8 + 5 + t) + SETT + 8;
+function projOwn(b, t) {                                    // -> the own synth as a custom patch (padding 172 + FM record 224), or null
+  const img = projSynth(b, t);
+  if (!img) return null;
+  const out = new Uint8Array(PADN + RECN).fill(0xFF);
+  for (let k = 0; k < 5; k++) { const o = MIDI0 + PAT * (8 * t + k) + SETT + 8; out.set(b.subarray(o + 2, o + 32), 30 * k); }
+  out.fill(0xFF, 124, 126);
+  const w = WT_BLK(t);
+  if (b[w] === 0xCA && b[w + 1] === t) out.set(b.subarray(w + 2, w + 15), 150);
+  const fm = projFm(b, t);
+  if (fm) out.set(fm8Rec(fm), PADN);
+  return out;
+}
+function setProjOwn(b, t, pad) {                            // a custom patch (padding, its FM record) as the project's own synth of MIDI t
+  const img = new Uint8Array(150); img.set(pad.subarray(0, 150));
+  let sum = 0x5AC6; for (let i = 0; i < 124; i++) sum += img[i];
+  img[124] = sum & 0xFF; img[125] = (sum >> 8) & 0xFF;
+  for (let k = 0; k < 5; k++) { const o = MIDI0 + PAT * (8 * t + k) + SETT + 8; b[o] = 0xC6; b[o + 1] = t << 4 | k; b.set(img.subarray(30 * k, 30 * k + 30), o + 2); }
+  const rec = pad.length > PADN ? pad.subarray(PADN, PADN + RECN) : null, f = fmGet(pad);
+  if (rec && f && f.ver === 3 && fm8Get(rec)) {
+    const r = new Uint8Array(240); r.set(rec);
+    for (let k = 0; k < 8; k++) { const o = SYNTH0 + PAT * (8 * t + k) + SETT + 8; b[o] = 0xC8; b[o + 1] = t << 4 | k; b.set(r.subarray(30 * k, 30 * k + 30), o + 2); }
+  }
+  const w = WT_BLK(t);
+  if (pad[150] === 0xB7) { b[w] = 0xCA; b[w + 1] = t; b.set(pad.subarray(150, 163), w + 2); } else b[w] = 0;
+}
+function projectSounds(b) {
+  return {nova: [0, 1].map(s => ({slot: b[NOVA_PTR(s)], copy: latin(b, NOVA_COPY(s), 16)})), own: [0, 1].map(t => projOwn(b, t)),
+          drums: [0, 1, 2, 3].map(d => b[DRUM_SMP(d)])};
+}
+async function setProjectSounds(pl, sess, ch, ctx = {}) {   // ch: {nova: [[slot, copy 340 B or null] or null] x 2, own: [pad or null] x 2, drums: [sample or null] x 4}
+  const o = await openSession(pl.pack, sess), b = o.bytes;
+  (ch.nova || []).forEach((x, s) => { if (!x) return; b[NOVA_PTR(s)] = x[0]; if (x[1]) b.set(x[1].subarray(0, PSZ), NOVA_COPY(s)); });
+  (ch.own || []).forEach((pad, t) => { if (pad) setProjOwn(b, t, pad); });
+  (ch.drums || []).forEach((v, d) => { if (v !== null && v !== undefined) b[DRUM_SMP(d)] = v; });
+  o.dirty = true;
+  await Patterns.flush({pack: pl.pack, sess}, ctx);
+  pl.pack._usage = null;
+}
+
+const ORDER_KIND = {nova: Nova, drums: Drums, custom: Custom};
+async function reorder(kind, pl, from, to, ctx = {}, remap = true) {   // -> the sessions rewritten (remap false: the projects keep their numbers)
+  const K = ORDER_KIND[kind];
+  if (!K) throw new Error("order-kind");
+  if (to < 0 || to >= K.size) throw new Error("order-range");
+  if (from === to) return [];
+  const items = await K.list(pl);
+  if (items[from].empty) throw new Error("name-none");
+  const swap = !items[to].empty;
+  if (kind === "drums") {
+    const d = await subdir(pl.pack.dir, "PCM"), m = await samplesOf(pl.pack), a = m.get(from), b = m.get(to), parts = [pl.pack.folder, "PCM"];
+    const tmp = items.findIndex((x, i) => x.empty && i !== to && i !== from);
+    if (swap && tmp < 0) await transfer(K, pl, [from], pl, [to], {move: true, swap: true}, ctx);    // 64 samples: no free number to pass through
+    else {                                                  // renames only: the device moves no data, the PC the least
+      const re = (f, n) => pad2(n) + f.slice(2);
+      if (swap) await renameFile(d, b.file, re(b.file, tmp), ctx, parts);
+      await renameFile(d, a.file, re(a.file, to), ctx, parts);
+      if (swap) await renameFile(d, re(b.file, tmp), re(b.file, from), ctx, parts);
+    }
+    pl.pack._samples = null; pl.pack._info = null;
+  } else await transfer(K, pl, [from], pl, [to], {move: true, swap}, ctx);
+  if (kind === "custom" || !remap) return [];
+  return remapSessions(pl.pack, kind, new Map([[from, to], [to, from]]), ctx);     // both ways even to a free number: a project that pointed at it (silence) still does
+}
+async function slotPack(pack, slot, ctx = {}) {             // a pack to a free number of its card
+  const card = pack.card;
+  if (card.pack(slot)) throw new Error("slot-used");
+  if (!card.tracks.renameEntry && await renameHandle(pack.dir, folderName(slot, pack.name))) { await card.reset(); return card.pack(slot); }
+  return movePack(pack, card, slot, ctx);
+}
+async function reorderPack(pack, to, ctx = {}) {            // an occupied number: the two swap, through a free one
+  const card = pack.card, from = pack.slot;
+  if (to < 0 || to >= NPACKS) throw new Error("order-range");
+  if (to === from) return pack;
+  if (!card.pack(to)) return slotPack(pack, to, ctx);
+  let tmp = -1; for (let i = NPACKS - 1; i >= 0; i--) if (!card.pack(i)) { tmp = i; break; }
+  if (tmp < 0) throw new Error("order-full");
+  await slotPack(card.pack(to), tmp, ctx);
+  await slotPack(card.pack(from), to, ctx);
+  await slotPack(card.pack(tmp), from, ctx);
+  return card.pack(to);
+}
+
+// ---------------------------------------------------------------- the 8 CC presets: 120 B each; + 4 the name (32 B), + 0x28 8 records: type, channel, flags (bit 0 the track's channel, bit 1 bipolar), 0, u16 number, u16 bottom, u16 top
+const ccName = t => latin(t, 4, 32).replace(/\0.*$/, "");
+function ccSetName(t, s) { t.fill(0, 4, 36); [...String(s).replace(/[^ -~]/g, "_").slice(0, 32)].forEach((c, i) => { t[4 + i] = c.charCodeAt(0); }); }
+function ccDefault() {
+  const b = new Uint8Array(TPL * NTPL);
+  for (let t = 0; t < NTPL; t++) for (let k = 0; k < 8; k++) b.set([1, 0, 1, 0, CC_DEF[k], 0, 0, 0, 0x7F, 0], TPL * t + TPL_HEAD + TPL_REC * k);
+  return b;
+}
+function ccParse(t) {
+  const v = new DataView(t.buffer, t.byteOffset, t.byteLength), out = [];
+  for (let k = 0; k < 8; k++) { const o = TPL_HEAD + TPL_REC * k; out.push({type: t[o], chan: t[o + 1], flags: t[o + 2], param: v.getUint16(o + 4, true), start: v.getUint16(o + 6, true), end: v.getUint16(o + 8, true)}); }
+  return out;
+}
+function ccBuild(recs, base) {
+  const t = base.slice(), v = new DataView(t.buffer, t.byteOffset, t.byteLength);
+  recs.forEach((r, k) => { const o = TPL_HEAD + TPL_REC * k; t[o] = r.type; t[o + 1] = r.chan; t[o + 2] = r.flags; v.setUint16(o + 4, r.param, true); v.setUint16(o + 6, r.start, true); v.setUint16(o + 8, r.end, true); });
+  return t;
+}
+const CC = {
+  size: NTPL,
+  async list(pl) {
+    const out = [];
+    for (let n = 0; n < NTPL; n++) out.push({slot: n, empty: false, name: ccName(pl.set.bytes.subarray(TPL * n, TPL * (n + 1))), recs: ccParse(pl.set.bytes.subarray(TPL * n, TPL * (n + 1)))});
+    return out;
+  },
+  async get(pl, n) { return pl.set.bytes.slice(TPL * n, TPL * (n + 1)); },
+  async put(pl, n, t) { pl.set.bytes.set(t, TPL * n); pl.set.dirty = true; },
+  async clear(pl, n) { pl.set.bytes.set(ccDefault().subarray(0, TPL), TPL * n); pl.set.dirty = true; },
+  async setName(pl, n, name) { name = checkName("cc", name); const t = pl.set.bytes.subarray(TPL * n, TPL * (n + 1)); ccSetName(t, name); pl.set.dirty = true; },
+};
+
+// ---------------------------------------------------------------- the device over USB: the stock file protocol, F0 00 20 29 01 64 03 CMD ... (docs/NOTAS.md)
+/* Rules the firmware does not enforce (each one read in it and run in emulation, tools/emu_sdsysex.py):
+   * 40 with a session open, or 41 with none, damages the loaded project in RAM: `sess` is the only way in, and open() asks first (a closed session ignores 0B);
+   * a write deletes the old file and its name before any data arrives: the caller keeps a copy, and a name other than the default takes a 07 afterwards;
+   * a data packet that does not fit the 32 KB cache bank is dropped and still acked: one constant size, CHUNK;
+   * names over 31 characters overwrite the firmware's stack. */
+const NOVATION = [0xF0, 0x00, 0x20, 0x29, 0x01, 0x64], CHUNK = 0x2000, NAME_MAX = 31;
+const n32 = v => [28, 24, 20, 16, 12, 8, 4, 0].map(s => (v >>> s) & 15);
+function un32(b, o) { let v = 0; for (let i = 0; i < 8; i++) v = v * 16 + (b[o + i] & 15); return v; }
+function enc7(d) {
+  const out = [];
+  for (let i = 0; i < d.length; i += 7) {
+    const n = Math.min(7, d.length - i); let m = 0;
+    for (let k = 0; k < n; k++) m |= (d[i + k] >> 7) << k;
+    out.push(m);
+    for (let k = 0; k < n; k++) out.push(d[i + k] & 0x7F);
+  }
+  return out;
+}
+function dec7(e) {
+  const out = new Uint8Array(e.length); let o = 0;
+  for (let i = 0; i < e.length; i += 8) {
+    const m = e[i], n = Math.min(7, e.length - i - 1);
+    for (let k = 0; k < n; k++) out[o++] = e[i + 1 + k] | (((m >> k) & 1) << 7);
+  }
+  return out.subarray(0, o);
+}
+const CRCT = Array.from({length: 256}, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+function crc32(d) { let c = 0xFFFFFFFF; for (let i = 0; i < d.length; i++) c = CRCT[(c ^ d[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+const isFile = m => m[6] === 3;
+const text = (m, a, b) => String.fromCharCode(...m.subarray(a, b));
+const notFound = () => Object.assign(new Error("not found"), {name: "NotFoundError"});
+
+// a CC preset on the wire: 120-byte records <-> the containers the stock takes (name 20 n ..., knob 49 / 4C, off 41)
+const CC_WIRE = {1: 2, 2: 5, 3: 4, 4: 0x0A, 5: 9}, CC_REC = {2: 1, 5: 2, 4: 3, 0x0A: 4, 9: 5};
+function ccEncode(t) {
+  const v = new DataView(t.buffer, t.byteOffset, t.byteLength), out = [], name = ccName(t);
+  if (name) out.push(0x20, name.length, ...[...name].map(c => c.charCodeAt(0)));
+  for (let k = 0; k < 8; k++) {
+    const o = TPL_HEAD + TPL_REC * k, wire = CC_WIRE[t[o]];
+    if (!wire) { out.push(0x41, k, 0); continue; }
+    const fl = (t[o + 2] & 1 ? 0x40 : 0) | (t[o + 2] & 2 ? 1 : 0), num = v.getUint16(o + 4, true), bot = v.getUint16(o + 6, true), top = v.getUint16(o + 8, true);
+    if (wire === 2) out.push(0x49, k, 2, 0, 0, t[o + 1], fl, 0, num & 127, top & 127, bot & 127);
+    else out.push(0x4C, k, wire, 0, 0, t[o + 1], fl, 0, num & 127, num >> 7 & 127, top & 127, top >> 7 & 127, bot & 127, bot >> 7 & 127);
+  }
+  return out;
+}
+function ccDecode(d) {
+  const t = new Uint8Array(TPL), v = new DataView(t.buffer);
+  for (let i = 0; i < d.length;) {
+    const tag = d[i];
+    if (tag === 0x20) { t.set(d.subarray(i + 2, i + 2 + Math.min(d[i + 1], 32)), 4); i += 2 + d[i + 1]; continue; }
+    if ((tag & 0xF0) !== 0x40) break;
+    const k = d[i + 1], o = TPL_HEAD + TPL_REC * k, wide = tag === 0x4C;
+    if (k < 8 && (tag === 0x49 || wide)) {
+      t[o] = wide ? CC_REC[d[i + 2]] || 0 : 1; t[o + 1] = d[i + 5]; t[o + 2] = (d[i + 6] & 0x40 ? 1 : 0) | (d[i + 6] & 1 ? 2 : 0);
+      v.setUint16(o + 4, wide ? d[i + 8] | d[i + 9] << 7 : d[i + 8], true);
+      v.setUint16(o + 8, wide ? d[i + 10] | d[i + 11] << 7 : d[i + 9], true);
+      v.setUint16(o + 6, wide ? d[i + 12] | d[i + 13] << 7 : d[i + 10], true);
+    }
+    i += (tag & 15) + 2;
+  }
+  return t;
+}
+
+class Device {
+  // tx: {send(Uint8Array), onmessage} over a Web MIDI port, or the emulator's bridge; tx.slow stretches the timeouts
+  constructor(tx) { this.meter = null; this.tx = tx; this.q = []; this.wake = null; this.sess = false; this.loaded = null; this.tail = Promise.resolve(); this.k = tx.slow || 1; tx.onmessage = m => this.rx(m); }
+  rx(m) { this.q.push(m); if (this.wake) { const w = this.wake; this.wake = null; w(); } }
+  run(fn) { const p = this.tail.then(fn); this.tail = p.catch(() => {}); return p; }       // one command at a time, its replies with it
+  async next(test, ms) {
+    const end = Date.now() + ms * this.k;
+    for (;;) {
+      while (this.q.length) { const m = this.q.shift(); if (test(m)) return m; }
+      const left = end - Date.now();
+      if (left <= 0) throw new Error("device-timeout");
+      await new Promise(res => { const t = setTimeout(() => { this.wake = null; res(); }, left); this.wake = () => { clearTimeout(t); res(); }; });
+    }
+  }
+  file(...b) { this.tx.send(Uint8Array.from([...NOVATION, 3, ...b, 0xF7])); }
+  async status(ms) { const m = await this.next(x => isFile(x) && (x[7] === 4 || x[7] === 5), ms); return {ok: m[7] === 4, c: un32(m, 8), code: m[7] === 5 ? m[19] : 0}; }
+  async must(ms) { const s = await this.status(ms); if (!s.ok) throw new Error("device-status-" + s.code); return s; }
+  identify() {
+    return this.run(async () => {
+      this.q.length = 0;
+      this.tx.send(Uint8Array.of(0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7));
+      const m = await this.next(x => x[1] === 0x7E && x[3] === 6 && x[4] === 2, 2000);
+      if (m[5] !== 0 || m[6] !== 0x20 || m[7] !== 0x29 || m[8] !== 1 || m[9] !== 0x64) throw new Error("device-other");
+      this.tx.send(Uint8Array.of(...NOVATION, 0x49, 0xF7));
+      const s = await this.next(x => x[6] === 9 && x.length >= 20, 1000).catch(() => null);
+      this.loaded = s ? s[s.length - 2] : null; this.chans = s ? [...s.subarray(7, 12)] : null;      // Synth 1, Synth 2, MIDI 1, MIDI 2, Drums
+    });
+  }
+  open() {
+    return this.run(async () => {
+      this.q.length = 0;
+      this.file(0x0B, 1);                                   // a session left open answers; a closed one ignores it
+      const m = await this.next(x => isFile(x) && (x[7] === 0x0B || x[7] === 4 || x[7] === 5), 1000).catch(() => null);
+      if (m) { this.sess = true; return "adopted"; }
+      this.file(0x40, 0);
+      const s = await this.status(60000);
+      if (!s.ok) throw new Error(s.code === 3 ? "device-busy" : "device-status-" + s.code);
+      this.sess = true;
+      return "opened";
+    });
+  }
+  close() {
+    return this.run(async () => {
+      if (!this.sess) return;
+      this.sess = false; this.file(0x41, 0);
+      await this.must(60000);
+    });
+  }
+  closeNow() { if (this.sess) { this.sess = false; this.file(0x41, 0); } }                  // the page is going away
+  packs() {
+    return this.run(async () => {
+      this.file(0x0B, 2);
+      const h = await this.next(x => isFile(x) && x[7] === 0x0B && x[8] === 2, 20000), out = [];
+      for (let i = 0; i < h[9]; i++) {                      // no end marker, and a name the router drops is still counted
+        const m = await this.next(x => isFile(x) && x[7] === 0x0C && x[8] === 2, 3000).catch(() => null);
+        if (!m) break;
+        out.push({P: m[9], name: text(m, 10, m.length - 1)});
+      }
+      return out;
+    });
+  }
+  items(T, P) {
+    return this.run(async () => {
+      this.file(0x0B, T, P);
+      const h = await this.next(x => isFile(x) && (x[7] === 5 || (x[7] === 0x0B && x[8] === T && x[9] === P)), 20000), out = [];
+      if (h[7] === 5) throw new Error("device-status-" + h[19]);
+      for (let i = 0, n = h[10] + 128 * h[11]; i < n; i++) {
+        const m = await this.next(x => isFile(x) && x[7] === 0x0C && x[8] === T && x[9] === P, 3000).catch(() => null);
+        if (!m) break;
+        out.push({I: m[10], name: text(m, 11, m.length - 1)});
+      }
+      return out;
+    });
+  }
+  value(cmd, T, P, I, ms) {                                 // 0A size, 0D CRC
+    return this.run(async () => {
+      this.file(cmd, T, P, I);
+      const m = await this.next(x => isFile(x) && (x[7] === 5 || (x[7] === cmd && x[8] === T && x[9] === P && x[10] === I)), ms);
+      if (m[7] === 5) throw new Error("device-status-" + m[19]);
+      return un32(m, 11);
+    });
+  }
+  size(T, P, I) { return this.value(0x0A, T, P, I, 5000); }
+  crc(T, P, I) { return this.value(0x0D, T, P, I, 30000); }
+  read(T, P, I, tick) {
+    return this.run(async () => {
+      this.file(1, ...n32(0), T, P, I, 2, ...n32(0));
+      const h = await this.next(x => isFile(x) && (x[7] === 1 || x[7] === 5 || x[7] === 6), 10000);
+      if (h[7] === 6) return null;
+      if (h[7] === 5) throw new Error("device-status-" + h[19]);
+      const size = un32(h, 20), out = new Uint8Array(size);
+      for (let o = 0; ;) {
+        const m = await this.next(x => isFile(x) && (x[7] === 2 || x[7] === 3), 5000);
+        if (m[7] === 2) { const d = dec7(m.subarray(19, m.length - 1)); if (o + d.length > size) throw new Error("device-read"); out.set(d, o); o += d.length; if (this.meter) this.meter(d.length); if (tick) tick(o, size); continue; }
+        if (o !== size || un32(m, 19) !== crc32(out)) throw new Error("device-read");       // a card error ends the stream early
+        return out;
+      }
+    });
+  }
+  write(T, P, I, data, tick) {
+    return this.run(async () => {
+      const n = Math.ceil(data.length / CHUNK), crc = crc32(data);
+      for (let attempt = 0; ; attempt++) {
+        this.file(1, ...n32(0), T, P, I, 1, ...n32(data.length));
+        await this.must(10000);
+        for (let k = 1, resend = 0; k <= n;) {
+          this.file(2, ...n32(k), T, P, I, ...enc7(data.subarray((k - 1) * CHUNK, k * CHUNK)));
+          const s = await this.status(10000);
+          if (s.ok) { if (this.meter) this.meter(Math.min(CHUNK, data.length - (k - 1) * CHUNK)); if (tick) tick(Math.min(k * CHUNK, data.length), data.length); k++; resend = 0; continue; }
+          if (s.code !== 2 || ++resend > 4) throw new Error("device-status-" + s.code);
+          k = s.c + 1;                                      // the packet it has: go on from there
+        }
+        this.file(3, ...n32(n + 1), T, P, I, ...n32(crc));
+        const s = await this.status(10000 + 1000 * data.length / 1048576);                  // it reads the file back from the card
+        if (s.ok) return;
+        if (s.code !== 4 || attempt >= 2) throw new Error("device-status-" + s.code);
+      }
+    });
+  }
+  name(name) {
+    if (name.length > NAME_MAX || !/^[ -~]+$/.test(name)) throw new Error("device-name");
+    return [...name].map(c => c.charCodeAt(0));
+  }
+  rename(T, P, I, name) { const b = this.name(name); return this.run(async () => { this.file(7, T, P, I, ...b); await this.must(10000); }); }
+  renamePack(P, name) { const b = this.name(name); return this.run(async () => { this.file(7, 2, P, ...b); await this.must(30000); }); }
+  del(T, P, I) { return this.run(async () => { this.file(8, T, P, I); await this.must(10000); }); }
+  delPack(P) { return this.run(async () => { this.file(8, 2, P); await this.must(60000); }); }
+  // the CC presets: the stock's own messages, no file session (the app closes it around them)
+  ccRead(n) {
+    return this.run(async () => {
+      this.tx.send(Uint8Array.of(...NOVATION, 7, 0, 0x40, 0x42, n, 0xF7));
+      const m = await this.next(x => x[6] === 7 && x[9] === 0x42 && x[10] === n && (x[8] === 0x10 || x[8] === 0x20), 3000);
+      if (m[8] !== 0x10) throw new Error("device-cc");
+      return ccDecode(m.subarray(11, m.length - 1));
+    });
+  }
+  ccWrite(n, t) {
+    return this.run(async () => {
+      this.tx.send(Uint8Array.of(...NOVATION, 7, 0, 0x45, 0x42, n, ...ccEncode(t), 0xF7));
+      const m = await this.next(x => x[6] === 7 && x[9] === 0x42 && x[10] === n && (x[8] === 0x15 || x[8] === 0x25), 3000);
+      if (m[8] !== 0x15) throw new Error("device-cc");
+    });
+  }
+}
+
+/* The device as a folder: the same calls a FileSystemDirectoryHandle answers, so every kind above works on it untouched.  A folder lists by type; a file is
+   (type, pack, slot).  The effects folder's name is not known here: it shows as Effects, and a folder of a card is recognized by its ending. */
+const DEV_FOLDERS = [["Sessions", 3, "SESSION.ncs"], ["Patches", 4, "PATCHBANK.cpb"], ["PCM", 5, "PCM.wav"], ["meta", 7, "META.ncm"], ["Effects", 6, null]];
+class DevFile {
+  constructor(folder, I, name) { this.kind = "file"; this.device = true; this.folder = folder; this.I = I; this.name = name; }
+  async getFile() {
+    const f = this.folder, read = () => f.dev.read(f.T, f.P, this.I);
+    return {name: this.name, size: await f.dev.size(f.T, f.P, this.I), arrayBuffer: async () => (await read()).buffer, slice: (a, b) => ({arrayBuffer: async () => (await read()).slice(a, b).buffer})};
+  }
+  async createWritable() {
+    let data = new Uint8Array(0);
+    return {write: async b => { data = b; }, close: () => this.folder.put(this.I, this.name, data), abort: async () => {}};
+  }
+}
+class DevFolder {
+  constructor(pack, name, T, def) { this.kind = "directory"; this.device = true; this.pack = pack; this.dev = pack.dev; this.P = pack.P; this.name = name; this.T = T; this.def = def; this.cache = null; }
+  async list() { return this.cache || (this.cache = await this.dev.items(this.T, this.P)); }
+  async *entries() { for (const e of await this.list()) yield [e.name, new DevFile(this, e.I, e.name)]; }
+  async getFileHandle(name, opt = {}) {
+    const e = (await this.list()).find(x => x.name === name), m = /^(\d\d)_/.exec(name);
+    if (e) return new DevFile(this, e.I, e.name);
+    if (!opt.create) throw notFound();
+    if (!m) throw new Error("device-name");
+    return new DevFile(this, +m[1], name);
+  }
+  async put(I, name, data) {
+    this.dev.name(name);                                    // refused before the write takes the old file away
+    await this.dev.write(this.T, this.P, I, data);
+    this.cache = null;
+    const was = this.def ? pad2(I) + "_" + this.def : ((await this.list()).find(x => x.I === I) || {}).name;
+    if (was !== name) { await this.dev.rename(this.T, this.P, I, name); this.cache = null; }
+  }
+  async removeEntry(name) {
+    const e = (await this.list()).find(x => x.name === name);
+    if (!e) return;                                         // a write over the slot already took it
+    await this.dev.del(this.T, this.P, e.I); this.cache = null;
+  }
+  async renameEntry(name, to) {
+    const e = (await this.list()).find(x => x.name === name);
+    if (!e) throw notFound();
+    await this.dev.rename(this.T, this.P, e.I, to); this.cache = null;
+  }
+}
+class DevPack {
+  constructor(root, P, name) { this.kind = "directory"; this.device = true; this.root = root; this.dev = root.dev; this.P = P; this.name = name; this.sub = new Map(DEV_FOLDERS.map(([n, T, def]) => [n, new DevFolder(this, n, T, def)])); }
+  accepts(n) { return this.sub.has(n) || /fx$/i.test(n); }
+  folder(n) { return this.sub.get(n) || (/fx$/i.test(n) ? this.sub.get("Effects") : null); }
+  async *entries() {
+    for (const [n, d] of this.sub) if (n !== "Effects" || (await d.list()).length) yield [n, d];
+  }
+  async getDirectoryHandle(n) { const d = this.folder(n); if (!d) throw notFound(); return d; }
+  async finish() {                                          // a pack that a first write made is called NN_PACK
+    const now = (await this.dev.packs()).find(x => x.P === this.P);
+    if (now && now.name !== this.name) await this.dev.renamePack(this.P, this.name);
+    this.root.cache = null;
+  }
+}
+class DevRoot {
+  constructor(dev) { this.kind = "directory"; this.device = true; this.dev = dev; this.name = "Circuit Tracks"; this.cache = null; this.open = new Map(); }
+  async isSameEntry(o) { return o === this; }
+  async resolve() { return null; }
+  async list() { return this.cache || (this.cache = (await this.dev.packs()).filter(x => x.P >= 1)); }    // pack 0, the internal memory, stays out
+  handle(P, name) { let h = this.open.get(name); if (!h) this.open.set(name, h = new DevPack(this, P, name)); return h; }
+  async *entries() { for (const x of await this.list()) yield [x.name, this.handle(x.P, x.name)]; }
+  async getDirectoryHandle(name, opt = {}) {
+    const x = (await this.list()).find(e => e.name === name), m = /^(\d\d)_/.exec(name);
+    if (x) return this.handle(x.P, x.name);
+    if (!opt.create || !m) throw notFound();
+    return this.handle(+m[1] + 1, name);
+  }
+  async removeEntry(name) {
+    const x = (await this.list()).find(e => e.name === name);
+    if (x) await this.dev.delPack(x.P);
+    this.cache = null; this.open.delete(name);
+  }
+  async renameEntry(name, to) {
+    const x = (await this.list()).find(e => e.name === name);
+    if (!x) throw notFound();
+    await this.dev.renamePack(x.P, to);
+    this.cache = null; this.open.delete(name);
+  }
+}
+
+/* A snapshot of the device: a folder of the PC that opens as a card (Tracks/NN_Name), with Internal/ (pack 0, never written back), presets.ctcc and, last,
+   snapshot.json: a folder without it did not finish.  Going back writes only what differs by size and CRC; the device's settings cannot be read as a whole
+   nor written (type 8), and a pack that is not in the snapshot stays. */
+const SNAP_FILE = "snapshot.json";
+async function snapshot(card, top, ctx = {}) {
+  const inner = (await card.device.packs()).find(x => x.P === 0), own = inner ? [[card.tracks.handle(0, inner.name), await subdir(await subdir(top, "Internal", true), inner.name, true)]] : [];
+  const tracks = await subdir(top, "Tracks", true), list = [...own, ...await Promise.all(card.packs.map(async p => [p.dir, await subdir(tracks, p.folder, true)]))];
+  let total = 0, all = 0, done = 0, bytes = 0;
+  for (const [src] of list) { const i = await treeInfo(src); total += i.files; all += i.bytes; }
+  if (ctx.total) ctx.total(all);
+  for (const [src, dst] of list) await copyTree(src, dst, (n, size) => { done++; bytes += size; if (ctx.progress) ctx.progress(n, done, total); });
+  await writeFile(top, SNAP_FILE, new TextEncoder().encode(JSON.stringify({app: "CIRCUIT-HACKS SD", packs: card.packs.map(p => p.folder), internal: inner ? inner.name : null, files: done, bytes}, null, 1)));
+  return {files: done, bytes};
+}
+async function restorePlan(card, top, ctx = {}) {
+  let meta;
+  try { meta = JSON.parse(new TextDecoder().decode(await readHandle(await top.getFileHandle(SNAP_FILE)))); } catch (_) { throw new Error("snap-bad"); }
+  const tracks = await subdir(top, "Tracks");
+  if (!tracks) throw new Error("snap-bad");
+  const plan = {packs: [], write: [], del: [], bytes: 0, same: 0, keep: [], replaced: []}, now = await card.tracks.list();
+  plan.keep = now.map(x => x.name).filter(n => !meta.packs.includes(n));
+  let done = 0;
+  for (const folder of meta.packs) {
+    const src = await subdir(tracks, folder);
+    if (!src) throw new Error("snap-bad");
+    const P = +folder.slice(0, 2) + 1, was = now.find(x => x.P === P), dst = await card.tracks.getDirectoryHandle(folder, {create: true});
+    if (was && was.name !== folder) plan.replaced.push(`${was.name} → ${folder}`);
+    plan.packs.push({folder, dst, P});
+    for (const [sub, s] of await entries(src)) {
+      if (s.kind !== "directory") continue;
+      const d = await dst.getDirectoryHandle(sub), have = new Map((await d.list().catch(() => [])).map(e => [e.name, e]));
+      for (const [n, h] of await entries(s)) {
+        if (/\.crswap$/i.test(n)) continue;
+        const b = await readHandle(h), e = have.get(n);
+        have.delete(n);
+        if (e && await d.dev.size(d.T, d.P, e.I) === b.length && await d.dev.crc(d.T, d.P, e.I) === crc32(b)) plan.same++;
+        else { plan.write.push({d, n, h, sub, folder, old: !!e, P}); plan.bytes += b.length; }
+        if (ctx.progress) ctx.progress(n, ++done, meta.files);
+      }
+      for (const [n] of have) plan.del.push({d, n, sub, folder});
+    }
+  }
+  return plan;
+}
+async function restoreApply(card, plan, ctx = {}) {
+  const total = plan.write.length + plan.del.length;
+  let done = 0;
+  if (ctx.backup) for (const x of [...plan.del, ...plan.write.filter(w => w.old)]) await ctx.backup.file([x.folder, x.sub], x.n, await readHandle(await x.d.getFileHandle(x.n)));   // all first: a write can take another name of its slot
+  if (ctx.total) ctx.total(plan.bytes);
+  for (const w of plan.write) { await writeFile(w.d, w.n, await readHandle(w.h)); if (ctx.progress) ctx.progress(w.n, ++done, total); }
+  for (const x of plan.del) { await x.d.removeEntry(x.n); if (ctx.progress) ctx.progress(x.n, ++done, total); }
+  for (const p of plan.packs) await p.dst.finish();
+  await card.reset();
+}
+
+// ---------------------------------------------------------------- copy, move, swap between two places of one kind
+async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
+  const items = [], olds = [];
+  if (opt.move && !opt.swap && K.rename && src.pack && src.pack.dir.device && same(src, dst) && !to.some(n => from.includes(n))) {      // no data moves
+    const free = await K.list(src);
+    if (to.every(n => free[n].empty)) { for (let i = 0; i < from.length; i++) await K.rename(src, from[i], to[i]); return; }
+  }
+  for (const n of from) items.push(await K.get(src, n));    // all read first: source and destination can overlap
+  if (opt.swap) for (const n of to) olds.push(await K.get(dst, n));
+  for (let i = 0; i < from.length; i++) { await K.put(dst, to[i], items[i], ctx); if (ctx.progress) ctx.progress("", i + 1, from.length); }
+  if (opt.swap) for (let i = 0; i < from.length; i++) await K.put(src, from[i], olds[i], ctx);
+  else if (opt.move) for (const n of from) if (!(same(src, dst) && to.includes(n))) await K.clear(src, n, ctx);
+  if (K.flush) { await K.flush(dst, ctx); if (!same(src, dst)) await K.flush(src, ctx); }
+}
+
+return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
+  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
+  Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
+  RECN, extOf, fm8Rec, fm8Get, dx7Parse, dx7ToFm8, dx7Patch, projFm, projOwn, setProjOwn, projectSounds, setProjectSounds,
+  patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
+})();
+window.SDT = SDT;
+</script>
+<script id="core-rhythm">
+/* The microSD card of a Circuit Rhythm, read and written from the browser (File System Access API).  No DOM here: the interface is the next script,
+and it can be run on its own.
+
+The formats:
+  * a pack = Rhythm/NN_Name (NN 00..30 = the device's packs 1..31; pack 0 is the internal memory; names cut at 30 characters), with Sessions, PCM, meta
+    (and the effects folder, carried by a pack copy as any other folder);
+  * the firmware finds a file by its NN_ prefix alone: a stray NN_something in those folders can be taken instead of the real file.  So nothing of ours
+    is ever left in a pack: backups go to a folder outside it;
+  * PCM/NN_Name.wav = 128 samples: from 100 on, the prefix has three digits;
+  * Sessions/NN_Name.ncs = 169 092 B, head RUSE or RDEM; 8 tracks x 8 patterns of 2 600 B from 0x2E4: 32 steps of 8 B, settings at + 0x100, 12 lanes at + 0x128.
+The device, connected by USB, is one more folder: Device / DevRoot below speak the stock file protocol behind the same calls as a folder handle. */
+const SDR = (() => {
+"use strict";
+const NSAMPLES = 128, NSESS = 64, NPACKS = 31, FOLDER_MAX = 30;
+const SESS_SIZE = 0x29484, PAT0 = 0x2E4, PAT = 0xA28, NPATS = 64, NSTEPS = 32, STEP = 8, SETT = 0x100, SETN = 40, LANE0 = 0x128, NLANES = 12, MICRO = 6;
+const SAMPLE_MAX = 0x2F0000;                                // the stock's loader reads no more of a sample than this
+const STEP_EMPTY = Uint8Array.of(0x48, 6, 0, 0, 7, 0xFF, 0, 0);
+
+const pad2 = n => String(n).padStart(2, "0");
+const TRACK_NAME = ["Track 1", "Track 2", "Track 3", "Track 4", "Track 5", "Track 6", "Track 7", "Track 8"];
+const isFF = (b, a, n) => { for (let i = a; i < a + n; i++) if (b[i] !== 0xFF) return false; return true; };
+function latin(b, a, n) { let s = ""; for (let i = a; i < a + n; i++) s += String.fromCharCode(b[i]); return s.replace(/[\s\0]+$/, ""); }
+const same = (a, b) => a === b || (!!a.pack && a.pack === b.pack && a.sess === b.sess);
+
+// ---------------------------------------------------------------- the file system
+async function entries(dir) {
+  const out = [];
+  for await (const [name, h] of dir.entries()) out.push([name, h]);
+  return out.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+}
+async function subdir(dir, name, create = false) {
+  try { return await dir.getDirectoryHandle(name, {create}); }
+  catch (e) { if (e.name === "NotFoundError" || e.name === "TypeMismatchError") return null; throw e; }
+}
+const readHandle = async h => new Uint8Array(await (await h.getFile()).arrayBuffer());
+async function writeFile(dir, name, bytes) {
+  const w = await (await dir.getFileHandle(name, {create: true})).createWritable();
+  try { await w.write(bytes); await w.close(); }
+  catch (e) { try { await w.abort(); } catch (_) { /* the write's own error is the one to report */ } throw e; }
+}
+async function treeInfo(dir) {
+  let files = 0, bytes = 0;
+  for (const [, h] of await entries(dir)) {
+    if (h.kind === "directory") { const t = await treeInfo(h); files += t.files; bytes += t.bytes; }
+    else { files++; bytes += (await h.getFile()).size; }
+  }
+  return {files, bytes};
+}
+async function copyTree(src, dst, tick) {
+  for (const [n, h] of await entries(src)) {
+    if (/\.crswap$/i.test(n) || (h.kind === "directory" && dst.accepts && !dst.accepts(n))) continue;     // the browser's temporary file; a folder the device has no type for
+    if (h.kind === "directory") await copyTree(h, await dst.getDirectoryHandle(n, {create: true}), tick);
+    else { const b = await readHandle(h); await writeFile(dst, n, b); if (tick) tick(n, b.length); }
+  }
+}
+async function sameTree(a, b) {                             // every file of a is in b with its size
+  for (const [n, h] of await entries(a)) {
+    if (/\.crswap$/i.test(n) || (h.kind === "directory" && b.accepts && !b.accepts(n))) continue;
+    if (h.kind === "directory") { const d = await subdir(b, n); if (!d || !await sameTree(h, d)) return false; continue; }
+    let f; try { f = await (await b.getFileHandle(n)).getFile(); } catch (_) { return false; }
+    if (f.size !== (await h.getFile()).size) return false;
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------- backups: a folder of the user's, outside the packs
+class Backup {
+  constructor(dir, title) {
+    this.dir = dir; this.title = title || dir.name; this.seen = new Set(); this.count = 0;
+    const d = new Date(); this.stamp = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}_${pad2(d.getHours())}${pad2(d.getMinutes())}${pad2(d.getSeconds())}`;
+  }
+  async folder(parts) { let h = await subdir(this.dir, this.stamp, true); for (const p of parts) h = await subdir(h, p, true); return h; }
+  async file(parts, name, bytes) {                          // only the first version of a file in this run: the one that was on the card
+    const key = parts.concat(name).join("/");
+    if (this.seen.has(key)) return;
+    await writeFile(await this.folder(parts), name, bytes); this.seen.add(key); this.count++;
+  }
+  async tree(src, parts) { await copyTree(src, await this.folder(parts), () => { this.count++; }); }
+}
+
+// ---------------------------------------------------------------- the card
+class Pack {
+  constructor(card, slot, name, folder, dir) { this.card = card; this.slot = slot; this.name = name; this.folder = folder; this.dir = dir; this.drop(); }
+  drop() { this._banks = null; this._samples = null; this._sessions = null; this._open = new Map(); this._info = null; }
+}
+class Card {
+  constructor(root, top) { this.root = root; this.top = top; this.packs = []; }
+  static async open(root) {
+    const t = await subdir(root, "Rhythm"), c = new Card(root, t || root);
+    await c.scan();
+    if (!c.packs.length && !t) throw new Error("no-packs");
+    return c;
+  }
+  async scan() {
+    const keep = new Map(this.packs.map(p => [p.folder, p])), out = [];
+    for (const [n, h] of await entries(this.top)) {
+      const m = /^(\d\d)_(.*)$/.exec(n);
+      if (!m || h.kind !== "directory" || +m[1] >= NPACKS) continue;
+      if (!(await subdir(h, "PCM") || await subdir(h, "Sessions"))) continue;
+      out.push(keep.get(n) || new Pack(this, +m[1], m[2], n, h));
+    }
+    this.packs = out;
+  }
+  async reset() { this.packs = []; await this.scan(); }
+  pack(slot) { return this.packs.find(p => p.slot === slot) || null; }
+}
+function folderName(slot, name) { return (pad2(slot) + "_" + name).slice(0, FOLDER_MAX).replace(/[\s.]+$/, ""); }
+
+async function packInfo(pack) {
+  if (pack.dir.device) return null;                         // every pack's folders, one list at a time, is too slow over USB
+  if (pack._info) return pack._info;
+  const count = async (sub, re) => { const d = await subdir(pack.dir, sub); return d ? (await entries(d)).filter(e => re.test(e[0])).length : 0; };
+  return pack._info = {sessions: await count("Sessions", /\.ncs$/i), samples: await count("PCM", /\.wav$/i)};
+}
+async function copyPack(pack, card, slot, ctx = {}) {
+  if (card.packs.some(p => p.slot === slot)) throw new Error("slot-used");
+  const folder = folderName(slot, pack.name), dst = await card.top.getDirectoryHandle(folder, {create: true});
+  try {
+    const all = await treeInfo(pack.dir); let done = 0;
+    await copyTree(pack.dir, dst, n => { done++; if (ctx.progress) ctx.progress(n, done, all.files); });
+    if (dst.finish) await dst.finish();
+    if (!await sameTree(pack.dir, dst)) throw new Error("verify");
+  } catch (e) { await card.top.removeEntry(folder, {recursive: true}); throw e; }
+  await card.scan();
+  return card.pack(slot);
+}
+async function deletePack(pack, ctx = {}) {
+  if (ctx.backup) await ctx.backup.tree(pack.dir, [pack.folder]);
+  const card = pack.card;
+  await card.top.removeEntry(pack.folder, {recursive: true});
+  await card.scan();
+}
+async function movePack(pack, card, slot, ctx = {}) {       // the API has no folder rename: a verified copy, then the source goes (no backup needed: the copy is it)
+  if (pack.card === card && pack.slot === slot) return pack;
+  if (pack.card === card && card.top.renameEntry) {      // the device can
+    if (card.packs.some(p => p.slot === slot)) throw new Error("slot-used");
+    await card.top.renameEntry(pack.folder, folderName(slot, pack.name));
+    await card.reset();
+    return card.pack(slot);
+  }
+  const out = await copyPack(pack, card, slot, ctx);
+  await deletePack(pack, {});
+  return out;
+}
+
+// the firmware's lookup by prefix: what can shadow a real file of the pack
+async function audit(pack) {
+  const out = [], kinds = [["Sessions", /^\d\d_.+\.ncs$/i], ["PCM", /^\d{2,3}_.+\.wav$/i], ["meta", /^\d\d_.+\.ncm$/i]];
+  for (const [sub, re] of kinds) {
+    const d = await subdir(pack.dir, sub);
+    if (!d) continue;
+    const seen = new Map();
+    for (const [n] of await entries(d)) {
+      const m = /^(\d{2,3})_/.exec(n);
+      if (!m) continue;
+      if (!re.test(n)) { out.push({file: sub + "/" + n, why: "stray"}); continue; }
+      if (seen.has(m[1])) out.push({file: sub + "/" + n, why: "twin", with: sub + "/" + seen.get(m[1])});
+      else seen.set(m[1], n);
+    }
+  }
+  return out;
+}
+
+// a file written over a slot whose old name differs only in case: FAT takes both as one file, so the old name stays (the old one removed after the write
+// would be the new one)
+const keepCase = (old, file) => old && old.file.toLowerCase() === file.toLowerCase() ? old.file : file;
+
+// ---------------------------------------------------------------- samples: PCM/NN_Name.wav
+function wavInfo(b) {
+  if (b.length < 12 || latin(b, 0, 4) !== "RIFF" || latin(b, 8, 4) !== "WAVE") return null;
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength), out = {};
+  for (let o = 12; o + 8 <= b.length;) {
+    const id = latin(b, o, 4), n = v.getUint32(o + 4, true);    // latin() trims: "fmt " reads "fmt"
+    if (id === "fmt") { out.format = v.getUint16(o + 8, true); out.channels = v.getUint16(o + 10, true); out.rate = v.getUint32(o + 12, true); out.bits = v.getUint16(o + 22, true); }
+    else if (id === "data") { out.at = o + 8; out.data = Math.min(n, b.length - o - 8); break; }
+    o += 8 + n + (n & 1);
+  }
+  return out;
+}
+async function samplesOf(pack) {
+  if (pack._samples) return pack._samples;
+  const m = new Map(), d = await subdir(pack.dir, "PCM");
+  if (d) for (const [n, h] of await entries(d)) {
+    const r = /^(\d{2,3})_(.*)\.wav$/i.exec(n);
+    if (!r || h.kind !== "file" || +r[1] >= NSAMPLES || m.has(+r[1])) continue;
+    m.set(+r[1], {slot: +r[1], name: r[2], file: n, handle: h, size: (await h.getFile()).size});
+  }
+  return pack._samples = m;
+}
+const Samples = {
+  size: NSAMPLES,
+  async list(pl) {
+    const m = await samplesOf(pl.pack), out = [];
+    for (let n = 0; n < NSAMPLES; n++) { const e = m.get(n); out.push(e ? {slot: n, empty: false, name: e.name, size: e.size} : {slot: n, empty: true, name: "", size: 0}); }
+    return out;
+  },
+  async bytes(pl) { let b = 0; for (const e of (await samplesOf(pl.pack)).values()) b += Math.min(SAMPLE_MAX, Math.max(0, e.size - 44)); return b; },
+  async get(pl, n) { const e = (await samplesOf(pl.pack)).get(n); return e ? {name: e.name, bytes: await readHandle(e.handle)} : null; },
+  async put(pl, n, item, ctx = {}) {
+    if (!item) return Samples.clear(pl, n, ctx);
+    const pack = pl.pack, d = await subdir(pack.dir, "PCM", true), old = (await samplesOf(pack)).get(n), file = keepCase(old, (pad2(n) + "_" + item.name).slice(0, 26) + ".wav");
+    if (old && ctx.backup) await ctx.backup.file([pack.folder, "PCM"], old.file, await readHandle(old.handle));
+    await writeFile(d, file, item.bytes);
+    if (old && old.file !== file) await d.removeEntry(old.file);   // after the write: an old file gone before the new one lands would lose the slot
+    pack._samples = null; pack._info = null;
+  },
+  async rename(pl, n, m) {
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    await (await subdir(pack.dir, "PCM")).renameEntry(old.file, pad2(m) + old.file.slice(old.file.indexOf("_")));
+    pack._samples = null;
+  },
+  async clear(pl, n, ctx = {}) {
+    const pack = pl.pack, old = (await samplesOf(pack)).get(n);
+    if (!old) return;
+    if (ctx.backup) await ctx.backup.file([pack.folder, "PCM"], old.file, await readHandle(old.handle));
+    await (await subdir(pack.dir, "PCM")).removeEntry(old.file);
+    pack._samples = null; pack._info = null;
+  },
+};
+
+// ---------------------------------------------------------------- renaming: only the name after NN_ changes, the slot stays
+// What would break the data: a name FAT stores differently from how it was asked (trailing spaces or dots dropped, characters it refuses), a name the
+// device's protocol refuses (printable ASCII, 31 B with the number), longer than the app's own limits (a pack folder of 30, a sample of 26 before .wav),
+// or the same file as another one of the folder (FAT does not tell case apart).  The NN_ prefix, by which the firmware finds the file, never changes.
+const RENAME_TMP = "~rename";                               // no NN_ prefix: neither the firmware nor Card.scan takes it
+function nameMax(kind, slot) { return kind === "pack" ? FOLDER_MAX - 3 : 26 - (slot >= 100 ? 4 : 3); }
+function nameProblem(kind, slot, name, others) {            // -> null, or the reason (rename-*)
+  if (!name) return "rename-empty";
+  if (name !== name.trim() || name.endsWith(".")) return "rename-edge";
+  if (!/^[ -~]+$/.test(name)) return "rename-ascii";
+  if (/[\\/:*?"<>|]/.test(name)) return "rename-char";
+  if (name.length > nameMax(kind, slot)) return "rename-long";
+  const full = (pad2(slot) + "_" + name + (kind === "pack" ? "" : ".wav")).toLowerCase();
+  if (others.some(o => o.toLowerCase() === full)) return "rename-taken";
+  return null;
+}
+async function moveHandle(h, to) {                          // a PC file or folder renamed in place; false when this browser cannot (the caller copies)
+  if (typeof h.move !== "function") return false;
+  try { await h.move(to); return true; }
+  catch (e) { if (e.name === "NotSupportedError" || e.name === "TypeError" || e.name === "InvalidModificationError") return false; throw e; }
+}
+async function renameSample(pl, n, name, ctx = {}) {
+  const pack = pl.pack, m = await samplesOf(pack), old = m.get(n), d = await subdir(pack.dir, "PCM");
+  const bad = nameProblem("sample", n, name, [...m.values()].filter(e => e !== old).map(e => e.file));
+  if (!old) throw new Error("rename-gone");
+  if (bad) throw new Error(bad);
+  const file = pad2(n) + "_" + name + ".wav";
+  if (old.file === file) return;
+  if (d.renameEntry) await d.renameEntry(old.file, file);  // the device: its own rename
+  else if (!await moveHandle(old.handle, file)) {           // a copy under a temporary name first, checked; then the old one goes
+    const bytes = await readHandle(old.handle);
+    await writeFile(d, RENAME_TMP, bytes);
+    if ((await (await d.getFileHandle(RENAME_TMP)).getFile()).size !== bytes.length) { await d.removeEntry(RENAME_TMP); throw new Error("verify"); }
+    await d.removeEntry(old.file);
+    await writeFile(d, file, bytes);
+    await d.removeEntry(RENAME_TMP);
+  }
+  pack._samples = null; pack._info = null;
+  if (ctx.progress) ctx.progress(file, 1, 1);
+}
+async function renamePack(pack, name, ctx = {}) {
+  const card = pack.card, bad = nameProblem("pack", pack.slot, name, card.packs.filter(x => x !== pack).map(x => x.folder));
+  if (bad) throw new Error(bad);
+  const to = folderName(pack.slot, name);
+  if (to === pack.folder) return pack;
+  if (card.top.renameEntry) await card.top.renameEntry(pack.folder, to);       // the device
+  else if (!await moveHandle(pack.dir, to)) {               // a copy under a temporary name, checked; the old folder goes; the copy takes the new name
+    if (await subdir(card.top, RENAME_TMP)) throw new Error("rename-left");
+    const tmp = await card.top.getDirectoryHandle(RENAME_TMP, {create: true}), all = await treeInfo(pack.dir);
+    let done = 0;
+    const tick = n => { done++; if (ctx.progress) ctx.progress(n, done, 2 * all.files); };
+    try { await copyTree(pack.dir, tmp, tick); if (!await sameTree(pack.dir, tmp)) throw new Error("verify"); }
+    catch (e) { await card.top.removeEntry(RENAME_TMP, {recursive: true}); throw e; }
+    await card.top.removeEntry(pack.folder, {recursive: true});
+    const dst = await card.top.getDirectoryHandle(to, {create: true});
+    await copyTree(tmp, dst, tick);
+    if (!await sameTree(tmp, dst)) throw new Error("rename-half");                 // the data stays in ~rename
+    await card.top.removeEntry(RENAME_TMP, {recursive: true});
+  }
+  await card.reset();
+  return card.pack(pack.slot);
+}
+
+// ---------------------------------------------------------------- the patterns: a session is read whole, changed in RAM and written once
+async function sessionsOf(pack) {
+  if (pack._sessions) return pack._sessions;
+  const m = new Map(), d = await subdir(pack.dir, "Sessions");
+  if (d) for (const [n, h] of await entries(d)) {
+    const r = /^(\d\d)_(.*)\.ncs$/i.exec(n);
+    if (!r || h.kind !== "file" || +r[1] >= NSESS || m.has(+r[1])) continue;
+    const unnamed = /^SESSION$/i.test(r[2]);
+    if (h.device) { m.set(+r[1], {slot: +r[1], file: n, label: unnamed ? `Project ${+r[1] + 1}` : r[2], handle: h}); continue; }      // a header would cost the whole file
+    const f = await h.getFile(), head = new Uint8Array(await f.slice(0x10, 0x30).arrayBuffer());
+    m.set(+r[1], {slot: +r[1], file: n, label: unnamed ? latin(head, 0, head.length) : r[2], handle: h, size: f.size});
+  }
+  return pack._sessions = m;
+}
+async function openSession(pack, s) {
+  let o = pack._open.get(s);
+  if (o) return o;
+  const e = (await sessionsOf(pack)).get(s);
+  if (!e) throw new Error("no-session");
+  const bytes = await readHandle(e.handle);
+  if (bytes.length !== SESS_SIZE || !/^R(USE|DEM)$/.test(latin(bytes, 0, 4))) throw new Error("bad-session");
+  o = {file: e.file, bytes, orig: bytes.slice(), dirty: false};
+  pack._open.set(s, o);
+  return o;
+}
+// ---------------------------------------------------------------- projects: Sessions/NN_Name.ncs, whole files, the 64 slots of the Projects view
+// A project is taken as it comes, byte for byte: only its size and its head are checked (the device's own load checks the rest).  It plays the samples of
+// the pack it lands in.  A file from the PC keeps its name without NN_ and .ncs, made safe for the card and for the device's 31 characters.
+const PROJ_NAME = 31 - 3 - 4;                               // the device's 31 characters (NAME_MAX), with NN_ and .ncs
+function projectProblem(b) {                                // -> null, or why these bytes are not a project (proj-*)
+  if (b.length !== SESS_SIZE) return "proj-size";
+  if (!/^R(USE|DEM)$/.test(latin(b, 0, 4))) return "proj-head";
+  return null;
+}
+function projectName(file) {
+  const s = file.replace(/\.ncs$/i, "").replace(/^\d{2,3}_/, "").replace(/[^ -~]|[\\/:*?"<>|]/g, "_").slice(0, PROJ_NAME).replace(/^[\s.]+|[\s.]+$/g, "");
+  return s || "SESSION";                                    // NN_SESSION.ncs: the name the device gives, the list shows the one inside
+}
+const projSlot = file => { const m = /^(\d\d)_.*\.ncs$/i.exec(file); return m && +m[1] < NSESS ? +m[1] : null; };
+function projDrop(pack, n) { pack._sessions = null; pack._info = null; pack._open.delete(n); }
+const Projects = {
+  size: NSESS,
+  async list(pl) {
+    const m = await sessionsOf(pl.pack), out = [];
+    for (let n = 0; n < NSESS; n++) { const e = m.get(n); out.push(e ? {slot: n, empty: false, name: e.label, size: e.size} : {slot: n, empty: true, name: ""}); }
+    return out;
+  },
+  async get(pl, n) {
+    const e = (await sessionsOf(pl.pack)).get(n);
+    return e ? {name: e.file.slice(e.file.indexOf("_") + 1).replace(/\.ncs$/i, ""), label: e.label, bytes: await readHandle(e.handle)} : null;
+  },
+  async put(pl, n, item, ctx = {}) {
+    if (!item) return Projects.clear(pl, n, ctx);
+    const bad = projectProblem(item.bytes);
+    if (bad) throw new Error(bad);
+    const pack = pl.pack, d = await subdir(pack.dir, "Sessions", true), old = (await sessionsOf(pack)).get(n), file = keepCase(old, pad2(n) + "_" + item.name + ".ncs");
+    if (old && ctx.backup) await ctx.backup.file([pack.folder, "Sessions"], old.file, await readHandle(old.handle));
+    await writeFile(d, file, item.bytes);
+    if (old && old.file !== file) await d.removeEntry(old.file);
+    projDrop(pack, n);
+  },
+  async rename(pl, n, m) {
+    const pack = pl.pack, old = (await sessionsOf(pack)).get(n);
+    await (await subdir(pack.dir, "Sessions")).renameEntry(old.file, pad2(m) + old.file.slice(old.file.indexOf("_")));
+    projDrop(pack, n); projDrop(pack, m);
+  },
+  async clear(pl, n, ctx = {}) {
+    const pack = pl.pack, old = (await sessionsOf(pack)).get(n);
+    if (!old) return;
+    if (ctx.backup) await ctx.backup.file([pack.folder, "Sessions"], old.file, await readHandle(old.handle));
+    await (await subdir(pack.dir, "Sessions")).removeEntry(old.file);
+    projDrop(pack, n);
+  },
+};
+
+// n = 8 track + pattern, tracks 0..7
+const patOff = n => PAT0 + PAT * n;
+function patEmpty(cur) {                                    // the steps, the lanes and the settings cleared; a step's byte 7 goes too
+  const b = cur.slice();
+  for (let s = 0; s < NSTEPS; s++) b.set(STEP_EMPTY, s * STEP);
+  b[SETT] = 0x0F; b[SETT + 1] = 0; b[SETT + 2] = 3; b[SETT + 3] = 0; b[SETT + 7] = 0;
+  b.fill(0, SETT + 8, SETT + SETN);
+  b.fill(0xFF, LANE0, PAT);
+  return b;
+}
+function patMerge(cur, src) {
+  /* What stays in the destination is only the chain rule (4..6): it names patterns of its track.  All the rest travels: the steps with their byte 7, the
+     lanes, the stock's settings, the play order (7) and the bytes of each step in 8..39. */
+  const b = src.slice();
+  for (let i = 4; i < 7; i++) b[SETT + i] = cur[SETT + i];
+  return b;
+}
+function patParse(b) {
+  const steps = [];
+  for (let s = 0; s < NSTEPS; s++) {
+    const o = s * STEP;
+    steps.push({on: b[o + 2] !== 0, note: b[o], gate: b[o + 1], mask: b[o + 2], vel: b[o + 3], prob: b[o + 4], flip: b[o + 5], tie: b[o + 6] & 1});
+  }
+  const lanes = [];
+  for (let k = 0; k < NLANES; k++) lanes.push(b.slice(LANE0 + 192 * k, LANE0 + 192 * (k + 1)));
+  return {steps, last: b[SETT], first: b[SETT + 1], rate: b[SETT + 2], dir: b[SETT + 3], order: b[SETT + 7], lanes};
+}
+function patBuild(m, base) {                                // over base: a step that was empty and stays empty keeps its bytes; byte 7 is never touched
+  const b = base.slice();
+  m.steps.forEach((st, s) => {
+    const o = s * STEP;
+    if (st.on) b.set([st.note, st.gate, st.mask, st.vel, st.prob, st.flip, (b[o + 6] & ~1) | (st.tie ? 1 : 0)], o);
+    else if (b[o + 2]) b.set(STEP_EMPTY.subarray(0, 7), o);
+  });
+  b[SETT] = m.last; b[SETT + 1] = m.first; b[SETT + 2] = m.rate; b[SETT + 3] = m.dir; b[SETT + 7] = m.order;
+  m.lanes.forEach((l, k) => b.set(l, LANE0 + 192 * k));
+  return b;
+}
+function patCells(b, o) {                                   // the hits, for the previews and the MIDI file
+  const out = [];
+  for (let s = 0; s < NSTEPS; s++) {
+    const q = o + s * STEP;
+    if (b[q + 2]) out.push({s, note: b[q], gate: b[q + 1], mask: b[q + 2], vel: b[q + 3], prob: b[q + 4], flip: b[q + 5]});
+  }
+  return out;
+}
+function patSummary(b, o) {
+  const lanes = new Set();
+  for (let k = 0; k < NLANES; k++) if (!isFF(b, o + LANE0 + 192 * k, 192)) lanes.add(k);
+  const notes = patCells(b, o).length;
+  return {notes, lanes: lanes.size, last: b[o + SETT], first: b[o + SETT + 1], empty: !notes && !lanes.size};
+}
+function patMidi(b, n, ch) {                                // a standard MIDI file of one pattern, forward from its first step to its last, at 480 ticks a quarter
+  const a = Math.min(b[SETT], b[SETT + 1]), z = Math.max(b[SETT], b[SETT + 1]), step = [40, 60, 80, 120, 160, 240, 320, 480][b[SETT + 2] & 7], ev = [];
+  const end = (z - a + 1) * step, note = (t, len, key, vel) => { ev.push([t, 1, 0x90 | ch, key, Math.max(1, vel)], [Math.min(end, t + Math.max(1, len)), 0, 0x80 | ch, key, 0]); };   // a note that rings past the end stops there: the file is one loop
+  for (const u of patCells(b, 0)) {
+    if (u.s < a || u.s > z) continue;
+    const hits = [0, 1, 2, 3, 4, 5].filter(k => u.mask >> k & 1), len = hits.length > 1 ? step / 6 : u.gate * step / 6;       // a roller: one micro step a hit
+    for (const k of hits) note((u.s - a) * step + Math.round(k * step / 6), Math.round(len), u.note, u.vel);
+  }
+  ev.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
+  const vlq = v => { const o = [v & 127]; while (v > 127) { v >>= 7; o.unshift(128 | (v & 127)); } return o; };
+  const trk = [], name = [...TRACK_NAME[n >> 3] + " " + ((n & 7) + 1)].map(c => c.charCodeAt(0));
+  trk.push(0, 0xFF, 3, name.length, ...name);
+  let at = 0;
+  for (const e of ev) { trk.push(...vlq(e[0] - at), e[2], e[3], e[4]); at = e[0]; }
+  trk.push(...vlq(end - at), 0xFF, 0x2F, 0);
+  const u32 = v => [v >>> 24, v >> 16 & 255, v >> 8 & 255, v & 255];
+  return Uint8Array.from([0x4D, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 1, 0xE0, 0x4D, 0x54, 0x72, 0x6B, ...u32(trk.length), ...trk]);
+}
+const Patterns = {
+  size: NPATS,
+  async list(pl) {
+    const s = await openSession(pl.pack, pl.sess), out = [];
+    for (let n = 0; n < NPATS; n++) out.push({slot: n, ...patSummary(s.bytes, patOff(n)), cells: patCells(s.bytes, patOff(n))});
+    return out;
+  },
+  async get(pl, n) { const s = await openSession(pl.pack, pl.sess); return s.bytes.slice(patOff(n), patOff(n) + PAT); },
+  async put(pl, n, data) {
+    const s = await openSession(pl.pack, pl.sess), o = patOff(n);
+    s.bytes.set(patMerge(s.bytes.subarray(o, o + PAT), data), o); s.dirty = true;
+  },
+  async putRaw(pl, n, data) { const s = await openSession(pl.pack, pl.sess); s.bytes.set(data, patOff(n)); s.dirty = true; },
+  async clear(pl, n) {
+    const s = await openSession(pl.pack, pl.sess), o = patOff(n);
+    s.bytes.set(patEmpty(s.bytes.subarray(o, o + PAT)), o); s.dirty = true;
+  },
+  async flush(pl, ctx = {}) {
+    const s = await openSession(pl.pack, pl.sess);
+    if (!s.dirty) return;
+    if (ctx.backup) await ctx.backup.file([pl.pack.folder, "Sessions"], s.file, s.orig);
+    await writeFile(await subdir(pl.pack.dir, "Sessions"), s.file, s.bytes);
+    s.orig = s.bytes.slice(); s.dirty = false;
+    pl.pack._sessions = null;
+  },
+  discard(pl) { pl.pack._open.delete(pl.sess); },
+};
+
+// ---------------------------------------------------------------- the device over USB: the stock file protocol, F0 00 20 29 01 63 03 CMD ...
+/* Rules the firmware does not enforce (each one run in emulation on the real firmware):
+   * 40 with a session open, or 41 with none, damages the loaded project in RAM: `sess` is the only way in, and open() asks first (a closed session ignores 0B);
+   * a write deletes the old file and its name before any data arrives: the caller keeps a copy, and a name other than the default takes a 07 afterwards;
+   * a data packet that does not fit the 32 KB cache bank is dropped and still acked: one constant size, CHUNK;
+   * names over 31 characters overwrite the firmware's stack. */
+const NOVATION = [0xF0, 0x00, 0x20, 0x29, 0x01, 0x63], CHUNK = 0x2000, NAME_MAX = 31;
+const n32 = v => [28, 24, 20, 16, 12, 8, 4, 0].map(s => (v >>> s) & 15);
+function un32(b, o) { let v = 0; for (let i = 0; i < 8; i++) v = v * 16 + (b[o + i] & 15); return v; }
+function enc7(d) {
+  const out = [];
+  for (let i = 0; i < d.length; i += 7) {
+    const n = Math.min(7, d.length - i); let m = 0;
+    for (let k = 0; k < n; k++) m |= (d[i + k] >> 7) << k;
+    out.push(m);
+    for (let k = 0; k < n; k++) out.push(d[i + k] & 0x7F);
+  }
+  return out;
+}
+function dec7(e) {
+  const out = new Uint8Array(e.length); let o = 0;
+  for (let i = 0; i < e.length; i += 8) {
+    const m = e[i], n = Math.min(7, e.length - i - 1);
+    for (let k = 0; k < n; k++) out[o++] = e[i + 1 + k] | (((m >> k) & 1) << 7);
+  }
+  return out.subarray(0, o);
+}
+const CRCT = Array.from({length: 256}, (_, n) => { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; return c >>> 0; });
+function crc32(d) { let c = 0xFFFFFFFF; for (let i = 0; i < d.length; i++) c = CRCT[(c ^ d[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+const isFile = m => m[6] === 3;
+const text = (m, a, b) => String.fromCharCode(...m.subarray(a, b));
+const notFound = () => Object.assign(new Error("not found"), {name: "NotFoundError"});
+
+class Device {
+  // tx: {send(Uint8Array), onmessage} over a Web MIDI port, or the emulator's bridge; tx.slow stretches the timeouts
+  constructor(tx) { this.meter = null; this.tx = tx; this.q = []; this.wake = null; this.sess = false; this.loaded = null; this.tail = Promise.resolve(); this.k = tx.slow || 1; tx.onmessage = m => this.rx(m); }
+  rx(m) { this.q.push(m); if (this.wake) { const w = this.wake; this.wake = null; w(); } }
+  run(fn) { const p = this.tail.then(fn); this.tail = p.catch(() => {}); return p; }       // one command at a time, its replies with it
+  async next(test, ms) {
+    const end = Date.now() + ms * this.k;
+    for (;;) {
+      while (this.q.length) { const m = this.q.shift(); if (test(m)) return m; }
+      const left = end - Date.now();
+      if (left <= 0) throw new Error("device-timeout");
+      await new Promise(res => { const t = setTimeout(() => { this.wake = null; res(); }, left); this.wake = () => { clearTimeout(t); res(); }; });
+    }
+  }
+  file(...b) { this.tx.send(Uint8Array.from([...NOVATION, 3, ...b, 0xF7])); }
+  async status(ms) { const m = await this.next(x => isFile(x) && (x[7] === 4 || x[7] === 5), ms); return {ok: m[7] === 4, c: un32(m, 8), code: m[7] === 5 ? m[19] : 0}; }
+  async must(ms) { const s = await this.status(ms); if (!s.ok) throw new Error("device-status-" + s.code); return s; }
+  identify() {
+    return this.run(async () => {
+      this.q.length = 0;
+      this.tx.send(Uint8Array.of(0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7));
+      const m = await this.next(x => x[1] === 0x7E && x[3] === 6 && x[4] === 2, 2000);
+      if (m[5] !== 0 || m[6] !== 0x20 || m[7] !== 0x29 || m[8] !== 1 || m[9] !== 0x63) throw new Error("device-other");
+      this.tx.send(Uint8Array.of(...NOVATION, 0x49, 0xF7));
+      const s = await this.next(x => x[6] === 9 && x.length >= 20, 1000).catch(() => null);
+      this.loaded = s ? s[s.length - 2] : null; this.chans = s ? [...s.subarray(7, 15)] : null;      // the 8 tracks
+    });
+  }
+  open() {
+    return this.run(async () => {
+      this.q.length = 0;
+      this.file(0x0B, 1);                                   // a session left open answers; a closed one ignores it
+      const m = await this.next(x => isFile(x) && (x[7] === 0x0B || x[7] === 4 || x[7] === 5), 1000).catch(() => null);
+      if (m) { this.sess = true; return "adopted"; }
+      this.file(0x40, 0);
+      const s = await this.status(60000);
+      if (!s.ok) throw new Error(s.code === 3 ? "device-busy" : "device-status-" + s.code);
+      this.sess = true;
+      return "opened";
+    });
+  }
+  close() {
+    return this.run(async () => {
+      if (!this.sess) return;
+      this.sess = false; this.file(0x41, 0);
+      await this.must(60000);
+    });
+  }
+  closeNow() { if (this.sess) { this.sess = false; this.file(0x41, 0); } }                  // the page is going away
+  packs() {
+    return this.run(async () => {
+      this.file(0x0B, 2);
+      const h = await this.next(x => isFile(x) && x[7] === 0x0B && x[8] === 2, 20000), out = [];
+      for (let i = 0; i < h[9]; i++) {                      // no end marker, and a name the router drops is still counted
+        const m = await this.next(x => isFile(x) && x[7] === 0x0C && x[8] === 2, 3000).catch(() => null);
+        if (!m) break;
+        out.push({P: m[9], name: text(m, 10, m.length - 1)});
+      }
+      return out;
+    });
+  }
+  items(T, P) {
+    return this.run(async () => {
+      this.file(0x0B, T, P);
+      const h = await this.next(x => isFile(x) && (x[7] === 5 || (x[7] === 0x0B && x[8] === T && x[9] === P)), 20000), out = [];
+      if (h[7] === 5) throw new Error("device-status-" + h[19]);
+      for (let i = 0, n = h[10] + 128 * h[11]; i < n; i++) {
+        const m = await this.next(x => isFile(x) && x[7] === 0x0C && x[8] === T && x[9] === P, 3000).catch(() => null);
+        if (!m) break;
+        out.push({I: m[10], name: text(m, 11, m.length - 1)});
+      }
+      return out;
+    });
+  }
+  value(cmd, T, P, I, ms) {                                 // 0A size, 0D CRC
+    return this.run(async () => {
+      this.file(cmd, T, P, I);
+      const m = await this.next(x => isFile(x) && (x[7] === 5 || (x[7] === cmd && x[8] === T && x[9] === P && x[10] === I)), ms);
+      if (m[7] === 5) throw new Error("device-status-" + m[19]);
+      return un32(m, 11);
+    });
+  }
+  size(T, P, I) { return this.value(0x0A, T, P, I, 5000); }
+  crc(T, P, I) { return this.value(0x0D, T, P, I, 30000); }
+  read(T, P, I, tick) {
+    return this.run(async () => {
+      this.file(1, ...n32(0), T, P, I, 2, ...n32(0));
+      const h = await this.next(x => isFile(x) && (x[7] === 1 || x[7] === 5 || x[7] === 6), 10000);
+      if (h[7] === 6) return null;
+      if (h[7] === 5) throw new Error("device-status-" + h[19]);
+      const size = un32(h, 20), out = new Uint8Array(size);
+      for (let o = 0; ;) {
+        const m = await this.next(x => isFile(x) && (x[7] === 2 || x[7] === 3), 5000);
+        if (m[7] === 2) { const d = dec7(m.subarray(19, m.length - 1)); if (o + d.length > size) throw new Error("device-read"); out.set(d, o); o += d.length; if (this.meter) this.meter(d.length); if (tick) tick(o, size); continue; }
+        if (o !== size || un32(m, 19) !== crc32(out)) throw new Error("device-read");       // a card error ends the stream early
+        return out;
+      }
+    });
+  }
+  write(T, P, I, data, tick) {
+    return this.run(async () => {
+      const n = Math.ceil(data.length / CHUNK), crc = crc32(data);
+      for (let attempt = 0; ; attempt++) {
+        this.file(1, ...n32(0), T, P, I, 1, ...n32(data.length));
+        await this.must(10000);
+        for (let k = 1, resend = 0; k <= n;) {
+          this.file(2, ...n32(k), T, P, I, ...enc7(data.subarray((k - 1) * CHUNK, k * CHUNK)));
+          const s = await this.status(10000);
+          if (s.ok) { if (this.meter) this.meter(Math.min(CHUNK, data.length - (k - 1) * CHUNK)); if (tick) tick(Math.min(k * CHUNK, data.length), data.length); k++; resend = 0; continue; }
+          if (s.code !== 2 || ++resend > 4) throw new Error("device-status-" + s.code);
+          k = s.c + 1;                                      // the packet it has: go on from there
+        }
+        this.file(3, ...n32(n + 1), T, P, I, ...n32(crc));
+        const s = await this.status(10000 + 1000 * data.length / 1048576);                  // it reads the file back from the card
+        if (s.ok) return;
+        if (s.code !== 4 || attempt >= 2) throw new Error("device-status-" + s.code);
+      }
+    });
+  }
+  name(name) {
+    if (name.length > NAME_MAX || !/^[ -~]+$/.test(name)) throw new Error("device-name");
+    return [...name].map(c => c.charCodeAt(0));
+  }
+  rename(T, P, I, name) { const b = this.name(name); return this.run(async () => { this.file(7, T, P, I, ...b); await this.must(10000); }); }
+  renamePack(P, name) { const b = this.name(name); return this.run(async () => { this.file(7, 2, P, ...b); await this.must(30000); }); }
+  del(T, P, I) { return this.run(async () => { this.file(8, T, P, I); await this.must(10000); }); }
+  delPack(P) { return this.run(async () => { this.file(8, 2, P); await this.must(60000); }); }
+}
+
+/* The device as a folder: the same calls a FileSystemDirectoryHandle answers, so every kind above works on it untouched.  A folder lists by type; a file is
+   (type, pack, slot).  The effects folder's name is not known here: it shows as Effects, and a folder of a card is recognized by its ending. */
+const DEV_FOLDERS = [["Sessions", 3, "SESSION.ncs"], ["Patches", 4, "PATCHBANK.cpb"], ["PCM", 5, "PCM.wav"], ["meta", 7, "META.ncm"], ["Effects", 6, null]];
+class DevFile {
+  constructor(folder, I, name) { this.kind = "file"; this.device = true; this.folder = folder; this.I = I; this.name = name; }
+  async getFile() {
+    const f = this.folder, read = () => f.dev.read(f.T, f.P, this.I);
+    return {name: this.name, size: await f.dev.size(f.T, f.P, this.I), arrayBuffer: async () => (await read()).buffer, slice: (a, b) => ({arrayBuffer: async () => (await read()).slice(a, b).buffer})};
+  }
+  async createWritable() {
+    let data = new Uint8Array(0);
+    return {write: async b => { data = b; }, close: () => this.folder.put(this.I, this.name, data), abort: async () => {}};
+  }
+}
+class DevFolder {
+  constructor(pack, name, T, def) { this.kind = "directory"; this.device = true; this.pack = pack; this.dev = pack.dev; this.P = pack.P; this.name = name; this.T = T; this.def = def; this.cache = null; }
+  async list() { return this.cache || (this.cache = await this.dev.items(this.T, this.P)); }
+  async *entries() { for (const e of await this.list()) yield [e.name, new DevFile(this, e.I, e.name)]; }
+  async getFileHandle(name, opt = {}) {
+    const e = (await this.list()).find(x => x.name === name), m = /^(\d{2,3})_/.exec(name);
+    if (e) return new DevFile(this, e.I, e.name);
+    if (!opt.create) throw notFound();
+    if (!m) throw new Error("device-name");
+    return new DevFile(this, +m[1], name);
+  }
+  async put(I, name, data) {
+    this.dev.name(name);                                    // refused before the write takes the old file away
+    await this.dev.write(this.T, this.P, I, data);
+    this.cache = null;
+    const was = this.def ? pad2(I) + "_" + this.def : ((await this.list()).find(x => x.I === I) || {}).name;
+    if (was !== name) { await this.dev.rename(this.T, this.P, I, name); this.cache = null; }
+  }
+  async removeEntry(name) {
+    const e = (await this.list()).find(x => x.name === name);
+    if (!e) return;                                         // a write over the slot already took it
+    await this.dev.del(this.T, this.P, e.I); this.cache = null;
+  }
+  async renameEntry(name, to) {
+    const e = (await this.list()).find(x => x.name === name);
+    if (!e) throw notFound();
+    await this.dev.rename(this.T, this.P, e.I, to); this.cache = null;
+  }
+}
+class DevPack {
+  constructor(root, P, name) { this.kind = "directory"; this.device = true; this.root = root; this.dev = root.dev; this.P = P; this.name = name; this.sub = new Map(DEV_FOLDERS.map(([n, T, def]) => [n, new DevFolder(this, n, T, def)])); }
+  accepts(n) { return this.sub.has(n) || /fx$/i.test(n); }
+  folder(n) { return this.sub.get(n) || (/fx$/i.test(n) ? this.sub.get("Effects") : null); }
+  async *entries() {
+    for (const [n, d] of this.sub) if ((n !== "Effects" && n !== "Patches") || (await d.list()).length) yield [n, d];
+  }
+  async getDirectoryHandle(n) { const d = this.folder(n); if (!d) throw notFound(); return d; }
+  async finish() {                                          // a pack that a first write made is called NN_PACK
+    const now = (await this.dev.packs()).find(x => x.P === this.P);
+    if (now && now.name !== this.name) await this.dev.renamePack(this.P, this.name);
+    this.root.cache = null;
+  }
+}
+class DevRoot {
+  constructor(dev) { this.kind = "directory"; this.device = true; this.dev = dev; this.name = "Circuit Rhythm"; this.cache = null; this.open = new Map(); }
+  async isSameEntry(o) { return o === this; }
+  async resolve() { return null; }
+  async list() { return this.cache || (this.cache = (await this.dev.packs()).filter(x => x.P >= 1)); }    // pack 0, the internal memory, stays out
+  handle(P, name) { let h = this.open.get(name); if (!h) this.open.set(name, h = new DevPack(this, P, name)); return h; }
+  async *entries() { for (const x of await this.list()) yield [x.name, this.handle(x.P, x.name)]; }
+  async getDirectoryHandle(name, opt = {}) {
+    const x = (await this.list()).find(e => e.name === name), m = /^(\d\d)_/.exec(name);
+    if (x) return this.handle(x.P, x.name);
+    if (!opt.create || !m) throw notFound();
+    return this.handle(+m[1] + 1, name);
+  }
+  async removeEntry(name) {
+    const x = (await this.list()).find(e => e.name === name);
+    if (x) await this.dev.delPack(x.P);
+    this.cache = null; this.open.delete(name);
+  }
+  async renameEntry(name, to) {
+    const x = (await this.list()).find(e => e.name === name);
+    if (!x) throw notFound();
+    await this.dev.renamePack(x.P, to);
+    this.cache = null; this.open.delete(name);
+  }
+}
+
+/* A snapshot of the device: a folder of the PC that opens as a card (Rhythm/NN_Name), with Internal/ (pack 0, never written back) and, last, snapshot.json:
+   a folder without it did not finish.  Going back writes only what differs by size and CRC; the device's settings cannot be read as a whole nor written
+   (type 8), and a pack that is not in the snapshot stays. */
+const SNAP_FILE = "snapshot.json";
+async function snapshot(card, top, ctx = {}) {
+  const inner = (await card.device.packs()).find(x => x.P === 0), own = inner ? [[card.top.handle(0, inner.name), await subdir(await subdir(top, "Internal", true), inner.name, true)]] : [];
+  const dir = await subdir(top, "Rhythm", true), list = [...own, ...await Promise.all(card.packs.map(async p => [p.dir, await subdir(dir, p.folder, true)]))];
+  let total = 0, all = 0, done = 0, bytes = 0;
+  for (const [src] of list) { const i = await treeInfo(src); total += i.files; all += i.bytes; }
+  if (ctx.total) ctx.total(all);
+  for (const [src, dst] of list) await copyTree(src, dst, (n, size) => { done++; bytes += size; if (ctx.progress) ctx.progress(n, done, total); });
+  await writeFile(top, SNAP_FILE, new TextEncoder().encode(JSON.stringify({app: "Circuit Remix SD", packs: card.packs.map(p => p.folder), internal: inner ? inner.name : null, files: done, bytes}, null, 1)));
+  return {files: done, bytes};
+}
+async function restorePlan(card, top, ctx = {}) {
+  let meta;
+  try { meta = JSON.parse(new TextDecoder().decode(await readHandle(await top.getFileHandle(SNAP_FILE)))); } catch (_) { throw new Error("snap-bad"); }
+  const dir = await subdir(top, "Rhythm");
+  if (!dir) throw new Error("snap-bad");
+  const plan = {packs: [], write: [], del: [], bytes: 0, same: 0, keep: [], replaced: []}, now = await card.top.list();
+  plan.keep = now.map(x => x.name).filter(n => !meta.packs.includes(n));
+  let done = 0;
+  for (const folder of meta.packs) {
+    const src = await subdir(dir, folder);
+    if (!src) throw new Error("snap-bad");
+    const P = +folder.slice(0, 2) + 1, was = now.find(x => x.P === P), dst = await card.top.getDirectoryHandle(folder, {create: true});
+    if (was && was.name !== folder) plan.replaced.push(`${was.name} → ${folder}`);
+    plan.packs.push({folder, dst, P});
+    for (const [sub, s] of await entries(src)) {
+      if (s.kind !== "directory") continue;
+      const d = await dst.getDirectoryHandle(sub), have = new Map((await d.list().catch(() => [])).map(e => [e.name, e]));
+      for (const [n, h] of await entries(s)) {
+        if (/\.crswap$/i.test(n)) continue;
+        const b = await readHandle(h), e = have.get(n);
+        have.delete(n);
+        if (e && await d.dev.size(d.T, d.P, e.I) === b.length && await d.dev.crc(d.T, d.P, e.I) === crc32(b)) plan.same++;
+        else { plan.write.push({d, n, h, sub, folder, old: !!e, P}); plan.bytes += b.length; }
+        if (ctx.progress) ctx.progress(n, ++done, meta.files);
+      }
+      for (const [n] of have) plan.del.push({d, n, sub, folder});
+    }
+  }
+  return plan;
+}
+async function restoreApply(card, plan, ctx = {}) {
+  const total = plan.write.length + plan.del.length;
+  let done = 0;
+  if (ctx.backup) for (const x of [...plan.del, ...plan.write.filter(w => w.old)]) await ctx.backup.file([x.folder, x.sub], x.n, await readHandle(await x.d.getFileHandle(x.n)));   // all first: a write can take another name of its slot
+  if (ctx.total) ctx.total(plan.bytes);
+  for (const w of plan.write) { await writeFile(w.d, w.n, await readHandle(w.h)); if (ctx.progress) ctx.progress(w.n, ++done, total); }
+  for (const x of plan.del) { await x.d.removeEntry(x.n); if (ctx.progress) ctx.progress(x.n, ++done, total); }
+  for (const p of plan.packs) await p.dst.finish();
+  await card.reset();
+}
+
+// ---------------------------------------------------------------- copy, move, swap between two places of one kind
+async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
+  const items = [], olds = [];
+  if (opt.move && !opt.swap && K.rename && src.pack && src.pack.dir.device && same(src, dst) && !to.some(n => from.includes(n))) {      // no data moves
+    const free = await K.list(src);
+    if (to.every(n => free[n].empty)) { for (let i = 0; i < from.length; i++) await K.rename(src, from[i], to[i]); return; }
+  }
+  for (const n of from) items.push(await K.get(src, n));    // all read first: source and destination can overlap
+  if (opt.swap) for (const n of to) olds.push(await K.get(dst, n));
+  for (let i = 0; i < from.length; i++) { await K.put(dst, to[i], items[i], ctx); if (ctx.progress) ctx.progress("", i + 1, from.length); }
+  if (opt.swap) for (let i = 0; i < from.length; i++) await K.put(src, from[i], olds[i], ctx);
+  else if (opt.move) for (const n of from) if (!(same(src, dst) && to.includes(n))) await K.clear(src, n, ctx);
+  if (K.flush) { await K.flush(dst, ctx); if (!same(src, dst)) await K.flush(src, ctx); }
+}
+
+return {NSAMPLES, NSESS, NPACKS, SESS_SIZE, NPATS, TRACK_NAME, SAMPLE_MAX, copyTree, patMidi, PAT, NSTEPS, STEP, SETT, LANE0, NLANES, MICRO, STEP_EMPTY,
+  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, audit, Samples, Patterns, Projects, projectProblem, projectName, projSlot, SNAP_FILE, snapshot, restorePlan, restoreApply,
+  Device, DevRoot, enc7, dec7, crc32, nameMax, nameProblem, renamePack, renameSample, sessionsOf, openSession, samplesOf, wavInfo, patParse, patBuild, patEmpty, patMerge, patSummary, patOff, transfer, same, latin, pad2};
+})();
+window.SDR = SDR;
+</script>
+<script id="ui">
+/* Hacks + Remix (tools/make_hr_app.py builds tools/hr_app.html with this and the two apps' data layers, SDT = the Tracks', SDR = the Rhythm's).
+   Two panes; each opens a Tracks card (or a Tracks app snapshot: a folder with Tracks/), a Rhythm card (Rhythm/) or a plain folder of files.
+   Samples, patterns and FM patches copy between them; across devices they are adapted (HR.* below, tested by tools/hr_app_test.html). */
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+let LANG = (() => { try { const s = localStorage.getItem("hrapp.lang"); if (s === "es" || s === "en") return s; } catch (_) { /* no storage */ } return (navigator.language || "en").startsWith("es") ? "es" : "en"; })();
+const T = (es, en) => LANG === "es" ? es : en;
+
+// ================================================================ the adapters (no UI)
+const FM_REC = 224, FM_AT = 4096, REC = 512;
+const HR = {
+  /* a Tracks note pattern -> a Rhythm pattern (over the destination's bytes): each step = its root (the lowest note on): its gate, micro-step (as the
+     Rhythm's mask bit), velocity, tie; the step's probability; the settings (last, first, rate, direction, order); the Rhythm's lanes stay */
+  t2rNote(tb, rbase) {
+    const m = SDT.patParse(tb), r = SDR.patParse(rbase);
+    r.steps = m.steps.map((st, s) => {
+      const on = st.units.filter(u => u.on);
+      if (!on.length) return Object.assign({}, r.steps[s], {on: false});
+      const u = on.reduce((a, b) => b.note < a.note ? b : a);
+      return {on: true, note: u.note, gate: Math.max(1, u.gate), mask: 1 << Math.min(5, u.micro), vel: u.vel || 100, prob: Math.min(7, st.prob), flip: 0xFF, tie: u.tie};
+    });
+    for (const k of ["last", "first", "rate", "dir", "order"]) r[k] = m[k];
+    return SDR.patBuild(r, rbase);
+  },
+  /* a Rhythm pattern -> a Tracks note pattern: one note a step (its first micro-step); the others off; the Tracks' lanes stay */
+  r2tNote(rb, tbase) {
+    const m = SDR.patParse(rb), t = SDT.patParse(tbase);
+    t.steps = t.steps.map((st, s) => {
+      const r = m.steps[s], units = st.units.map(u => Object.assign({}, u, {on: false}));
+      if (r.on) { let mi = 0; while (mi < 5 && !(r.mask >> mi & 1)) mi++; units[0] = {on: true, note: r.note, gate: r.gate || 6, tie: r.tie, micro: mi, vel: r.vel}; }
+      return Object.assign({}, st, {prob: r.on ? r.prob : st.prob, units});
+    });
+    for (const k of ["last", "first", "rate", "dir", "order"]) t[k] = m[k];
+    return SDT.patBuild(t, tbase);
+  },
+  /* a Tracks drum pattern (velocity + 0, probability + 32, flip + 64, micro mask + 96; settings + 0x80) -> a Rhythm pattern: a hit = its velocity,
+     probability and micro mask at the Rhythm's own note (0x48); flips none (the sample numbers differ) */
+  t2rDrum(tb, rbase) {
+    const r = SDR.patParse(rbase);
+    r.steps = r.steps.map((st, s) => tb[s] ? {on: true, note: 0x48, gate: 6, mask: tb[96 + s] || 1, vel: tb[s], prob: Math.min(7, tb[32 + s]), flip: 0xFF, tie: 0}
+                                           : Object.assign({}, st, {on: false}));
+    const S = 0x80;
+    r.last = tb[S]; r.first = tb[S + 1]; r.rate = tb[S + 2]; r.dir = tb[S + 3]; r.order = tb[S + 7];
+    return SDR.patBuild(r, rbase);
+  },
+  r2tDrum(rb, tbase) {
+    const m = SDR.patParse(rb), b = tbase.slice(), S = 0x80;
+    m.steps.forEach((st, s) => {
+      if (st.on) { b[s] = st.vel || 100; b[32 + s] = st.prob; b[64 + s] = 0xFF; b[96 + s] = st.mask || 1; }
+      else { b[s] = 0; b[96 + s] = 0; b[64 + s] = 0xFF; }
+    });
+    b[S] = m.last; b[S + 1] = m.first; b[S + 2] = m.rate; b[S + 3] = m.dir; b[S + 7] = m.order;
+    return b;
+  },
+  /* a pattern from one device into a slot of the other: by the kinds */
+  adaptPattern(src, srcKind, srcSlot, dstBase, dstKind, dstSlot) {
+    if (srcKind === dstKind) return src;
+    const tDrum = (k, n) => k === "tracks" && n >= 32;
+    if (srcKind === "tracks") return tDrum(srcKind, srcSlot) ? HR.t2rDrum(src, dstBase) : HR.t2rNote(src, dstBase);
+    return tDrum(dstKind, dstSlot) ? HR.r2tDrum(src, dstBase) : HR.r2tNote(src, dstBase);
+  },
+  /* the 8-operator FM: a Hacks custom patch (padding + record) <-> a Remix patch (the record alone, the same "FM8" 1 format) */
+  fmOfCustom(pad) {
+    if (!pad) return null;
+    const f = SDT.fmGet(pad), rec = pad.length > SDT.PADN ? pad.subarray(SDT.PADN, SDT.PADN + FM_REC) : null;
+    return f && f.ver === 3 && rec && SDT.fm8Get(rec) ? rec.slice() : null;
+  },
+  customOfFm(rec, name) { const p = SDT.fm8Get(rec); return p ? SDT.dx7Patch({name: name || "Remix", params: p}) : null; },
+};
+window.HR = HR;
+
+// ---- the Remix FM patches: Patches/NN_PATCHBANK.cpb of the pack, the record of patch n at 4096 + 512 (n & 7) of bank n >> 3 (as Hacks)
+const RFM = {
+  size: 64,
+  async banks(pack) {
+    if (pack._fmb) return pack._fmb;
+    const m = new Map(), d = await SDR.subdir(pack.dir, "Patches");
+    if (d) for (const [n, h] of await SDR.entries(d)) { const r = /^(\d+)_PATCHBANK\.cpb$/i.exec(n); if (r && h.kind === "file") m.set(+r[1], {name: n, bytes: await SDR.readHandle(h)}); }
+    return pack._fmb = m;
+  },
+  async get(pl, n) {
+    const e = (await RFM.banks(pl.pack)).get(n >> 3), o = FM_AT + REC * (n & 7);
+    if (!e || e.bytes.length < o + FM_REC) return null;
+    const r = e.bytes.slice(o, o + FM_REC);
+    return SDT.fm8Get(r) ? r : null;
+  },
+  async list(pl) { const out = []; for (let n = 0; n < RFM.size; n++) { const r = await RFM.get(pl, n); out.push({slot: n, empty: !r, name: r ? algName(SDT.fm8Get(r)) : ""}); } return out; },
+  async put(pl, n, rec, ctx = {}) {
+    const m = await RFM.banks(pl.pack), b = n >> 3, e = m.get(b), o = FM_AT + REC * (n & 7);
+    const dir = await SDR.subdir(pl.pack.dir, "Patches", true);
+    if (e && ctx.backup) await ctx.backup.file([pl.pack.folder, "Patches"], e.name, e.bytes);
+    const old = e ? e.bytes : new Uint8Array(0), out = new Uint8Array(Math.max(old.length, o + FM_REC)).fill(0xFF);
+    out.set(old); out.set(rec || new Uint8Array(FM_REC).fill(0xFF), o);
+    const name = e ? e.name : SDR.pad2(b) + "_PATCHBANK.cpb";
+    await SDR.writeFile(dir, name, out); m.set(b, {name, bytes: out});
+  },
+};
+const algName = p => { const a = p[200]; return a < 16 ? `FM · ${T("algoritmo", "algorithm")} ${a + 1}` : a < 48 ? `FM · DX7 ${a - 15}` : `FM · 8 op ${a - 47}`; };
+window.RFM = RFM;
+
+// ================================================================ the panes
+const TABS = [["samples", "Samples", "Samples"], ["patterns", "Patrones", "Patterns"], ["fm", "Parches FM", "FM patches"]];
+const state = {tab: "samples", busy: false, backup: null};
+const panes = [0, 1].map(i => ({i, el: $("pane" + i), kind: null, card: null, dir: null, packSlot: null, sess: null, items: [], sel: new Set()}));
+panes[0].other = panes[1]; panes[1].other = panes[0];
+const core = p => p.kind === "rhythm" ? SDR : SDT;
+const pack = p => p.card && p.packSlot !== null ? p.card.pack(p.packSlot) : null;
+const place = p => { const k = pack(p); return k ? {pack: k, sess: p.sess} : null; };
+
+function log(t, cls) { const l = $("log"), d = document.createElement("div"); d.textContent = new Date().toTimeString().slice(0, 8) + "  " + t; if (cls) d.className = cls; l.append(d); l.scrollTop = l.scrollHeight; }
+function ask(title, html, buttons) {
+  const d = $("dlg");
+  d.innerHTML = `<h3>${esc(title)}</h3><div class="body">${html}</div><div class="btns">${buttons.map((b, i) => `<button type="button" data-i="${i}" class="${b[2] || ""}">${esc(b[0])}</button>`).join("")}</div>`;
+  return new Promise(res => { d.onclick = e => { const i = e.target.dataset ? e.target.dataset.i : undefined; if (i === undefined) return; d.close(); res(buttons[+i][1]); }; d.oncancel = () => res(null); d.showModal(); });
+}
+const say = (t, h) => ask(t, h, [["OK", true, "pri"]]);
+async function run(title, fn) {
+  if (state.busy) return; state.busy = true; log(title + " …");
+  const prog = $("prog"); prog.hidden = false; prog.removeAttribute("value");
+  const ctx = {backup: state.backup, progress: (name, i, n) => { prog.max = n; prog.value = i; }};
+  try { await fn(ctx); log(title + ": " + T("hecho", "done"), "ok"); } catch (e) { log(title + ": " + (e && e.message || e), "bad"); console.error(e); }
+  prog.hidden = true; state.busy = false;
+  await renderAll();
+}
+
+// the kind of a folder: a Tracks card / snapshot (Tracks/ or its packs' sessions 0x2740C), a Rhythm one (Rhythm/ or 0x29484), else plain files
+async function kindOf(dir) {
+  const has = async n => { try { await dir.getDirectoryHandle(n); return true; } catch (_) { return false; } };
+  if (await has("Tracks")) return "tracks";
+  if (await has("Rhythm")) return "rhythm";
+  for await (const [n, h] of dir.entries()) {
+    if (h.kind !== "directory" || !/^\d\d_/.test(n)) continue;
+    try { const s = await h.getDirectoryHandle("Sessions"); for await (const [, f] of s.entries()) if (f.kind === "file") { const z = (await f.getFile()).size; if (z === SDT.SESS_SIZE) return "tracks"; if (z === SDR.SESS_SIZE) return "rhythm"; } } catch (_) { /* no sessions */ }
+    try { const s = await h.getDirectoryHandle("PCM"); for await (const [f] of s.entries()) { if (/^\d\d\d_/.test(f)) return "rhythm"; if (/^\d\d_/.test(f)) return "tracks"; } } catch (_) { /* no samples */ }
+  }
+  return "folder";
+}
+async function openPane(p, dir) {
+  const k = await kindOf(dir);
+  p.kind = k; p.dir = dir; p.card = null; p.packSlot = null; p.sess = null; p.sel.clear();
+  if (k !== "folder") { p.card = await (k === "rhythm" ? SDR : SDT).Card.open(dir); p.packSlot = p.card.packs.length ? p.card.packs[0].slot : null; }
+  log(`${T("Abierta", "Opened")}: ${dir.name} (${kindLabel(k)})`);
+  await renderAll();
+}
+const kindLabel = k => ({tracks: "Hacks · Circuit Tracks", rhythm: "Remix · Circuit Rhythm", folder: T("carpeta", "folder")})[k] || "";
+
+// ---- the items of a pane in the current tab: {slot, empty, name, extra}
+const FOLDER_EXT = {samples: /\.wav$/i, patterns: /\.(ctpat|rmpat)$/i, fm: /\.(fm8|ctm)$/i};
+async function folderFiles(p) {
+  const out = [];
+  for await (const [n, h] of p.dir.entries()) if (h.kind === "file" && FOLDER_EXT[state.tab].test(n)) out.push({n, h});
+  out.sort((a, b) => a.n.localeCompare(b.n));
+  return out;
+}
+async function loadItems(p) {
+  const tab = state.tab;
+  if (p.kind === "folder") return (await folderFiles(p)).map((f, i) => ({slot: i, empty: false, name: f.n, file: f}));
+  const pl = place(p); if (!pl) return [];
+  if (tab === "samples") return (p.kind === "rhythm" ? SDR.Samples : SDT.Drums).list(pl);
+  if (tab === "patterns") {
+    const m = await core(p).sessionsOf(pl.pack);
+    if (p.sess === null || !m.has(p.sess)) p.sess = m.size ? [...m.keys()][0] : null;
+    if (p.sess === null) return [];
+    const TN = core(p).TRACK_NAME;
+    return (await core(p).Patterns.list({pack: pl.pack, sess: p.sess})).map(x => Object.assign(x, {name: `${TN[x.slot >> 3]} · ${(x.slot & 7) + 1}`, extra: x.empty ? "" : `${x.notes} ${T("notas", "notes")}${x.lanes ? `, ${x.lanes} ${T("carriles", "lanes")}` : ""}`}));
+  }
+  if (p.kind === "rhythm") return RFM.list(pl);
+  return (await SDT.Custom.list(pl)).map(x => Object.assign(x, {empty: x.empty || !(x.fm && x.fm.ver === 3 && x.fm.on && x.fm8), name: x.name || "", extra: x.fm8 ? algName(x.fm8) : ""}));
+}
+async function getItem(p, n) {                              // -> {kind, name, bytes / pad / rec}
+  const tab = state.tab, it = p.items[n];
+  if (p.kind === "folder") {
+    const b = new Uint8Array(await (await it.file.h.getFile()).arrayBuffer()), nm = it.name.replace(/\.[^.]+$/, "");
+    if (tab === "samples") return {name: nm, bytes: b};
+    if (tab === "patterns") return {name: nm, bytes: b, from: /\.rmpat$/i.test(it.name) ? "rhythm" : "tracks", slot: b.length === SDT.patSize(32) ? 32 : 0};
+    return /\.fm8$/i.test(it.name) ? {name: nm, rec: b.subarray(0, FM_REC)} : {name: nm, rec: HR.fmOfCustom(b), pad: b};
+  }
+  const pl = place(p);
+  if (tab === "samples") return (p.kind === "rhythm" ? SDR.Samples : SDT.Drums).get(pl, n);
+  if (tab === "patterns") return {name: it.name, bytes: await core(p).Patterns.get({pack: pl.pack, sess: p.sess}, n), from: p.kind, slot: n};
+  if (p.kind === "rhythm") { const r = await RFM.get(pl, n); return r ? {name: `Remix ${SDR.pad2(n)}`, rec: r} : null; }
+  const pad = await SDT.Custom.get(pl, n); return pad ? {name: SDT.ctmName(pad) || `Hacks ${SDT.pad2(n)}`, pad, rec: HR.fmOfCustom(pad)} : null;
+}
+async function putItem(q, n, x, ctx) {                       // into pane q's slot n (a folder: a new file)
+  const tab = state.tab;
+  if (q.kind === "folder") {
+    const ext = tab === "samples" ? ".wav" : tab === "patterns" ? (x.from === "rhythm" ? ".rmpat" : ".ctpat") : x.pad ? ".ctm" : ".fm8";
+    const data = tab === "fm" ? (x.pad || x.rec) : x.bytes;
+    let name = (x.name || "item").replace(/[\\/:*?"<>|]/g, "_").trim() + ext;
+    for (let k = 2; await q.dir.getFileHandle(name).then(() => true, () => false); k++) name = name.replace(/( \d+)?(\.[^.]+)$/, ` ${k}$2`);
+    await SDT.writeFile(q.dir, name, data); return;
+  }
+  const pl = place(q);
+  if (tab === "samples") return (q.kind === "rhythm" ? SDR.Samples : SDT.Drums).put(pl, n, {name: x.name, bytes: x.bytes}, ctx);
+  if (tab === "patterns") {
+    const P = core(q).Patterns, ql = {pack: pl.pack, sess: q.sess}, base = await P.get(ql, n);
+    if (x.from === "tracks" && q.kind === "tracks" && (x.slot >= 32) !== (n >= 32)) throw new Error(T("un patrón de drums solo va a una pista de drums", "a drum pattern only goes to a drum track"));
+    const data = HR.adaptPattern(x.bytes, x.from, x.slot, base, q.kind, n);
+    if (data.length !== base.length) throw new Error(T("tamaño de patrón distinto", "pattern size differs"));
+    await P.putRaw(ql, n, data); await P.flush(ql, ctx); return;
+  }
+  if (q.kind === "rhythm") { if (!x.rec) throw new Error(T(`${x.name}: no es un parche FM de 8 operadores (el Rhythm no tiene los otros motores)`, `${x.name}: not an 8-operator FM patch (the Rhythm has no other engines)`)); return RFM.put(pl, n, x.rec, ctx); }
+  const pad = x.pad && SDT.ctmState(x.pad.subarray(0, SDT.PADN)) === "ok" ? x.pad : HR.customOfFm(x.rec, x.name);
+  if (!pad) throw new Error(T(`${x.name}: sin datos de FM`, `${x.name}: no FM data`));
+  return SDT.Custom.put(pl, n, pad, ctx);
+}
+
+async function copyAct(p) {
+  const q = p.other, from = [...p.sel].sort((a, b) => a - b).filter(n => p.items[n] && !p.items[n].empty);
+  if (!from.length) return say(T("Nada elegido", "Nothing chosen"), T("Elige filas con contenido.", "Choose rows with content."));
+  if (!q.kind) return say(T("Falta el destino", "No target"), T("Abre una carpeta en el otro lado.", "Open a folder on the other side."));
+  if (state.tab === "patterns" && q.kind !== "folder" && q.sess === null) return say(T("Sin proyecto", "No project"), T("El otro lado no tiene un proyecto elegido.", "The other side has no project chosen."));
+  let to = [];
+  if (q.kind !== "folder") {
+    const start = q.sel.size ? Math.min(...q.sel) : q.items.findIndex(x => x.empty);
+    if (start < 0) return say(T("No cabe", "It does not fit"), T("Elige el hueco de destino en el otro lado.", "Choose the target slot on the other side."));
+    to = from.map((_, i) => start + i);
+    if (to[to.length - 1] >= q.items.length) return say(T("No cabe", "It does not fit"), T("No hay huecos suficientes desde el elegido.", "Not enough slots from the chosen one."));
+    const hit = to.filter(n => !q.items[n].empty);
+    if (hit.length && !await ask(T("Huecos ocupados", "Slots in use"), `<p>${hit.map(n => esc(`${n} ${q.items[n].name}`)).join("<br>")}</p>`, [[T("Sobrescribir", "Overwrite"), true, "dng"], [T("Cancelar", "Cancel"), false]])) return;
+  }
+  const across = p.kind !== q.kind && p.kind !== "folder" && q.kind !== "folder";
+  await run(`${T("Copiar", "Copy")} ${from.length}${across ? " · " + T("adaptado", "adapted") : ""}`, async ctx => {
+    for (let i = 0; i < from.length; i++) {
+      const x = await getItem(p, from[i]);
+      if (!x) continue;
+      try { await putItem(q, to[i], x, ctx); } catch (e) { log(`${x.name}: ${e.message || e}`, "bad"); }
+      ctx.progress("", i + 1, from.length);
+    }
+    for (const k of [p, q]) { const pk = pack(k); if (pk) { pk._samples = null; pk._banks = null; pk._fmb = null; pk._info = null; } }
+  });
+  q.sel.clear();
+}
+
+// ---- drawing
+function paneHtml(p) {
+  let s = `<div class="prow"><b class="grow">${esc(p.dir ? p.dir.name : T("Sin carpeta", "No folder"))}</b>${p.kind ? `<span class="kind ${p.kind[0]}">${esc(kindLabel(p.kind))}</span>` : ""}<button type="button" data-act="open">${T("Abrir carpeta…", "Open folder…")}</button></div>`;
+  if (p.card) {
+    s += `<div class="prow"><select data-sel="pack">${p.card.packs.map(x => `<option value="${x.slot}"${x.slot === p.packSlot ? " selected" : ""}>${SDT.pad2(x.slot)} ${esc(x.name)}</option>`).join("")}</select>`;
+    if (state.tab === "patterns") s += `<select data-sel="sess"></select>`;
+    s += "</div>";
+  }
+  s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? "← " : ""}${T("Copiar", "Copy")}${p.i ? "" : " →"}</button><span class="hint">${esc(hintOf(p))}</span></div><div class="list"></div>`;
+  return s;
+}
+function hintOf(p) {
+  const q = p.other;
+  if (!p.kind || !q.kind || p.kind === q.kind || p.kind === "folder" || q.kind === "folder") return "";
+  return state.tab === "patterns" ? T("Tracks → Rhythm: la nota más grave de cada paso; Rhythm → Tracks: una nota por paso", "Tracks → Rhythm: each step's lowest note; Rhythm → Tracks: one note a step")
+       : state.tab === "fm" ? T("solo el FM de 8 operadores", "8-operator FM only") : T("los WAV tal cual", "the WAVs as they are");
+}
+async function render(p) {
+  p.el.innerHTML = paneHtml(p);
+  try { p.items = p.kind ? await loadItems(p) : []; } catch (e) { p.items = []; log(e.message || String(e), "bad"); }
+  const ss = p.el.querySelector('[data-sel="sess"]');
+  if (ss) { const m = await core(p).sessionsOf(pack(p)); ss.innerHTML = [...m.values()].map(e => `<option value="${e.slot}"${e.slot === p.sess ? " selected" : ""}>${SDT.pad2(e.slot)} ${esc(e.label || "")}</option>`).join(""); }
+  const l = p.el.querySelector(".list");
+  l.innerHTML = p.items.map((it, n) => `<div class="row${it.empty ? " empty" : ""}${p.sel.has(n) ? " sel" : ""}" data-n="${n}"><span class="c0">${p.kind === "folder" ? "" : SDT.pad2(it.slot)}</span><span class="c1"></span><span class="c2">${esc(it.empty ? "—" : it.name || T("(sin nombre)", "(no name)"))}</span><span class="c3">${esc(it.extra || "")}</span><span></span></div>`).join("") ||
+    `<div class="blank dim" style="padding:10px">${p.kind ? T("Nada aquí.", "Nothing here.") : T("Abre una tarjeta (o una copia / snapshot) del Tracks o del Rhythm, o una carpeta de ficheros.", "Open a Tracks or Rhythm card (or a copy / snapshot), or a folder of files.")}</div>`;
+}
+async function renderAll() {
+  document.documentElement.lang = LANG;
+  $("sub").textContent = T("Hacks (Circuit Tracks) y Remix (Circuit Rhythm): samples, patrones y parches FM entre los dos, y carpetas", "Hacks (Circuit Tracks) and Remix (Circuit Rhythm): samples, patterns and FM patches between them, and folders");
+  $("tabs").innerHTML = TABS.map(t => `<button type="button" data-tab="${t[0]}" class="${t[0] === state.tab ? "on" : ""}">${esc(T(t[1], t[2]))}</button>`).join("");
+  for (const b of document.querySelectorAll(".lang button")) b.classList.toggle("on", b.dataset.lang === LANG);
+  $("bBackup").textContent = state.backup ? T("Copias: ", "Backups: ") + state.backup.dir.name : T("Copias de seguridad…", "Backups…");
+  $("notice").textContent = window.showDirectoryPicker ? "" : T("Este navegador no puede abrir carpetas: usa Chrome o Edge en un ordenador.", "This browser cannot open folders: use Chrome or Edge on a computer.");
+  for (const p of panes) await render(p);
+}
+
+// ---- events
+$("tabs").addEventListener("click", e => { const t = e.target.dataset && e.target.dataset.tab; if (t && !state.busy) { state.tab = t; for (const p of panes) p.sel.clear(); renderAll(); } });
+for (const b of document.querySelectorAll(".lang button")) b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem("hrapp.lang", LANG); } catch (_) { /* none */ } renderAll(); };
+$("bBackup").onclick = async () => { let d; try { d = await window.showDirectoryPicker({mode: "readwrite"}); } catch (_) { return; } state.backup = new SDT.Backup(d, d.name); renderAll(); };
+for (const p of panes) {
+  p.el.addEventListener("click", async e => {
+    if (state.busy) return;
+    const act = e.target.dataset ? e.target.dataset.act : null;
+    if (act === "open") { let d; try { d = await window.showDirectoryPicker({mode: "readwrite"}); } catch (_) { return; } try { await openPane(p, d); } catch (er) { log(er.message || String(er), "bad"); } return; }
+    if (act === "copy") return copyAct(p);
+    const row = e.target.closest(".row"); if (!row) return;
+    const n = +row.dataset.n;
+    if (e.ctrlKey || e.metaKey) { p.sel.has(n) ? p.sel.delete(n) : p.sel.add(n); }
+    else if (e.shiftKey && p.sel.size) { const a = Math.min(...p.sel); p.sel = new Set(); for (let k = Math.min(a, n); k <= Math.max(a, n); k++) p.sel.add(k); }
+    else p.sel = new Set([n]);
+    for (const r of p.el.querySelectorAll(".row")) r.classList.toggle("sel", p.sel.has(+r.dataset.n));
+  });
+  p.el.addEventListener("change", async e => {
+    const w = e.target.dataset ? e.target.dataset.sel : null;
+    if (w === "pack") { p.packSlot = +e.target.value; p.sess = null; p.sel.clear(); await render(p); }
+    else if (w === "sess") { p.sess = +e.target.value; p.sel.clear(); await render(p); }
+  });
+}
+window.HRAPP = {state, panes, openPane, renderAll, copyAct, ask: null};
+renderAll();
+})();
+
+</script>
+</body>
+</html>

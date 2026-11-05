@@ -6,7 +6,9 @@ The emulated firmware, MIDI 1's own engine on, its Preset view on page 4 (pad 4)
   * after OVL_MS: the pads as before; K1 alone (no Shift): no overlay;
   * the previous build (if given): no overlay.
 
-    python tools/emu_p4ovl.py BUILD.bin manifest.json [PREVIOUS.bin PREVIOUS_manifest.json]
+    python tools/emu_p4ovl.py BUILD.bin manifest.json [PREVIOUS.bin PREVIOUS_manifest.json] [--top]
+
+--top (SC52.2, ovltop): with the engine row open, page 4, the non-sequenceable page and the matrix's overlay drawn on top of the row.
 """
 from __future__ import annotations
 import gc, json, sys
@@ -21,7 +23,7 @@ import p4dest as P4  # noqa: E402
 V = T4.V
 
 
-def run(img, man, shift=True):
+def run(img, man, shift=True, setup=None, ns=False, matrix=False):
     e = X.EP(Path(img).read_bytes(), man)
     R = man["report"]
     ml = {k: int(v, 16) for k, v in R["modmx"]["labels"].items()}
@@ -31,12 +33,22 @@ def run(img, man, shift=True):
     pdim, pbri = rd("t_pdim", 8), rd("t_pbri", 8)
     e.uc.mem_write(V.TAIL + V.O_FLAGS, bytes([e.r8(V.TAIL + V.O_FLAGS) | 0x05]))
     e.w32(V.HAL_TICK, 100000)
-    e.btn(2); e.btn(8); e.pad(3)
+    e.btn(2); e.btn(8)
+    if setup: setup(e)
+    if matrix: e.pad(5)
+    elif ns: e.shift(True); e.pad(3); e.shift(False)
+    else: e.pad(3)
     f0 = X.frame(e)[:32]
-    if shift: e.shift(True)
+    if shift and not matrix: e.shift(True)
     for _ in range(3 * P4.DIV): e.knob(0, 1)
-    if shift: e.shift(False)
-    code = tuple(e.uc.mem_read(e.r0(e.vl["c_vrow"], 0), 8))[0]
+    if shift and not matrix: e.shift(False)
+    if matrix:                                                                     # the matrix's K1: its destination from the block (modmx)
+        import struct as _s
+        e.call(ml["c_mxblk"], 0); blk = e.uc.reg_read(__import__("unicorn").arm_const.UC_ARM_REG_R0)
+        v = _s.unpack("<H", bytes(e.uc.mem_read(blk, 2)))[0]
+        code = dcode[(v - 1) >> 4]
+    elif ns: code = tuple(e.uc.mem_read(e.r0(int(R["p4dest"]["labels"]["c_p4row"], 16), 0), 8))[0]
+    else: code = tuple(e.uc.mem_read(e.r0(e.vl["c_vrow"], 0), 8))[0]
     f1 = X.frame(e)[:32]
     i = dcode.index(code); pg, at = dmap[i] >> 4, dmap[i] & 15
     want = list(f1)
@@ -45,7 +57,10 @@ def run(img, man, shift=True):
     prev_pad = int(R["p4ovl"]["prev"]["pad"], 16) if "p4ovl" in R else None
     hits = []
     if prev_pad: e.uc.hook_add(UC_HOOK_CODE, lambda uc, a, s, d: hits.append(a), begin=prev_pad, end=prev_pad)
-    e.pad(10)
+    msmode = lambda: e.r0(int(R["modesel"]["labels"]["c_msmode"], 16), 0)
+    m0 = msmode()
+    e.pad(17 if setup else 10)                                                     # (with the engine row open: a row pad)
+    if setup and msmode() != m0: hits.append(-1)
     e.w32(V.HAL_TICK, 100000 + MX.OVL_MS + 100)
     f2 = X.frame(e)[:32]
     out = dict(f0=f0, f1=f1, f2=f2, want=want, code=code, page=pg, swallowed=not hits if prev_pad else None)
@@ -66,6 +81,13 @@ def main(img, man, prev=None, pman=None):
     check(r["f2"][8:24] == r["f0"][8:24], "after OVL_MS: the pads as before")
     n = run(img, man, shift=False)
     check(n["f1"][8:24] == n["f0"][8:24], "K1 alone: no overlay")
+    if "--top" in sys.argv:                                                     # SC52.2 (ovltop): the engine row open (WT), the overlays on top of it
+        row = lambda e: (e.pad(26), e.pad(20))
+        for what, kw in (("page 4", {}), ("the non-sequenceable page", dict(ns=True)), ("the matrix", dict(matrix=True))):
+            t = run(img, man, setup=row, **kw)
+            check(t["f1"][8:24] == t["want"][8:24] and t["f1"][t["page"]] == t["want"][t["page"]],
+                  f"engine row open, {what}: pads 9-24 = the destination's page on top ({[hex(x & 0xFF) for x in t['f1'][8:24]]} / {[hex(x & 0xFF) for x in t['want'][8:24]]})")
+            check(t["swallowed"] is True, f"engine row open, {what}: a pad 9-24 meanwhile goes nowhere")
     if prev:
         p = run(prev, pman)
         check(p["f1"][8:24] == p["f0"][8:24], "the previous build: no overlay")
@@ -74,6 +96,6 @@ def main(img, man, prev=None, pman=None):
 
 
 if __name__ == "__main__":
-    a = sys.argv[1:]
+    a = [x for x in sys.argv[1:] if not x.startswith("--")]
     sys.exit(1 if main(a[0], json.loads(Path(a[1]).read_text()), a[2] if len(a) > 2 else None,
                        json.loads(Path(a[3]).read_text()) if len(a) > 3 else None) else 0)

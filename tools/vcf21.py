@@ -62,6 +62,7 @@ TCOL_WV = (0x13, 0x17, 0x2D, 0x45)                      # sine light blue, trian
 TZ_MINB = 32                                      # the dimmest the type LED gets (0..127), so the colour stays readable
 DUALUI = False                                    # SC24: pad 27 = off / line in / oscillator, the page row (pads 1-8), pad 28 = two oscillators, pad 29 = chain order, the second oscillator's values, paraphonic notes
 V2_OFF = 180                                      # the volatile values (codes 27..34, 8 per track) live in the Master FX block (c_gfst), after its 180 bytes (build_sc24 grows the block by 16)
+KNOB_CODES_C_MX = None                                                    # (use_osc2pg2) the matrix's destination order of page 3
 KNOB_CODES_C = (27, 30, 0, 0, 0, 0, 29, 0,  28, 33, 34, 0, 0, 0, 0, 0)      # the OSC2 page: K1 TUNE2, K2 SHAPE2 (PW2), K7 WAVE2; Shift: K1 FINE2, K2 FM, K3 RING
 DEFAULTS_V2 = (0, 0, 0, 50, 64, 0, 0, 0)                                    # TUNE2 FINE2 WAVE2 PW2 MIX BITSYNC FM RING
 TCOL_BS = (0x01, 0x13, 0x32, 0x2D, 0x45, 0x17, 0x4D)                        # BITSYNC zones: none white, sync light blue, xor magenta, or yellow, nor red, and green, nand teal
@@ -327,6 +328,36 @@ def use_osc2pg():
     K6 Resonance = BITSYNC (hard sync, the resonant sweep), K7 Modulation = WAVE 2 (as on the OSC 1 page), K8 FX = RING (one of the FX types)."""
     global KNOB_CODES_C
     KNOB_CODES_C = (27, 30, 31, 33, 28, 32, 29, 34,  0, 0, 0, 0, 0, 0, 0, 0)
+
+
+def use_osc2pg2():
+    """SC52.2 (the user, 2026-11-05: «reasigna (en VA y WT) k1: pitch, k2: pitch fino. k3: shape k4: mezcla. K5: FM, 6,7,8 iguales»): the OSC 2 page
+    K1 TUNE 2, K2 FINE 2, K3 SHAPE 2, K4 MIX, K5 FM, K6 BITSYNC, K7 WAVE 2, K8 RING.  The matrix's destinations keep use_osc2pg's order (a saved
+    matrix destination is a position in that order: modmx reads KNOB_CODES_C_MX for it, the knob from KNOB_CODES_C).  «(en VA y WT)»: with the
+    granular engine page 3 keeps the old layout (c_vkc: indices 32..39 from the old row while c_vgreng), its codes 27..34 meaning other things."""
+    global KNOB_CODES_C, KNOB_CODES_C_MX
+    KNOB_CODES_C_MX = KNOB_CODES_C
+    KNOB_CODES_C = (27, 28, 30, 31, 33, 32, 29, 34,  0, 0, 0, 0, 0, 0, 0, 0)
+
+
+RATIO2 = False                                    # SC52.2 (use_ratio2)
+R2_RATIOS = (0.25, 0.5) + tuple(range(1, 32))     # (RATIO2) the FM 8-op's coarse (0.5, 1..31) and the harmonics (0.25, 0.5, 1..16), ascending
+
+
+def r2_ratio(v):
+    """(RATIO2) OSC 2's TUNE value -64..63 -> its ratio: 0 = 1 (the old default, unison); -1..-32 = 0.5, -33..-64 = 0.25; 1..63 = 2..31"""
+    if v == 0: return 1
+    if v < 0: return 0.5 if v >= -32 else 0.25
+    return 2 + (v - 1) * 30 // 63
+
+
+def use_ratio2():
+    """SC52.2 (the user, 2026-11-05: «haz que la afinación gruesa de osc2 haga ratios de osc1 y la fina, detune»; asked: the FM 8-op's ratios and
+    the harmonics, ascending; OSC 2 = its own note x the ratio (the paraphony stays); the fine = +-50 cents): the value of code 32 (OSC 2's TUNE,
+    after the step-drummer / the matrix) goes to the DSP as round(12 log2(r2_ratio(v)) x 256) (vcf21_dsp.use_ratio2: 1/256 semitone)."""
+    global RATIO2
+    assert DUALUI
+    RATIO2 = True
 
 
 def use_routecol():
@@ -1459,6 +1490,13 @@ def p4_routines(a, base):
         a.label("v2r_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
     a.label("c_vkc")
     E(push_list, [4], lr=True); E(mov_reg, 4, 1)
+    if KNOB_CODES_C_MX:                                                           # (use_osc2pg2) the granular keeps page 3's old layout
+        E(cmp_imm, 1, 32); E(b_cond, "kc_ng", "lo"); E(cmp_imm, 1, 40); E(b_cond, "kc_ng", "hs")
+        E(push_list, [0]); E(bl, "c_vgreng"); E(mov_reg, 2, 0); E(pop_list, [0]); E(cmp_imm, 2, 0); E(b_cond, "kc_ng0", "eq")
+        E(bl, "c_vkcold"); E(subs_imm8, 4, 32); E(ldrb_reg, 0, 3, 4); E(pop_list, [4], pc=True)
+        a.label("c_vkcold"); E(raw, h(0x467B) + h(0x4770) + bytes(KNOB_CODES_C_MX[:8]))     # mov r3, pc; bx lr: r3 = the old row
+        a.label("kc_ng0"); E(mov_reg, 1, 4)
+        a.label("kc_ng")
     if NSPAGE:                                                                    # (SC48.3) indices 112..119 = the second row, 120..127 nothing
         E(cmp_imm, 1, 16 * NS_PAGE); E(b_cond, "kc_a", "lo"); E(cmp_imm, 1, 16 * NS_PAGE + 8); E(b_cond, "kc_z", "hs")
         E(bl, "c_vrow2"); E(subs_imm8, 4, 16 * NS_PAGE); E(ldrb_reg, 0, 0, 4); E(pop_list, [4], pc=True)
@@ -1744,6 +1782,7 @@ def dualui_routines(a, L, tail, mulstride, bc):
     a.emit(lsrs_imm, 7, 7, 4); a.emit(lsls_imm, 7, 7, 4); a.emit(orrs_reg, 7, 3)                      # r7 = the new RT_CNT byte
     a.emit(cmp_imm, 1, 0); a.emit(b_cond, "no_f", "eq")
     if LASTNOTE:                                                                  # one oscillator: the new note takes OSC1, the one it replaces waits in n2
+        a.label("no_dt")                                                          # (fm8ui.use_nodual: a bl there, the bit read as 0 with FM on)
         a.emit(ldrb_imm, 3, 5, RT_VEL); a.emit(lsrs_imm, 3, 3, 7); a.emit(b_cond, "no_dl", "ne")
         a.emit(ldrb_imm, 0, 5, RT_NOTE); a.emit(movs_imm, 3, 0x7F); a.emit(ands_reg, 0, 3); a.emit(strb_imm, 0, 6, 0)
         a.emit(movs_imm, 0, RT_NOTE); a.emit(bl, "c_vsetn"); a.emit(movs_imm, 3, 0x80); a.emit(orrs_reg, 7, 3); a.emit(b, "no_d")
@@ -1903,6 +1942,15 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
     a.emit(mov_reg, 0, 4); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "gp_0", "ne")
     a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdbit"); a.emit(pop_list, [4], pc=True)
     a.label("gp_0"); a.emit(movs_imm, 0, 0); a.emit(pop_list, [4], pc=True)
+    if KNOB_CODES_C_MX or RATIO2:
+        a.label("c_vgreng")                                                       # r0 = track -> r0 = 1: the granular engine (c_grpg without the page); clobbers r1-r3
+        a.emit(push_list, [4], lr=True)
+        a.emit(mov_reg, 4, 0)
+        a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ge_0", "eq")
+        a.emit(mov_reg, 0, 4); a.emit(movs_imm, 1, 2); a.emit(bl, "c_vflag"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ge_0", "eq")
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ge_0", "ne")
+        a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdbit"); a.emit(pop_list, [4], pc=True)
+        a.label("ge_0"); a.emit(movs_imm, 0, 0); a.emit(pop_list, [4], pc=True)
 
     if FXSEQ:
         a.label("c_fsq")                                                          # r0 = track -> r0 = 1 in the FX sequencer state (mode on, oscillator source off, VA-drum bit); clobbers r1-r3
@@ -3917,6 +3965,14 @@ def arm_code(base, L):
     a.emit(mov_reg, 0, 2); a.emit(adds_imm8, 0, 1)
     if OSC: a.emit(cmp_imm, 0, 16); a.emit(b_cond, "sd_cm", "ls"); a.emit(adds_imm8, 0, 5); a.label("sd_cm")                   # stored codes 17..21 = mailbox codes 22..26 (17..21 are the voice's own)
     a.label("sd_send")                                                                                           # r0 = code, r1 = value
+    if RATIO2:                                                                    # OSC 2's TUNE: the ratio's offset in 1/256 semitone
+        a.emit(cmp_imm, 0, 32); a.emit(b_cond, "sd_nr", "ne")
+        a.emit(push_list, [0, 1]); a.emit(mov_reg, 0, 6); a.emit(bl, "c_vgreng"); a.emit(mov_reg, 2, 0); a.emit(pop_list, [0, 1])
+        a.emit(cmp_imm, 2, 0); a.emit(b_cond, "sd_nr", "ne")                       # (the granular's code 27 = LFO -> size: as it is)
+        a.emit(adds_imm8, 1, 64); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "sd_r1", "ge"); a.emit(movs_imm, 1, 0)
+        a.label("sd_r1"); a.emit(cmp_imm, 1, 127); a.emit(b_cond, "sd_r2", "le"); a.emit(movs_imm, 1, 127)
+        a.label("sd_r2"); a.emit(bl, "c_r2tab"); a.emit(lsls_imm, 1, 1, 1); a.emit(raw, h(0x5E59))               # ldrsh r1, [r3, r1]
+        a.label("sd_nr")
     a.emit(ldrb_imm, 2, 7, RT_TAG); a.emit(lsls_imm, 1, 1, 16); a.emit(lsrs_imm, 1, 1, 16); a.emit(lsls_imm, 0, 0, 16); a.emit(orrs_reg, 1, 0)
     if RATELIMIT: a.emit(movs_imm, 3, 1); a.emit(tst_reg, 2, 3)                                                 # the tag is bit 0 of the byte (the stamp of the last message above)
     else: a.emit(cmp_imm, 2, 0)
@@ -3931,6 +3987,10 @@ def arm_code(base, L):
     a.emit(mov_reg, 2, 6); a.emit(movs_imm, 3, VBS); a.emit(muls, 2, 3); a.emit(movw, 3, VB0); a.emit(adds_reg, 2, 2, 3)
     a.emit(movs_imm, 0, 0); a.emit(bl, DSP_WRITE)
     a.label("sd_x"); a.emit(pop_list, [4], pc=True)
+    if RATIO2:                                                                    # c_r2tab() -> r3 = the table (mov r3, pc = the address after bx lr)
+        import math, struct as st_
+        a.label("c_r2tab")
+        a.emit(raw, h(0x467B) + h(0x4770) + st_.pack("<128h", *(round(12 * math.log2(r2_ratio(v)) * 256) for v in range(-64, 64))))
     if HEARTBEAT:
         a.label("sd_hb")                                                                                         # nothing else to send: about every 8 ms flag one of ACT / NOTE / VEL / GATE again
         a.emit(movw, 0, HAL_TICK & 0xFFFF); a.emit(movt, 0, HAL_TICK >> 16); a.emit(ldr_imm, 0, 0, 0)
