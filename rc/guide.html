@@ -100,7 +100,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><em>(since RC2)</em> = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).</li>
 <li><em>(since RC2.02)</em> = new in RC2.02 (not in RC2.01).</li>
 <li><em>(since RC4)</em> = new in <strong>RC4</strong> (not in RC2.11 or earlier).</li>
-<li><em>(since RC4.05)</em> = a fix of <strong>RC4.05</strong> (in RC4.08 and Beta 5.28 too; not in RC4.02 or earlier).</li>
+<li><em>(since RC4.05)</em> = a fix of <strong>RC4.05</strong> (in RC4.08 and Beta 5.29 too; not in RC4.02 or earlier).</li>
 <li>The <strong>feature list</strong> (the previous manual) sums up every feature in one line, by topic.</li>
 </ul>
 </section>
@@ -313,7 +313,6 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td><strong>Scales + Preset + Note</strong> at power-up</td><td>—</td><td>Novation&#x27;s bootloader recovery mode: lets you install any firmware again.</td></tr>
 </tbody></table>
 <ul>
-<li>The knob LEDs show the value of the new functions with their <strong>brightness</strong> (brighter = more; bipolar knobs are dark in the middle).</li>
 <li>Animated (pulsing) colours are never used for steady states.</li>
 <li><strong>LFO synced to the tempo</strong> <em>(since RC4)</em>: the <strong>LFO rate</strong> knobs (K7 of the VCA-VCF page of the MIDI 1 / 2 engine, Shift + K4 of the matrix, Shift + K7 of the drums, K1 of the Auto-Filter and of the Phaser in Master FX) are <strong>bipolar</strong>: at the centre the LED is dim; <strong>to the right, a free LFO</strong> (faster further right); <strong>to the left, synced to the tempo</strong>, from the centre outwards 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4, 1/2T, 1/2, 1 bar T, 1 bar, 2T, 2, 4T, 4, 8T and 8 bars (4 clicks each), each cycle starting on the <strong>bar&#x27;s first beat</strong> (it is put back in place on every sequencer tick; stopped, it keeps the tempo). In the matrix, each shape of Shift + K4 is a stretch with its own centre. What was saved before with another rate may sound different.</li>
 </ul>
@@ -1632,7 +1631,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 <h4>Pads</h4>
 <table><thead><tr><th>Pad</th><th>Function</th></tr></thead><tbody>
-<tr><td>1-5</td><td>Engine knob page: 1 VCA-VCF, 2 OSC 1 (granular in that engine), 3 OSC 2, 4 <strong>sequenceable knobs</strong> (<em>(since RC4)</em> <strong>Shift + pad 4</strong> = non-sequenceable knobs), 5 modulation. <strong>Clear + the pad</strong> <em>(since RC2)</em>: that page&#x27;s values (with and without Shift) back to their defaults. <em>(since RC4)</em>: a tap keeps the page; <strong>holding the pad ½ s or more</strong> = that page only while you hold it (the previous one comes back on release).</td></tr>
+<tr><td>1-5</td><td>Engine knob page: 1 VCA-VCF, 2 OSC 1 (granular in that engine), 3 OSC 2, 4 <strong>sequenceable knobs</strong> (<em>(since RC4)</em> <strong>Shift + pad 4</strong> = non-sequenceable knobs), 5 modulation.</td></tr>
 <tr><td>6</td><td><em>(since RC2.02)</em> <strong>Mod matrix</strong> (light blue; see “Mod matrix”). <strong>Clear + pad 6</strong>: every source off.</td></tr>
 <tr><td>9-24</td><td><strong>Own-synth patches</strong> <em>(since RC2)</em>: see below.</td></tr>
 <tr><td>25</td><td><strong>CC editor</strong> of the MIDI macros (<a href="#midi-cc">CC editor</a>).</td></tr>
@@ -1660,7 +1659,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Own-synth patches (pads 9-24) <em>(since RC2)</em></h4>
 <ul>
 <li>16 slots per page; <strong>Octave ▼ / ▲</strong> = 4 pages (64 slots per pack, shared by MIDI 1 and MIDI 2); <em>(since RC4)</em> <strong>8 pages, 128 slots</strong>.</li>
-<li><strong>Touch</strong> = load (the tonic sounds while you hold the pad; <em>(since RC4)</em>: <strong>Shift + pad</strong> = load without the sound). <strong>Clear + pad</strong> twice = save. <strong>Duplicate + A + B</strong> = swap; <strong>Duplicate + A</strong>, another pack, <strong>Duplicate + B</strong> = copy to another pack (Duplicate yellow while one is waiting).</li>
+<li><strong>Touch</strong> = load (the tonic sounds while you hold the pad; <em>(since RC4)</em>: <strong>Shift + pad</strong> = load without the sound). <strong>Clear + pad</strong> twice = save.</li>
 <li>A patch stores the whole engine: chosen engine, oscillators, order, every value and the step-drummer setting <em>(writes to the card)</em>.</li>
 <li><strong>Clear + the track button</strong> <em>(since RC2)</em> puts every engine value back to its default (the chosen engine stays; <em>(since RC4)</em>: the FM&#x27;s too, and the matrix keeps its destinations with the amounts at zero).</li>
 </ul>
@@ -4374,13 +4373,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>25</td><td>Envelope → morph (granular: source)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
 <tr><td>26</td><td>LFO → morph (granular: note mode)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2</td><td>CC 37</td><td>3 / K1</td></tr>
-<tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.28: 3 / K2)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: pitch spread; RC4: stereo)</td><td>CC 30</td><td>3 / K7 (Beta 5.28: 3 / K3)</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.29: 3 / K2)</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: pitch spread; RC4: stereo)</td><td>CC 30</td><td>3 / K7 (Beta 5.29: 3 / K3)</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: window)</td><td>CC 31</td><td>3 / K2</td></tr>
-<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.28: 3 / K8)</td></tr>
-<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.28: 3 / K7)</td></tr>
-<tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.28: 3 / K5)</td></tr>
-<tr><td>34</td><td>RING (granular: reverse; RC4: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.28: 3 / K6)</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.29: 3 / K8)</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.29: 3 / K7)</td></tr>
+<tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.29: 3 / K5)</td></tr>
+<tr><td>34</td><td>RING (granular: reverse; RC4: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.29: 3 / K6)</td></tr>
 </tbody></table>
 <p><strong>Sequenceable knobs</strong> (page 4: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. <em>RC4 only:</em> the eight destinations are chosen with Shift + knob.</p>
 <h4>Drums</h4>
