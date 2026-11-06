@@ -130,11 +130,15 @@ def dests():
     rows = [V.KNOB_CODES, V.KNOB_CODES_B, V.KNOB_CODES_C, V.KNOB_CODES_D, V.KNOB_CODES_E]
     order = list(rows)
     if getattr(V, "KNOB_CODES_C_MX", None): order[2] = V.KNOB_CODES_C_MX     # (vcf21.use_osc2pg2) the destinations in the old order, the knob where it is now
+    if getattr(V, "KNOB_CODES_B_MX", None): order[1] = V.KNOB_CODES_B_MX     # (vcf21.use_osc4) page 2's too
     out, seen = [], set()
     for pg, row in enumerate(order):
         for i, c in enumerate(row):
             if c and c != 14 and c not in seen:
-                out.append((c, pg, rows[pg].index(c))); seen.add(c)
+                if c in rows[pg]: out.append((c, pg, rows[pg].index(c)))
+                else:                                                         # (use_osc4) moved to another page: where it is now
+                    q = next(k for k, r in enumerate(rows) if c in r); out.append((c, q, rows[q].index(c)))
+                seen.add(c)
     return rows, out
 
 

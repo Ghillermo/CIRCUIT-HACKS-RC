@@ -62,13 +62,24 @@ UI = dict(
             pgm=("Program Change", "**Project:** listen and output channel in the Setup view, pads 29 / 30 (16 by default; since RC2); what arrives on the listen channel is sent again on the output one. **Patch flip:** every note of MIDI 1 / 2 goes out as a Program Change on the track's channel (MIDI Preset view, pad 26). **Notes coming in (since RC2.08):** notes arriving on the channel of MIDI 1 / 2 play its own synth and are recorded; they are not sent again to the output. *Beta 3.34 only:* with the **USB merge** (Advanced Setup, pad 23) everything coming in on the DIN In also goes out over USB (without its clock with Clock Tx, without SysEx).")))
 
 
+BETA_WHERE = {17: "2 / K1", 18: "2 / K2", 19: "2 / K3", 20: "2 / K4", 21: "2 / Shift + K2", 22: "2 / Shift + K1", 23: "2 / Shift + K4",
+              24: "2 / Shift + K7", 25: "2 / Shift + K3", 26: "2 / K7", 27: "3 / K1", 28: "3 / K2", 29: "3 / K3", 30: "3 / K4", 31: "3 / K8",
+              32: "3 / K7", 33: "3 / K5", 34: "3 / K6"}
+
+
 def sections(lang):
     """-> [(heading, markdown)]"""
     import vcf21
     U = UI[lang]; es = lang == "es"
     eng = ["| " + " | ".join(U["eng_cols"]) + " |", "|---|---|---|---|"]
+    import re as _re
+    from make_guide import YBETA
     for code, n_es, n_en, where in ENGINE:
         t, n = vcf21.CC_TAB[code]
+        n_es, n_en = n_es.replace("Beta 5.25", YBETA), n_en.replace("Beta 5.25", YBETA)
+        if code in BETA_WHERE:                                             # (2026-11-06) the oscillator pages of Beta 5.27 on
+            where = _re.sub(r";\s*Beta 5\.25: [^)]*", "", where).replace(" (Beta 5.25: 3 / K3)", "")
+            where += f" ({YBETA}: {BETA_WHERE[code]})"
         eng.append(f"| {code} | {n_es if es else n_en} | {'CC %d' % n if t == 0 else 'NRPN %d:%d' % (t & 0x7F, n)} | {where} |")
     drum = ["| " + " | ".join(U["drum_cols"]) + " |", "|---|---|---|"] + [f"| {l} | {a if es else b} | {c if es else d} |" for l, a, b, c, d in DRUMS]
     gfx = ["| " + " | ".join(U["gfx_cols"]) + " |", "|---|---|---|"] + [f"| {4 * i}-{4 * i + 3} | {n} | {a if es else b} |" for i, (n, a, b) in enumerate(GFX)]
@@ -78,15 +89,15 @@ def sections(lang):
     return [(h, t.replace("Beta 3.34", XBETA)) for h, t in out]
 
 
-def write(lang, version, M):
+def write(lang, version, M, md=True):
     U = UI[lang]
     secs = sections(lang)
-    md = [f"# {U['title']} — CIRCUIT-HACKS ({version})", "", U["intro"], ""]
-    for h, t in secs: md += [f"## {h}", "", t, ""]
-    (ROOT / U["md"]).write_text("\n".join(md), encoding="utf-8", newline="")
+    md_ = [f"# {U['title']} — CIRCUIT-HACKS ({version})", "", U["intro"], ""]
+    for h, t in secs: md_ += [f"## {h}", "", t, ""]
+    if md: (ROOT / U["md"]).write_text("\n".join(md_), encoding="utf-8", newline="")
     parts = [f'<!doctype html><html lang="{U["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(U["title"])}</title>',
              f"<style>{M.CSS}</style></head><body>", f'<header class="cover"><h1>CIRCUIT-HACKS</h1><p>{html.escape(U["title"])}</p><p>{html.escape(version)}</p><div class="bar"></div></header><main>',
              U["other"], M.md2html(U["intro"])]
     for h, t in secs: parts.append(f'<section class="feat"><h3>{html.escape(h)}</h3>{M.md2html(t)}</section>')
     parts.append("</main></body></html>")
-    (ROOT / "docs/manual" / U["html"]).write_text("\n".join(parts), encoding="utf-8", newline="")
+    (ROOT / M.OUT / U["html"]).write_text("\n".join(parts), encoding="utf-8", newline="")

@@ -42,9 +42,16 @@ def main(img, man):
     e.pad(29); snap("step"); e.pad(29); X.frame(e)
     e.btn(2); e.btn(8); X.frame(e)
     e.pad(26); X.frame(e); e.pad(23); X.frame(e); e.pad(26); X.frame(e); e.at(e.t + 2000)
-    snap("fm")
-    hold(7); snap("partida", 1); let(7); X.frame(e)
-    hold(6); snap("algos", 1); let(6); X.frame(e)
+    fm8 = "fm8" in man["report"]                                               # (Beta 5.20 on: the 8-operator FM; the 4-operator drawings keep their old capture)
+    if fm8: e.pad(6); X.frame(e)                                              # pad 7: the FM page
+    snap("fm8" if fm8 else "fm")
+    hold(7); snap("inst8" if fm8 else "partida", 1); let(7); X.frame(e)
+    hold(6); snap("algos8" if fm8 else "algos", 1); let(6); X.frame(e)
+    if "wtui" in man["report"]:                                               # the wavetable (Beta 5.24 on): pad 21 of the row, then its two lists
+        e.btn(2); e.btn(8); X.frame(e); e.pad(26); X.frame(e); e.pad(20); X.frame(e); e.pad(26); X.frame(e); e.at(e.t + 2000)
+        snap("wt")
+        hold(6); snap("wtnova", 1); let(6); X.frame(e)
+        hold(7); snap("wtsmp", 1); let(7); X.frame(e)
     e.pad(26); X.frame(e); e.pad(21); X.frame(e); e.pad(26); X.frame(e)
     e.btn(NOTE); e.btn(NOTE); e.at(e.t + 2000); snap("muestra")
     e.btn(2); e.btn(8); X.frame(e); e.pad(26); X.frame(e); e.pad(18); X.frame(e); e.pad(12); X.frame(e)
@@ -55,7 +62,9 @@ def main(img, man):
     e.btn(PS); snap("ps"); e.shift(True); snap("arp"); e.shift(False)
     e.pad(24); X.frame(e); e.pad(0); X.frame(e); e.pad(16 + 5); e.pad(24); e.pad(31); snap("mutate")
     e.btn(2); e.btn(GATE); e.btn(GATE); snap("micro")
-    (ROOT / "docs/voces_panels.json").write_text(json.dumps(out), encoding="utf-8")
+    f = ROOT / "docs/voces_panels.json"
+    old = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    f.write_text(json.dumps({**old, **out}), encoding="utf-8")              # the panels this build does not draw (the 4-operator FM) stay
 
 
 if __name__ == "__main__":

@@ -1,0 +1,175 @@
+<svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.">
+<rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
+<circle cx="146" cy="96" r="21" fill="#26282c" stroke="#007700" stroke-width="4"/>
+<text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
+<text x="146" y="130" font-size="10" fill="#cfd3d8" text-anchor="middle">Ratio</text>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1e6271" stroke-width="4"/>
+<text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
+<text x="194" y="20" font-size="10" fill="#cfd3d8" text-anchor="middle">Fino</text>
+<circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="4"/>
+<text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
+<text x="242" y="130" font-size="10" fill="#cfd3d8" text-anchor="middle">Nivel</text>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#432c71" stroke-width="4"/>
+<text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
+<text x="290" y="20" font-size="10" fill="#cfd3d8" text-anchor="middle">Veloc.</text>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#ffaf2f" stroke-width="4"/>
+<text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
+<text x="338" y="130" font-size="10" fill="#cfd3d8" text-anchor="middle">R1</text>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#ffaf2f" stroke-width="4"/>
+<text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
+<text x="386" y="20" font-size="10" fill="#cfd3d8" text-anchor="middle">R2</text>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#ffaf2f" stroke-width="4"/>
+<text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
+<text x="434" y="130" font-size="10" fill="#cfd3d8" text-anchor="middle">R3</text>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#df9929" stroke-width="4"/>
+<text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
+<text x="482" y="20" font-size="10" fill="#cfd3d8" text-anchor="middle">R4</text>
+<text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">FM 8 op</text>
+<rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
+<text x="64.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Scales</text>
+<rect x="100" y="140" width="60" height="18" rx="4" fill="#ffffff" stroke="#111"/>
+<text x="130.0" y="152.5" font-size="9.5" fill="#111" text-anchor="middle">Oct ▼</text>
+<rect x="166" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="196.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Oct ▲</text>
+<rect x="232" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="262.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">1-16 / 17-32</text>
+<rect x="298" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
+<text x="328.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Clear</text>
+<rect x="364" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
+<text x="394.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Duplicate</text>
+<rect x="430" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
+<text x="460.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Save</text>
+<rect x="496" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="526.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Projects</text>
+<rect x="562" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="592.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Shift</text>
+<rect x="22" y="172" width="54" height="28" rx="4" fill="#1a47ff" stroke="#111"/>
+<text x="49.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Preset</text>
+<rect x="84" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="111.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Synth 1</text>
+<rect x="146" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="173.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Synth 2</text>
+<rect x="208" y="172" width="54" height="28" rx="4" fill="#1a47ff" stroke="#111"/>
+<text x="235.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">MIDI 1</text>
+<rect x="270" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="297.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">MIDI 2</text>
+<rect x="332" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="359.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Drum 1</text>
+<rect x="394" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="421.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Drum 2</text>
+<rect x="456" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="483.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Drum 3</text>
+<rect x="518" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="545.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Drum 4</text>
+<rect x="580" y="172" width="54" height="28" rx="4" fill="#292929" stroke="#111"/>
+<text x="607.0" y="189.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Patterns</text>
+<rect x="22" y="224" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="49.0" y="246.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Note</text>
+<rect x="580" y="224" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="607.0" y="246.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Mixer</text>
+<rect x="22" y="286" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="49.0" y="308.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Velocity</text>
+<rect x="580" y="286" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="607.0" y="308.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">FX</text>
+<rect x="22" y="348" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="49.0" y="370.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Gate</text>
+<rect x="580" y="348" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="607.0" y="370.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Record</text>
+<rect x="22" y="410" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="49.0" y="427.0" font-size="9.5" fill="#e8eaed" text-anchor="middle">Pattern</text>
+<text x="49.0" y="438.0" font-size="9.5" fill="#e8eaed" text-anchor="middle">Settings</text>
+<rect x="580" y="410" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
+<text x="607.0" y="432.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Play</text>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="236" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
+<text x="111.0" y="248" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
+<text x="88" y="266" font-size="8" fill="#7d838a">1</text>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#002900" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">OSC 1</text>
+<text x="150" y="266" font-size="8" fill="#7d838a">2</text>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#181029" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">PEG</text>
+<text x="212" y="266" font-size="8" fill="#7d838a">3</text>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#292904" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sec.</text>
+<text x="274" y="266" font-size="8" fill="#7d838a">4</text>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="359.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Mod.</text>
+<text x="336" y="266" font-size="8" fill="#7d838a">5</text>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Matriz</text>
+<text x="398" y="266" font-size="8" fill="#7d838a">6</text>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#181029" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">FM</text>
+<text x="460" y="266" font-size="8" fill="#7d838a">7</text>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#292929" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">FM</text>
+<text x="522" y="266" font-size="8" fill="#7d838a">8</text>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Op 1</text>
+<text x="88" y="328" font-size="8" fill="#7d838a">9</text>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Op 2</text>
+<text x="150" y="328" font-size="8" fill="#7d838a">10</text>
+<rect x="208" y="278" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Op 3</text>
+<text x="212" y="328" font-size="8" fill="#7d838a">11</text>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Op 4</text>
+<text x="274" y="328" font-size="8" fill="#7d838a">12</text>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="336" y="328" font-size="8" fill="#7d838a">13</text>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="398" y="328" font-size="8" fill="#7d838a">14</text>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="460" y="328" font-size="8" fill="#7d838a">15</text>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="522" y="328" font-size="8" fill="#7d838a">16</text>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#292929" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sin voz</text>
+<text x="88" y="390" font-size="8" fill="#7d838a">17</text>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="360" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
+<text x="173.0" y="372" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
+<text x="150" y="390" font-size="8" fill="#7d838a">18</text>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#002900" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Osc</text>
+<text x="212" y="390" font-size="8" fill="#7d838a">19</text>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#290c03" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VA-drum</text>
+<text x="274" y="390" font-size="8" fill="#7d838a">20</text>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="336" y="390" font-size="8" fill="#7d838a">21</text>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#00291d" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Muestra</text>
+<text x="398" y="390" font-size="8" fill="#7d838a">22</text>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Gran.</text>
+<text x="460" y="390" font-size="8" fill="#7d838a">23</text>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">FM</text>
+<text x="522" y="390" font-size="8" fill="#7d838a">24</text>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="88" y="452" font-size="8" fill="#7d838a">25</text>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#1f091f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Flip</text>
+<text x="150" y="452" font-size="8" fill="#7d838a">26</text>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Motor</text>
+<text x="212" y="452" font-size="8" fill="#7d838a">27</text>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="274" y="452" font-size="8" fill="#7d838a">28</text>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="359.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Orden</text>
+<text x="336" y="452" font-size="8" fill="#7d838a">29</text>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#9865ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Step</text>
+<text x="421.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">drum</text>
+<text x="398" y="452" font-size="8" fill="#7d838a">30</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<text x="460" y="452" font-size="8" fill="#7d838a">31</text>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Modo</text>
+<text x="545.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">voz</text>
+<text x="522" y="452" font-size="8" fill="#7d838a">32</text>
+</svg>

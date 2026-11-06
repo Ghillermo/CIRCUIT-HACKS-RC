@@ -352,6 +352,22 @@ def use_blep():
     D.use_shortbs()
 
 
+BLEP2 = False                                   # (use_blep2)
+
+
+def use_blep2():
+    """SC52.5 / RC4.08 (found in RYTHM's va0 and measured here, 2026-11-06; the user: «sí, extiéndelo a los otros modos de sinte si también les
+    afecta el bug»): the pulse's rising edge.  The pulse is the sign of u - thr unwrapped (the width works), but use_blep corrected the rising edge
+    with -v, v = wrap(u - thr): only at thr = 0 (50 %) is that at the edge, which sits where u wraps; elsewhere the edge stayed naive and a
+    correction landed where nothing jumps (u = thr - 1).  Now the rising edge = the residual of -u (lim) at w / 2, before v is made; the value
+    (+-0.5 x w) as w / 2 twice; the falling edge (wrap(v + 1)) as before.  Measured (note 96, below 8 kHz): width 20 / 80 from -22 to about
+    -76 dB, 50 % unchanged.  The waves subroutine: every engine with the oscillator (one or two oscillators, VA-drum, poly, the wavetable's
+    morph without a table)."""
+    global BLEP2
+    assert BLEP
+    BLEP2 = True
+
+
 FOLDLIM = False                                 # (use_foldlim)
 FOLD_K = 0x020000                               # (FOLDLIM) the extra fold drive / 8 allowed = FOLD_K / the increment (a one-word immediate: $hh0000)
 
@@ -539,6 +555,34 @@ def use_ratio2():
     global RATIO2
     assert OSCSUB and DUAL
     RATIO2 = True
+
+
+OSC4 = False                                    # SC52.4 (use_osc4)
+OM_T = 0x5400                                   # (OSC4) X of core 0, a track's words at OM_T + 48 t (= r6 + OM_T - VB0): + 0 / 1 LFO / env -> MIX, + 2 / 3 -> RING,
+                                                #   + 4 / 5 -> FM (the ARM's, -64..63), + 6 OSC 1 -> OSC 2 (the DSP's, a block)
+O1_PREV, BW_S, PM_PREV, INC_SV = 39, 40, 41, 44  # (OSC4) words of the OSC1 block (per voice: poly exchanges + 28..47; the sample's only, free in this mode):
+                                                #   OSC 1's last output, the bitwise term's smoothed value, OSC 1's last modulated phase, the increment kept
+
+
+def use_osc4():
+    """SC52.4 (the user, 2026-11-06: «Al usar las interacciones de onda (fm, sync, bitwise...) se produce bastante ruido»; chosen: the hard sync,
+    the polyBLEP with FM, the FM curve, the bitwise smoothing; K5 = «Centro: 0. Derecha: osc2>osc1 ... hasta 50/50. Izquierda: lo opuesto»; OSC 1's
+    page: LFO / env -> FM, RING, MIX), two oscillators:
+      * the hard sync (zone 1 of BITSYNC): when OSC 1 wraps, OSC 2 starts again at -1 + the fraction of the sample since the wrap x its increment
+        (no jitter); the zone's position = OSC 2 up 0..31.75 semitones (the classic sweep); the soft sync (the slave reversed every N cycles: half
+        and sixth subharmonics off the note) is gone, so is the reversed increment (the polyBLEP saw it negative and did nothing);
+      * FM (code 33, 64 = the centre): p = (FM - 64) / 64 + LFO / env x their depths (OM_T + 4 / 5), saturated to +-1, t = |p|: up to 0.5 the
+        main direction 4 t^2 (the curve: finer low amounts), then main 1.5 - t and the other t - 0.5 (50 / 50 at the end); p > 0:
+        OSC 2 -> OSC 1 (OS2 + 24, as before), p < 0: OSC 1 -> OSC 2 (OM_T + 6: OSC 2's phase + 8 x it x OSC 1's last sample);
+      * MIX / RING + their LFO / env depths, clamped 0..1;
+      * OSC 1's polyBLEP with the effective increment |phase - its last modulated phase| (FM moved the phase: the nominal one corrected the wrong
+        samples), the increment word kept around the call;
+      * the bitwise term (bitwise - base) through a one-pole low-pass (k = 1/2, about 5 kHz);
+      * OSC 2's note in poly: the voices' OSC 2 call now takes RATIO2's transform too (it added the 1/256-semitone TUNE as semitones: OSC 2 at
+        the top with any ratio but 1)."""
+    global OSC4
+    assert DUAL and OSCSUB and RATIO2 and POLY2 and SUPERSAW and BLEP and SCALEMAC
+    OSC4 = True
 
 
 WT = False                                      # (use_wavetable)
@@ -1002,6 +1046,18 @@ def code(base, tabs, premix, ret_old):
                     e("move %s,x0" % ox(OW, SS_W), "move %s,y0" % ox(OW, 17), "mpy y0,x0,b", "move y0,a", "asr b", "sub b,a", "asr a", "move a,%s" % ox(OW, 17),
                       "asr #3,b,b", "move b,%s" % ox(OW, SS_W))
                 if WT: L(p + "we" + lab)
+            if OSC4 and not any(getattr(f_, "om", 0) for f_ in subs):
+                def om_subs():
+                    L("om_mm")                                                        # a += LFO x x:(r0)+ + env x x:(r0)+ (depths -64..63 = +-1); clobbers b, x0, y0
+                    for src in (X(LV), X(ENV)): e("move x:(r0)+,b", "asl #17,b,b", "move b,x0", "move %s,y0" % src, "mpy y0,x0,b", "add b,a")
+                    a.emit(D.RTS)
+                    L("om_n2")                                                        # a = OSC 2's note -> + TUNE's ratio (RATIO2), + the sync sweep
+                    e("asl #16,a,a", "move x:(r4),b", "asl #8,b,b", "add b,a", "asl #8,b,b", "sub b,a", "asr #16,a,a")
+                    e("move x:(r4+5),b", "cmp #>1,b"); a.emit(J("ne"), "om_n2x")
+                    e("move x:(r4+8),b", "asr #2,b,b", "add b,a")                         # position / 4 semitones
+                    L("om_n2x"); a.emit(D.RTS)
+                om_subs.om = 1
+                subs.append(om_subs)
             if OSCSUB and POLY:                                                       # (POLY) the set-up in the subroutine too: osc0 = OSC1 with the note at r2 + PV_NOTE
                 e("lua (r6-%d),r2" % (PV_NOTE - NOTE)); a.emit(lambda t: [0x0BF080, t], p + "osc0")          # one voice: r2 + PV_NOTE = X(NOTE)
                 subs.append(lambda: (L(p + "osc0"), e("move #>$ffffff,m4", "move r3,r4", "move #11,n4", "move x:(r2+%d),a" % PV_NOTE),
@@ -1015,18 +1071,34 @@ def code(base, tabs, premix, ret_old):
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
                 if OSCSUB:
                     e("move #19,n4", "move x:(r3+%d),a" % NOTE2_OFF)
-                    if RATIO2: e("asl #16,a,a", "move x:(r4),b", "asl #8,b,b", "add b,a", "asl #8,b,b", "sub b,a", "asr #16,a,a")   # note + W / 256 - W (the ratio)
+                    if OSC4: a.emit(lambda t: [0x0BF080, t], "om_n2")
+                    elif RATIO2: e("asl #16,a,a", "move x:(r4),b", "asl #8,b,b", "add b,a", "asl #8,b,b", "sub b,a", "asr #16,a,a")   # note + W / 256 - W (the ratio)
                     a.emit(lambda t: [0x0BF080, t], p + "osc")
                 else: osc_ctrl("r4", "x:(r3+%d)" % NOTE2_OFF, "b", 19)
-                e("move x:(r4+20),a", "tst a"); a.emit(J("eq"), p + "i2p")                  # the signed increment: the direction flag (soft sync) reverses it
-                e("move x:(r4+19),a", "neg a", "move a,x:(r4+11)"); a.emit(J("al"), p + "i2d")
-                L(p + "i2p"); e("move x:(r4+19),a", "move a,x:(r4+11)")
-                L(p + "i2d")
-                if SCALEMAC: e("move #>$20800,y1")
-                for srcoff, dstoff in ((4, 25), (6, 24), (7, 27), (8, 26)):                  # MIX, FM, RING, BITSYNC position: 0..127 -> 0..0x7ffff0
-                    if SCALEMAC: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move a,x0", "mac x0,y1,a", "move a,x:(r4+%d)" % dstoff)
-                    else: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move x:(r4+%d),b" % srcoff, "asl #10,b,b", "add b,a", "move x:(r4+%d),b" % srcoff, "asl #4,b,b", "add b,a", "move a,x:(r4+%d)" % dstoff)
-                e("move x:(r4+8),a", "lsr #4,a", "add #>1,a", "move a,x:(r4+21)")              # the sync period: every 1 .. 8 master cycles
+                if OSC4:                                                              # (OSC4) no reversed increment; the amounts with their LFO / env
+                    e("move x:(r4+19),a", "move a,x:(r4+11)")
+                    e("move r6,a", "add #>$%x,a" % (OM_T - VB0), "move a,r0", "move #>$20800,y1"); a.emit(D.NOP)
+                    for srcoff, dstoff in ((4, 25), (7, 27)):                             # MIX, RING: + LFO / env, 0..1
+                        e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move a,x0", "mac x0,y1,a"); a.emit(lambda t: [0x0BF080, t], "om_mm")
+                        e("clr b", "tst a", "tlt b,a", "move a,x:(r4+%d)" % dstoff)
+                    e("move x:(r4+8),a", "asl #16,a,a", "move a,x0", "mac x0,y1,a", "move a,x:(r4+26)")      # the BITSYNC position
+                    e("move x:(r4+6),a", "sub #>64,a", "asl #17,a,a"); a.emit(lambda t: [0x0BF080, t], "om_mm")   # FM: -1..1 + LFO / env
+                    e("move a,x0", "move x0,b", "abs b", "move #>$400000,y0", "cmp y0,b"); a.emit(J("gt"), p + "omh")
+                    e("asl b", "move b,y0", "mpy y0,y0,b", "clr a"); a.emit(J("al"), p + "oms")     # main 4 t^2, the other 0
+                    L(p + "omh"); e("move b,a", "sub y0,a", "move #>$7fffff,b", "sub a,b")          # main 1.5 - t, the other t - 0.5
+                    L(p + "oms"); e("move a,y0", "move x0,a", "tst a", "move y0,a"); a.emit(J("ge"), p + "omt")
+                    e("move b,a", "move y0,b")                                                      # p < 0: OSC 1 -> OSC 2 the main one
+                    L(p + "omt"); e("move b,x:(r4+24)", "move a,x:(r0)")
+                else:
+                    e("move x:(r4+20),a", "tst a"); a.emit(J("eq"), p + "i2p")                  # the signed increment: the direction flag (soft sync) reverses it
+                    e("move x:(r4+19),a", "neg a", "move a,x:(r4+11)"); a.emit(J("al"), p + "i2d")
+                    L(p + "i2p"); e("move x:(r4+19),a", "move a,x:(r4+11)")
+                    L(p + "i2d")
+                    if SCALEMAC: e("move #>$20800,y1")
+                    for srcoff, dstoff in ((4, 25), (6, 24), (7, 27), (8, 26)):                  # MIX, FM, RING, BITSYNC position: 0..127 -> 0..0x7ffff0
+                        if SCALEMAC: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move a,x0", "mac x0,y1,a", "move a,x:(r4+%d)" % dstoff)
+                        else: e("move x:(r4+%d),a" % srcoff, "asl #16,a,a", "move x:(r4+%d),b" % srcoff, "asl #10,b,b", "add b,a", "move x:(r4+%d),b" % srcoff, "asl #4,b,b", "add b,a", "move a,x:(r4+%d)" % dstoff)
+                    e("move x:(r4+8),a", "lsr #4,a", "add #>1,a", "move a,x:(r4+21)")              # the sync period: every 1 .. 8 master cycles
             L(p + "oi")
         elif OSC2:
             # ---- oscillator v2: the pitch in semitones (1 semitone = 65536), the wave shape c; both per block
@@ -1232,7 +1304,12 @@ def code(base, tabs, premix, ret_old):
                     for k in range(6):
                         e("move x:(%s+%d),b" % (OW, SS_PH + k), "add x0,b", "move x:(%s+%d),y0" % (OW, SS_D + k // 2), "add y0,b" if k % 2 == 0 else "sub y0,b",
                           "move b1,x:(%s+%d)" % (OW, SS_PH + k), "move b1,y0", "mac y1,y0,a")
-                if BLEP:                                                                  # 3 pulse: v = wrap(u - thr) in x1 (the phase is not needed any more)
+                if BLEP2:                                                                 # (BLEP2) the rising edge where u wraps: -u (lim) at +w / 2
+                    e("move x:(%s+18),y0" % OW, "move y0,b", "asr b", "move b,y1", "move x1,b", "neg b", "move b,y0"); chk()
+                    e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "move b1,x1", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
+                    e("move b1,y0", "mac y1,y0,a", "mac y1,y0,a")                                  # +-0.5 x w
+                    e("bchg #23,x1", "move x1,y0"); chk()                                           # the falling edge, as before
+                elif BLEP:                                                                # 3 pulse: v = wrap(u - thr) in x1 (the phase is not needed any more)
                     e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "move b1,x1", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
                     e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")
                     e("move y0,b", "asr b", "move b,y1", "move x1,b", "neg b", "move b,y0"); chk()   # -v at +w / 2 = v at -w / 2 (the jump up; the move limits +1.0)
@@ -1430,19 +1507,35 @@ def code(base, tabs, premix, ret_old):
                     L(p + "dvb")
                 e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4"); a.emit(D.NOP)
                 a.emit(D.do_x, 0x3A, p + "d3e")
-                e("move x:(r4+11),x0", "move x:(r4+10),a", "add x0,a", "move a1,x:(r4+10)", "move a1,x1", "clr a")
-                wcall("r4")
-                e("move a,x:(r4+23)")                                              # o2
-                e("move x:(r3+10),y1", "move x:(r3+11),x0", "move y1,a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1")
-                e("move x1,a", "cmp y1,a"); a.emit(J("ge"), p + "ns")              # OSC1 wrapped (the new phase is below the old one): a master cycle
-                e("move x:(r4+5),a", "cmp #>1,a"); a.emit(J("ne"), p + "ns")        # only in the sync zone
-                e("move x:(r4+22),a", "add #>1,a", "move x:(r4+21),x0", "cmp x0,a"); a.emit(J("lt"), p + "sk")
-                e("move x:(r4+11),a", "neg a", "move a,x:(r4+11)", "move x:(r4+20),a", "eor #>1,a", "move a,x:(r4+20)", "clr a")      # every N cycles: the slave runs the other way
-                L(p + "sk"); e("move a,x:(r4+22)")
-                L(p + "ns")
-                e("move x:(r4+23),y0", "move x:(r4+24),x0", "mpy y0,x0,b", "asl #3,b,b", "move x1,a", "add b,a", "move a1,x1", "clr a")      # FM: the phase of OSC1 + 8 x FM x o2
-                wcall("r3")
-                e("move a,x1", "move x:(r4+23),y0")                                # x1 = o1, y0 = o2
+                if OSC4:                                                          # OSC 1's phase first (the sync), OSC 2 (+ OSC 1 -> OSC 2), OSC 1 (+ OSC 2 -> OSC 1)
+                    e("move x:(r3+10),y1", "move x:(r3+11),x0", "move y1,a", "add x0,a", "move a1,x:(r3+10)", "move a1,y0")
+                    e("move x:(r4+10),b", "move x:(r4+11),x1", "add x1,b", "move y0,a", "cmp y1,a"); a.emit(J("ge"), p + "hs")
+                    e("move x:(r4+5),a", "cmp #>1,a"); a.emit(J("ne"), p + "hs")
+                    e("bchg #23,y0", "move y0,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,y0", "mpy x1,y0,b", "move b,y0", "bchg #23,y0", "move y0,b")   # -1 + q inc2
+                    L(p + "hs")
+                    e("move b1,x:(r4+10)", "move x:(r6+$%x),x0" % (OM_T - VB0 + 6), "move x:(r3+%d),y0" % O1_PREV, "mpy y0,x0,a", "asl #3,a,a", "add b,a", "move a1,x1", "clr a")
+                    wcall("r4")
+                    e("move a,x:(r4+23)", "move x:(r3+10),x1")
+                    e("move x:(r4+23),y0", "move x:(r4+24),x0", "mpy y0,x0,b", "asl #3,b,b", "move x1,a", "add b,a", "move a1,x1")
+                    e("move x:(r3+%d),y0" % PM_PREV, "move x1,x:(r3+%d)" % PM_PREV, "move x1,b", "sub y0,b", "move b1,y0", "move y0,b", "abs b")   # |the phase's step|
+                    e("move x:(r3+11),y0", "move y0,x:(r3+%d)" % INC_SV, "move b,x:(r3+11)", "clr a")
+                    wcall("r3")
+                    e("move x:(r3+%d),y0" % INC_SV, "move y0,x:(r3+11)", "move a,x1", "move x1,x:(r3+%d)" % O1_PREV, "move x:(r4+23),y0")
+                else:
+                    e("move x:(r4+11),x0", "move x:(r4+10),a", "add x0,a", "move a1,x:(r4+10)", "move a1,x1", "clr a")
+                    wcall("r4")
+                    e("move a,x:(r4+23)")                                              # o2
+                    e("move x:(r3+10),y1", "move x:(r3+11),x0", "move y1,a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1")
+                if not OSC4:
+                    e("move x1,a", "cmp y1,a"); a.emit(J("ge"), p + "ns")              # OSC1 wrapped (the new phase is below the old one): a master cycle
+                    e("move x:(r4+5),a", "cmp #>1,a"); a.emit(J("ne"), p + "ns")        # only in the sync zone
+                    e("move x:(r4+22),a", "add #>1,a", "move x:(r4+21),x0", "cmp x0,a"); a.emit(J("lt"), p + "sk")
+                    e("move x:(r4+11),a", "neg a", "move a,x:(r4+11)", "move x:(r4+20),a", "eor #>1,a", "move a,x:(r4+20)", "clr a")      # every N cycles: the slave runs the other way
+                    L(p + "sk"); e("move a,x:(r4+22)")
+                    L(p + "ns")
+                    e("move x:(r4+23),y0", "move x:(r4+24),x0", "mpy y0,x0,b", "asl #3,b,b", "move x1,a", "add b,a", "move a1,x1", "clr a")      # FM: the phase of OSC1 + 8 x FM x o2
+                    wcall("r3")
+                    e("move a,x1", "move x:(r4+23),y0")                                # x1 = o1, y0 = o2
                 e("move y0,b", "sub x1,b", "move b,y1", "move x:(r4+25),x0", "mpy x0,y1,b", "move x1,a", "add b,a")                   # mix = o1 + MIX (o2 - o1)
                 e("move x:(r4+7),b", "tst b"); a.emit(J("eq"), p + "nr")
                 e("move x:(r4+23),x0", "mpy x1,x0,b", "asl #1,b,b", "sub a,b", "move b,y1", "move x:(r4+27),x0", "mpy x0,y1,b", "add b,a")   # ring: mix += RING (2 o1 o2 - mix)
@@ -1458,7 +1551,9 @@ def code(base, tabs, premix, ret_old):
                 L(p + "bn"); e("or x0,a", "not a"); a.emit(J("al"), p + "bd")
                 L(p + "ba"); e("and x0,a")
                 L(p + "bd"); e("move a1,x0")
-                e("move x0,a", "move y1,b", "sub b,a", "move a,x0", "move x:(r4+26),y0", "mpy y0,x0,a", "move y1,b", "add b,a")            # result = base + w (bitwise - base)
+                e("move x0,a", "move y1,b", "sub b,a")
+                if OSC4: e("move x:(r3+%d),b" % BW_S, "sub b,a", "asr a", "add b,a", "move a,x:(r3+%d)" % BW_S)        # (OSC4) s += (d - s) / 2
+                e("move a,x0", "move x:(r4+26),y0", "mpy y0,x0,a", "move y1,b", "add b,a")            # result = base + w (bitwise - base)
                 L(p + "nb")
                 L(p + "d3e"); e("move a,%s:(r0)+n0" % sp)
                 if POLY2: a.emit(D.RTS)
@@ -1825,9 +1920,13 @@ def code(base, tabs, premix, ret_old):
         if POLY2:                                                                 # two oscillators: OSC2 with the voice's note too, then their loop
             e("move x:(r3+%d),a" % DFLAGS_OFF, "and #>2,a"); a.emit(J("eq"), "pvbo")
             e("move r6,a", "sub #>%d,a" % (VB0 - OS2B0), "move a,r4", "move #19,n4", "move x:(r2+%d),a" % PV_NOTE)
+            if OSC4: a.emit(lambda t: [0x0BF080, t], "om_n2")                     # (OSC4) RATIO2's transform + the sync sweep here too
             a.emit(lambda t: [0x0BF080, t], "vc_osc")
-            e("move x:(r4+19),a", "move x:(r4+20),b", "tst b"); a.emit(J("eq"), "pvb2"); e("neg a")
-            L("pvb2"); e("move a,x:(r4+11)", "move r1,r0"); a.emit(J("al"), "vc2_dvb")
+            if OSC4: e("move x:(r4+19),a")
+            else:
+                e("move x:(r4+19),a", "move x:(r4+20),b", "tst b"); a.emit(J("eq"), "pvb2"); e("neg a")
+                L("pvb2")
+            e("move a,x:(r4+11)", "move r1,r0"); a.emit(J("al"), "vc2_dvb")
             L("pvbo")
         e("move r1,r0"); a.emit(J("al"), "vc2_ovb")          # (osc_ctrl takes r0)
         if POLY2:                                                                 # the VA-drum noise of a voice (r0 = its buffer, n0 = 1, r3 = OSC1): as the track's

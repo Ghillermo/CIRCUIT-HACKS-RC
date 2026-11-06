@@ -1,6 +1,6 @@
 # MIDI
 
-*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)*
+*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html)*
 
 Cómo habla MIDI el mod: sus comportamientos propios, los CC y NRPN nuevos, y la matriz de modulación y los destinos de los macros.
 
@@ -17,7 +17,7 @@ Synth 1 = canal 1, Synth 2 = canal 2, drums = canal 10, proyecto y Master FX = c
 | **Teclado externo en MIDI 1 / 2** *(desde RC2)* | Las notas que entran por el canal de MIDI 1 / 2 (USB o DIN) tocan su sinte propio y se graban; no se reenvían a la salida. |
 | **Teclado externo al arpegiador** *(desde RC4)* | Setup, botón Note: las notas que entran por el canal de Synth 1 / 2 o MIDI 1 / 2 pasan por su arpegiador. |
 | **Patch flip** | Vista Preset de MIDI 1 / 2, pad 26: cada nota de la pista sale como Program Change por el canal de la pista. |
-| **Secuenciador de saltos** *(solo Beta 5.12)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. El pad 27 parpadea. Apuntar apaga el motor y encender un motor deja de apuntar. |
+| **Secuenciador de saltos** *(solo Beta 5.28)* | Vista Preset de MIDI 1 / 2, pads 9-16 de la fila de motores: mientras apunta a otra pista, la pista MIDI no manda notas; sus notas hacen saltar esa pista. El pad 27 parpadea. Apuntar apaga el motor y encender un motor deja de apuntar. |
 | **Program Change del proyecto** *(desde RC2)* | Setup, pads 29 / 30: canal de escucha y canal de salida (16 de fábrica); lo recibido en el de escucha se reenvía por el de salida. |
 | **MIDI Thru: Merge y Filter** | Advanced Setup, Duplicate: Thru (hardware), Out 2, Merge (DIN In + el MIDI del aparato), Filter (DIN In sin los canales del aparato). Sin SysEx. |
 | **Fusión USB** *(desde RC4)* | Advanced Setup, pad 23: lo que entra por el DIN In sale también por USB (sin el reloj con Clock Tx, sin SysEx). |
@@ -50,24 +50,24 @@ Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar
 | 13 | Tipo de efecto | NRPN 4:13 | 1 / Shift + K8 |
 | 15 | Envolvente → nivel | NRPN 4:15 | 1 / K3 |
 | 16 | Tipo de filtro | NRPN 4:16 | 1 / Shift + K5 |
-| 17 | TUNE (granular: tono) | CC 26 | 2 / K1 |
-| 18 | FINE (granular: tamaño) | CC 27 | 2 / Shift + K1 |
-| 19 | WAVE (granular: posición) | CC 20 | 2 / K7 |
-| 20 | SHAPE (granular: densidad) | CC 21 | 2 / K2 |
-| 21 | LFO → tono (granular: scan) | NRPN 4:21 | 2 / K5 |
-| 22 | Envolvente → tono (granular: env → posición) | NRPN 4:22 | 2 / K3 |
-| 23 | Envolvente → forma (granular: zona) | NRPN 4:23 | 2 / K4 |
-| 24 | LFO → forma (granular: LFO → posición) | NRPN 4:24 | 2 / K6 |
-| 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 |
-| 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 |
-| 27 | TUNE 2 (granular: LFO → tamaño) | CC 37 | 3 / K1 |
-| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) |
-| 29 | WAVE 2 (granular: dispersión del tono; RC4: estéreo) | CC 30 | 3 / K7 |
-| 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 |
-| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) |
-| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) |
-| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) |
-| 34 | RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) |
+| 17 | TUNE (granular: tono) | CC 26 | 2 / K1 (Beta 5.28: 2 / K1) |
+| 18 | FINE (granular: tamaño) | CC 27 | 2 / Shift + K1 (Beta 5.28: 2 / K2) |
+| 19 | WAVE (granular: posición) | CC 20 | 2 / K7 (Beta 5.28: 2 / K3) |
+| 20 | SHAPE (granular: densidad) | CC 21 | 2 / K2 (Beta 5.28: 2 / K4) |
+| 21 | LFO → tono (granular: scan) | NRPN 4:21 | 2 / K5 (Beta 5.28: 2 / Shift + K2) |
+| 22 | Envolvente → tono (granular: env → posición) | NRPN 4:22 | 2 / K3 (Beta 5.28: 2 / Shift + K1) |
+| 23 | Envolvente → forma (granular: zona) | NRPN 4:23 | 2 / K4 (Beta 5.28: 2 / Shift + K4) |
+| 24 | LFO → forma (granular: LFO → posición) | NRPN 4:24 | 2 / K6 (Beta 5.28: 2 / Shift + K7) |
+| 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 (Beta 5.28: 2 / Shift + K3) |
+| 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 (Beta 5.28: 2 / K7) |
+| 27 | TUNE 2 (granular: LFO → tamaño; Beta 5.28: el ratio de OSC 2, ¼ … 31) | CC 37 | 3 / K1 (Beta 5.28: 3 / K1) |
+| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.28: 3 / K2) |
+| 29 | WAVE 2 (granular: dispersión del tono; RC4: estéreo) | CC 30 | 3 / K7 (Beta 5.28: 3 / K3) |
+| 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 (Beta 5.28: 3 / K4) |
+| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.28: 3 / K8) |
+| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.28: 3 / K7) |
+| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.28: 3 / K5) |
+| 34 | RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.28: 3 / K6) |
 
 **Knobs secuenciables** (página 4: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. *Solo RC4:* los ocho destinos se eligen con Shift + knob.
 
@@ -118,20 +118,20 @@ La referencia oficial es la **Programmer's Reference Guide** de Novation, versi�
 ### Macros de Synth 1 / 2 (stock) y su editor *(desde RC2)*
 - 8 macros por patch, posición = **CC 80-87**; cada macro, 4 ranuras A-D. Ranura r (0-3) del macro k (1-8): **NRPN 3:(16 (k − 1) + 4 r)** = destino, + 1 inicio, + 2 fin (el tramo del recorrido del knob, 0 / 127 de fábrica), + 3 profundidad (64 = 0).
 - La guía oficial da el destino como «0 – 70» sin nombrarlos: la lista de abajo nombra cada uno (70 destinos, 0-69).
-- **En el aparato:** [vista de la fuente](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-fuente), pad 32 = editor (ranura, inicio, fin, destino, profundidad). Lo editado va en el patch del proyecto; Clear + pad dos veces en la [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-preset) lo guarda en el pack.
+- **En el aparato:** [vista de la fuente](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente), pad 32 = editor (ranura, inicio, fin, destino, profundidad). Lo editado va en el patch del proyecto; Clear + pad dos veces en la [vista Preset](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset) lo guarda en el pack.
 - El knob del editor recorre primero los destinos con CC (por número de CC) y después los que solo tienen NRPN; en los pads, blanco = CC, azul claro / magenta / violeta = NRPN de los bancos 0 / 1 / 2.
 
 ### Matriz del sinte propio de MIDI 1 / 2 (propia) *(desde RC2.02)*
-- [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset) con el motor encendido, **pad 6**: los 8 knobs son 8 **fuentes**: K1 velocity, K2 nota, K3 azar por nota, K4 LFO 2, K5 envolvente 2, K6 golpe de un drum, K7 posición en el patrón, K8 azar por pasos (*(desde RC4)* el LFO 2 también a tempo).
+- [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset) con el motor encendido, **pad 6**: los 8 knobs son 8 **fuentes**: K1 velocity, K2 nota, K3 azar por nota, K4 LFO 2, K5 envolvente 2, K6 golpe de un drum, K7 posición en el patrón, K8 azar por pasos (*(desde RC4)* el LFO 2 también a tempo).
 - **La posición del knob es el destino y la cantidad:** a la izquierda apagado; girando a la derecha recorre todos los parámetros de las páginas de knobs (los de la página 1, luego la 2, la 3 y los de la 5 que no salen antes), 16 pasos por destino, la cantidad creciendo dentro de cada tramo. LED = color de la página del destino; brillo = cantidad.
-- Varias fuentes al mismo destino se suman; el valor guardado del parámetro no cambia. Detalle: [Matriz de modulación](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-matriz).
+- Varias fuentes al mismo destino se suman; el valor guardado del parámetro no cambia. Detalle: [Matriz de modulación](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-matriz).
 
 ### Destinos de los knobs secuenciables (página 4) y no secuenciables del sinte propio *(desde RC4)*
-- Los 8 knobs secuenciables (página 4) son los carriles de automatización (de fábrica: TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). **Shift + knob** = su destino, entre los mismos parámetros y colores que la matriz; **Clear mantenido, luego Shift + knob** = el de fábrica. Se guarda con el patch propio y con el proyecto. Detalle: [Páginas de knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs).
+- Los 8 knobs secuenciables (página 4) son los carriles de automatización (de fábrica: TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). **Shift + knob** = su destino, entre los mismos parámetros y colores que la matriz; **Clear mantenido, luego Shift + knob** = el de fábrica. Se guarda con el patch propio y con el proyecto. Detalle: [Páginas de knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs).
 - **Knobs no secuenciables** (Shift + pad 4): la misma elección de destino, en 8 knobs que no son carriles; de fábrica Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA; se guardan con los patches propios.
 
 ### Destinos del step-drummer
-- MIDI 1 / 2: pads 17-24 de su vista = el parámetro del motor que mueve cada paso; Synth 1 / 2: los macros 1-8. Detalle: [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#step-drummer).
+- MIDI 1 / 2: pads 17-24 de su vista = el parámetro del motor que mueve cada paso; Synth 1 / 2: los macros 1-8. Detalle: [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#step-drummer).
 
 ### Los 70 destinos de los macros
 

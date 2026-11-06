@@ -11,6 +11,11 @@ harness):
   * the patch: mpatch's save writes the record at padding + 150 (0xB7, on, frames, the frames, the check); a load brings it back; a patch without
     it = the wavetable off.
 
+  SC52.3 / Beta 5.26 (wtui.use_v3, label c_wtfk): pad 27 sand while it plays (row open and closed); with the row open, pad 7 held = the Nova
+  list over the row, let go = the row back; a tap on a list = the audition (vcf21.c_sdio on, off when the pad is let go); K7 (code 19) picks
+  frame k = round(position x (frames - 1) / 126): pad 8 + a sample replaces frame k, Shift + a Nova table = only frame k (that table's frame k),
+  without Shift the whole table; an empty table: the first frame.
+
     python tools/emu_wtui.py build/sc52.1/circuittracks-4486-SC52.1.bin build/sc52.1/manifest.json
 """
 from __future__ import annotations
@@ -31,6 +36,43 @@ import packio as PK  # noqa: E402
 import wtui as W  # noqa: E402
 
 MGR = X.MGR
+
+
+def v3(e, wl, R, check, press, release, frames, tb, S, D, lo):
+    vl = {k: int(v, 16) for k, v in R["vcf20"]["labels"].items()}
+    aud = []
+    e.uc.hook_add(UC_HOOK_CODE, lambda uc, a, s_, d: aud.append((uc.reg_read(UC_ARM_REG_R0), uc.reg_read(UC_ARM_REG_R1))),
+                  begin=vl["c_sdio"], end=vl["c_sdio"])
+    f = X.frame(e)
+    check(f[MS.PAD] & 0xFF in (S, D), f"the row open, playing: pad 27 sand ({f[MS.PAD]:#x})")
+    press(6); f = X.frame(e)                                                    # the row open: pad 7 held = the list over the row
+    exp = [S if j == W.DEF_T else D for j in range(16)]
+    check(lo(f, 8, 24) == exp and f[6] & 0xFF == S, f"the row open, pad 7 held: the Nova list over the row ({[hex(x) for x in lo(f, 8, 24)]})")
+    aud.clear(); press(11)
+    check(frames() == [27 + k for k in range(9)] and (0, 1) in aud, f"pad 12 there: Nova table 3, the tonic sounds ({frames()}, {aud})")
+    aud.clear(); release(11)
+    check((0, 0) in aud, f"let go: the audition ends ({aud})")
+    release(6); f = X.frame(e)
+    check(f[W.ROWPAD] & 0xFF == S, f"pad 7 let go: the row back, pad 21 bright sand ({f[W.ROWPAD]:#x})")
+    e.pad(26); f = X.frame(e)
+    check(lo(f, 6, 8) == [D, D] and f[MS.PAD] & 0xFF in (S, D), f"the row closed: pads 7 / 8 dim sand, pad 27 sand ({lo(f, 6, 8)}, {f[MS.PAD]:#x})")
+    e.call(vl["c_vvaddr"], 0, W.WAVE1, maxins=200000); wa = e.uc.reg_read(UC_ARM_REG_R0)
+    e.w8(wa, 63)                                                                # K7 in the middle: frame 4 of 9
+    press(7); aud.clear(); press(8); release(8); f = X.frame(e)
+    want = [27 + k for k in range(9)]; want[4] = 144
+    check(frames() == want and (0, 1) in aud, f"K7 = 63, pad 8 + sample 0: frame 4 replaced, the tonic sounds ({frames()})")
+    e.w8(wa, 126); press(9); release(9)
+    want[8] = 145
+    check(frames() == want, f"K7 = 126, sample 1: the last frame ({frames()})")
+    release(7)
+    e.w8(wa, 0); press(6); e.shift(True); press(13); release(13); e.shift(False)
+    want[0] = 5 * 9
+    check(frames() == want, f"K7 = 0, Shift + pad 14 (Nova 5): only frame 0, Nova 5's frame 0 ({frames()})")
+    press(13); release(13)
+    check(frames() == [45 + k for k in range(9)], f"without Shift: the whole of Nova 5 ({frames()})")
+    release(6)
+    e.w8(tb + W.T_N, 0); press(7); press(10); release(10); release(7)
+    check(frames() == [146], f"an empty table + sample 2: the first frame ({frames()})")
 
 
 def main(img, man):
@@ -73,6 +115,10 @@ def main(img, man):
     check(on() == 0 and fm() == 1, f"pad 24: FM on, the wavetable off ({on()}, {fm()})")
     e.pad(W.ROWPAD); f = X.frame(e)
     check(on() == 1 and fm() == 0 and mode() == 2 and f[FE.ROWPAD] & 0xFF != FE.COL_FM[0], "pad 21 again: the wavetable, FM off")
+    if "c_wtfk" in wl:                                                          # SC52.3: wtui.use_v3
+        v3(e, wl, R, check, press, release, frames, tb, S, D, lo)
+        print(f"{man.get('marker', '?')} WTUI ARM RESULT:", "ALL PASS" if fails == 0 else f"{fails} FAILURES")
+        return fails
     e.pad(26); f = X.frame(e)
     check(lo(f, 6, 8) == [D, D], f"the row closed: pads 7 / 8 dim sand ({lo(f, 6, 8)})")
 

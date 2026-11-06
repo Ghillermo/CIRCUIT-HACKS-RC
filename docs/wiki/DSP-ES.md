@@ -1,6 +1,6 @@
 # DSP
 
-*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)*
+*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html)*
 
 La parte de sonido del mod: los motores del sinte de las pistas MIDI, los controles nuevos de los drums y los efectos.
 
@@ -22,10 +22,38 @@ sidechain y el compresor master.
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
-- **Secuenciador de saltos** *(solo Beta 5.12)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
+- **Secuenciador de saltos** *(solo Beta 5.28)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-preset)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
+<img src="img/panel-preset-es.svg" width="640" alt="Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.">
+
+*Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.*
+
+<img src="img/panel-motores-es.svg" width="640" alt="Fila de motores abierta (toque al pad 27): pads 17-24 los motores; pads 9-16 las pistas del secuenciador de saltos.">
+
+*Fila de motores abierta (toque al pad 27): pads 17-24 los motores; pads 9-16 las pistas del secuenciador de saltos.*
+
+<img src="img/panel-voz-es.svg" width="640" alt="Modos de voz abiertos (toque al pad 32): poly brillante, el modo de fábrica. K1 glide, K2 desafinación.">
+
+*Modos de voz abiertos (toque al pad 32): poly brillante, el modo de fábrica. K1 glide, K2 desafinación.*
+
+<img src="img/panel-wt-es.svg" width="640" alt="Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.">
+
+*Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.*
+
+<img src="img/panel-wtnova-es.svg" width="640" alt="Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.">
+
+*Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.*
+
+<img src="img/panel-wtsmp-es.svg" width="640" alt="Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.">
+
+*Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.*
+
+<img src="img/fig-ruta-es.svg" width="640" alt="Cada nota pasa por el modo de voz antes de llegar al motor">
+
+*Cada nota pasa por el modo de voz antes de llegar al motor*
 
 ## Páginas de knobs del motor de MIDI 1 / 2
 
@@ -37,7 +65,11 @@ sidechain y el compresor master.
 - **Página 4, knobs secuenciables** — los 8 parámetros que se graban como automatización (*(desde RC4)*: con Shift + knob, cualquiera de los 33; Record + paso = foto de los valores).
 - *(desde RC4)* **Shift + pad 4, knobs no secuenciables** — 8 knobs de destino asignable que no se graban.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-knobs)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+
+<img src="img/fig-mapa-es.svg" width="640" alt="La vista Preset concentra el sonido; las demás, el patrón">
+
+*La vista Preset concentra el sonido; las demás, el patrón*
 
 ## FM de 4 operadores
 
@@ -46,7 +78,7 @@ sidechain y el compresor master.
 | Knob | Solo | Con Shift |
 |---|---|---|
 | K1-K4 | Ratio de los operadores 1-4: 0,5 … 16 (verde = entero, azul claro = y medio, verde azulado = inarmónico: 0,71, 1,41, 4,24). Cada ratio ocupa 5-6 clics: el primero es exacto y cada uno de los siguientes **desafina** +2,5 cents (hasta unos +12; LED a media luz) | Centro = ataque 0. **A la derecha:** el ataque del operador (0 … unos 3 s; azul claro). **A la izquierda:** el operador es **percusivo** con su propio decay, más corto cuanto más a la izquierda (3 ms … 8 s; rojo) |
-| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.12)*: 16; el color de su familia) |
+| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.28)*: 16; el color de su familia) |
 | K6 | Nivel del operador 2 | Feedback (magenta) |
 | K7 | Nivel del operador 3 | Ruido (blanco) |
 | K8 | Nivel del operador 4 | Release (ámbar) |
@@ -56,7 +88,7 @@ sidechain y el compresor master.
 - **Al girar un ratio** (K1-K4) los pads 9-32 enseñan los 24 ratios durante 1,5 s (el actual brillante, en blanco si está desafinado); al girar el algoritmo (Shift + K5), los pads 9-24 enseñan los algoritmos. Mientras se ven, esos pads no cargan patches.
 - **Es una variante del oscilador:** la nota, TUNE / FINE, la envolvente de pitch y el vibrato de la página 2 siguen valiendo; detrás, el filtro, el efecto y la matriz como con el oscilador. Una nota a la vez (la última manda); con el retrigger apagado (Shift + pad 29) una nota ligada no vuelve a disparar los ataques.
 - **El volumen lo dan las envolventes de los operadores**: el VCA del motor se queda abierto (la velocity sigue dando el volumen) y la ADSR de la página 1 mueve el filtro, el tono y el brillo.
-- **El brillo:** SHAPE (K2 de la página OSC 1), Env → forma (K4) y LFO → forma (K6) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
+- **El brillo:** SHAPE (K2 de la página OSC 1; *(solo Beta 5.28)* K4), Env → forma (K4; *(solo Beta 5.28)* Shift + K4) y LFO → forma (K6; *(solo Beta 5.28)* Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
 - **La velocity** da también el brillo (cuánto, según el algoritmo) y cuánto cae el bombo. **Las notas agudas** modulan menos y caen antes (según el algoritmo, como en un DX7). En notas y ratios muy altos el motor limita la modulación para que no haya aliasing (salvo en los percusivos, donde forma parte del sonido).
 - **El nivel** de un portador es su volumen; el de un modulador, cuánto modula.
 - **Envolventes A/R con sustain fijo:** con la nota pulsada, un operador **sostenido** se queda arriba después de su ataque; uno **percusivo** (lo dice el algoritmo, o su Shift + knob a la izquierda) cae aunque la nota siga. Al soltar, todos caen con el release (uno percusivo por su knob, con lo más corto de su decay y el release). **El release es uno para todos y más largo cuanto más fuerte la nota**; el algoritmo lo acorta o alarga en cada operador.
@@ -85,6 +117,20 @@ sidechain y el compresor master.
 | 15 | cuerdas: dos pilas (2 → 1, 4 → 3) desafinadas entre sí | cuerdas (verde) | cuerdas (ataque lento) |
 | 16 | ensemble: 4 → 1, 2 y 3, tres portadores desafinados | | ensemble |
 
+*(solo Beta 5.28)* Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
+
+<img src="img/panel-fm8-es.svg" width="640" alt="FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.">
+
+*FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.*
+
+<img src="img/panel-algos8-es.svg" width="640" alt="Pad 7 mantenido: los 56 algoritmos en tres páginas (Octave ▼ / ▲), 24 por página; el elegido brillante.">
+
+*Pad 7 mantenido: los 56 algoritmos en tres páginas (Octave ▼ / ▲), 24 por página; el elegido brillante.*
+
+<img src="img/panel-inst8-es.svg" width="640" alt="Pad 8 mantenido: los 24 instrumentos, en el color de su tipo (teclas, bajos, leads, pads, pulsados, percusión, campanas).">
+
+*Pad 8 mantenido: los 24 instrumentos, en el color de su tipo (teclas, bajos, leads, pads, pulsados, percusión, campanas).*
+
 ## Modo muestra y selector de samples
 
 *Cómo se llega:* *(desde RC2)* MIDI 1 / 2 con el motor en **muestra** (pad 27 verde azulado, tras el granular): **Note dos veces** (vista Note ampliada). La pista toca un sample del pack de un golpe, a la altura de cada nota.
@@ -92,7 +138,11 @@ sidechain y el compresor master.
 - **Drums con altura en una pista MIDI** — cualquier sample del pack suena a la altura de cada nota, como en una caja de ritmos con samples afinables.
 - **Un sample distinto por paso** — el sample flip cambia de sample paso a paso sin otra pista; se graba también en vivo.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#midi-muestra)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-muestra)
+
+<img src="img/panel-muestra-es.svg" width="640" alt="Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).">
+
+*Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).*
 
 ## Matriz de modulación
 
@@ -127,7 +177,7 @@ sidechain y el compresor master.
 - **Destinos de los macros** *(desde RC2)* — decide qué mueve cada macro knob (hasta 4 destinos por macro, con su tramo y su profundidad) sin pasar por Components.
 - **Step-drummer del sinte** — secuencia los macros por pares de pasos: cada knob fija la posición de un macro en dos pasos del patrón.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-fuente)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
 
 ## Vista de pista de un drum (knobs)
 
@@ -138,7 +188,7 @@ sidechain y el compresor master.
 - **Volver a empezar** *(desde RC2)* — Clear + el botón del drum deja todos sus knobs por defecto.
 - **Pareja estéreo** *(desde RC4)* — Drum 1 + Drum 2 (o 3 + 4) tocan un sample estéreo: el de la izquierda manda en los dos y el de la derecha solo matiza.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-pista)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista)
 
 ## Vista cromática y de escala de los drums
 
@@ -147,7 +197,7 @@ sidechain y el compresor master.
 - **Un drum como teclado** — el sample transpuesto en la escala del proyecto.
 - **Rollers** *(desde RC2)* — repite el drum en los micropasos que mantengas: redobles y ratchets en directo, también parado, y grabados con Record.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#drum-cromatica)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-cromatica)
 
 ## Master FX
 
@@ -159,7 +209,7 @@ sidechain y el compresor master.
 - **Huecos** — un efecto con sus ajustes a un toque; el secuenciador de efectos los dispara.
 - **Por proyecto** *(desde RC2)* — cada proyecto recuerda sus ajustes de Master FX.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#master-fx)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx)
 
 ## Vista FX
 
@@ -170,7 +220,7 @@ sidechain y el compresor master.
 - **Resonancia del filtro master** — en Shift + Octave ▲ / ▼, de 16 en 16 *(desde RC4; antes, 1-16 / 17-32)*.
 - **Filtro master apagado / encendido** — Shift + pad 25, sin perder su posición *(desde RC4)*.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#vista-fx)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#vista-fx)
 
 ## Vista Sidechain
 
@@ -181,4 +231,4 @@ sidechain y el compresor master.
 - **Sidechain entre drums** — que un drum baje el volumen de otro (el bombo al bajo, por ejemplo).
 - **Disparado por patrones** *(desde RC2)* — Synth 1 / 2 o MIDI 1 / 2 como fuente: las notas de su patrón agachan otra pista, no solo los drums.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#sidechain)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#sidechain)

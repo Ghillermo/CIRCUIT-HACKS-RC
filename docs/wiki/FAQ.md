@@ -13,9 +13,9 @@ A set of patches for the official **Novation Circuit Tracks** firmware 1.2.1 (bu
 Novation's bootloader is never touched, so you can always send the official firmware again. If the device does not boot, hold **Scales + Preset + Note** while switching it on: that is Novation's bootloader mode, and from there you can send any firmware. **Back up your SD card before installing** any version. See [Installing and going back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#instalar).
 
 **3. RC, RC "S" or Beta: which one should I install?**
-- **RC** (release candidate, now RC4.07): the features that have been tested together.
-- **RC S** (RC4.07S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
-- **Beta** (now Beta 5.12, not tested on the device): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
+- **RC** (release candidate, now RC4.08): the features that have been tested together.
+- **RC S** (RC4.08S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
+- **Beta** (now Beta 5.28, not tested on the device): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
 
 **4. Does it work on the original Circuit or the Circuit Rhythm?**
 No: CIRCUIT-HACKS is for the **Circuit Tracks** (firmware 1.2.1, build 4486) only. For the **Circuit Rhythm** there is a separate project, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), which ports these features and adds its own.

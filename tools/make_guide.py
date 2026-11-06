@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.25"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.28"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -48,8 +48,8 @@ view("convenciones", "I", "Cómo leer esta guía",
 - {B} = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - {NB} = nuevo en RC2.02 (no está en RC2.01).
 - {XB} = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- {ZB} = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.25; en RC4.02 y antes no).
-- {YB} = solo en la **Beta 5.25** (no está en RC4.07).
+- {ZB} = arreglo de **RC4.05** (también en RC4.08 y en la Beta 5.28; en RC4.02 y antes no).
+- {YB} = solo en la **Beta 5.28** (no está en RC4.08).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 """)
 
@@ -232,7 +232,7 @@ Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen
 
 ### Los motores (pad 27)
 - **Elegir el motor** {XB}: un toque al **pad 27** abre la **fila de motores** en los **pads 17-23**: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. {YB}: **pads 17-24** = sin voz (blanco), solo VCA / VCF / FX (la entrada de línea), oscilador, oscilador VA-drum, oscilador wavetable (arena), muestra, granular y FM; **el secuenciador de efectos sale de la fila: es el pad 31** con «sin voz» (azul tenue; un toque lo enciende, brillante, y la fila sigue marcando «sin voz»; otro toque lo apaga). Tocar uno lo elige y la fila sigue abierta; **pad 27 otra vez** la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (antes de RC4, cada toque del pad 27).
-- **Wavetable** {YB} (arena, pad 21): el oscilador leyendo una tabla de hasta 9 cuadros, para los dos osciladores; **K7** de OSC 1 / OSC 2 = la posición, K8 = LFO → posición, Shift + K8 = envolvente → posición, SHAPE = warp. Con ella sonando, **pad 7 mantenido** = las 16 wavetables del stock (un toque llena la tabla) y **pad 8 mantenido** = los samples del pack (Octave = página; un toque añade o quita un ciclo del sample).
+- **Wavetable** {YB} (arena, pad 21): el oscilador leyendo una tabla de hasta 9 cuadros, para los dos osciladores; **K3** de OSC 1 / OSC 2 = la posición (en la Beta 5.24-5.26, K7), K7 de OSC 1 = LFO → posición, Shift + K3 = envolvente → posición, SHAPE (K4) = warp. Con ella sonando (también con la fila de motores abierta), **pad 7 mantenido** = las 16 wavetables del stock (un toque llena la tabla; **Shift** + una tabla = solo el cuadro que señala la posición (K3), con el mismo cuadro de esa tabla) y **pad 8 mantenido** = los samples del pack (Octave = página; un toque pone un ciclo del sample **en el cuadro que señala la posición**). Cada toque en una lista suena la tónica hasta soltar el pad. El pad 27 se ve en arena.
 - **Entrada de línea** (amarillo): la entrada de audio de la pista (línea 1 en MIDI 1, línea 2 en MIDI 2) pasa por el VCA-VCF; las notas de la pista lo disparan.
 - **Oscilador** (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, {B}: la última nota manda y al soltarla vuelve la anterior).
 - **VA-drum** (naranja): VCA de un disparo, envolventes de decay para pitch (knob Sustain) y filtro (knob Release), ruido blanco (velocidad del LFO) y valores aleatorios en lugar del LFO.
@@ -305,7 +305,22 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 | K7 | WAVE (morph); {XB} en el modo muestra, la anchura estéreo | — |
 | K8 | LFO → morph | Envolvente → morph |
 
-**Qué hace SHAPE en cada forma de onda** (K2; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra *(desde RC4)*, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:
+{YB} Con el oscilador, el VA-drum y la wavetable la página es otra (tus parámetros se conservan, solo cambian de knob):
+
+| Knob | Solo | Con Shift |
+|---|---|---|
+| K1 | TUNE | Envolvente → tono |
+| K2 | FINE | LFO → tono |
+| K3 | WAVE (morph); en la wavetable, la posición (el cuadro); en el modo muestra, la anchura estéreo | Envolvente → morph |
+| K4 | SHAPE (en la wavetable, warp) | Envolvente → forma |
+| K5 | **LFO → FM** | **Envolvente → FM** |
+| K6 | **LFO → ring** | **Envolvente → ring** |
+| K7 | LFO → morph | LFO → forma |
+| K8 | **LFO → mix** | **Envolvente → mix** |
+
+K5, K6 y K8 son nuevos: cuánto mueven el LFO y la envolvente del motor el FM, el ring y el mix de la página 3 (centro = nada, a cada lado en un sentido; Clear + knob = 0). Se guardan con el patch y con el proyecto.
+
+**Qué hace SHAPE en cada forma de onda** (K2; {YB} K4; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra *(desde RC4)*, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:
 
 | Forma (WAVE) | SHAPE a la izquierda del centro | Centro | SHAPE a la derecha del centro |
 |---|---|---|---|
@@ -315,7 +330,7 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 | Sierra antes de RC4 | La rampa se curva hacia arriba (sube rápido al principio y se aplana) | Rampa recta | La rampa se curva hacia abajo (empieza plana y sube al final) |
 | Cuadrada (126) | Pulso cada vez más estrecho (hasta un 3 % aprox.) | Cuadrada (50 %) | Pulso cada vez más estrecho por el otro lado (hasta un 97 % aprox.; suena igual que el de la izquierda) |
 
-**Menos aliasing** *(desde RC4)*: la sierra, las siete sierras de la supersaw y la cuadrada / el pulso se generan con PolyBLEP: en las notas agudas desaparecen los tonos metálicos que no pertenecen a la nota (unos 40 dB menos); en las graves suenan igual. El seno y el triángulo sin pliegue no cambian.
+**Menos aliasing** *(desde RC4)*: la sierra, las siete sierras de la supersaw y la cuadrada / el pulso se generan con PolyBLEP: en las notas agudas desaparecen los tonos metálicos que no pertenecen a la nota (unos 40 dB menos); en las graves suenan igual. El seno y el triángulo sin pliegue no cambian. *(Arreglo de RC4.08 y la Beta 5.28)* El pulso con un ancho distinto del 50 % (SHAPE fuera del centro, o la envolvente / el LFO moviéndolo) solo tenía corregido un flanco: ahora los dos (nota 96: de −22 a −73 dB de aliasing por debajo de 8 kHz).
 
 ### Página 2 — granular
 | Knob | Solo | Con Shift |
@@ -334,8 +349,11 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 - **Granular en estéreo** {XB}: con **Shift + K4** por encima de 0, cada grano sale a un lado al azar, tanto más separado cuanto más alto; el **panorama de la pista** (Mixer) decide la proporción: al centro, mitad y mitad; a la derecha, más granos a la derecha. La parte estéreo (lo que difiere entre los lados) sigue el VCA, el nivel, el panorama, el mute y el sidechain de la pista; el filtro y el efecto del motor y los envíos actúan solo sobre el centro.
 
 ### Páginas 3-5
-- **Página 3 (OSC 2):** {B}: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2). {YB} Con el oscilador, el VA-drum y la wavetable: **K1 = ratio de OSC 2 respecto a su nota** (centro = 1; a la izquierda ½ y ¼; a la derecha 2, 3, 4 … 31, unos dos clics por ratio), **K2 = detune** (±50 cents, centro = afinado), K3 SHAPE 2, K4 MIX OSC 1 ↔ OSC 2, K5 FM, K6 BITSYNC, K7 WAVE 2, K8 RING. Con el granular la página 3 sigue como antes. Con dos notas pulsadas, OSC 2 toca la segunda nota × su ratio.
-- **Página 4 — knobs secuenciables:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica.
+- **Página 3 (OSC 2):** {B}: los ocho valores sin Shift, según la serigrafía: K1 Oscillator TUNE 2, K2 Osc mod SHAPE 2, K3 Amp envelope MIX OSC 1 ↔ OSC 2, K4 Filter envelope FM, K5 Filter frequency FINE 2, K6 Resonance BITSYNC, K7 Modulation WAVE 2, K8 FX RING (en RC0.9: K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2). {YB} Con el oscilador, el VA-drum y la wavetable: **K1 = ratio de OSC 2 respecto a su nota** (centro = 1; a la izquierda ½ y ¼; a la derecha 2, 3, 4 … 31, unos dos clics por ratio), **K2 = detune** (±50 cents, centro = afinado), K3 WAVE 2, K4 SHAPE 2, **K5 FM**, **K6 RING**, **K7 sync + bitwise**, **K8 MIX OSC 1 ↔ OSC 2** (en la Beta 5.25 / 5.26: K3 SHAPE 2, K4 MIX, K5 FM, K6 BITSYNC, K7 WAVE 2, K8 RING). Con el granular la página 3 sigue como antes. Con dos notas pulsadas, OSC 2 toca la segunda nota × su ratio.
+  - **K5 FM con centro** {YB}: en el centro, sin FM; a la derecha **OSC 2 modula a OSC 1** (más fino al principio: la primera mitad del recorrido llega al máximo); pasado el máximo, OSC 2 → OSC 1 baja mientras **OSC 1 → OSC 2** sube, hasta 50 / 50 a la derecha del todo. A la izquierda, lo mismo con los papeles cambiados. Los patches y proyectos anteriores se cargan con la misma cantidad de FM en su sitio nuevo.
+  - **K7 sync** {YB}: la zona sync es ahora el **sync clásico**: OSC 2 vuelve a empezar en cada ciclo de OSC 1; dentro de la zona, el knob sube OSC 2 hasta unos 32 semitonos (el barrido típico del sync; el timbre también cambia con el ratio / detune de K1 / K2). El de antes (OSC 2 al revés cada 1-8 ciclos) daba subarmónicos que no casaban con la nota: sonaba a ruido. Las zonas bitwise (xor, or, nor, and, nand) siguen igual, con un **paso bajo suave** sobre lo que añaden (menos ruido blanco).
+  - **Menos ruido en las interacciones** {YB}: el antialias de OSC 1 tiene en cuenta el FM (antes corregía en el sitio equivocado y crepitaba). Medido en emulación (nota 84, ruido por debajo de 8 kHz): FM sierra ← seno de −37 a −63 dB, FM al máximo de −18 a −57 dB, sync de −5 a −36 dB. **Arreglo:** en poly (el modo de fábrica) con dos osciladores, el ratio de OSC 2 (K1) distinto de 1 lo mandaba al tope de afinación.
+- **Página 4 — knobs secuenciables:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {YB} **Grabando** (Record armado y sonando), girar un knob del motor que **no está en estos 8** lo añade: toma el primer carril que no tiene nada grabado en el patrón que suena, y se graba ahí (ese carril cambia de destino, como con Shift + knob). Si los 8 tienen algo, no se graba, como antes. {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica.
 - **Knobs no secuenciables** {XB} (**Shift + pad 4**; el pad 4 en rosa mientras están en los knobs, rosa tenue con Shift): 8 knobs con **destino asignable** como los secuenciables (**Shift + knob** = el destino entre los 33 parámetros, en el color de su página; **Clear mantenido, luego Shift + knob** = el de fábrica; mientras eliges, los pads 9-24 enseñan dónde vive). De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA. Mueven el valor de ese parámetro **sin grabarlo** (un destino que también esté en los knobs secuenciables sí se graba, como desde cualquier página). Sus destinos se guardan con los patches propios.
 - **Foto de los valores en un paso** {XB}: con la vista de pista de MIDI 1 / 2 (motor encendido), **Record mantenido + un pad de paso** (pads 1-16; con 17-32, los pasos 17-32) escribe en los carriles de ese paso los parámetros que **no están en su valor inicial** (el de Clear + knob a la derecha), y solo esos. Un parámetro que no tiene carril toma uno cuyo parámetro sí está en el inicial (en orden de carril), y ese carril se borra antes en el patrón; si no caben, los primeros en el orden de la matriz. El paso no cambia sus notas y Record queda como estaba. {YB} También en **Synth 1 / 2** (sus macros) y en los **drums** (pitch, decay, distorsión y EQ): [vista de pista de Synth 1 / 2](#synth-nota), [vista de pista de un drum](#drum-pista). {YB} Mientras mantienes el paso, se ve en **amarillo**.
 - **Página 5:** ADSR arriba, LFO abajo. {B}: **Shift + K8 = forma del LFO**: diente de sierra inverso (azul, la de siempre), diente de sierra (magenta), triángulo (verde), cuadrada (roja), seno (verde azulado), sample & hold (blanco: un valor al azar en cada vuelta); {NB}: **sample & hold suavizado** (violeta: se desliza de un valor al azar al siguiente durante cada vuelta), y **sin forma guardada (un proyecto nuevo o de antes) el triángulo** (en RC2: el diente de sierra inverso; un patch propio de antes de las formas sigue cargando el diente de sierra inverso). {ZB}: seno, sample & hold y sample & hold suavizado suenan (antes dejaban el motor callado). Un paso cada 4 clics ({YB}: cada 16), el LED de K8 con Shift en su color. Se guarda con el proyecto y en el patch propio; con el VA-drum el LFO sigue siendo su ruido.
@@ -385,7 +403,7 @@ view("midi-fm", "III", "FM de 4 operadores",
 - **Al girar un ratio** (K1-K4) los pads 9-32 enseñan los 24 ratios durante 1,5 s (el actual brillante, en blanco si está desafinado); al girar el algoritmo (Shift + K5), los pads 9-24 enseñan los algoritmos. Mientras se ven, esos pads no cargan patches.
 - **Es una variante del oscilador:** la nota, TUNE / FINE, la envolvente de pitch y el vibrato de la página 2 siguen valiendo; detrás, el filtro, el efecto y la matriz como con el oscilador. Una nota a la vez (la última manda); con el retrigger apagado (Shift + pad 29) una nota ligada no vuelve a disparar los ataques.
 - **El volumen lo dan las envolventes de los operadores**: el VCA del motor se queda abierto (la velocity sigue dando el volumen) y la ADSR de la página 1 mueve el filtro, el tono y el brillo.
-- **El brillo:** SHAPE (K2 de la página OSC 1), Env → forma (K4) y LFO → forma (K6) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
+- **El brillo:** SHAPE (K2 de la página OSC 1; {YB} K4), Env → forma (K4; {YB} Shift + K4) y LFO → forma (K6; {YB} Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
 - **La velocity** da también el brillo (cuánto, según el algoritmo) y cuánto cae el bombo. **Las notas agudas** modulan menos y caen antes (según el algoritmo, como en un DX7). En notas y ratios muy altos el motor limita la modulación para que no haya aliasing (salvo en los percusivos, donde forma parte del sonido).
 - **El nivel** de un portador es su volumen; el de un modulador, cuánto modula.
 - **Envolventes A/R con sustain fijo:** con la nota pulsada, un operador **sostenido** se queda arriba después de su ataque; uno **percusivo** (lo dice el algoritmo, o su Shift + knob a la izquierda) cae aunque la nota siga. Al soltar, todos caen con el release (uno percusivo por su knob, con lo más corto de su decay y el release). **El release es uno para todos y más largo cuanto más fuerte la nota**; el algoritmo lo acorta o alarga en cada operador.
@@ -503,7 +521,7 @@ view("midi-muestra", "III", "Modo muestra y selector de samples",
 
 - **La altura:** C3 (nota 60) = el sample como se grabó; una octava arriba = el doble de rápido. Las notas vienen de la vista Note normal, el step-drummer o el MIDI de entrada.
 - **Un golpe:** el VCA se queda abierto y el sample suena hasta el final; cada nota nueva lo vuelve a empezar (una voz por pista). Filtro, efecto y LFO de las páginas del motor siguen.
-- **Estéreo** {XB}: **K7 de la página OSC 1** (WAVE, que en este modo no hacía nada) = la **anchura estéreo**. A la izquierda del todo, mono como siempre; al girarlo, cada nota toca el sample elegido a la **izquierda** y el **segundo** a la **derecha** (de entrada el siguiente, N + 1; el 64 sigue con el 1): un sample estéreo son dos huecos del pack (los samples del aparato son mono). **El segundo se elige en el selector:** **Shift + el sample ya elegido** pasa a elegir el segundo (parpadea en verde azulado; el primero se ve violeta): tocar un sample = el segundo y suena; **Shift + el segundo** vuelve al primero. Se guarda la **distancia** entre los dos: al cambiar el primero (o con un flip en un paso) el segundo lo sigue. Con la anchura subida, el segundo se ve violeta. La nota dura lo que el **más largo**: el corto se calla al acabar. Con la misma altura los dos. El centro sigue el camino de la pista (filtro, efecto, nivel, panorama, envíos); la parte estéreo pasa por el mismo filtro y sigue el VCA, el nivel, el panorama, el mute y el sidechain de la pista, pero no el efecto ni los envíos. Se enciende con cada nota: girar el K7 desde 0 durante una nota vale para la siguiente. La captura suena siempre en mono.
+- **Estéreo** {XB}: **K7 de la página OSC 1** ({YB} K3; WAVE, que en este modo no hacía nada) = la **anchura estéreo**. A la izquierda del todo, mono como siempre; al girarlo, cada nota toca el sample elegido a la **izquierda** y el **segundo** a la **derecha** (de entrada el siguiente, N + 1; el 64 sigue con el 1): un sample estéreo son dos huecos del pack (los samples del aparato son mono). **El segundo se elige en el selector:** **Shift + el sample ya elegido** pasa a elegir el segundo (parpadea en verde azulado; el primero se ve violeta): tocar un sample = el segundo y suena; **Shift + el segundo** vuelve al primero. Se guarda la **distancia** entre los dos: al cambiar el primero (o con un flip en un paso) el segundo lo sigue. Con la anchura subida, el segundo se ve violeta. La nota dura lo que el **más largo**: el corto se calla al acabar. Con la misma altura los dos. El centro sigue el camino de la pista (filtro, efecto, nivel, panorama, envíos); la parte estéreo pasa por el mismo filtro y sigue el VCA, el nivel, el panorama, el mute y el sidechain de la pista, pero no el efecto ni los envíos. Se enciende con cada nota: girar el K7 desde 0 durante una nota vale para la siguiente. La captura suena siempre en mono.
 - **En vivo:** con **Record + Play**, tocar un sample graba una nota 60 en el paso que suena con su flip.
 - **Borrar la nota de un paso con flip** {XB} (en la vista Note: Clear + paso, o el paso mantenido + la tecla de su nota) borra la nota y **deja el flip**, que solo se ve aquí (violeta); Clear + paso en este selector quita el flip.
 - El sample de la pista es la misma fuente que la del granular (Shift + K8 en su página; la captura se elige allí).
@@ -1335,9 +1353,12 @@ def numbered(views, parts):
     return out
 
 
-def write(lang):
+def write(lang, md=True):
     views, parts, U = data(lang)
     figs = figures(lang)
+    if M.SET == "rc":                                                       # (docset.py) the release candidate's set: no beta-only view
+        import docset
+        views = [v for v in views if not (docset.titled(v["title"]) or docset.titled(v["how"][:60]))]
     num = numbered(views, parts)
     # markdown
     out = [f"# {U['title'].format(v=M.VERSION)}", "", U["intro"], "", f"## {U['toc']}", ""]
@@ -1353,7 +1374,7 @@ def write(lang):
             out += [f'<a id="{v["id"]}"></a>', f"### {code} {v['title']}", "", f"*{U['how']}* {v['how']}", ""]
             if v["about"]: out += [f"**{U['about']}**", "", v["about"], ""]
             out += [v["detail"], ""]
-    (ROOT / U["md"]).write_text("\n".join(out), encoding="utf-8", newline="")
+    if md: (ROOT / U["md"]).write_text("\n".join(out), encoding="utf-8", newline="")
     # html
     parts_h = [f'<!doctype html><html lang="{U["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(U["title"].format(v=M.VERSION))}</title>',
                f"<style>{M.CSS}</style></head><body>",
@@ -1378,7 +1399,7 @@ def write(lang):
             parts_h.append(M.md2html(v["detail"]))
             parts_h.append("</section>")
     parts_h.append(f"<footer>{M.CUR['UI']['footer'].format(v=M.VERSION)}</footer></main></body></html>")
-    (ROOT / "docs/manual" / U["html"]).write_text("\n".join(parts_h), encoding="utf-8", newline="")
+    (ROOT / M.OUT / U["html"]).write_text("\n".join(parts_h), encoding="utf-8", newline="")
     return len(views)
 
 

@@ -16,7 +16,8 @@ import make_manual as M  # noqa: E402
 ROOT = Path(__file__).resolve().parents[1]
 PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/"
 WIKI = "https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/"
-GUIDE = dict(en=PAGES + "guide.html", es=PAGES + "guia.html")
+GUIDE = dict(en=PAGES + "beta/guide.html", es=PAGES + "beta/guia.html")      # (2026-11-06: the manuals in two sets; the wiki = the beta's)
+FEATS = dict(en=PAGES + "beta/en.html", es=PAGES + "beta/index.html")
 # words that belong to the inner works, never in a wiki page (checked on every page)
 BANNED = re.compile(r"\b(0x[0-9A-Fa-f]+|DSP56|RAM|SPI|ARM|emulat\w*|emulac\w*|revers\w* engineer\w*|ingenier\w* inversa|hook\w*|gancho\w*|"
                     r"firmware's (own )?table|tabla del (propio )?firmware|bytes?|núcleo|cores?|XMEM|registers?|builders?|test suite)\b", re.I)
@@ -92,8 +93,52 @@ def full(v, lang, level="##"):
     return [f"{level} {title}", "", how, "", v["detail"].replace("\n### ", f"\n{level}# "), ""]
 
 
+IMG_DIR = ROOT / "docs/wiki/img"
+# (2026-11-06, the user: «Añade imágenes a la wiki»): the voices document's panels (the LEDs as the device shows them) under the views they show, and the
+# feature list's figures under their features; SVG files in the wiki's img/ (relative links: the wiki repository serves them)
+VIEW_PANELS = {"midi-preset": ("preset", "motores", "voz", "wt", "wtnova", "wtsmp"), "midi-fm": ("fm8", "algos8", "inst8"), "midi-muestra": ("muestra",),
+               "pattern-settings": ("ps", "mutate"), "micropasos": ("micro",)}
+VIEW_FIGS = {"midi-preset": ("ruta",), "midi-knobs": ("mapa",)}
+
+
+def img(file, cap):
+    return [f'<img src="img/{file}" width="640" alt="{cap.replace(chr(34), "")}">', "", f"*{cap}*", ""]
+
+
+def export_images(lang):
+    """the SVG files of this language; -> (view id -> image lines, section id -> image lines)"""
+    import html as H, make_voces as MV
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
+    k = 1 if lang == "en" else 0
+    def svg_of(fig_html):
+        i = fig_html.index("<svg"); j = fig_html.index("</svg>") + 6
+        return fig_html[i:j]
+    views = {}
+    for vid, names in VIEW_PANELS.items():
+        L = []
+        for n in names:
+            if n not in MV.PANELS or n not in MV.DATA: continue
+            f = f"panel-{n}-{lang}.svg"; (IMG_DIR / f).write_text(svg_of(MV.panel(n, lang)), encoding="utf-8")
+            L += img(f, MV.PANELS[n]["cap"][k])
+        views[vid] = L
+    for vid, names in VIEW_FIGS.items():
+        for n in names:
+            f = f"fig-{n}-{lang}.svg"; (IMG_DIR / f).write_text(MV.svg(MV.FIGS[n], lang), encoding="utf-8")
+            views.setdefault(vid, []).extend(img(f, MV.FIGS[n]["title"][k]))
+    M.use(lang)
+    feats = {}
+    for code, s_ in M.numbered():
+        L = []
+        for i, fg in enumerate(s_["figs"]):
+            f = f"feat-{s_['id']}-{i + 1}-{lang}.svg"; (IMG_DIR / f).write_text(M.svg(fg), encoding="utf-8")
+            L += ["  " + x if x else "" for x in img(f, H.unescape(fg["caption"]))]
+        if L: feats[s_["id"]] = L
+    return views, feats
+
+
 def pages(lang):
     views, parts, _ = G.data(lang)
+    vimg, fimg = export_images(lang)
     by = {v["id"]: v for v in views}
     out = {}
     # Views: parts 1-10 (setup to packs), the summaries
@@ -113,8 +158,10 @@ def pages(lang):
     L = head("feat", lang)
     for g, gname in M.CUR["GROUPS"]:
         L += [f"## {gname}", ""]
-        L += [f'- **[{s_["title"]}]({M.PAGES_URL[lang]}#{M.anchor(code, s_)})** — ' + " ".join(s_["summary"])
-              for code, s_ in M.numbered() if s_["group"] == g and s_["id"] not in DEV]
+        for code, s_ in M.numbered():
+            if s_["group"] != g or s_["id"] in DEV: continue
+            L.append(f'- **[{s_["title"]}]({FEATS[lang]}#{M.anchor(code, s_)})** — ' + " ".join(s_["summary"]))
+            if s_["id"] in fimg: L += [""] + fimg[s_["id"]]
         L.append("")
     out["feat"] = L
     # DSP: the overview, then the sound views' summaries (in full when the view has no summary)
@@ -122,12 +169,13 @@ def pages(lang):
     for vid in DSP_VIEWS:
         v = by[vid]
         L += summary(v, lang, "##") if v["about"] else full(v, lang)
+        L += vimg.get(vid, [])
     out["dsp"] = L
     # Usability: the conventions, the buttons of every view, then the playing / recording views' summaries
     L = head("usab", lang)
     for vid in ("convenciones", "botones"): L += full(by[vid], lang)
     L += [f"## {T[lang]['usab'][2]}", ""]
-    for vid in USAB_VIEWS: L += summary(by[vid], lang)
+    for vid in USAB_VIEWS: L += summary(by[vid], lang) + vimg.get(vid, [])
     out["usab"] = L
     # MIDI: the MIDI view (with the reference's tables) and the mod matrix / macro destinations view
     L = head("midi", lang)

@@ -1,6 +1,6 @@
 # DSP
 
-*[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html)*
+*[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html)*
 
 The sound side of the mod: the synth engines of the MIDI tracks, the new drum controls and the effects.
 
@@ -22,10 +22,38 @@ master compressor settings.
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
-- **Jump sequencer** *(Beta 5.12 only)* — the track's notes make another track's pattern jump to the step they indicate.
+- **Jump sequencer** *(Beta 5.28 only)* — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+
+<img src="img/panel-preset-en.svg" width="640" alt="Preset view with the oscillator: pads 9-24 are patches (violet = empty); pads 3 and 7 go dark when they do not apply.">
+
+*Preset view with the oscillator: pads 9-24 are patches (violet = empty); pads 3 and 7 go dark when they do not apply.*
+
+<img src="img/panel-motores-en.svg" width="640" alt="Engine row open (tap pad 27): pads 17-24 the engines; pads 9-16 the tracks of the jump sequencer.">
+
+*Engine row open (tap pad 27): pads 17-24 the engines; pads 9-16 the tracks of the jump sequencer.*
+
+<img src="img/panel-voz-en.svg" width="640" alt="Voice modes open (tap pad 32): poly bright, the default mode. K1 glide, K2 detune.">
+
+*Voice modes open (tap pad 32): poly bright, the default mode. K1 glide, K2 detune.*
+
+<img src="img/panel-wt-en.svg" width="640" alt="Wavetable (pad 21 of the engine row): pad 27 in sand; pads 7 and 8, the two lists.">
+
+*Wavetable (pad 21 of the engine row): pad 27 in sand; pads 7 and 8, the two lists.*
+
+<img src="img/panel-wtnova-en.svg" width="640" alt="Pad 7 held: the stock's 16 wavetables (pads 9-24, the loaded one bright). A tap = the whole table; Shift + tap = only the frame OSC 1's K3 points at.">
+
+*Pad 7 held: the stock's 16 wavetables (pads 9-24, the loaded one bright). A tap = the whole table; Shift + tap = only the frame OSC 1's K3 points at.*
+
+<img src="img/panel-wtsmp-en.svg" width="640" alt="Pad 8 held: the pack's samples (pads 9-32; Octave ▼ / ▲ = page). A tap puts a cycle of that sample in the frame OSC 1's K3 points at.">
+
+*Pad 8 held: the pack's samples (pads 9-32; Octave ▼ / ▲ = page). A tap puts a cycle of that sample in the frame OSC 1's K3 points at.*
+
+<img src="img/fig-ruta-en.svg" width="640" alt="Every note goes through the voice mode before it reaches the engine">
+
+*Every note goes through the voice mode before it reaches the engine*
 
 ## Knob pages of the MIDI 1 / 2 engine
 
@@ -37,7 +65,11 @@ master compressor settings.
 - **Page 4, sequenceable knobs** — the 8 parameters that can be recorded as automation (*(since RC4)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
 - *(since RC4)* **Shift + pad 4, non-sequenceable knobs** — 8 knobs with an assignable destination that are not recorded.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+
+<img src="img/fig-mapa-en.svg" width="640" alt="The Preset view holds the sound; the others, the pattern">
+
+*The Preset view holds the sound; the others, the pattern*
 
 ## 4-operator FM
 
@@ -46,7 +78,7 @@ master compressor settings.
 | Knob | Alone | With Shift |
 |---|---|---|
 | K1-K4 | Ratio of operators 1-4: 0.5 … 16 (green = whole, light blue = and a half, teal = inharmonic: 0.71, 1.41, 4.24). Each ratio spans 5-6 clicks: the first is exact and each further one **detunes** +2.5 cents (up to about +12; LED half bright) | Centre = attack 0. **To the right:** the operator's attack (0 … about 3 s; light blue). **To the left:** the operator is **percussive** with its own decay, shorter the further left (3 ms … 8 s; red) |
-| K5 | Level of operator 1 (blue) | Algorithm (16, 8 clicks each, *(Beta 5.12 only)*: 16; its family's colour) |
+| K5 | Level of operator 1 (blue) | Algorithm (16, 8 clicks each, *(Beta 5.28 only)*: 16; its family's colour) |
 | K6 | Level of operator 2 | Feedback (magenta) |
 | K7 | Level of operator 3 | Noise (white) |
 | K8 | Level of operator 4 | Release (amber) |
@@ -56,7 +88,7 @@ master compressor settings.
 - **While a ratio turns** (K1-K4) pads 9-32 show the 24 ratios for 1.5 s (the current one bright, white when detuned); while the algorithm turns (Shift + K5), pads 9-24 show the algorithms. Meanwhile those pads load no patch.
 - **It is a variant of the oscillator:** the note, TUNE / FINE, the pitch envelope and the vibrato of page 2 still apply; after it, the filter, the effect and the matrix as with the oscillator. One note at a time (the last one wins); with the retrigger off (Shift + pad 29) a legato note does not restart the attacks.
 - **The loudness comes from the operators' envelopes**: the engine's VCA stays open (velocity still sets the level) and page 1's ADSR moves the filter, the pitch and the brightness.
-- **Brightness:** SHAPE (K2 of the OSC 1 page), Env → shape (K4) and LFO → shape (K6) change how much the modulators modulate (× 0.27 … × 3.7; SHAPE 50 = no change), and the feedback too. So the engine's ADSR, its LFO, the matrix, the page 4 lanes and the step-drummer move the FM's timbre.
+- **Brightness:** SHAPE (K2 of the OSC 1 page; *(Beta 5.28 only)* K4), Env → shape (K4; *(Beta 5.28 only)* Shift + K4) and LFO → shape (K6; *(Beta 5.28 only)* Shift + K7) change how much the modulators modulate (× 0.27 … × 3.7; SHAPE 50 = no change), and the feedback too. So the engine's ADSR, its LFO, the matrix, the page 4 lanes and the step-drummer move the FM's timbre.
 - **Velocity** also sets the brightness (how much, by algorithm) and how far the kick drops. **High notes** modulate less and decay sooner (by algorithm, as on a DX7). At very high notes and ratios the engine limits the modulation so it does not alias (except in the percussive ones, where it is part of the sound).
 - **The level** of a carrier is its loudness; of a modulator, how much it modulates.
 - **A/R envelopes with a fixed sustain:** while the note is held, a **sustained** operator stays up after its attack; a **percussive** one (the algorithm says so, or its Shift + knob to the left) falls even while the note is held. On release, all fall with the release (one made percussive by its knob, with the shorter of its decay and the release). **The release is one for all and longer the harder the note**; the algorithm shortens or lengthens it per operator.
@@ -85,6 +117,20 @@ master compressor settings.
 | 15 | strings: two stacks (2 → 1, 4 → 3) detuned against each other | strings (green) | strings (slow attack) |
 | 16 | ensemble: 4 → 1, 2 and 3, three detuned carriers | | ensemble |
 
+*(Beta 5.28 only)* This 4-operator FM is replaced by the **8-operator FM** (next chapter); its patches load into it with the same sound.
+
+<img src="img/panel-fm8-en.svg" width="640" alt="8-operator FM, its page (pad 7): pads 9-16 the operators (carriers green, modulators light blue), pad 3 the pitch envelope; K1 ratio, K2 fine, K3 level, K4 velocity, K5-K8 rates; with Shift algorithm, feedback, scalings and levels.">
+
+*8-operator FM, its page (pad 7): pads 9-16 the operators (carriers green, modulators light blue), pad 3 the pitch envelope; K1 ratio, K2 fine, K3 level, K4 velocity, K5-K8 rates; with Shift algorithm, feedback, scalings and levels.*
+
+<img src="img/panel-algos8-en.svg" width="640" alt="Pad 7 held: the 56 algorithms in three pages (Octave ▼ / ▲), 24 a page; the chosen one bright.">
+
+*Pad 7 held: the 56 algorithms in three pages (Octave ▼ / ▲), 24 a page; the chosen one bright.*
+
+<img src="img/panel-inst8-en.svg" width="640" alt="Pad 8 held: the 24 instruments, in their type's colour (keys, basses, leads, pads, plucks, percussion, bells).">
+
+*Pad 8 held: the 24 instruments, in their type's colour (keys, basses, leads, pads, plucks, percussion, bells).*
+
 ## Sample mode and sample picker
 
 *How to get there:* *(since RC2)* MIDI 1 / 2 with the engine on **sample** (pad 27 teal, after the granular): **Note twice** (expanded Note view). The track plays a pack sample one-shot, at the pitch of each note.
@@ -92,7 +138,11 @@ master compressor settings.
 - **Pitched drums on a MIDI track** — any pack sample plays at the pitch of each note, like a drum machine with tunable samples.
 - **A different sample per step** — the sample flip changes sample step by step with no other track; it can be recorded live too.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-muestra)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-muestra)
+
+<img src="img/panel-muestra-en.svg" width="640" alt="Expanded Note in sample mode: pads 1-16 the steps (bright = with a note), pads 17-32 the samples (the chosen one teal).">
+
+*Expanded Note in sample mode: pads 1-16 the steps (bright = with a note), pads 17-32 the samples (the chosen one teal).*
 
 ## Mod matrix
 
@@ -127,7 +177,7 @@ master compressor settings.
 - **Macro destinations** *(since RC2)* — decide what each macro knob moves (up to 4 destinations a macro, with their range and depth) without Components.
 - **The synth's step-drummer** — sequences the macros by pairs of steps: each knob sets a macro's position on two steps of the pattern.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-fuente)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
 
 ## Drum track view (knobs)
 
@@ -138,7 +188,7 @@ master compressor settings.
 - **Start over** *(since RC2)* — Clear + the drum's button puts all its knobs back to their defaults.
 - **Stereo pair** *(since RC4)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista)
 
 ## Chromatic and scale view of the drums
 
@@ -147,7 +197,7 @@ master compressor settings.
 - **A drum as a keyboard** — the sample transposed in the project's scale.
 - **Rollers** *(since RC2)* — repeat the drum on the micro steps you hold: rolls and ratchets live, stopped too, and recorded with Record.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-cromatica)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-cromatica)
 
 ## Master FX
 
@@ -159,7 +209,7 @@ master compressor settings.
 - **Slots** — an effect with its settings one touch away; the FX sequencer triggers them.
 - **Per project** *(since RC2)* — each project remembers its Master FX settings.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#master-fx)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
 
 ## FX view
 
@@ -170,7 +220,7 @@ master compressor settings.
 - **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(since RC4; before, 1-16 / 17-32)*.
 - **Master filter off / on** — Shift + pad 25, keeping its position *(since RC4)*.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#vista-fx)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#vista-fx)
 
 ## Sidechain view
 
@@ -181,4 +231,4 @@ master compressor settings.
 - **Sidechain between drums** — one drum ducks another (the kick ducking the bass, for example).
 - **Triggered by patterns** *(since RC2)* — Synth 1 / 2 or MIDI 1 / 2 as the source: their pattern notes duck another track, not only the drums.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#sidechain)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#sidechain)

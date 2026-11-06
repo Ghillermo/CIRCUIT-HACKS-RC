@@ -340,6 +340,31 @@ def use_osc2pg2():
     KNOB_CODES_C = (27, 28, 30, 31, 33, 32, 29, 34,  0, 0, 0, 0, 0, 0, 0, 0)
 
 
+OSC4 = False                                      # SC52.4 (use_osc4)
+KNOB_CODES_B_MX = None                            # (use_osc4) the matrix's destination order of page 2 (OSC 1)
+OM_KNOBS = (4, 5, 7)                              # (use_osc4) OSC 1's K5 / K6 / K8: LFO (Shift: env) -> FM / RING / MIX, oscmod.py's (no code here)
+
+
+def use_osc4():
+    """SC52.4 (the user, 2026-11-06: «reasigna (en VA y WT) k1: pitch, k2: pitch fino. k3: forma de onda. k4: shape/warp K5: FM, 6: sync
+    7: bitwise 8: mix», then «K6 ring, K7 sync+bitwise» and OSC 1 = «1: pitch, shift: env pitch / 2: fino, s: lfo pitch / 3: onda / s: env onda /
+    4: shape/warp s: env warp / 5: lfo FM / env FM / 6: lfo Ring / env Ring / 7: lfo onda / lfo warp / 8: lfo mix / env mix»):
+      * OSC 2's page: K1 TUNE 2 (ratio), K2 FINE 2, K3 WAVE 2, K4 SHAPE 2, K5 FM, K6 RING, K7 BITSYNC (sync + the bitwise zones), K8 MIX;
+      * OSC 1's page: K1 TUNE / Shift ENVP, K2 FINE / Shift LFOP, K3 WAVE / Shift ENVM, K4 SHAPE / Shift ENVW, K7 LFOM / Shift LFOW; K5 / K6 / K8
+        (both layers) = the LFO / env depths to FM / RING / MIX (oscmod.py; code 0 here: no value of this engine);
+      * FM (code 33) has its centre at 64 (DEFAULTS_V2): right OSC 2 -> OSC 1, left OSC 1 -> OSC 2, the far ends 50 / 50 (vcf21_dsp.use_osc4);
+        its LED = the distance from the centre;
+      * the matrix's destinations keep their order (KNOB_CODES_B_MX: modmx.dests looks a code up where it is now).
+    With the granular engine page 2 is GR_TAB and page 3 the old row, as before."""
+    global OSC4, KNOB_CODES_B, KNOB_CODES_B_MX, KNOB_CODES_C, DEFAULTS_V2
+    assert DUALUI and KNOB_CODES_C_MX and RATIO2
+    OSC4 = True
+    KNOB_CODES_B_MX = KNOB_CODES_B
+    KNOB_CODES_B = (17, 18, 19, 20, 0, 0, 26, 0,  22, 21, 25, 23, 0, 0, 24, 0)
+    KNOB_CODES_C = (27, 28, 29, 30, 33, 34, 32, 31,  0, 0, 0, 0, 0, 0, 0, 0)
+    DEFAULTS_V2 = tuple(DEFAULTS_V2[:6]) + (64,) + tuple(DEFAULTS_V2[7:])
+
+
 RATIO2 = False                                    # SC52.2 (use_ratio2)
 R2_RATIOS = (0.25, 0.5) + tuple(range(1, 32))     # (RATIO2) the FM 8-op's coarse (0.5, 1..31) and the harmonics (0.25, 0.5, 1..16), ascending
 
@@ -3119,11 +3144,15 @@ def arm_code(base, L):
     else:
         tail(2); mulstride(3, 0); a.emit(adds_reg, 3, 3, 2); a.emit(adds_reg, 3, 3, 1)             # r3 = TAIL + STRIDE t + code  (= +1 + STRIDE t + code - 1)
         a.emit(raw, ldrsb_w(0, 3, 0))
+    if OSC4:                                                                      # (SC52.4) FM: the distance from its centre 64
+        a.emit(cmp_imm, 4, 33); a.emit(b_cond, "vl_nfm", "ne"); a.emit(subs_imm8, 0, 64); a.emit(b, "vl_fm")
+        a.label("vl_nfm")
     a.emit(cmp_imm, 4, 13); a.emit(b_cond, "vl_fx" if FXTYPE_N > 4 else "vl_sh", "eq")
     a.emit(cmp_imm, 4, 16); a.emit(b_cond, "vl_ft" if FTYPE_N > 4 else "vl_sh", "eq")
     if OSC and not OSC3: a.emit(cmp_imm, 4, 19); a.emit(b_cond, "vl_sh", "eq")     # WAVE: 4 values like the shapes
     a.emit(movs_imm, 2, 0); movmask(2); a.emit(subs_imm8, 4, 1); a.emit(lsrs_reg, 2, 4); a.emit(movs_imm, 3, 1); a.emit(ands_reg, 2, 3)
     a.emit(cmp_imm, 2, 0); a.emit(b_cond, "vl_uni", "eq")
+    if OSC4: a.label("vl_fm")
     a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vl_bp", "ge"); a.emit(raw, h(0x43C0))                          # mvns r0, r0 : -v - 1
     a.label("vl_bp"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "vl_x", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "vl_x")
     a.label("vl_uni")

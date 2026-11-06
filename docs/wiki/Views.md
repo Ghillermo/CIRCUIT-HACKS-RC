@@ -1,8 +1,8 @@
 # Views
 
-*[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html)*
+*[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [Guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html)*
 
-Every view of the device and what it offers. Each one links to its full chapter in the [guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html).
+Every view of the device and what it offers. Each one links to its full chapter in the [guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html).
 
 ## Setup
 
@@ -15,7 +15,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Program Change channels** *(since RC2)* — listens to and sends program changes on channels of their own.
 - **Record the internal routings** *(since RC2)* — what the MIDI track plays on a synth is recorded into it too.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#setup)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
 
 ### Advanced Setup view
 
@@ -24,7 +24,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **MIDI Thru, Merge and Filter** *(since RC2)* — the Thru jack can merge the incoming MIDI with the unit's own, or filter it.
 - **Velocity curve** *(since RC4)* — K1 makes the pads more sensitive or harder.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#advanced-setup)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup)
 
 ## Stock synths (Synth 1 / 2)
 
@@ -35,7 +35,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Source view** — the synth can process an audio input instead of its noise.
 - **Split keyboard** *(since RC2)* — one synth on top and the other below, each with its scale, octave and velocity; *(since RC2.02)* with any pair of note tracks.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-nota)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-nota)
 
 ### Scales view and custom scale
 
@@ -43,7 +43,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 - **Custom scale** *(since RC2)* — up to 7 notes over the root and a free period (for example, a scale that repeats every 7 semitones). The note tracks' pads, the quantising and random-mutate use it; saved with the project.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#escalas)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#escalas)
 
 ### Synth source view
 
@@ -53,7 +53,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Macro destinations** *(since RC2)* — decide what each macro knob moves (up to 4 destinations a macro, with their range and depth) without Components.
 - **The synth's step-drummer** — sequences the macros by pairs of steps: each knob sets a macro's position on two steps of the pattern.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-fuente)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
 
 ### Synth 1 / 2 Preset view
 
@@ -63,7 +63,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Save the patch** *(since RC2)* — stores the sound as you left it into the pack (the original only saves patches from Components).
 - **Swap and copy** — reorder the pack's patches or take one to another pack.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#synth-preset)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
 
 ## MIDI tracks (MIDI 1 / 2)
 
@@ -76,16 +76,16 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
-- **Jump sequencer** *(Beta 5.12 only)* — the track's notes make another track's pattern jump to the step they indicate.
+- **Jump sequencer** *(Beta 5.28 only)* — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
 ### Own-synth voices: polyphony and the voice limiter
 
-*How to get there:* With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-preset) picks the voice mode *(since RC4)*. With diagrams and every table of engines, knobs, saving and MIDI: [MIDI tracks and voice modes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html). Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.
+*How to get there:* With the MIDI 1 / 2 own synth on, **pad 32** of its [Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset) picks the voice mode *(since RC4)*. With diagrams and every table of engines, knobs, saving and MIDI: [MIDI tracks and voice modes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/voices.html). Here: how many voices each mode and engine gives, how chords sound and what the device does when the DSP is short of time.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-voces)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-voces)
 
 ### Knob pages of the MIDI 1 / 2 engine
 
@@ -97,19 +97,25 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Page 4, sequenceable knobs** — the 8 parameters that can be recorded as automation (*(since RC4)*: with Shift + knob, any of the 33; Record + step = a snapshot of the values).
 - *(since RC4)* **Shift + pad 4, non-sequenceable knobs** — 8 knobs with an assignable destination that are not recorded.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-knobs)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
 
 ### Mod matrix
 
 *How to get there:* *(since RC2.02)* MIDI 1 / 2 with the engine on: Preset view, **pad 6**. The 8 knobs become 8 modulation sources.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-matriz)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-matriz)
 
 ### 4-operator FM
 
 *How to get there:* *(since RC4)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet). **Pad 7** opens its knob page (bright violet on it).
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-fm)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm)
+
+### 8-operator FM
+
+*How to get there:* *(Beta 5.28 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.
+
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 
 ### CC editor of the MIDI macros (pad 25)
 
@@ -117,7 +123,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 - **Control other gear** — pick the CC (or NRPN) number and the range of each knob of the template, and save it there.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-cc)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-cc)
 
 ### Step-drummer view
 
@@ -130,7 +136,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **In real time** — with Record, touching a step records it.
 - **FX sequencer** — with that engine, each pair picks which Master FX slot sounds.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#step-drummer)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#step-drummer)
 
 ### Sample mode and sample picker
 
@@ -139,7 +145,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Pitched drums on a MIDI track** — any pack sample plays at the pitch of each note, like a drum machine with tunable samples.
 - **A different sample per step** — the sample flip changes sample step by step with no other track; it can be recorded live too.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#midi-muestra)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-muestra)
 
 ## Pattern Settings
 
@@ -152,7 +158,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Arpeggiator** *(since RC2)* — the pattern's chords (and the ones you play) sound note by note, in their order and resolution; on the drums, jumping from sample to sample.
 - **Dynamics and random-mutate** (pad 25) — variations so that the pattern does not always sound the same.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#pattern-settings)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings)
 
 ### Micro Step view (note tracks)
 
@@ -162,7 +168,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Gate by holding** *(since RC2)* — when entering notes by hand, how long you hold is how long the note lasts.
 - **Fixed length** *(since RC2)* — every note you enter by hand gets the same length.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#micropasos)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#micropasos)
 
 ### Probability view (note tracks and drums)
 
@@ -173,7 +179,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Dynamics** *(since RC2)* — small changes of velocity and position: a more human pattern.
 - **Random-mutate** *(since RC2)* — notes that jump an octave or to another note of the scale; on the drums, to another sample.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#probabilidad)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#probabilidad)
 
 ## Drums
 
@@ -186,7 +192,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Start over** *(since RC2)* — Clear + the drum's button puts all its knobs back to their defaults.
 - **Stereo pair** *(since RC4)* — Drum 1 + Drum 2 (or 3 + 4) play a stereo sample: the left one drives both, the right one only fine-tunes.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-pista)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista)
 
 ### Drum Preset view
 
@@ -196,7 +202,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Swap and copy samples** — reorder the samples or bring one from another pack.
 - **Sample arpeggio** *(since RC2)* — holding several samples makes the drum jump from one to the next.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-preset)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-preset)
 
 ### Chromatic and scale view of the drums
 
@@ -205,7 +211,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **A drum as a keyboard** — the sample transposed in the project's scale.
 - **Rollers** *(since RC2)* — repeat the drum on the micro steps you hold: rolls and ratchets live, stopped too, and recorded with Record.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#drum-cromatica)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-cromatica)
 
 ## Master FX
 
@@ -219,7 +225,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Slots** — an effect with its settings one touch away; the FX sequencer triggers them.
 - **Per project** *(since RC2)* — each project remembers its Master FX settings.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#master-fx)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
 
 ## FX
 
@@ -232,7 +238,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Master filter resonance** — on Shift + Octave ▲ / ▼, in steps of 16 *(since RC4; before, 1-16 / 17-32)*.
 - **Master filter off / on** — Shift + pad 25, keeping its position *(since RC4)*.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#vista-fx)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#vista-fx)
 
 ## Sidechain
 
@@ -245,7 +251,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Sidechain between drums** — one drum ducks another (the kick ducking the bass, for example).
 - **Triggered by patterns** *(since RC2)* — Synth 1 / 2 or MIDI 1 / 2 as the source: their pattern notes duck another track, not only the drums.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#sidechain)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#sidechain)
 
 ## Scenes and patterns
 
@@ -255,7 +261,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 - **Pattern chains** *(since RC2)* — a pattern plays n times and jumps to another, and the next time to a third: A A A B structures without chaining by hand.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#patterns)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
 
 ### Mixer view and scenes
 
@@ -266,7 +272,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Drop-ins on the bar** *(since RC2)* — Shift + a track pad mutes or unmutes the track right as the next bar starts.
 - **Cue mode** *(since RC2)* — the mix in mono on the left and, on the right, the tracks you want to hear before bringing them in.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#mixer)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
 
 ## Projects and packs
 
@@ -276,7 +282,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 - **Copy projects** *(since RC2)* — duplicates a project into another slot or another pack.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#projects)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#projects)
 
 ### Packs view
 
@@ -285,4 +291,4 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Delete packs** — frees pack slots from the unit.
 - **Protected internal memory** — the mod never writes to the internal pack.
 
-→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html#packs)
+→ [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#packs)

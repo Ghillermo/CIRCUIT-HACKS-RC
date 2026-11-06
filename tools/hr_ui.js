@@ -1,6 +1,6 @@
 /* Hacks + Remix (tools/make_hr_app.py builds tools/hr_app.html with this and the two apps' data layers, SDT = the Tracks', SDR = the Rhythm's).
    Two panes; each opens a Tracks card (or a Tracks app snapshot: a folder with Tracks/), a Rhythm card (Rhythm/) or a plain folder of files.
-   Samples, patterns and FM patches copy between them; across devices they are adapted (HR.* below, tested by tools/hr_app_test.html). */
+   Samples, patterns and own-synth patches copy between them; across devices they are adapted (HR.* below, tested by tools/hr_app_test.html). */
 (() => {
 "use strict";
 const $ = id => document.getElementById(id);
@@ -71,7 +71,12 @@ const HR = {
 };
 window.HR = HR;
 
-// ---- the Remix FM patches: Patches/NN_PATCHBANK.cpb of the pack, the record of patch n at 4096 + 512 (n & 7) of bank n >> 3 (as Hacks)
+/* ---- the Remix patches: Patches/NN_PATCHBANK.cpb of the pack, slot n in bank n >> 3 in Hacks' own places (the user, 2026-11-06: «Añade la opción
+   a la app para pasar patches VA» -> «Copiar al pack del Rhythm»): the custom patch's padding (CTM1: the engine, its values, the name) at 512 (n & 7)
+   + 340, the 8-operator FM record at 4096 + 512 (n & 7); the first 340 B of a record (the Tracks' Nova patch) stay 0xFF on the Rhythm.  So a Hacks
+   patch of any engine (VA, VA-drum, granular, FM, wavetable ...) goes as it is, and a bank file reads the same on both.  A slot with only the FM
+   record (written before) reads as an FM custom patch. */
+const PSZ = 340;
 const RFM = {
   size: 64,
   async banks(pack) {
@@ -80,28 +85,49 @@ const RFM = {
     if (d) for (const [n, h] of await SDR.entries(d)) { const r = /^(\d+)_PATCHBANK\.cpb$/i.exec(n); if (r && h.kind === "file") m.set(+r[1], {name: n, bytes: await SDR.readHandle(h)}); }
     return pack._fmb = m;
   },
+  /* -> the custom patch (padding + FM record, as SDT.Custom.get), or null */
   async get(pl, n) {
-    const e = (await RFM.banks(pl.pack)).get(n >> 3), o = FM_AT + REC * (n & 7);
-    if (!e || e.bytes.length < o + FM_REC) return null;
-    const r = e.bytes.slice(o, o + FM_REC);
-    return SDT.fm8Get(r) ? r : null;
+    const e = (await RFM.banks(pl.pack)).get(n >> 3), r = REC * (n & 7), b = e ? e.bytes : new Uint8Array(0);
+    const cut = (a, l) => b.subarray(Math.min(a, b.length), Math.min(a + l, b.length));
+    const pad = new Uint8Array(SDT.PADN + FM_REC).fill(0xFF);
+    pad.set(cut(r + PSZ, SDT.PADN)); pad.set(cut(FM_AT + r, FM_REC), SDT.PADN);
+    if (SDT.ctmState(pad.subarray(0, SDT.PADN)) === "ok") return pad;
+    const rec = pad.subarray(SDT.PADN);
+    return SDT.fm8Get(rec) ? HR.customOfFm(rec.slice(), `Remix ${SDR.pad2(n)}`) : null;
   },
-  async list(pl) { const out = []; for (let n = 0; n < RFM.size; n++) { const r = await RFM.get(pl, n); out.push({slot: n, empty: !r, name: r ? algName(SDT.fm8Get(r)) : ""}); } return out; },
-  async put(pl, n, rec, ctx = {}) {
-    const m = await RFM.banks(pl.pack), b = n >> 3, e = m.get(b), o = FM_AT + REC * (n & 7);
+  async list(pl) {
+    const out = [];
+    for (let n = 0; n < RFM.size; n++) { const p = await RFM.get(pl, n); out.push({slot: n, empty: !p, name: p ? SDT.ctmName(p) : "", extra: p ? engineOf(p) : ""}); }
+    return out;
+  },
+  /* pad = a custom patch (padding, then the FM record or nothing); the FM record written when there is one, or when the bank already reaches it */
+  async put(pl, n, pad, ctx = {}) {
+    const m = await RFM.banks(pl.pack), b = n >> 3, e = m.get(b), r = REC * (n & 7);
     const dir = await SDR.subdir(pl.pack.dir, "Patches", true);
     if (e && ctx.backup) await ctx.backup.file([pl.pack.folder, "Patches"], e.name, e.bytes);
-    const old = e ? e.bytes : new Uint8Array(0), out = new Uint8Array(Math.max(old.length, o + FM_REC)).fill(0xFF);
-    out.set(old); out.set(rec || new Uint8Array(FM_REC).fill(0xFF), o);
+    const rec = pad.length > SDT.PADN ? pad.subarray(SDT.PADN, SDT.PADN + FM_REC) : new Uint8Array(0);
+    const old = e ? e.bytes : new Uint8Array(0), withFm = rec.some(x => x !== 0xFF) || old.length > FM_AT + r;
+    const out = new Uint8Array(Math.max(old.length, r + PSZ + SDT.PADN, withFm ? FM_AT + r + FM_REC : 0)).fill(0xFF);
+    out.set(old); out.set(pad.subarray(0, SDT.PADN), r + PSZ);
+    if (withFm) { out.fill(0xFF, FM_AT + r, FM_AT + r + FM_REC); out.set(rec, FM_AT + r); }
     const name = e ? e.name : SDR.pad2(b) + "_PATCHBANK.cpb";
     await SDR.writeFile(dir, name, out); m.set(b, {name, bytes: out});
   },
 };
 const algName = p => { const a = p[200]; return a < 16 ? `FM · ${T("algoritmo", "algorithm")} ${a + 1}` : a < 48 ? `FM · DX7 ${a - 15}` : `FM · 8 op ${a - 47}`; };
+/* a custom patch's engine (the padding's flags, as the Hacks app's engineName; the FM with its algorithm) */
+const ENGINES = {1: ["Entrada de línea", "Line in"], 3: ["VA", "VA"], 7: ["VA-drum", "VA-drum"], 15: ["VA-drum", "VA-drum"], 11: ["Granular", "Granular"],
+                 9: ["Muestra", "Sample"], 5: ["Secuenciador de efectos", "FX sequencer"]};
+function engineOf(pad) {
+  const f = pad[4], k = f & 1 ? f & 15 : 0, fm = SDT.fmGet(pad);
+  if (k === 3 && fm && fm.on) { const x = fm.ver === 3 && pad.length > SDT.PADN ? SDT.fm8Get(pad.subarray(SDT.PADN)) : null; return x ? algName(x) : "FM"; }
+  if (k === 3 && pad[150] === 0xB7 && pad[151] === 1) return "Wavetable";
+  return ENGINES[k] ? T(ENGINES[k][0], ENGINES[k][1]) : T("Apagado", "Off");
+}
 window.RFM = RFM;
 
 // ================================================================ the panes
-const TABS = [["samples", "Samples", "Samples"], ["patterns", "Patrones", "Patterns"], ["fm", "Parches FM", "FM patches"]];
+const TABS = [["samples", "Samples", "Samples"], ["patterns", "Patrones", "Patterns"], ["fm", "Parches", "Patches"]];
 const state = {tab: "samples", busy: false, backup: null};
 const panes = [0, 1].map(i => ({i, el: $("pane" + i), kind: null, card: null, dir: null, packSlot: null, sess: null, items: [], sel: new Set()}));
 panes[0].other = panes[1]; panes[1].other = panes[0];
@@ -167,7 +193,9 @@ async function loadItems(p) {
     return (await core(p).Patterns.list({pack: pl.pack, sess: p.sess})).map(x => Object.assign(x, {name: `${TN[x.slot >> 3]} · ${(x.slot & 7) + 1}`, extra: x.empty ? "" : `${x.notes} ${T("notas", "notes")}${x.lanes ? `, ${x.lanes} ${T("carriles", "lanes")}` : ""}`}));
   }
   if (p.kind === "rhythm") return RFM.list(pl);
-  return (await SDT.Custom.list(pl)).map(x => Object.assign(x, {empty: x.empty || !(x.fm && x.fm.ver === 3 && x.fm.on && x.fm8), name: x.name || "", extra: x.fm8 ? algName(x.fm8) : ""}));
+  const L = await SDT.Custom.list(pl);
+  for (const x of L) if (!x.empty && !x.bad) x.extra = engineOf(await SDT.Custom.get(pl, x.slot));
+  return L.map(x => Object.assign(x, {empty: x.empty || x.bad, name: x.name || ""}));
 }
 async function getItem(p, n) {                              // -> {kind, name, bytes / pad / rec}
   const tab = state.tab, it = p.items[n];
@@ -180,7 +208,7 @@ async function getItem(p, n) {                              // -> {kind, name, b
   const pl = place(p);
   if (tab === "samples") return (p.kind === "rhythm" ? SDR.Samples : SDT.Drums).get(pl, n);
   if (tab === "patterns") return {name: it.name, bytes: await core(p).Patterns.get({pack: pl.pack, sess: p.sess}, n), from: p.kind, slot: n};
-  if (p.kind === "rhythm") { const r = await RFM.get(pl, n); return r ? {name: `Remix ${SDR.pad2(n)}`, rec: r} : null; }
+  if (p.kind === "rhythm") { const pad = await RFM.get(pl, n); return pad ? {name: SDT.ctmName(pad) || `Remix ${SDR.pad2(n)}`, pad, rec: HR.fmOfCustom(pad)} : null; }
   const pad = await SDT.Custom.get(pl, n); return pad ? {name: SDT.ctmName(pad) || `Hacks ${SDT.pad2(n)}`, pad, rec: HR.fmOfCustom(pad)} : null;
 }
 async function putItem(q, n, x, ctx) {                       // into pane q's slot n (a folder: a new file)
@@ -201,9 +229,9 @@ async function putItem(q, n, x, ctx) {                       // into pane q's sl
     if (data.length !== base.length) throw new Error(T("tamaño de patrón distinto", "pattern size differs"));
     await P.putRaw(ql, n, data); await P.flush(ql, ctx); return;
   }
-  if (q.kind === "rhythm") { if (!x.rec) throw new Error(T(`${x.name}: no es un parche FM de 8 operadores (el Rhythm no tiene los otros motores)`, `${x.name}: not an 8-operator FM patch (the Rhythm has no other engines)`)); return RFM.put(pl, n, x.rec, ctx); }
-  const pad = x.pad && SDT.ctmState(x.pad.subarray(0, SDT.PADN)) === "ok" ? x.pad : HR.customOfFm(x.rec, x.name);
-  if (!pad) throw new Error(T(`${x.name}: sin datos de FM`, `${x.name}: no FM data`));
+  const pad = x.pad && SDT.ctmState(x.pad.subarray(0, SDT.PADN)) === "ok" ? x.pad : x.rec ? HR.customOfFm(x.rec, x.name) : null;
+  if (!pad) throw new Error(T(`${x.name}: no es un parche`, `${x.name}: not a patch`));
+  if (q.kind === "rhythm") return RFM.put(pl, n, pad, ctx);
   return SDT.Custom.put(pl, n, pad, ctx);
 }
 
@@ -249,7 +277,8 @@ function hintOf(p) {
   const q = p.other;
   if (!p.kind || !q.kind || p.kind === q.kind || p.kind === "folder" || q.kind === "folder") return "";
   return state.tab === "patterns" ? T("Tracks → Rhythm: la nota más grave de cada paso; Rhythm → Tracks: una nota por paso", "Tracks → Rhythm: each step's lowest note; Rhythm → Tracks: one note a step")
-       : state.tab === "fm" ? T("solo el FM de 8 operadores", "8-operator FM only") : T("los WAV tal cual", "the WAVs as they are");
+       : state.tab === "fm" ? T("el parche entero, tal cual: motor (VA, granular, FM…), valores y nombre", "the whole patch as it is: engine (VA, granular, FM…), values and name")
+       : T("los WAV tal cual", "the WAVs as they are");
 }
 async function render(p) {
   p.el.innerHTML = paneHtml(p);
@@ -262,7 +291,7 @@ async function render(p) {
 }
 async function renderAll() {
   document.documentElement.lang = LANG;
-  $("sub").textContent = T("Hacks (Circuit Tracks) y Remix (Circuit Rhythm): samples, patrones y parches FM entre los dos, y carpetas", "Hacks (Circuit Tracks) and Remix (Circuit Rhythm): samples, patterns and FM patches between them, and folders");
+  $("sub").textContent = T("Hacks (Circuit Tracks) y Remix (Circuit Rhythm): samples, patrones y parches entre los dos, y carpetas", "Hacks (Circuit Tracks) and Remix (Circuit Rhythm): samples, patterns and patches between them, and folders");
   $("tabs").innerHTML = TABS.map(t => `<button type="button" data-tab="${t[0]}" class="${t[0] === state.tab ? "on" : ""}">${esc(T(t[1], t[2]))}</button>`).join("");
   for (const b of document.querySelectorAll(".lang button")) b.classList.toggle("on", b.dataset.lang === LANG);
   $("bBackup").textContent = state.backup ? T("Copias: ", "Backups: ") + state.backup.dir.name : T("Copias de seguridad…", "Backups…");

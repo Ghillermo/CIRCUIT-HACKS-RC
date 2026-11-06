@@ -1071,3 +1071,10 @@ run python3 tools/emu_osc2pg2.py firmware/b5.25/circuittracks-4486-B5.25.bin fir
 run python3 tools/emu_ratio2_dsp.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json firmware/b5.24/circuittracks-4486-B5.24.bin firmware/b5.24/manifest.json
 run python3 tools/emu_wtui.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --smpcyc
 run python3 tools/emu_p4ovl.py firmware/b5.25/circuittracks-4486-B5.25.bin firmware/b5.25/manifest.json --top
+run python3 tools/emu_wtui.py firmware/b5.26/circuittracks-4486-B5.26.bin firmware/b5.26/manifest.json
+run python3 tools/emu_loopcarry.py firmware/b5.26/circuittracks-4486-B5.26.bin firmware/b5.26/manifest.json
+run python3 tools/emu_osc4.py firmware/b5.27/circuittracks-4486-B5.27.bin firmware/b5.27/manifest.json
+run python3 tools/emu_osc4_dsp.py firmware/b5.27/circuittracks-4486-B5.27.bin firmware/b5.27/manifest.json firmware/b5.26/circuittracks-4486-B5.26.bin firmware/b5.26/manifest.json
+run python3 tools/emu_wtui.py firmware/b5.27/circuittracks-4486-B5.27.bin firmware/b5.27/manifest.json
+run python3 tools/emu_blep2_dsp.py firmware/b5.28/circuittracks-4486-B5.28.bin firmware/b5.28/manifest.json firmware/b5.27/circuittracks-4486-B5.27.bin firmware/b5.27/manifest.json
+run python3 tools/emu_blep2_dsp.py firmware/r408/circuittracks-4486-R408.bin firmware/r408/manifest.json firmware/r407/circuittracks-4486-R407.bin firmware/r407/manifest.json

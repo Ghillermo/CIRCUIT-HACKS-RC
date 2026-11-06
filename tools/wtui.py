@@ -49,6 +49,7 @@ ROWPAD, OSCPAD = 20, 18                   # pad 21 (the wavetable), pad 19 (the 
 DSPW, DSPR = 0x080292F8, 0x08029344       # (core, value << 8, address) / (core, address) -> the word << 8
 REC_AT, REC_N, REC_SIG = 150, 13, 0xB7    # the padding's record
 PJ_SIG, PJ_PAT = 0xCA, 5                  # the project's block: MIDI 2's pattern 5 + t
+PJ_N = REC_N                              # bytes of the padding the project's block carries (oscmod: + its 8, SC52.4)
 PJ_AREA = PS.AREA + 8 * PS.PSIZE + PS.SET + PS.BYTE0     # MIDI 2's pattern 0, settings + 8, in the record
 RET = h(0x4770)
 POP_LR = h(0xBC08) + h(0x469E)            # pop {r3}; mov lr, r3
@@ -72,6 +73,25 @@ def use_smpcyc():
     sample's pitch, 18 levels), the same job / seq as a Nova frame's."""
     global SMPCYC
     SMPCYC = True
+
+
+V3 = False                                        # SC52.3 (use_v3)
+WAVE1 = 19                                        # vcf21's code of OSC 1's position (K7)
+
+
+def use_v3():
+    """SC52.3 / Beta 5.26 (the user, 2026-11-05, on the device: «Seleccionar el modo WT (sand) pone el pad 27 Green en vez de su color. Desde aquí,
+    no están disponibles los selectores de tablas», «7 … no tiene pre-escucha. 8 no hace nada», «¿cómo reasigno una onda a una tabla? ¿Cómo
+    importo un sample a una tabla?»; chosen: «El cuadro de K7», «Nota mientras se pulsa»):
+      * pad 27 sand (bright / dim as the oscillator's green it replaces) while the wavetable plays;
+      * with the engine row open and the wavetable playing, pads 7 / 8 are the lists' keys too: held, the list covers the row; let go, the row;
+      * the frame = the one OSC 1's position (K7, code 19, 0..126) points at: k = round(position x (frames - 1) / 126);
+      * pad 8 held + a sample = that sample's cycle replaces frame k (an empty table: the first frame); before, a tap added at the end, and the
+        pre-filled table was always full, so pad 8 never did anything;
+      * pad 7 held + Shift + a Nova table = only frame k, from that table's frame k; without Shift the whole table as before;
+      * every tap on a list = the tonic sounds until the pad is let go (psave's audition, as FM's lists; with Shift too)."""
+    global V3
+    V3 = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -178,11 +198,35 @@ def arm_code(base, L, prev):
     a.label("tk_tr")
     E(raw, h(0xE8BD) + h(0x5FFF)); E(b_w, prev["svc"])                                   # pop.w {r0-r12, lr}; the chain
 
+    if V3:
+        # ---- c_wtfk(r0 = track, r1 = the block) -> r0 = the frame K7 points at (0 with no frames); clobbers r1-r3
+        a.label("c_wtfk")
+        E(push_list, [4, 5], lr=True); E(ldrb_imm, 5, 1, T_N); E(cmp_imm, 5, 1); E(b_cond, "fk_0", "ls")
+        E(movs_imm, 1, WAVE1); E(bl, L["c_vvaddr"]); E(ldrb_imm, 0, 0, 0); E(lsls_imm, 0, 0, 25); E(lsrs_imm, 0, 0, 25)   # 0..127
+        E(cmp_imm, 0, 126); E(b_cond, "fk_c", "ls"); E(movs_imm, 0, 126)
+        a.label("fk_c"); E(subs_imm8, 5, 1); E(muls, 0, 5); E(movw, 1, 520); E(muls, 0, 1); E(movw, 1, 32760); E(adds_reg, 0, 0, 1); E(lsrs_imm, 0, 0, 16)
+        E(cmp_reg, 0, 5); E(b_cond, "fk_x", "ls"); E(mov_reg, 0, 5)
+        a.label("fk_x"); E(pop_list, [4, 5], pc=True)
+        a.label("fk_0"); E(movs_imm, 0, 0); E(pop_list, [4, 5], pc=True)
+        # ---- c_wtaud(r0 = track): the tonic while the pad is held (psave's audition: its state, ended by any release or button)
+        a.label("c_wtaud")
+        E(push_list, [4, 5], lr=True); E(mov_reg, 4, 0)
+        E(bl, L["c_psaoff"]); E(mov_reg, 0, 4); E(bl, L["c_sdtonic"]); E(mov_reg, 5, 0)
+        E(bl, L["c_psst"]); E(cmp_imm, 0, 0); E(b_cond, "wa_x", "eq")
+        E(movs_imm, 1, 0x80); E(raw, h(0x4329)); E(strb_imm, 1, 0, 6); E(strb_imm, 4, 0, 7)            # orrs r1, r5
+        E(mov_reg, 0, 4); E(movs_imm, 1, 1); E(movs_imm, 2, 100); E(mov_reg, 3, 5); E(bl, L["c_sdio"])
+        a.label("wa_x"); E(pop_list, [4, 5], pc=True)
+
     # ---- c_wtpad (slot 0 of the template view: view, pad, velocity)
     a.label("c_wtpad")
     E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True); E(mov_reg, 5, 1)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("wp_p", "hi"); E(mov_reg, 4, 0)            # r4 = the track
     E(bl, "c_wttb"); E(mov_reg, 6, 0)                                                    # r6 = its block
+    if V3:                                                                               # playing: pads 7 / 8 and the lists over the row too
+        E(mov_reg, 0, 4); E(bl, "c_wtact"); E(cmp_imm, 0, 0); E(b_cond, "wp_v3", "eq")
+        E(cmp_imm, 5, 6); bc("wp_x", "eq"); E(cmp_imm, 5, 7); bc("wp_x", "eq")
+        held(0, 6); bc("wp_ls", "ne"); held(0, 7); bc("wp_ls", "ne")
+        a.label("wp_v3")
     imm32(1, MS.RAM); E(ldrb_imm, 1, 1, 0)
     E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(cmp_reg, 0, 1); E(b_cond, "wp_nr", "ne")
     def fmoff(lab_):                                                                     # (ROWFIX) FM off (the track r4) -> to lab_
@@ -207,14 +251,29 @@ def arm_code(base, L, prev):
     a.label("wp_nr")                                                                     # the row closed: the lists while playing
     E(mov_reg, 0, 4); E(bl, "c_wtact"); E(cmp_imm, 0, 0); bc("wp_p", "eq")
     E(cmp_imm, 5, 6); E(b_cond, "wp_x", "eq"); E(cmp_imm, 5, 7); E(b_cond, "wp_x", "eq")  # pads 7 / 8: held keys
+    if V3: a.label("wp_ls")
     held(0, 6); bc("wp_n7", "eq")
     E(cmp_imm, 5, 8); bc("wp_x", "lo"); E(cmp_imm, 5, 23); bc("wp_x", "hi")
-    E(mov_reg, 0, 6); E(subs_imm8, 5, 8); E(mov_reg, 1, 5); E(bl, "c_wtfill"); E(b, "wp_x")   # a Nova table
+    if V3:                                                                               # Shift: frame k only, from that table's frame k
+        E(subs_imm8, 5, 8)
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "wp_nf", "eq")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_wtfk"); E(mov_reg, 7, 0)            # r7 = k
+        E(movs_imm, 1, NF); E(muls, 5, 1); E(adds_reg, 5, 5, 7)                          # the code = table x 9 + k
+        E(ldrb_imm, 1, 6, T_N); E(cmp_imm, 1, 0); E(b_cond, "wp_nk", "ne"); E(movs_imm, 1, 1); E(strb_imm, 1, 6, T_N)   # an empty table: one frame
+        a.label("wp_nk"); E(adds_reg, 3, 6, 7); E(strb_imm, 5, 3, T_F); E(b, "wp_au")
+        a.label("wp_nf"); E(mov_reg, 0, 6); E(mov_reg, 1, 5); E(bl, "c_wtfill")             # the whole table
+        a.label("wp_au"); E(mov_reg, 0, 4); E(bl, "c_wtaud"); E(b, "wp_x")
+    else:
+        E(mov_reg, 0, 6); E(subs_imm8, 5, 8); E(mov_reg, 1, 5); E(bl, "c_wtfill"); E(b, "wp_x")   # a Nova table
     a.label("wp_n7")
     held(0, 7); bc("wp_p", "eq")
     E(cmp_imm, 5, 8); bc("wp_x", "lo")
     E(subs_imm8, 5, 8); imm32(0, WTR); E(ldrb_imm, 0, 0, 6); E(movs_imm, 1, 24); E(muls, 0, 1); E(adds_reg, 5, 5, 0); E(adds_imm8, 5, 144)   # the code
     E(cmp_imm, 5, 144 + 63); bc("wp_x", "hi")                                          # (samples 0..63)
+    if V3:                                                                               # it replaces frame k (an empty table: the first)
+        E(ldrb_imm, 1, 6, T_N); E(cmp_imm, 1, 0); E(b_cond, "wp_sk", "ne"); E(movs_imm, 1, 1); E(strb_imm, 1, 6, T_N)
+        a.label("wp_sk"); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_wtfk"); E(adds_reg, 3, 6, 0); E(strb_imm, 5, 3, T_F)
+        E(mov_reg, 0, 4); E(bl, "c_wtaud"); E(b, "wp_x")
     E(ldrb_imm, 1, 6, T_N); E(movs_imm, 2, 0)                                           # in the table?  out
     a.label("wp_sl"); E(cmp_reg, 2, 1); E(b_cond, "wp_sa", "hs"); E(adds_reg, 3, 6, 2); E(ldrb_imm, 0, 3, T_F); E(cmp_reg, 0, 5); E(b_cond, "wp_so", "eq")
     E(adds_imm8, 2, 1); E(b, "wp_sl")
@@ -232,15 +291,25 @@ def arm_code(base, L, prev):
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("wl_x", "hi"); E(mov_reg, 4, 0)
     E(bl, "c_wttb"); E(mov_reg, 6, 0)
     E(mov_reg, 0, 4); E(bl, "c_wtact"); E(mov_reg, 7, 0)                                  # r7 = playing
+    if V3:                                                                                # pad 27: the oscillator's green -> sand
+        E(cmp_imm, 7, 0); E(b_cond, "wl_27", "eq"); E(movs_imm, 2, 2 * MS.PAD); E(raw, h(0x5AA9))   # ldrh r1, [r5, r2]
+        E(lsls_imm, 0, 1, 24); E(lsrs_imm, 0, 0, 24); E(lsrs_imm, 3, 1, 8); E(lsls_imm, 3, 3, 8)       # r0 = colour, r3 = brightness
+        E(cmp_imm, 0, MS.COLS[2][0]); E(b_cond, "wl_2b", "ne"); E(movs_imm, 0, COL[0]); E(b, "wl_2w")
+        a.label("wl_2b"); E(cmp_imm, 0, MS.COLS[2][1]); E(b_cond, "wl_27", "ne"); E(movs_imm, 0, COL[1])
+        a.label("wl_2w"); E(raw, h(0x4318)); E(strh_reg, 0, 5, 2)                                       # orrs r0, r3
+        a.label("wl_27")
     imm32(1, MS.RAM); E(ldrb_imm, 1, 1, 0); E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(cmp_reg, 0, 1); E(b_cond, "wl_nr", "ne")
     if ROWFIX: fmoff("wl_nh")                                                             # (FM's lists over the row: only with FM on)
     held(0, 6); bc("wl_x", "ne"); held(0, 7); bc("wl_x", "ne")                            # (FM's lists over the row)
     if ROWFIX: a.label("wl_nh")
     E(movs_imm, 0, COL[1]); E(cmp_imm, 7, 0); E(b_cond, "wl_rd", "eq"); E(movs_imm, 0, COL[0])
     E(movs_imm, 1, MS.COLS[2][1]); E(movs_imm, 2, 2 * OSCPAD); E(strh_reg, 1, 5, 2)     # the oscillator's pad dim
-    a.label("wl_rd"); E(movs_imm, 2, 2 * ROWPAD); E(strh_reg, 0, 5, 2); E(b, "wl_x")
+    a.label("wl_rd"); E(movs_imm, 2, 2 * ROWPAD); E(strh_reg, 0, 5, 2)
+    if V3: E(cmp_imm, 7, 0); bc("wl_78", "ne")                                             # playing: pads 7 / 8 and the lists over the row
+    E(b, "wl_x")
     a.label("wl_nr")
     E(cmp_imm, 7, 0); bc("wl_x", "eq")
+    if V3: a.label("wl_78")
     for pd in (6, 7):                                                                     # pads 7 / 8: sand, bright while held
         E(movs_imm, 1, COL[1]); held(0, pd); E(b_cond, f"wl_h{pd}", "eq"); E(movs_imm, 1, COL[0])
         a.label(f"wl_h{pd}"); E(movs_imm, 2, 2 * pd); E(strh_reg, 1, 5, 2)
@@ -325,7 +394,7 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, PJ_SIG); E(strb_imm, 1, 0, 0); E(strb_imm, 4, 0, 1)
     imm32(1, PS.IMG0 + REC_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
     a.label("sv_c"); E(ldrb_reg, 3, 1, 2)
-    E(adds_reg, 6, 0, 2); E(strb_imm, 3, 6, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, REC_N); E(b_cond, "sv_c", "lo")
+    E(adds_reg, 6, 0, 2); E(strb_imm, 3, 6, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "sv_c", "lo")
     E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "sv_t", "lo")
     a.label("sv_n"); E(raw, h(0xE8BD) + h(0x40FF)); E(b_w, prev["save"])
 
@@ -339,8 +408,8 @@ def arm_code(base, L, prev):
     a.label("ld_t"); E(mov_reg, 0, 4); E(bl, "c_wtblk"); E(cmp_imm, 0, 0); E(b_cond, "ld_n", "eq")
     imm32(1, PS.IMG0 + REC_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
     E(ldrb_imm, 3, 0, 0); E(cmp_imm, 3, PJ_SIG); E(b_cond, "ld_z", "ne"); E(ldrb_imm, 3, 0, 1); E(cmp_reg, 3, 4); E(b_cond, "ld_z", "ne")
-    a.label("ld_c"); E(adds_reg, 6, 0, 2); E(ldrb_imm, 3, 6, 2); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, REC_N); E(b_cond, "ld_c", "lo"); E(b, "ld_e")
-    a.label("ld_z"); E(movs_imm, 3, 0); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, REC_N); E(b_cond, "ld_z", "lo")   # none: the wavetable off
+    a.label("ld_c"); E(adds_reg, 6, 0, 2); E(ldrb_imm, 3, 6, 2); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_c", "lo"); E(b, "ld_e")
+    a.label("ld_z"); E(movs_imm, 3, 0); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_z", "lo")   # none: the wavetable off
     a.label("ld_e"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "ld_t", "lo")
     a.label("ld_n"); E(raw, h(0xE8BD) + h(0x40FF)); E(b_w, prev["led"])
     return a.assemble()
@@ -355,6 +424,9 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = dict(c_mpon=lab("mpatch", "c_mpon"), c_mpr=lab("mpatch", "c_mpr"), c_msmode=lab("modesel", "c_msmode"), c_fmblk=lab("fm8", "c_fmblk"))
+    if V3:
+        L.update(c_shift=lab("sc15", "c_shift"), c_psaoff=lab("psave", "c_psaoff"), c_psst=lab("psave", "c_psst"),
+                 c_sdtonic=lab("vcf20", "c_sdtonic"), c_sdio=lab("vcf20", "c_sdio"), c_vvaddr=lab("vcf20", "c_vvaddr"))
     TP = MP.TMPL_VT
     mpsave, mpload = lab("mpatch", "c_mpsave"), lab("mpatch", "c_mpload")
     gath, appl = lab("vmode", "c_vmgath"), lab("vmode", "c_vmappl")

@@ -1,84 +1,205 @@
 # Funciones
 
-*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Features) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)*
+*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Features) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html)*
 
-Cada función en una línea, por temas. Cada una enlaza con su entrada ilustrada; la [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html) las explica vista por vista.
+Cada función en una línea, por temas. Cada una enlaza con su entrada ilustrada; la [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html) las explica vista por vista.
 
 ## Accesos directos y usabilidad
 
-- **[Mapa de atajos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a1-atajos)** — Todos los atajos del mod en un dibujo del aparato: botones dobles, Shift + botón, Clear + knob y los pads especiales de cada vista.
-- **[Master FX en el botón Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a2-master-fx-acceso)** — Desde el Mixer, **Mixer otra vez** abre Master FX; cualquier otro botón de vista sale.
-- **[Teclas de la vista FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a3-vista-fx)** — **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay. **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (desde RC4; antes, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (desde RC4).
-- **[Clear + knob = valor por defecto](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a4-clear-knob)** — Mantén **Clear** y gira un knob a la derecha: vuelve a su valor por defecto. En drums (LED azul), a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en **Master FX**.
-- **[Apagar efectos fijados (pad 8 de Master FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a5-pad8)** — **Pad 8** apaga todo lo fijado con Shift (efectos y song pointer) y hace bypass de los FX; tocar un efecto fijado lo suelta.
-- **[Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a6-fuente-sinte)** — Con Synth 1 / 2 en pantalla, **pulsa su botón otra vez**: pads 25-29 eligen la fuente (ruido, entradas, invertidas), pad 30 = step-drummer.
-- **[Vista cromática y de escala de los drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a7-cromatica)** — **Shift + Preset** con un drum: los pads tocan el sample en la escala; K1 = sesgo de tono, Shift + K1 = cents; vista Note: pads 25-28 = drums 4-1.
-- **[Gestión del pack desde el aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a8-pack)** — **Save** también guarda en la tarjeta los samples sustituidos por capturas. **Duplicate + pad A + pad B** (Preset de drums) intercambia dos samples; entre packs **copia** samples y patches de sinte; **Clear**, el pack, **Clear** (vista de packs) borra un pack.
-- **[Sustituir un drum por la captura](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a9-sustituir)** — Vista Preset de drums: **Clear + pad dos veces** = ese sample pasa a ser la captura (hasta guardar o recargar).
-- **[Editor de CC de los macros MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a10-editor-cc)** — Vista Preset de MIDI 1 / 2, **pad 25**: mueve un knob y cambia su CC / NRPN desde el aparato; pad 26 = guardar.
-- **[Mixer: Shift + knob = nivel a 100 / 0](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a11-mixer-shift)** — Vista Mixer: **Shift + girar un knob a la derecha** pone el nivel de esa pista a **100**; **a la izquierda**, a **0**.
-- **[Modo cue, mutes al compás y cuantizar (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a12-mixer-cue)** — **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
-- **[LFO a tempo (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a13-lfo-sync)** — **Desde RC4.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
-- **[Teclado partido Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a14-teclado-partido)** — **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
-- **[Patches de sinte por modo de voz](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a15-colores-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
-- **[Patches del sinte propio (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a16-patches-midi)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
-- **[Guardar el patch del sinte en el pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a17-guardar-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
-- **[Destinos de los macro knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a18-destinos-macro)** — **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
-- **[Copiar proyectos a otro hueco o a otro pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a19-copiar-proyectos)** — **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
-- **[Patches del sinte propio a otro pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a20-patches-entre-packs)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
-- **[Shift = destello de cada nota (solo Beta 5.12)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a21-luces-disparo)** — Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.
-- **[Shift + Preset = el sonido del proyecto (solo Beta 5.12)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#a22-proyecto-init)** — Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.
+- **[Mapa de atajos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a1-atajos)** — Todos los atajos del mod en un dibujo del aparato: botones dobles, Shift + botón, Clear + knob y los pads especiales de cada vista.
+
+  <img src="img/feat-atajos-1-es.svg" width="640" alt="Mapa de atajos: los números remiten a la tabla.">
+
+  *Mapa de atajos: los números remiten a la tabla.*
+
+- **[Master FX en el botón Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a2-master-fx-acceso)** — Desde el Mixer, **Mixer otra vez** abre Master FX; cualquier otro botón de vista sale.
+
+  <img src="img/feat-master-fx-acceso-1-es.svg" width="640" alt="Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 gesto mecánico, 32 grabar.">
+
+  *Master FX: pads 1-6 efectos, 7 sample, 8 apagar todo, 9-24 song pointer, fila inferior asignable, 31 gesto mecánico, 32 grabar.*
+
+- **[Teclas de la vista FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a3-vista-fx)** — **Octave ▲ / ▼** = envíos de delay / reverb; **Shift + knob** = parámetros de reverb y delay. **Duplicate** = reset (envíos a 0, filtro master al centro, Master FX apagado); **Shift + Octave ▲ / ▼** = resonancia del filtro master ±16 (desde RC4; antes, **1-16 / 17-32**); **Shift + pad 25** = filtro master apagado / encendido (desde RC4).
+
+  <img src="img/feat-vista-fx-1-es.svg" width="640" alt="Vista FX: Octave elige delay / reverb; la fila inferior es la de Master FX.">
+
+  *Vista FX: Octave elige delay / reverb; la fila inferior es la de Master FX.*
+
+- **[Clear + knob = valor por defecto](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a4-clear-knob)** — Mantén **Clear** y gira un knob a la derecha: vuelve a su valor por defecto. En drums (LED azul), a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en **Master FX**.
+- **[Apagar efectos fijados (pad 8 de Master FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a5-pad8)** — **Pad 8** apaga todo lo fijado con Shift (efectos y song pointer) y hace bypass de los FX; tocar un efecto fijado lo suelta.
+- **[Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a6-fuente-sinte)** — Con Synth 1 / 2 en pantalla, **pulsa su botón otra vez**: pads 25-29 eligen la fuente (ruido, entradas, invertidas), pad 30 = step-drummer.
+
+  <img src="img/feat-fuente-sinte-1-es.svg" width="640" alt="Vista de la fuente del sinte (Synth 1 / 2 pulsado dos veces).">
+
+  *Vista de la fuente del sinte (Synth 1 / 2 pulsado dos veces).*
+
+- **[Vista cromática y de escala de los drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a7-cromatica)** — **Shift + Preset** con un drum: los pads tocan el sample en la escala; K1 = sesgo de tono, Shift + K1 = cents; vista Note: pads 25-28 = drums 4-1.
+- **[Gestión del pack desde el aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a8-pack)** — **Save** también guarda en la tarjeta los samples sustituidos por capturas. **Duplicate + pad A + pad B** (Preset de drums) intercambia dos samples; entre packs **copia** samples y patches de sinte; **Clear**, el pack, **Clear** (vista de packs) borra un pack.
+
+  <img src="img/feat-pack-1-es.svg" width="640" alt="Vista Preset de drums: Duplicate + A + B intercambia los samples.">
+
+  *Vista Preset de drums: Duplicate + A + B intercambia los samples.*
+
+  <img src="img/feat-pack-2-es.svg" width="640" alt="Vista Preset de Synth 1: Duplicate + A copia el patch (azul); en otro pack, el de A parpadea en amarillo y Duplicate + B lo copia ahí.">
+
+  *Vista Preset de Synth 1: Duplicate + A copia el patch (azul); en otro pack, el de A parpadea en amarillo y Duplicate + B lo copia ahí.*
+
+- **[Sustituir un drum por la captura](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a9-sustituir)** — Vista Preset de drums: **Clear + pad dos veces** = ese sample pasa a ser la captura (hasta guardar o recargar).
+- **[Editor de CC de los macros MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a10-editor-cc)** — Vista Preset de MIDI 1 / 2, **pad 25**: mueve un knob y cambia su CC / NRPN desde el aparato; pad 26 = guardar.
+- **[Mixer: Shift + knob = nivel a 100 / 0](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a11-mixer-shift)** — Vista Mixer: **Shift + girar un knob a la derecha** pone el nivel de esa pista a **100**; **a la izquierda**, a **0**.
+
+  <img src="img/feat-mixer-shift-1-es.svg" width="640" alt="Mixer: Shift + knob a la derecha = nivel 100, a la izquierda = 0.">
+
+  *Mixer: Shift + knob a la derecha = nivel 100, a la izquierda = 0.*
+
+- **[Modo cue, mutes al compás y cuantizar (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a12-mixer-cue)** — **Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida.
+- **[LFO a tempo (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a13-lfo-sync)** — **Desde RC4.** Los knobs de velocidad de LFO son bipolares: derecha = LFO libre, izquierda = a tempo con el ciclo en el primer tiempo del compás.
+- **[Teclado partido Synth 1 + Synth 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a14-teclado-partido)** — **Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2.
+
+  <img src="img/feat-teclado-partido-1-es.svg" width="640" alt="Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.">
+
+  *Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.*
+
+- **[Patches de sinte por modo de voz](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a15-colores-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**.
+
+  <img src="img/feat-colores-patch-1-es.svg" width="640" alt="Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.">
+
+  *Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.*
+
+- **[Patches del sinte propio (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a16-patches-midi)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
+
+  <img src="img/feat-patches-midi-1-es.svg" width="640" alt="Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.">
+
+  *Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.*
+
+- **[Guardar el patch del sinte en el pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a17-guardar-patch)** — **Desde RC2.** En la vista Preset de Synth 1 / 2: **Clear + pad** pregunta (parpadea en blanco) y **Clear + el mismo pad otra vez** guarda en ese hueco el patch tal como suena.
+
+  <img src="img/feat-guardar-patch-1-es.svg" width="640" alt="Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.">
+
+  *Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.*
+
+- **[Destinos de los macro knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a18-destinos-macro)** — **Desde RC2.** En la vista de la fuente del sinte (A6) el **pad 32** abre el editor: un knob elige su macro, **Octave ▼ / ▲** pasa de campo y los pads dibujan el número.
+
+  <img src="img/feat-destinos-macro-1-es.svg" width="640" alt="Vista de la fuente con el editor de macros: pad 32 encendido, el knob elegido en blanco.">
+
+  *Vista de la fuente con el editor de macros: pad 32 encendido, el knob elegido en blanco.*
+
+- **[Copiar proyectos a otro hueco o a otro pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a19-copiar-proyectos)** — **Desde RC2.** En la vista Projects: **Duplicate + pad A** elige el proyecto (parpadea en amarillo) y **Duplicate + pad B** lo copia a ese hueco, del mismo pack o de otro.
+
+  <img src="img/feat-copiar-proyectos-1-es.svg" width="640" alt="Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.">
+
+  *Vista Projects: Duplicate + A = fuente (amarillo, parpadea), Duplicate + B = copia.*
+
+- **[Patches del sinte propio a otro pack](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a20-patches-entre-packs)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
+- **[Shift = destello de cada nota (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a21-luces-disparo)** — Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.
+- **[Shift + Preset = el sonido del proyecto (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a22-proyecto-init)** — Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.
 
 ## Controles expuestos
 
-- **[Knobs de los drums según el panel](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b1-knobs-drums)** — Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.12), tilt), LFO, start point, bitcrush y distorsión.
-- **[Parámetros de reverb y delay](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b2-rev-delay)** — Vista FX, **Shift + knob**: reverb (tipo, decay, damping) y delay (time, sync, feedback, width, ratio, slew); se guardan con el proyecto.
-- **[Sidechain y compresor master con los knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b3-sidechain-comp)** — **Desde RC2.** En la vista Sidechain (**Shift + FX**): **K1-K4** = ataque, hold, decay y profundidad del sidechain de la pista elegida; **K7 / K8** = ataque y release del compresor master.
-- **[Grabar los ruteos internos de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b4-grabar-interno)** — **Desde RC2.** En la vista Setup, **Record** decide si lo que una pista MIDI manda a un sinte interno por el canal compartido se graba también en ese sinte: **amarillo = sí**, apagado = no (por defecto).
-- **[MIDI para todo lo nuevo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b5-midi-io)** — Los valores nuevos salen y entran por MIDI: CC / NRPN del motor de las pistas MIDI, NRPN de los drums (MSB 5-8) y de Master FX (MSB 9, canal 16).
-- **[Automatización del motor MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b6-automatizacion)** — Con Record + Play, los 8 valores de la página 4 del motor MIDI se graban en los carriles de macros del patrón.
-- **[Setup y MIDI del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b7-setup)** — Canal 16 Rx / Tx (pad 16), canales compartidos, **loopback interno** sin cable y **retornos de reverb / delay por las tiras 3 / 4** (pads 22 / 23, en crema / melocotón como la reverb y el delay de la vista FX). **Desde RC2:** MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, **Merge** (DIN In + el MIDI del aparato) y **Filter** (DIN In sin los canales en escucha). **Desde RC2:** canales de **Program Change** propios: pad 29 / 30 enseñan y eligen el canal de escucha / salida (16 por defecto); lo recibido se reenvía por el de salida. **Desde RC2:** **metrónomo con cuenta atrás**: Shift + Clear recorre sin metrónomo, metrónomo, solo cuenta atrás y las dos; la cuenta atrás es un compás antes de grabar. **Desde RC4:** **modo General MIDI de los drums**: en Setup, K4 lo enciende; K5-K8 = la nota GM de Drum 1-4 (35-81), que sale por el canal de drums en lugar de 60 / 62 / 64 / 65.
-- **[Patch flip en MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#b8-patch-flip)** — Pad 26 de la vista Preset de MIDI: cada nota se envía como Program Change (excluyente con el motor de la pista).
+- **[Knobs de los drums según el panel](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b1-knobs-drums)** — Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.28), tilt), LFO, start point, bitcrush y distorsión.
+
+  <img src="img/feat-knobs-drums-1-es.svg" width="640" alt="Knobs de un drum.">
+
+  *Knobs de un drum.*
+
+- **[Parámetros de reverb y delay](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b2-rev-delay)** — Vista FX, **Shift + knob**: reverb (tipo, decay, damping) y delay (time, sync, feedback, width, ratio, slew); se guardan con el proyecto.
+- **[Sidechain y compresor master con los knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b3-sidechain-comp)** — **Desde RC2.** En la vista Sidechain (**Shift + FX**): **K1-K4** = ataque, hold, decay y profundidad del sidechain de la pista elegida; **K7 / K8** = ataque y release del compresor master.
+- **[Grabar los ruteos internos de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b4-grabar-interno)** — **Desde RC2.** En la vista Setup, **Record** decide si lo que una pista MIDI manda a un sinte interno por el canal compartido se graba también en ese sinte: **amarillo = sí**, apagado = no (por defecto).
+- **[MIDI para todo lo nuevo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b5-midi-io)** — Los valores nuevos salen y entran por MIDI: CC / NRPN del motor de las pistas MIDI, NRPN de los drums (MSB 5-8) y de Master FX (MSB 9, canal 16).
+- **[Automatización del motor MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b6-automatizacion)** — Con Record + Play, los 8 valores de la página 4 del motor MIDI se graban en los carriles de macros del patrón.
+- **[Setup y MIDI del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b7-setup)** — Canal 16 Rx / Tx (pad 16), canales compartidos, **loopback interno** sin cable y **retornos de reverb / delay por las tiras 3 / 4** (pads 22 / 23, en crema / melocotón como la reverb y el delay de la vista FX). **Desde RC2:** MIDI Thru con cuatro modos (Duplicate en Advanced Setup): Thru, Out 2, **Merge** (DIN In + el MIDI del aparato) y **Filter** (DIN In sin los canales en escucha). **Desde RC2:** canales de **Program Change** propios: pad 29 / 30 enseñan y eligen el canal de escucha / salida (16 por defecto); lo recibido se reenvía por el de salida. **Desde RC2:** **metrónomo con cuenta atrás**: Shift + Clear recorre sin metrónomo, metrónomo, solo cuenta atrás y las dos; la cuenta atrás es un compás antes de grabar. **Desde RC4:** **modo General MIDI de los drums**: en Setup, K4 lo enciende; K5-K8 = la nota GM de Drum 1-4 (35-81), que sale por el canal de drums en lugar de 60 / 62 / 64 / 65.
+
+  <img src="img/feat-setup-1-es.svg" width="640" alt="Setup: pad 22 = retorno de reverb por la tira 3 (crema), pad 23 = retorno de delay por la tira 4 (melocotón).">
+
+  *Setup: pad 22 = retorno de reverb por la tira 3 (crema), pad 23 = retorno de delay por la tira 4 (melocotón).*
+
+- **[Patch flip en MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#b8-patch-flip)** — Pad 26 de la vista Preset de MIDI: cada nota se envía como Program Change (excluyente con el motor de la pista).
 
 ## Nuevos modos de control
 
-- **[Motor de las pistas MIDI (pad 27)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c1-motor-midi)** — **Desde RC2.08:** un teclado externo por el canal de MIDI 1 / 2 (USB o DIN) toca su sinte propio; sus notas no se reenvían a la salida MIDI. El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → **línea** → **oscilador** → **VA-drum** → **granular** → **muestra** (desde RC2) → **secuenciador de efectos**. Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). **Desde RC2:** Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).
-- **[Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c2-step-drummer)** — Secuenciación por **pares de pasos** sobre el patrón: pads 1-16 pasos, 17-24 destino / macro, los 8 knobs = los 8 pares (pitch u velocity). MIDI: vista Preset, pad 30. Sintes: vista de la fuente, pad 30. Grabando, los pasos tocados se graban en tiempo real.
-- **[Secuenciador de efectos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c3-fx-seq)** — Estado **azul** del pad 27: el step-drummer de la pista elige, en cada par de pasos, **un hueco de la fila inferior de Master FX** (0 = nada); suena en los pasos con nota. El knob avanza despacio (**un hueco cada ~48 pasos de giro**) y se ilumina con el **color del efecto** elegido. **Un hueco sin efecto asignado no hace nada:** asigna antes los efectos a la fila inferior de Master FX (ver «Fila inferior asignable»). **Desde RC2:** al final del recorrido está el valor **random** (LED blanco): en cada paso con nota suena uno de la lista al azar (los huecos con efecto asignado y el gesto mecánico del pad 31).
-- **[Song pointer (Master FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c4-song-pointer)** — Pads 9-24 = pasos 1-16: un paso mantenido = retrigger; dos pasos = frase momentánea; Shift + dos = frase fijada. **Modo frase:** Shift + paso = inicio (fin 16); un toque = el fin; Shift + otro paso = nuevo inicio; Shift + el inicio o el pad 9 blanco = salir.
-- **[Sample capturado](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c5-sample)** — **Pad 32** (rojo) graba la salida; **pad 7** (amarillo) la toca: K1 pitch, K2 modo (one-shot / gate / loop por color), K3 start, K4 end. El sample se asigna a la fila inferior (pad 7 + pad de abajo) y puede sustituir a un drum (A9).
-- **[Glitch (pad 6) y su asignación](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c6-glitch-pad)** — **Mantén el pad 6** (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba). **Pad 6 mantenido + un pad de la fila inferior** = ese hueco también es un Glitch, con su copia de K1-K4.
-- **[Fila inferior asignable (Master FX / FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c7-fila-inferior)** — Mantén un efecto de arriba (o el pad 7, o el pad 31) y toca un pad de abajo: ese hueco guarda el efecto con una copia de sus parámetros. Se guarda con el proyecto.
-- **[Random-mutate por paso](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c8-random-mutate)** — **Desde RC2.** En la vista de probabilidad, en modo 2 (**pad 25** de Pattern Settings), la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.
-- **[Frecuencia y dinámicas por paso](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c9-frecuencia-dinamicas)** — **Desde RC2.** En la vista de probabilidad de las pistas de notas: **fila 4 = cada cuántas vueltas del patrón suena el paso** (1-8). Con el **pad 25 de Pattern Settings**: fila 3 = **dinámicas** aleatorias (velocity, posición y duración), fila 4 = random-mutate.
-- **[Cadenas de patrones y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c10-cadenas)** — **Desde RC2.** Cada patrón puede llevar una regla «suena n veces, luego salta a B; la vez siguiente, a C». **Shift + Octave ▲ / ▼** en la vista Patterns activa / desactiva el **modo cadena** de todo el proyecto; cada escena recuerda el modo con que se guardó.
-- **[Nudge y órdenes de reproducción](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c11-nudge-ordenes)** — **Desde RC2.** En la vista Pattern Settings: **pad 26 = Nudge** (mueve el contenido de los pasos elegidos), **pad 27 = orden fractal**, **pad 28 = orden deconstruido**. En todas las pistas, drums incluidos.
-- **[Arpegiador (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c12-arpegiador)** — **Desde RC2.** En la vista Pattern Settings de una pista de notas: **Shift + pad 25** = arpegiador del patrón encendido / apagado, **Shift + pads 27-32** = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), independiente de la dirección del patrón.
-- **[Rollers de micropasos de los drums (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c13-rollers)** — **Desde RC2.** Filas 1-3 de la vista Note de los drums: mantener un roller hace sonar su drum en cada paso en ese micropaso (dos columnas por drum, micropasos 1-3 y 4-6), en directo; con el transporte parado, al tempo del proyecto.
-- **[Escala propia (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c14-escala-propia)** — **Desde RC2.** **Shift + Scales** = editor de una escala propia para las pistas de notas: hasta 7 notas sobre la tónica y un **periodo** cualquiera (hasta 24 semitonos) que es la tónica de la siguiente iteración; cada fila de pads es una iteración (dos con 4 notas o menos). Se guarda con el proyecto.
-- **[Pantalla de acordes (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c15-acordes)** — **Desde RC4.** En la **Note ampliada** de Synth 1 / 2 y MIDI 1 / 2, **Shift + pad 8** abre la pantalla de acordes: fila 1 el tipo, fila 2 la inversión y los modificadores, filas 3-4 las fundamentales; cada fundamental toca su acorde mientras se mantiene.
-- **[Parejas estéreo de drums (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c16-pareja-estereo)** — **Desde RC4.** **Mantén Drum 1 y pulsa Drum 2** (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.
-- **[Carril extra de los drums (solo Beta 5.12)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c17-carril-extra)** — **Solo Beta 5.12.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
-- **[Modo muestra de las pistas MIDI (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c18-modo-muestra)** — **Desde RC2.** Un estado nuevo del pad 27 (verde azulado, tras el granular): la pista MIDI toca **un sample del pack de un golpe**, a la altura de la nota (**C3 = nota 60 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero. La **vista Note ampliada** (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; **paso mantenido + sample** = sample flip de ese paso, también en vivo con Record.
-- **[Matriz de modulación del sinte propio (desde RC2.02)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c19-matriz-mod)** — **Desde RC2.02.** Con el motor de MIDI 1 / 2 encendido, el **pad 6** de su vista Preset es una página de knobs nueva: **K1-K8 = ocho fuentes** (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos). La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
-- **[Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.12)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c20-saltos)** — Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.
-- **[FM de 4 operadores (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c21-fm4)** — **Desde RC4.** Una variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (un toque al pad 27), violeta; sus knobs en el **pad 7**. **K1-K4** = ratio de los operadores 1-4 (con **desafinación fina** en los clics de cada ratio), **K5-K8** = su nivel; **Shift + K1-K4** = a la derecha su ataque, a la izquierda el operador **percusivo** con su propio decay; **Shift + K5** = el **algoritmo** (16; también **manteniendo el pad 7**: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), **Shift + K6** feedback, **Shift + K7** ruido, **Shift + K8** release (más largo con más velocity).
-- **[Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#c22-master-fx-beta)** — **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
+- **[Motor de las pistas MIDI (pad 27)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c1-motor-midi)** — **Desde RC2.08:** un teclado externo por el canal de MIDI 1 / 2 (USB o DIN) toca su sinte propio; sus notas no se reenvían a la salida MIDI. El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → **línea** → **oscilador** → **VA-drum** → **granular** → **muestra** (desde RC2) → **secuenciador de efectos**. Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). **Desde RC2:** Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14).
+
+  <img src="img/feat-motor-midi-1-es.svg" width="640" alt="Vista Preset de MIDI 1 con el oscilador (pad 27 verde): fila de páginas y pads del motor; el pad 28 solo se ve con oscilador o VA-drum.">
+
+  *Vista Preset de MIDI 1 con el oscilador (pad 27 verde): fila de páginas y pads del motor; el pad 28 solo se ve con oscilador o VA-drum.*
+
+- **[Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c2-step-drummer)** — Secuenciación por **pares de pasos** sobre el patrón: pads 1-16 pasos, 17-24 destino / macro, los 8 knobs = los 8 pares (pitch u velocity). MIDI: vista Preset, pad 30. Sintes: vista de la fuente, pad 30. Grabando, los pasos tocados se graban en tiempo real.
+
+  <img src="img/feat-step-drummer-1-es.svg" width="640" alt="Vista del step-drummer (MIDI 1).">
+
+  *Vista del step-drummer (MIDI 1).*
+
+- **[Secuenciador de efectos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c3-fx-seq)** — Estado **azul** del pad 27: el step-drummer de la pista elige, en cada par de pasos, **un hueco de la fila inferior de Master FX** (0 = nada); suena en los pasos con nota. El knob avanza despacio (**un hueco cada ~48 pasos de giro**) y se ilumina con el **color del efecto** elegido. **Un hueco sin efecto asignado no hace nada:** asigna antes los efectos a la fila inferior de Master FX (ver «Fila inferior asignable»). **Desde RC2:** al final del recorrido está el valor **random** (LED blanco): en cada paso con nota suena uno de la lista al azar (los huecos con efecto asignado y el gesto mecánico del pad 31).
+
+  <img src="img/feat-fx-seq-1-es.svg" width="640" alt="Secuenciador de efectos: cada knob = el hueco de la fila inferior de Master FX para su par de pasos.">
+
+  *Secuenciador de efectos: cada knob = el hueco de la fila inferior de Master FX para su par de pasos.*
+
+- **[Song pointer (Master FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c4-song-pointer)** — Pads 9-24 = pasos 1-16: un paso mantenido = retrigger; dos pasos = frase momentánea; Shift + dos = frase fijada. **Modo frase:** Shift + paso = inicio (fin 16); un toque = el fin; Shift + otro paso = nuevo inicio; Shift + el inicio o el pad 9 blanco = salir.
+
+  <img src="img/feat-song-pointer-1-es.svg" width="640" alt="Song pointer: frase entre los pasos 3 y 10.">
+
+  *Song pointer: frase entre los pasos 3 y 10.*
+
+- **[Sample capturado](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c5-sample)** — **Pad 32** (rojo) graba la salida; **pad 7** (amarillo) la toca: K1 pitch, K2 modo (one-shot / gate / loop por color), K3 start, K4 end. El sample se asigna a la fila inferior (pad 7 + pad de abajo) y puede sustituir a un drum (A9).
+
+  <img src="img/feat-sample-1-es.svg" width="640" alt="Sample capturado.">
+
+  *Sample capturado.*
+
+- **[Glitch (pad 6) y su asignación](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c6-glitch-pad)** — **Mantén el pad 6** (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba). **Pad 6 mantenido + un pad de la fila inferior** = ese hueco también es un Glitch, con su copia de K1-K4.
+
+  <img src="img/feat-glitch-pad-1-es.svg" width="640" alt="Glitch: pad 6; asignado también al pad 28.">
+
+  *Glitch: pad 6; asignado también al pad 28.*
+
+- **[Fila inferior asignable (Master FX / FX)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c7-fila-inferior)** — Mantén un efecto de arriba (o el pad 7, o el pad 31) y toca un pad de abajo: ese hueco guarda el efecto con una copia de sus parámetros. Se guarda con el proyecto.
+- **[Random-mutate por paso](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c8-random-mutate)** — **Desde RC2.** En la vista de probabilidad, en modo 2 (**pad 25** de Pattern Settings), la fila 4 da a cada paso una probabilidad de que sus notas salten de octava o cambien a otra nota de la escala al sonar.
+
+  <img src="img/feat-random-mutate-1-es.svg" width="640" alt="Vista de probabilidad: fila 3 = probabilidad del paso (original), fila 4 = random-mutate.">
+
+  *Vista de probabilidad: fila 3 = probabilidad del paso (original), fila 4 = random-mutate.*
+
+- **[Frecuencia y dinámicas por paso](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c9-frecuencia-dinamicas)** — **Desde RC2.** En la vista de probabilidad de las pistas de notas: **fila 4 = cada cuántas vueltas del patrón suena el paso** (1-8). Con el **pad 25 de Pattern Settings**: fila 3 = **dinámicas** aleatorias (velocity, posición y duración), fila 4 = random-mutate.
+- **[Cadenas de patrones y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c10-cadenas)** — **Desde RC2.** Cada patrón puede llevar una regla «suena n veces, luego salta a B; la vez siguiente, a C». **Shift + Octave ▲ / ▼** en la vista Patterns activa / desactiva el **modo cadena** de todo el proyecto; cada escena recuerda el modo con que se guardó.
+- **[Nudge y órdenes de reproducción](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c11-nudge-ordenes)** — **Desde RC2.** En la vista Pattern Settings: **pad 26 = Nudge** (mueve el contenido de los pasos elegidos), **pad 27 = orden fractal**, **pad 28 = orden deconstruido**. En todas las pistas, drums incluidos.
+- **[Arpegiador (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c12-arpegiador)** — **Desde RC2.** En la vista Pattern Settings de una pista de notas: **Shift + pad 25** = arpegiador del patrón encendido / apagado, **Shift + pads 27-32** = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), independiente de la dirección del patrón.
+- **[Rollers de micropasos de los drums (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c13-rollers)** — **Desde RC2.** Filas 1-3 de la vista Note de los drums: mantener un roller hace sonar su drum en cada paso en ese micropaso (dos columnas por drum, micropasos 1-3 y 4-6), en directo; con el transporte parado, al tempo del proyecto.
+- **[Escala propia (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c14-escala-propia)** — **Desde RC2.** **Shift + Scales** = editor de una escala propia para las pistas de notas: hasta 7 notas sobre la tónica y un **periodo** cualquiera (hasta 24 semitonos) que es la tónica de la siguiente iteración; cada fila de pads es una iteración (dos con 4 notas o menos). Se guarda con el proyecto.
+- **[Pantalla de acordes (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c15-acordes)** — **Desde RC4.** En la **Note ampliada** de Synth 1 / 2 y MIDI 1 / 2, **Shift + pad 8** abre la pantalla de acordes: fila 1 el tipo, fila 2 la inversión y los modificadores, filas 3-4 las fundamentales; cada fundamental toca su acorde mientras se mantiene.
+- **[Parejas estéreo de drums (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c16-pareja-estereo)** — **Desde RC4.** **Mantén Drum 1 y pulsa Drum 2** (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.
+- **[Carril extra de los drums (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c17-carril-extra)** — **Solo Beta 5.28.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
+- **[Modo muestra de las pistas MIDI (desde RC2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c18-modo-muestra)** — **Desde RC2.** Un estado nuevo del pad 27 (verde azulado, tras el granular): la pista MIDI toca **un sample del pack de un golpe**, a la altura de la nota (**C3 = nota 60 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero. La **vista Note ampliada** (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; **paso mantenido + sample** = sample flip de ese paso, también en vivo con Record.
+
+  <img src="img/feat-modo-muestra-1-es.svg" width="640" alt="Vista Note ampliada de MIDI 1 en modo muestra: pasos arriba, samples abajo.">
+
+  *Vista Note ampliada de MIDI 1 en modo muestra: pasos arriba, samples abajo.*
+
+- **[Matriz de modulación del sinte propio (desde RC2.02)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c19-matriz-mod)** — **Desde RC2.02.** Con el motor de MIDI 1 / 2 encendido, el **pad 6** de su vista Preset es una página de knobs nueva: **K1-K8 = ocho fuentes** (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos). La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
+- **[Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c20-saltos)** — Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.
+- **[FM de 4 operadores (desde RC4)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c21-fm4)** — **Desde RC4.** Una variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (un toque al pad 27), violeta; sus knobs en el **pad 7**. **K1-K4** = ratio de los operadores 1-4 (con **desafinación fina** en los clics de cada ratio), **K5-K8** = su nivel; **Shift + K1-K4** = a la derecha su ataque, a la izquierda el operador **percusivo** con su propio decay; **Shift + K5** = el **algoritmo** (16; también **manteniendo el pad 7**: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), **Shift + K6** feedback, **Shift + K7** ruido, **Shift + K8** release (más largo con más velocity).
+- **[FM de 8 operadores (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c22-fm8)** — **Solo Beta 5.28.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido. Página FM = **pad 7** (con la fila de motores cerrada): **pads 9-16** = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), **pad 3** = la envolvente de pitch (violeta). **K1** ratio (0,5 … 31 o fijo en Hz), **K2** fino, **K3** nivel, **K4** velocity, **K5-K8** rates R1-R4; con Shift **K1** algoritmo, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** niveles L1-L4.
+- **[Wavetable (solo Beta 5.28)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c23-wavetable)** — **Solo Beta 5.28.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual. **Una tabla por patch, de hasta 9 cuadros**, para los dos osciladores; cada uno con su **posición**: **K3** de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. **SHAPE** (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = **warp**, una doblez de la fase.
+- **[Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#c24-master-fx-beta)** — **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
 
 ## DSP
 
-- **[Efectos de Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d1-efectos-grid)** — Gater, Auto-Filter LP / HP, Digitise, Phaser y Glitch sobre la salida master, con 4 parámetros cada uno.
-- **[VCA-VCF de las pistas MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d2-vca-vcf)** — Filtros DJ / LP / HP 12 y 24 dB / paso banda / notch, efectos (saturación, plegado, wavefold, ring, comb, chorus), VCA con ADSR y LFO.
-- **[Osciladores y parafonía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d3-osciladores)** — Morph continuo seno → triángulo → sierra → cuadrada, wavefold / pendiente / ancho, segundo oscilador con FM, ring, sync suave y modos bit a bit; dos notas parafónicas.
-- **[Motor VA-drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d4-va-drum)** — Oscilador pensado para percusión: VCA de un disparo, envolventes de decay propias para pitch (knob Sustain) y filtro (knob Release), ruido blanco y valores aleatorios en lugar del LFO.
-- **[Sinte granular](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d5-granular)** — Hasta **16 granos por pista** desde cualquier sample del pack o la captura, con interpolación y ventana. K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, desde RC2), LFO → tamaño, fuente.
-- **[Motor del Glitch](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d6-glitch-dsp)** — Una cabeza de cinta sobre un búfer circular estéreo del master (2,7 s): velocidad variable, repeticiones con fundidos, caos.
-- **[DSP de los drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d7-drums-dsp)** — Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.12) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
-- **[Entradas de audio y retornos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#d8-entradas)** — Entrada de línea (normal o invertida) como fuente de los sintes; retornos de reverb / delay por las tiras 3 / 4 con realimentación.
+- **[Efectos de Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d1-efectos-grid)** — Gater, Auto-Filter LP / HP, Digitise, Phaser y Glitch sobre la salida master, con 4 parámetros cada uno.
+- **[VCA-VCF de las pistas MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d2-vca-vcf)** — Filtros DJ / LP / HP 12 y 24 dB / paso banda / notch, efectos (saturación, plegado, wavefold, ring, comb, chorus), VCA con ADSR y LFO.
+- **[Osciladores y parafonía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d3-osciladores)** — Morph continuo seno → triángulo → sierra → cuadrada, wavefold / pendiente / ancho, segundo oscilador con FM, ring, sync suave y modos bit a bit; dos notas parafónicas.
+- **[Motor VA-drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d4-va-drum)** — Oscilador pensado para percusión: VCA de un disparo, envolventes de decay propias para pitch (knob Sustain) y filtro (knob Release), ruido blanco y valores aleatorios en lugar del LFO.
+- **[Sinte granular](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d5-granular)** — Hasta **16 granos por pista** desde cualquier sample del pack o la captura, con interpolación y ventana. K1 tono, K2 posición, K3 scan / freeze, K4 tamaño, K5 densidad, K6 zona, K7 LFO → posición, K8 envolvente → posición; Shift: fino, dispersiones, reverso, ventana, slicer (o stretch, desde RC2), LFO → tamaño, fuente.
+
+  <img src="img/feat-granular-1-es.svg" width="640" alt="Página del granular (pad 2, motor magenta).">
+
+  *Página del granular (pad 2, motor magenta).*
+
+- **[Motor del Glitch](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d6-glitch-dsp)** — Una cabeza de cinta sobre un búfer circular estéreo del master (2,7 s): velocidad variable, repeticiones con fundidos, caos.
+- **[DSP de los drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d7-drums-dsp)** — Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.28) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
+- **[Entradas de audio y retornos](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#d8-entradas)** — Entrada de línea (normal o invertida) como fuente de los sintes; retornos de reverb / delay por las tiras 3 / 4 con realimentación.
 
 ## Miscelánea
 
-- **[Qué se guarda y dónde](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#e1-guardado)** — Patrón, proyecto, pack y ajustes del aparato: qué va en cada sitio, cómo asegurarte de que se guarda y qué se pierde al apagar, en el capítulo «Datos» de la guía por vistas.
-- **[El pack de la memoria interna: solo lectura](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#e2-pack-interno)** — Nada del mod escribe ni borra en el pack de la memoria interna del Circuit (el primero de la vista de packs). Se puede leer de él y copiar desde él a un pack de la tarjeta, pero no al revés.
-- **[Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#e3-instalar)** — `rc_uploader.html` parchea en el navegador el firmware oficial de Novation y lo envía por Web MIDI; solo acepta el firmware oficial 1.2.1. Recuperación: Scales + Preset + Note al encender.
-- **[Tablas MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html#e5-tablas-midi)** — Motor MIDI: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 4:x; drums NRPN 5-8:1-12; Master FX NRPN 9:0-19 (canal 16).
+- **[Qué se guarda y dónde](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#e1-guardado)** — Patrón, proyecto, pack y ajustes del aparato: qué va en cada sitio, cómo asegurarte de que se guarda y qué se pierde al apagar, en el capítulo «Datos» de la guía por vistas.
+- **[El pack de la memoria interna: solo lectura](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#e2-pack-interno)** — Nada del mod escribe ni borra en el pack de la memoria interna del Circuit (el primero de la vista de packs). Se puede leer de él y copiar desde él a un pack de la tarjeta, pero no al revés.
+- **[Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#e3-instalar)** — `rc_uploader.html` parchea en el navegador el firmware oficial de Novation y lo envía por Web MIDI; solo acepta el firmware oficial 1.2.1. Recuperación: Scales + Preset + Note al encender.
+- **[Tablas MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#e5-tablas-midi)** — Motor MIDI: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 4:x; drums NRPN 5-8:1-12; Master FX NRPN 9:0-19 (canal 16).

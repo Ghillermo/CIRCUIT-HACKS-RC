@@ -1,6 +1,6 @@
 # Usabilidad
 
-*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)*
+*[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html)*
 
 Las convenciones que hacen el mod previsible, los atajos que valen en todas las vistas y las ayudas para tocar y grabar.
 
@@ -14,8 +14,8 @@ Cada capítulo es una vista del aparato: cómo se llega, qué hace cada pad, kno
 - *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - *(desde RC2.02)* = nuevo en RC2.02 (no está en RC2.01).
 - *(desde RC4)* = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.07 y en la Beta 5.12; en RC4.02 y antes no).
-- *(solo Beta 5.12)* = solo en la **Beta 5.12** (no está en RC4.07).
+- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.08 y en la Beta 5.28; en RC4.02 y antes no).
+- *(solo Beta 5.28)* = solo en la **Beta 5.28** (no está en RC4.08).
 - La **lista de características** (el manual anterior) resume cada función en una línea, por temas.
 
 ## Botones que funcionan en todas las vistas
@@ -26,15 +26,15 @@ Shift, Clear, Duplicate, Save y Octave ganan funciones según la vista; aquí, l
 |---|---|---|
 | **Clear + knob a la derecha** | drums, motor de las pistas MIDI, Master FX | El knob vuelve a su valor por defecto (las dos capas, con y sin Shift). LED **lavanda** = hecho, como en el original. |
 | **Clear + knob a la izquierda** | drums (knobs de stock), motor de las pistas MIDI *(desde RC2)* | Borra la automatización de ese knob en el patrón que suena, como el original (LED **rojo**). En el motor MIDI, la de los dos carriles del knob (con y sin Shift) que tengan automatización. |
-| **Shift** | todas | Con Shift pulsado, los atajos disponibles se iluminan en **amarillo**; la opción elegida, en otro color. *(solo Beta 5.12)* Además, los ocho **botones de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en **blanco** durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI. Una nota ligada es una sola nota: un destello. |
+| **Shift** | todas | Con Shift pulsado, los atajos disponibles se iluminan en **amarillo**; la opción elegida, en otro color. *(solo Beta 5.28)* Además, los ocho **botones de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en **blanco** durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI. Una nota ligada es una sola nota: un destello. |
 | **Save** | todas | Guarda el proyecto como siempre; además escribe en el pack los samples sustituidos por capturas (Preset de drums) si caben en la memoria de samples *(escribe en la tarjeta)*. |
 | **Pulsar el botón de la pista otra vez** | Synth 1 / 2 | Abre la vista de la fuente del sinte (2.3). |
 | **Clear + Synth 1 / 2** | su vista | *(desde RC2)* Sus ocho macros a los valores del patch cargado. |
-| **Shift + Preset** | vistas de Synth 1 / 2 y de MIDI 1 / 2 (con el sinte propio encendido) | *(solo Beta 5.12)* El sonido de esa pista vuelve al del proyecto: Synth 1 / 2, el patch entero tal como está guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto (sin él, sus valores por defecto). Con Shift, Preset se ilumina en **amarillo** donde funciona. |
+| **Shift + Preset** | vistas de Synth 1 / 2 y de MIDI 1 / 2 (con el sinte propio encendido) | *(solo Beta 5.28)* El sonido de esa pista vuelve al del proyecto: Synth 1 / 2, el patch entero tal como está guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto (sin él, sus valores por defecto). Con Shift, Preset se ilumina en **amarillo** donde funciona. |
 | **Clear + el botón de un drum** | su vista | *(desde RC2)* Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
 | **Dos botones de pista de notas a la vez** | todas | Teclado partido *(desde RC2)*: Synth 1 + Synth 2; *(desde RC2.02)* cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2. |
 | **Shift + Clear** | todas | Metrónomo en cuatro estados *(desde RC2)*: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / verde azulado (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. *(desde RC4)* Con el modo cue del Mixer, el clic solo en el cue (salida derecha). |
-| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto o, como esclavo, al del reloj externo, sin alinearse con su compás; Record parpadea en rojo) y después arranca la grabación *(desde RC2)*. *(solo Beta 5.12)* Con el volumen del clic a 0 (K5 de Tempo / Swing), Clear destella en naranja en cada clic, también con el metrónomo. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
+| **Play** con Record armado y la cuenta atrás | parado | Un compás de cuenta atrás (4 clics al tempo del proyecto o, como esclavo, al del reloj externo, sin alinearse con su compás; Record parpadea en rojo) y después arranca la grabación *(desde RC2)*. *(solo Beta 5.28)* Con el volumen del clic a 0 (K5 de Tempo / Swing), Clear destella en naranja en cada clic, también con el metrónomo. Play durante la cuenta la cancela. La cuenta atrás se guarda con el proyecto. |
 | **Shift + Play** | todas | *(desde RC2)* **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
 | **Shift + Scales** | todas | Editor de la escala propia *(desde RC2)* (2.2). *(desde RC4)*: también **Scales dos veces**. |
 | **Velocity dos veces** *(desde RC4)* | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
@@ -55,7 +55,7 @@ Shift, Clear, Duplicate, Save y Octave ganan funciones según la vista; aquí, l
 - **Vista de la fuente** — el sinte puede procesar una entrada de audio en lugar de su ruido.
 - **Teclado partido** *(desde RC2)* — arriba un sinte y abajo el otro, cada uno con su escala, octava y velocity; *(desde RC2.02)* con cualquier par de pistas de notas.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#synth-nota)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-nota)
 
 ### Vista Scales y escala propia
 
@@ -63,7 +63,7 @@ Shift, Clear, Duplicate, Save y Octave ganan funciones según la vista; aquí, l
 
 - **Escala propia** *(desde RC2)* — hasta 7 notas sobre la tónica y un periodo libre (por ejemplo, una escala que se repite cada 7 semitonos). La usan los pads de las pistas de notas, el cuantizado y el random-mutate; se guarda con el proyecto.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#escalas)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#escalas)
 
 ### Vista Micro Step (pistas de notas)
 
@@ -73,7 +73,11 @@ Shift, Clear, Duplicate, Save y Octave ganan funciones según la vista; aquí, l
 - **Gate por pulsación** *(desde RC2)* — al introducir notas a mano, lo que mantienes es lo que dura la nota.
 - **Longitud fija** *(desde RC2)* — todas las notas que introduces a mano con la misma duración.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#micropasos)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#micropasos)
+
+<img src="img/panel-micro-es.svg" width="640" alt="Micro Step: micropasos y Tie; pad 31 longitud fija, pad 32 gate por pulsación.">
+
+*Micro Step: micropasos y Tie; pad 31 longitud fija, pad 32 gate por pulsación.*
 
 ### Vista Pattern Settings
 
@@ -84,4 +88,12 @@ Shift, Clear, Duplicate, Save y Octave ganan funciones según la vista; aquí, l
 - **Arpegiador** *(desde RC2)* — los acordes del patrón (y los que tocas) suenan nota a nota, con su orden y su resolución; en los drums, saltando de sample.
 - **Dinámicas y random-mutate** (pad 25) — variaciones para que el patrón no suene siempre igual.
 
-→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html#pattern-settings)
+→ [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings)
+
+<img src="img/panel-ps-es.svg" width="640" alt="Pattern Settings: pads 1-16 primer y último paso, 17-24 sync rate, 25 modo 2, 26 Nudge, 27 / 28 órdenes, 29-32 dirección.">
+
+*Pattern Settings: pads 1-16 primer y último paso, 17-24 sync rate, 25 modo 2, 26 Nudge, 27 / 28 órdenes, 29-32 dirección.*
+
+<img src="img/panel-mutate-es.svg" width="640" alt="Random-mutate (modo 2) con un paso elegido: el pad 22, las dinámicas (pad 26) y los micropasos (pad 32) encendidos.">
+
+*Random-mutate (modo 2) con un paso elegido: el pad 22, las dinámicas (pad 26) y los micropasos (pad 32) encendidos.*

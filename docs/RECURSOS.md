@@ -37,6 +37,9 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC52.4 (2026-11-06):** núcleo 0 hasta `P:$3EA6` (104 palabras libres antes de las tablas en `$3F0E`); X del núcleo 0 `$5400-$545F` (`OM_T`, 48 por pista); RAM del ARM `0x2004F480` (`oscmod`, 29 B); `oscmod` (512 B) al final de la imagen (`0x6FFF4`, quedan 12 B); `oscmod.Patch` y `autolane` llenan el primer hueco de `dspz`; relleno de los patches hasta + 170 (`XLEN` 171).
+
+> **SC52.3 (2026-11-05):** `wtui` crece 236 B (`use_v3`): `loopcarry` pasa al segundo hueco de `dspz` (`0x0807560C..0x0807584C`, `build_sc51_1.LC_GAP = 1`); quedan 340 B en el primer hueco y 43 B en el segundo; imagen `0x6FD20`.
 > **SC51.1 (2026-11-03):** `loopcarry` (528 B) en el primer hueco de `dspz` (`0x08064D24..0x08064F34`; quedan 18 249 B en ese hueco); RAM `modmx.MXR + 0x2240..0x2253`.
 > **SC51 (2026-11-03):** `velglob` en el primer hueco de `dspz` (tras `mixsolo2`); RAM `modmx.MXR + 0x2230..0x223B`; ajustes: bytes 2 / 3 del parámetro 6.
 > **SC50.9 (2026-11-03):** `mixsolo` v2 (480 B) en el primer hueco de `dspz` (`0x080648F0..0x08064AD0`; quedan 19 373 B en ese hueco y 2 135 B en el otro); `mutfac` + 2 B en el hueco de `centab` (2 B libres); imagen `0x6FF38`. RAM `modmx.MXR + 0x2220..0x2228`.

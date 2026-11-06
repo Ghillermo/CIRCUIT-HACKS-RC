@@ -10,11 +10,12 @@ import linein3  # noqa: E402
 
 NAME = "SC51.1"
 B = S.B
+LC_GAP = 0                                   # SC52.3: 1 (the second dspz gap: wtui.use_v3 needs the first)
 
 
 def extra(img, report):
     S.extra(img, report)
-    dspz.add(img, report, "loopcarry", loopcarry)
+    dspz.add(img, report, "loopcarry", loopcarry, gap=LC_GAP)
 
 
 if __name__ == "__main__":
