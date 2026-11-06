@@ -142,6 +142,8 @@ def use_songptr():
 
 JUMP = False                          # SC18.1: Master FX pad 7 = jump mode (hold / Shift = sticky): a step pad jumps there at the next step
 S_JF, S_JT = 177, 178                 # Master FX block bytes (unused tail of the 180-byte block): jump flags (bit 0 held, bit 1 sticky), target
+LEFTCOL = False                       # SC52.6: the bipolar knobs' left half in the lighter shade (persist19.use_leftcol's mark), the centre dim
+CMIN = 16
 KNOB_BRIGHT = False                   # SC19.9: the knob LEDs of the Master FX view show the value of their parameter as brightness (the high byte of the LED halfword, see persist19.KNOB_LEVELS)
 JUMP_REPEAT = False                   # SC19.7: while the jump mode is on (pad 7 held / sticky) the target step is repeated at every step boundary (S_JT bit 7 = repeating)
 JUMP_HOLD = False                     # SC19.9: step jump = the touched step plays at the next step and is repeated while ITS pad stays pressed (S_JT: bits 0-4 step, bit 6 pad held, bit 7 jumped once);
@@ -883,8 +885,13 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
             a.emit(movw, 0, on)
             for k in range(nk):
                 if DIGI4 and SETMAP[i] == 2 and k == 3:                        # Digitise K4, bipolar: |K4 - 64| x 2 as the brightness
-                    a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(subs_imm8, 2, 64); a.emit(b_cond, f"gk_b{i}", "ge"); a.emit(raw, h(0x4252))   # rsbs r2, r2, #0
-                    a.label(f"gk_b{i}"); a.emit(lsls_imm, 2, 2, 1); a.emit(cmp_imm, 2, 127); a.emit(b_cond, f"gk_c{i}", "ls"); a.emit(movs_imm, 2, 127)
+                    if LEFTCOL:                                                # (SC52.6) left: the mark 0x82 + |d|; the centre dim
+                        a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(subs_imm8, 2, 64); a.emit(b_cond, f"gk_b{i}", "ge"); a.emit(raw, h(0x4252))
+                        a.emit(adds_imm8, 2, 0x80); a.emit(b, f"gk_c{i}")
+                        a.label(f"gk_b{i}"); a.emit(lsls_imm, 2, 2, 1); a.emit(cmp_imm, 2, CMIN); a.emit(b_cond, f"gk_c{i}", "hs"); a.emit(movs_imm, 2, CMIN)
+                    else:
+                        a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(subs_imm8, 2, 64); a.emit(b_cond, f"gk_b{i}", "ge"); a.emit(raw, h(0x4252))   # rsbs r2, r2, #0
+                        a.label(f"gk_b{i}"); a.emit(lsls_imm, 2, 2, 1); a.emit(cmp_imm, 2, 127); a.emit(b_cond, f"gk_c{i}", "ls"); a.emit(movs_imm, 2, 127)
                     a.label(f"gk_c{i}"); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0); a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
                 elif DIGI4 and not MSWAP and SETMAP[i] == 4 and k == 1:        # the kind of the mechanical gesture: the colour of the stretch, brighter along it
                     a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(movs_imm, 3, 0x7F); a.emit(ands_reg, 2, 3); a.emit(lsls_imm, 2, 2, 2)
@@ -898,7 +905,11 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
                     a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
                 elif KNOB_BRIGHT and LFOSYNC and SETMAP[i] in (1, 3) and k == 0:   # the rates of the Auto-Filter / the Phaser: |2 v - 127|, dim at the centre
                     a.emit(ldrb_w, 2, 4, S_KNOB + 4 * SETMAP[i] + k); a.emit(lsls_imm, 2, 2, 1); a.emit(subs_imm8, 2, 127)
-                    a.emit(b_cond, f"gk_lf{i}", "pl"); a.emit(raw, h(0x4252))                      # rsbs r2, r2, #0
+                    if LEFTCOL:                                                # (SC52.6) left (synced): the mark 0x82 + |x| / 2; the centre dim
+                        a.emit(b_cond, f"gk_lp{i}", "pl"); a.emit(raw, h(0x4252)); a.emit(lsrs_imm, 2, 2, 1); a.emit(adds_imm8, 2, 0x80); a.emit(b, f"gk_lf{i}")
+                        a.label(f"gk_lp{i}"); a.emit(cmp_imm, 2, CMIN); a.emit(b_cond, f"gk_lf{i}", "hs"); a.emit(movs_imm, 2, CMIN)
+                    else:
+                        a.emit(b_cond, f"gk_lf{i}", "pl"); a.emit(raw, h(0x4252))                      # rsbs r2, r2, #0
                     a.label(f"gk_lf{i}"); a.emit(adds_imm8, 2, 2); a.emit(lsls_imm, 2, 2, 8); a.emit(orrs_reg, 2, 0)
                     a.emit(raw, strh_w(2, 6, 2 * (34 + k)))
                 elif KNOB_BRIGHT:                                              # colour | (value + 2) << 8: the converter hook of persist19.KNOB_LEVELS splits it

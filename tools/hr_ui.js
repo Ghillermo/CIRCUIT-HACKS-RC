@@ -128,7 +128,26 @@ window.RFM = RFM;
 
 // ================================================================ the panes
 const TABS = [["samples", "Samples", "Samples"], ["patterns", "Patrones", "Patterns"], ["fm", "Parches", "Patches"]];
-const state = {tab: "samples", busy: false, backup: null};
+const state = {tab: "samples", busy: false, backup: null, view: "both"};
+try { const v = localStorage.getItem("hrapp.view"); if (v === "hacks" || v === "remix") state.view = v; } catch (_) { /* no storage */ }
+
+/* ---- the views: «Entre los dos» (the panes below) or one device's own app whole (its packs, editors, the device over USB, snapshot / restore ...;
+   window.HR_APPS from make_hr_app.py), each in a same-origin frame made the first time it is shown and kept */
+const VIEWS = [["both", "Entre los dos", "Between the two"], ["hacks", "Hacks · Circuit Tracks", "Hacks · Circuit Tracks"], ["remix", "Remix · Circuit Rhythm", "Remix · Circuit Rhythm"]];
+const frames = {};
+function showView() {
+  const app = state.view !== "both";
+  document.body.classList.toggle("appmode", app);
+  const box = $("appview"); box.hidden = !app;
+  for (const [k, f] of Object.entries(frames)) f.hidden = k !== state.view;
+  if (app && !frames[state.view] && window.HR_APPS) {
+    const f = document.createElement("iframe");
+    f.setAttribute("allow", "midi; clipboard-write"); f.title = state.view === "hacks" ? "Hacks" : "Remix";
+    f.srcdoc = window.HR_APPS[state.view]; box.append(f); frames[state.view] = f;
+  }
+  $("views").innerHTML = VIEWS.map(v => `<button type="button" data-view="${v[0]}" class="${v[0] === state.view ? "on" : ""}">${esc(T(v[1], v[2]))}</button>`).join("");
+}
+window.HRFRAMES = frames;
 const panes = [0, 1].map(i => ({i, el: $("pane" + i), kind: null, card: null, dir: null, packSlot: null, sess: null, items: [], sel: new Set()}));
 panes[0].other = panes[1]; panes[1].other = panes[0];
 const core = p => p.kind === "rhythm" ? SDR : SDT;
@@ -291,6 +310,7 @@ async function render(p) {
 }
 async function renderAll() {
   document.documentElement.lang = LANG;
+  showView();
   $("sub").textContent = T("Hacks (Circuit Tracks) y Remix (Circuit Rhythm): samples, patrones y parches entre los dos, y carpetas", "Hacks (Circuit Tracks) and Remix (Circuit Rhythm): samples, patterns and patches between them, and folders");
   $("tabs").innerHTML = TABS.map(t => `<button type="button" data-tab="${t[0]}" class="${t[0] === state.tab ? "on" : ""}">${esc(T(t[1], t[2]))}</button>`).join("");
   for (const b of document.querySelectorAll(".lang button")) b.classList.toggle("on", b.dataset.lang === LANG);
@@ -300,6 +320,12 @@ async function renderAll() {
 }
 
 // ---- events
+$("views").addEventListener("click", e => {
+  const v = e.target.dataset && e.target.dataset.view;
+  if (!v || state.busy || v === state.view) return;
+  state.view = v; try { localStorage.setItem("hrapp.view", v); } catch (_) { /* none */ }
+  if (v === "both") renderAll(); else showView();
+});
 $("tabs").addEventListener("click", e => { const t = e.target.dataset && e.target.dataset.tab; if (t && !state.busy) { state.tab = t; for (const p of panes) p.sel.clear(); renderAll(); } });
 for (const b of document.querySelectorAll(".lang button")) b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem("hrapp.lang", LANG); } catch (_) { /* none */ } renderAll(); };
 $("bBackup").onclick = async () => { let d; try { d = await window.showDirectoryPicker({mode: "readwrite"}); } catch (_) { return; } state.backup = new SDT.Backup(d, d.name); renderAll(); };
@@ -322,6 +348,6 @@ for (const p of panes) {
     else if (w === "sess") { p.sess = +e.target.value; p.sel.clear(); await render(p); }
   });
 }
-window.HRAPP = {state, panes, openPane, renderAll, copyAct, ask: null};
+window.HRAPP = {state, panes, openPane, renderAll, copyAct, showView, ask: null};
 renderAll();
 })();

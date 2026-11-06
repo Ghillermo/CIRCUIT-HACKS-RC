@@ -5,7 +5,11 @@ adapted patterns (root note for Track patterns into mono Rhythm sequences) and s
 
 One page, both data layers inlined as they are in their own apps: the Tracks core of tools/sd_app.html as SDT, the Rhythm core of the RYTHM
 repository's tools/rm_sd_app.html (default ../RYTHM/tools/rm_sd_app.html) as SDR; the page's own part is tools/hr_ui.js.  Rebuild after either
-app's core changes."""
+app's core changes.
+The two device apps whole as well (the user, 2026-11-06: «añade snapshot y las funciones de las apps específicas»): tools/sd_app.html (Hacks: packs,
+Nova synths, drums, custom patches, CC presets, DX7, the device over USB with its snapshot / restore) and the RYTHM repository's tools/rm_app.html
+(Remix: packs, projects, samples, patterns, the device over USB with its snapshot / restore, modules, the firmware installer; make it first with
+RYTHM's tools/make_rm_app.py), as strings opened in a same-origin frame (srcdoc: folders and Web MIDI work there) by the «Hacks» / «Remix» views."""
 from __future__ import annotations
 import re
 import sys
@@ -13,6 +17,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 RM = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE.parent.parent / "RYTHM" / "tools" / "rm_sd_app.html"
+RM_APP = RM.parent / "rm_app.html"
+
+
+def js_string(html):
+    """an HTML page as a JS string literal that can sit in a <script> (no "</" nor "<!--" left)"""
+    import json
+    return json.dumps(html, ensure_ascii=False).replace("</", "<\\/").replace("<!--", "<\\!--").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
 
 
 def core(path, name):
@@ -29,6 +40,7 @@ def main():
     r_js, _ = core(RM, "SDR")
     style = re.search(r"<style>([\s\S]*?)</style>", t_html).group(1)
     ui = (HERE / "hr_ui.js").read_text(encoding="utf-8")
+    a_hacks, a_remix = js_string(t_html), js_string(RM_APP.read_text(encoding="utf-8"))
     page = f"""<!doctype html>
 <html lang="es">
 <head>
@@ -38,6 +50,10 @@ def main():
 <style>{style}
   .kind {{ font-size:.75rem; padding:1px 6px; border-radius:4px; border:1px solid var(--line); color:var(--dim); }}
   .kind.t {{ color:#79c0ff; border-color:#79c0ff; }} .kind.r {{ color:#ffb86b; border-color:#ffb86b; }} .kind.f {{ color:#7ee787; border-color:#7ee787; }}
+  #views {{ display:flex; gap:6px; padding:6px 12px 0; }} #views button.on {{ background:var(--acc, #1f6feb); color:#fff; }}
+  body.appmode {{ display:flex; flex-direction:column; height:100vh; margin:0; overflow:hidden; }}
+  body.appmode #tabs, body.appmode #notice, body.appmode main, body.appmode footer, body.appmode #bBackup, body.appmode #sub, body.appmode header .lang {{ display:none; }}
+  #appview {{ flex:1; min-height:0; }} #appview iframe {{ width:100%; height:100%; border:0; display:block; }}
 </style>
 </head>
 <body>
@@ -49,13 +65,16 @@ def main():
     <div class="lang" role="group" aria-label="Idioma / Language"><button type="button" data-lang="es">Español</button><button type="button" data-lang="en">English</button></div>
   </div>
 </header>
+<nav id="views" role="tablist"></nav>
 <nav id="tabs" role="tablist"></nav>
 <div id="notice"></div>
 <main><section class="pane" id="pane0"></section><section class="pane" id="pane1"></section></main>
 <footer><progress id="prog" hidden></progress><div id="progtxt" hidden></div><div id="log" role="log"></div></footer>
+<div id="appview" hidden></div>
 <dialog id="dlg"></dialog>
 <script id="core-tracks">{t_js}</script>
 <script id="core-rhythm">{r_js}</script>
+<script id="apps">window.HR_APPS = {{hacks: {a_hacks}, remix: {a_remix}}};</script>
 <script id="ui">
 {ui}
 </script>

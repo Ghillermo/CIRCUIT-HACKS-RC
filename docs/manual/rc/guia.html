@@ -100,7 +100,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><em>(desde RC2)</em> = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).</li>
 <li><em>(desde RC2.02)</em> = nuevo en RC2.02 (no está en RC2.01).</li>
 <li><em>(desde RC4)</em> = nuevo en <strong>RC4</strong> (no está en RC2.11 ni en las anteriores).</li>
-<li><em>(desde RC4.05)</em> = arreglo de <strong>RC4.05</strong> (también en RC4.08 y en la Beta 5.28; en RC4.02 y antes no).</li>
+<li><em>(desde RC4.05)</em> = arreglo de <strong>RC4.05</strong> (también en RC4.08 y en la Beta 5.29; en RC4.02 y antes no).</li>
 <li>La <strong>lista de características</strong> (el manual anterior) resume cada función en una línea, por temas.</li>
 </ul>
 </section>
@@ -313,7 +313,6 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td><strong>Scales + Preset + Note</strong> al encender</td><td>—</td><td>Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware.</td></tr>
 </tbody></table>
 <ul>
-<li>Los LEDs de los knobs enseñan con su <strong>brillo</strong> el valor de las funciones nuevas (más brillo = más valor; en los knobs bipolares, oscuro en el centro).</li>
 <li>Los colores animados (que pulsan) no se usan para estados fijos.</li>
 <li><strong>LFO a tempo</strong> <em>(desde RC4)</em>: los knobs de <strong>velocidad de LFO</strong> (K7 de la página VCA-VCF del motor de MIDI 1 / 2, Shift + K4 de la matriz, Shift + K7 de los drums, K1 del Auto-Filter y del Phaser en Master FX) son <strong>bipolares</strong>: al centro, el LED tenue; <strong>a la derecha, LFO libre</strong> (más rápido cuanto más a la derecha); <strong>a la izquierda, a tempo</strong>, del centro hacia fuera 1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4, 1/2T, 1/2, 1 compás T, 1 compás, 2T, 2, 4T, 4, 8T y 8 compases (4 clics cada una), con cada ciclo empezando en el <strong>primer tiempo del compás</strong> (se recoloca en cada tick del secuenciador; parado sigue al tempo). En la matriz, cada forma de Shift + K4 es un tramo con su propio centro. Lo guardado antes con otra velocidad puede sonar distinto.</li>
 </ul>
@@ -1632,7 +1631,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 <h4>Pads</h4>
 <table><thead><tr><th>Pad</th><th>Función</th></tr></thead><tbody>
-<tr><td>1-5</td><td>Página de knobs del motor: 1 VCA-VCF, 2 OSC 1 (granular en ese motor), 3 OSC 2, 4 <strong>knobs secuenciables</strong> (<em>(desde RC4)</em> <strong>Shift + pad 4</strong> = knobs no secuenciables), 5 modulación. <strong>Clear + el pad</strong> <em>(desde RC2)</em>: los valores de esa página (con y sin Shift) a los iniciales. <em>(desde RC4)</em>: un toque deja la página; <strong>mantener el pad ½ s o más</strong> = esa página solo mientras lo mantienes (al soltar, vuelve la anterior).</td></tr>
+<tr><td>1-5</td><td>Página de knobs del motor: 1 VCA-VCF, 2 OSC 1 (granular en ese motor), 3 OSC 2, 4 <strong>knobs secuenciables</strong> (<em>(desde RC4)</em> <strong>Shift + pad 4</strong> = knobs no secuenciables), 5 modulación.</td></tr>
 <tr><td>6</td><td><em>(desde RC2.02)</em> <strong>Matriz de modulación</strong> (azul claro; ver «Matriz de modulación»). <strong>Clear + pad 6</strong>: todas las fuentes apagadas.</td></tr>
 <tr><td>9-24</td><td><strong>Patches del sinte propio</strong> <em>(desde RC2)</em>: ver abajo.</td></tr>
 <tr><td>25</td><td><strong>Editor de CC</strong> de los macros MIDI (<a href="#midi-cc">editor de CC</a>).</td></tr>
@@ -1660,7 +1659,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Patches del sinte propio (pads 9-24) <em>(desde RC2)</em></h4>
 <ul>
 <li>16 huecos por página; <strong>Octave ▼ / ▲</strong> = 4 páginas (64 huecos por pack, comunes a MIDI 1 y MIDI 2); <em>(desde RC4)</em> <strong>8 páginas, 128 huecos</strong>.</li>
-<li><strong>Tocar</strong> = cargar (suena la tónica mientras mantienes el pad; <em>(desde RC4)</em>: <strong>Shift + pad</strong> = cargar sin que suene). <strong>Clear + pad</strong> dos veces = guardar. <strong>Duplicate + A + B</strong> = intercambiar; <strong>Duplicate + A</strong>, otro pack, <strong>Duplicate + B</strong> = copiar a otro pack (Duplicate en amarillo mientras hay uno esperando).</li>
+<li><strong>Tocar</strong> = cargar (suena la tónica mientras mantienes el pad; <em>(desde RC4)</em>: <strong>Shift + pad</strong> = cargar sin que suene). <strong>Clear + pad</strong> dos veces = guardar.</li>
 <li>Un patch guarda el motor entero: motor elegido, osciladores, orden, todos los valores y el ajuste del step-drummer <em>(escribe en la tarjeta)</em>.</li>
 <li><strong>Clear + el botón de la pista</strong> <em>(desde RC2)</em> devuelve todos los valores del motor a los iniciales (el motor elegido se queda; <em>(desde RC4)</em>: también los del FM, y la matriz se queda con sus destinos y la cantidad a cero).</li>
 </ul>
@@ -4375,13 +4374,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>25</td><td>Envolvente → morph (granular: fuente)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
 <tr><td>26</td><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2</td><td>CC 37</td><td>3 / K1</td></tr>
-<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.28: 3 / K2)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.28: 3 / K3)</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.29: 3 / K2)</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.29: 3 / K3)</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
-<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.28: 3 / K8)</td></tr>
-<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.28: 3 / K7)</td></tr>
-<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.28: 3 / K5)</td></tr>
-<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.28: 3 / K6)</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.29: 3 / K8)</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.29: 3 / K7)</td></tr>
+<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.29: 3 / K5)</td></tr>
+<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.29: 3 / K6)</td></tr>
 </tbody></table>
 <p><strong>Knobs secuenciables</strong> (página 4: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. <em>Solo RC4:</em> los ocho destinos se eligen con Shift + knob.</p>
 <h4>Drums</h4>

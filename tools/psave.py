@@ -55,6 +55,16 @@ COL_EMPTY = 0x49                       # an empty own-synth slot: violet (steady
 BTN_ENTRY = MP.BTN_ENTRY
 K_MIDI, K_DUP = 2, 4
 TMPL_VT = MP.TMPL_VT
+DUPSAVE = False                       # SC52.6 (use_dupsave)
+
+
+def use_dupsave():
+    """SC52.6 (the user, 2026-11-06: «Añade duplicate+hueco vacío: guardar parche»): in the Preset view of MIDI 1 / 2, Duplicate + an empty slot =
+    the track's own synth saved there at once (an empty slot cannot be a swap's A); Duplicate + a slot in use = A, as before."""
+    global DUPSAVE
+    DUPSAVE = True
+
+
 XLEN = 64                             # an exchange moves the 44 bytes of the patch and the 16 of the name tools/patchtool.py keeps after them (padding + 44)
 XBUF = PK.BUF + 128                   # the second patch of an exchange in the shared buffer
 INV8 = V.INV
@@ -233,6 +243,12 @@ def arm_code(base, L, prev):
     E(cmp_reg, 0, 5); E(b_cond, "xp_e", "eq")                                         # A again: nothing
     E(mov_reg, 1, 5); E(bl, "c_psxswap"); E(b, "xp_e")
     a.label("xp_a")
+    if DUPSAVE:                                                                       # (SC52.6) an empty slot: the track's sound saved there at once
+        E(bl, L["c_mpc"]); E(ldrh_imm, 1, 0, 4); E(movs_imm, 2, 15); E(ands_reg, 2, 5); E(raw, h(0x40D1))   # lsrs r1, r2
+        E(lsls_imm, 1, 1, 31); E(b_cond, "xp_ao", "ne")
+        E(movs_imm, 0, 0); E(strb_imm, 0, 7, 1)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, L["c_mpsave"]); E(b, "xp_e")
+        a.label("xp_ao")
     E(movs_imm, 0, 0x80); E(orrs_reg, 0, 5); E(strb_imm, 0, 7, 1); E(movs_imm, 0, K_DUP); E(strb_imm, 0, 7, 2); E(strb_imm, 6, 7, 3)
     a.label("xp_e"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("xp_fp"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True))

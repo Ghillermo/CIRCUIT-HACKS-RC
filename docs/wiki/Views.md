@@ -76,7 +76,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
-- **Jump sequencer** *(Beta 5.28 only)* — the track's notes make another track's pattern jump to the step they indicate.
+- **Jump sequencer** *(Beta 5.29 only)* — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
@@ -113,7 +113,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### 8-operator FM
 
-*How to get there:* *(Beta 5.28 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.
+*How to get there:* *(Beta 5.29 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 

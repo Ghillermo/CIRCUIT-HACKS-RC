@@ -28,8 +28,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A18 Destinos de los macro knobs](#a18-destinos-macro)
 - [A19 Copiar proyectos a otro hueco o a otro pack](#a19-copiar-proyectos)
 - [A20 Patches del sinte propio a otro pack](#a20-patches-entre-packs)
-- [A21 Shift = destello de cada nota (solo Beta 5.28)](#a21-luces-disparo)
-- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.28)](#a22-proyecto-init)
+- [A21 Shift = destello de cada nota (solo Beta 5.29)](#a21-luces-disparo)
+- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.29)](#a22-proyecto-init)
 
 **B. Controles expuestos**
 
@@ -60,13 +60,13 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C14 Escala propia (desde RC2)](#c14-escala-propia)
 - [C15 Pantalla de acordes (desde RC4)](#c15-acordes)
 - [C16 Parejas estéreo de drums (desde RC4)](#c16-pareja-estereo)
-- [C17 Carril extra de los drums (solo Beta 5.28)](#c17-carril-extra)
+- [C17 Carril extra de los drums (solo Beta 5.29)](#c17-carril-extra)
 - [C18 Modo muestra de las pistas MIDI (desde RC2)](#c18-modo-muestra)
 - [C19 Matriz de modulación del sinte propio (desde RC2.02)](#c19-matriz-mod)
-- [C20 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.28)](#c20-saltos)
+- [C20 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.29)](#c20-saltos)
 - [C21 FM de 4 operadores (desde RC4)](#c21-fm4)
-- [C22 FM de 8 operadores (solo Beta 5.28)](#c22-fm8)
-- [C23 Wavetable (solo Beta 5.28)](#c23-wavetable)
+- [C22 FM de 8 operadores (solo Beta 5.29)](#c22-fm8)
+- [C23 Wavetable (solo Beta 5.29)](#c23-wavetable)
 - [C24 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c24-master-fx-beta)
 
 **D. DSP**
@@ -173,18 +173,18 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 <a id="a21-luces-disparo"></a>
-### A21. Shift = destello de cada nota (solo Beta 5.28)
+### A21. Shift = destello de cada nota (solo Beta 5.29)
 - Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.
 
 <a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.28)
+### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.29)
 - Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.
 
 ## B. Controles expuestos
 
 <a id="b1-knobs-drums"></a>
 ### B1. Knobs de los drums según el panel
-- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.28), tilt), LFO, start point, bitcrush y distorsión.
+- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.29), tilt), LFO, start point, bitcrush y distorsión.
 
 <a id="b2-rev-delay"></a>
 ### B2. Parámetros de reverb y delay
@@ -292,8 +292,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC4.** **Mantén Drum 1 y pulsa Drum 2** (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.
 
 <a id="c17-carril-extra"></a>
-### C17. Carril extra de los drums (solo Beta 5.28)
-- **Solo Beta 5.28.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
+### C17. Carril extra de los drums (solo Beta 5.29)
+- **Solo Beta 5.29.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
 
 <a id="c18-modo-muestra"></a>
 ### C18. Modo muestra de las pistas MIDI (desde RC2)
@@ -306,7 +306,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
 
 <a id="c20-saltos"></a>
-### C20. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.28)
+### C20. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.29)
 - Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.
 
 <a id="c21-fm4"></a>
@@ -315,13 +315,13 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **K1-K4** = ratio de los operadores 1-4 (con **desafinación fina** en los clics de cada ratio), **K5-K8** = su nivel; **Shift + K1-K4** = a la derecha su ataque, a la izquierda el operador **percusivo** con su propio decay; **Shift + K5** = el **algoritmo** (16; también **manteniendo el pad 7**: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), **Shift + K6** feedback, **Shift + K7** ruido, **Shift + K8** release (más largo con más velocity).
 
 <a id="c22-fm8"></a>
-### C22. FM de 8 operadores (solo Beta 5.28)
-- **Solo Beta 5.28.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.
+### C22. FM de 8 operadores (solo Beta 5.29)
+- **Solo Beta 5.29.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.
 - Página FM = **pad 7** (con la fila de motores cerrada): **pads 9-16** = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), **pad 3** = la envolvente de pitch (violeta). **K1** ratio (0,5 … 31 o fijo en Hz), **K2** fino, **K3** nivel, **K4** velocity, **K5-K8** rates R1-R4; con Shift **K1** algoritmo, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** niveles L1-L4.
 
 <a id="c23-wavetable"></a>
-### C23. Wavetable (solo Beta 5.28)
-- **Solo Beta 5.28.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.
+### C23. Wavetable (solo Beta 5.29)
+- **Solo Beta 5.29.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.
 - **Una tabla por patch, de hasta 9 cuadros**, para los dos osciladores; cada uno con su **posición**: **K3** de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. **SHAPE** (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = **warp**, una doblez de la fase.
 
 <a id="c24-master-fx-beta"></a>
@@ -357,7 +357,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="d7-drums-dsp"></a>
 ### D7. DSP de los drums
-- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.28) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
+- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.29) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
 
 <a id="d8-entradas"></a>
 ### D8. Entradas de audio y retornos

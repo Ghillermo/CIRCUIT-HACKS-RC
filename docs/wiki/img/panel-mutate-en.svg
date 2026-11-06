@@ -6,9 +6,9 @@
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
 <circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>

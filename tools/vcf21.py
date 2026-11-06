@@ -365,6 +365,22 @@ def use_osc4():
     DEFAULTS_V2 = tuple(DEFAULTS_V2[:6]) + (64,) + tuple(DEFAULTS_V2[7:])
 
 
+BIPCOL = False                                    # SC52.6 (use_bipcol)
+CMIN = 16                                         # (BIPCOL) a bipolar knob at its centre: dim, not dark (the user: «Centro dim»)
+FM_VIOLET = 0x49                                  # (BIPCOL) K5's reciprocal stretch: the FM engine's violet
+
+
+def use_bipcol():
+    """SC52.6 (the user, 2026-11-06: «En los knobs bipolares, usa un color de la misma gama para la izquierda» → «Claros, en todos los bipolares»;
+    «Centro dim»; «Colorea los modos recíprocos del FM» → «Dirección + recíproco violeta»): the own synth's bipolar knobs (the oscillator /
+    VA-drum pages, the granular page's) left of their centre in the lighter shade of their colour (persist19.use_leftcol: the LED converter
+    reads the left mark 0x82 + b / 2 in the brightness byte), at the centre dim (CMIN); K5 (FM, code 33) right = OSC 2 -> OSC 1 in the track's
+    colour, left = OSC 1 -> OSC 2 in its light shade, past the maximum (both ways) FM_VIOLET, brighter towards 50 / 50.  c_vlvl / c_grlvl return
+    the brightness | 0x80 (left) | 0x100 (violet); c_vbc composes the LED halfword."""
+    global BIPCOL
+    BIPCOL = True
+
+
 RATIO2 = False                                    # SC52.2 (use_ratio2)
 R2_RATIOS = (0.25, 0.5) + tuple(range(1, 32))     # (RATIO2) the FM 8-op's coarse (0.5, 1..31) and the harmonics (0.25, 0.5, 1..16), ascending
 
@@ -2074,8 +2090,14 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
         a.emit(ldrb_imm, 1, 4, 3); a.emit(lsrs_imm, 1, 1, 1)
     a.emit(cmp_imm, 1, 1); a.emit(b_cond, "gl_v", "eq"); a.emit(cmp_imm, 1, 2); a.emit(b_cond, "gl_o", "eq")
     a.emit(cmp_imm, 1, 3); a.emit(b_cond, "gl_m", "eq"); a.emit(cmp_imm, 1, 4); a.emit(b_cond, "gl_b", "eq")
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "gl_p", "ge"); a.emit(raw, h(0x43C0))                                  # bipolar: |v| x 2 (mvns r0, r0: -v - 1)
-    a.label("gl_p"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "gl_x", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "gl_x")
+    if BIPCOL:                                                                    # (SC52.6) bipolar: | 0x80 left, the centre dim
+        a.emit(movs_imm, 2, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "gl_p", "ge"); a.emit(raw, h(0x43C0)); a.emit(movs_imm, 2, 0x80)
+        a.label("gl_p"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "gl_c", "ls"); a.emit(movs_imm, 0, 126)
+        a.label("gl_c"); a.emit(cmp_imm, 0, CMIN); a.emit(b_cond, "gl_o", "hs"); a.emit(movs_imm, 0, CMIN)
+        a.label("gl_o"); a.emit(orrs_reg, 0, 2); a.emit(b, "gl_x")
+    else:
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "gl_p", "ge"); a.emit(raw, h(0x43C0))                                  # bipolar: |v| x 2 (mvns r0, r0: -v - 1)
+        a.label("gl_p"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "gl_x", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "gl_x")
     a.label("gl_v"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "gl_x", "ge"); a.emit(movs_imm, 0, 0); a.emit(b, "gl_x")
     a.label("gl_o"); a.emit(adds_imm8, 0, 64); a.emit(b, "gl_x")
     a.label("gl_m"); a.emit(raw, ldrsb_w(1, 4, 1)); a.emit(subs_reg, 0, 0, 1); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 127); a.emit(b_cond, "gl_x", "ls"); a.emit(movs_imm, 0, 127); a.emit(b, "gl_x")
@@ -3145,7 +3167,7 @@ def arm_code(base, L):
         tail(2); mulstride(3, 0); a.emit(adds_reg, 3, 3, 2); a.emit(adds_reg, 3, 3, 1)             # r3 = TAIL + STRIDE t + code  (= +1 + STRIDE t + code - 1)
         a.emit(raw, ldrsb_w(0, 3, 0))
     if OSC4:                                                                      # (SC52.4) FM: the distance from its centre 64
-        a.emit(cmp_imm, 4, 33); a.emit(b_cond, "vl_nfm", "ne"); a.emit(subs_imm8, 0, 64); a.emit(b, "vl_fm")
+        a.emit(cmp_imm, 4, 33); a.emit(b_cond, "vl_nfm", "ne"); a.emit(subs_imm8, 0, 64); a.emit(b, "vl_fmz" if BIPCOL else "vl_fm")
         a.label("vl_nfm")
     a.emit(cmp_imm, 4, 13); a.emit(b_cond, "vl_fx" if FXTYPE_N > 4 else "vl_sh", "eq")
     a.emit(cmp_imm, 4, 16); a.emit(b_cond, "vl_ft" if FTYPE_N > 4 else "vl_sh", "eq")
@@ -3153,8 +3175,18 @@ def arm_code(base, L):
     a.emit(movs_imm, 2, 0); movmask(2); a.emit(subs_imm8, 4, 1); a.emit(lsrs_reg, 2, 4); a.emit(movs_imm, 3, 1); a.emit(ands_reg, 2, 3)
     a.emit(cmp_imm, 2, 0); a.emit(b_cond, "vl_uni", "eq")
     if OSC4: a.label("vl_fm")
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vl_bp", "ge"); a.emit(raw, h(0x43C0))                          # mvns r0, r0 : -v - 1
-    a.label("vl_bp"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "vl_x", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "vl_x")
+    if BIPCOL:                                                                    # (SC52.6) | 0x80 left of the centre, the centre dim
+        a.emit(movs_imm, 2, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vl_bp", "ge"); a.emit(raw, h(0x43C0)); a.emit(movs_imm, 2, 0x80)
+        a.label("vl_bp"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "vb_c", "ls"); a.emit(movs_imm, 0, 126)
+        a.label("vb_c"); a.emit(cmp_imm, 0, CMIN); a.emit(b_cond, "vb_o", "hs"); a.emit(movs_imm, 0, CMIN)
+        a.label("vb_o"); a.emit(orrs_reg, 0, 2); a.emit(b, "vl_x")
+        if OSC4:                                                                  # K5: |d| <= 32 the direction (left light), past it violet
+            a.label("vl_fmz"); a.emit(movs_imm, 2, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vf_p", "ge"); a.emit(raw, h(0x43C0)); a.emit(movs_imm, 2, 0x80)
+            a.label("vf_p"); a.emit(cmp_imm, 0, 32); a.emit(b_cond, "vf_q", "ls"); a.emit(subs_imm8, 0, 32); a.emit(movs_imm, 2, 1); a.emit(lsls_imm, 2, 2, 8)
+            a.label("vf_q"); a.emit(lsls_imm, 0, 0, 2); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "vb_c", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "vb_c")
+    else:
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vl_bp", "ge"); a.emit(raw, h(0x43C0))                          # mvns r0, r0 : -v - 1
+        a.label("vl_bp"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, 126); a.emit(b_cond, "vl_x", "ls"); a.emit(movs_imm, 0, 126); a.emit(b, "vl_x")
     a.label("vl_uni")
     a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vl_x", "ge"); a.emit(movs_imm, 0, 0); a.emit(b, "vl_x")
     a.label("vl_sh")
@@ -3167,6 +3199,15 @@ def arm_code(base, L):
     a.emit(movs_imm, 1, 1); a.emit(ands_reg, 0, 1); a.emit(b_cond, "vl_x", "eq"); a.emit(movs_imm, 0, 127)
     a.label("vl_x")
     a.emit(pop_list, [4], pc=True)
+    if BIPCOL:
+        # ---- c_vbc(r0 = brightness | 0x80 left | 0x100 violet, r6 = the colour) -> r0 = the LED halfword (left: 0x82 + b / 2, persist19.use_leftcol)
+        a.label("c_vbc")
+        a.emit(lsrs_imm, 1, 0, 8); a.emit(b_cond, "vc_v", "ne")
+        a.emit(lsrs_imm, 1, 0, 7); a.emit(b_cond, "vc_r", "eq")
+        a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 26); a.emit(adds_imm8, 0, 0x82); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 6); a.emit(raw, h(0x4770))
+        a.label("vc_r"); a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 6); a.emit(raw, h(0x4770))
+        a.label("vc_v"); a.emit(lsls_imm, 0, 0, 25); a.emit(lsrs_imm, 0, 0, 25); a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8)
+        a.emit(movs_imm, 1, FM_VIOLET); a.emit(orrs_reg, 0, 1); a.emit(raw, h(0x4770))
 
     if TYPEZONE:
         # ---- c_vtype(r0 = track, r1 = code 13 FX type / 16 filter type / 19 WAVE) -> r0 = the LED halfword of the knob: colour of the mode | (brightness of the parameter inside the mode + 2) << 8
@@ -3407,7 +3448,8 @@ def arm_code(base, L):
     else:
         a.emit(movw, 1, base & 0xFFFF); a.emit(movt, 1, base >> 16); a.emit(ldrb_reg, 1, 1, 4); a.emit(mov_reg, 0, 7); a.emit(bl, "c_vlvl")
     if GRAN: a.label("vk2_lv")
-    a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 6)
+    if BIPCOL: a.emit(bl, "c_vbc")
+    else: a.emit(adds_imm8, 0, 2); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 6)
     if TYPEZONE: a.label("vk2_st")
     a.emit(movs_imm, 1, 7); a.emit(ands_reg, 1, 4); a.emit(lsls_imm, 1, 1, 1); a.emit(adds_reg, 1, 1, 5); a.emit(strh_imm, 0, 1, 0)
     a.emit(adds_imm8, 4, 1); a.emit(movs_imm, 1, 7); a.emit(ands_reg, 1, 4); bc("vk2_l", "ne")

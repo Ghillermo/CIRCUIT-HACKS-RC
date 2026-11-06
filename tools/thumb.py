@@ -136,7 +136,17 @@ def cbz(addr, target, rn, nz=False):
     return h(0xB100 | (0x800 if nz else 0) | i << 9 | imm5 << 3 | rn)
 
 
+FAR = None                         # (itcm.py) far(addr, target) -> a veneer within reach: a call / branch between the flash and the ITCM
+
+
+def _reach(addr, target):
+    off = target - (addr + 4)
+    if FAR is not None and not -(1 << 24) <= off < (1 << 24): target = FAR(addr, target)
+    return target
+
+
 def bl(addr, target):              # BL T1 32-bit
+    target = _reach(addr, target)
     off = target - (addr + 4)
     assert off % 2 == 0 and -(1 << 24) <= off < (1 << 24)
     s = (off >> 24) & 1
@@ -204,6 +214,7 @@ class Asm:
 
 # ---- additions for SC03 ----------------------------------------------------
 def b_w(addr, target):             # B.W T4, +-16MB
+    target = _reach(addr, target)
     off = target - (addr + 4)
     assert off % 2 == 0 and -(1 << 24) <= off < (1 << 24)
     s = (off >> 24) & 1

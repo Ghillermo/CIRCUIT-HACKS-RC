@@ -30,7 +30,8 @@ SIG = 0x31524D4F                          # "OMR1"
 REC_AT, REC_N, REC_SIG = 163, 8, 0xC4     # the padding's block
 DSPW = 0x080292F8
 RET = h(0x4770)
-KN = ((7, 0), (5, 2), (4, 4))             # knob -> its pair (MIX, RING, FM) in vcf21_dsp's OM_T order
+KN = ((7, 0), (5, 2), (4, 4))
+LEFT = False                              # SC52.6: the left half in the lighter shade (persist19.use_leftcol), the centre dim             # knob -> its pair (MIX, RING, FM) in vcf21_dsp's OM_T order
 
 
 def ldrsb_reg(rt, rn, rm): return h(0x5600 | rm << 6 | rn << 3 | rt)
@@ -104,8 +105,14 @@ def arm_code(base, L, prev):
     for k, _i in KN:
         E(movs_imm, 0, k); E(bl, "c_omsel"); E(mov_reg, 4, 0)
         E(mov_reg, 0, 6); E(bl, "c_omdep"); E(raw, ldrsb_reg(0, 0, 4))
-        E(cmp_imm, 0, 0); E(b_cond, f"kl_p{k}", "ge"); E(raw, h(0x43C0))                        # mvns r0, r0
-        a.label(f"kl_p{k}"); E(lsls_imm, 0, 0, 1); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8)
+        if LEFT:                                                                    # (SC52.6) left: the mark 0x82 + |v|; the centre dim
+            E(cmp_imm, 0, 0); E(b_cond, f"kl_p{k}", "ge"); E(raw, h(0x43C0)); E(adds_imm8, 0, 0x82); E(b, f"kl_q{k}")
+            a.label(f"kl_p{k}"); E(lsls_imm, 0, 0, 1); E(cmp_imm, 0, 16); E(b_cond, f"kl_r{k}", "hs"); E(movs_imm, 0, 16)
+            a.label(f"kl_r{k}"); E(adds_imm8, 0, 2)
+            a.label(f"kl_q{k}"); E(lsls_imm, 0, 0, 8)
+        else:
+            E(cmp_imm, 0, 0); E(b_cond, f"kl_p{k}", "ge"); E(raw, h(0x43C0))                        # mvns r0, r0
+            a.label(f"kl_p{k}"); E(lsls_imm, 0, 0, 1); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8)
         E(movs_imm, 1, V.COL_TRACK[0]); E(cmp_imm, 6, 0); E(b_cond, f"kl_c{k}", "eq"); E(movs_imm, 1, V.COL_TRACK[1])
         a.label(f"kl_c{k}"); E(orrs_reg, 0, 1); E(strh_imm, 0, 5, 2 * k)
     a.label("kl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)

@@ -171,6 +171,21 @@ def use_blue7():
 O_CLR = 0x3F                          # macro handler byte: bits 0-2 = dirty bits (codes 8-10), bit 3 = a Clear LED is shown, bit 4 = blue, bits 5-7 = the knob position
 CLEAR_BOTH = False                    # SC23.5 (needs CLEAR): Clear + a plain knob also puts the Shift layer of that knob back to its default (Shift disables the Clear button: the stock ignores it)
 K8_BRIGHT = False                     # SC23.5 (needs REMAP, KNOB_LEVELS): the plain K8 (distortion left of... bitcrush) shows max(distortion, bitcrush) as brightness: dark with no effect, brighter either way
+LEFTCOL = False                       # SC52.6 (use_leftcol)
+LEFT = bytes.fromhex("00010203040506090813090a090a0b0f100912131415167318171717731d451f312020212025262031292a6c2c632e632d315c3233343537385c34443b3b3b3d3c41443c446a466a45494a4b494d4e4f4d75526a685556536a5353535c445e5f60616a6375756a6753696a6b6c6d6e292971727374756c6c6c6c6c6c6c757564")   # (LEFTCOL) code -> its lighter shade (hue within 14°, not animated; MIDI 1 0x09 -> 0x13, MIDI 2 0x3B -> 0x44)
+CMIN = 16                             # (LEFTCOL) a bipolar drum knob at its centre: dim
+
+
+def use_leftcol():
+    """SC52.6 (the user, 2026-11-06: «En los knobs bipolares, usa un color de la misma gama para la izquierda», «Claros, en todos los bipolares»,
+    «Centro dim»): the LED converter's hook (c_ledhook) reads a brightness byte 0x82..0xC1 as «left of the centre»: brightness (b - 0x82) x 2 and
+    the colour's lighter shade (LEFT); the drums' bipolar knobs (c_lvl) mark their left half so and keep a dim centre.  Every producer of the mod
+    (the own synth, Master FX) can use the mark; 0x80 / 0x81 stay plain brightness."""
+    global LEFTCOL
+    assert KNOB_LEVELS
+    LEFTCOL = True
+
+
 KNOB_LEVELS = False                   # SC19.6: the new drum knobs (K1 / K3 / K5 / K7) show their value as LED brightness, like the stock K2 / K4 / K6 / K8 (see knob_levels_code)
 LED_CONV_HOOK = 0x080342B0            # inside the stock LED colour converter 0x0803423C (knob LEDs 60..68): ldrh r7, [r6] ; movs r4, #0xff
 LED_CONV_BYTES = bytes.fromhex("3788ff24")
@@ -206,6 +221,7 @@ def table():
     t = b"".join(struct.pack("<HH", c, o) for c, o in FLAT)
     if REC_RESTORE: t += b"".join(struct.pack("<I", REC_BASE[c] + o) for c, o in FLAT)       # record offset of every byte, after the (ctx, offset) pairs
     if EXTRAS: t += b"".join(bytes([i, m]) for i, m in XT_BITS)                              # (flat index, mask) of the 12 distortion type / slope bits
+    if LEFTCOL: t += LEFT                                                                       # (SC52.6) the lighter shades, last
     return t
 
 
@@ -788,6 +804,7 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     if EXTRAS:
         extras_code(a, tab)
     if KNOB_LEVELS:
+        if LEFTCOL: L = dict(L, left_tab=tab + len(table()) - len(LEFT))
         knob_levels_code(a, L)
     if SPLIT3:
         k3_code(a, DB, SH, L)
@@ -1005,6 +1022,11 @@ def knob_levels_code(a, L):
     for c in UNIPOLAR:
         a.emit(cmp_imm, 4, c); a.emit(b_cond, "lv_u", "eq")
     a.emit(raw, asrs_imm(0, 0, 25))
+    if LEFTCOL:                                                                       # (SC52.6) left of the centre: the mark 0x82 + b / 2 - 2 (the callers add 2)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "lv_pp", "ge"); a.emit(raw, h(0x43C0))
+        a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, CMIN); a.emit(b_cond, "lv_lm", "hs"); a.emit(movs_imm, 0, CMIN)
+        a.label("lv_lm"); a.emit(lsrs_imm, 0, 0, 1); a.emit(adds_imm8, 0, 0x80); a.emit(b, "lv_x")
+        a.label("lv_pp"); a.emit(lsls_imm, 0, 0, 1); a.emit(cmp_imm, 0, CMIN); a.emit(b_cond, "lv_x", "hs"); a.emit(movs_imm, 0, CMIN); a.emit(b, "lv_x")
     a.emit(cmp_imm, 0, 0); a.emit(b_cond, "lv_p", "ge")
     a.emit(raw, h(0x43C0))                                                           # mvns r0, r0 : -s - 1
     a.label("lv_p")
@@ -1104,6 +1126,12 @@ def knob_levels_code(a, L):
     a.label("c_ledhook")
     a.emit(ldrh_imm, 7, 6, 0); a.emit(movs_imm, 4, 0xFF)
     a.emit(lsrs_imm, 0, 7, 8); a.emit(cmp_imm, 0, 2); a.emit(b_cond, "lh_x", "lo")
+    if LEFTCOL:                                                                       # (SC52.6) 0x82..: left of the centre, the lighter shade
+        a.emit(cmp_imm, 0, 0x82); a.emit(b_cond, "lh_n", "lo")
+        a.emit(subs_imm8, 0, 0x82); a.emit(lsls_imm, 4, 0, 1)
+        lt = L["left_tab"]
+        a.emit(raw, h(0xB2C0 | 7 << 3 | 7)); a.emit(movw, 0, lt & 0xFFFF); a.emit(movt, 0, lt >> 16); a.emit(ldrb_reg, 7, 0, 7); a.emit(raw, h(0x4770))   # uxtb r7, r7; the shade
+        a.label("lh_n")
     a.emit(subs_imm8, 0, 2); a.emit(mov_reg, 4, 0)
     a.emit(raw, h(0xB2C0 | 7 << 3 | 7))                                              # uxtb r7, r7
     a.label("lh_x")

@@ -13,6 +13,9 @@ NAME = "SC52.4"
 B = S.B
 
 
+IN_HOLE = False                              # SC52.6: oscmod and autolane in the hole (3.8 KB free there)
+
+
 def at_end(img, report, name, mod):
     """an ARM module at the image's end (the dspz gaps are full)"""
     import ct_fw
@@ -31,9 +34,12 @@ def extra(img, report):
     import oscmod
     import autolane
     import dspz
-    at_end(img, report, "oscmod", oscmod)
+    import hole
+    if IN_HOLE: hole.add(img, report, "oscmod", oscmod)         # (SC52.6) the old DSP blocks' hole: room at the image's end for what grows
+    else: at_end(img, report, "oscmod", oscmod)
     dspz.add(img, report, "oscmod2", oscmod.Patch)            # the patch's part
-    dspz.add(img, report, "autolane", autolane)
+    if IN_HOLE: hole.add(img, report, "autolane", autolane)
+    else: dspz.add(img, report, "autolane", autolane)
 
 
 import vcf21  # noqa: E402

@@ -86,6 +86,24 @@ BTN_REL = 0x0803381A                                     # the button release (c
 COLOUR_AT, COLOUR_OLD = 0x0804AE1E, bytes.fromhex("91f88011")   # in 0x0804AD78: ldrb.w r1, [r1, #0x180] (the link: a root's colour)
 
 
+V4 = False                                               # SC52.6 (use_v4): rows 1 / 3 move with keys held in rows 2 and 4
+RSIG4 = 0x344B4E4A                                       # "JNK4"
+INNER = MX.MXR + 0x1EE0                                  # (V4) + t = the offset of rows 1 / 3 (the upper row of each pair) of track t (s8)
+O_LONG3 = 23                                             # (V4) the long press's inner offset (+ 23: free in V3; + 29 is jumpoct's O_PREV)
+ROW13 = 0x00FF00FF                                       # (V4) the pads of rows 1 / 3 in [MGR + 0x84]
+
+
+def use_v4():
+    """SC52.6 / Beta 5.29 (the user, 2026-11-06: «Nueva característica en Jankó: al aguantar un pad en las filas 2 y 4 simultáneamente, los
+    botones up y down mueven las filas 1 y 3»): in the expanded Note view, keys held in rows 2 and 4 (one or more in each, none in rows 1 / 3) =
+    Octave moves rows 1 and 3 (the upper row of each pair): a third offset per track (INNER, RAM, not saved, as the others) added to those rows'
+    − 1; the short press ± 1 semitone, the long one an octave from where it started, clamped ± WMAX; the tables rebuilt (the stamp's bits 18-23).
+    Keys in both pairs otherwise: nothing moves, as before."""
+    global V4
+    assert V3
+    V4 = True
+
+
 JUMP = False                                             # SC50 (use_jump): RAM + O_JUMP = jumpseq's flags (a pointing track's Note view on the screen; its clock)
 O_JUMP = 30                                              # (free in V3, cleared by c_jkram with the word of O_LONG2)
 
@@ -129,8 +147,9 @@ def arm_code(base, L, prev, rowbase):
 
     # ---- c_jkram() -> r0 = our RAM (cleared the first time); clobbers r1, r2
     a.label("c_jkram")
-    imm32(0, RAM); E(ldr_imm, 1, 0, 0); imm32(2, RSIG3 if V3 else RSIG2 if V2 else RSIG); E(cmp_reg, 1, 2); E(b_cond, "jr_x", "eq")
+    imm32(0, RAM); E(ldr_imm, 1, 0, 0); imm32(2, RSIG4 if V4 else RSIG3 if V3 else RSIG2 if V2 else RSIG); E(cmp_reg, 1, 2); E(b_cond, "jr_x", "eq")
     E(str_imm, 2, 0, 0); E(movs_imm, 1, 0); E(str_imm, 1, 0, 4); E(str_imm, 1, 0, 8); E(str_imm, 1, 0, 12)
+    if V4: imm32(2, INNER); E(str_imm, 1, 2, 0)
     if V2: E(str_imm, 1, 0, 16); E(str_imm, 1, 0, 20)
     if V3: E(str_imm, 1, 0, O_UP); E(str_imm, 1, 0, O_LONG2)
     a.label("jr_x"); E(raw, RET)
@@ -251,7 +270,13 @@ def arm_code(base, L, prev, rowbase):
         # ---- c_jkrowf(r0 = d = R - k) -> r0 = the row's offset from the bottom-left pad: - (d & 1), + the upper pair's offset from the lower for
         #      d >= 2; clobbers r1, r2
         a.label("c_jkrowf")
-        E(movs_imm, 1, 1); E(ands_reg, 1, 0); E(cmp_imm, 0, 2); E(b_cond, "jf_l", "lt")
+        E(movs_imm, 1, 1); E(ands_reg, 1, 0)
+        if V4:                                                                         # (V4) an upper row of a pair: - 1 + its offset
+            E(cmp_imm, 1, 0); E(b_cond, "jf_o", "eq"); E(push_list, [3])
+            imm32(3, RAM); E(ldr_imm, 3, 3, 12); imm32(2, INNER); E(adds_reg, 2, 2, 3); E(ldrb_imm, 2, 2, 0); E(raw, h(0xB252))   # sxtb r2, r2
+            E(movs_imm, 1, 1); E(subs_reg, 1, 1, 2); E(pop_list, [3])
+            a.label("jf_o")
+        E(cmp_imm, 0, 2); E(b_cond, "jf_l", "lt")
         imm32(0, RAM); E(ldr_imm, 2, 0, 12); E(adds_reg, 2, 2, 0); E(ldrb_imm, 0, 2, O_UP); E(raw, h(0xB240))   # sxtb r0, r0
         E(ldrb_imm, 2, 2, 4); E(raw, h(0xB252)); E(subs_reg, 0, 0, 2); E(subs_reg, 0, 0, 1); E(raw, RET)        # sxtb r2, r2
         a.label("jf_l"); E(movs_imm, 0, 0); E(subs_reg, 0, 0, 1); E(raw, RET)
@@ -371,7 +396,13 @@ def arm_code(base, L, prev, rowbase):
             imm32(0, HELD); E(ldr_imm, 0, 0, 0)
             E(lsls_imm, 1, 0, 16); E(b_cond, "jk_u", "eq"); E(movs_imm, 7, 1)             # a key of the upper pair held: only the lower one moves
             a.label("jk_u"); E(lsrs_imm, 0, 0, 16); E(b_cond, "jk_v", "eq"); E(movs_imm, 1, 1); E(bics_reg, 7, 1)   # a key of the lower pair: not the lower one
-            a.label("jk_v"); E(cmp_imm, 7, 0); E(b_cond, "jk_x", "eq")                   # keys of both: nothing moves
+            a.label("jk_v"); E(cmp_imm, 7, 0)
+            if V4:                                                                     # (V4) keys of both, only in rows 2 / 4: rows 1 / 3 move
+                E(b_cond, "jk_m", "ne")
+                imm32(0, HELD); E(ldr_imm, 0, 0, 0); imm32(1, ROW13); E(raw, h(0x4208)); E(b_cond, "jk_x", "ne")   # tst r0, r1
+                E(movs_imm, 7, 4)
+            else:
+                E(b_cond, "jk_x", "eq")                                                # keys of both: nothing moves
             a.label("jk_m")
             E(bl, "c_jkram"); E(mov_reg, 6, 0)
             E(strb_imm, 4, 6, 20); E(strb_imm, 5, 6, 22)
@@ -383,6 +414,12 @@ def arm_code(base, L, prev, rowbase):
                 E(mov_reg, 2, 5); E(bl, "c_jkmove"); E(b, f"jk_w{bit}")
                 a.label(f"jk_n{bit}"); E(ldrb_imm, 0, 0, 0)
                 a.label(f"jk_w{bit}"); E(strb_imm, 0, 6, tgt)
+            if V4:
+                imm32(0, INNER); E(adds_reg, 0, 0, 4)
+                E(movs_imm, 1, 4); E(raw, h(0x420F)); E(b_cond, "jk_n4", "eq")             # tst r7, r1
+                E(mov_reg, 2, 5); E(bl, "c_jkmove"); E(b, "jk_w4")
+                a.label("jk_n4"); E(ldrb_imm, 0, 0, 0)
+                a.label("jk_w4"); E(strb_imm, 0, 6, O_LONG3)
             imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(str_imm, 0, 6, 16)
             a.label("jk_x"); E(pop_list, [0, 1, 4, 5, 6, 7], pc=True)
             a.label("jk_p"); E(raw, popw([0, 1, 4, 5, 6, 7], lr=True))
@@ -501,6 +538,7 @@ def arm_code(base, L, prev, rowbase):
         imm32(0, HOLD_MS); E(cmp_reg, 1, 0); E(b_cond, "jh_x", "lo")
         E(ldrb_imm, 0, 4, 20); E(adds_reg, 0, 4, 0); E(ldrb_imm, 1, 4, 21); E(strb_imm, 1, 0, 4)
         if V3: E(ldrb_imm, 1, 4, O_LONG2); E(strb_imm, 1, 0, O_UP)
+        if V4: E(ldrb_imm, 1, 4, O_LONG3); E(ldrb_imm, 0, 4, 20); imm32(2, INNER); E(strb_reg, 1, 2, 0)
         E(movs_imm, 0, 0); E(strb_imm, 0, 4, 22)
         a.label("jh_x")
     imm32(0, CONT); E(bl, SEL_TRACK); E(cmp_imm, 0, 3); E(b_cond, "jx_t", "hi"); E(str_imm, 0, 4, 12)
@@ -517,6 +555,8 @@ def arm_code(base, L, prev, rowbase):
             E(ldr_imm, 6, 4, 12); E(mov_reg, 0, 6); E(bl, "c_jkoct"); E(orrs_reg, 5, 0)    # octave
         E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, 4); E(lsls_imm, 0, 0, 8); E(orrs_reg, 5, 0)   # w << 8
         E(lsls_imm, 0, 6, 16); E(orrs_reg, 5, 0)
+        if V4:                                                                         # (V4) the inner offset & 63 << 18
+            imm32(0, INNER); E(adds_reg, 0, 0, 6); E(ldrb_imm, 0, 0, 0); E(movs_imm, 1, 0x3F); E(ands_reg, 0, 1); E(lsls_imm, 0, 0, 18); E(orrs_reg, 5, 0)
     else:
         E(ldr_imm, 6, 4, 12); E(mov_reg, 0, 6); E(bl, "c_jkoct"); E(mov_reg, 5, 0)    # octave
         E(adds_reg, 0, 4, 6); E(ldrb_imm, 0, 0, 4); E(lsls_imm, 0, 0, 8); E(orrs_reg, 5, 0)   # w << 8

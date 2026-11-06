@@ -22,6 +22,9 @@ class E:
         uc.mem_map(0x20000000, 0x50000); uc.mem_write(0x20000000, RA.ljust(0x50000, b"\0"))
         uc.mem_map(0x20060000, 0x10000); uc.mem_map(0x40000000, 0x20000000); uc.mem_map(0xE0000000, 0x100000)
         uc.mem_map(0x60000000, 0x10000000); uc.mem_map(0xC0000000, 0x4000000); uc.mem_map(0x0, 0x100000)
+        import itcm                                                       # (2026-11-06) a build with code in the ITCM: unpacked as at power-up
+        it = itcm.unpack_image(bytes(image))
+        if it: uc.mem_write(it[0], it[1])
         self.ev = []
         self.stubs = {0x08031DA4: "sound", 0x08021064: "dsp", 0x0803FC20: "rec_param"}
         self.marks = {0x0802E5BC: ("rec_note_on", 0x0802E5CA), 0x0802E61C: ("rec_note_off", 0x0802E628)}

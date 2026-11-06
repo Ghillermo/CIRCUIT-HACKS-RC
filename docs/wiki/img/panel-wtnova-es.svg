@@ -2,7 +2,7 @@
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
@@ -10,11 +10,11 @@
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
 <circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
 <circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Tablas Nova</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
@@ -72,17 +72,17 @@
 <text x="49.0" y="438.0" font-size="9.5" fill="#e8eaed" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="111.0" y="236" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
-<text x="111.0" y="248" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#292904" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sec.</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
 <rect x="146" y="216" width="54" height="54" rx="7" fill="#002900" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">OSC 1</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
 <rect x="208" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#292904" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="297.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sec.</text>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="236" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
+<text x="297.0" y="248" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
 <rect x="332" y="216" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Mod.</text>

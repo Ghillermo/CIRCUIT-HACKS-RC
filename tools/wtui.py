@@ -94,6 +94,18 @@ def use_v3():
     V3 = True
 
 
+WTDEF = False                                     # SC52.6 (use_wtdef)
+
+
+def use_wtdef():
+    """SC52.6 (the user, 2026-11-06: «Cuando personalizo un cuadro dentro de la tabla, cómo recupero su estado por defecto? Implementa una opción
+    con clear si no existe»): with the wavetable playing, Clear + pad 7 = the frame K3 points at back to the same frame of the table's base: the
+    first Nova table found in place (a frame j holding that table's frame j), else the pre-fill (DEF_T); the tonic sounds as for the lists."""
+    global WTDEF
+    assert V3
+    WTDEF = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
@@ -216,6 +228,20 @@ def arm_code(base, L, prev):
         E(movs_imm, 1, 0x80); E(raw, h(0x4329)); E(strb_imm, 1, 0, 6); E(strb_imm, 4, 0, 7)            # orrs r1, r5
         E(mov_reg, 0, 4); E(movs_imm, 1, 1); E(movs_imm, 2, 100); E(mov_reg, 3, 5); E(bl, L["c_sdio"])
         a.label("wa_x"); E(pop_list, [4, 5], pc=True)
+    if WTDEF:
+        # ---- c_wtdef(r0 = track): frame k back to the base table's frame k (the first frame j that is some Nova table's frame j; else DEF_T)
+        a.label("c_wtdef")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(bl, "c_wttb"); E(mov_reg, 6, 0)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_wtfk"); E(mov_reg, 7, 0)
+        E(movs_imm, 5, 0)
+        a.label("wd_j"); E(ldrb_imm, 1, 6, T_N); E(cmp_reg, 5, 1); E(b_cond, "wd_n", "hs")
+        E(adds_reg, 2, 6, 5); E(ldrb_imm, 2, 2, T_F); E(movs_imm, 3, 0); E(mov_reg, 0, 5)
+        a.label("wd_t"); E(cmp_reg, 2, 0); E(b_cond, "wd_f", "eq"); E(adds_imm8, 0, NF); E(adds_imm8, 3, 1); E(cmp_imm, 3, 16); E(b_cond, "wd_t", "lo")
+        E(adds_imm8, 5, 1); E(b, "wd_j")
+        a.label("wd_n"); E(movs_imm, 3, DEF_T)
+        a.label("wd_f"); E(movs_imm, 0, NF); E(muls, 0, 3); E(adds_reg, 0, 0, 7); E(adds_reg, 1, 6, 7); E(strb_imm, 0, 1, T_F)
+        E(ldrb_imm, 1, 6, T_N); E(cmp_reg, 7, 1); E(b_cond, "wd_x", "lo"); E(adds_imm8, 7, 1); E(strb_imm, 7, 6, T_N)   # (an empty table: one frame)
+        a.label("wd_x"); E(mov_reg, 0, 4); E(bl, "c_wtaud"); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_wtpad (slot 0 of the template view: view, pad, velocity)
     a.label("c_wtpad")
@@ -224,6 +250,10 @@ def arm_code(base, L, prev):
     E(bl, "c_wttb"); E(mov_reg, 6, 0)                                                    # r6 = its block
     if V3:                                                                               # playing: pads 7 / 8 and the lists over the row too
         E(mov_reg, 0, 4); E(bl, "c_wtact"); E(cmp_imm, 0, 0); E(b_cond, "wp_v3", "eq")
+        if WTDEF:                                                                        # (SC52.6) Clear + pad 7: the frame back to the base table's
+            E(cmp_imm, 5, 6); E(b_cond, "wp_nd", "ne"); E(bl, L["c_mxclrh"]); E(cmp_imm, 0, 0); bc("wp_x", "eq")
+            E(mov_reg, 0, 4); E(bl, "c_wtdef"); E(b, "wp_x")
+            a.label("wp_nd")
         E(cmp_imm, 5, 6); bc("wp_x", "eq"); E(cmp_imm, 5, 7); bc("wp_x", "eq")
         held(0, 6); bc("wp_ls", "ne"); held(0, 7); bc("wp_ls", "ne")
         a.label("wp_v3")
@@ -425,6 +455,7 @@ def install(img, report, base_addr):
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = dict(c_mpon=lab("mpatch", "c_mpon"), c_mpr=lab("mpatch", "c_mpr"), c_msmode=lab("modesel", "c_msmode"), c_fmblk=lab("fm8", "c_fmblk"))
     if V3:
+        if WTDEF: L["c_mxclrh"] = lab("modmx", "c_mxclrh")
         L.update(c_shift=lab("sc15", "c_shift"), c_psaoff=lab("psave", "c_psaoff"), c_psst=lab("psave", "c_psst"),
                  c_sdtonic=lab("vcf20", "c_sdtonic"), c_sdio=lab("vcf20", "c_sdio"), c_vvaddr=lab("vcf20", "c_vvaddr"))
     TP = MP.TMPL_VT

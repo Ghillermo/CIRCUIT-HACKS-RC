@@ -70,7 +70,7 @@ K1 = (("Ataque", "Release", "Env → nivel", "Env → filtro", "Filtro", "Reso",
 ENG = (("Sin voz", "VCA\nVCF", "Osc", "VA-drum", "WT", "Muestra", "Gran.", "FM"), ("No voice", "VCA\nVCF", "Osc", "VA-drum", "WT", "Sample", "Gran.", "FM"))   # (Beta 5.21: the new row)
 TRK = ("Synth 1", "Synth 2", "MIDI 1", "MIDI 2", "Drum 1", "Drum 2", "Drum 3", "Drum 4")
 VM = ("Retrig", "Legato", "Glide", "Uni\nretrig", "Uni\nlegato", "Uni\nglide", "Uni\nalways", "Poly")
-PRE_PADS = {1: ("VCA\nVCF", "VCA\nVCF"), 2: ("OSC 1", "OSC 1"), 3: ("OSC 2", "OSC 2"), 4: ("Sec.", "Seq."), 5: ("Mod.", "Mod."), 6: ("Matriz", "Matrix"), 7: ("FM", "FM"), 8: ("FM", "FM"),
+PRE_PADS = {1: ("Sec.", "Seq."), 2: ("OSC 1", "OSC 1"), 3: ("OSC 2", "OSC 2"), 4: ("VCA\nVCF", "VCA\nVCF"), 5: ("Mod.", "Mod."), 6: ("Matriz", "Matrix"), 7: ("FM", "FM"), 8: ("FM", "FM"),
             26: ("Flip", "Flip"), 27: ("Motor", "Engine"), 28: ("2 osc", "2 osc"), 29: ("Orden", "Order"), 30: ("Step\ndrum", "Step\ndrum"), 31: ("Vel", "Vel"), 32: ("Modo\nvoz", "Voice\nmode")}
 ROWS = {n: (ENG[0][n - 17], ENG[1][n - 17]) for n in range(17, 25)}
 PANELS = {
@@ -172,7 +172,7 @@ UI = dict(es=dict(src="docs/VOCES.md", page="voces.html", other="voices.html", o
           en=dict(src="docs/VOICES.md", page="voices.html", other="voces.html", other_name="Español", guide="guide.html", guide_name="Guide by views", toc="Contents", lang="en"))
 
 
-COVER = {"rc": "RC4.08", "beta": "Beta 5.28"}
+COVER = {"rc": "RC4.08", "beta": "Beta 5.29"}
 
 
 def page(lang):
@@ -183,7 +183,7 @@ def page(lang):
     title = head.strip().lstrip("# ").strip()
     h = [f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(title)}</title><style>{M.CSS}'
          ".feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>",
-         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.28")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
+         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.29")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
          f'<nav class="toc"><h2>{U["toc"]}</h2><ol>']
     parts = []
     if M.SET == "rc":                                                       # (docset.py) the release candidate's set: no beta-only section

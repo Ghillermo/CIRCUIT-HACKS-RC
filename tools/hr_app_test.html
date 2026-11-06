@@ -58,6 +58,7 @@ async function main() {
   await SDT.writeFile(tS, "00_ProjT.ncs", ts); await SDT.writeFile(tP, "00_Sine.wav", wav(4800, 440));
   const tPa = await mk("hrT", ["Tracks", "04_TT", "Patches"]), fmPatch = SDT.dx7Patch({name: "TESTFM", params: Uint8Array.from({length: 216}, (_, i) => (i * 7) % 100)});
   const bank = new Uint8Array(4096 + 512 * 2 + 224).fill(0xFF); bank.set(fmPatch.subarray(0, SDT.PADN), 512 * 2 + 340); bank.set(fmPatch.subarray(SDT.PADN), 4096 + 512 * 2);
+  const vaPatch = SDT.ctmNew(); SDT.ctmSetName(vaPatch, "TESTVA"); vaPatch[4] = 3 | 16; SDT.ctmSetCode(vaPatch, 24, 84); SDT.ctmSetCode(vaPatch, 27, -7); bank.set(vaPatch, 512 * 3 + 340);
   await SDT.writeFile(tPa, "00_PATCHBANK.cpb", bank);
   const rS = await mk("hrR", ["Rhythm", "05_RR", "Sessions"]); await mk("hrR", ["Rhythm", "05_RR", "PCM"]);
   const rs = new Uint8Array(SDR.SESS_SIZE); rs.set([0x52, 0x55, 0x53, 0x45]); for (let k = 0; k < 64; k++) rs.set(rbase, SDR.patOff(k));
@@ -75,10 +76,22 @@ async function main() {
   A.state.tab = "fm"; await A.renderAll();
   pT.sel = new Set([2]); pR.sel = new Set([3]); await A.copyAct(pT); await sleep(200);
   const rr = await RFM.get({pack: pR.card.pack(5)}, 3);
-  check(rr && eq(rr, fmPatch.subarray(SDT.PADN)), "an FM patch Hacks -> Remix slot 3: the same record");
+  check(rr && eq(rr.subarray(SDT.PADN), fmPatch.subarray(SDT.PADN)) && eq(rr.subarray(0, SDT.PADN), fmPatch.subarray(0, SDT.PADN)), "an FM patch Hacks -> Remix slot 3: the same record and padding");
   await A.renderAll(); pR.sel = new Set([3]); pT.sel = new Set([9]); await A.copyAct(pR); await sleep(200);
   const tc = await SDT.Custom.get({pack: pT.card.pack(4)}, 9);
   check(tc && SDT.fmGet(tc).ver === 3 && eq(tc.subarray(SDT.PADN), fmPatch.subarray(SDT.PADN)), "and Remix -> Hacks custom 9: a patch with FM on and the same record");
+  // VA patch: Tracks custom 3 -> Rhythm 4 -> Tracks custom 11
+  await A.renderAll();
+  check(pT.items[3] && pT.items[3].extra === "VA" && pT.items[3].name === "TESTVA", `the Hacks list shows the VA patch (${pT.items[3] && pT.items[3].name} · ${pT.items[3] && pT.items[3].extra})`);
+  pT.sel = new Set([3]); pR.sel = new Set([4]); await A.copyAct(pT); await sleep(200);
+  const rv = await RFM.get({pack: pR.card.pack(5)}, 4), rb = await SDR.readHandle(await (await (await (await (await op.getDirectoryHandle("hrR")).getDirectoryHandle("Rhythm")).getDirectoryHandle("05_RR")).getDirectoryHandle("Patches")).getFileHandle("00_PATCHBANK.cpb"));
+  check(rv && eq(rv.subarray(0, SDT.PADN), vaPatch) && eq(rb.subarray(512 * 4 + 340, 512 * 4 + 340 + SDT.PADN), vaPatch) && rb.subarray(512 * 4, 512 * 4 + 340).every(x => x === 0xFF),
+        "a VA patch Hacks -> Remix slot 4: the padding at 512 x 4 + 340 of the Rhythm's bank (as Hacks), the 340 bytes before it 0xFF");
+  await A.renderAll();
+  check(pR.items[4] && pR.items[4].name === "TESTVA" && pR.items[4].extra === "VA" && pR.items[3].extra.startsWith("FM"), `the Remix list: ${pR.items[3].name} · ${pR.items[3].extra}, ${pR.items[4].name} · ${pR.items[4].extra}`);
+  pR.sel = new Set([4]); pT.sel = new Set([11]); await A.copyAct(pR); await sleep(200);
+  const tv = await SDT.Custom.get({pack: pT.card.pack(4)}, 11);
+  check(tv && eq(tv.subarray(0, SDT.PADN), vaPatch) && !SDT.fmGet(tv), "and Remix -> Hacks custom 11: the same VA patch");
   // patterns: Tracks MIDI 1 · 1 (16) -> Rhythm Track 1 · 2 (1); Tracks Drum 1 · 1 (32) -> Rhythm Track 2 · 1 (8)
   A.state.tab = "patterns"; await A.renderAll();
   pT.sel = new Set([16]); pR.sel = new Set([1]); await A.copyAct(pT); await sleep(200);
@@ -92,6 +105,17 @@ async function main() {
   for (const [tab, n] of [["samples", 0], ["fm", 2], ["patterns", 16]]) { A.state.tab = tab; await A.renderAll(); pT.sel = new Set([n]); await A.copyAct(pT); await sleep(150); }
   const names = []; for await (const [n] of F.entries()) names.push(n);
   check(names.some(n => /\.wav$/.test(n)) && names.some(n => /\.ctm$/.test(n)) && names.some(n => /\.ctpat$/.test(n)), `to a folder: ${names.join(", ")}`);
+  // the device apps whole, in their frames
+  for (const [v, test, what] of [["hacks", w => w.SD && w.SD.snapshot && w.SD.Custom && w.document.getElementById("tabs"), "Hacks' SD app (SD.snapshot, SD.Custom, its tabs)"],
+                                 ["remix", w => w.SD && w.SD.snapshot && w.SD.Projects && w.RM_FW === true && w.RMFW, "Remix's app (SD.snapshot, SD.Projects, the Firmware tab)"]]) {
+    A.state.view = v; A.showView();
+    const f = W.HRFRAMES[v]; let ok = false;
+    for (let k = 0; k < 50 && !ok; k++) { await sleep(100); try { ok = !!test(f.contentWindow); } catch (_) { /* loading */ } }
+    const vis = W.document.body.classList.contains("appmode") && !f.hidden && f.getBoundingClientRect().height > 200;
+    check(ok && vis, `the «${v}» view: ${what}, shown full height (${Math.round(f.getBoundingClientRect().height)} px)`);
+  }
+  A.state.view = "both"; try { W.localStorage.setItem("hrapp.view", "both"); } catch (_) { /* none */ } await A.renderAll();
+  check(!W.document.body.classList.contains("appmode") && W.HRFRAMES.hacks.hidden && W.HRFRAMES.remix.hidden && W.document.getElementById("pane0").offsetHeight > 0, "back to «Entre los dos»: the panes, the frames kept hidden");
   window.RESULT = {pass, fail, lines};
   const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
 }

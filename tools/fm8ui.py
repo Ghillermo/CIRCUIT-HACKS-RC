@@ -70,6 +70,7 @@ FAMW = FE.FAM_COL[0] | FE.FAM_COL[1] << 8 | FE.FAM_COL[2] << 16 | FE.FAM_COL[3] 
 HEADS = False                                                          # SC51.8 (use_heads)
 V2 = False                                                             # SC51.8 (use_v2)
 B_APG = 233                                                            # (V2) a track block: the page of pad 7's list
+WTCOL = False                                                          # SC52.6 (the user: «Los parches de wt deben guardarse en sand, no verde»): a wavetable patch's slot in sand
 ENGC = 0x2004E480                                                      # (V2) the engines of the 16 patch slots of mpatch's page (after fm8store's KEEP)
 OCT_UP, OCT_DN = 52, 51
 
@@ -146,7 +147,7 @@ def tables():
 def v2_tables():
     import fm8inst as FI
     ecode = bytes(0 if not f & 1 else {1: 1, 3: 2, 7: 3, 15: 3, 11: 4, 9: 5, 5: 6, 13: 6}[f] for f in range(16))
-    scol = bytes(c_ for pair in list(MS.COLS) + [FE.COL_FM] for c_ in pair)
+    scol = bytes(c_ for pair in list(MS.COLS) + [FE.COL_FM] + ([(0x6D, 0x69)] if WTCOL else []) for c_ in pair)      # (WTCOL) 8 = the wavetable: sand
     out = [("inst", FI.table()), ("icol", FI.colours()), ("ecode", ecode), ("scol", scol)]
     if ROWOP:                                                                             # the engine row's 8 pads on the FM page: dim, FM bright
         out.append(("rowc", bytes([MS.COLS[m][1] if m != 0xFF else 0 for m in MS.ROWMODE] + [FE.COL_FM[0]])))
@@ -679,9 +680,13 @@ def ui(c, T, L, prev):
         E(ldr_imm, 1, 0, 0); imm32(3, MP.MAGIC4); E(cmp_reg, 1, 3); E(b_cond, "mr_w", "ne")
         E(ldrb_imm, 1, 0, 4); E(movs_imm, 3, 15); E(ands_reg, 1, 3); tb(3, "ecode"); E(ldrb_reg, 2, 3, 1)
         E(cmp_imm, 2, 2); E(b_cond, "mr_w", "ne")
-        E(adds_imm8, 0, 100); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, ord("F")); E(b_cond, "mr_w", "ne")
-        E(ldrb_imm, 1, 0, 1); E(cmp_imm, 1, ord("M")); E(b_cond, "mr_w", "ne")
-        E(ldrb_imm, 1, 0, 3); E(movs_imm, 3, 1); E(tst_reg, 1, 3); E(b_cond, "mr_w", "eq"); E(movs_imm, 2, 7)
+        E(adds_imm8, 0, 100); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, ord("F")); E(b_cond, "mr_wt" if WTCOL else "mr_w", "ne")
+        E(ldrb_imm, 1, 0, 1); E(cmp_imm, 1, ord("M")); E(b_cond, "mr_wt" if WTCOL else "mr_w", "ne")
+        E(ldrb_imm, 1, 0, 3); E(movs_imm, 3, 1); E(tst_reg, 1, 3); E(b_cond, "mr_wt" if WTCOL else "mr_w", "eq"); E(movs_imm, 2, 7)
+        if WTCOL:                                                                       # (SC52.6) not FM: the wavetable's record on (wtui, + 150: 0xB7, on) = 8
+            E(b, "mr_w")
+            lab("mr_wt"); E(adds_imm8, 0, 50); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 0xB7); E(b_cond, "mr_w", "ne")
+            E(ldrb_imm, 1, 0, 1); E(cmp_imm, 1, 0); E(b_cond, "mr_w", "eq"); E(movs_imm, 2, 8)
         lab("mr_w"); E(strb_reg, 2, 4, 6)
         E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "mr_l", "lo")
         lab("mr_x"); E(mov_reg, 0, 5); E(mov_reg, 1, 7); E(pop_list, [4, 5, 6, 7], pc=True)
@@ -689,7 +694,7 @@ def ui(c, T, L, prev):
         #      last one; an unknown engine = mpatch's peach; r0 / r2 clobbered
         lab("c_f8scol")
         E(push_list, [1], lr=True)
-        imm32(1, ENGC); E(ldrb_reg, 2, 1, 3); E(cmp_imm, 2, 7); E(b_cond, "sc_k", "ls")
+        imm32(1, ENGC); E(ldrb_reg, 2, 1, 3); E(cmp_imm, 2, 8 if WTCOL else 7); E(b_cond, "sc_k", "ls")
         E(movs_imm, 2, MP.COL_DIM); E(mov_reg, 0, 3); E(adds_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "sc_x", "ne"); E(movs_imm, 2, MP.COL_LIT); E(b, "sc_x")
         lab("sc_k"); E(lsls_imm, 2, 2, 1); E(mov_reg, 0, 3); E(adds_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "sc_b", "eq"); E(adds_imm8, 2, 1)
         lab("sc_b"); tb(1, "scol"); E(ldrb_reg, 2, 1, 2)

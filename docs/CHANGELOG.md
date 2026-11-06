@@ -7,6 +7,17 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.29 — 2026-11-06
+
+**Beta 5.29** (marca `B5.29`; = SC52.6) = la Beta 5.28 + lo siguiente, sin probar en el aparato.
+
+- **Duplicate + un hueco vacío = guardar el patch** del sinte propio ahí, al momento (Duplicate + un hueco ocupado sigue siendo el intercambio). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Fila de páginas reordenada:** pad 1 = knobs secuenciables (Shift + pad 1 = no secuenciables), pad 2 OSC 1, pad 3 OSC 2, **pad 4 = Filtro / VCA**, pad 5 modulación. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Knobs bipolares en dos tonos:** a la izquierda del centro un tono más claro del mismo color, en el centro tenue (motor de MIDI 1 / 2, drums, Digitise K4, la velocidad a tempo de Auto-Filter / Phaser); **K5 FM** pasado el máximo (el recíproco), en violeta. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Wavetable:** los patches de wavetable en **arena** en la lista; **Clear + pad 7** = el cuadro que señala K3 vuelve al de su tabla; **mucho menos aliasing con el warp** (SHAPE lejos del centro; en los extremos, algo más apagado). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Jankó:** con teclas mantenidas en las filas 2 y 4, Octave ▲ / ▼ mueve solo las filas 1 y 3 (medio tono; mantenido, una octava). → [Guía: Vista Scales y escala propia](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#escalas)
+- **Advanced Setup, K3 = ganancia de las entradas externas:** de 0 a +24 dB, con el número en los pads; se guarda en los ajustes. → [Guía: Vista Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup)
+
 ### Beta 5.27 — 2026-11-06 (publicada dentro de la Beta 5.28)
 
 **Beta 5.27** (marca `B5.27`; = SC52.4) = la Beta 5.26 + lo siguiente, sin probar en el aparato.
@@ -563,6 +574,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 5.30 — 2026-11-06
+
+**Beta 5.30** (marca `B5.30`; = SC52.7) = la Beta 5.29 + lo siguiente. Sin probar en el aparato.
+
+- **Menos aliasing en sierra, pulso y supersaw del sinte propio:** el antialias pasa del PolyBLEP de 2 muestras al BLEP de 4 (el de Circuit Remix RD43). En emulación, por debajo de 8 kHz en las notas 72 y 96: sierra y pulso de −58…−67 dB a −87 dB, supersaw en la nota 96 de −65 a −95 dB; FM a la derecha de −52 a −69 dB. Un pelo más apagado arriba (≈ −2,5 dB a 10 kHz). Seno y triángulo, igual. Cuesta algo más de DSP por voz en notas agudas (hasta un 30 % del oscilador).
+
 ### RC4.08 / RC4.08S / Beta 5.28 — 2026-11-06
 
 **RC4.08** / **RC4.08S** (marcas `R408` / `R408S`) = RC4.07 / RC4.07S + este arreglo; **Beta 5.28** (marca `B5.28`; = SC52.5) = la Beta 5.27 + el mismo. Sin probar en el aparato.
@@ -871,6 +888,17 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.29 — 2026-11-06
+
+**Beta 5.29** (marker `B5.29`; = SC52.6) = Beta 5.28 + the following, untested on the device.
+
+- **Duplicate + an empty slot = save the own-synth patch** there at once (Duplicate + a slot in use is still the swap). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **Page row reordered:** pad 1 = sequenceable knobs (Shift + pad 1 = non-sequenceable), pad 2 OSC 1, pad 3 OSC 2, **pad 4 = Filter / VCA**, pad 5 modulation. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **Bipolar knobs in two shades:** left of the centre a lighter shade of the same colour, dim at the centre (the MIDI 1 / 2 engine, drums, Digitise K4, the synced rate of Auto-Filter / Phaser); **K5 FM** past the maximum (the reciprocal), violet. → [Guide: Knob pages of the MIDI 1 / 2 engine](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Wavetable:** wavetable patches in **sand** in the list; **Clear + pad 7** = the frame K3 points at goes back to its table's; **far less aliasing with the warp** (SHAPE away from the centre; at the ends, a little duller). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **Jankó:** with keys held in rows 2 and 4, Octave ▲ / ▼ moves only rows 1 and 3 (a semitone; held, an octave). → [Guide: Scales view and custom scale](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#escalas)
+- **Advanced Setup, K3 = external input gain:** 0 to +24 dB, the number on the pads; saved in the settings. → [Guide: Advanced Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup)
 
 ### Beta 5.27 — 2026-11-06 (released inside Beta 5.28)
 
@@ -1427,6 +1455,12 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 5.30 — 2026-11-06
+
+**Beta 5.30** (marker `B5.30`; = SC52.7) = Beta 5.29 + the following. Not tested on the device.
+
+- **Less aliasing on the own synth's saw, pulse and supersaw:** the antialiasing moves from the 2-sample PolyBLEP to a 4-sample BLEP (Circuit Remix RD43's). In emulation, below 8 kHz at notes 72 and 96: saw and pulse from −58…−67 dB to −87 dB, supersaw at note 96 from −65 to −95 dB; FM to the right from −52 to −69 dB. A touch duller at the top (≈ −2.5 dB at 10 kHz). Sine and triangle unchanged. A little more DSP per voice on high notes (up to 30 % of the oscillator).
 
 ### RC4.08 / RC4.08S / Beta 5.28 — 2026-11-06
 

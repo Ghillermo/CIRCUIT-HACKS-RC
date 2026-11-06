@@ -353,6 +353,30 @@ def use_blep():
 
 
 BLEP2 = False                                   # (use_blep2)
+BLEP4 = False                                   # (use_blep4)
+BS_SV = 0x5203                                  # (BLEP4) X of core 0: u kept around the residual (free: gentab.XT_TINC's note, $4700-$5FEF)
+WTAA = False                                    # (use_wtaa)
+INGAIN = None                                   # (use_ingain) X of core 0: the inputs' gain / 16 (0 = untouched)
+
+
+def use_ingain(addr):
+    """SC52.6 (the user, 2026-11-06: «Knob 3 en advanced setup: gain de las entradas externas»; ingain.py): at the head of vpre both inputs of
+    the block (the Y ring, N frames [in1, in2]) x G with the accumulator's limiting: mpy by X:addr (G / 16), asl #4, stored.  X:addr = 0: skipped
+    (the stock's samples, bit for bit)."""
+    global INGAIN
+    INGAIN = addr
+
+
+def use_wtaa():
+    """SC52.6 (the user, 2026-11-06: «Sigue habiendo bastante aliasing en wt»; measured: with SHAPE at 50 the levels keep everything below
+    -88 dB, with the warp at either end -19 to -29 dB over the band): the warp bends the phase through the knee K with the slopes 0.5 / K and
+    0.5 / (1 - K), so on the steep side the frames are read up to 1 / (2 min (K, 1 - K)) times faster than the increment says (x 10 at the
+    ends) and the level chosen for the increment keeps harmonics that the bend carries past Nyquist.  Now the knee and the slopes are made
+    first and the level is chosen for the increment x the steeper slope (x 16 max (S1, S2), limited to $7FFFFF): the steep side band-limited,
+    the slow side duller in proportion.  SHAPE at 50 (K = 0.5): the same increment, the same level."""
+    global WTAA
+    assert WT
+    WTAA = True
 
 
 def use_blep2():
@@ -366,6 +390,19 @@ def use_blep2():
     global BLEP2
     assert BLEP
     BLEP2 = True
+
+
+def use_blep4():
+    """SC52.7 (from RYTHM's RD43, tools/va0.py V3; the user, 2026-11-06: «Sí, pórtalo»): the 4-sample BLEP in place of the 2-sample polyBLEP, on the
+    same edges (every saw of the supersaw, the pulse's two edges with use_blep2).  The check is |u| + 2 inc >= 1 (one more add x0,b); the residual
+    is the integrated cubic B-spline's, without delay: the distance from the wrap x = (1 - |u|) / inc (q = (|u| + 2 inc - 1) / 2 inc, one 24-step
+    division), far (1 <= x < 2) h = (2 - x)^4 / 24, near (x < 1) h = 1/2 - 2/3 x + 1/3 x^3 - 1/8 x^4 (Horner on x0 / y0 / b only: no free registers
+    here); a += -sgn(u) 2 y1 h (2 h = 1 at the wrap, as r^2 = 1 before: the same scale).  u is kept in X:BS_SV; x0 comes back from the block's
+    increment word (+ 11, OSC 1's effective one with OSC4), x1 and y1 untouched.  Measured in RYTHM (RD42 -> RD43, below 16 kHz): saw C4 / C7
+    -49 / -40 -> -67 / -59 dB, pulse 80 -50 / -39 -> -68 / -56, supersaw -52 / -40 -> -67 / -56; about -2.5 dB at 10 kHz."""
+    global BLEP4
+    assert BLEP2
+    BLEP4 = True
 
 
 FOLDLIM = False                                 # (use_foldlim)
@@ -1022,19 +1059,28 @@ def code(base, tabs, premix, ret_old):
                 if WT:                                                                # the track's table: frames, level, the warp
                     W2 = OS2B0 - OSB0
                     e("move x:(r3+%d),b" % (W2 + WT_N), "move b,x:>$%x" % WT_F, "tst b"); a.emit(J("eq"), p + "nw" + lab)
+                    def knee():
+                        e("move %s,x0" % ox(OW, SS_W), "move #>$733333,y0", "mpy y0,x0,a", "move #>$79999a,b", "sub a,b", "move b1,%s" % ox(OW, WT_K))   # K
+                        e("move b1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S1))
+                        e("move #>$7fffff,a", "sub x0,a", "move a1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S2))
+                    if WTAA:                                                     # (WTAA) the knee first; the level's increment = inc x 16 max (S1, S2)
+                        e("move a,%s" % ox(OW, WT_W))                            # (q kept in the weight's word)
+                        knee()
+                        e("move a0,x0", "move %s,b" % ox(OW, WT_S1), "cmp x0,b"); a.emit(J("ge"), p + "aa" + lab)
+                        e("move x0,b")
+                        L(p + "aa" + lab); e("move b1,x0", "move %s,y0" % ox(OW, inc_off), "mpy y0,x0,a", "asl #4,a,a", "move a,%s" % ox(OW, WT_A))   # (limited)
+                        e("move %s,a" % ox(OW, WT_W), "move x:(r3+%d),b" % (W2 + WT_N))
                     e("sub #>1,b", "move a,x0", "move b1,y0", "mpy y0,x0,a")                        # a1 = i, a0 = 2 f (q (n - 1))
                     e("move a0,b", "lsr #1,b", "move b1,%s" % ox(OW, WT_W))                          # frame i + 1's weight
                     e("move a1,b", "move b1,y1", "asl #11,b,b", "move b1,x0", "asl #3,b,b", "add x0,b")   # i x $4800
-                    e("move x:(r3+%d),x0" % (W2 + WT_B), "add x0,b", "add #>$%x,b" % (2 * WT_LEVEL), "move %s,a" % ox(OW, inc_off))
+                    e("move x:(r3+%d),x0" % (W2 + WT_B), "add x0,b", "add #>$%x,b" % (2 * WT_LEVEL), "move %s,a" % ox(OW, WT_A if WTAA else inc_off))
                     a.emit(lambda t: [0x60F400, t + 2 if isinstance(t, int) else 0], "wt_tab"); a.emit(D.NOP)     # move #>wtt + 2,r0
                     L(p + "lv" + lab); e("move p:(r0)+,x0", "cmp x0,a"); a.emit(J("le"), p + "lvd" + lab)
                     e("add #>$%x,b" % WT_LEVEL); a.emit(J("al"), p + "lv" + lab)
                     L(p + "lvd" + lab); e("move b1,%s" % ox(OW, WT_A), "move y1,a", "cmp y0,a"); a.emit(J("ge"), p + "wl" + lab)
                     e("add #>$%x,b" % WT_FRAME)
                     L(p + "wl" + lab); e("move b1,%s" % ox(OW, WT_B2))
-                    e("move %s,x0" % ox(OW, SS_W), "move #>$733333,y0", "mpy y0,x0,a", "move #>$79999a,b", "sub a,b", "move b1,%s" % ox(OW, WT_K))   # K
-                    e("move b1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S1))
-                    e("move #>$7fffff,a", "sub x0,a", "move a1,x0", "move #>$040000,a", "andi #$fe,ccr", "rep #24", "div x0,a", "move a0,%s" % ox(OW, WT_S2))
+                    if not WTAA: knee()
                     a.emit(J("al"), p + "we" + lab)
                     L(p + "nw" + lab)
                 e("asr #2,a,a", "tfr a,b", "asl a", "add b,a")              # a = 3 q / 4 (22 bits)
@@ -1293,7 +1339,8 @@ def code(base, tabs, premix, ret_old):
                     e("move x1,b", "asr b", "add #>$400000,b", "move b,y0", "mpy y0,y0,b", "sub y0,b", "move b,y1", "move x:(%s+13),x0" % OW, "mpy x0,y1,b", "add y0,b", "sub #>$400000,b")
                     e("move b1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a")              # 2 saw (slope)
                 elif BLEP:                                                                # 2 the supersaw with the polyBLEP: y0 = the phase, y1 = the weight, x0 = the increment
-                    def chk(): e("move y0,b", "abs b", "add x0,b"); a.emit(lambda t: [0x0BF0AD, t], p + "bs")      # bses: |u| + inc >= 1
+                    def chk():                                                            # bses: |u| + inc >= 1 (BLEP4: |u| + 2 inc)
+                        e("move y0,b", "abs b", "add x0,b", *(["add x0,b"] if BLEP4 else [])); a.emit(lambda t: [0x0BF0AD, t], p + "bs")
                     e("move x:(%s+11),x0" % OW, "move x1,y0", "move x:(%s+17),y1" % OW, "mac y1,y0,a"); chk()
                     e("move x:(%s+%d),y1" % (OW, SS_W))
                     for k in range(6):
@@ -1354,7 +1401,18 @@ def code(base, tabs, premix, ret_old):
                     e("sub x1,b", "move b,y0", "move x:>$%x,x0" % WT_WS, "mpy y0,x0,b", "add x1,b", "asr b", "add b,a")
                     e("move x:>$%x,r4" % WT_RS, "move #>$ffffff,m4"); a.emit(D.RTS)
                     L("wt_tab"); [a.emit([min(0x7fffff, (1 << 23) // h_)]) for h_ in WT_H]                 # the levels' increment limits (data)
-                if BLEP:                                                                  # bs: a += -sgn(y0) y1 r^2, r = (b - 1) / x0 (b = |u| + inc >= 1); keeps x0, x1, y1
+                if BLEP4:                                                                 # bs (BLEP4): a += -sgn(u) 2 y1 h (b = |u| + 2 inc >= 1, x0 = inc, y0 = u)
+                    L(p + "bs"); e("move y0,x:>$%x" % BS_SV, "asr b", "sub #>$400000,b", "move b1,b", "andi #$fe,ccr", "rep #24", "div x0,b", "move b0,x0")   # q
+                    e("move #>$400000,b", "cmp x0,b"); a.emit(J("le"), p + "b4n")
+                    e("move x0,b", "asl b", "move b,x0", "mpy x0,x0,b", "move b,x0", "mpy x0,x0,b", "move b,x0", "move #>$55555,y0", "mpy y0,x0,b")   # far: t = 2 q, t^4 / 24
+                    a.emit(J("al"), p + "b4a")
+                    L(p + "b4n"); e("move x0,b", "asl b", "bclr #23,b1", "neg b", "add #>$7fffff,b", "move b,x0")    # near: x = 2 - 2 q
+                    e("move #>$f00000,y0", "move #>$2aaaab,b", "mac y0,x0,b", "move b,y0", "mpy y0,x0,b", "move b,y0",      # ((-x / 8 + 1/3) x) x
+                      "move #>$aaaaab,b", "mac y0,x0,b", "move b,y0", "move #>$400000,b", "mac y0,x0,b")                     # (.. - 2/3) x + 1/2
+                    L(p + "b4a"); e("move b,y0", "move x:>$%x,b" % BS_SV, "tst b", "move x:(r4+11),x0"); a.emit(J("lt"), p + "b4d")
+                    e("mpy -y1,y0,b", "asl b", "add b,a"); a.emit(D.RTS)
+                    L(p + "b4d"); e("mpy y1,y0,b", "asl b", "add b,a"); a.emit(D.RTS)
+                elif BLEP:                                                                # bs: a += -sgn(y0) y1 r^2, r = (b - 1) / x0 (b = |u| + inc >= 1); keeps x0, x1, y1
                     L(p + "bs"); e("bclr #23,b1", "andi #$fe,ccr", "rep #24", "div x0,b", "btst #23,y0", "move b0,y0", "mpy y0,y0,b", "move b,y0")
                     a.emit(lambda t: [0x0AF0A8, t], p + "bln"); e("mac -y1,y0,a"); a.emit(D.RTS)       # jcs: u < 0
                     L(p + "bln"); e("mac y1,y0,a"); a.emit(D.RTS)
@@ -1775,6 +1833,13 @@ def code(base, tabs, premix, ret_old):
     L("vpre")
     save_regs()
     e("move #>$ffff,m0", "move #>2,n0", "move #>0,x0", "move x0,x:>$%x" % TCNT, "move #>$%x,r6" % VB0); a.emit(D.NOP)
+    if INGAIN:                                                                    # (INGAIN) the inputs x G, limited
+        e("move x:>$%x,b" % INGAIN, "tst b"); a.emit(J("eq"), "vp_ng")
+        e("move b1,y0", "move y:>$%x,r0" % RING_PTR); a.emit(D.NOP)
+        a.emit(D.do_x, 0x3A, "vp_ge")
+        e("move y:(r0),x0", "mpy y0,x0,a", "asl #4,a,a", "move a,y:(r0)+", "move y:(r0),x0", "mpy y0,x0,a", "asl #4,a,a")
+        L("vp_ge"); e("move a,y:(r0)+")
+        L("vp_ng")
     L("vp_loop")
     mailbox("vm_")
     if GRAN:                                                                      # a new note for core 1: GNEW added into its voice state (same stride)

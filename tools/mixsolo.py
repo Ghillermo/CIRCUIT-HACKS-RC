@@ -72,10 +72,11 @@ def install(img, report, base_addr):
     L = dict(c_shift=int(report["sc15"]["labels"]["c_shift"], 16), c_gact=int(report["sc17"]["labels"]["c_gact"], 16))
     prev = dict(pad=u(Q.MIX_VT) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     code, labels = arm_code(base_addr, L, prev)
+    at_end = base_addr - BASE >= len(img)                    # (SC52.7) or in hole.py's hole: the tail goes there and the image is cut back
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    assert len(img) <= 0x70000
+    assert len(img) <= 0x70000 or not at_end
     struct.pack_into("<I", img, Q.MIX_VT - BASE, labels["c_sopad"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)
