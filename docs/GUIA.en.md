@@ -860,6 +860,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | K7 Modulation | LFO amount: right = tremolo; left = vibrato (*(since RC4)*: left = **start scan**: each hit starts where the LFO is, from the Shift + K3 start up to a 64th of the sample further for every step of the knob (fully left, the whole sample), never past the cut; the LFO no longer restarts with each hit) | LFO speed (bipolar *(since RC4)*: right free, left synced; 0.2; synced, the scan is at the start on the first beat) |
 | K8 FX | Distortion; left of 0, **bitcrush** | **Distortion type**: stock, soft, hard, fold |
 
+- **Shift + K5, the LED's colour = the filter mode**: **green** = stock EQ tilt, **yellow** = band pass, **magenta** = notch, **teal** = comb (not in Beta 5.16: the tilt EQ plays instead) and **white** = DJ.
 - **K3:** turning left, the attack goes back to 0 before the decay goes down; with Shift, one of the two (start or cut) goes back to 0 before the other moves. LED: attack in white; with Shift, start in the drum's colour, cut in white.
 - **Clear + K3 to the right** puts attack, start and cut to 0; **Clear + K8 to the right** removes the bitcrush too *(since RC2)*. Clear + knob resets both layers on the others.
 - **Clear + the drum's button** *(since RC2)* (with one of its views on screen): the drum's eight knobs, with their Shift layer, back to their defaults.

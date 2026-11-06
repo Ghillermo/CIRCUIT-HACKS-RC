@@ -496,6 +496,7 @@ sec("knobs-drums", "B", "Knobs de los drums según el panel",
 | K7 Modulation | Cantidad del LFO (derecha trémolo; izquierda vibrato; desde RC4: izquierda = scan del inicio) | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
+- **Shift + K5, el color del LED = el modo de filtro**: verde = EQ tilt de stock, amarillo = paso banda, magenta = notch, verde azulado = comb (no en la Beta 5.16: ahí suena el EQ tilt) y blanco = DJ.
 - El brillo del LED enseña el valor; Clear + knob restablece las dos capas.
 - Todo se guarda con el proyecto y tiene NRPN (E4).
 """, [fig("Knobs de un drum.", knobs={1: "Pitch", 2: "Ring", 3: "Decay", 4: "Env→F", 5: "Filtro", 6: "Reso", 7: "LFO", 8: "Dist"}, buttons={"Drum 1": "white"}, view="Drum")])
