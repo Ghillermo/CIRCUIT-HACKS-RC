@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.33 — 2026-11-07
+
+**Beta 5.33** (marca `B5.33`; = SC53) = la Beta 5.32 + lo siguiente, sin probar en el aparato.
+
+- **Segunda página de instrumentos FM:** con el pad 8 mantenido, **Octave ▼ / ▲** pasa a una página con 24 nuevos: pianos (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), cuerdas (Slow Strings, Ensemble, Cello, Violin, Pizzicato, String Swell), vientos (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) y sonidos largos (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Los de la primera página tienen el release más largo. → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+
 ### Beta 5.32 — 2026-11-07
 
 **Beta 5.32** (marca `B5.32`; = SC52.9) = la Beta 5.29 + lo siguiente (las 5.30 y 5.31 no se publicaron: van dentro), sin probar en el aparato.
@@ -897,6 +903,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.33 — 2026-11-07
+
+**Beta 5.33** (marker `B5.33`; = SC53) = Beta 5.32 + the following, untested on the device.
+
+- **A second page of FM instruments:** with pad 8 held, **Octave ▼ / ▲** goes to a page of 24 new ones: pianos (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), strings (Slow Strings, Ensemble, Cello, Violin, Pizzicato, String Swell), winds (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) and long sounds (Cathedral, Bowed Glass, Evolving Pad, Long Bell). The first page's have longer releases. → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 
 ### Beta 5.32 — 2026-11-07
 

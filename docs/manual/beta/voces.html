@@ -22,7 +22,7 @@ footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 section.feat a { color:var(--accent); text-underline-offset:2px; }
 .feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>
-<header class="cover"><h1>Pistas MIDI y modos de voz</h1><p>CIRCUIT-HACKS · Beta 5.32</p><p><a style="color:#fff" href="voices.html">English</a> · <a style="color:#fff" href="guia.html">Guía por vistas</a></p><div class="bar"></div></header><main>
+<header class="cover"><h1>Pistas MIDI y modos de voz</h1><p>CIRCUIT-HACKS · Beta 5.33</p><p><a style="color:#fff" href="voices.html">English</a> · <a style="color:#fff" href="guia.html">Guía por vistas</a></p><div class="bar"></div></header><main>
 <nav class="toc"><h2>Contenido</h2><ol>
 <li><a href="#s1">Resumen</a></li>
 <li><a href="#s2">Diagrama de bloques</a></li>
@@ -37,7 +37,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ol></nav>
 <section class="feat" id="s1"><h3>Resumen</h3>
 <p>MIDI 1 y MIDI 2 son dos sintes completos dentro del Circuit Tracks: cada pista sigue mandando MIDI y además suena con un motor propio, de hasta 4 voces (6 en FM). El <strong>modo de voz</strong> decide cómo se reparten las notas entre esas voces: ocho modos en el pad 32 de la vista Preset.</p>
-<p>Este documento describe la <strong>Beta 5.32</strong>, sin probar en el aparato. Casi todo está ya en RC4 y RC4.08; lo que solo está en la beta se marca <em>(solo Beta 5.32)</em>.</p>
+<p>Este documento describe la <strong>Beta 5.33</strong>, sin probar en el aparato. Casi todo está ya en RC4 y RC4.08; lo que solo está en la beta se marca <em>(solo Beta 5.33)</em>.</p>
 <p>El modo de voz no tiene CC ni NRPN: se elige en el aparato y se guarda con el patch y con el proyecto.</p>
 </section>
 <section class="feat" id="s2"><h3>Diagrama de bloques</h3>
@@ -65,19 +65,19 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </tbody></table>
 <h4>Pads de la vista Preset</h4>
 <table><thead><tr><th>Pad</th><th>Función</th></tr></thead><tbody>
-<tr><td>1-5</td><td>Página de knobs: 1 VCA-VCF, 2 OSC 1 (o granular), 3 OSC 2, 4 knobs secuenciables, 5 modulación. Shift + pad 4 = knobs no secuenciables. <em>(solo Beta 5.32)</em> Los pads 1 y 4 cambian de sitio: <strong>pad 1 = knobs secuenciables</strong> (Shift + pad 1 = no secuenciables), <strong>pad 4 = VCA-VCF</strong>. Un toque deja la página; mantener ½ s la enseña solo mientras lo mantienes.</td></tr>
+<tr><td>1-5</td><td>Página de knobs: 1 VCA-VCF, 2 OSC 1 (o granular), 3 OSC 2, 4 knobs secuenciables, 5 modulación. Shift + pad 4 = knobs no secuenciables. <em>(solo Beta 5.33)</em> Los pads 1 y 4 cambian de sitio: <strong>pad 1 = knobs secuenciables</strong> (Shift + pad 1 = no secuenciables), <strong>pad 4 = VCA-VCF</strong>. Un toque deja la página; mantener ½ s la enseña solo mientras lo mantienes.</td></tr>
 <tr><td>6</td><td>Matriz de modulación.</td></tr>
-<tr><td>7</td><td>Página FM. Mantenerlo enseña los 56 algoritmos en los pads 9-32, en tres páginas (Octave ▼ / ▲). Con wavetable <em>(solo Beta 5.32)</em>: mantenerlo enseña las 16 wavetables del stock en los pads 9-24; un toque llena la tabla con sus 9 cuadros; Shift + una tabla = solo el cuadro que señala la posición (K3). Suena la tónica mientras se pulsa.</td></tr>
-<tr><td>8</td><td>Con FM: un toque abre la página FM; mantenerlo enseña 24 instrumentos en los pads 9-32. Con wavetable <em>(solo Beta 5.32)</em>: mantenerlo enseña los samples del pack en los pads 9-32 (Octave = página); un toque pone un ciclo del sample en el cuadro que señala la posición (K3) (la posición de OSC 1). Suena la tónica mientras se pulsa.</td></tr>
-<tr><td>9-24</td><td>Patches del sinte propio: 16 huecos por página, 8 páginas con Octave; cada uno en el color de su motor, vacío = blanco tenue <em>(solo Beta 5.32)</em>.</td></tr>
+<tr><td>7</td><td>Página FM. Mantenerlo enseña los 56 algoritmos en los pads 9-32, en tres páginas (Octave ▼ / ▲). Con wavetable <em>(solo Beta 5.33)</em>: mantenerlo enseña las 16 wavetables del stock en los pads 9-24; un toque llena la tabla con sus 9 cuadros; Shift + una tabla = solo el cuadro que señala la posición (K3). Suena la tónica mientras se pulsa.</td></tr>
+<tr><td>8</td><td>Con FM: un toque abre la página FM; mantenerlo enseña 24 instrumentos en los pads 9-32 <em>(solo Beta 5.33: Octave ▼ / ▲ = página 2 / 1; la 2, pianos, cuerdas, vientos y sonidos largos)</em>. Con wavetable <em>(solo Beta 5.33)</em>: mantenerlo enseña los samples del pack en los pads 9-32 (Octave = página); un toque pone un ciclo del sample en el cuadro que señala la posición (K3) (la posición de OSC 1). Suena la tónica mientras se pulsa.</td></tr>
+<tr><td>9-24</td><td>Patches del sinte propio: 16 huecos por página, 8 páginas con Octave; cada uno en el color de su motor, vacío = blanco tenue <em>(solo Beta 5.33)</em>.</td></tr>
 <tr><td>25</td><td>Editor de CC. Apagado y sin efecto con el motor encendido.</td></tr>
-<tr><td>26</td><td>Patch flip: cada nota sale como Program Change. Excluyente con el motor. <em>(solo Beta 5.32)</em> Abre y cierra la <strong>vista de flip</strong> (blanco abierta): fila 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (uno u otro; tocar el encendido lo apaga); con step flip, la fila 2 = el destino.</td></tr>
+<tr><td>26</td><td>Patch flip: cada nota sale como Program Change. Excluyente con el motor. <em>(solo Beta 5.33)</em> Abre y cierra la <strong>vista de flip</strong> (blanco abierta): fila 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (uno u otro; tocar el encendido lo apaga); con step flip, la fila 2 = el destino.</td></tr>
 <tr><td>27</td><td>Abre la fila de motores. Shift + pad 27 pasa al motor siguiente.</td></tr>
-<tr><td>28</td><td>Uno o dos osciladores (oscilador y VA-drum). Con FM, apagado y sin efecto <em>(solo Beta 5.32)</em>.</td></tr>
-<tr><td>29</td><td>Orden de la cadena: de fábrica filtro, VCA, efecto; encendido, VCA, efecto, filtro <em>(solo Beta 5.32)</em>. Shift + pad 29 pasa por los ocho modos de voz.</td></tr>
+<tr><td>28</td><td>Uno o dos osciladores (oscilador y VA-drum). Con FM, apagado y sin efecto <em>(solo Beta 5.33)</em>.</td></tr>
+<tr><td>29</td><td>Orden de la cadena: de fábrica filtro, VCA, efecto; encendido, VCA, efecto, filtro <em>(solo Beta 5.33)</em>. Shift + pad 29 pasa por los ocho modos de voz.</td></tr>
 <tr><td>30</td><td>Abre el step-drummer. Shift + pad 30 lo desactiva.</td></tr>
-<tr><td>31</td><td>Solo VA-drum: la velocity escala las envolventes de pitch y filtro. Sin voz: el <strong>secuenciador de efectos</strong> (azul tenue; encendido, brillante) <em>(solo Beta 5.32)</em>.</td></tr>
-<tr><td>32</td><td>Abre el menú de modos de voz, en el color del modo actual. Solo con oscilador, FM, VA-drum o muestra <em>(solo Beta 5.32)</em>.</td></tr>
+<tr><td>31</td><td>Solo VA-drum: la velocity escala las envolventes de pitch y filtro. Sin voz: el <strong>secuenciador de efectos</strong> (azul tenue; encendido, brillante) <em>(solo Beta 5.33)</em>.</td></tr>
+<tr><td>32</td><td>Abre el menú de modos de voz, en el color del modo actual. Solo con oscilador, FM, VA-drum o muestra <em>(solo Beta 5.33)</em>.</td></tr>
 </tbody></table>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -259,10 +259,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Menús sobre los pads</h4>
 <p>Un menú ocupa los pads 9-24 mientras está abierto; esos pads dejan de cargar patches.</p>
 <table><thead><tr><th>Menú</th><th>Abrir</th><th>Contenido</th><th>Cerrar</th></tr></thead><tbody>
-<tr><td>Fila de motores</td><td>Toque en pad 27</td><td>Pads 17-24: apagado, línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos, FM. <em>Solo Beta 5.32:</em> sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena: el oscilador con una tabla de hasta 9 cuadros; K7 de OSC 1 / OSC 2 = la posición, SHAPE = warp), muestra, granular, FM; el secuenciador de efectos pasa al pad 31.</td><td>Pad 27 otra vez. Elegir no la cierra.</td></tr>
+<tr><td>Fila de motores</td><td>Toque en pad 27</td><td>Pads 17-24: apagado, línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos, FM. <em>Solo Beta 5.33:</em> sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena: el oscilador con una tabla de hasta 9 cuadros; K7 de OSC 1 / OSC 2 = la posición, SHAPE = warp), muestra, granular, FM; el secuenciador de efectos pasa al pad 31.</td><td>Pad 27 otra vez. Elegir no la cierra.</td></tr>
 <tr><td>Modos de voz</td><td>Toque en pad 32</td><td>Pads 17-24: los ocho modos. K1 = glide, K2 = desafinación del unísono</td><td>Pad 32 otra vez, o salir de la vista</td></tr>
 <tr><td>Algoritmos FM</td><td>Mantener pad 7</td><td>Pads 9-32: los 56 algoritmos en tres páginas (Octave ▼ / ▲); verde azulado 4 operadores, blanco los del DX7, ámbar 8</td><td>Soltar el pad 7</td></tr>
-<tr><td>Instrumentos</td><td>Mantener pad 8 con FM</td><td>Pads 9-32: 24 instrumentos (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta)</td><td>Soltar el pad 8</td></tr>
+<tr><td>Instrumentos</td><td>Mantener pad 8 con FM</td><td>Pads 9-32: 24 instrumentos (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta). <em>Solo Beta 5.33:</em> Octave ▼ = página 2 (pianos naranja, cuerdas verde, vientos verde azulado, sonidos largos), Octave ▲ = página 1</td><td>Soltar el pad 8</td></tr>
 <tr><td>Destino de la matriz</td><td>Girar una fuente de la página 6</td><td>Pad de la página del destino y sus knobs en los pads 9-24</td><td>Solo, 1,5 s después</td></tr>
 <tr><td>Ratios FM</td><td>Girar K1-K4 en la página FM</td><td>Pads 9-32: los 24 ratios</td><td>Solo, 1,5 s después</td></tr>
 </tbody></table>
@@ -609,9 +609,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Clear + botón de la pista</td><td>Valores del motor a los iniciales, y suelta las notas en latch. El motor elegido se queda.</td></tr>
 <tr><td>Clear + pad 1-5</td><td>Esa página a sus valores iniciales.</td></tr>
 <tr><td>Clear + knob</td><td>A la derecha, valor por defecto (lavanda). A la izquierda, borra su automatización (rojo).</td></tr>
-<tr><td>Shift + Preset</td><td>Vuelve el sinte propio guardado con el proyecto. <em>(solo Beta 5.32)</em></td></tr>
+<tr><td>Shift + Preset</td><td>Vuelve el sinte propio guardado con el proyecto. <em>(solo Beta 5.33)</em></td></tr>
 <tr><td>Clear + pad de patch, dos veces</td><td>Guarda el patch en ese hueco.</td></tr>
-<tr><td>Duplicate + hueco vacío</td><td>Guarda ahí el patch al momento. <em>(solo Beta 5.32)</em></td></tr>
+<tr><td>Duplicate + hueco vacío</td><td>Guarda ahí el patch al momento. <em>(solo Beta 5.33)</em></td></tr>
 <tr><td>Duplicate + A + B</td><td>Intercambia dos patches. Con otro pack cargado entre medias, copia.</td></tr>
 <tr><td>Shift + pad de patch</td><td>Carga el patch sin que suene la tónica.</td></tr>
 </tbody></table>
@@ -626,7 +626,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>21</td><td>Magenta</td><td>Granular</td><td>Hasta 16 granos de un sample del pack o de la captura</td><td>1</td></tr>
 <tr><td>22</td><td>Verde azulado</td><td>Muestra</td><td>Un sample del pack a la altura de la nota, de un golpe</td><td>4</td></tr>
 <tr><td>23</td><td>Azul</td><td>Secuenciador de efectos</td><td>No suena: dispara huecos de Master FX</td><td>—</td></tr>
-<tr><td>24</td><td>Violeta</td><td>FM</td><td>4 operadores y 16 algoritmos; variante del oscilador (solo Beta 5.32: 8 operadores y 48 algoritmos)</td><td>6, o 3 + 3 (solo Beta 5.32: 6 por pista, en el otro núcleo del DSP)</td></tr>
+<tr><td>24</td><td>Violeta</td><td>FM</td><td>4 operadores y 16 algoritmos; variante del oscilador (solo Beta 5.33: 8 operadores y 48 algoritmos)</td><td>6, o 3 + 3 (solo Beta 5.33: 6 por pista, en el otro núcleo del DSP)</td></tr>
 </tbody></table>
 <h4>Oscilador</h4>
 <p>WAVE (K7 de la página 2) es una posición continua entre formas: 0 seno, 42 triángulo, 84 sierra, 126 cuadrada. SHAPE (K2) actúa distinto en cada forma; entre dos formas actúa sobre las dos.</p>
@@ -821,7 +821,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </svg><figcaption>Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).</figcaption></figure>
 <p>C3 (nota 60) es el sample como se grabó; una octava arriba, el doble de rápido. El VCA se queda abierto y el sample suena hasta el final. Los samples se eligen en la vista Note ampliada, con un sample distinto por paso (sample flip).</p>
 <p>K7 de la página 2 es la anchura estéreo: cada nota toca el sample elegido a la izquierda y un segundo a la derecha. Shift + el sample elegido pasa a elegir el segundo. La nota dura lo que el más largo.</p>
-<h4>Wavetable (solo Beta 5.32)</h4>
+<h4>Wavetable (solo Beta 5.33)</h4>
 <p>El oscilador leyendo una <strong>tabla de hasta 9 cuadros</strong> (una por patch, para los dos osciladores). <strong>K3 de OSC 1 / OSC 2</strong> = la posición en la tabla (en la Beta 5.24-5.26, K7); K7 de OSC 1 = LFO → posición, Shift + K3 = envolvente → posición; SHAPE (K4) = warp. Se elige en la fila de motores, <strong>pad 21</strong> (arena).</p>
 <p><strong>Hacer tu propia tabla:</strong></p>
 <ol>
@@ -830,9 +830,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>3. <strong>Pad 7 mantenido + Shift + una tabla Nova</strong> = solo ese cuadro, tomado del mismo cuadro de esa tabla; sin Shift, la tabla entera.</li>
 <li>4. Repite con otras posiciones de K3. Cada toque suena la tónica mientras mantienes el pad.</li>
 <li>5. Se guarda con el patch del sinte propio y con el proyecto.</li>
-<li>6. <em>(solo Beta 5.32)</em> <strong>Clear + pad 7</strong> = el cuadro que señala K3 vuelve al de su tabla (la tabla Nova que tenía o la de partida).</li>
+<li>6. <em>(solo Beta 5.33)</em> <strong>Clear + pad 7</strong> = el cuadro que señala K3 vuelve al de su tabla (la tabla Nova que tenía o la de partida).</li>
 </ol>
-<p>Los patches de wavetable se ven en <strong>arena</strong> en la lista. Con el <strong>warp</strong> lejos del centro, la versión de banda limitada se elige por la parte más rápida de la onda deformada: casi sin aliasing en los agudos, algo más apagado en los extremos <em>(solo Beta 5.32)</em>.</p>
+<p>Los patches de wavetable se ven en <strong>arena</strong> en la lista. Con el <strong>warp</strong> lejos del centro, la versión de banda limitada se elige por la parte más rápida de la onda deformada: casi sin aliasing en los agudos, algo más apagado en los extremos <em>(solo Beta 5.33)</em>.</p>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
@@ -1893,7 +1893,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Pad 8 mantenido: los 16 sonidos de partida, por familias.</figcaption></figure>
 <p>Los sonidos de partida (pad 8 mantenido): piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja y hi-hat.</p>
-<h4>FM de 8 operadores (solo Beta 5.32)</h4>
+<h4>FM de 8 operadores (solo Beta 5.33)</h4>
 <p>Sustituye al FM de 4 operadores en el mismo pad 24. Hasta 8 operadores, cada uno con una envolvente como la del DX7 (4 rates y 4 niveles), y 56 algoritmos: los 16 de arriba, los 32 del DX7 y 8 de 8 operadores. Los patches de 4 operadores se cargan convertidos, con el mismo sonido.</p>
 <table><thead><tr><th>Elemento</th><th>Qué es</th></tr></thead><tbody>
 <tr><td>Página FM</td><td>Pad 7, con la fila de motores cerrada</td></tr>
@@ -2514,7 +2514,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <p>El modo, el tiempo del glide y la desafinación se guardan con el patch propio y con el proyecto. Un patch sin ellos deja los valores actuales.</p>
 </section>
 <section class="feat" id="s6"><h3>Páginas de knobs</h3>
-<p>Con el motor encendido, los pads 1-7 eligen qué hacen los 8 knobs, y Shift da una segunda capa. Los knobs de tipo se ven con el color del tipo y el brillo de la posición dentro del tipo. Un knob de tipos necesita al menos 16 clics por tipo <em>(solo Beta 5.32)</em>: la forma del LFO, el algoritmo FM y el modo de nota del granular van a 16. Los knobs bipolares <em>(solo Beta 5.32)</em>: tenues en el centro, a la derecha su color y a la izquierda un tono más claro del mismo color; K5 de OSC 2 (FM) pasado el máximo, en violeta.</p>
+<p>Con el motor encendido, los pads 1-7 eligen qué hacen los 8 knobs, y Shift da una segunda capa. Los knobs de tipo se ven con el color del tipo y el brillo de la posición dentro del tipo. Un knob de tipos necesita al menos 16 clics por tipo <em>(solo Beta 5.33)</em>: la forma del LFO, el algoritmo FM y el modo de nota del granular van a 16. Los knobs bipolares <em>(solo Beta 5.33)</em>: tenues en el centro, a la derecha su color y a la izquierda un tono más claro del mismo color; K5 de OSC 2 (FM) pasado el máximo, en violeta.</p>
 <h4>Página 1: VCA-VCF</h4>
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Ataque</td><td>Sustain</td></tr>
@@ -2538,7 +2538,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K7</td><td>WAVE (morph); en muestra, anchura estéreo</td><td>—</td></tr>
 <tr><td>K8</td><td>LFO → morph</td><td>Envolvente → morph</td></tr>
 </tbody></table>
-<p><em>Solo Beta 5.32</em> (oscilador, VA-drum, wavetable):</p>
+<p><em>Solo Beta 5.33</em> (oscilador, VA-drum, wavetable):</p>
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>TUNE</td><td>Envolvente → tono</td></tr>
 <tr><td>K2</td><td>FINE</td><td>LFO → tono</td></tr>
@@ -2549,7 +2549,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K7</td><td>LFO → morph</td><td>LFO → forma</td></tr>
 <tr><td>K8</td><td>LFO → mix</td><td>Envolvente → mix</td></tr>
 </tbody></table>
-<p><em>Solo Beta 5.32</em>, con <strong>un oscilador</strong> (sin los dos osciladores) K5, K6 y K8 tienen funciones propias, con sus valores aparte:</p>
+<p><em>Solo Beta 5.33</em>, con <strong>un oscilador</strong> (sin los dos osciladores) K5, K6 y K8 tienen funciones propias, con sus valores aparte:</p>
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K5</td><td>Nivel del sub-oscilador (cuadrada una octava abajo)</td><td>Envolvente → sub</td></tr>
 <tr><td>K6</td><td>Nivel del ruido</td><td>Envolvente → ruido</td></tr>
@@ -2578,11 +2578,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K7</td><td>WAVE 2</td></tr>
 <tr><td>K8</td><td>RING</td></tr>
 </tbody></table>
-<p>Beta 5.32 (salvo con el granular, que sigue con la tabla de arriba): K1 = ratio de OSC 2 respecto a su nota (¼, ½, 1 en el centro, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM con centro (a la derecha OSC 2 → OSC 1; a la izquierda OSC 1 → OSC 2; en los extremos las dos, 50 / 50), K6 RING, K7 sync clásico + bitwise, K8 MIX.</p>
+<p>Beta 5.33 (salvo con el granular, que sigue con la tabla de arriba): K1 = ratio de OSC 2 respecto a su nota (¼, ½, 1 en el centro, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM con centro (a la derecha OSC 2 → OSC 1; a la izquierda OSC 1 → OSC 2; en los extremos las dos, 50 / 50), K6 RING, K7 sync clásico + bitwise, K8 MIX.</p>
 <h4>Página 4: knobs secuenciables</h4>
 <p>Son los 8 valores que se graban como automatización con Record + Play. De fábrica: TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO y Efecto.</p>
 <p>Shift + knob elige el destino entre los 33 parámetros, a 4 clics por parámetro. Mientras eliges, los pads 9-24 enseñan dónde vive el destino. Clear mantenido y luego Shift + knob devuelve el de fábrica.</p>
-<h4>Knobs no secuenciables (Shift + pad 4; en la Beta 5.32, Shift + pad 1)</h4>
+<h4>Knobs no secuenciables (Shift + pad 4; en la Beta 5.33, Shift + pad 1)</h4>
 <p>Ocho knobs con destino asignable que no se graban. El pad 4 se ve rosa. De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2 y Gain del VCA.</p>
 <p>Un destino que también esté en los knobs secuenciables sí se graba, como desde cualquier página.</p>
 <h4>Página 5: modulación</h4>
@@ -2612,7 +2612,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <section class="feat" id="s7"><h3>Modulación</h3>
 <p>El motor tiene una ADSR y un LFO propios, y la matriz añade ocho fuentes que mueven cualquiera de 33 parámetros. La matriz se suma al enviar: el valor guardado del parámetro no cambia.</p>
 <h4>LFO</h4>
-<p>K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift + K8 de la página 5 elige la forma, con el LED en su color: un paso cada 16 clics <em>(solo Beta 5.32; antes, 4)</em>.</p>
+<p>K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift + K8 de la página 5 elige la forma, con el LED en su color: un paso cada 16 clics <em>(solo Beta 5.33; antes, 4)</em>.</p>
 <table><thead><tr><th>Forma</th><th>Color</th></tr></thead><tbody>
 <tr><td>Triángulo, la inicial</td><td>Verde</td></tr>
 <tr><td>Diente de sierra inverso</td><td>Azul</td></tr>
@@ -2633,7 +2633,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K7</td><td>Posición en el patrón, del primer paso al último</td><td>—</td></tr>
 <tr><td>K8</td><td>Azar por pasos: un valor nuevo cada N pasos</td><td>N = 1, 2, 4, 8 o 16</td></tr>
 </tbody></table>
-<p>Con K1 (velocity) a 0, mandan los controles globales de velocity de la vista Setup (K1 velocity → amplitud, K2 velocity → filtro): las notas suaves, más bajas y más oscuras. <em>(solo Beta 5.32)</em></p>
+<p>Con K1 (velocity) a 0, mandan los controles globales de velocity de la vista Setup (K1 velocity → amplitud, K2 velocity → filtro): las notas suaves, más bajas y más oscuras. <em>(solo Beta 5.33)</em></p>
 <p>La posición del knob es a la vez el destino y la cantidad:</p>
 <ul>
 <li>Del todo a la izquierda, apagado.</li>
@@ -2654,11 +2654,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Automatización</h4>
 <p>Los 8 knobs secuenciables graban con Record + Play en 8 carriles del patrón. Hay varios gestos por paso:</p>
 <table><thead><tr><th>Gesto</th><th>Vista</th><th>Efecto</th></tr></thead><tbody>
-<tr><td>Record mantenido + paso</td><td>Note</td><td>Foto: escribe en ese paso los parámetros que no están en su valor inicial. <em>(solo Beta 5.32)</em> El paso se ve amarillo mientras lo mantienes</td></tr>
+<tr><td>Record mantenido + paso</td><td>Note</td><td>Foto: escribe en ese paso los parámetros que no están en su valor inicial. <em>(solo Beta 5.33)</em> El paso se ve amarillo mientras lo mantienes</td></tr>
 <tr><td>Shift + paso</td><td>Velocity</td><td>Marca el paso: ahí no suena ningún carril y lo automatizado vuelve al sinte guardado con el proyecto</td></tr>
-<tr><td>Shift + paso amarillo</td><td>Velocity</td><td><em>(solo Beta 5.32)</em> Oye sus valores hasta soltar Shift, con los knobs que mueve en amarillo</td></tr>
-<tr><td>Clear + paso</td><td>Velocity</td><td><em>(solo Beta 5.32)</em> Borra la automatización de los knobs de ese paso; las notas quedan</td></tr>
-<tr><td>Paso amarillo mantenido + otro paso amarillo</td><td>Velocity, con Shift</td><td><em>(solo Beta 5.32)</em> Sweep: cada carril con valor en los dos pasos queda en línea recta entre ellos</td></tr>
+<tr><td>Shift + paso amarillo</td><td>Velocity</td><td><em>(solo Beta 5.33)</em> Oye sus valores hasta soltar Shift, con los knobs que mueve en amarillo</td></tr>
+<tr><td>Clear + paso</td><td>Velocity</td><td><em>(solo Beta 5.33)</em> Borra la automatización de los knobs de ese paso; las notas quedan</td></tr>
+<tr><td>Paso amarillo mantenido + otro paso amarillo</td><td>Velocity, con Shift</td><td><em>(solo Beta 5.33)</em> Sweep: cada carril con valor en los dos pasos queda en línea recta entre ellos</td></tr>
 </tbody></table>
 <p>En la foto, un parámetro sin carril toma uno cuyo parámetro sí está en su valor inicial, y ese carril se borra antes. Si no caben, quedan los primeros en el orden de la matriz.</p>
 <h4>Step-drummer</h4>
@@ -2854,9 +2854,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Secuenciador de efectos</h4>
 <p>Con este motor, cada knob del step-drummer elige un hueco de la fila inferior de Master FX: nada, pads 26-31 o random. Un hueco sin efecto toca el efecto de arriba de su columna.</p>
 <h4>Secuenciador de saltos</h4>
-<p>Las notas de la pista hacen saltar el patrón de otra pista al paso que indican, en el mismo paso de la nota. <em>(solo Beta 5.32)</em></p>
+<p>Las notas de la pista hacen saltar el patrón de otra pista al paso que indican, en el mismo paso de la nota. <em>(solo Beta 5.33)</em></p>
 <table><thead><tr><th>Control</th><th>Función</th></tr></thead><tbody>
-<tr><td>Pad 26, vista de flip <em>(solo Beta 5.32)</em></td><td>Fila 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (sin destino elegido, el último usado; de fábrica Synth 1); tocar el encendido lo apaga</td></tr>
+<tr><td>Pad 26, vista de flip <em>(solo Beta 5.33)</em></td><td>Fila 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (sin destino elegido, el último usado; de fábrica Synth 1); tocar el encendido lo apaga</td></tr>
 <tr><td>Fila 2 de la vista de flip, con step flip</td><td>Las ocho pistas: un toque = el destino (la propia apagada). Con la vista cerrada, el pad 26 parpadea en su color</td></tr>
 <tr><td>Vista Note, pads 17-32</td><td>Pasos 1-16; Octave ▲, pasos 17-32. La escala no cambia nada</td></tr>
 <tr><td>Note ampliada, los 32 pads</td><td>Pasos 1-32</td></tr>
@@ -3386,14 +3386,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <table><thead><tr><th>Función</th><th>Dónde</th><th>Qué hace</th></tr></thead><tbody>
 <tr><td>Probabilidad</td><td>Vista de probabilidad, fila 3</td><td>Que el paso suene a veces</td></tr>
 <tr><td>Frecuencia</td><td>Modo 1, fila 4</td><td>El paso suena en la última de cada n vueltas, de 1 a 8</td></tr>
-<tr><td>Dinámicas</td><td>Modo 2, pads 25-28</td><td>Acentos, acentos y longitud, o longitud al azar. <em>(solo Beta 5.32)</em></td></tr>
-<tr><td>Random-mutate</td><td>Modo 2, pads 17-24</td><td>Pads 18-20 otra nota de la escala (×1, ×2, ×4), 21 / 22 una octava arriba (baja / alta), 23 / 24 arriba o abajo (baja / alta). <em>(solo Beta 5.32)</em></td></tr>
+<tr><td>Dinámicas</td><td>Modo 2, pads 25-28</td><td>Acentos, acentos y longitud, o longitud al azar. <em>(solo Beta 5.33)</em></td></tr>
+<tr><td>Random-mutate</td><td>Modo 2, pads 17-24</td><td>Pads 18-20 otra nota de la escala (×1, ×2, ×4), 21 / 22 una octava arriba (baja / alta), 23 / 24 arriba o abajo (baja / alta). <em>(solo Beta 5.33)</em></td></tr>
 <tr><td>Gate por pulsación</td><td>Micro Step, pad 32</td><td>Lo que mantienes al introducir una nota es su duración</td></tr>
 <tr><td>Longitud fija</td><td>Micro Step, pad 31</td><td>Todas las notas introducidas a mano con el mismo gate, de 1 a 16 pasos</td></tr>
-<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Mueve el contenido del tramo un paso atrás; Shift, adelante. El primer y el último paso no se mueven. <em>(solo Beta 5.32)</em></td></tr>
+<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Mueve el contenido del tramo un paso atrás; Shift, adelante. El primer y el último paso no se mueven. <em>(solo Beta 5.33)</em></td></tr>
 <tr><td>Fractal y deconstruido</td><td>Pattern Settings, pads 27 y 28</td><td>Otro orden de recorrido del patrón</td></tr>
-<tr><td>Micropasos</td><td>Modo 2, pad 32</td><td>La nota se adelanta o se atrasa hasta 2 micropasos, sin salir de su paso. <em>(solo Beta 5.32)</em></td></tr>
-<tr><td>Factor de la pista</td><td>Octave, con el modo 2 abierto</td><td>De ×0 a ×8, multiplica todas las probabilidades de la pista; ×1 de fábrica. A ×8 el pad 24 cambia todas las notas: el sorteo sigue siendo mitad y mitad. <em>(solo Beta 5.32)</em></td></tr>
+<tr><td>Micropasos</td><td>Modo 2, pad 32</td><td>La nota se adelanta o se atrasa hasta 2 micropasos, sin salir de su paso. <em>(solo Beta 5.33)</em></td></tr>
+<tr><td>Factor de la pista</td><td>Octave, con el modo 2 abierto</td><td>De ×0 a ×8, multiplica todas las probabilidades de la pista; ×1 de fábrica. A ×8 el pad 24 cambia todas las notas: el sorteo sigue siendo mitad y mitad. <em>(solo Beta 5.33)</em></td></tr>
 </tbody></table>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Random-mutate (modo 2) con un paso elegido: el pad 22, las dinámicas (pad 26) y los micropasos (pad 32) encendidos.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3741,7 +3741,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Pantalla de acordes</td><td>Shift + pad 8 en Note ampliada</td><td>Tipo, inversión y modificadores; las filas 3-4 tocan el acorde, hasta 6 notas</td></tr>
 <tr><td>Teclado partido</td><td>Mantener una pista y pulsar otra</td><td>Dos pistas en los pads. Mantener un botón de pista da sus knobs</td></tr>
 <tr><td>Banco de acordes</td><td>Record de Setup en amarillo</td><td>Nada se graba en una pista silenciada: suena y se graba en el sinte del canal compartido</td></tr>
-<tr><td>Destello de notas</td><td>Shift mantenido, en cualquier vista</td><td><em>(solo Beta 5.32)</em> El botón de cada pista destella en blanco 100 ms con cada nota</td></tr>
+<tr><td>Destello de notas</td><td>Shift mantenido, en cualquier vista</td><td><em>(solo Beta 5.33)</em> El botón de cada pista destella en blanco 100 ms con cada nota</td></tr>
 </tbody></table>
 <p>Cada nota del acorde pasa por el modo de voz: en poly suena hasta el máximo de voces del motor.</p>
 </section>
@@ -3770,8 +3770,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Forma del LFO</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
 <tr><td>Estéreo del modo muestra: distancia al segundo sample</td><td>—</td><td>Sí</td><td>Sí</td><td>—</td></tr>
 <tr><td>Patch flip</td><td>—</td><td>—</td><td>—</td><td>Sí</td></tr>
-<tr><td>Factor del random-mutate, por pista <em>(solo Beta 5.32)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
-<tr><td>Pista a la que apunta el secuenciador de saltos <em>(solo Beta 5.32)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Factor del random-mutate, por pista <em>(solo Beta 5.33)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
+<tr><td>Pista a la que apunta el secuenciador de saltos <em>(solo Beta 5.33)</em></td><td>—</td><td>Sí</td><td>—</td><td>—</td></tr>
 </tbody></table>
 <h4>Qué se pierde al apagar</h4>
 <ul>

@@ -76,7 +76,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
-- **Secuenciador de saltos** *(solo Beta 5.32)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
+- **Secuenciador de saltos** *(solo Beta 5.33)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
@@ -113,7 +113,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### FM de 8 operadores
 
-*Cómo se llega:* *(solo Beta 5.32)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.
+*Cómo se llega:* *(solo Beta 5.33)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
 

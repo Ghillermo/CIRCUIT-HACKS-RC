@@ -434,6 +434,8 @@ BUILDS = [
     ("b5.31", "build_beta5_31.py", []),
     ("sc52.9", "build_sc52_9.py", []),
     ("b5.32", "build_beta5_32.py", []),
+    ("sc53", "build_sc53.py", []),
+    ("b5.33", "build_beta5_33.py", []),
     ("r408", "build_r408.py", []),
     ("r408s", "build_r408s.py", []),
     ("r404", "build_r404.py", []),

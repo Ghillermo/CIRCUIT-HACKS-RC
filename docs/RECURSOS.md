@@ -37,6 +37,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 
 > **SC47.2 / Beta 3.29 (2026-10-26):** zona libre + `arpx` (1 520 B) hasta `0x08015228`: **13 106 B libres**. RAM `modmx.MXR + 0x700..0x777` (`arpx`). Banderas de gmdrum: bit 2 = el teclado externo al arpegiador. DSP sin cambios. RC2.10 / RC2.10S: 1 byte (y la marca).
 
+> **SC53 (2026-11-07):** la tabla de instrumentos FM comprimida (48 registros, 2 348 B en lugar de 3 024 de los 24 de antes) en el hueco de `dspz`; **ITCM `0x100-0x18A3` ocupada** (la tabla descomprimida y su sello; libre `0x18A4-0x1FFF`). Imagen `0x6FFE4`.
+
 > **SC52.9 (2026-11-07):** `flipview` en el hueco de `hole.py` (≈ 470 B); RAM `modmx.MXR + 0x22B0..0x22BB` (firma `FLV1`). DSP sin cambios. Imagen `0x6FFE4`.
 
 > **SC52.8 (2026-11-07):** `gentab.use_xtf` (TF a `X:$5180-$51BF` del núcleo 0, hecha en `init3`: +64 palabras de P) + `use_osc1x`: núcleo 0 hasta `P:$3F14` (**58 palabras libres** antes de las tablas en `$3F4E`); X `OM_T + 48 t + 8..15` (sub / ruido), `OSC1 + 39` = la fase del sub (por voz). ARM: `oscmod` crece en el hueco (hasta `0x08017E74`); RAM `modmx.MXR + 0x2280..0x22A2` (firma `OSO1`); imagen `0x6FFE4` (28 B libres). Guardado: relleno + 142..149 de los patches propios; el bloque de proyecto de `wtui` lleva 29 B (+ 142..170). SPI: una escritura más por tick como mucho (solo cuando cambia un valor). CPU: el sub ≈ 12 instrucciones por muestra y voz (≈ +7 % del oscilador); el ruido, el bucle de siempre del VA-drum.

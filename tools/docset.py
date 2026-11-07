@@ -24,7 +24,7 @@ SETS = ("rc", "beta")
 
 def beta_name():
     import make_guide as G
-    return G.YBETA                                      # «Beta 5.32»
+    return G.YBETA                                      # «Beta 5.33»
 
 
 def mark_re():

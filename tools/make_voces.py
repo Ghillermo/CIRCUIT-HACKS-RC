@@ -172,7 +172,7 @@ UI = dict(es=dict(src="docs/VOCES.md", page="voces.html", other="voices.html", o
           en=dict(src="docs/VOICES.md", page="voices.html", other="voces.html", other_name="Español", guide="guide.html", guide_name="Guide by views", toc="Contents", lang="en"))
 
 
-COVER = {"rc": "RC4.08", "beta": "Beta 5.32"}
+COVER = {"rc": "RC4.08", "beta": "Beta 5.33"}
 
 
 def page(lang):
@@ -183,7 +183,7 @@ def page(lang):
     title = head.strip().lstrip("# ").strip()
     h = [f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(title)}</title><style>{M.CSS}'
          ".feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>",
-         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.32")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
+         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.33")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
          f'<nav class="toc"><h2>{U["toc"]}</h2><ol>']
     parts = []
     if M.SET == "rc":                                                       # (docset.py) the release candidate's set: no beta-only section

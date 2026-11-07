@@ -1089,3 +1089,4 @@ run python3 tools/emu_osc1x_dsp.py firmware/b5.31/circuittracks-4486-B5.31.bin f
 run python3 tools/emu_gentab_dsp.py firmware/b5.31/circuittracks-4486-B5.31.bin firmware/b5.31/manifest.json --xtf
 run python3 tools/emu_fm8.py firmware/b5.31/circuittracks-4486-B5.31.bin firmware/b5.31/manifest.json
 run python3 tools/emu_flipview.py firmware/b5.32/circuittracks-4486-B5.32.bin firmware/b5.32/manifest.json
+run python3 tools/emu_inst2.py firmware/b5.33/circuittracks-4486-B5.33.bin firmware/b5.33/manifest.json
