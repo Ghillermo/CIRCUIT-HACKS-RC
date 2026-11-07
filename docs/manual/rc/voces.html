@@ -69,7 +69,6 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>6</td><td>Matriz de modulación.</td></tr>
 <tr><td>8</td><td>Con FM: un toque abre la página FM; mantenerlo enseña 24 instrumentos en los pads 9-32.</td></tr>
 <tr><td>25</td><td>Editor de CC. Apagado y sin efecto con el motor encendido.</td></tr>
-<tr><td>26</td><td>Patch flip: cada nota sale como Program Change. Excluyente con el motor.</td></tr>
 <tr><td>27</td><td>Abre la fila de motores. Shift + pad 27 pasa al motor siguiente.</td></tr>
 <tr><td>30</td><td>Abre el step-drummer. Shift + pad 30 lo desactiva.</td></tr>
 <tr><td>31</td><td>Solo VA-drum: la velocity escala las envolventes de pitch y filtro.</td></tr>
@@ -2514,6 +2513,12 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K7</td><td>LFO → morph</td><td>LFO → forma</td></tr>
 <tr><td>K8</td><td>LFO → mix</td><td>Envolvente → mix</td></tr>
 </tbody></table>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K5</td><td>Nivel del sub-oscilador (cuadrada una octava abajo)</td><td>Envolvente → sub</td></tr>
+<tr><td>K6</td><td>Nivel del ruido</td><td>Envolvente → ruido</td></tr>
+<tr><td>K8</td><td>LFO → sub</td><td>LFO → ruido</td></tr>
+</tbody></table>
+<p>El sub y el ruido pasan por el filtro y el VCA; en poly, cada voz los suyos. Se guardan con el patch y con el proyecto.</p>
 <h4>Página 2: granular</h4>
 <table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Tono ±24 semitonos</td><td>Fino ±1 semitono</td></tr>
@@ -2809,31 +2814,32 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <p>Con este motor, cada knob del step-drummer elige un hueco de la fila inferior de Master FX: nada, pads 26-31 o random. Un hueco sin efecto toca el efecto de arriba de su columna.</p>
 <h4>Secuenciador de saltos</h4>
 <table><thead><tr><th>Control</th><th>Función</th></tr></thead><tbody>
+<tr><td>Fila 2 de la vista de flip, con step flip</td><td>Las ocho pistas: un toque = el destino (la propia apagada). Con la vista cerrada, el pad 26 parpadea en su color</td></tr>
 <tr><td>Vista Note, pads 17-32</td><td>Pasos 1-16; Octave ▲, pasos 17-32. La escala no cambia nada</td></tr>
 <tr><td>Note ampliada, los 32 pads</td><td>Pasos 1-32</td></tr>
 </tbody></table>
 <p>Mientras apunta, la pista no suena. Cada nota, del secuenciador, de los pads o del arpegiador, hace saltar la otra pista. Se guarda con el proyecto.</p>
 <p>El pad 26 parpadea en el color de la pista destino. Apuntar apaga el motor y encender un motor deja de apuntar: solo una de las dos funciones a la vez. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. Con el transporte parado, un pad hace sonar ese paso de la pista destino mientras lo mantienes, sin saltar (en los drums, con su sample elegido).</p>
 <p>Si el destino y la pista MIDI tienen la misma longitud, un mismo salto solo se nota la primera vez: en las vueltas siguientes el destino ya está en ese paso. Para que se oiga en cada vuelta hacen falta dos saltos en el patrón: uno que lo mueva y otro que lo devuelva.</p>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fila de motores apuntando a Drum 1: su pad brillante, el motor apagado y el pad 27 parpadeando en su color.">
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de flip (pad 26, blanco) con step flip hacia Drum 1: fila 3, pad 17 patch flip (PGM seq) y pad 18 step flip en el color del destino; fila 2, las pistas (Drum 1 brillante, MIDI 1 apagada).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#112faa" stroke-width="2"/>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
-<text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Saltos</text>
+<text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Flip</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Scales</text>
 <rect x="100" y="140" width="60" height="18" rx="4" fill="#ffffff" stroke="#111"/>
@@ -2889,118 +2895,118 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="49.0" y="438.0" font-size="9.5" fill="#e8eaed" text-anchor="middle">Settings</text>
 <rect x="580" y="410" width="54" height="38" rx="4" fill="#292929" stroke="#111"/>
 <text x="607.0" y="432.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Play</text>
-<rect x="84" y="216" width="54" height="54" rx="7" fill="#292904" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="111.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sec.</text>
+<rect x="84" y="216" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="242" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Sec.</text>
 <text x="88" y="266" font-size="8" fill="#7d838a">1</text>
-<rect x="146" y="216" width="54" height="54" rx="7" fill="#002900" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="146" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">OSC 1</text>
 <text x="150" y="266" font-size="8" fill="#7d838a">2</text>
-<rect x="208" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="208" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">OSC 2</text>
 <text x="212" y="266" font-size="8" fill="#7d838a">3</text>
-<rect x="270" y="216" width="54" height="54" rx="7" fill="#ffaf2f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="297.0" y="236" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">VCA</text>
-<text x="297.0" y="248" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">VCF</text>
+<rect x="270" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="236" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
+<text x="297.0" y="248" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
 <text x="274" y="266" font-size="8" fill="#7d838a">4</text>
-<rect x="332" y="216" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="332" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="359.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Mod.</text>
 <text x="336" y="266" font-size="8" fill="#7d838a">5</text>
-<rect x="394" y="216" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<rect x="394" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Matriz</text>
 <text x="398" y="266" font-size="8" fill="#7d838a">6</text>
-<rect x="456" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="456" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">FM</text>
 <text x="460" y="266" font-size="8" fill="#7d838a">7</text>
-<rect x="518" y="216" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="518" y="216" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="242" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">FM</text>
 <text x="522" y="266" font-size="8" fill="#7d838a">8</text>
-<rect x="84" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="84" y="278" width="54" height="54" rx="7" fill="#1f091f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Synth 1</text>
 <text x="88" y="328" font-size="8" fill="#7d838a">9</text>
-<rect x="146" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="146" y="278" width="54" height="54" rx="7" fill="#091c0c" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Synth 2</text>
 <text x="150" y="328" font-size="8" fill="#7d838a">10</text>
 <rect x="208" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="328" font-size="8" fill="#7d838a">11</text>
-<rect x="270" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="270" y="278" width="54" height="54" rx="7" fill="#290c13" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="297.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">MIDI 2</text>
 <text x="274" y="328" font-size="8" fill="#7d838a">12</text>
-<rect x="332" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="332" y="278" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="359.0" y="304" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Drum 1</text>
 <text x="336" y="328" font-size="8" fill="#7d838a">13</text>
-<rect x="394" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="394" y="278" width="54" height="54" rx="7" fill="#292904" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="421.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Drum 2</text>
 <text x="398" y="328" font-size="8" fill="#7d838a">14</text>
-<rect x="456" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="456" y="278" width="54" height="54" rx="7" fill="#181029" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Drum 3</text>
 <text x="460" y="328" font-size="8" fill="#7d838a">15</text>
-<rect x="518" y="278" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="518" y="278" width="54" height="54" rx="7" fill="#00291d" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Drum 4</text>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
 <rect x="84" y="340" width="54" height="54" rx="7" fill="#292929" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="111.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Sin voz</text>
+<text x="111.0" y="360" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">PGM</text>
+<text x="111.0" y="372" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">seq</text>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
-<rect x="146" y="340" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="173.0" y="360" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCA</text>
-<text x="173.0" y="372" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VCF</text>
+<rect x="146" y="340" width="54" height="54" rx="7" fill="#ff4e13" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="360" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Step</text>
+<text x="173.0" y="372" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">flip</text>
 <text x="150" y="390" font-size="8" fill="#7d838a">18</text>
-<rect x="208" y="340" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="235.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Osc</text>
+<rect x="208" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="212" y="390" font-size="8" fill="#7d838a">19</text>
-<rect x="270" y="340" width="54" height="54" rx="7" fill="#290c03" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="297.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">VA-drum</text>
+<rect x="270" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="274" y="390" font-size="8" fill="#7d838a">20</text>
-<rect x="332" y="340" width="54" height="54" rx="7" fill="#292910" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="359.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">WT</text>
+<rect x="332" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="390" font-size="8" fill="#7d838a">21</text>
-<rect x="394" y="340" width="54" height="54" rx="7" fill="#00291d" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="421.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Muestra</text>
+<rect x="394" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="390" font-size="8" fill="#7d838a">22</text>
-<rect x="456" y="340" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Gran.</text>
+<rect x="456" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#181029" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="545.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">FM</text>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
-<rect x="84" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="84" y="402" width="54" height="54" rx="7" fill="#3b113b" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="88" y="452" font-size="8" fill="#7d838a">25</text>
-<rect x="146" y="402" width="54" height="54" rx="7" fill="#1f091f" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="173.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Flip</text>
+<rect x="146" y="402" width="54" height="54" rx="7" fill="#ffffff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="173.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Flip</text>
 <text x="150" y="452" font-size="8" fill="#7d838a">26</text>
-<rect x="208" y="402" width="54" height="54" rx="7" fill="#00ff00" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="235.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Motor</text>
+<rect x="208" y="402" width="54" height="54" rx="7" fill="#292929" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="235.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Motor</text>
 <text x="212" y="452" font-size="8" fill="#7d838a">27</text>
-<rect x="270" y="402" width="54" height="54" rx="7" fill="#002900" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="297.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">2 osc</text>
+<rect x="270" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="274" y="452" font-size="8" fill="#7d838a">28</text>
-<rect x="332" y="402" width="54" height="54" rx="7" fill="#291c07" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="359.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Orden</text>
+<rect x="332" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="336" y="452" font-size="8" fill="#7d838a">29</text>
-<rect x="394" y="402" width="54" height="54" rx="7" fill="#181029" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="421.0" y="422" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Step</text>
-<text x="421.0" y="434" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">drum</text>
+<rect x="394" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#040b29" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">Vel</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="545.0" y="422" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">Modo</text>
-<text x="545.0" y="434" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">voz</text>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#2b2d31" stroke="#111"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Fila de motores apuntando a Drum 1: su pad brillante, el motor apagado y el pad 27 parpadeando en su color.</figcaption></figure>
+</svg><figcaption>Vista de flip (pad 26, blanco) con step flip hacia Drum 1: fila 3, pad 17 patch flip (PGM seq) y pad 18 step flip en el color del destino; fila 2, las pistas (Drum 1 brillante, MIDI 1 apagada).</figcaption></figure>
 
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Note apuntando a otra pista: los pads 17-32 son los pasos 1-16 de esa pista.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#112faa" stroke-width="2"/>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Note: saltos</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
 <text x="64.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Scales</text>
-<rect x="100" y="140" width="60" height="18" rx="4" fill="#040b29" stroke="#111"/>
-<text x="130.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Oct ▼</text>
+<rect x="100" y="140" width="60" height="18" rx="4" fill="#2b2d31" stroke="#111"/>
+<text x="130.0" y="152.5" font-size="9.5" fill="#aeb4ba" text-anchor="middle">Oct ▼</text>
 <rect x="166" y="140" width="60" height="18" rx="4" fill="#040b29" stroke="#111"/>
 <text x="196.0" y="152.5" font-size="9.5" fill="#e8eaed" text-anchor="middle">Oct ▲</text>
 <rect x="232" y="140" width="60" height="18" rx="4" fill="#0a2329" stroke="#111"/>
@@ -3100,8 +3106,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="518" y="278" width="54" height="54" rx="7" fill="#0a2329" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="545.0" y="304" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">16</text>
 <text x="522" y="328" font-size="8" fill="#7d838a">16</text>
-<rect x="84" y="340" width="54" height="54" rx="7" fill="#5e84cc" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="111.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→1</text>
+<rect x="84" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="111.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→1</text>
 <text x="88" y="390" font-size="8" fill="#7d838a">17</text>
 <rect x="146" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="173.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→2</text>
@@ -3121,8 +3127,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="456" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="483.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→7</text>
 <text x="460" y="390" font-size="8" fill="#7d838a">23</text>
-<rect x="518" y="340" width="54" height="54" rx="7" fill="#5e84cc" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="545.0" y="366" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→8</text>
+<rect x="518" y="340" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="366" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→8</text>
 <text x="522" y="390" font-size="8" fill="#7d838a">24</text>
 <rect x="84" y="402" width="54" height="54" rx="7" fill="#5e84cc" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="111.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→9</text>
@@ -3142,11 +3148,11 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="394" y="402" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
 <text x="421.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→14</text>
 <text x="398" y="452" font-size="8" fill="#7d838a">30</text>
-<rect x="456" y="402" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="483.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→15</text>
+<rect x="456" y="402" width="54" height="54" rx="7" fill="#5e84cc" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="483.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→15</text>
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
-<rect x="518" y="402" width="54" height="54" rx="7" fill="#5e84cc" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
-<text x="545.0" y="428" font-size="9.5" fill="#111" text-anchor="middle" font-weight="bold">→16</text>
+<rect x="518" y="402" width="54" height="54" rx="7" fill="#1a47ff" fill-opacity="0.95" stroke="#000" stroke-width="1"/>
+<text x="545.0" y="428" font-size="9.5" fill="#e8eaed" text-anchor="middle" font-weight="bold">→16</text>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Vista Note apuntando a otra pista: los pads 17-32 son los pasos 1-16 de esa pista.</figcaption></figure>
 <h4>Arpegiador</h4>
@@ -3165,19 +3171,19 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#112faa" stroke-width="2"/>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Pattern Settings</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
@@ -3350,19 +3356,19 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#112faa" stroke-width="2"/>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Random-mutate</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>
@@ -3524,19 +3530,19 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
-<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="194" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="194" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K2</text>
 <circle cx="242" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="242" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K3</text>
-<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="290" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="290" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K4</text>
-<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
+<circle cx="338" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="338" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K5</text>
-<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="386" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="386" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K6</text>
-<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#112faa" stroke-width="2"/>
+<circle cx="434" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
 <text x="434" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K7</text>
-<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
+<circle cx="482" cy="46" r="21" fill="#26282c" stroke="#0a1c66" stroke-width="2"/>
 <text x="482" y="50" font-size="11" fill="#cfd3d8" text-anchor="middle">K8</text>
 <text x="580" y="44" font-size="15" font-weight="bold" fill="#ffffff" text-anchor="middle">Micro Step</text>
 <rect x="34" y="140" width="60" height="18" rx="4" fill="#292929" stroke="#111"/>

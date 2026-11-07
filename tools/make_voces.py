@@ -104,8 +104,8 @@ PANELS = {
                  knobs=(tuple("Par %d" % k for k in range(1, 9)), tuple("Pair %d" % k for k in range(1, 9)))),
     "muestra": dict(cap=("Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).", "Expanded Note in sample mode: pads 1-16 the steps (bright = with a note), pads 17-32 the samples (the chosen one teal)."),
                     view=("Selector de samples", "Sample picker"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: ("S%d" % (i + 1), "S%d" % (i + 1)) for i in range(16)}}, knobs=()),
-    "saltos": dict(cap=("Fila de motores apuntando a Drum 1: su pad brillante, el motor apagado y el pad 27 parpadeando en su color.", "Engine row pointing at Drum 1: its pad bright, the engine off and pad 27 blinking in its colour."),
-                   view=("Saltos", "Jumps"), pads={**PRE_PADS, **ROWS, **{9 + i: (t, t) for i, t in enumerate(TRK)}}, knobs=()),
+    "saltos": dict(cap=("Vista de flip (pad 26, blanco) con step flip hacia Drum 1: fila 3, pad 17 patch flip (PGM seq) y pad 18 step flip en el color del destino; fila 2, las pistas (Drum 1 brillante, MIDI 1 apagada).", "Flip view (pad 26, white) with step flip to Drum 1: row 3, pad 17 patch flip (PGM seq) and pad 18 step flip in the target's colour; row 2, the tracks (Drum 1 bright, MIDI 1 dark)."),
+                   view=("Flip", "Flip"), pads={**PRE_PADS, 17: ("PGM\nseq", "PGM\nseq"), 18: ("Step\nflip", "Step\nflip"), 26: ("Flip", "Flip"), **{9 + i: (t, t) for i, t in enumerate(TRK)}}, knobs=()),
     "saltosnote": dict(cap=("Vista Note apuntando a otra pista: los pads 17-32 son los pasos 1-16 de esa pista.", "Note view pointing at another track: pads 17-32 are steps 1-16 of that track."),
                        view=("Note: saltos", "Note: jumps"), pads={**{n: (str(n), str(n)) for n in range(1, 17)}, **{17 + i: ("→%d" % (i + 1), "→%d" % (i + 1)) for i in range(16)}}, knobs=()),
     "ps": dict(cap=("Pattern Settings: pads 1-16 primer y último paso, 17-24 sync rate, 25 modo 2, 26 Nudge, 27 / 28 órdenes, 29-32 dirección.", "Pattern Settings: pads 1-16 first and last step, 17-24 sync rate, 25 mode 2, 26 Nudge, 27 / 28 orders, 29-32 direction."),
@@ -172,7 +172,7 @@ UI = dict(es=dict(src="docs/VOCES.md", page="voces.html", other="voices.html", o
           en=dict(src="docs/VOICES.md", page="voices.html", other="voces.html", other_name="Español", guide="guide.html", guide_name="Guide by views", toc="Contents", lang="en"))
 
 
-COVER = {"rc": "RC4.08", "beta": "Beta 5.29"}
+COVER = {"rc": "RC4.08", "beta": "Beta 5.32"}
 
 
 def page(lang):
@@ -183,7 +183,7 @@ def page(lang):
     title = head.strip().lstrip("# ").strip()
     h = [f'<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(title)}</title><style>{M.CSS}'
          ".feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>",
-         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.29")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
+         f'<header class="cover"><h1>{html.escape(title)}</h1><p>CIRCUIT-HACKS · {COVER.get(M.SET, "Beta 5.32")}</p><p><a style="color:#fff" href="{U["other"]}">{U["other_name"]}</a> · <a style="color:#fff" href="{U["guide"]}">{U["guide_name"]}</a></p><div class="bar"></div></header><main>',
          f'<nav class="toc"><h2>{U["toc"]}</h2><ol>']
     parts = []
     if M.SET == "rc":                                                       # (docset.py) the release candidate's set: no beta-only section

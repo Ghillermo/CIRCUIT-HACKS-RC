@@ -49,6 +49,14 @@ ROWPAD, OSCPAD = 20, 18                   # pad 21 (the wavetable), pad 19 (the 
 DSPW, DSPR = 0x080292F8, 0x08029344       # (core, value << 8, address) / (core, address) -> the word << 8
 REC_AT, REC_N, REC_SIG = 150, 13, 0xB7    # the padding's record
 PJ_SIG, PJ_PAT = 0xCA, 5                  # the project's block: MIDI 2's pattern 5 + t
+PJ2, PJ_AT, PJ_SIG2, PJ_N2 = False, 142, 0xCB, 29   # (use_pj2) the block from padding + 142: oscmod's one-oscillator block, wtui's, oscmod's
+
+
+def use_pj2():
+    """SC52.8 (oscmod.use_solo keeps the one-oscillator sub / noise at padding + 142..149): the project's block carries padding + 142..170 (29
+    bytes, signature 0xCB); a 0xCA block (padding + 150.. only) still loads, + 142..149 zeroed (no one-oscillator block: its defaults)."""
+    global PJ2
+    PJ2 = True
 PJ_N = REC_N                              # bytes of the padding the project's block carries (oscmod: + its 8, SC52.4)
 PJ_AREA = PS.AREA + 8 * PS.PSIZE + PS.SET + PS.BYTE0     # MIDI 2's pattern 0, settings + 8, in the record
 RET = h(0x4770)
@@ -421,10 +429,10 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 1, 0, PS.O_VALID); E(cmp_imm, 1, 0); E(b_cond, "sv_n", "eq")
     E(movs_imm, 4, 0)
     a.label("sv_t"); E(mov_reg, 0, 4); E(bl, "c_wtblk"); E(cmp_imm, 0, 0); E(b_cond, "sv_n", "eq")
-    E(movs_imm, 1, PJ_SIG); E(strb_imm, 1, 0, 0); E(strb_imm, 4, 0, 1)
-    imm32(1, PS.IMG0 + REC_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
+    E(movs_imm, 1, PJ_SIG2 if PJ2 else PJ_SIG); E(strb_imm, 1, 0, 0); E(strb_imm, 4, 0, 1)
+    imm32(1, PS.IMG0 + (PJ_AT if PJ2 else REC_AT)); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
     a.label("sv_c"); E(ldrb_reg, 3, 1, 2)
-    E(adds_reg, 6, 0, 2); E(strb_imm, 3, 6, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "sv_c", "lo")
+    E(adds_reg, 6, 0, 2); E(strb_imm, 3, 6, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N2 if PJ2 else PJ_N); E(b_cond, "sv_c", "lo")
     E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "sv_t", "lo")
     a.label("sv_n"); E(raw, h(0xE8BD) + h(0x40FF)); E(b_w, prev["save"])
 
@@ -436,10 +444,20 @@ def arm_code(base, L, prev):
     imm32(0, V.HAL_TICK); E(ldr_imm, 0, 0, 0); imm32(1, PS.BOOT_MS); E(cmp_reg, 0, 1); E(b_cond, "ld_n", "lo")
     E(movs_imm, 4, 0)
     a.label("ld_t"); E(mov_reg, 0, 4); E(bl, "c_wtblk"); E(cmp_imm, 0, 0); E(b_cond, "ld_n", "eq")
-    imm32(1, PS.IMG0 + REC_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
-    E(ldrb_imm, 3, 0, 0); E(cmp_imm, 3, PJ_SIG); E(b_cond, "ld_z", "ne"); E(ldrb_imm, 3, 0, 1); E(cmp_reg, 3, 4); E(b_cond, "ld_z", "ne")
-    a.label("ld_c"); E(adds_reg, 6, 0, 2); E(ldrb_imm, 3, 6, 2); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_c", "lo"); E(b, "ld_e")
-    a.label("ld_z"); E(movs_imm, 3, 0); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_z", "lo")   # none: the wavetable off
+    if not PJ2:
+        imm32(1, PS.IMG0 + REC_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0)
+        E(ldrb_imm, 3, 0, 0); E(cmp_imm, 3, PJ_SIG); E(b_cond, "ld_z", "ne"); E(ldrb_imm, 3, 0, 1); E(cmp_reg, 3, 4); E(b_cond, "ld_z", "ne")
+        a.label("ld_c"); E(adds_reg, 6, 0, 2); E(ldrb_imm, 3, 6, 2); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_c", "lo"); E(b, "ld_e")
+        a.label("ld_z"); E(movs_imm, 3, 0); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, PJ_N); E(b_cond, "ld_z", "lo")   # none: the wavetable off
+    else:                                                                               # (PJ2) r1 = IMG + 142; 0xCB: 29 bytes; 0xCA: 8 zeros, then its 21 at + 150
+        imm32(1, PS.IMG0 + PJ_AT); E(movs_imm, 2, PS.IMG_SZ); E(muls, 2, 4); E(adds_reg, 1, 1, 2); E(movs_imm, 2, 0); E(movs_imm, 7, PJ_N2)
+        E(ldrb_imm, 3, 0, 1); E(cmp_reg, 3, 4); E(b_cond, "ld_z", "ne")
+        E(ldrb_imm, 3, 0, 0); E(cmp_imm, 3, PJ_SIG2); E(b_cond, "ld_c", "eq"); E(cmp_imm, 3, PJ_SIG); E(b_cond, "ld_z", "ne")
+        E(movs_imm, 3, 0)
+        a.label("ld_o"); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, REC_AT - PJ_AT); E(b_cond, "ld_o", "lo")
+        E(adds_imm8, 1, REC_AT - PJ_AT); E(movs_imm, 2, 0); E(movs_imm, 7, PJ_N)
+        a.label("ld_c"); E(adds_reg, 6, 0, 2); E(ldrb_imm, 3, 6, 2); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_reg, 2, 7); E(b_cond, "ld_c", "lo"); E(b, "ld_e")
+        a.label("ld_z"); E(movs_imm, 3, 0); E(strb_reg, 3, 1, 2); E(adds_imm8, 2, 1); E(cmp_reg, 2, 7); E(b_cond, "ld_z", "lo")   # none: all off
     a.label("ld_e"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "ld_t", "lo")
     a.label("ld_n"); E(raw, h(0xE8BD) + h(0x40FF)); E(b_w, prev["led"])
     return a.assemble()

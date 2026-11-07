@@ -22,7 +22,7 @@ sidechain y el compresor master.
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
-- **Secuenciador de saltos** *(solo Beta 5.29)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
+- **Secuenciador de saltos** *(solo Beta 5.32)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
@@ -78,7 +78,7 @@ sidechain y el compresor master.
 | Knob | Solo | Con Shift |
 |---|---|---|
 | K1-K4 | Ratio de los operadores 1-4: 0,5 … 16 (verde = entero, azul claro = y medio, verde azulado = inarmónico: 0,71, 1,41, 4,24). Cada ratio ocupa 5-6 clics: el primero es exacto y cada uno de los siguientes **desafina** +2,5 cents (hasta unos +12; LED a media luz) | Centro = ataque 0. **A la derecha:** el ataque del operador (0 … unos 3 s; azul claro). **A la izquierda:** el operador es **percusivo** con su propio decay, más corto cuanto más a la izquierda (3 ms … 8 s; rojo) |
-| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.29)*: 16; el color de su familia) |
+| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.32)*: 16; el color de su familia) |
 | K6 | Nivel del operador 2 | Feedback (magenta) |
 | K7 | Nivel del operador 3 | Ruido (blanco) |
 | K8 | Nivel del operador 4 | Release (ámbar) |
@@ -88,7 +88,7 @@ sidechain y el compresor master.
 - **Al girar un ratio** (K1-K4) los pads 9-32 enseñan los 24 ratios durante 1,5 s (el actual brillante, en blanco si está desafinado); al girar el algoritmo (Shift + K5), los pads 9-24 enseñan los algoritmos. Mientras se ven, esos pads no cargan patches.
 - **Es una variante del oscilador:** la nota, TUNE / FINE, la envolvente de pitch y el vibrato de la página 2 siguen valiendo; detrás, el filtro, el efecto y la matriz como con el oscilador. Una nota a la vez (la última manda); con el retrigger apagado (Shift + pad 29) una nota ligada no vuelve a disparar los ataques.
 - **El volumen lo dan las envolventes de los operadores**: el VCA del motor se queda abierto (la velocity sigue dando el volumen) y la ADSR de la página 1 mueve el filtro, el tono y el brillo.
-- **El brillo:** SHAPE (K2 de la página OSC 1; *(solo Beta 5.29)* K4), Env → forma (K4; *(solo Beta 5.29)* Shift + K4) y LFO → forma (K6; *(solo Beta 5.29)* Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
+- **El brillo:** SHAPE (K2 de la página OSC 1; *(solo Beta 5.32)* K4), Env → forma (K4; *(solo Beta 5.32)* Shift + K4) y LFO → forma (K6; *(solo Beta 5.32)* Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
 - **La velocity** da también el brillo (cuánto, según el algoritmo) y cuánto cae el bombo. **Las notas agudas** modulan menos y caen antes (según el algoritmo, como en un DX7). En notas y ratios muy altos el motor limita la modulación para que no haya aliasing (salvo en los percusivos, donde forma parte del sonido).
 - **El nivel** de un portador es su volumen; el de un modulador, cuánto modula.
 - **Envolventes A/R con sustain fijo:** con la nota pulsada, un operador **sostenido** se queda arriba después de su ataque; uno **percusivo** (lo dice el algoritmo, o su Shift + knob a la izquierda) cae aunque la nota siga. Al soltar, todos caen con el release (uno percusivo por su knob, con lo más corto de su decay y el release). **El release es uno para todos y más largo cuanto más fuerte la nota**; el algoritmo lo acorta o alarga en cada operador.
@@ -117,7 +117,7 @@ sidechain y el compresor master.
 | 15 | cuerdas: dos pilas (2 → 1, 4 → 3) desafinadas entre sí | cuerdas (verde) | cuerdas (ataque lento) |
 | 16 | ensemble: 4 → 1, 2 y 3, tres portadores desafinados | | ensemble |
 
-*(solo Beta 5.29)* Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
+*(solo Beta 5.32)* Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
 
 <img src="img/panel-fm8-es.svg" width="640" alt="FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.">
 

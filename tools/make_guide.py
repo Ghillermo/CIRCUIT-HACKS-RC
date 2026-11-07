@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.29"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.32"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -214,7 +214,7 @@ Cuántas voces da cada modo, el volumen de los acordes y el límite de voces cua
 ### Secuenciador de saltos {YB}
 Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen **saltar esa pista al paso que indican**.
 
-- **Apuntar (step flip):** enciende el **patch flip** (pad 26, como siempre): los **pads 17-24** pasan a ser las ocho pistas, en el orden de sus botones y en sus colores (la propia sin luz; los pads 9-16 se apagan). Un toque a una pista = **step flip**: la pista apunta a ella (brilla, el patch flip se apaga y el **pad 26 parpadea** en su color); otra pista la cambia; **la misma otra vez vuelve al patch flip**; **el pad 26 lo apaga todo**. {YB} (antes, en la fila de motores del pad 27).
+- **Apuntar (step flip)** {YB}: el **pad 26** abre y cierra la **vista de flip** (pad 26 blanco mientras está abierta; no cambia el modo; se cierra sola al salir de la vista y al abrir la fila de motores). En la **fila 3** se elige el modo, uno u otro: **pad 17 = patch flip (PGM seq)**, en el color del pad 26 de siempre; **pad 18 = step flip**, en el color de la pista destino; brillante el que está encendido, tenue el otro; **tocar el encendido lo apaga**. Con step flip, la **fila 2** son las ocho pistas, en el orden de sus botones y en sus colores (la propia sin luz, el destino brillante): un toque cambia el destino. Encender step flip sin elegir destino usa **el último destino** (de fábrica, Synth 1). Con la vista cerrada, en step flip el **pad 26 parpadea** en el color del destino. (El pad 19 queda reservado para un modo morph futuro.)
 - **O saltos o motor:** apuntar apaga el motor de la pista, y encender un motor deja de apuntar: solo una de las dos funciones a la vez.
 - **Mientras apunta, la pista no toca notas:** ni su motor, ni por MIDI, ni por el canal compartido. Cada nota suya, del secuenciador, de los pads o del arpegiador, es un salto: cae en el mismo paso que la nota y la pista apuntada sigue desde ahí.
 - **Qué paso:** en su vista Note, los **pads 17-32 son los pasos 1-16** y con **Octave ▲ los pasos 17-32**; en la **Note ampliada, los 32 pads son los pasos 1-32 en orden**. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la ampliada los dos. La escala y la tónica no cambian nada: mientras ves esa pista, su teclado es una disposición Jankó con una nota distinta en cada pad, y las demás pistas conservan el suyo.
@@ -320,6 +320,16 @@ view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
 
 K5, K6 y K8 son nuevos: cuánto mueven el LFO y la envolvente del motor el FM, el ring y el mix de la página 3 (centro = nada, a cada lado en un sentido; Clear + knob = 0). Se guardan con el patch y con el proyecto.
 
+{YB} **Con un solo oscilador** (motor oscilador o wavetable, sin los dos osciladores) K5, K6 y K8 tienen funciones propias, con sus valores aparte (al encender los dos osciladores vuelven las de arriba con los suyos):
+
+| Knob | Solo | Con Shift |
+|---|---|---|
+| K5 | **Nivel del sub-oscilador** (una cuadrada una octava por debajo) | Envolvente → sub |
+| K6 | **Nivel del ruido** | Envolvente → ruido |
+| K8 | LFO → sub | LFO → ruido |
+
+Los niveles van de apagado (a la izquierda del todo; Clear + knob) al del oscilador; su LED brilla más cuanto más nivel. Las profundidades son bipolares (centro = nada). El sub y el ruido pasan por el filtro y el VCA, y en poly cada voz lleva los suyos. Se guardan con el patch y con el proyecto.
+
 **Qué hace SHAPE en cada forma de onda** (K2; {YB} K4; SHAPE 2 en el OSC 2, igual). El centro del knob es la forma pura (en la sierra *(desde RC4)*, la izquierda del todo); la envolvente (K4) y el LFO (K6) mueven SHAPE desde la posición del knob. Con WAVE entre dos formas, SHAPE actúa sobre las dos a la vez, cada una a su manera:
 
 | Forma (WAVE) | SHAPE a la izquierda del centro | Centro | SHAPE a la derecha del centro |
@@ -330,7 +340,7 @@ K5, K6 y K8 son nuevos: cuánto mueven el LFO y la envolvente del motor el FM, e
 | Sierra antes de RC4 | La rampa se curva hacia arriba (sube rápido al principio y se aplana) | Rampa recta | La rampa se curva hacia abajo (empieza plana y sube al final) |
 | Cuadrada (126) | Pulso cada vez más estrecho (hasta un 3 % aprox.) | Cuadrada (50 %) | Pulso cada vez más estrecho por el otro lado (hasta un 97 % aprox.; suena igual que el de la izquierda) |
 
-**Menos aliasing** *(desde RC4)*: la sierra, las siete sierras de la supersaw y la cuadrada / el pulso se generan con PolyBLEP: en las notas agudas desaparecen los tonos metálicos que no pertenecen a la nota (unos 40 dB menos); en las graves suenan igual. El seno y el triángulo sin pliegue no cambian. *(Arreglo de RC4.08 y la Beta 5.28)* El pulso con un ancho distinto del 50 % (SHAPE fuera del centro, o la envolvente / el LFO moviéndolo) solo tenía corregido un flanco: ahora los dos (nota 96: de −22 a −73 dB de aliasing por debajo de 8 kHz).
+**Menos aliasing** *(desde RC4)*: la sierra, las siete sierras de la supersaw y la cuadrada / el pulso se generan con PolyBLEP: en las notas agudas desaparecen los tonos metálicos que no pertenecen a la nota (unos 40 dB menos); en las graves suenan igual. El seno y el triángulo sin pliegue no cambian. *(Arreglo de RC4.08 y la Beta 5.28)* El pulso con un ancho distinto del 50 % (SHAPE fuera del centro, o la envolvente / el LFO moviéndolo) solo tenía corregido un flanco: ahora los dos (nota 96: de −22 a −73 dB de aliasing por debajo de 8 kHz). {YB} El antialias es un **BLEP de 4 muestras** (antes de 2): por debajo de 8 kHz, en las notas 72 y 96, sierra y pulso pasan de unos −60 a unos −87 dB y la supersaw de −65 a −95; el agudo queda un poco más apagado (unos −2,5 dB a 10 kHz).
 
 ### Página 2 — granular
 | Knob | Solo | Con Shift |
@@ -970,7 +980,7 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | Qué | Dónde se usa |
 |---|---|
 | **Patches de Synth 1 / 2 guardados** {B} (Clear + pad dos veces); intercambios y copias entre packs | [Vista Preset de Synth](#synth-preset) |
-| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, {XB} 128; comunes a las dos pistas: motor, valores, step-drummer, {NB} matriz, {XB} FM, destinos de los knobs secuenciables y {XB} no secuenciables, modo de voz; {YB} el FM de 8 operadores en una ranura extra del mismo banco, después de sus 8 patches; «Send patches» de Components ya no los borra) | [Vista Preset de MIDI](#midi-preset), [FM de 8 operadores](#midi-fm8) |
+| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, {XB} 128; comunes a las dos pistas: motor, valores, step-drummer, {NB} matriz, {XB} FM, destinos de los knobs secuenciables y {XB} no secuenciables, modo de voz; {YB} sub-oscilador y ruido del modo de un oscilador; el FM de 8 operadores en una ranura extra del mismo banco, después de sus 8 patches; «Send patches» de Components ya no los borra) | [Vista Preset de MIDI](#midi-preset), [FM de 8 operadores](#midi-fm8) |
 | **Samples**: intercambios, copias entre packs y la **captura** que sustituye a un drum (esta, al guardar el proyecto, si cabe) | [Vista Preset de drums](#drum-preset) |
 | **Proyectos copiados** a otro hueco o pack; **packs borrados** | [Projects](#projects), [Packs](#packs) |
 
@@ -997,7 +1007,7 @@ view("datos-perdido", "XI", "Qué se pierde al reiniciar",
 | En la vista Sidechain, los **disparos de un drum** por otro drum o por un patrón (pads de las páginas de drums) | Los del preset del drum |
 | **Mutes en el compás siguiente** pendientes (Mixer, Shift + pad) | — |
 | **Notas y acordes en latch** (Shift + tecla, Shift + fundamental), **pantalla de acordes** (tipo y modificadores) y el medio tono de **Octave con Jankó** {XB} | Sin latch; los de fábrica; Octave a 0 |
-| **Teclado partido** y vistas abiertas (step-drummer, editor de macros, selector) | Cerrados |
+| **Teclado partido** y vistas abiertas (step-drummer, editor de macros, selector, {YB} la vista de flip); {YB} el **último destino** del step flip | Cerrados; el destino, Synth 1 |
 | Un **sample o patch esperando** a copiarse en otro pack (Duplicate + A) | Nada esperando |
 | La **captura** de Master FX sin usar, o usada en un drum sin guardar el proyecto | Vacía; el drum, con su sample del pack |
 | **Matriz de modulación** del sinte propio sin guardar en un patch {NB} ({XB}: guardada también con el proyecto) | Apagada |

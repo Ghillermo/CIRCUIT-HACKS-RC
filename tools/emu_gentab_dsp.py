@@ -1,7 +1,8 @@
 """SC49.7 DSP test (gentab): the core-0 tables built at DSP start, on the dsp56kEmu interpreter with the real core-0 program.
 
     python tools/emu_gentab_dsp.py BUILD.bin manifest.json [PREVIOUS.bin PREVIOUS_manifest.json] [--xtab]
-  (--xtab: gentab.use_xtab's builds, TINC / TLFO in core 0's X: made by init3 at P:$111, after the stock's init P:$2779 zeroes X / Y $0-$5FFF;
+  (--xtf: TF in X too, gentab.use_xtf, SC52.8;
+   --xtab: gentab.use_xtab's builds, TINC / TLFO in core 0's X: made by init3 at P:$111, after the stock's init P:$2779 zeroes X / Y $0-$5FFF;
    the run = init2, P:$2779, init3, as at boot)
   * P:$10B calls init2; init2 = the tables, then sc_init (r0 = $2028 on return, as before);
   * P:GEN_<table>.. after init2 = gentab.tables()'s generated tables (the DSP's arithmetic modelled word for word), each within its bound of the
@@ -35,8 +36,9 @@ def main(img, man, prev=None, pman=None):
     P = prog(img)
     dl = {k: int(v, 16) for k, v in man["report"]["sc16"]["dsp_labels"].items()}
     if XTAB: G.use_xtab()
-    sp = {k: "x" if G.XTAB and k in ("TINC", "TLFO") else "p" for k in TABS}
-    at = {k: (G.XT_TINC if k == "TINC" else G.XT_TLFO) if sp[k] == "x" else getattr(G, "GEN_" + k) for k in TABS}
+    if XTF: G.use_xtf()
+    sp = {k: "x" if (G.XTAB and k in ("TINC", "TLFO")) or (G.XTF and k == "TF") else "p" for k in TABS}
+    at = {k: dict(TINC=G.XT_TINC, TLFO=G.XT_TLFO, TF=G.XT_TF)[k] if sp[k] == "x" else getattr(G, "GEN_" + k) for k in TABS}
     n = {k: getattr(G, "N_" + k) for k in TABS}
     check(P[0x10B:0x10D] == D.jsr(dl["init2"]), f"P:$10B = jsr init2 (${dl['init2']:x})")
     check(len(P) <= G.GEN_TATK, f"the program ends at ${len(P):x}, before the tables (${G.GEN_TATK:x})")
@@ -69,9 +71,11 @@ def main(img, man, prev=None, pman=None):
 
 
 XTAB = False
+XTF = False                                                    # --xtf: gentab.use_xtf's builds, TF in X too
 
 if __name__ == "__main__":
-    a = [x for x in sys.argv[1:] if x != "--xtab"]
-    XTAB = "--xtab" in sys.argv
+    a = [x for x in sys.argv[1:] if x not in ("--xtab", "--xtf")]
+    XTAB = "--xtab" in sys.argv or "--xtf" in sys.argv
+    XTF = "--xtf" in sys.argv
     sys.exit(1 if main(Path(a[0]).read_bytes(), json.loads(Path(a[1]).read_text()), a[2] if len(a) > 2 else None,
                        json.loads(Path(a[3]).read_text()) if len(a) > 3 else None) else 0)

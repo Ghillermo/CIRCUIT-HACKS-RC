@@ -405,6 +405,26 @@ def use_blep4():
     BLEP4 = True
 
 
+OSC1X = False                                   # (use_osc1x)
+SX_PH, SX_OFF = 39, 8                           # (OSC1X) OSC1's word of the sub's phase (per voice; OSC4's O1_PREV, unused with one oscillator); OM_T + 48 t
+                                                #   + SX_OFF.. = the sub's base (0..127, the ARM's), LFO / env depths, level (the DSP's), then the noise's four
+
+
+def use_osc1x():
+    """SC52.8 (the user, 2026-11-07: «el modo 1 oscilador no debe incluir modos de interacción con el segundo ... debería tener funciones propias»;
+    chosen: a sub-oscillator and noise, the knob = the amount, Shift = the envelope's depth, the spare knob = the LFO's): one oscillator only (the
+    ARM writes zeros otherwise: oscmod.use_solo):
+      * per block, before the VA-drum's branch: level = clamp(base / 128 + LV x LFO depth + ENV x env depth, 0, 1) / 2 for the sub (OM_T + 11) and
+        the noise (OM_T + 15 and the noise level X:(r7 + 4), which the VA-drum's branch and FM overwrite as before; the other engines no longer
+        zero it);
+      * per sample, in the oscillator's loop (one voice and every poly voice): the sub's phase += the increment / 2 (OSC1 + SX_PH, per voice), its
+        square with the edges over 1/32 of the period (the phase << 5, saturated), x level, added to the oscillator;
+      * poly: every voice takes the noise call (pvz2 skips a level 0), not only the VA-drum's and FM's."""
+    global OSC1X
+    assert OSC4 and VADRUM and POLY2
+    OSC1X = True
+
+
 FOLDLIM = False                                 # (use_foldlim)
 FOLD_K = 0x020000                               # (FOLDLIM) the extra fold drive / 8 allowed = FOLD_K / the increment (a one-word immediate: $hh0000)
 
@@ -884,9 +904,14 @@ def code(base, tabs, premix, ret_old):
             L(p + "le")
         else:
             e("move %s,a" % X(PH), "add x0,a", "move a1,%s" % X(PH), "neg a", "move a,%s" % X(LV))
+        if OSC1X:                                                                # (OSC1X) the sub's level, the noise's (a: the noise level for X:(r7 + 4))
+            e("move r6,a", "add #>$%x,a" % (OM_T - VB0 + SX_OFF), "move a,r0"); a.emit(D.NOP)
+            a.emit(lambda t: [0x0BF080, t], "om_sx"); a.emit(lambda t: [0x0BF080, t], "om_sx")
+            e("move a,x:(r7+4)")
         if VADRUM:
             e("move x:(r7),a", "and #>4,a"); a.emit(J("ne"), p + "vd")
-            e("move %s,x0" % X(ENV), "move x0,x:(r7+1)", "move x0,x:(r7+2)", "move #>0,x0", "move x0,x:(r7+4)"); a.emit(J("al"), p + "vx2")    # the other engines: one envelope for everything, no noise
+            if OSC1X: e("move %s,x0" % X(ENV), "move x0,x:(r7+1)", "move x0,x:(r7+2)"); a.emit(J("al"), p + "vx2")
+            else: e("move %s,x0" % X(ENV), "move x0,x:(r7+1)", "move x0,x:(r7+2)", "move #>0,x0", "move x0,x:(r7+4)"); a.emit(J("al"), p + "vx2")    # the other engines: one envelope for everything, no noise
             L(p + "vd")
             for par, off in ((P_SUS, 2), (P_REL, 1)):                            # the decays of the pitch and the filter envelopes
                 e("move %s,b" % X(par), "asr b", "add #>64,b"); ld_tab("TDEC", "b", "x0"); e("mpy x0,x0,a", "move a,x0", "move x:(r7+%d),y0" % off, "mpy y0,x0,a", "move a,x:(r7+%d)" % off)   # (the coefficient squared: twice as fast as the VCA table, 20 ms at 0)
@@ -1102,6 +1127,10 @@ def code(base, tabs, premix, ret_old):
                     e("move x:(r4+5),b", "cmp #>1,b"); a.emit(J("ne"), "om_n2x")
                     e("move x:(r4+8),b", "asr #2,b,b", "add b,a")                         # position / 4 semitones
                     L("om_n2x"); a.emit(D.RTS)
+                    if OSC1X:
+                        L("om_sx")                                                    # r0 -> [base, LFO, env, level]: level = clamp(base / 128 + the mods, 0, 1) / 2 (a too); r0 + 4
+                        e("move x:(r0)+,a", "asl #16,a,a"); a.emit(lambda t: [0x0BF080, t], "om_mm")
+                        e("clr b", "tst a", "tlt b,a", "asr a", "move a,x:(r0)+"); a.emit(D.RTS)
                 om_subs.om = 1
                 subs.append(om_subs)
             if OSCSUB and POLY:                                                       # (POLY) the set-up in the subroutine too: osc0 = OSC1 with the note at r2 + PV_NOTE
@@ -1378,6 +1407,9 @@ def code(base, tabs, premix, ret_old):
             e("move x:(r3+11),x0", "move x:(r3+10),a", "add x0,a", "move a1,x:(r3+10)", "move a1,x1", "clr a")
             if SUPERSAW: a.emit(lambda t: [0x0BF080, t], p + "wv")
             else: waves("r3")
+            if OSC1X:                                                             # (OSC1X) the sub: its phase at half the increment, a square with soft edges, x level
+                e("move x:(r3+11),b", "asr b", "move x:(r3+%d),y0" % SX_PH, "add y0,b", "move b1,x:(r3+%d)" % SX_PH,
+                  "move b1,b", "asl #5,b,b", "move b,y0", "move x:(r6+$%x),x0" % (OM_T - VB0 + SX_OFF + 3), "mpy y0,x0,b", "add b,a")
             L(p + "o3e"); e("move a,%s:(r0)+n0" % sp)
             if POLY: a.emit(D.RTS)
             if DUAL:
@@ -1952,12 +1984,14 @@ def code(base, tabs, premix, ret_old):
         if POLY3: e("move x:>$%x,r2" % PV_R2)
         e("move r1,r0")
         if POLY2:                                                                 # the VA-drum (POLY3: and FM): the voice's noise, before its gain
-            e("move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b")
-            if POLY3: a.emit(J("ne"), "pvzc"); e("move x:(r3+%d),b" % FM_FLAG, "tst b")
-            a.emit(J("eq"), "pvnz")
-            if POLY3: L("pvzc")
-            a.emit(lambda t: [0x0BF080, t], "pvz2"); e("move r1,r0")
-            L("pvnz")
+            if OSC1X: a.emit(lambda t: [0x0BF080, t], "pvz2"); e("move r1,r0")    # (OSC1X) every voice (pvz2 skips level 0)
+            else:
+                e("move x:(r3+%d),b" % DFLAGS_OFF, "and #>4,b")
+                if POLY3: a.emit(J("ne"), "pvzc"); e("move x:(r3+%d),b" % FM_FLAG, "tst b")
+                a.emit(J("eq"), "pvnz")
+                if POLY3: L("pvzc")
+                a.emit(lambda t: [0x0BF080, t], "pvz2"); e("move r1,r0")
+                L("pvnz")
             e("move x:(r2+%d),b" % PV_G, "move x:>$%x,a" % PV_EFF, "move a,x:(r2+%d)" % PV_G, "sub b,a", "asr #5,a,a", "move a,y1")   # the gain G -> the effective target
         else:
             e("move x:(r2+%d),b" % PV_G, "move x:(r2+%d),a" % PV_TGT, "move a,x:(r2+%d)" % PV_G, "sub b,a", "asr #5,a,a", "move a,y1")   # the gain G -> the target over the block

@@ -201,7 +201,7 @@ How many voices each mode gives, the chord level and the voice limiter when the 
 ### Jump sequencer {YB}
 A MIDI track can move another track's pattern: instead of sounding, its notes make that track **jump to the step they indicate**.
 
-- **Pointing (step flip):** turn **patch flip** on (pad 26, as always): **pads 17-24** become the eight tracks, in the order of their buttons and in their colours (the track's own dark; pads 9-16 go dark). A tap on a track = **step flip**: the track points at it (it lights bright, patch flip goes off and **pad 26 blinks** in its colour); another track changes it; **the same one again goes back to patch flip**; **pad 26 turns everything off**. {YB} (before, in pad 27's engine row).
+- **Pointing (step flip)** {YB}: **pad 26** opens and closes the **flip view** (pad 26 white while open; the mode does not change; it closes by itself when you leave the view and when the engine row opens). On **row 3** you pick the mode, one or the other: **pad 17 = patch flip (PGM seq)**, in pad 26's usual colour; **pad 18 = step flip**, in the target track's colour; the one on bright, the other dim; **tapping the one on turns it off**. With step flip, **row 2** is the eight tracks, in the order of their buttons and in their colours (the track's own dark, the target bright): a tap changes the target. Turning step flip on without picking a target uses **the last target** (Synth 1 from the factory). With the view closed, in step flip **pad 26 blinks** in the target's colour. (Pad 19 is kept for a future morph mode.)
 - **Jumps or an engine:** pointing turns the track's engine off, and turning an engine on stops pointing: only one of the two at a time.
 - **While pointing, the track plays no notes:** not on its engine, not over MIDI, not on a shared channel. Each of its notes, from the sequencer, the pads or the arpeggiator, is a jump: it lands on the note's own step and the other track goes on from there.
 - **Which step:** in its Note view, **pads 17-32 are steps 1-16** and with **Octave ▲ steps 17-32**; in the **expanded Note view the 32 pads are steps 1-32 in order**. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded view. The scale and the root change nothing: while you see that track, its keyboard is a Jankó layout with a different note on every pad, and the other tracks keep theirs.
@@ -302,6 +302,16 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 
 K5, K6 and K8 are new: how much the engine's LFO and envelope move page 3's FM, ring and mix (centre = none, each side one way; Clear + knob = 0). Saved with the patch and with the project.
 
+{YB} **With a single oscillator** (the oscillator or wavetable engine, two oscillators off) K5, K6 and K8 have their own functions, with their own values (turning two oscillators on brings back the ones above with theirs):
+
+| Knob | Alone | With Shift |
+|---|---|---|
+| K5 | **Sub-oscillator level** (a square one octave below) | Envelope → sub |
+| K6 | **Noise level** | Envelope → noise |
+| K8 | LFO → sub | LFO → noise |
+
+The levels go from off (fully left; Clear + knob) to the oscillator's; their LED is brighter the higher the level. The depths are bipolar (centre = none). The sub and the noise go through the filter and the VCA, and in poly every voice has its own. Saved with the patch and with the project.
+
 **What SHAPE does on each waveform** (K2; {YB} K4; SHAPE 2 on OSC 2, the same). The knob's centre is the pure wave (on the saw *(since RC4)*, fully left); the envelope (K4) and the LFO (K6) move SHAPE from the knob's position. With WAVE between two waves, SHAPE acts on both at once, each in its own way:
 
 | Wave (WAVE) | SHAPE left of centre | Centre | SHAPE right of centre |
@@ -312,7 +322,7 @@ K5, K6 and K8 are new: how much the engine's LFO and envelope move page 3's FM, 
 | Saw before RC4 | The ramp bends upwards (rises fast at first, then flattens) | Straight ramp | The ramp bends downwards (starts flat, rises at the end) |
 | Square (126) | An ever narrower pulse (down to about 3 %) | Square (50 %) | An ever narrower pulse the other way (up to about 97 %; it sounds like the left one) |
 
-**Less aliasing** *(since RC4)*: the saw, the supersaw's seven saws and the square / pulse are made with PolyBLEP: on high notes the metallic tones that do not belong to the note are gone (about 40 dB less); low notes sound the same. The sine and the triangle without folding do not change. *(Fix in RC4.08 and Beta 5.28)* The pulse at a width other than 50 % (SHAPE off its centre, or the envelope / LFO moving it) had only one edge corrected: now both (note 96: from −22 to −73 dB of aliasing below 8 kHz).
+**Less aliasing** *(since RC4)*: the saw, the supersaw's seven saws and the square / pulse are made with PolyBLEP: on high notes the metallic tones that do not belong to the note are gone (about 40 dB less); low notes sound the same. The sine and the triangle without folding do not change. *(Fix in RC4.08 and Beta 5.28)* The pulse at a width other than 50 % (SHAPE off its centre, or the envelope / LFO moving it) had only one edge corrected: now both (note 96: from −22 to −73 dB of aliasing below 8 kHz). {YB} The antialiasing is a **4-sample BLEP** (it was 2): below 8 kHz, at notes 72 and 96, saw and pulse go from about −60 to about −87 dB and the supersaw from −65 to −95; the top end is a little duller (about −2.5 dB at 10 kHz).
 
 ### Page 2 — granular
 | Knob | Alone | With Shift |
@@ -868,7 +878,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | What | Where it is used |
 |---|---|
 | **Saved Synth 1 / 2 patches** {B} (Clear + pad twice); swaps and copies between packs | [Synth Preset view](#synth-preset) |
-| **Own-synth patches** of MIDI 1 / 2 (64 per pack, {XB} 128; shared by both tracks: engine, values, step-drummer, {NB} matrix, {XB} FM, destinations of the sequenceable and {XB} non-sequenceable knobs, voice mode; {YB} the 8-operator FM in an extra slot of the same bank, after its 8 patches; Components' «Send patches» no longer erases them) | [MIDI Preset view](#midi-preset), [8-operator FM](#midi-fm8) |
+| **Own-synth patches** of MIDI 1 / 2 (64 per pack, {XB} 128; shared by both tracks: engine, values, step-drummer, {NB} matrix, {XB} FM, destinations of the sequenceable and {XB} non-sequenceable knobs, voice mode; {YB} the one-oscillator mode's sub-oscillator and noise; the 8-operator FM in an extra slot of the same bank, after its 8 patches; Components' «Send patches» no longer erases them) | [MIDI Preset view](#midi-preset), [8-operator FM](#midi-fm8) |
 | **Samples**: swaps, copies between packs and the **capture** replacing a drum (this one when the project is saved, if it fits) | [Drum Preset view](#drum-preset) |
 | **Projects copied** to another slot or pack; **deleted packs** | [Projects](#projects), [Packs](#packs) |
 
@@ -893,7 +903,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | In the Side-chain view, the **triggers of a drum** by another drum or by a pattern (pads of the drum pages) | Those of the drum's preset |
 | Pending **mutes on the next bar** (Mixer, Shift + pad) | — |
 | **Latched notes and chords** (Shift + key, Shift + root), the **chord screen** (type and modifiers) and the half-step of **Octave with Jankó** {XB} | No latch; the defaults; Octave at 0 |
-| **Split keyboard** and open views (step-drummer, macro editor, picker) | Closed |
+| **Split keyboard** and open views (step-drummer, macro editor, picker, {YB} the flip view); {YB} the step flip's **last target** | Closed; the target, Synth 1 |
 | A **sample or patch waiting** to be copied into another pack (Duplicate + A) | Nothing waiting |
 | The Master FX **capture** unused, or used in a drum without saving the project | Empty; the drum with its pack sample |
 | The own synth's **mod matrix** not saved in a patch {NB} ({XB}: also saved with the project) | Off |

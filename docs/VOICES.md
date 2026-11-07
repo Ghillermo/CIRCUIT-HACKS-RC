@@ -4,7 +4,7 @@
 
 MIDI 1 and MIDI 2 are two complete synths inside the Circuit Tracks: each track keeps sending MIDI and also sounds through its own engine, with up to 4 voices (6 in FM). The **voice mode** decides how notes are shared out among those voices: eight modes on pad 32 of the Preset view.
 
-This document describes **Beta 5.29**, not tested on the device. Nearly all of it is already in RC4 and RC4.08; what is only in the beta is marked *(Beta 5.29 only)*.
+This document describes **Beta 5.32**, not tested on the device. Nearly all of it is already in RC4 and RC4.08; what is only in the beta is marked *(Beta 5.32 only)*.
 
 The voice mode has no CC or NRPN: it is chosen on the device and saved with the patch and the project.
 
@@ -44,19 +44,19 @@ The step-drummer appears twice because there are two ways in: pad 30 of Preset, 
 
 | Pad | Function |
 | --- | --- |
-| 1-5 | Knob page: 1 VCA-VCF, 2 OSC 1 (or granular), 3 OSC 2, 4 sequenceable knobs, 5 modulation. Shift + pad 4 = non-sequenceable knobs. *(Beta 5.29 only)* Pads 1 and 4 swap places: **pad 1 = sequenceable knobs** (Shift + pad 1 = non-sequenceable), **pad 4 = VCA-VCF**. A tap leaves the page on; holding ½ s shows it only while held. |
+| 1-5 | Knob page: 1 VCA-VCF, 2 OSC 1 (or granular), 3 OSC 2, 4 sequenceable knobs, 5 modulation. Shift + pad 4 = non-sequenceable knobs. *(Beta 5.32 only)* Pads 1 and 4 swap places: **pad 1 = sequenceable knobs** (Shift + pad 1 = non-sequenceable), **pad 4 = VCA-VCF**. A tap leaves the page on; holding ½ s shows it only while held. |
 | 6 | Modulation matrix. |
-| 7 | FM page. Holding it shows the 56 algorithms on pads 9-32 in three pages (Octave ▼ / ▲). With wavetable *(Beta 5.29 only)*: holding it shows the stock's 16 wavetables on pads 9-24; a tap fills the table with their 9 frames; Shift + a table = only the frame the position (K3) points at. The tonic sounds while held. |
-| 8 | With FM: a tap opens the FM page; holding it shows 24 instruments on pads 9-32. With wavetable *(Beta 5.29 only)*: holding it shows the pack's samples on pads 9-32 (Octave = page); a tap puts a cycle of the sample in the frame the position (K3) points at (OSC 1's position). The tonic sounds while held. |
-| 9-24 | Own-synth patches: 16 slots per page, 8 pages with Octave; each in its engine's colour, empty = dim white *(Beta 5.29 only)*. |
+| 7 | FM page. Holding it shows the 56 algorithms on pads 9-32 in three pages (Octave ▼ / ▲). With wavetable *(Beta 5.32 only)*: holding it shows the stock's 16 wavetables on pads 9-24; a tap fills the table with their 9 frames; Shift + a table = only the frame the position (K3) points at. The tonic sounds while held. |
+| 8 | With FM: a tap opens the FM page; holding it shows 24 instruments on pads 9-32. With wavetable *(Beta 5.32 only)*: holding it shows the pack's samples on pads 9-32 (Octave = page); a tap puts a cycle of the sample in the frame the position (K3) points at (OSC 1's position). The tonic sounds while held. |
+| 9-24 | Own-synth patches: 16 slots per page, 8 pages with Octave; each in its engine's colour, empty = dim white *(Beta 5.32 only)*. |
 | 25 | CC editor. Off and without effect with the engine on. |
-| 26 | Patch flip: each note goes out as a Program Change. Excludes the engine. |
+| 26 | Patch flip: each note goes out as a Program Change. Excludes the engine. *(Beta 5.32 only)* Opens and closes the **flip view** (white while open): row 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (one or the other; tapping the one on turns it off); with step flip, row 2 = the target. |
 | 27 | Opens the engine row. Shift + pad 27 steps to the next engine. |
-| 28 | One or two oscillators (oscillator and VA-drum). With FM, dark and without effect *(Beta 5.29 only)*. |
-| 29 | Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter *(Beta 5.29 only)*. Shift + pad 29 steps through the eight voice modes. |
+| 28 | One or two oscillators (oscillator and VA-drum). With FM, dark and without effect *(Beta 5.32 only)*. |
+| 29 | Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter *(Beta 5.32 only)*. Shift + pad 29 steps through the eight voice modes. |
 | 30 | Opens the step-drummer. Shift + pad 30 turns it off. |
-| 31 | VA-drum only: velocity scales the pitch and filter envelopes. With no voice: the **FX sequencer** (dim blue; on, bright) *(Beta 5.29 only)*. |
-| 32 | Opens the voice mode menu, in the colour of the current mode. Only with oscillator, FM, VA-drum or sample *(Beta 5.29 only)*. |
+| 31 | VA-drum only: velocity scales the pitch and filter envelopes. With no voice: the **FX sequencer** (dim blue; on, bright) *(Beta 5.32 only)*. |
+| 32 | Opens the voice mode menu, in the colour of the current mode. Only with oscillator, FM, VA-drum or sample *(Beta 5.32 only)*. |
 
 <!--panel:preset-->
 
@@ -66,7 +66,7 @@ A menu takes over pads 9-24 while it is open; those pads stop loading patches.
 
 | Menu | Open | Content | Close |
 | --- | --- | --- | --- |
-| Engine row | Tap pad 27 | Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. *Beta 5.29 only:* no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand: the oscillator with a table of up to 9 frames; K7 of OSC 1 / OSC 2 = the position, SHAPE = warp), sample, granular, FM; the FX sequencer moves to pad 31. | Pad 27 again. Choosing does not close it. |
+| Engine row | Tap pad 27 | Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. *Beta 5.32 only:* no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand: the oscillator with a table of up to 9 frames; K7 of OSC 1 / OSC 2 = the position, SHAPE = warp), sample, granular, FM; the FX sequencer moves to pad 31. | Pad 27 again. Choosing does not close it. |
 | Voice modes | Tap pad 32 | Pads 17-24: the eight modes. K1 = glide, K2 = unison detune | Pad 32 again, or leave the view |
 | FM algorithms | Hold pad 7 | Pads 9-32: the 56 algorithms in three pages (Octave ▼ / ▲); teal 4 operators, white the DX7's, amber 8 | Release pad 7 |
 | Instruments | Hold pad 8 with FM | Pads 9-32: 24 instruments (keys orange, basses blue, leads and brass red, pads and strings green, plucks yellow, percussion white, bells and fx violet) | Release pad 8 |
@@ -84,9 +84,9 @@ A menu takes over pads 9-24 while it is open; those pads stop loading patches.
 | Clear + the track's button | Engine values back to their initial ones, and latched notes let go. The chosen engine stays. |
 | Clear + pad 1-5 | That page back to its initial values. |
 | Clear + knob | To the right, default value (lavender). To the left, erases its automation (red). |
-| Shift + Preset | The own synth saved with the project comes back. *(Beta 5.29 only)* |
+| Shift + Preset | The own synth saved with the project comes back. *(Beta 5.32 only)* |
 | Clear + patch pad, twice | Saves the patch in that slot. |
-| Duplicate + empty slot | Saves the patch there at once. *(Beta 5.29 only)* |
+| Duplicate + empty slot | Saves the patch there at once. *(Beta 5.32 only)* |
 | Duplicate + A + B | Swaps two patches. With another pack loaded in between, copies. |
 | Shift + patch pad | Loads the patch without the root note sounding. |
 
@@ -103,7 +103,7 @@ Each track has one engine out of seven, plus off, and the track keeps sending it
 | 21 | Magenta | Granular | Up to 16 grains of a pack sample or the capture | 1 |
 | 22 | Teal | Sample | A pack sample at the note's pitch, one-shot | 4 |
 | 23 | Blue | FX sequencer | Makes no sound: it triggers Master FX slots | — |
-| 24 | Violet | FM | 4 operators and 16 algorithms; a variant of the oscillator (Beta 5.29 only: 8 operators and 48 algorithms) | 6, or 3 + 3 (Beta 5.29 only: 6 a track, on the DSP's other core) |
+| 24 | Violet | FM | 4 operators and 16 algorithms; a variant of the oscillator (Beta 5.32 only: 8 operators and 48 algorithms) | 6, or 3 + 3 (Beta 5.32 only: 6 a track, on the DSP's other core) |
 
 ### Oscillator
 
@@ -142,7 +142,7 @@ C3 (note 60) is the sample as it was recorded; an octave up, twice as fast. The 
 
 K7 of page 2 is the stereo width: each note plays the chosen sample on the left and a second one on the right. Shift + the chosen sample switches to picking the second. The note lasts as long as the longer one.
 
-### Wavetable (Beta 5.29 only)
+### Wavetable (Beta 5.32 only)
 
 The oscillator reading a **table of up to 9 frames** (one per patch, for both oscillators). **K3 of OSC 1 / OSC 2** = the position in the table (in Beta 5.24-5.26, K7); OSC 1's K7 = LFO → position, Shift + K3 = envelope → position; SHAPE (K4) = warp. Pick it on the engine row, **pad 21** (sand).
 
@@ -152,9 +152,9 @@ The oscillator reading a **table of up to 9 frames** (one per patch, for both os
 3. **Pad 7 held + Shift + a Nova table** = only that frame, taken from the same frame of that table; without Shift, the whole table.
 4. Repeat at other K3 positions. Every tap sounds the tonic while you hold the pad.
 5. It is saved with the own-synth patch and with the project.
-6. *(Beta 5.29 only)* **Clear + pad 7** = the frame K3 points at goes back to its table's (the Nova table it had or the starting one).
+6. *(Beta 5.32 only)* **Clear + pad 7** = the frame K3 points at goes back to its table's (the Nova table it had or the starting one).
 
-Wavetable patches show **sand** in the list. With the **warp** away from the centre, the band-limited version is chosen for the fastest part of the bent wave: almost no aliasing up high, a little duller at the ends *(Beta 5.29 only)*.
+Wavetable patches show **sand** in the list. With the **warp** away from the centre, the band-limited version is chosen for the fastest part of the bent wave: almost no aliasing up high, a little duller at the ends *(Beta 5.32 only)*.
 
 <!--panel:wt-->
 
@@ -195,7 +195,7 @@ Each operator is sustained or percussive: Shift + K1-K4 to the right gives attac
 
 The starter sounds (pad 8 held): piano, electric piano, organ, pluck, harp, marimba, bass, bell, strings, pad, flute, clarinet, brass, kick, snare and hi-hat.
 
-### 8-operator FM (Beta 5.29 only)
+### 8-operator FM (Beta 5.32 only)
 
 It replaces the 4-operator FM on the same pad 24. Up to 8 operators, each with a DX7-style envelope (4 rates and 4 levels), and 56 algorithms: the 16 above, the DX7's 32 and 8 with eight operators. 4-operator patches load converted, with the same sound.
 
@@ -323,7 +323,7 @@ The mode, the glide time and the detune are saved with the own patch and with th
 
 ## Knob pages
 
-With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type's colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type *(Beta 5.29 only)*: the LFO shape, the FM algorithm and the granular's note mode go to 16. Bipolar knobs *(Beta 5.29 only)*: dim at the centre, their colour to the right and a lighter shade of the same colour to the left; OSC 2's K5 (FM) past the maximum, violet.
+With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type's colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type *(Beta 5.32 only)*: the LFO shape, the FM algorithm and the granular's note mode go to 16. Bipolar knobs *(Beta 5.32 only)*: dim at the centre, their colour to the right and a lighter shade of the same colour to the left; OSC 2's K5 (FM) past the maximum, violet.
 
 ### Page 1: VCA-VCF
 
@@ -353,7 +353,7 @@ On oscillator, VA-drum, sample and FM.
 | K7 | WAVE (morph); on sample, stereo width | — |
 | K8 | LFO → morph | Envelope → morph |
 
-*Beta 5.29 only* (oscillator, VA-drum, wavetable):
+*Beta 5.32 only* (oscillator, VA-drum, wavetable):
 
 | Knob | Alone | With Shift |
 | --- | --- | --- |
@@ -365,6 +365,16 @@ On oscillator, VA-drum, sample and FM.
 | K6 | LFO → ring | Envelope → ring |
 | K7 | LFO → morph | LFO → shape |
 | K8 | LFO → mix | Envelope → mix |
+
+*Beta 5.32 only*, with **one oscillator** (two oscillators off) K5, K6 and K8 have their own functions, with their own values:
+
+| Knob | Alone | With Shift |
+| --- | --- | --- |
+| K5 | Sub-oscillator level (a square one octave below) | Envelope → sub |
+| K6 | Noise level | Envelope → noise |
+| K8 | LFO → sub | LFO → noise |
+
+The sub and the noise go through the filter and the VCA; in poly, every voice has its own. Saved with the patch and with the project.
 
 ### Page 2: granular
 
@@ -392,7 +402,7 @@ On oscillator, VA-drum, sample and FM.
 | K7 | WAVE 2 |
 | K8 | RING |
 
-Beta 5.29 (except with the granular, which keeps the table above): K1 = OSC 2's ratio to its note (¼, ½, 1 at the centre, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM with a centre (right OSC 2 → OSC 1; left OSC 1 → OSC 2; both at the ends, 50 / 50), K6 RING, K7 classic sync + bitwise, K8 MIX.
+Beta 5.32 (except with the granular, which keeps the table above): K1 = OSC 2's ratio to its note (¼, ½, 1 at the centre, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM with a centre (right OSC 2 → OSC 1; left OSC 1 → OSC 2; both at the ends, 50 / 50), K6 RING, K7 classic sync + bitwise, K8 MIX.
 
 ### Page 4: sequenceable knobs
 
@@ -400,7 +410,7 @@ These are the 8 values recorded as automation with Record + Play. By default: TU
 
 Shift + knob chooses the destination among the 33 parameters, 4 clicks per parameter. While you choose, pads 9-24 show where the destination lives. Clear held and then Shift + knob restores the default.
 
-### Non-sequenceable knobs (Shift + pad 4; in Beta 5.29, Shift + pad 1)
+### Non-sequenceable knobs (Shift + pad 4; in Beta 5.32, Shift + pad 1)
 
 Eight knobs with an assignable destination that are not recorded. Pad 4 shows pink. By default: Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2 and VCA gain.
 
@@ -443,7 +453,7 @@ The engine has its own ADSR and LFO, and the matrix adds eight sources that move
 
 ### LFO
 
-K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks *(Beta 5.29 only; before, 4)*.
+K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks *(Beta 5.32 only; before, 4)*.
 
 | Shape | Colour |
 | --- | --- |
@@ -468,7 +478,7 @@ K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses t
 | K7 | Position in the pattern, from first step to last | — |
 | K8 | Stepped random: a new value every N steps | N = 1, 2, 4, 8 or 16 |
 
-With K1 (velocity) at 0, the global velocity controls of the Setup view (K1 velocity → amplitude, K2 velocity → filter) take over: soft notes quieter and darker. *(Beta 5.29 only)*
+With K1 (velocity) at 0, the global velocity controls of the Setup view (K1 velocity → amplitude, K2 velocity → filter) take over: soft notes quieter and darker. *(Beta 5.32 only)*
 
 The knob's position is both the destination and the amount:
 
@@ -496,11 +506,11 @@ The 8 sequenceable knobs record with Record + Play into 8 lanes of the pattern. 
 
 | Gesture | View | Effect |
 | --- | --- | --- |
-| Record held + step | Note | Snapshot: writes on that step the parameters that are not at their initial value. *(Beta 5.29 only)* The step shows yellow while held |
+| Record held + step | Note | Snapshot: writes on that step the parameters that are not at their initial value. *(Beta 5.32 only)* The step shows yellow while held |
 | Shift + step | Velocity | Marks the step: no lane sounds there and what was automated goes back to the synth saved with the project |
-| Shift + yellow step | Velocity | *(Beta 5.29 only)* Hear its values until Shift is released, with the knobs it moves in yellow |
-| Clear + step | Velocity | *(Beta 5.29 only)* Erases the knobs' automation on that step; the notes stay |
-| Yellow step held + another yellow step | Velocity, with Shift | *(Beta 5.29 only)* Sweep: every lane with a value at both steps becomes a straight line between them |
+| Shift + yellow step | Velocity | *(Beta 5.32 only)* Hear its values until Shift is released, with the knobs it moves in yellow |
+| Clear + step | Velocity | *(Beta 5.32 only)* Erases the knobs' automation on that step; the notes stay |
+| Yellow step held + another yellow step | Velocity, with Shift | *(Beta 5.32 only)* Sweep: every lane with a value at both steps becomes a straight line between them |
 
 In the snapshot, a parameter with no lane takes one whose parameter is at its initial value, and that lane is erased first. If they do not fit, the first ones in the matrix's order stay.
 
@@ -527,11 +537,12 @@ With this engine, each step-drummer knob chooses a slot of the bottom row of Mas
 
 ### Jump sequencer
 
-The track's notes make another track's pattern jump to the step they indicate, on the note's own step. *(Beta 5.29 only)*
+The track's notes make another track's pattern jump to the step they indicate, on the note's own step. *(Beta 5.32 only)*
 
 | Control | Function |
 | --- | --- |
-| Pads 17-24 with patch flip (pad 26) on *(Beta 5.29 only)* | The eight tracks: a tap = step flip to that track (pad 26 blinks in its colour), the same one again = patch flip, pad 26 turns everything off |
+| Pad 26, flip view *(Beta 5.32 only)* | Row 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (no target picked: the last one used; Synth 1 from the factory); tapping the one on turns it off |
+| Row 2 of the flip view, with step flip | The eight tracks: a tap = the target (the track's own dark). With the view closed, pad 26 blinks in its colour |
 | Note view, pads 17-32 | Steps 1-16; Octave ▲, steps 17-32. The scale changes nothing |
 | Expanded Note, the 32 pads | Steps 1-32 |
 
@@ -569,14 +580,14 @@ Four sources reach the arpeggiator: the pattern's chords, held notes, a held ste
 | --- | --- | --- |
 | Probability | Probability view, row 3 | The step sounds sometimes |
 | Frequency | Mode 1, row 4 | The step sounds on the last of every n turns, 1 to 8 |
-| Dynamics | Mode 2, pads 25-28 | Accents, accents and length, or random length. *(Beta 5.29 only)* |
-| Random-mutate | Mode 2, pads 17-24 | Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). *(Beta 5.29 only)* |
+| Dynamics | Mode 2, pads 25-28 | Accents, accents and length, or random length. *(Beta 5.32 only)* |
+| Random-mutate | Mode 2, pads 17-24 | Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). *(Beta 5.32 only)* |
 | Gate by press | Micro Step, pad 32 | What you hold while entering a note is its length |
 | Fixed length | Micro Step, pad 31 | All notes entered by hand with the same gate, 1 to 16 steps |
-| Nudge | Pattern Settings, pad 26 | Moves the content of the range one step back; Shift, forward. The first and last steps do not move. *(Beta 5.29 only)* |
+| Nudge | Pattern Settings, pad 26 | Moves the content of the range one step back; Shift, forward. The first and last steps do not move. *(Beta 5.32 only)* |
 | Fractal and deconstructed | Pattern Settings, pads 27 and 28 | Another order through the pattern |
-| Micro steps | Mode 2, pad 32 | The note moves up to 2 micro steps earlier or later, inside its step. *(Beta 5.29 only)* |
-| Track factor | Octave, with mode 2 open | ×0 to ×8, multiplies all the track's chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. *(Beta 5.29 only)* |
+| Micro steps | Mode 2, pad 32 | The note moves up to 2 micro steps earlier or later, inside its step. *(Beta 5.32 only)* |
+| Track factor | Octave, with mode 2 open | ×0 to ×8, multiplies all the track's chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. *(Beta 5.32 only)* |
 
 <!--panel:mutate-->
 
@@ -591,7 +602,7 @@ Four sources reach the arpeggiator: the pattern's chords, held notes, a held ste
 | Chord screen | Shift + pad 8 in expanded Note | Type, inversion and modifiers; rows 3-4 play the chord, up to 6 notes |
 | Split keyboard | Hold one track and press another | Two tracks on the pads. Holding a track button gives its knobs |
 | Chord bank | Setup's Record in yellow | Nothing is recorded on a muted track: it sounds and is recorded on the synth of the shared channel |
-| Note flash | Shift held, in any view | *(Beta 5.29 only)* Each track's button flashes white for 100 ms on every note |
+| Note flash | Shift held, in any view | *(Beta 5.32 only)* Each track's button flashes white for 100 ms on every note |
 
 Each note of the chord goes through the voice mode: in poly it sounds up to the engine's maximum of voices.
 
@@ -626,8 +637,8 @@ The Synth 1 / 2 patch file does not change: the own patch goes in the part of ea
 | LFO shape | — | Yes | Yes | — |
 | Sample mode stereo: distance to the second sample | — | Yes | Yes | — |
 | Patch flip | — | — | — | Yes |
-| Random-mutate factor, per track *(Beta 5.29 only)* | — | Yes | — | — |
-| Track the jump sequencer points at *(Beta 5.29 only)* | — | Yes | — | — |
+| Random-mutate factor, per track *(Beta 5.32 only)* | — | Yes | — | — |
+| Track the jump sequencer points at *(Beta 5.32 only)* | — | Yes | — | — |
 
 ### What is lost at power-off
 

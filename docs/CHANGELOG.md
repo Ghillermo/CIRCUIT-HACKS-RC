@@ -7,6 +7,15 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.32 — 2026-11-07
+
+**Beta 5.32** (marca `B5.32`; = SC52.9) = la Beta 5.29 + lo siguiente (las 5.30 y 5.31 no se publicaron: van dentro), sin probar en el aparato.
+
+- **Vista de flip** (pad 26 de la vista Preset de MIDI 1 / 2): el pad 26 abre y cierra la vista sin cambiar el modo; en la **fila 3**, **pad 17 = patch flip (PGM seq)** y **pad 18 = step flip**, uno u otro (tocar el encendido lo apaga); con step flip, la **fila 2** son las pistas destino. Step flip sin destino elegido = el último usado. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Funciones propias del modo de un oscilador** (página OSC 1, sin los dos osciladores): **K5 = sub-oscilador**, **K6 = ruido**, con Shift la envolvente → ellos; **K8 = LFO → sub**, Shift + K8 = LFO → ruido. Con dos osciladores siguen LFO / envolvente → FM / ring / mix. Se guardan con el patch y con el proyecto. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Antialias de 4 muestras** (BLEP) en la sierra, la supersaw y el pulso: por debajo de 8 kHz, unos −87 dB en las notas agudas (antes unos −60). → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- Arreglo de la beta: en la página FM, con los algoritmos en los pads 1-32 (Shift + K1), los pads 1 y 4 salían intercambiados. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
 ### Beta 5.29 — 2026-11-06
 
 **Beta 5.29** (marca `B5.29`; = SC52.6) = la Beta 5.28 + lo siguiente, sin probar en el aparato.
@@ -888,6 +897,15 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.32 — 2026-11-07
+
+**Beta 5.32** (marker `B5.32`; = SC52.9) = Beta 5.29 + the following (5.30 and 5.31 were not released: they are inside), untested on the device.
+
+- **Flip view** (pad 26 of the MIDI 1 / 2 Preset view): pad 26 opens and closes the view without changing the mode; on **row 3**, **pad 17 = patch flip (PGM seq)** and **pad 18 = step flip**, one or the other (tapping the one on turns it off); with step flip, **row 2** is the target tracks. Step flip with no target picked = the last one used. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **The one-oscillator mode's own functions** (OSC 1 page, two oscillators off): **K5 = sub-oscillator**, **K6 = noise**, with Shift the envelope → them; **K8 = LFO → sub**, Shift + K8 = LFO → noise. With two oscillators they stay LFO / envelope → FM / ring / mix. Saved with the patch and with the project. → [Guide: Knob pages of the MIDI 1 / 2 engine](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **4-sample antialiasing** (BLEP) on the saw, the supersaw and the pulse: below 8 kHz, about −87 dB on high notes (about −60 before). → [Guide: Knob pages of the MIDI 1 / 2 engine](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- Beta fix: on the FM page, with the algorithms on pads 1-32 (Shift + K1), pads 1 and 4 came out swapped. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
 ### Beta 5.29 — 2026-11-06
 

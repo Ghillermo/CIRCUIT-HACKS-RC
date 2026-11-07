@@ -1901,6 +1901,12 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K8</td><td><strong>LFO → mix</strong></td><td><strong>Envolvente → mix</strong></td></tr>
 </tbody></table>
 <p>K5, K6 y K8 son nuevos: cuánto mueven el LFO y la envolvente del motor el FM, el ring y el mix de la página 3 (centro = nada, a cada lado en un sentido; Clear + knob = 0). Se guardan con el patch y con el proyecto.</p>
+<table><thead><tr><th>Knob</th><th>Solo</th><th>Con Shift</th></tr></thead><tbody>
+<tr><td>K5</td><td><strong>Nivel del sub-oscilador</strong> (una cuadrada una octava por debajo)</td><td>Envolvente → sub</td></tr>
+<tr><td>K6</td><td><strong>Nivel del ruido</strong></td><td>Envolvente → ruido</td></tr>
+<tr><td>K8</td><td>LFO → sub</td><td>LFO → ruido</td></tr>
+</tbody></table>
+<p>Los niveles van de apagado (a la izquierda del todo; Clear + knob) al del oscilador; su LED brilla más cuanto más nivel. Las profundidades son bipolares (centro = nada). El sub y el ruido pasan por el filtro y el VCA, y en poly cada voz lleva los suyos. Se guardan con el patch y con el proyecto.</p>
 <table><thead><tr><th>Forma (WAVE)</th><th>SHAPE a la izquierda del centro</th><th>Centro</th><th>SHAPE a la derecha del centro</th></tr></thead><tbody>
 <tr><td>Seno (0)</td><td>Nada: la forma pura</td><td>Pura</td><td><strong>Wavefold</strong>: la onda se amplifica (hasta unas 8 veces a la derecha del todo) y se pliega sobre sí misma: más armónicos cuanto más a la derecha. <em>(desde RC4)</em> En las notas agudas la amplificación máxima baja para no generar aliasing: unas 6,7 veces en la nota 72, 3,9 una octava más arriba, 2,4 dos octavas más arriba</td></tr>
 <tr><td>Triángulo (42)</td><td><em>(desde RC4)</em> <strong>Rampas exponenciales</strong>: picos afilados y valles anchos, más armónicos cuanto más a la izquierda (antes de RC4, nada)</td><td>Puro</td><td><strong>Wavefold</strong>, como el seno</td></tr>
@@ -4314,7 +4320,6 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>En la vista Sidechain, los <strong>disparos de un drum</strong> por otro drum o por un patrón (pads de las páginas de drums)</td><td>Los del preset del drum</td></tr>
 <tr><td><strong>Mutes en el compás siguiente</strong> pendientes (Mixer, Shift + pad)</td><td>—</td></tr>
 <tr><td><strong>Notas y acordes en latch</strong> (Shift + tecla, Shift + fundamental), <strong>pantalla de acordes</strong> (tipo y modificadores) y el medio tono de <strong>Octave con Jankó</strong> <em>(desde RC4)</em></td><td>Sin latch; los de fábrica; Octave a 0</td></tr>
-<tr><td><strong>Teclado partido</strong> y vistas abiertas (step-drummer, editor de macros, selector)</td><td>Cerrados</td></tr>
 <tr><td>Un <strong>sample o patch esperando</strong> a copiarse en otro pack (Duplicate + A)</td><td>Nada esperando</td></tr>
 <tr><td>La <strong>captura</strong> de Master FX sin usar, o usada en un drum sin guardar el proyecto</td><td>Vacía; el drum, con su sample del pack</td></tr>
 <tr><td><strong>Matriz de modulación</strong> del sinte propio sin guardar en un patch <em>(desde RC2.02)</em> (<em>(desde RC4)</em>: guardada también con el proyecto)</td><td>Apagada</td></tr>
@@ -4374,13 +4379,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>25</td><td>Envolvente → morph (granular: fuente)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
 <tr><td>26</td><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2</td><td>CC 37</td><td>3 / K1</td></tr>
-<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.29: 3 / K2)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.29: 3 / K3)</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.32: 3 / K2)</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.32: 3 / K3)</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
-<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.29: 3 / K8)</td></tr>
-<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.29: 3 / K7)</td></tr>
-<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.29: 3 / K5)</td></tr>
-<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.29: 3 / K6)</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.32: 3 / K8)</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.32: 3 / K7)</td></tr>
+<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.32: 3 / K5)</td></tr>
+<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.32: 3 / K6)</td></tr>
 </tbody></table>
 <p><strong>Knobs secuenciables</strong> (página 4: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. <em>Solo RC4:</em> los ocho destinos se eligen con Shift + knob.</p>
 <h4>Drums</h4>

@@ -15,6 +15,16 @@ import mpatch as MP  # noqa: E402
 A, B = 0, 3                                   # pad 1, pad 4
 
 
+FMOV = False                                  # (use_fmov)
+
+
+def use_fmov():
+    """SC52.8 (found in emu_fm8.py on Beta 5.30): no exchange while an overlay of the FM page is shown (Shift + K1's algorithms take pads 1-32:
+    pads 1 / 4 were exchanged there)."""
+    global FMOV
+    FMOV = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
@@ -28,6 +38,7 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(bl, L["c_von"]); E(cmp_imm, 0, 0); E(b_cond, "ok_0", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); E(b_cond, "ok_0", "ne")
     E(mov_reg, 0, 4); E(bl, L["c_sdview"]); E(cmp_imm, 0, 0); E(b_cond, "ok_0", "ne")
+    if FMOV: E(mov_reg, 0, 4); E(bl, L["c_fmblk"]); E(bl, L["c_fmovk"]); E(cmp_imm, 0, 0); E(b_cond, "ok_0", "ne")      # (FMOV) an FM overlay shown
     E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
     a.label("ok_0"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
 
@@ -59,6 +70,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
     L = {k: lab("vcf20", k) for k in ("c_von", "c_edact", "c_sdview")}
+    if FMOV: L.update({k: lab("fmeng", k) for k in ("c_fmblk", "c_fmovk")})
     TP = MP.TMPL_VT
     prev = dict(pad=u(TP) & ~1, rel=u(TP + 4) & ~1, leds=u(TP + 28) & ~1)
     code, labels = arm_code(base_addr, L, prev)

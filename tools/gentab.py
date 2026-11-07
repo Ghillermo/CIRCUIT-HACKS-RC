@@ -69,6 +69,25 @@ def use_xtab():
     if s16.CODE_P_END == 0x3E0D: s16.CODE_P_END = GEN_TATK                  # (install_dsp ran already: the new end)
 
 
+XTF = False
+XT_TF = 0x5180                                              # (use_xtf) core 0's X, after TLFO ($5100..$517F)
+
+
+def use_xtf():
+    """SC52.8 (core-0 program room for the one-oscillator sub / noise, vcf21_dsp.use_osc1x): TF too into core 0's X (XT_TF, made in init3 after
+    the stock's init clears X); the program may end 64 words later."""
+    global XTF, GEN_TATK, GEN_TDEC, GEN_TF, GEN_TEXP
+    assert XTAB
+    old = GEN_TATK
+    XTF = True
+    GEN_TATK = 0x4000 - (N_TATK + N_TDEC + N_TEXP)
+    GEN_TDEC, GEN_TEXP, GEN_TF = GEN_TATK + N_TATK, GEN_TATK + N_TATK + N_TDEC, XT_TF
+    DD.GEN_TATK, DD.GEN_TDEC, DD.GEN_TF, DD.GEN_TEXP = GEN_TATK, GEN_TDEC, GEN_TF, GEN_TEXP
+    DD.XTABS.add("TF"); VD.XTABS.add("TF")
+    import build_sc16 as s16
+    if s16.CODE_P_END == old: s16.CODE_P_END = GEN_TATK
+
+
 def code(base, l, T, do_imm):
     a = D.Asm(base)
     e = lambda *ls: [a.emit(T(x)) for x in ls]
@@ -93,18 +112,21 @@ def code(base, l, T, do_imm):
     e("move b,x0", "move x1,a", "andi #$fe,ccr", "rep #24", "div x0,a", "sub y1,b")
     a.label("ga"); e("move a0,p:(r0)+")
     e("clr a", "move a,p:(r0)")                                                 # TATK[64] = 0
-    e("move #>$%x,r0" % GEN_TF, "move #>$%x,y1" % TF_X0)                       # TF: x in y1, multiplied up; 2 sin x by its series
-    a.emit(do_imm, N_TF, "gf")
-    e("move y1,x0", "mpyr x0,x0,a", "move a,y0",                                # y0 = s = x^2
-      "move #>$%x,x1" % TF_C5040, "mpyr x1,y0,a", "move #>$%x,b" % TF_C120, "sub a,b",   # 1/120 - s/5040
-      "move b,x1", "mpyr x1,y0,a", "move #>$%x,b" % TF_C6, "sub a,b",          # 1/6 - s (1/120 - s/5040)
-      "move b,x1", "mpyr x1,y0,a", "move a,x1", "mpyr x1,x0,a",               # x s (...)
-      "move x0,b", "sub a,b", "asl b", "move b,p:(r0)+",                       # 2 (x - x s (...))
-      "move #>$%x,x1" % TF_RH, "mpyr x1,x0,a", "asl a")
-    a.label("gf"); e("move a,y1")
+    def tf(m):
+        e("move #>$%x,r0" % GEN_TF, "move #>$%x,y1" % TF_X0)                   # TF: x in y1, multiplied up; 2 sin x by its series
+        a.emit(do_imm, N_TF, "gf")
+        e("move y1,x0", "mpyr x0,x0,a", "move a,y0",                            # y0 = s = x^2
+          "move #>$%x,x1" % TF_C5040, "mpyr x1,y0,a", "move #>$%x,b" % TF_C120, "sub a,b",   # 1/120 - s/5040
+          "move b,x1", "mpyr x1,y0,a", "move #>$%x,b" % TF_C6, "sub a,b",      # 1/6 - s (1/120 - s/5040)
+          "move b,x1", "mpyr x1,y0,a", "move a,x1", "mpyr x1,x0,a",           # x s (...)
+          "move x0,b", "sub a,b", "asl b", "move b,%s:(r0)+" % m,              # 2 (x - x s (...))
+          "move #>$%x,x1" % TF_RH, "mpyr x1,x0,a", "asl a")
+        a.label("gf"); e("move a,y1")
+    if not XTF: tf("p")
     if XTAB:                                                                    # (XTAB) the stock's init (P:$2779, from P:$10F) zeroes X / Y $0-$5FFF:
         a.emit(D.jmp(l["sc_init"]))                                             #   TINC / TLFO are made after it, P:$111 -> init3 (then the stock's $2071)
         a.label("init3"); octs(l["TINC_S"], XT_TINC, N_TINC)
+        if XTF: tf("x")                                                         # (XTF) TF into X too
     tl = "x" if XTAB else "p"                                                   # (XTAB) TLFO into X
     e("move #>$%x,a" % DD.tables()["TLFO"][0], "move #>$%x,r0" % (XT_TLFO if XTAB else GEN_TLFO), "move #>$%x,y0" % TLFO_QH)   # TLFO: up from its first word
     a.emit(do_imm, N_TLFO - 1, "gl")

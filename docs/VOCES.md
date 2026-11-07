@@ -4,7 +4,7 @@
 
 MIDI 1 y MIDI 2 son dos sintes completos dentro del Circuit Tracks: cada pista sigue mandando MIDI y además suena con un motor propio, de hasta 4 voces (6 en FM). El **modo de voz** decide cómo se reparten las notas entre esas voces: ocho modos en el pad 32 de la vista Preset.
 
-Este documento describe la **Beta 5.29**, sin probar en el aparato. Casi todo está ya en RC4 y RC4.08; lo que solo está en la beta se marca *(solo Beta 5.29)*.
+Este documento describe la **Beta 5.32**, sin probar en el aparato. Casi todo está ya en RC4 y RC4.08; lo que solo está en la beta se marca *(solo Beta 5.32)*.
 
 El modo de voz no tiene CC ni NRPN: se elige en el aparato y se guarda con el patch y con el proyecto.
 
@@ -44,19 +44,19 @@ El step-drummer aparece dos veces porque se llega por dos caminos: el pad 30 de 
 
 | Pad | Función |
 | --- | --- |
-| 1-5 | Página de knobs: 1 VCA-VCF, 2 OSC 1 (o granular), 3 OSC 2, 4 knobs secuenciables, 5 modulación. Shift + pad 4 = knobs no secuenciables. *(solo Beta 5.29)* Los pads 1 y 4 cambian de sitio: **pad 1 = knobs secuenciables** (Shift + pad 1 = no secuenciables), **pad 4 = VCA-VCF**. Un toque deja la página; mantener ½ s la enseña solo mientras lo mantienes. |
+| 1-5 | Página de knobs: 1 VCA-VCF, 2 OSC 1 (o granular), 3 OSC 2, 4 knobs secuenciables, 5 modulación. Shift + pad 4 = knobs no secuenciables. *(solo Beta 5.32)* Los pads 1 y 4 cambian de sitio: **pad 1 = knobs secuenciables** (Shift + pad 1 = no secuenciables), **pad 4 = VCA-VCF**. Un toque deja la página; mantener ½ s la enseña solo mientras lo mantienes. |
 | 6 | Matriz de modulación. |
-| 7 | Página FM. Mantenerlo enseña los 56 algoritmos en los pads 9-32, en tres páginas (Octave ▼ / ▲). Con wavetable *(solo Beta 5.29)*: mantenerlo enseña las 16 wavetables del stock en los pads 9-24; un toque llena la tabla con sus 9 cuadros; Shift + una tabla = solo el cuadro que señala la posición (K3). Suena la tónica mientras se pulsa. |
-| 8 | Con FM: un toque abre la página FM; mantenerlo enseña 24 instrumentos en los pads 9-32. Con wavetable *(solo Beta 5.29)*: mantenerlo enseña los samples del pack en los pads 9-32 (Octave = página); un toque pone un ciclo del sample en el cuadro que señala la posición (K3) (la posición de OSC 1). Suena la tónica mientras se pulsa. |
-| 9-24 | Patches del sinte propio: 16 huecos por página, 8 páginas con Octave; cada uno en el color de su motor, vacío = blanco tenue *(solo Beta 5.29)*. |
+| 7 | Página FM. Mantenerlo enseña los 56 algoritmos en los pads 9-32, en tres páginas (Octave ▼ / ▲). Con wavetable *(solo Beta 5.32)*: mantenerlo enseña las 16 wavetables del stock en los pads 9-24; un toque llena la tabla con sus 9 cuadros; Shift + una tabla = solo el cuadro que señala la posición (K3). Suena la tónica mientras se pulsa. |
+| 8 | Con FM: un toque abre la página FM; mantenerlo enseña 24 instrumentos en los pads 9-32. Con wavetable *(solo Beta 5.32)*: mantenerlo enseña los samples del pack en los pads 9-32 (Octave = página); un toque pone un ciclo del sample en el cuadro que señala la posición (K3) (la posición de OSC 1). Suena la tónica mientras se pulsa. |
+| 9-24 | Patches del sinte propio: 16 huecos por página, 8 páginas con Octave; cada uno en el color de su motor, vacío = blanco tenue *(solo Beta 5.32)*. |
 | 25 | Editor de CC. Apagado y sin efecto con el motor encendido. |
-| 26 | Patch flip: cada nota sale como Program Change. Excluyente con el motor. |
+| 26 | Patch flip: cada nota sale como Program Change. Excluyente con el motor. *(solo Beta 5.32)* Abre y cierra la **vista de flip** (blanco abierta): fila 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (uno u otro; tocar el encendido lo apaga); con step flip, la fila 2 = el destino. |
 | 27 | Abre la fila de motores. Shift + pad 27 pasa al motor siguiente. |
-| 28 | Uno o dos osciladores (oscilador y VA-drum). Con FM, apagado y sin efecto *(solo Beta 5.29)*. |
-| 29 | Orden de la cadena: de fábrica filtro, VCA, efecto; encendido, VCA, efecto, filtro *(solo Beta 5.29)*. Shift + pad 29 pasa por los ocho modos de voz. |
+| 28 | Uno o dos osciladores (oscilador y VA-drum). Con FM, apagado y sin efecto *(solo Beta 5.32)*. |
+| 29 | Orden de la cadena: de fábrica filtro, VCA, efecto; encendido, VCA, efecto, filtro *(solo Beta 5.32)*. Shift + pad 29 pasa por los ocho modos de voz. |
 | 30 | Abre el step-drummer. Shift + pad 30 lo desactiva. |
-| 31 | Solo VA-drum: la velocity escala las envolventes de pitch y filtro. Sin voz: el **secuenciador de efectos** (azul tenue; encendido, brillante) *(solo Beta 5.29)*. |
-| 32 | Abre el menú de modos de voz, en el color del modo actual. Solo con oscilador, FM, VA-drum o muestra *(solo Beta 5.29)*. |
+| 31 | Solo VA-drum: la velocity escala las envolventes de pitch y filtro. Sin voz: el **secuenciador de efectos** (azul tenue; encendido, brillante) *(solo Beta 5.32)*. |
+| 32 | Abre el menú de modos de voz, en el color del modo actual. Solo con oscilador, FM, VA-drum o muestra *(solo Beta 5.32)*. |
 
 <!--panel:preset-->
 
@@ -66,7 +66,7 @@ Un menú ocupa los pads 9-24 mientras está abierto; esos pads dejan de cargar p
 
 | Menú | Abrir | Contenido | Cerrar |
 | --- | --- | --- | --- |
-| Fila de motores | Toque en pad 27 | Pads 17-24: apagado, línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos, FM. *Solo Beta 5.29:* sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena: el oscilador con una tabla de hasta 9 cuadros; K7 de OSC 1 / OSC 2 = la posición, SHAPE = warp), muestra, granular, FM; el secuenciador de efectos pasa al pad 31. | Pad 27 otra vez. Elegir no la cierra. |
+| Fila de motores | Toque en pad 27 | Pads 17-24: apagado, línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos, FM. *Solo Beta 5.32:* sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena: el oscilador con una tabla de hasta 9 cuadros; K7 de OSC 1 / OSC 2 = la posición, SHAPE = warp), muestra, granular, FM; el secuenciador de efectos pasa al pad 31. | Pad 27 otra vez. Elegir no la cierra. |
 | Modos de voz | Toque en pad 32 | Pads 17-24: los ocho modos. K1 = glide, K2 = desafinación del unísono | Pad 32 otra vez, o salir de la vista |
 | Algoritmos FM | Mantener pad 7 | Pads 9-32: los 56 algoritmos en tres páginas (Octave ▼ / ▲); verde azulado 4 operadores, blanco los del DX7, ámbar 8 | Soltar el pad 7 |
 | Instrumentos | Mantener pad 8 con FM | Pads 9-32: 24 instrumentos (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta) | Soltar el pad 8 |
@@ -84,9 +84,9 @@ Un menú ocupa los pads 9-24 mientras está abierto; esos pads dejan de cargar p
 | Clear + botón de la pista | Valores del motor a los iniciales, y suelta las notas en latch. El motor elegido se queda. |
 | Clear + pad 1-5 | Esa página a sus valores iniciales. |
 | Clear + knob | A la derecha, valor por defecto (lavanda). A la izquierda, borra su automatización (rojo). |
-| Shift + Preset | Vuelve el sinte propio guardado con el proyecto. *(solo Beta 5.29)* |
+| Shift + Preset | Vuelve el sinte propio guardado con el proyecto. *(solo Beta 5.32)* |
 | Clear + pad de patch, dos veces | Guarda el patch en ese hueco. |
-| Duplicate + hueco vacío | Guarda ahí el patch al momento. *(solo Beta 5.29)* |
+| Duplicate + hueco vacío | Guarda ahí el patch al momento. *(solo Beta 5.32)* |
 | Duplicate + A + B | Intercambia dos patches. Con otro pack cargado entre medias, copia. |
 | Shift + pad de patch | Carga el patch sin que suene la tónica. |
 
@@ -103,7 +103,7 @@ Cada pista tiene un motor de siete, más apagado, y la pista sigue mandando su M
 | 21 | Magenta | Granular | Hasta 16 granos de un sample del pack o de la captura | 1 |
 | 22 | Verde azulado | Muestra | Un sample del pack a la altura de la nota, de un golpe | 4 |
 | 23 | Azul | Secuenciador de efectos | No suena: dispara huecos de Master FX | — |
-| 24 | Violeta | FM | 4 operadores y 16 algoritmos; variante del oscilador (solo Beta 5.29: 8 operadores y 48 algoritmos) | 6, o 3 + 3 (solo Beta 5.29: 6 por pista, en el otro núcleo del DSP) |
+| 24 | Violeta | FM | 4 operadores y 16 algoritmos; variante del oscilador (solo Beta 5.32: 8 operadores y 48 algoritmos) | 6, o 3 + 3 (solo Beta 5.32: 6 por pista, en el otro núcleo del DSP) |
 
 ### Oscilador
 
@@ -142,7 +142,7 @@ C3 (nota 60) es el sample como se grabó; una octava arriba, el doble de rápido
 
 K7 de la página 2 es la anchura estéreo: cada nota toca el sample elegido a la izquierda y un segundo a la derecha. Shift + el sample elegido pasa a elegir el segundo. La nota dura lo que el más largo.
 
-### Wavetable (solo Beta 5.29)
+### Wavetable (solo Beta 5.32)
 
 El oscilador leyendo una **tabla de hasta 9 cuadros** (una por patch, para los dos osciladores). **K3 de OSC 1 / OSC 2** = la posición en la tabla (en la Beta 5.24-5.26, K7); K7 de OSC 1 = LFO → posición, Shift + K3 = envolvente → posición; SHAPE (K4) = warp. Se elige en la fila de motores, **pad 21** (arena).
 
@@ -152,9 +152,9 @@ El oscilador leyendo una **tabla de hasta 9 cuadros** (una por patch, para los d
 3. **Pad 7 mantenido + Shift + una tabla Nova** = solo ese cuadro, tomado del mismo cuadro de esa tabla; sin Shift, la tabla entera.
 4. Repite con otras posiciones de K3. Cada toque suena la tónica mientras mantienes el pad.
 5. Se guarda con el patch del sinte propio y con el proyecto.
-6. *(solo Beta 5.29)* **Clear + pad 7** = el cuadro que señala K3 vuelve al de su tabla (la tabla Nova que tenía o la de partida).
+6. *(solo Beta 5.32)* **Clear + pad 7** = el cuadro que señala K3 vuelve al de su tabla (la tabla Nova que tenía o la de partida).
 
-Los patches de wavetable se ven en **arena** en la lista. Con el **warp** lejos del centro, la versión de banda limitada se elige por la parte más rápida de la onda deformada: casi sin aliasing en los agudos, algo más apagado en los extremos *(solo Beta 5.29)*.
+Los patches de wavetable se ven en **arena** en la lista. Con el **warp** lejos del centro, la versión de banda limitada se elige por la parte más rápida de la onda deformada: casi sin aliasing en los agudos, algo más apagado en los extremos *(solo Beta 5.32)*.
 
 <!--panel:wt-->
 
@@ -195,7 +195,7 @@ Cada operador es sostenido o percusivo: Shift + K1-K4 a la derecha da ataque, a 
 
 Los sonidos de partida (pad 8 mantenido): piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja y hi-hat.
 
-### FM de 8 operadores (solo Beta 5.29)
+### FM de 8 operadores (solo Beta 5.32)
 
 Sustituye al FM de 4 operadores en el mismo pad 24. Hasta 8 operadores, cada uno con una envolvente como la del DX7 (4 rates y 4 niveles), y 56 algoritmos: los 16 de arriba, los 32 del DX7 y 8 de 8 operadores. Los patches de 4 operadores se cargan convertidos, con el mismo sonido.
 
@@ -323,7 +323,7 @@ El modo, el tiempo del glide y la desafinación se guardan con el patch propio y
 
 ## Páginas de knobs
 
-Con el motor encendido, los pads 1-7 eligen qué hacen los 8 knobs, y Shift da una segunda capa. Los knobs de tipo se ven con el color del tipo y el brillo de la posición dentro del tipo. Un knob de tipos necesita al menos 16 clics por tipo *(solo Beta 5.29)*: la forma del LFO, el algoritmo FM y el modo de nota del granular van a 16. Los knobs bipolares *(solo Beta 5.29)*: tenues en el centro, a la derecha su color y a la izquierda un tono más claro del mismo color; K5 de OSC 2 (FM) pasado el máximo, en violeta.
+Con el motor encendido, los pads 1-7 eligen qué hacen los 8 knobs, y Shift da una segunda capa. Los knobs de tipo se ven con el color del tipo y el brillo de la posición dentro del tipo. Un knob de tipos necesita al menos 16 clics por tipo *(solo Beta 5.32)*: la forma del LFO, el algoritmo FM y el modo de nota del granular van a 16. Los knobs bipolares *(solo Beta 5.32)*: tenues en el centro, a la derecha su color y a la izquierda un tono más claro del mismo color; K5 de OSC 2 (FM) pasado el máximo, en violeta.
 
 ### Página 1: VCA-VCF
 
@@ -353,7 +353,7 @@ En oscilador, VA-drum, muestra y FM.
 | K7 | WAVE (morph); en muestra, anchura estéreo | — |
 | K8 | LFO → morph | Envolvente → morph |
 
-*Solo Beta 5.29* (oscilador, VA-drum, wavetable):
+*Solo Beta 5.32* (oscilador, VA-drum, wavetable):
 
 | Knob | Solo | Con Shift |
 | --- | --- | --- |
@@ -365,6 +365,16 @@ En oscilador, VA-drum, muestra y FM.
 | K6 | LFO → ring | Envolvente → ring |
 | K7 | LFO → morph | LFO → forma |
 | K8 | LFO → mix | Envolvente → mix |
+
+*Solo Beta 5.32*, con **un oscilador** (sin los dos osciladores) K5, K6 y K8 tienen funciones propias, con sus valores aparte:
+
+| Knob | Solo | Con Shift |
+| --- | --- | --- |
+| K5 | Nivel del sub-oscilador (cuadrada una octava abajo) | Envolvente → sub |
+| K6 | Nivel del ruido | Envolvente → ruido |
+| K8 | LFO → sub | LFO → ruido |
+
+El sub y el ruido pasan por el filtro y el VCA; en poly, cada voz los suyos. Se guardan con el patch y con el proyecto.
 
 ### Página 2: granular
 
@@ -392,7 +402,7 @@ En oscilador, VA-drum, muestra y FM.
 | K7 | WAVE 2 |
 | K8 | RING |
 
-Beta 5.29 (salvo con el granular, que sigue con la tabla de arriba): K1 = ratio de OSC 2 respecto a su nota (¼, ½, 1 en el centro, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM con centro (a la derecha OSC 2 → OSC 1; a la izquierda OSC 1 → OSC 2; en los extremos las dos, 50 / 50), K6 RING, K7 sync clásico + bitwise, K8 MIX.
+Beta 5.32 (salvo con el granular, que sigue con la tabla de arriba): K1 = ratio de OSC 2 respecto a su nota (¼, ½, 1 en el centro, 2 … 31), K2 = detune ±50 cents (FINE 2), K3 WAVE 2, K4 SHAPE 2, K5 FM con centro (a la derecha OSC 2 → OSC 1; a la izquierda OSC 1 → OSC 2; en los extremos las dos, 50 / 50), K6 RING, K7 sync clásico + bitwise, K8 MIX.
 
 ### Página 4: knobs secuenciables
 
@@ -400,7 +410,7 @@ Son los 8 valores que se graban como automatización con Record + Play. De fábr
 
 Shift + knob elige el destino entre los 33 parámetros, a 4 clics por parámetro. Mientras eliges, los pads 9-24 enseñan dónde vive el destino. Clear mantenido y luego Shift + knob devuelve el de fábrica.
 
-### Knobs no secuenciables (Shift + pad 4; en la Beta 5.29, Shift + pad 1)
+### Knobs no secuenciables (Shift + pad 4; en la Beta 5.32, Shift + pad 1)
 
 Ocho knobs con destino asignable que no se graban. El pad 4 se ve rosa. De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2 y Gain del VCA.
 
@@ -443,7 +453,7 @@ El motor tiene una ADSR y un LFO propios, y la matriz añade ocho fuentes que mu
 
 ### LFO
 
-K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift + K8 de la página 5 elige la forma, con el LED en su color: un paso cada 16 clics *(solo Beta 5.29; antes, 4)*.
+K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift + K8 de la página 5 elige la forma, con el LED en su color: un paso cada 16 clics *(solo Beta 5.32; antes, 4)*.
 
 | Forma | Color |
 | --- | --- |
@@ -468,7 +478,7 @@ K7 de la página 1 es bipolar: a la derecha libre, a la izquierda a tempo. Shift
 | K7 | Posición en el patrón, del primer paso al último | — |
 | K8 | Azar por pasos: un valor nuevo cada N pasos | N = 1, 2, 4, 8 o 16 |
 
-Con K1 (velocity) a 0, mandan los controles globales de velocity de la vista Setup (K1 velocity → amplitud, K2 velocity → filtro): las notas suaves, más bajas y más oscuras. *(solo Beta 5.29)*
+Con K1 (velocity) a 0, mandan los controles globales de velocity de la vista Setup (K1 velocity → amplitud, K2 velocity → filtro): las notas suaves, más bajas y más oscuras. *(solo Beta 5.32)*
 
 La posición del knob es a la vez el destino y la cantidad:
 
@@ -496,11 +506,11 @@ Los 8 knobs secuenciables graban con Record + Play en 8 carriles del patrón. Ha
 
 | Gesto | Vista | Efecto |
 | --- | --- | --- |
-| Record mantenido + paso | Note | Foto: escribe en ese paso los parámetros que no están en su valor inicial. *(solo Beta 5.29)* El paso se ve amarillo mientras lo mantienes |
+| Record mantenido + paso | Note | Foto: escribe en ese paso los parámetros que no están en su valor inicial. *(solo Beta 5.32)* El paso se ve amarillo mientras lo mantienes |
 | Shift + paso | Velocity | Marca el paso: ahí no suena ningún carril y lo automatizado vuelve al sinte guardado con el proyecto |
-| Shift + paso amarillo | Velocity | *(solo Beta 5.29)* Oye sus valores hasta soltar Shift, con los knobs que mueve en amarillo |
-| Clear + paso | Velocity | *(solo Beta 5.29)* Borra la automatización de los knobs de ese paso; las notas quedan |
-| Paso amarillo mantenido + otro paso amarillo | Velocity, con Shift | *(solo Beta 5.29)* Sweep: cada carril con valor en los dos pasos queda en línea recta entre ellos |
+| Shift + paso amarillo | Velocity | *(solo Beta 5.32)* Oye sus valores hasta soltar Shift, con los knobs que mueve en amarillo |
+| Clear + paso | Velocity | *(solo Beta 5.32)* Borra la automatización de los knobs de ese paso; las notas quedan |
+| Paso amarillo mantenido + otro paso amarillo | Velocity, con Shift | *(solo Beta 5.32)* Sweep: cada carril con valor en los dos pasos queda en línea recta entre ellos |
 
 En la foto, un parámetro sin carril toma uno cuyo parámetro sí está en su valor inicial, y ese carril se borra antes. Si no caben, quedan los primeros en el orden de la matriz.
 
@@ -527,11 +537,12 @@ Con este motor, cada knob del step-drummer elige un hueco de la fila inferior de
 
 ### Secuenciador de saltos
 
-Las notas de la pista hacen saltar el patrón de otra pista al paso que indican, en el mismo paso de la nota. *(solo Beta 5.29)*
+Las notas de la pista hacen saltar el patrón de otra pista al paso que indican, en el mismo paso de la nota. *(solo Beta 5.32)*
 
 | Control | Función |
 | --- | --- |
-| Pads 17-24 con el patch flip (pad 26) encendido *(solo Beta 5.29)* | Las ocho pistas: un toque = step flip hacia esa pista (el pad 26 parpadea en su color), la misma otra vez = patch flip, el pad 26 lo apaga todo |
+| Pad 26, vista de flip *(solo Beta 5.32)* | Fila 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (sin destino elegido, el último usado; de fábrica Synth 1); tocar el encendido lo apaga |
+| Fila 2 de la vista de flip, con step flip | Las ocho pistas: un toque = el destino (la propia apagada). Con la vista cerrada, el pad 26 parpadea en su color |
 | Vista Note, pads 17-32 | Pasos 1-16; Octave ▲, pasos 17-32. La escala no cambia nada |
 | Note ampliada, los 32 pads | Pasos 1-32 |
 
@@ -569,14 +580,14 @@ Cuatro fuentes llegan al arpegiador: acordes del patrón, notas mantenidas, un p
 | --- | --- | --- |
 | Probabilidad | Vista de probabilidad, fila 3 | Que el paso suene a veces |
 | Frecuencia | Modo 1, fila 4 | El paso suena en la última de cada n vueltas, de 1 a 8 |
-| Dinámicas | Modo 2, pads 25-28 | Acentos, acentos y longitud, o longitud al azar. *(solo Beta 5.29)* |
-| Random-mutate | Modo 2, pads 17-24 | Pads 18-20 otra nota de la escala (×1, ×2, ×4), 21 / 22 una octava arriba (baja / alta), 23 / 24 arriba o abajo (baja / alta). *(solo Beta 5.29)* |
+| Dinámicas | Modo 2, pads 25-28 | Acentos, acentos y longitud, o longitud al azar. *(solo Beta 5.32)* |
+| Random-mutate | Modo 2, pads 17-24 | Pads 18-20 otra nota de la escala (×1, ×2, ×4), 21 / 22 una octava arriba (baja / alta), 23 / 24 arriba o abajo (baja / alta). *(solo Beta 5.32)* |
 | Gate por pulsación | Micro Step, pad 32 | Lo que mantienes al introducir una nota es su duración |
 | Longitud fija | Micro Step, pad 31 | Todas las notas introducidas a mano con el mismo gate, de 1 a 16 pasos |
-| Nudge | Pattern Settings, pad 26 | Mueve el contenido del tramo un paso atrás; Shift, adelante. El primer y el último paso no se mueven. *(solo Beta 5.29)* |
+| Nudge | Pattern Settings, pad 26 | Mueve el contenido del tramo un paso atrás; Shift, adelante. El primer y el último paso no se mueven. *(solo Beta 5.32)* |
 | Fractal y deconstruido | Pattern Settings, pads 27 y 28 | Otro orden de recorrido del patrón |
-| Micropasos | Modo 2, pad 32 | La nota se adelanta o se atrasa hasta 2 micropasos, sin salir de su paso. *(solo Beta 5.29)* |
-| Factor de la pista | Octave, con el modo 2 abierto | De ×0 a ×8, multiplica todas las probabilidades de la pista; ×1 de fábrica. A ×8 el pad 24 cambia todas las notas: el sorteo sigue siendo mitad y mitad. *(solo Beta 5.29)* |
+| Micropasos | Modo 2, pad 32 | La nota se adelanta o se atrasa hasta 2 micropasos, sin salir de su paso. *(solo Beta 5.32)* |
+| Factor de la pista | Octave, con el modo 2 abierto | De ×0 a ×8, multiplica todas las probabilidades de la pista; ×1 de fábrica. A ×8 el pad 24 cambia todas las notas: el sorteo sigue siendo mitad y mitad. *(solo Beta 5.32)* |
 
 <!--panel:mutate-->
 
@@ -591,7 +602,7 @@ Cuatro fuentes llegan al arpegiador: acordes del patrón, notas mantenidas, un p
 | Pantalla de acordes | Shift + pad 8 en Note ampliada | Tipo, inversión y modificadores; las filas 3-4 tocan el acorde, hasta 6 notas |
 | Teclado partido | Mantener una pista y pulsar otra | Dos pistas en los pads. Mantener un botón de pista da sus knobs |
 | Banco de acordes | Record de Setup en amarillo | Nada se graba en una pista silenciada: suena y se graba en el sinte del canal compartido |
-| Destello de notas | Shift mantenido, en cualquier vista | *(solo Beta 5.29)* El botón de cada pista destella en blanco 100 ms con cada nota |
+| Destello de notas | Shift mantenido, en cualquier vista | *(solo Beta 5.32)* El botón de cada pista destella en blanco 100 ms con cada nota |
 
 Cada nota del acorde pasa por el modo de voz: en poly suena hasta el máximo de voces del motor.
 
@@ -626,8 +637,8 @@ El fichero de patches de Synth 1 / 2 no cambia: el patch propio va en la parte d
 | Forma del LFO | — | Sí | Sí | — |
 | Estéreo del modo muestra: distancia al segundo sample | — | Sí | Sí | — |
 | Patch flip | — | — | — | Sí |
-| Factor del random-mutate, por pista *(solo Beta 5.29)* | — | Sí | — | — |
-| Pista a la que apunta el secuenciador de saltos *(solo Beta 5.29)* | — | Sí | — | — |
+| Factor del random-mutate, por pista *(solo Beta 5.32)* | — | Sí | — | — |
+| Pista a la que apunta el secuenciador de saltos *(solo Beta 5.32)* | — | Sí | — | — |
 
 ### Qué se pierde al apagar
 

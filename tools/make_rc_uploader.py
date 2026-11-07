@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: R408 R408S B5.32 B5.29 B5.28; until 2026-11-07 (Beta 5.32): R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -347,6 +347,8 @@ DESC["R408"] = ("RC4.08 — versión candidata actual", "RC4.08 — current rele
 DESC["R408S"] = ("RC4.08S — sin escrituras propias en la SD", "RC4.08S — no own writes to the SD card")
 DESC["B5.28"] = ("Beta 5.28 — osciladores, wavetable, sync", "Beta 5.28 — oscillators, wavetable, sync")
 DESC["B5.29"] = ("Beta 5.29 — ganancia de entrada, páginas, colores", "Beta 5.29 — input gain, pages, colours")
+DESC["B5.32"] = ("Beta 5.32 — sub y ruido, vista de flip", "Beta 5.32 — sub and noise, flip view")
+assert all(len(t) <= 50 for t in DESC["B5.32"])
 assert all(len(t) <= 50 for t in DESC["B5.29"])
 assert all(len(t) <= 50 for k in ("R408", "R408S", "B5.28") for t in DESC[k])
 DESC["B5.16"] = ("Beta 5.16 — velocity global, el bucle sigue", "Beta 5.16 — global velocity, loop carries over")
@@ -767,4 +769,4 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--old"]:
         main(OLD, "tools/rc_uploader_old.html")
     else:
-        main(sys.argv[1:] or ["R408", "R408S", "B5.29", "B5.28"])
+        main(sys.argv[1:] or ["R408", "R408S", "B5.32", "B5.29", "B5.28"])

@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
-                   mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm, subs_imm8, orrs_reg)
+                   mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm, subs_imm8, orrs_reg, subs_reg)
 import vcf21 as V  # noqa: E402
 import vcf21_dsp as VD  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -32,6 +32,27 @@ DSPW = 0x080292F8
 RET = h(0x4770)
 KN = ((7, 0), (5, 2), (4, 4))
 LEFT = False                              # SC52.6: the left half in the lighter shade (persist19.use_leftcol), the centre dim             # knob -> its pair (MIX, RING, FM) in vcf21_dsp's OM_T order
+
+
+SOLO = False                              # (use_solo)
+SOLR = None                               # (SOLO) RAM: + 0 "OSO1", + 4 the values (track t at + 6 t), + 16 the last written, + 28 the cursor, + 29 the map
+SOSIG = 0x314F534F                        # "OSO1"
+SO_AT, SO_N, SO_SIG = 142, 8, 0xC5        # (SOLO) the padding's block
+SO_MAP = (9, 13, 12, 14, 8, 10)           # (SOLO) value k -> its word in OM_T + 48 t (vcf21_dsp.SX_OFF + : sub base 0, LFO 1, env 2; noise + 4..6)
+SO_BASE = (2, 4)                          # (SOLO) the levels (stored -64..63 = level 0..127; the others are depths -64..63)
+
+
+def use_solo():
+    """SC52.8 (the user, 2026-11-07: «el modo 1 oscilador no debe incluir modos de interacción con el segundo ... debería tener funciones
+    propias»; chosen: sub-oscillator and noise, the knob = the amount, Shift = the envelope; «knob extra: modulación con lfo / shift a otro
+    destino»; the DSP is vcf21_dsp.use_osc1x): with one oscillator (c_msmode = 2: the oscillator, the wavetable; two oscillators off) OSC 1's page
+    K5 = the sub's level, Shift + K5 = envelope -> sub; K6 = the noise's level, Shift + K6 = envelope -> noise; K8 = LFO -> sub, Shift + K8 = LFO
+    -> noise.  Own values (two oscillators keep LFO / env -> FM, RING, MIX); Clear held + the knob = 0 (a level: off).  The levels' LEDs: the
+    track's colour, brighter with the level; the depths as before.  The tick writes one more word a tick (the values, zeros when the track is not in
+    one-oscillator mode).  The patch: padding + 142..149 = 0xC5, the 6 values, a check byte; the project: wtui.use_pj2."""
+    global SOLO, SOLR
+    import modmx as MX
+    SOLO, SOLR = True, MX.MXR + 0x2280
 
 
 def ldrsb_reg(rt, rn, rm): return h(0x5600 | rm << 6 | rn << 3 | rt)
@@ -61,6 +82,80 @@ def arm_code(base, L, prev):
     E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, "c_omst"); E(adds_imm8, 0, 4)
     E(movs_imm, 1, 6); E(muls, 1, 4); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
 
+    if SOLO:
+        # ---- c_sost() -> r0 = SOLR (the first time: the signature, levels off, depths 0, the last written unknown, the map); clobbers r1-r3
+        a.label("c_sost")
+        imm32(0, SOLR); E(ldr_imm, 1, 0, 0); imm32(2, SOSIG); E(cmp_reg, 1, 2); E(b_cond, "so_x", "eq")
+        E(str_imm, 2, 0, 0); E(movs_imm, 1, 0); E(movs_imm, 2, 0xC0); E(movs_imm, 3, 0x80)
+        for i in range(12): E(strb_imm, 2 if i % 6 in SO_BASE else 1, 0, 4 + i); E(strb_imm, 3, 0, 16 + i)
+        E(strb_imm, 1, 0, 28)
+        E(mov_reg, 3, 0); E(adds_imm8, 3, 29)
+        for k, w in enumerate(SO_MAP): E(movs_imm, 1, w); E(strb_imm, 1, 3, k)
+        a.label("so_x"); E(raw, RET)
+
+        # ---- c_osolo(r0 = track) -> r0 = 1 in one-oscillator mode (the oscillator / wavetable engine, two oscillators off); clobbers r1-r3
+        a.label("c_osolo")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        E(bl, L["c_msmode"]); E(cmp_imm, 0, 2); E(b_cond, "os_0", "ne")
+        E(mov_reg, 0, 4); E(movs_imm, 1, V.RT_VEL); E(bl, L["c_vrt7"]); E(cmp_imm, 0, 0); E(b_cond, "os_0", "ne")
+        E(movs_imm, 0, 1); E(pop_list, [4], pc=True)
+        a.label("os_0"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+
+        # ---- c_omdp(r0 = track) -> r0 = the 6 bytes the knobs show: the one-oscillator ones or the depths; clobbers r1-r3
+        a.label("c_omdp")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, "c_osolo"); E(cmp_imm, 0, 0); E(b_cond, "dp_d", "eq")
+        E(bl, "c_sost"); E(adds_imm8, 0, 4); E(movs_imm, 1, 6); E(muls, 1, 4); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
+        a.label("dp_d"); E(mov_reg, 0, 4); E(bl, "c_omdep"); E(pop_list, [4], pc=True)
+
+        # ---- c_sotick: one value a tick to core 0 when it changed (the level 0..127 / the depth; zeros out of one-oscillator mode)
+        a.label("c_sotick")
+        E(push_list, [4, 5, 6, 7], lr=True)
+        E(bl, "c_sost"); E(mov_reg, 4, 0)
+        E(ldrb_imm, 5, 4, 28)
+        E(mov_reg, 1, 5); E(adds_imm8, 1, 1); E(cmp_imm, 1, 12); E(b_cond, "sk_c", "lo"); E(movs_imm, 1, 0)
+        a.label("sk_c"); E(strb_imm, 1, 4, 28)
+        E(movs_imm, 6, 0); E(mov_reg, 7, 5); E(cmp_imm, 5, 6); E(b_cond, "sk_t", "lo"); E(movs_imm, 6, 1); E(subs_imm8, 7, 6)
+        a.label("sk_t"); E(mov_reg, 0, 6); E(bl, "c_osolo"); E(mov_reg, 3, 0); E(movs_imm, 2, 0)
+        E(cmp_imm, 3, 0); E(b_cond, "sk_w", "eq")
+        E(mov_reg, 1, 5); E(adds_imm8, 1, 4); E(raw, ldrsb_reg(2, 4, 1))
+        E(cmp_imm, 7, SO_BASE[0]); E(b_cond, "sk_b", "eq"); E(cmp_imm, 7, SO_BASE[1]); E(b_cond, "sk_w", "ne")
+        a.label("sk_b"); E(adds_imm8, 2, 64)
+        a.label("sk_w"); E(adds_reg, 1, 4, 5); E(lsls_imm, 0, 2, 24); E(lsrs_imm, 0, 0, 24); E(ldrb_imm, 3, 1, 16); E(cmp_reg, 0, 3); E(b_cond, "sk_x", "eq")
+        E(strb_imm, 0, 1, 16)
+        E(adds_reg, 3, 4, 7); E(ldrb_imm, 3, 3, 29); E(movs_imm, 0, V.VBS); E(muls, 0, 6); E(adds_reg, 3, 3, 0)
+        imm32(0, VD.OM_T); E(adds_reg, 3, 3, 0)
+        E(lsls_imm, 1, 2, 24); E(raw, asrs_imm(1, 1, 16)); E(mov_reg, 2, 3); E(movs_imm, 0, 0); E(bl, DSPW)
+        a.label("sk_x"); E(pop_list, [4, 5, 6, 7], pc=True)
+
+        # ---- c_sogath(r0 = track): the block at padding + SO_AT (PK.BUF)
+        a.label("c_sogath")
+        E(push_list, [4, 5, 6], lr=True); E(mov_reg, 4, 0); imm32(6, PK.BUF + SO_AT)
+        E(movs_imm, 0, SO_SIG); E(strb_imm, 0, 6, 0)
+        E(bl, "c_sost"); E(adds_imm8, 0, 4); E(movs_imm, 1, 6); E(muls, 1, 4); E(adds_reg, 5, 0, 1)
+        for i in range(6): E(ldrb_imm, 0, 5, i); E(strb_imm, 0, 6, 1 + i)
+        E(mov_reg, 0, 6); E(bl, "c_sosum"); E(strb_imm, 0, 6, SO_N - 1)
+        E(pop_list, [4, 5, 6], pc=True)
+        a.label("c_sosum")                                                          # r0 = the block -> r0 = 0x5A + bytes 0..6; clobbers r1-r3
+        E(movs_imm, 1, 0); E(movs_imm, 2, 0x5A)
+        a.label("ss_l"); E(ldrb_reg, 3, 0, 1); E(adds_reg, 2, 2, 3); E(adds_imm8, 1, 1); E(cmp_imm, 1, SO_N - 1); E(b_cond, "ss_l", "lo")
+        E(lsls_imm, 0, 2, 24); E(lsrs_imm, 0, 0, 24); E(raw, RET)
+
+        # ---- c_soappl(r0 = track, r1 = the slot): the block read from padding + SO_AT; none = levels off, depths 0
+        a.label("c_soappl")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 7, 1)
+        E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20); imm32(2, MP.OFF + SO_AT); E(adds_reg, 1, 1, 2)
+        imm32(2, PK.BUF + SO_AT); E(movs_imm, 3, SO_N); E(bl, L["c_mpr"])
+        imm32(6, PK.BUF + SO_AT); E(mov_reg, 7, 0); E(mov_reg, 5, 1)
+        E(bl, "c_sost"); E(adds_imm8, 0, 4); E(movs_imm, 1, 6); E(muls, 1, 4); E(adds_reg, 4, 0, 1)
+        E(cmp_imm, 7, 0); E(b_cond, "sa_n", "ne"); E(cmp_imm, 5, SO_N); E(b_cond, "sa_n", "ne")
+        E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, SO_SIG); E(b_cond, "sa_n", "ne")
+        E(mov_reg, 0, 6); E(bl, "c_sosum"); E(ldrb_imm, 1, 6, SO_N - 1); E(cmp_reg, 0, 1); E(b_cond, "sa_n", "ne")
+        for i in range(6): E(ldrb_imm, 1, 6, 1 + i); E(strb_imm, 1, 4, i)
+        E(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("sa_n"); E(movs_imm, 1, 0); E(movs_imm, 2, 0xC0)
+        for i in range(6): E(strb_imm, 2 if i in SO_BASE else 1, 4, i)
+        E(pop_list, [4, 5, 6, 7], pc=True)
+
     # ---- c_omok(r0 = track) -> r0 = 1 with OSC 1's page of the engine on the knobs; clobbers r1-r3
     a.label("c_omok")
     E(push_list, [4], lr=True); E(mov_reg, 4, 0)
@@ -86,8 +181,15 @@ def arm_code(base, L, prev):
     E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kn_prev", "hi"); E(mov_reg, 6, 0)
     E(bl, "c_omok"); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
     E(ldr_sp, 0, 4); E(movs_imm, 1, 7); E(raw, h(0x4008)); E(bl, "c_omsel"); E(cmp_imm, 0, 0xFF); bc("kn_prev", "eq")   # ands r0, r1
-    E(mov_reg, 5, 0); E(mov_reg, 0, 6); E(bl, "c_omdep"); E(adds_reg, 7, 0, 5)                 # r7 = the depth's byte
-    E(bl, L["c_mxclrh"]); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kn_s", "ne")          # Clear held: 0
+    E(mov_reg, 5, 0); E(mov_reg, 0, 6); E(bl, "c_omdp" if SOLO else "c_omdep"); E(adds_reg, 7, 0, 5)                 # r7 = the depth's byte
+    if SOLO:                                                                        # (SOLO) r4 = 64 for a level (Clear = -64: off)
+        E(movs_imm, 4, 0); E(mov_reg, 0, 6); E(bl, "c_osolo"); E(cmp_imm, 0, 0); E(b_cond, "kn_nb", "eq")
+        E(cmp_imm, 5, SO_BASE[0]); E(b_cond, "kn_bs", "eq"); E(cmp_imm, 5, SO_BASE[1]); E(b_cond, "kn_nb", "ne")
+        a.label("kn_bs"); E(movs_imm, 4, 64)
+        a.label("kn_nb")
+        E(bl, L["c_mxclrh"]); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kn_v", "eq"); E(subs_reg, 1, 1, 4); E(b, "kn_s")
+        a.label("kn_v")
+    else: E(bl, L["c_mxclrh"]); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kn_s", "ne")          # Clear held: 0
     E(raw, ldrsb_reg(1, 7, 1)); E(ldr_sp, 0, 8); E(adds_reg, 1, 1, 0); E(adds_imm8, 1, 64)
     E(cmp_imm, 1, 0); E(b_cond, "kn_lo", "ge"); E(movs_imm, 1, 0)
     a.label("kn_lo"); E(cmp_imm, 1, 127); E(b_cond, "kn_hi", "le"); E(movs_imm, 1, 127)
@@ -102,9 +204,16 @@ def arm_code(base, L, prev):
     E(mov_reg, 4, 0); E(bl, prev["kleds"]); E(mov_reg, 5, 0)
     E(mov_reg, 0, 4); E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kl_x", "hi"); E(mov_reg, 6, 0)
     E(bl, "c_omok"); E(cmp_imm, 0, 0); bc("kl_x", "eq")
+    if SOLO: E(mov_reg, 0, 6); E(bl, "c_osolo"); E(mov_reg, 7, 0)                  # (SOLO) r7 = one-oscillator mode
     for k, _i in KN:
         E(movs_imm, 0, k); E(bl, "c_omsel"); E(mov_reg, 4, 0)
-        E(mov_reg, 0, 6); E(bl, "c_omdep"); E(raw, ldrsb_reg(0, 0, 4))
+        E(mov_reg, 0, 6); E(bl, "c_omdp" if SOLO else "c_omdep"); E(raw, ldrsb_reg(0, 0, 4))
+        if SOLO:                                                                    # (SOLO) a level: brightness = level + 1
+            assert LEFT
+            E(cmp_imm, 7, 0); E(b_cond, f"kl_d{k}", "eq")
+            E(cmp_imm, 4, SO_BASE[0]); E(b_cond, f"kl_l{k}", "eq"); E(cmp_imm, 4, SO_BASE[1]); E(b_cond, f"kl_d{k}", "ne")
+            a.label(f"kl_l{k}"); E(adds_imm8, 0, 65); E(b, f"kl_q{k}")
+            a.label(f"kl_d{k}")
         if LEFT:                                                                    # (SC52.6) left: the mark 0x82 + |v|; the centre dim
             E(cmp_imm, 0, 0); E(b_cond, f"kl_p{k}", "ge"); E(raw, h(0x43C0)); E(adds_imm8, 0, 0x82); E(b, f"kl_q{k}")
             a.label(f"kl_p{k}"); E(lsls_imm, 0, 0, 1); E(cmp_imm, 0, 16); E(b_cond, f"kl_r{k}", "hs"); E(movs_imm, 0, 16)
@@ -120,6 +229,7 @@ def arm_code(base, L, prev):
     # ---- c_omtick (the head of the DSP service chain): one depth a tick to core 0 when it changed
     a.label("c_omtick")
     E(raw, h(0xE92D) + h(0x5FFF))                                                   # push.w {r0-r12, lr}
+    if SOLO: E(bl, "c_sotick")
     E(bl, "c_omst"); E(mov_reg, 4, 0)
     E(ldrb_imm, 5, 4, 28); E(mov_reg, 1, 5); E(adds_imm8, 1, 1)
     E(cmp_imm, 1, 12); E(b_cond, "tk_c", "lo"); E(movs_imm, 1, 0)
@@ -153,11 +263,13 @@ def arm_code_b(base, L, prev):
     E(movs_imm, 0, REC_SIG); E(strb_imm, 0, 6, 0)
     for i in range(6): E(ldrb_imm, 0, 5, i); E(strb_imm, 0, 6, 1 + i)
     E(mov_reg, 0, 6); E(bl, "c_omsum"); E(strb_imm, 0, 6, REC_N - 1)
+    if SOLO: E(mov_reg, 0, 4); E(bl, L["c_sogath"])
     E(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_omappl(r0 = track) in c_mpload (r5 = the slot there): wtui's apply, then the block (none: no depths, FM moved to the new knob)
     a.label("c_omappl")
     E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0); E(mov_reg, 7, 5); E(bl, prev["appl"])
+    if SOLO: E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(bl, L["c_soappl"])
     E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20); imm32(2, MP.OFF + REC_AT); E(adds_reg, 1, 1, 2)
     imm32(2, PK.BUF + REC_AT); E(movs_imm, 3, REC_N); E(bl, L["c_mpr"])
     imm32(6, PK.BUF + REC_AT)
@@ -188,8 +300,9 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
-    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_grpg", "c_vpage", "c_vvaddr")}
+    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_grpg", "c_vpage", "c_vvaddr", "c_vrt7")}
     L.update(c_shift=lab("sc15", "c_shift"), c_mxclrh=lab("modmx", "c_mxclrh"), c_mpr=lab("mpatch", "c_mpr"))
+    if SOLO: L.update(c_msmode=lab("modesel", "c_msmode"))
     KV = V.AC64_VT
     prev = dict(knob=u(KV + 16) & ~1, kleds=u(KV + 28) & ~1, svc=MP.bw_target(img, S14.SVC_HOOK, BASE))
     code, labels = arm_code(base_addr, L, prev)
@@ -211,6 +324,7 @@ class Patch:
         BASE = ct_fw.APP_BASE
         lab = lambda m, k: int(report[m]["labels"][k], 16)
         L = dict(c_omdep=lab("oscmod", "c_omdep"), c_mpr=lab("mpatch", "c_mpr"), c_vvaddr=lab("vcf20", "c_vvaddr"))
+        if SOLO: L.update(c_sogath=lab("oscmod", "c_sogath"), c_soappl=lab("oscmod", "c_soappl"))
         mpsave, mpload = lab("mpatch", "c_mpsave"), lab("mpatch", "c_mpload")
         gath, appl = lab("wtui", "c_wtgath"), lab("wtui", "c_wtappl")
         prev = dict(gath=gath, appl=appl)

@@ -54,9 +54,13 @@ def main(img, man):
         hold(7); snap("wtsmp", 1); let(7); X.frame(e)
     e.pad(26); X.frame(e); e.pad(21); X.frame(e); e.pad(26); X.frame(e)
     e.btn(NOTE); e.btn(NOTE); e.at(e.t + 2000); snap("muestra")
-    e.btn(2); e.btn(8); X.frame(e); e.pad(26); X.frame(e); e.pad(18); X.frame(e); e.pad(12); X.frame(e)
-    while e.t & 0x100: e.at(e.t + 100); X.frame(e)                                  # pad 27 blinks: the bright half (the row closes after 300 ms without a frame)
-    snap("saltos"); e.pad(26); X.frame(e)
+    if "flipview" in man["report"]:                                           # (Beta 5.32) pad 26 = the flip view: pad 18 step flip, pad 13 Drum 1
+        e.btn(2); e.btn(8); X.frame(e); e.pad(25); X.frame(e); e.pad(17); X.frame(e); e.pad(12); X.frame(e)
+        snap("saltos"); e.pad(25); X.frame(e)
+    else:
+        e.btn(2); e.btn(8); X.frame(e); e.pad(26); X.frame(e); e.pad(18); X.frame(e); e.pad(12); X.frame(e)
+        while e.t & 0x100: e.at(e.t + 100); X.frame(e)                              # pad 27 blinks: the bright half (the row closes after 300 ms without a frame)
+        snap("saltos"); e.pad(26); X.frame(e)
     e.btn(NOTE); X.frame(e); snap("saltosnote")
     e.btn(2); e.btn(8); X.frame(e); e.pad(26); X.frame(e); e.pad(12); X.frame(e); e.pad(26); X.frame(e)
     e.btn(PS); snap("ps"); e.shift(True); snap("arp"); e.shift(False)
