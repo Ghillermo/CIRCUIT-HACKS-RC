@@ -2,13 +2,15 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-11-06. Current versions: **RC4.08 / RC4.08S** (fixes) and **Beta 5.28** (new features; the betas that extend RC4 are numbered 5.x).
+Updated 2026-11-07. Current versions: **RC4.08 / RC4.08S** (fixes) and **Beta 5.33** (new features; the betas that extend RC4 are numbered 5.x).
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 
 ## In progress
 
-- **8-operator FM** (Beta 5.20, tested on the device; lists and instruments since Beta 5.21): DX7-style envelopes, 56 algorithms, 24 instruments, DX7 patches imported with the SD app.
+- **8-operator FM** (Beta 5.20, tested on the device; lists and instruments since Beta 5.21): DX7-style envelopes, 56 algorithms, 48 instruments on two pages (the second, with pianos, strings, winds and long sounds, since Beta 5.33), DX7 patches imported with the SD app.
+- **The one-oscillator mode's own functions** (Beta 5.32, to be tested on the device): sub-oscillator and noise, with their envelope and LFO.
+- **The flip view** (Beta 5.32, to be tested on the device): pad 26 opens a view to pick patch flip (PGM seq) or step flip and its target; later, a morph mode.
 - **Wavetable engine** (Beta 5.24-5.28, to be tested on the device): the 16 stock wavetables, or your own table of up to 9 frames built from them and from the pack's samples, with the position on K3.
 - **The two oscillators re-laid out and cleaner** (Beta 5.27, to be tested on the device): FM with a centre (either direction, both at the ends), classic hard sync, LFO / envelope → FM, ring and mix, less noise in FM, sync and bitwise.
 - **New random-mutate interface** (Beta 5.4; dynamics redone in Beta 5.12): one set of pads per step for the note, the octave, the dynamics (ghost, accent staccato, length; on the drums softer with a roller or louder) and the micro steps, a factor on Octave (×0, ×1, ×2, ×4, ×8) for the whole track, on notes and drums.
