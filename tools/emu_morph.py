@@ -52,6 +52,19 @@ def main(img, man):
     e.uc.hook_add(UC_HOOK_CODE, flush, begin=0x08035A50, end=0x08035A50)
     e.btn = lambda b: (drain(), e.call(0x08033320, MGR, b, maxins=20_000_000), drain(), e.call(0x0803381A, MGR, b, maxins=20_000_000))   # (the morph's own taps need more than ET's budget)
     R = man["report"]
+    SVCL = R["morphz"]["labels"].get("c_mzsvc")                                          # (SC55.4 use_svc) Synth 1 / 2's writes in the DSP service's head
+    sem = [0, 0]                                                                         # the semaphore taken in the writes / 0x08021FDC calls
+    if SVCL:
+        nxt = int(R["morphz"]["prev"]["svc"], 16)
+        def stub(uc, a_, s_, d_): uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR) | 1)   # the rest of the service chain: not run
+        e.uc.hook_add(UC_HOOK_CODE, stub, begin=nxt, end=nxt)
+        def cnt(k):
+            def f_(uc, a_, s_, d_): sem[k] += 1
+            return f_
+        e.uc.hook_add(UC_HOOK_CODE, cnt(0), begin=0x08021064, end=0x08021064)
+        e.uc.hook_add(UC_HOOK_CODE, cnt(1), begin=M.MARK_RAW, end=M.MARK_RAW)
+    def svc():
+        if SVCL: e.call(int(SVCL, 16), maxins=8_000_000)
     L = {k: int(v, 16) for k, v in R["morphz"]["labels"].items()}
     t = [500000]
     def at(ms): t[0] += ms; e.w32(J.HAL_TICK, t[0])
@@ -71,7 +84,7 @@ def main(img, man):
     st = lambda o: e.r8(M.MZ + o)
     def frames(n):
         f = None
-        for _ in range(n): at(10); f = X.frame(e)
+        for _ in range(n): at(10); f = X.frame(e); svc()
         return f
     # ---- Synth 1
     live = lambda: bytes(e.uc.mem_read(M.LIVE + 30, 310))
@@ -103,6 +116,11 @@ def main(img, man):
     lv = live()
     bad = [(k, off) for k, off, cont, lo, hi in RW if lv[off - 30] != P5[off]]
     check(not bad, f"K1 at the end: the live patch = patch 5 ({len(bad)} rows differ: {bad[:6]})")
+    if SVCL:
+        check(sem[0] == 0 and sem[1] > 0, f"the writes in the DSP service's head: the semaphore never taken ({sem[0]}), marked directly ({sem[1]} times)")
+        sem[:] = [0, 0]; nv = M.NV
+        frames(3); x = X.frame(e)
+        check(e.r8(nv + 5) == 0, "out of the service's writes the flag is down")
     for _ in range(127 - 32): e.knob(0, -1)
     check(st(M.O_K) == 32, f"K1 = 32 ({st(M.O_K)})")
     frames(14)
@@ -121,7 +139,7 @@ def main(img, man):
     check(k2 == 10 and st(M.O_K + 1) == 0, f"K2 = 10, Clear + K2 = 0 ({k2}, {st(M.O_K + 1)})")
     for _ in range(40): e.knob(2, 1)                                            # K3 = LFO 1's rate
     frames(1); ph = lambda: e.r32(M.MZ + M.O_PH1) & 0xFFFF
-    a0 = ph(); at(10); X.frame(e); a1 = ph(); at(20); X.frame(e); a2 = ph()
+    a0 = ph(); at(10); X.frame(e); svc(); a1 = ph(); at(20); X.frame(e); svc(); a2 = ph()
     d10, d20 = (a1 - a0) & 0xFFFF, (a2 - a1) & 0xFFFF
     check(d10 > 0 and abs(d20 - 2 * d10) <= 2, f"LFO 1 follows the elapsed time: 10 ms = {d10}, 20 ms = {d20}")
     pad(0); f = frames(1)

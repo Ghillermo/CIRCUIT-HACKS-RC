@@ -17,6 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from emu_sc35 import E35, MGR, TICK, PK, set_loaded, SVIEW  # noqa: E402
 from emu_sc08 import CONT  # noqa: E402
 from emu_sc17_6 import RELEASE  # noqa: E402
+if "--catswap" in sys.argv: PK.CAT_PAL[2], PK.CAT_PAL[11] = PK.CAT_PAL[11], PK.CAT_PAL[2]    # SC55.4 / Beta 5.39: Bass and SFX swapped
+if "--bassblue" in sys.argv: PK.CAT_PAL[2] = 0x12                                              # SC55.5 / Beta 5.40: Bass steel blue (with --catswap)
 
 fails = []
 
@@ -94,6 +96,9 @@ def main(img_p, man_p):
     w = want(page0, 0)
     check(fr[-1] == w, f"the colours by category, empty dim white, None / unknown the stock's\n    got  {[hex(x) for x in fr[-1]]}\n    want {[hex(x) for x in w]}")
     e.api.clear(); [frame(200) for _ in range(23)]; check(reads() == [], "afterwards (also 4 s later): nothing read")
+    if "--palfix" in sys.argv:                                                  # SC55.5: an install keeps the RAM: the previous build's palette, signed
+        e.uc.mem_write(PK.PCR + 0x90, bytes([0x05]) * 16); f = frame()
+        check(f == w and bytes(e.uc.mem_read(PK.PCR + 0x90 + 2, 1))[0] == P[2], f"a stale palette in RAM (signature kept): replaced at once ({[hex(x) for x in f[:8]]})")
     setp(e.r32(SVIEW + 0x14), 10, 2)                                              # patch 3 (Lead) chosen
     v = vbuf(); w2 = want(page0, 2)
     check(v == w2, f"another patch chosen: the view's buffer redrawn at once in its colours\n    got  {[hex(x) for x in v]}\n    want {[hex(x) for x in w2]}")

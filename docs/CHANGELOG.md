@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.40 — 2026-11-08
+
+**Beta 5.40** (marca `B5.40`; = SC55.5) = la Beta 5.38 + lo siguiente (la 5.39 no se publicó: va dentro). Probada en el aparato la parte de la 5.39 (morph y colores).
+
+- **Colores por categoría:** **Bass en azul acero** y **SFX en rojo** (antes rojo / rosa). → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
 ### Beta 5.38 — 2026-11-08
 
 **Beta 5.38** (marca `B5.38`; = SC55.3) = la Beta 5.33 + lo siguiente (las 5.34-5.37 no se publicaron: van dentro), sin probar en el aparato.
@@ -597,6 +603,11 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 5.40 — 2026-11-08
+
+- **Entrar en el morph de Synth 1 / 2 paraba la reproducción y reiniciaba el aparato** a los pocos segundos: sus escrituras esperaban al servicio del DSP desde la tarea de los LEDs; ahora las hace el propio servicio. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+- **Tras instalar una versión, los colores por categoría seguían siendo los de la anterior** hasta apagar el aparato (la instalación no borra la RAM); ahora se ponen al momento. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
 ### RC4.10 / RC4.10S / Beta 5.38 — 2026-11-08
 
 **RC4.10** / **RC4.10S** (marcas `R410` / `R410S`) = RC4.08 / RC4.08S + este arreglo; **Beta 5.38** (marca `B5.38`; = SC55.3) = la Beta 5.33 + los dos. Sin probar en el aparato.
@@ -918,6 +929,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.40 — 2026-11-08
+
+**Beta 5.40** (marker `B5.40`; = SC55.5) = Beta 5.38 + the following (5.39 was not published: it is inside). The 5.39 part (morph and colours) was tested on the device.
+
+- **Colours by category:** **Bass in steel blue** and **SFX in red** (were red / pink). → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
 
 ### Beta 5.38 — 2026-11-08
 
@@ -1508,6 +1525,11 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 5.40 — 2026-11-08
+
+- **Entering the Synth 1 / 2 morph stopped playback and reset the unit** a few seconds later: its writes waited for the DSP service from the LED task; the service makes them now. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+- **After installing a version, the category colours stayed the previous one's** until the unit was switched off (an install does not clear the RAM); now they change at once. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
 
 ### RC4.10 / RC4.10S / Beta 5.38 — 2026-11-08
 

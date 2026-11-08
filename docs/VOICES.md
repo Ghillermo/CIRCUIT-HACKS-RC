@@ -531,7 +531,7 @@ The 8 knobs are 8 pairs of steps of the pattern: each pair offsets a destination
 
 The toggle moves one degree of the scale every 8 knob steps, from −8 to +8 degrees. With the step-drummer on, TUNE and Release stop playing and recording as automation, because it uses their lanes.
 
-### Patch morph (Beta 5.38 only)
+### Patch morph (Beta 5.40 only)
 
 In the MIDI 1 / 2 Preset view with the engine on, **hold two or more slots** for 0.4 s: the morph view opens over the Preset view (**Preset** switches between the morph and the slots). **K1** moves from one patch to the next; K2 / K3 triangle LFO, K4 / K5 random-step LFO, K6 random per step, K7 / K8 envelope; pads 1 / 8 the envelope (held while held), pad 32 leaves. The engine's codes and the 8-operator FM blend; type ones (engine, wave, algorithm) take the nearest patch's. Nothing is saved.
 

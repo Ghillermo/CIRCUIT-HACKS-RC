@@ -343,6 +343,30 @@ CAT_PAL = {1: 0x4D, 2: 0x53, 3: 0x13, 4: 0x2B, 5: 0x45, 6: 0x29, 7: 0x2D, 8: 0x4
 CAT_NAMES = ("None", "Arp", "Bass", "Bell", "Classic", "Drum", "Keyboard", "Lead", "Movement", "Pad", "Poly", "SFX", "String", "User", "Voc")
 
 
+PALFIX = False                                   # Beta 5.40 (use_palfix)
+
+
+def use_bassblue():
+    """Beta 5.40 (the user, 2026-11-08: «then we need a different color for bass» → «steel blue»): Bass = 0x12 (94, 132, 204); its 0x3B of
+    Beta 5.39 is MIDI 2's pink, near Synth 1's magenta (None)."""
+    assert PCAT
+    CAT_PAL[2] = 0x12
+
+
+def use_palfix():
+    """Beta 5.40 (fix): c_pcst wrote the palette into PCR + 0x90 only when PCR had no signature; an install restarts the unit without clearing
+    the RAM, so the previous build's palette stayed until the unit was switched off (Beta 5.39 showed Bass in 5.38's red).  Now on every call."""
+    global PALFIX
+    PALFIX = True
+
+
+def use_catswap():
+    """Beta 5.39 (the user, 2026-11-08: «switch red Category with magenta (and also make current magenta red)»): Bass (red 0x53) and SFX (0x3B, the
+    pink-magenta of MIDI 2) swap colours."""
+    assert PCAT
+    CAT_PAL[2], CAT_PAL[11] = CAT_PAL[11], CAT_PAL[2]
+
+
 def use_pmode4():
     """Fix (the user, 2026-11-08, on Beta 5.37: «pads still get bogus magenta and init patches»; on S552D, without the colouring: «patches dont seem
     to go back to init»; «why not just draw the patches with color instead of drawing them twice»; «Why do we read from the card again? aren't the
@@ -1638,9 +1662,10 @@ def patch_code(a, L, prev, imm32, bc):
         nw = max(pal) // 4 + 1
         # ---- c_pcst() -> r0 = PCR (the first time: nothing read, the palette); clobbers r1-r3
         a.label("c_pcst")
-        imm32(0, PCR); a.emit(ldr_imm, 1, 0, 0); imm32(2, PCR_SIG); a.emit(cmp_reg, 1, 2); a.emit(b_cond, "pc_x", "eq")
+        imm32(0, PCR); a.emit(ldr_imm, 1, 0, 0); imm32(2, PCR_SIG); a.emit(cmp_reg, 1, 2); a.emit(b_cond, "pc_p" if PALFIX else "pc_x", "eq")
         a.emit(str_imm, 2, 0, 0); a.emit(movs_imm, 1, 0xFF); a.emit(strb_imm, 1, 0, 4); a.emit(movs_imm, 1, 0); a.emit(strb_imm, 1, 0, 5)
         a.emit(strh_imm, 1, 0, 6); a.emit(strh_imm, 1, 0, 8); a.emit(strh_imm, 1, 0, 10); a.emit(strh_imm, 1, 0, 12)
+        if PALFIX: a.label("pc_p")                                                              # the palette on every call
         a.emit(mov_reg, 3, 0); a.emit(adds_imm8, 3, 0x80)
         for i in range(nw):
             imm32(1, struct.unpack_from("<I", pb, 4 * i)[0]); a.emit(str_imm, 1, 3, 0x10 + 4 * i)

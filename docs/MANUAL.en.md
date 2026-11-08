@@ -44,7 +44,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 **C. New control modes**
 
-- [C1 Patch morph (Beta 5.38 only)](#c1-morph)
+- [C1 Patch morph (Beta 5.40 only)](#c1-morph)
 - [C2 Engine of the MIDI tracks (pad 27)](#c2-motor-midi)
 - [C3 Step-drummer](#c3-step-drummer)
 - [C4 FX sequencer](#c4-fx-seq)
@@ -151,7 +151,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="a15-colores-patch"></a>
 ### A15. Synth patch colours
-- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.38 only:** each patch in the colour of its **Components category**.
+- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.40 only:** each patch in the colour of its **Components category**.
 
 <a id="a16-patches-midi"></a>
 ### A16. Patches of the own synth (MIDI 1 / 2)
@@ -222,8 +222,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 ## C. New control modes
 
 <a id="c1-morph"></a>
-### C1. Patch morph (Beta 5.38 only)
-- **Beta 5.38 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope.
+### C1. Patch morph (Beta 5.40 only)
+- **Beta 5.40 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope.
 
 <a id="c2-motor-midi"></a>
 ### C2. Engine of the MIDI tracks (pad 27)

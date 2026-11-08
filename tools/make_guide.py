@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.38"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.40"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -166,7 +166,7 @@ view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
 | Gesto | Qué hace |
 |---|---|
 | Colores de los patches | *Desde RC4.10*: los del original, los patches en el color de la pista y el elegido en blanco (de RC2 a RC4.08, el color del modo de voz: sus lecturas de la tarjeta a veces cargaban el patch inicial). |
-| {YB} Colores por **categoría** | Cada patch en el color de su **categoría de Components**: Arp verde azulado, Bass rojo, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rosa, String melocotón, User arena, Voc lavanda; None = el color de la pista, **hueco vacío blanco tenue**, el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. |
+| {YB} Colores por **categoría** | Cada patch en el color de su **categoría de Components**: Arp verde azulado, Bass azul acero, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rojo, String melocotón, User arena, Voc lavanda; None = el color de la pista, **hueco vacío blanco tenue**, el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. |
 | **Clear + pad**, **Clear + el mismo pad** antes de ~5 s {B} | **Guarda** en ese hueco el patch tal como suena (knobs, MIDI recibido, destinos de macro). El primer toque pregunta (parpadea en blanco); otro pad mueve la pregunta *(escribe en la tarjeta)*. |
 | {YB} **K1** mientras pregunta | Elige la **categoría** que se guarda (None, Arp, Bass… Voc; 4 clics cada una; empieza en la del patch): K1 y el hueco en su color, los demás knobs apagados y sin efecto. Al confirmar se guarda con esa categoría. |
 | **Duplicate + pad A + pad B** (mismo pack) | Intercambia los dos patches. |

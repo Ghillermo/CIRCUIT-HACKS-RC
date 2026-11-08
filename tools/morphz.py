@@ -75,6 +75,24 @@ CLEAR = 23
 CLR2 = False                             # SC55.1 (use_clr2)
 SUS = False                              # SC55.1 (use_sus)
 NOCUR = False                            # SC55.1 (use_nocur)
+SVC = False                              # SC55.4 (use_svc)
+NV = END                                 # (use_svc) + 0 a write pending, + 1 t, + 2 f, + 3 / 4 the links' cache indices, + 5 inside the
+NV_END = NV + 12                         #   service's writes, + 8 the service's SP then (word)
+MARK_DIRTY, MARK_RAW = 0x0803BDCC, 0x08021FDC
+SVC_FUNCS = ("c_mzsvc", "c_mzmd")
+
+
+def use_svc():
+    """SC55.4 / Beta 5.39 (fix; the user, 2026-11-08, on Synth 1: «entering morph mode stops the playback, and resets the unit after a few
+    seconds»): Synth 1 / 2's rows went through the firmware's parameter setter (0x08034D92) from the LED task, 40 a frame; each change calls
+    MARK_DIRTY (0x0803BDCC), which waits for the DSP service's semaphore (0x08021064: a spin with a yield, not a mutex), and the main loop that
+    holds it stalled: no audio, no sequencer, then the reset.  Now the LED task only leaves the frame's t, f and links (NV) and the head of the DSP
+    service chain (c_mzsvc, where the service already holds the semaphore) writes the rows; while it does, MARK_DIRTY's head (c_mzmd) marks with
+    0x08021FDC directly (the rule for the service's tick) when the call comes from that stack (within 1 KB below the SP it noted)."""
+    global SVC
+    SVC = True
+
+
 
 
 def use_sus():
@@ -761,7 +779,11 @@ def c_mztick(c):                         # the LED task's call (ctrl, frame): th
     E(movw, 3, NOVA_LEN); E(muls, 1, 3); E(muls, 2, 3); c.imm32(0, CC); E(adds_reg, 1, 1, 0); E(adds_reg, 2, 2, 0)
     E(raw, mov_hi(8, 1)); E(raw, mov_hi(11, 2))
     E(cmp_imm, 4, 2); E(b_cond, "tk_o", "hs")
-    c.call("c_mznova"); E(b, "tk_x")
+    if SVC:                                                                                 # the writes go to the DSP service (c_mzsvc)
+        c.imm32(0, NV); E(strb_imm, 4, 0, 1); E(strb_imm, 5, 0, 2); E(raw, mov_hi(1, 9)); E(strb_imm, 1, 0, 3); E(raw, mov_hi(1, 10)); E(strb_imm, 1, 0, 4)
+        E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(b, "tk_x")
+    else:
+        c.call("c_mznova"); E(b, "tk_x")
     c.lab("tk_o"); c.call("c_mzown"); c.call("c_mzfm")
     c.lab("tk_x"); E(raw, POPALL_LR); E(pop_list, [1], pc=True)
     # off, a patch held since its press: 0.4 s = the morph on (the patches held then); let go before = nothing
@@ -777,6 +799,31 @@ def c_mztick(c):                         # the LED task's call (ctrl, frame): th
     c.lab("tk_bt"); E(ldrb_imm, 0, 6, O_ACT); E(cmp_imm, 0, 3); E(b_cond, "tk_b1", "ls")       # off (a patch armed): dt 100, on as always
     E(movs_imm, 5, 100); E(b, "tk_b2")
     c.lab("tk_b1"); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 6, O_ACT); E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_HP); E(b, "tk_x")   # a morph running: off
+
+
+@fn
+def c_mzsvc(c):                          # (use_svc) the head of the DSP service chain: the frame's Synth 1 / 2 rows, the service holding its semaphore
+    E = c.E
+    E(raw, PUSHALL)
+    c.imm32(6, NV); E(ldrb_imm, 0, 6, 0); E(cmp_imm, 0, 0); E(b_cond, "sv_x", "eq")
+    E(movs_imm, 0, 0); E(strb_imm, 0, 6, 0)
+    E(ldrb_imm, 4, 6, 1); E(ldrb_imm, 5, 6, 2); E(ldrb_imm, 1, 6, 3); E(ldrb_imm, 2, 6, 4)
+    c.imm32(6, MZ); E(ldrb_imm, 0, 6, O_ACT); E(cmp_reg, 0, 4); E(b_cond, "sv_x", "ne"); E(cmp_imm, 4, 2); E(b_cond, "sv_x", "hs")
+    E(movw, 3, NOVA_LEN); E(muls, 1, 3); E(muls, 2, 3); c.imm32(0, CC); E(adds_reg, 1, 1, 0); E(adds_reg, 2, 2, 0)
+    E(raw, mov_hi(8, 1)); E(raw, mov_hi(11, 2))
+    c.imm32(0, NV); E(raw, h(0x4669)); E(str_imm, 1, 0, 8); E(movs_imm, 1, 1); E(strb_imm, 1, 0, 5)   # mov r1, sp
+    c.call("c_mznova")
+    c.imm32(0, NV); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 5)
+    c.lab("sv_x"); E(raw, POPALL_LR); E(b_w, c.prev["svc"])
+
+
+@fn
+def c_mzmd(c):                           # (use_svc) MARK_DIRTY's head (type, index): inside c_mzsvc's writes = 0x08021FDC, no semaphore
+    E = c.E
+    c.imm32(2, NV); E(ldrb_imm, 3, 2, 5); E(cmp_imm, 3, 0); E(b_cond, "md_s", "eq")
+    E(ldr_imm, 3, 2, 8); E(raw, h(0x466A)); E(subs_reg, 3, 3, 2); E(lsrs_imm, 3, 3, 10); E(cmp_imm, 3, 0); E(b_cond, "md_s", "ne")   # mov r2, sp
+    E(b_w, MARK_RAW)
+    c.lab("md_s"); E(raw, h(0xB538) + h(0x460D)); E(b_w, MARK_DIRTY + 4)                   # push {r3, r4, r5, lr}; mov r5, r1
 
 
 class Ctx:
@@ -873,6 +920,10 @@ def place(img, report):
     prev = dict(npad=u(SP) & ~1, nrel=u(SP + 4) & ~1, nled=u(SP + 28) & ~1, opad=u(TP) & ~1, orel=u(TP + 4) & ~1, oled=u(TP + 28) & ~1,
                 btn=MP.bw_target(img, MP.BTN_ENTRY, BASE), knob=u(KN + 16) & ~1, kled=u(KN + 28) & ~1, led=leds[0])
     for k in ("npad", "opad"): assert prev[k] != 0
+    if SVC:
+        import build_sc14 as S14
+        prev["svc"] = MP.bw_target(img, S14.SVC_HOOK, BASE)
+        assert img[MARK_DIRTY - BASE:MARK_DIRTY - BASE + 4] == bytes.fromhex("38b50d46"), img[MARK_DIRTY - BASE:MARK_DIRTY - BASE + 4].hex()
     # the areas: [name, lo, hi]
     hb = report["hole"]; d = report["dspz"]
     areas = [["hole", (int(hb["next"], 16) + 3) & ~3, hole.HI],
@@ -882,7 +933,7 @@ def place(img, report):
     end = BASE + len(img)
     areas.append(["end", (end + 3) & ~3, BASE + 0x70000])
     disc = fm_disc()
-    names = list(FUNCS)
+    names = [n for n in FUNCS if SVC or n not in SVC_FUNCS]
     dummy = {n: 0x08300000 + 64 * i for i, n in enumerate(names)}
     dummy["t_disc"] = 0x08380000
     size = {n: len(assemble(0x08020000, [n], dummy, prev, L, SP)[0]) for n in names}
@@ -927,7 +978,10 @@ def place(img, report):
         struct.pack_into("<I", img, slot - BASE, lab2[k] | 1)
     img[MP.BTN_ENTRY - BASE:MP.BTN_ENTRY - BASE + 4] = b_w(MP.BTN_ENTRY, lab2["c_mzbtn"])
     for s in PK.LED_CALLS: img[s - BASE:s - BASE + 4] = bl(s, lab2["c_mztick"])
-    assert END <= 0x2004F400
+    assert (NV_END if SVC else END) <= 0x2004F400
+    if SVC:
+        img[S14.SVC_HOOK - BASE:S14.SVC_HOOK - BASE + 4] = b_w(S14.SVC_HOOK, lab2["c_mzsvc"])
+        img[MARK_DIRTY - BASE:MARK_DIRTY - BASE + 4] = b_w(MARK_DIRTY, lab2["c_mzmd"])
     report["morphz"] = dict(labels={n: hex(v) for n, v in lab2.items() if "." not in n}, prev={k: hex(v) for k, v in prev.items()},
                             parts={k: [hex(base_of[k]), hex(base_of[k] + len(out[k])), parts[k]] for k in out},
                             listing={k: _dis(sc, out[k], base_of[k]) for k in out}, free={k: hi_of[k] - base_of[k] - len(out[k]) for k in out})

@@ -20,7 +20,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R410
 - No hace falta compilar nada: el ensamblado del DSP sale de la caché `tools/dsp_asm_cache.json`.
 - Envía el `.syx` con `tools/ct_uploader.html`.
 
-**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R410S`. La beta (funciones nuevas sin probar): `--version B5.38`.
+**Haz una copia de la tarjeta SD antes de instalar.** Si no quieres que el mod escriba nada en la SD por su cuenta, usa `--version R410S`. La beta (funciones nuevas sin probar): `--version B5.40`.
 
 ## 1. Requisitos
 | Para | Necesitas |

@@ -143,6 +143,22 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 
 ## Parches
 
+### SC55.5 / Beta 5.40 (2026-11-08): Bass en azul acero y la paleta tras instalar — Beta 5.40 publicada
+
+- **Beta 5.39 en el aparato (el usuario): «everything OK»**: el morph ya no para Play ni reinicia (`morphz.use_svc`; las lecturas de la tarjeta de `c_mzfill` no eran la causa) y Bass / SFX intercambiados. **La primera instalación de la 5.39 no entró** (estado 127 y el aparato siguió con la 5.38; después de instalar otra versión y la 5.39 otra vez, sí). Causa sin demostrar (sospecha: nuestro firmware toca la tarjeta / la NOR mientras se escribe la copia de instalación, y el bootloader descarta en silencio una copia con el CRC mal): **`tools/ct_uploader.html` solo envía a un aparato identificado en modo bootloader** (Scales + Preset + Note al encender), salvo con la casilla «Enviar aunque…»; el `rc_uploader` público no cambia.
+- **`packio.use_bassblue()`** (el usuario: «a different color for bass» → «steel blue»): Bass = `0x12` (94, 132, 204); el `0x3B` de la 5.39 es el rosa de MIDI 2. Colores libres que quedaban (RGB de la tabla): `0x64` tostado, `0x12` azul acero, `0x5C` violeta claro, `0x1E` ladrillo, `0x31` menta.
+- **`packio.use_palfix()`** (arreglo): `c_pcst` escribía la paleta en `PCR + 0x90` solo sin firma; una instalación reinicia sin borrar la RAM, así que seguía la paleta de la versión anterior hasta apagar el aparato. Ahora en cada llamada.
+- Prueba `emu_pcat.py --catswap --bassblue --palfix` (la paleta vieja con la firma: la 5.39 falla, la 5.40 pasa).
+
+### SC55.4 / Beta 5.39 (2026-11-08): el morph de Synth 1 / 2 paraba Play y reiniciaba el aparato — probada en el aparato
+
+El usuario, en Synth 1 (Beta 5.38): «entering morph mode stops the playback, and resets the unit after a few seconds».
+- **Causa (emulación + desensamblado):** `c_mznova` escribía las filas de Synth 1 / 2 con el setter de parámetros `0x08034D92` desde la tarea de LEDs, hasta 40 por fotograma (`BUDGET`); en emulación cada escritura que cambia algo llama a `MARK_DIRTY` (`0x0803BDCC`), que toma el semáforo del servicio del DSP (`0x08021064`: un contador con `ldrex` / `strex` que espera con `0x0801BE60` = solo un `yield` de PendSV, no se duerme): 40 tomas por fotograma a la entrada (80 escrituras con dos patches de fábrica). El bucle principal, que tiene ese semáforo mientras sirve el DSP, se queda sin correr (audio y secuenciador parados) y llega el reinicio. Con el emulador el bloqueo no se ve (sin tareas); el transporte no se para por ningún camino explícito (comprobado con Play en marcha). El MIDI 1 / 2 escribe con `c_vstore` (sin semáforo): no le pasaba.
+- **Arreglo `morphz.use_svc()`:** la tarea de LEDs deja t, f y los dos eslabones en `NV` (`0x2004EDB0`, 12 B: pendiente, t, f, eslabones, bandera, SP) y la cabeza de la cadena del servicio del DSP (`c_mzsvc`, `0x080213AA`, donde el servicio ya tiene el semáforo) llama a `c_mznova`; mientras, la cabeza de `MARK_DIRTY` (`c_mzmd`, sus 4 primeros bytes `push {r3, r4, r5, lr}; mov r5, r1`) va directa a `0x08021FDC` si la bandera está puesta y la pila está a menos de 1 KB por debajo del SP anotado (otra tarea, otra pila: la de siempre).
+- **Colores (`packio.use_catswap()`, el usuario: «switch red Category with magenta», «and also make current magenta red»):** Bass `0x3B`, SFX `0x53`.
+- Prueba `emu_morph.py --clear --sus --nocur` (llama a `c_mzsvc` tras cada fotograma con el resto de la cadena saltado; semáforo 0 veces en las escrituras). Imagen `0x6F7A4`.
+- **Queda en la tarea de LEDs:** la lectura de los eslabones de la tarjeta (`c_mzfill`, con el cerrojo del búfer compartido y la lectura síncrona): si el aparato sigue reiniciándose, es lo siguiente que mirar.
+
 ### SC55.3 / Beta 5.38 / RC4.10 / RC4.10S (2026-11-08): patches por categoría, la tarjeta solo cuando hace falta — pendientes de probar
 
 **Fallo:** con la Beta 5.37 seguía cargándose a veces el patch inicial y seguía el parpadeo magenta. **S552D** (la Beta 5.37 sin el coloreado, `packio.PMODE = False`) en el aparato: «patches dont seem to go back to init» → **las lecturas de la tarjeta del coloreado rompen la carga del patch del original** (en 5.37 aún había relecturas a los 4 s del último cambio de selección, y la selección cambia al terminar la carga, no al tocar).

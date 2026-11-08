@@ -33,7 +33,7 @@
     <h2>Antes de empezar</h2>
     <ol>
       <li>Cierra Novation Components y cualquier DAW o programa MIDI (en Windows, el puerto solo puede abrirlo una aplicación).</li>
-      <li>Conecta el Circuit Tracks directamente por USB y enciéndelo de forma normal. Si está en modo bootloader (Scales + Preset + Note), también vale.</li>
+      <li>Conecta el Circuit Tracks directamente por USB y <b>enciéndelo en modo bootloader: mantén Scales + Preset + Note al encenderlo</b>. Con un firmware en marcha, el envío puede acabar en «éxito» y el aparato seguir con la versión anterior (Beta 5.39, 2026-11-08).</li>
       <li>No desconectes la alimentación ni el USB durante la transferencia.</li>
     </ol>
   </section>
@@ -54,7 +54,9 @@
 
   <section>
     <h2>3 · Envío</h2>
-    <div class="row"><button id="btnSend" disabled>Enviar firmware</button><button id="btnAbort" disabled>Cancelar</button></div>
+    <p id="modeNote" class="warn">Pulsa «Identificar el dispositivo»: solo se envía al aparato en modo bootloader.</p>
+    <label><input type="checkbox" id="anyMode"> Enviar aunque el aparato esté con el firmware en marcha (no recomendado: puede no instalarse)</label>
+    <div class="row" style="margin-top:8px"><button id="btnSend" disabled>Enviar firmware</button><button id="btnAbort" disabled>Cancelar</button></div>
     <p id="phase" class="warn"></p>
     <progress id="prog" value="0" max="100"></progress>
   </section>
@@ -459,6 +461,10 @@ const KNOWN = {
   "543a3e2cacd0140c90f79385539b70713c3d468716df1c0861b39413380a4ca9": "4486 + S552D (diagnostic: Beta 5.37 without the voice-mode colouring)",
   "2f10d26d0baa7c1c68673b753139c8beb67502a9a537530f76d8f0c07022cf53": "4486 + SC55.3",
   "5cbcce6e736328f6d7c6a6e7339ccc0a4c2ff5e6981ef4a49228111e95983a18": "4486 + Beta 5.38 (= SC55.3)",
+  "12fe7da5574892a5cc4a3eeb8df5b7bcf309394c6d03a7708727613998d6aa86": "4486 + SC55.4",
+  "560a514c204c14ab05b8e18326535574af9213c233abead53eff4cac5b57cfcb": "4486 + Beta 5.39 (= SC55.4)",
+  "d1eca24a1a3021b6c0f5391d57bae21fca21688716d4080561a9fd5cc0238024": "4486 + SC55.5",
+  "778d68ddc91ac27da5022a0ddcdada65ee075128304e999c2e709e37021c438d": "4486 + Beta 5.40 (= SC55.5)",
   "b1752264903cbe7b393162ef39fb3091ee7515f411392de323756210e91499ff": "4486 + RC4.10",
   "30c83a2ca71c40fcea6465244a8a65fd12c99127791481e2bef99813f75de548": "4486 + RC4.10S",
   "2605b9e185343a4678e30e3a73e78731925c9079e97de6e4929a93502eceeff6": "4486 + RC4.09",
@@ -574,7 +580,7 @@ const log = (m, cls) => { const d = document.createElement("div"); if (cls) d.cl
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const hex = a => Array.from(a, b => b.toString(16).padStart(2, "0")).join(" ");
 
-let midi = null, packets = null, fileOk = false, xfer = null, idPending = null;
+let midi = null, packets = null, fileOk = false, xfer = null, idPending = null, devMode = null;   // devMode: the last identity reply's mode
 
 // Chrome can hang while closing or reloading the tab if MIDI ports are still open (above all after the
 // Circuit Tracks reboots and its ports vanish). Ports are opened only while they are in use, closed right
@@ -686,6 +692,7 @@ function idDone(msg, cls) {
   if (!idPending) return; const { t, inp, out, h } = idPending; idPending = null;
   clearTimeout(t); inp.removeEventListener("midimessage", h); closePort(inp); closePort(out);
   if (msg) { $("idState").textContent = msg; $("idState").className = cls; }
+  updateSend();
 }
 $("btnId").onclick = () => {
   const out = outPort(), inp = inPort(); if (!out || !inp || idPending || xfer) return;
@@ -695,7 +702,7 @@ $("btnId").onclick = () => {
       const mode = d[9] === 1 ? "firmware" : d[9] === 17 ? "bootloader" : "modo " + d[9];
       const build = d[14] * 128 + d[15];
       const isTracks = d[5] === 0x00 && d[6] === 0x20 && d[7] === 0x29;
-      log("Identidad: " + hex(d));
+      log("Identidad: " + hex(d)); devMode = mode; showMode();
       idDone(`${isTracks ? "Novation" : "¿?"} · pid ${hex(d.slice(8, 10))} · ${mode} · build ${build}`, isTracks ? "ok" : "warn");
     } }
   idPending = { inp, out, h, t: setTimeout(() => idDone("sin respuesta", "bad"), 2000) };
@@ -717,7 +724,17 @@ $("file").onchange = async () => {
   } catch (e) { html += `<span class="bad">Archivo inválido: ${esc(e.message)}</span>`; }
   $("fileInfo").innerHTML = html; updateSend();
 };
-function updateSend() { $("btnSend").disabled = !(fileOk && outPort() && inPort() && !xfer && !idPending); }
+// a send to a running firmware can end in «success» and the unit keep the old build (Beta 5.39, 2026-11-08): the bootloader mode by default
+function modeOk() { return devMode === "bootloader" || $("anyMode").checked; }
+function showMode() {
+  const n = $("modeNote");
+  if (devMode === "bootloader") { n.textContent = "Aparato en modo bootloader: listo para enviar."; n.className = "ok"; }
+  else if (devMode) { n.textContent = `El aparato está en ${devMode}: apágalo y enciéndelo con Scales + Preset + Note, luego «Identificar el dispositivo».`; n.className = "warn"; }
+  else { n.textContent = "Pulsa «Identificar el dispositivo»: solo se envía al aparato en modo bootloader."; n.className = "warn"; }
+  updateSend();
+}
+function updateSend() { $("btnSend").disabled = !(fileOk && outPort() && inPort() && !xfer && !idPending && modeOk()); }
+$("anyMode").onchange = updateSend;
 
 // ---------- transfer (pull protocol, as Components does)
 const STATUS = { 0: "inicio de actualización", 1: "esperando confirmación: PULSA PLAY en el Circuit Tracks", 16: "cancelado en el dispositivo",
@@ -775,9 +792,9 @@ function finish(msg, cls) {
   clearTimeout(xfer.timer); inp.removeEventListener("midimessage", onMsg); xfer = null;
   closePort(inp); closePort(out);                     // the device reboots after a successful update
   $("phase").textContent = msg; $("phase").className = cls; log(msg, cls);
-  $("btnAbort").disabled = true; $("file").disabled = false; updateSend();
+  $("btnAbort").disabled = true; $("file").disabled = false; devMode = null; showMode();
 }
-$("outSel").onchange = $("inSel").onchange = updateSend;
+$("outSel").onchange = $("inSel").onchange = () => { devMode = null; showMode(); };
 if (!navigator.requestMIDIAccess) { $("midiState").textContent = "este navegador no soporta Web MIDI: usa Chrome o Edge"; $("midiState").className = "bad"; }
 </script>
 </body>

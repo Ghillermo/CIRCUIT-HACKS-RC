@@ -44,7 +44,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 **C. Nuevos modos de control**
 
-- [C1 Morph de patches (solo Beta 5.38)](#c1-morph)
+- [C1 Morph de patches (solo Beta 5.40)](#c1-morph)
 - [C2 Motor de las pistas MIDI (pad 27)](#c2-motor-midi)
 - [C3 Step-drummer](#c3-step-drummer)
 - [C4 Secuenciador de efectos](#c4-fx-seq)
@@ -151,7 +151,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="a15-colores-patch"></a>
 ### A15. Colores de los patches de sinte
-- **De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.38:** cada patch en el color de su **categoría de Components**.
+- **De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.40:** cada patch en el color de su **categoría de Components**.
 
 <a id="a16-patches-midi"></a>
 ### A16. Patches del sinte propio (MIDI 1 / 2)
@@ -222,8 +222,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 ## C. Nuevos modos de control
 
 <a id="c1-morph"></a>
-### C1. Morph de patches (solo Beta 5.38)
-- **Solo Beta 5.38.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén dos o más patches** 0,4 s y un knob pasa de uno a otro, con LFO, azar y envolvente.
+### C1. Morph de patches (solo Beta 5.40)
+- **Solo Beta 5.40.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén dos o más patches** 0,4 s y un knob pasa de uno a otro, con LFO, azar y envolvente.
 
 <a id="c2-motor-midi"></a>
 ### C2. Motor de las pistas MIDI (pad 27)
