@@ -1016,11 +1016,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </section>
 <section class="feat" id="synth-preset"><h3><span class="code">2.4</span>Synth 1 / 2 Preset view</h3>
 <div class="summary"><p><strong>How to get there:</strong> Press <strong>Preset</strong> with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack&#x27;s 128 patches).</p><p class="about-h"><strong>In this view</strong></p><ul>
-<li><strong>The voice mode at a glance</strong> <em>(since RC2)</em> — mono, mono with glide and poly patches told apart by colour.</li>
 <li><strong>Save the patch</strong> <em>(since RC2)</em> — stores the sound as you left it into the pack (the original only saves patches from Components).</li>
 <li><strong>Swap and copy</strong> — reorder the pack&#x27;s patches or take one to another pack.</li>
 </ul></div>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.">
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
@@ -1162,7 +1161,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.</figcaption></figure>
+</svg><figcaption>Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.</figcaption></figure>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1304,7 +1303,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves.</figcaption></figure>
 <table><thead><tr><th>Gesture</th><th>What it does</th></tr></thead><tbody>
-<tr><td>Patch colours <em>(since RC2)</em></td><td><strong>Dark blue</strong> = mono, <strong>lavender</strong> = mono with glide, track colour = poly; the chosen one, lighter.</td></tr>
+<tr><td>Patch colours</td><td><em>Since RC4.10</em>: the original&#x27;s, the patches in the track colour and the chosen one white (RC2 to RC4.08 used the voice mode&#x27;s colour: its card reads sometimes loaded the initial patch).</td></tr>
 <tr><td><strong>Clear + pad</strong>, <strong>Clear + the same pad</strong> within ~5 s <em>(since RC2)</em></td><td><strong>Saves</strong> the patch as it sounds (knobs, received MIDI, macro destinations) into that slot. The first touch asks (blinks white); another pad moves the question <em>(writes to the card)</em>.</td></tr>
 <tr><td><strong>Duplicate + pad A + pad B</strong> (same pack)</td><td>Swaps the two patches.</td></tr>
 <tr><td><strong>Duplicate + pad A</strong>, load another pack, <strong>Duplicate + pad B</strong></td><td>Copies patch A over B in the other pack (A&#x27;s pack does not change); B may be empty <em>(writes to the card)</em>.</td></tr>
@@ -4378,13 +4377,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>25</td><td>Envelope → morph (granular: source)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
 <tr><td>26</td><td>LFO → morph (granular: note mode)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2</td><td>CC 37</td><td>3 / K1</td></tr>
-<tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.33: 3 / K2)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: pitch spread; RC4: stereo)</td><td>CC 30</td><td>3 / K7 (Beta 5.33: 3 / K3)</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fine)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.38: 3 / K2)</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: pitch spread; RC4: stereo)</td><td>CC 30</td><td>3 / K7 (Beta 5.38: 3 / K3)</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: window)</td><td>CC 31</td><td>3 / K2</td></tr>
-<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.33: 3 / K8)</td></tr>
-<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.33: 3 / K7)</td></tr>
-<tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.33: 3 / K5)</td></tr>
-<tr><td>34</td><td>RING (granular: reverse; RC4: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.33: 3 / K6)</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.38: 3 / K8)</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.38: 3 / K7)</td></tr>
+<tr><td>33</td><td>FM (granular: position spread)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.38: 3 / K5)</td></tr>
+<tr><td>34</td><td>RING (granular: reverse; RC4: bipolar, reverse / pitch spread)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.38: 3 / K6)</td></tr>
 </tbody></table>
 <p><strong>Sequenceable knobs</strong> (page 4: recorded into the pattern with Record): TUNE, Release, Envelope → level, Envelope → filter, Filter, Resonance, LFO speed, Effect. <em>RC4 only:</em> the eight destinations are chosen with Shift + knob.</p>
 <h4>Drums</h4>

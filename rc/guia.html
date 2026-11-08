@@ -1016,11 +1016,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </section>
 <section class="feat" id="synth-preset"><h3><span class="code">2.4</span>Vista Preset de Synth 1 / 2</h3>
 <div class="summary"><p><strong>Cómo se llega:</strong> Pulsa <strong>Preset</strong> con Synth 1 / 2 elegido. Los pads eligen patch como siempre (4 páginas, 128 patches del pack).</p><p class="about-h"><strong>En esta vista</strong></p><ul>
-<li><strong>El modo de voz a la vista</strong> <em>(desde RC2)</em> — los patches mono, mono con glide y poly se distinguen por el color.</li>
 <li><strong>Guardar el patch</strong> <em>(desde RC2)</em> — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).</li>
 <li><strong>Intercambiar y copiar</strong> — reordena los patches del pack o lleva uno a otro pack.</li>
 </ul></div>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.">
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
@@ -1162,7 +1161,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.</figcaption></figure>
+</svg><figcaption>Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.</figcaption></figure>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
@@ -1304,7 +1303,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.</figcaption></figure>
 <table><thead><tr><th>Gesto</th><th>Qué hace</th></tr></thead><tbody>
-<tr><td>Colores de los patches <em>(desde RC2)</em></td><td><strong>Azul oscuro</strong> = mono, <strong>lavanda</strong> = mono con glide, color de la pista = poly; el elegido, más claro.</td></tr>
+<tr><td>Colores de los patches</td><td><em>Desde RC4.10</em>: los del original, los patches en el color de la pista y el elegido en blanco (de RC2 a RC4.08, el color del modo de voz: sus lecturas de la tarjeta a veces cargaban el patch inicial).</td></tr>
 <tr><td><strong>Clear + pad</strong>, <strong>Clear + el mismo pad</strong> antes de ~5 s <em>(desde RC2)</em></td><td><strong>Guarda</strong> en ese hueco el patch tal como suena (knobs, MIDI recibido, destinos de macro). El primer toque pregunta (parpadea en blanco); otro pad mueve la pregunta <em>(escribe en la tarjeta)</em>.</td></tr>
 <tr><td><strong>Duplicate + pad A + pad B</strong> (mismo pack)</td><td>Intercambia los dos patches.</td></tr>
 <tr><td><strong>Duplicate + pad A</strong>, cargar otro pack, <strong>Duplicate + pad B</strong></td><td>Copia el patch A sobre B en el otro pack (el pack de A no cambia); B puede estar vacío <em>(escribe en la tarjeta)</em>.</td></tr>
@@ -4379,13 +4378,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>25</td><td>Envolvente → morph (granular: fuente)</td><td>NRPN 4:25</td><td>2 / Shift + K8</td></tr>
 <tr><td>26</td><td>LFO → morph (granular: modo de nota)</td><td>NRPN 4:26</td><td>2 / K8</td></tr>
 <tr><td>27</td><td>TUNE 2</td><td>CC 37</td><td>3 / K1</td></tr>
-<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.33: 3 / K2)</td></tr>
-<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.33: 3 / K3)</td></tr>
+<tr><td>28</td><td>FINE 2 (granular: fino)</td><td>CC 39</td><td>3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.38: 3 / K2)</td></tr>
+<tr><td>29</td><td>WAVE 2 (granular: dispersión del tono; RC4: estéreo)</td><td>CC 30</td><td>3 / K7 (Beta 5.38: 3 / K3)</td></tr>
 <tr><td>30</td><td>SHAPE 2 (granular: ventana)</td><td>CC 31</td><td>3 / K2</td></tr>
-<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.33: 3 / K8)</td></tr>
-<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.33: 3 / K7)</td></tr>
-<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.33: 3 / K5)</td></tr>
-<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.33: 3 / K6)</td></tr>
+<tr><td>31</td><td>MIX OSC 1 ↔ OSC 2</td><td>CC 52</td><td>2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.38: 3 / K8)</td></tr>
+<tr><td>32</td><td>BITSYNC</td><td>NRPN 4:32</td><td>2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.38: 3 / K7)</td></tr>
+<tr><td>33</td><td>FM (granular: dispersión de la posición)</td><td>NRPN 4:33</td><td>3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.38: 3 / K5)</td></tr>
+<tr><td>34</td><td>RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono)</td><td>CC 54</td><td>3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.38: 3 / K6)</td></tr>
 </tbody></table>
 <p><strong>Knobs secuenciables</strong> (página 4: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. <em>Solo RC4:</em> los ocho destinos se eligen con Shift + knob.</p>
 <h4>Drums</h4>
