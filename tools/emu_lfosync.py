@@ -99,6 +99,7 @@ def main(img, man):
     import build_sc17 as S17
     G = {k: int(v, 16) for k, v in man["report"]["sc17"]["labels"].items()}
     slot = LF.RAM + 48
+    if "c_gtgen" in G: e.call(G["c_gtgen"], maxins=5_000_000)                     # (SC54, use_gentab) the tables in RAM: the first c_fxtick writes them
     def lfper(v, t0):
         e.call(G["c_lfper"], v, t0, slot, maxins=2_000_000)
         return e.uc.reg_read(UC_ARM_REG_R0), e.uc.reg_read(UC_ARM_REG_R0 + 1)

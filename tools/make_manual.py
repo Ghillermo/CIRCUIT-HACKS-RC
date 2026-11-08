@@ -383,15 +383,26 @@ sec("teclado-partido", "A", "Teclado partido Synth 1 + Synth 2",
 """, [fig("Teclado partido: filas 1-2 = Synth 1, filas 3-4 = Synth 2.", pads={**{n: ("magenta", "", n not in (1, 8, 9, 16)) for n in range(1, 17)}, **{n: ("pine", "", n not in (17, 24, 25, 32)) for n in range(17, 33)}},
           buttons={"Synth 1": "white", "Synth 2": "white"}, view="Synth 1 + Synth 2")])
 
-sec("colores-patch", "A", "Patches de sinte por modo de voz",
-    ["**Desde RC2.** En la vista Preset de Synth 1 / 2 cada patch se ve según su modo de voz: **mono azul oscuro**, **glide lavanda**, **poly como siempre**."],
+sec("colores-patch", "A", "Colores de los patches de sinte",
+    ["**De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.38:** cada patch en el color de su **categoría de Components**."],
     """
-- Mono = azul oscuro; mono con glide (Mono AG) = lavanda; poly = el color de la pista, como en el original. El patch elegido se ve más claro.
-- Los modos se leen de la tarjeta al cambiar de pack, de página o de patch, y cada 4 s.
+- **Desde RC4.10:** los patches en el color de la pista y el elegido en blanco, como en el original.
+- **Solo Beta 5.38:** el color de la categoría del patch (Arp verde azulado, Bass rojo, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rosa, String melocotón, User arena, Voc lavanda); None = el color de la pista; **hueco vacío = blanco tenue**; el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. Al guardar (Clear + pad), **K1** elige la categoría.
+- De RC2 a RC4.08: mono = azul oscuro; mono con glide (Mono AG) = lavanda; poly = el color de la pista.
 - En Advanced Setup los pads 22 / 23 ya no se encienden (allí nunca hacían nada).
-""", [fig("Vista Preset de Synth 1: mono azul oscuro, glide lavanda, poly el color de la pista.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 2: ("blue", "mono", True), 5: ("blue", "mono", True),
+""", [fig("Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 2: ("blue", "mono", True), 5: ("blue", "mono", True),
                                                                                                           3: ("purple", "glide"), 6: ("purple", "glide"), 1: ("white", "")},
           buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1")])
+
+sec("morph", "C", "Morph de patches (solo Beta 5.38)",
+    ["**Solo Beta 5.38.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén dos o más patches** 0,4 s y un knob pasa de uno a otro, con LFO, azar y envolvente."],
+    """
+- **K1** = la posición en la cadena (hasta 3 patches, en el orden de los pads); **K2 / K3** LFO triangular (cantidad / velocidad); **K4 / K5** LFO de pasos al azar; **K6** azar en cada paso de la pista; **K7 / K8** envolvente (cantidad / tiempo).
+- **Pads 1 / 8** = la envolvente (sostenida mientras se mantienen); **pad 32** = salir; **Clear + knob** = 0; **Clear + el botón de la pista** = todos a 0.
+- **Preset** = los patches con los de la cadena en blanco: un toque carga uno y sale; mantener 0,4 s = cadena nueva.
+- Synth 1 / 2: la vista del morph es su vista alternativa (Synth o Preset dos veces). MIDI 1 / 2: Preset cambia entre el morph y los huecos. El botón de la pista vuelve a la vista del morph.
+- Los parámetros continuos se mezclan; los de tipo toman el del patch más cercano. No se guarda nada.
+""")
 
 sec("patches-midi", "A", "Patches del sinte propio (MIDI 1 / 2)",
     ["**Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack)."],
@@ -422,6 +433,7 @@ sec("guardar-patch", "A", "Guardar el patch del sinte en el pack",
 - El patch guardado conserva el nombre del que estaba cargado. Los patches de sinte se gestionan con Components; `tools/patchtool.py slist / sname` los lista y les cambia el nombre en la tarjeta.
 - El patch del sinte propio que comparta ese hueco (A14) no se toca.
 - Duplicate + A + B sigue copiando / intercambiando patches (A8).
+- **Solo Beta 5.38:** mientras pregunta, **K1** elige la categoría que se guarda (los demás knobs apagados); el hueco parpadea en su color.
 - En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.
 """, [fig("Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 6: ("white", "¿guardar?")},
           buttons={"Synth 1": "white", "Preset": "white", "Clear": "white"}, view="Preset de Synth 1")])

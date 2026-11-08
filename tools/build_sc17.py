@@ -325,6 +325,14 @@ T0FIX = False                             # SC40 (see use_t0fix)
 NOVTAB = False                            # SC49.7 (see use_novtab)
 NOGOFF = False                            # SC50.5 (see use_nogoff)
 VINYL_TABS = ("VTH", "VHISS", "VLPK", "VHPK")
+GENTAB = False                            # SC54 (see use_gentab)
+
+
+def use_gentab():
+    """SC54 (room in the flash): the step / straight-line knob tables (mfxgen.GEN: up to 8 x 512 B) left out of the image; c_gtgen at the head of
+    c_fxtick writes them once into free RAM, the same bytes (mfxgen checks it at build time)."""
+    global GENTAB
+    GENTAB = True
 
 
 def use_nogoff():
@@ -1029,6 +1037,7 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
     # ---- c_fxtick: DSP service tick (then SC14's c_gtick)
     a.label("c_fxtick")
     a.emit(push_list, [4, 5, 6, 7], lr=True)
+    if GENTAB: a.emit(bl, "c_gtgen")                                              # (GENTAB) the generated tables, once
     a.emit(bl, "c_gfst"); zjmp(0, "ft_out"); a.emit(mov_reg, 4, 0)
     a.emit(bl, "c_gact"); a.emit(cmp_imm, 0, 0); bc("ft_v", "ne")
     a.emit(movs_imm, 0, 0); a.emit(strb_imm, 0, 4, S_HELD)                     # view not showing: drop held pads
@@ -1142,6 +1151,9 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         glitch_code(a, dict(L, setmap_addr=setmap_addr, pal_codes=pal_codes), bc, zjmp)
     if MECH:
         mech_code(a, L, bc, zjmp)
+    if GENTAB:
+        import mfxgen
+        mfxgen.emit(a, tables(), bc)
     return a.assemble()
 
 
@@ -2405,9 +2417,14 @@ def build(stock: bytes, listing: Path):
     ext = (len(img) + BASE + 3) & ~3
     data = bytearray()
     tabaddr = {}
+    gen_ram = {}
+    if GENTAB:
+        import mfxgen
+        gen_ram = mfxgen.plan(tabs)[0]
     for name, vals in tabs.items():
         if NOVTAB and name in VINYL_TABS: continue                             # (NOVTAB) nothing reads them
         if NOGOFF and name == "GOFF": continue                                 # (NOGOFF)
+        if GENTAB and name in gen_ram: tabaddr[name] = gen_ram[name]; continue   # (GENTAB) in RAM, written by c_gtgen
         tabaddr[name] = ext + len(data); data += struct.pack("<128I", *vals)
     defaults_addr = ext + len(data); data += bytes(x for d in DEFAULTS for x in d)
     setmap_addr = ext + len(data); data += bytes(SETMAP + ([SMP_SET] if SMP2 else []) + ([GL_SET] if GLITCH else []))

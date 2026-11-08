@@ -42,7 +42,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#a12-mixer-cue">A12 Cue mode, mutes on the bar and quantize (since RC2)</a></li>
 <li><a href="#a13-lfo-sync">A13 LFO synced to the tempo (since RC4)</a></li>
 <li><a href="#a14-teclado-partido">A14 Split keyboard Synth 1 + Synth 2</a></li>
-<li><a href="#a15-colores-patch">A15 Synth patches by voice mode</a></li>
+<li><a href="#a15-colores-patch">A15 Synth patch colours</a></li>
 <li><a href="#a16-patches-midi">A16 Patches of the own synth (MIDI 1 / 2)</a></li>
 <li><a href="#a17-guardar-patch">A17 Saving the synth’s patch into the pack</a></li>
 <li><a href="#a18-destinos-macro">A18 Macro knob destinations</a></li>
@@ -60,26 +60,26 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#b8-patch-flip">B8 Patch flip on MIDI 1 / 2</a></li>
 </ol>
 <h3>C. New control modes</h3><ol>
-<li><a href="#c1-motor-midi">C1 Engine of the MIDI tracks (pad 27)</a></li>
-<li><a href="#c2-step-drummer">C2 Step-drummer</a></li>
-<li><a href="#c3-fx-seq">C3 FX sequencer</a></li>
-<li><a href="#c4-song-pointer">C4 Song pointer (Master FX)</a></li>
-<li><a href="#c5-sample">C5 Captured sample</a></li>
-<li><a href="#c6-glitch-pad">C6 Glitch (pad 6) and its assignment</a></li>
-<li><a href="#c7-fila-inferior">C7 Assignable bottom row (Master FX / FX)</a></li>
-<li><a href="#c8-random-mutate">C8 Random-mutate per step</a></li>
-<li><a href="#c9-frecuencia-dinamicas">C9 Step frequency and dynamics</a></li>
-<li><a href="#c10-cadenas">C10 Pattern chains and scenes</a></li>
-<li><a href="#c11-nudge-ordenes">C11 Nudge and play orders</a></li>
-<li><a href="#c12-arpegiador">C12 Arpeggiator (since RC2)</a></li>
-<li><a href="#c13-rollers">C13 Drums micro-step rollers (since RC2)</a></li>
-<li><a href="#c14-escala-propia">C14 Custom scale (since RC2)</a></li>
-<li><a href="#c15-acordes">C15 Chord screen (since RC4)</a></li>
-<li><a href="#c16-pareja-estereo">C16 Stereo drum pairs (since RC4)</a></li>
-<li><a href="#c18-modo-muestra">C18 Sample mode of the MIDI tracks (since RC2)</a></li>
-<li><a href="#c19-matriz-mod">C19 Mod matrix of the own synth (since RC2.02)</a></li>
-<li><a href="#c21-fm4">C21 4-operator FM (since RC4)</a></li>
-<li><a href="#c24-master-fx-beta">C24 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
+<li><a href="#c2-motor-midi">C2 Engine of the MIDI tracks (pad 27)</a></li>
+<li><a href="#c3-step-drummer">C3 Step-drummer</a></li>
+<li><a href="#c4-fx-seq">C4 FX sequencer</a></li>
+<li><a href="#c5-song-pointer">C5 Song pointer (Master FX)</a></li>
+<li><a href="#c6-sample">C6 Captured sample</a></li>
+<li><a href="#c7-glitch-pad">C7 Glitch (pad 6) and its assignment</a></li>
+<li><a href="#c8-fila-inferior">C8 Assignable bottom row (Master FX / FX)</a></li>
+<li><a href="#c9-random-mutate">C9 Random-mutate per step</a></li>
+<li><a href="#c10-frecuencia-dinamicas">C10 Step frequency and dynamics</a></li>
+<li><a href="#c11-cadenas">C11 Pattern chains and scenes</a></li>
+<li><a href="#c12-nudge-ordenes">C12 Nudge and play orders</a></li>
+<li><a href="#c13-arpegiador">C13 Arpeggiator (since RC2)</a></li>
+<li><a href="#c14-rollers">C14 Drums micro-step rollers (since RC2)</a></li>
+<li><a href="#c15-escala-propia">C15 Custom scale (since RC2)</a></li>
+<li><a href="#c16-acordes">C16 Chord screen (since RC4)</a></li>
+<li><a href="#c17-pareja-estereo">C17 Stereo drum pairs (since RC4)</a></li>
+<li><a href="#c19-modo-muestra">C19 Sample mode of the MIDI tracks (since RC2)</a></li>
+<li><a href="#c20-matriz-mod">C20 Mod matrix of the own synth (since RC2.02)</a></li>
+<li><a href="#c22-fm4">C22 4-operator FM (since RC4)</a></li>
+<li><a href="#c25-master-fx-beta">C25 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
 <li><a href="#d1-efectos-grid">D1 Master FX effects</a></li>
@@ -1573,9 +1573,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>since RC4 — another track&#x27;s knobs:</strong> with the split keyboard open, <strong>hold a track button</strong> (Synth 1 / 2, MIDI 1 / 2, Drum 1-4): while you hold it, the 8 knobs (and their lights) are that track&#x27;s; let go and they go back to the first one. A short tap (no knob turned) closes it as always.</li>
 </ul>
 </section>
-<section class="feat" id="a15-colores-patch"><h3><span class="code">A15</span>Synth patches by voice mode</h3>
-<div class="summary"><p><strong>Since RC2.</strong> In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: <strong>mono dark blue</strong>, <strong>glide lavender</strong>, <strong>poly as always</strong>.</p></div>
-<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.">
+<section class="feat" id="a15-colores-patch"><h3><span class="code">A15</span>Synth patch colours</h3>
+<div class="summary"><p><strong>From RC2 to RC4.08</strong> every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. <strong>Since RC4.10</strong> the colours are the original&#x27;s: those card reads sometimes loaded the initial patch.</p></div>
+<figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#3a3d42" stroke-width="2"/>
 <text x="146" y="100" font-size="11" fill="#cfd3d8" text-anchor="middle">K1</text>
@@ -1717,10 +1717,10 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <text x="460" y="452" font-size="8" fill="#7d838a">31</text>
 <rect x="518" y="402" width="54" height="54" rx="7" fill="#c63ac6" fill-opacity="0.35" stroke="#000" stroke-width="1"/>
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
-</svg><figcaption>Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour.</figcaption></figure>
+</svg><figcaption>Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.</figcaption></figure>
 <ul>
-<li>Mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour, as on the original. The chosen patch is drawn lighter.</li>
-<li>The modes are read from the card when the pack, the page or the patch changes, and every 4 s.</li>
+<li><strong>Since RC4.10:</strong> the patches in the track colour and the chosen one white, as on the original.</li>
+<li>RC2 to RC4.08: mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour.</li>
 <li>In Advanced Setup pads 22 / 23 no longer light up (they never did anything there).</li>
 </ul>
 </section>
@@ -2805,7 +2805,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <h2 class="group">C. New control modes</h2>
-<section class="feat" id="c1-motor-midi"><h3><span class="code">C1</span>Engine of the MIDI tracks (pad 27)</h3>
+<section class="feat" id="c2-motor-midi"><h3><span class="code">C2</span>Engine of the MIDI tracks (pad 27)</h3>
 <div class="summary"><p><strong>Since RC2.08:</strong> an external keyboard on the channel of MIDI 1 / 2 (USB or DIN) plays its own synth; its notes are not sent again to the MIDI out.</p><p>Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → <strong>line</strong> → <strong>oscillator</strong> → <strong>VA-drum</strong> → <strong>granular</strong> → <strong>sample</strong> (since RC2) → <strong>FX sequencer</strong>.</p><p>Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). <strong>since RC2:</strong> Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MIDI 1 Preset view with the oscillator (pad 27 green): page row and engine pads; pad 28 shows only with the oscillator or VA-drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3022,7 +3022,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The engine values are saved in the device (not with the project); the OSC 2 ones, the Shift knobs of the granular and the oscillator and pads 28 / 29 too since Beta 1.28 (before, they went back to their defaults at power-up).</li>
 </ul>
 </section>
-<section class="feat" id="c2-step-drummer"><h3><span class="code">C2</span>Step-drummer</h3>
+<section class="feat" id="c3-step-drummer"><h3><span class="code">C3</span>Step-drummer</h3>
 <div class="summary"><p>Sequencing by <strong>pairs of steps</strong> on top of the pattern: pads 1-16 steps, 17-24 destination / macro, the 8 knobs = the 8 pairs (pitch or velocity).</p><p>MIDI: Preset view, pad 30. Synths: source view, pad 30. While recording, the steps you play are recorded in real time.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Step-drummer view (MIDI 1).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3209,7 +3209,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>On the synths an empty pair starts at 0.</li>
 </ul>
 </section>
-<section class="feat" id="c3-fx-seq"><h3><span class="code">C3</span>FX sequencer</h3>
+<section class="feat" id="c4-fx-seq"><h3><span class="code">C4</span>FX sequencer</h3>
 <div class="summary"><p><strong>Blue</strong> state of pad 27: the step-drummer of the track picks, for each pair of steps, <strong>a slot of the Master FX bottom row</strong> (0 = none); it plays on the steps with a note.</p><p>The knob moves slowly (<strong>one slot every ~48 steps of the turn</strong>) and lights in the <strong>colour of the chosen effect</strong>. <strong>A slot with no effect assigned does nothing:</strong> assign the effects to the Master FX bottom row first (see “Assignable bottom row”). <strong>since RC2:</strong> at the end of the travel there is the <strong>random</strong> value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="FX sequencer: each knob = the Master FX bottom-row slot of its pair of steps.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3384,7 +3384,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Leaving the blue state switches the step-drummer of the track off.</li>
 </ul>
 </section>
-<section class="feat" id="c4-song-pointer"><h3><span class="code">C4</span>Song pointer (Master FX)</h3>
+<section class="feat" id="c5-song-pointer"><h3><span class="code">C5</span>Song pointer (Master FX)</h3>
 <div class="summary"><p>Pads 9-24 = steps 1-16: one held step = retrigger; two steps = momentary phrase; Shift + two = latched phrase.</p><p><strong>Phrase mode:</strong> Shift + step = start (end 16); a touch = the end; Shift + another step = new start; Shift + the start or the white pad 9 = exit.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Song pointer: phrase between steps 3 and 10.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3549,7 +3549,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The playhead is white while the sequencer runs. When a project loads it starts off.</li>
 </ul>
 </section>
-<section class="feat" id="c5-sample"><h3><span class="code">C5</span>Captured sample</h3>
+<section class="feat" id="c6-sample"><h3><span class="code">C6</span>Captured sample</h3>
 <div class="summary"><p><strong>Pad 32</strong> (red) records the output; <strong>pad 7</strong> (yellow) plays it: K1 pitch, K2 mode (one-shot / gate / loop by colour), K3 start, K4 end.</p><p>The sample can be assigned to the bottom row (pad 7 + a bottom pad) and can replace a drum (A8).</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Captured sample.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3714,7 +3714,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <h4>Assigning</h4>
 <p>Hold pad 7 and touch a pad of the bottom row: that slot plays the sample with a copy of its knobs.</p>
 </section>
-<section class="feat" id="c6-glitch-pad"><h3><span class="code">C6</span>Glitch (pad 6) and its assignment</h3>
+<section class="feat" id="c7-glitch-pad"><h3><span class="code">C7</span>Glitch (pad 6) and its assignment</h3>
 <div class="summary"><p><strong>Hold pad 6</strong> (Master FX or FX view): the output breaks up and lags like a tape. K1 speed, K2 repeat, K3 delay, K4 chaos (lower half) or overload (upper half).</p><p><strong>Pad 6 held + a bottom-row pad</strong> = that slot is a Glitch too, with its copy of K1-K4.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Glitch: pad 6; also assigned to pad 28.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3877,7 +3877,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Pad 6 lights while the Glitch plays.</li>
 </ul>
 </section>
-<section class="feat" id="c7-fila-inferior"><h3><span class="code">C7</span>Assignable bottom row (Master FX / FX)</h3>
+<section class="feat" id="c8-fila-inferior"><h3><span class="code">C8</span>Assignable bottom row (Master FX / FX)</h3>
 <div class="summary"><p>Hold an effect of the top rows (or pad 7, or pad 31) and touch a bottom pad: that slot stores the effect with a copy of its parameters. Saved with the project.</p></div>
 <ul>
 <li><strong>Pads 26-30</strong>: assignable slots (31 is the mechanical gesture). An unassigned slot is the stock performance effect of the FX view.</li>
@@ -3887,7 +3887,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The FX sequencer (C3) triggers these slots.</li>
 </ul>
 </section>
-<section class="feat" id="c8-random-mutate"><h3><span class="code">C8</span>Random-mutate per step</h3>
+<section class="feat" id="c9-random-mutate"><h3><span class="code">C9</span>Random-mutate per step</h3>
 <div class="summary"><p><strong>Since RC2.</strong> In the probability view, in mode 2 (<strong>pad 25</strong> of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Probability view: row 3 = the step’s probability (original), row 4 = random-mutate.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -4065,7 +4065,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The value is stored in the step, with the pattern and the project. The drums have their own (see «Frequency and dynamics per step»).</li>
 </ul>
 </section>
-<section class="feat" id="c9-frecuencia-dinamicas"><h3><span class="code">C9</span>Step frequency and dynamics</h3>
+<section class="feat" id="c10-frecuencia-dinamicas"><h3><span class="code">C10</span>Step frequency and dynamics</h3>
 <div class="summary"><p><strong>Since RC2.</strong> In the probability view of the note tracks: <strong>row 4 = every how many plays of the pattern the step sounds</strong> (1-8). With <strong>pad 25 of Pattern Settings</strong>: row 3 = random <strong>dynamics</strong> (velocity, position and length), row 4 = random-mutate.</p></div>
 <ul>
 <li><strong>Mode 1</strong> (press <strong>Pattern Settings</strong> twice): row 3 = the usual probability; <strong>row 4 = frequency</strong>, in yellow: with n the step sounds on the last of every n plays of the pattern. Each pattern counts its plays from Play.</li>
@@ -4091,7 +4091,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>They live in bytes of the pattern the stock does not use: they travel when duplicated and with Nudge; the first time they are cleared in the project&#x27;s 32 drum patterns.</li>
 </ul>
 </section>
-<section class="feat" id="c10-cadenas"><h3><span class="code">C10</span>Pattern chains and scenes</h3>
+<section class="feat" id="c11-cadenas"><h3><span class="code">C11</span>Pattern chains and scenes</h3>
 <div class="summary"><p><strong>Since RC2.</strong> Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. <strong>Shift + Octave ▲ / ▼</strong> in the Patterns view switches the <strong>chain mode</strong> of the whole project on / off; every scene remembers the mode it was saved in.</p></div>
 <ul>
 <li><strong>Chain mode:</strong> in the Patterns view, <strong>Shift + Octave ▲</strong> switches it on (Octave ▲ green) and <strong>Shift + Octave ▼</strong> off. While Shift is held, the Octave button that does something is yellow. The mode stays on when you leave the view.</li>
@@ -4105,7 +4105,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The rules are saved with the pattern (they travel when it is duplicated); the mode and the scene data, with the project.</li>
 </ul>
 </section>
-<section class="feat" id="c11-nudge-ordenes"><h3><span class="code">C11</span>Nudge and play orders</h3>
+<section class="feat" id="c12-nudge-ordenes"><h3><span class="code">C12</span>Nudge and play orders</h3>
 <div class="summary"><p><strong>Since RC2.</strong> In the Pattern Settings view: <strong>pad 26 = Nudge</strong> (moves the content of the selected steps), <strong>pad 27 = fractal order</strong>, <strong>pad 28 = deconstructed order</strong>. On every track, drums included.</p></div>
 <ul>
 <li><strong>Nudge (pad 26, blue), since RC4.05:</strong> the content of the selected range (first to last step) moves one step back; <strong>Shift + pad 26</strong>, one step forward. What leaves at one end of the range comes in at the other and <strong>the first and last steps do not move</strong>. It moves whole steps with their automation, and on the drums their own values. The view shows it at once. On the RCs it also moves the first and last steps, and the view did not show the moved content until the next Play.</li>
@@ -4116,7 +4116,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The order is saved with the pattern. Clearing the pattern removes it.</li>
 </ul>
 </section>
-<section class="feat" id="c12-arpegiador"><h3><span class="code">C12</span>Arpeggiator (since RC2)</h3>
+<section class="feat" id="c13-arpegiador"><h3><span class="code">C13</span>Arpeggiator (since RC2)</h3>
 <div class="summary"><p><strong>Since RC2.</strong> In the Pattern Settings view of a note track: <strong>Shift + pad 25</strong> = the pattern&#x27;s arpeggiator on / off, <strong>Shift + pads 27-32</strong> = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern&#x27;s direction.</p></div>
 <ul>
 <li>With Shift, pad 25 and pads 27-32 show yellow and the chosen ones green; without Shift, pad 25 shows green while the arpeggiator is on.</li>
@@ -4131,14 +4131,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Gate by holding</strong> (Micro Step view = Gate twice, pad 32, per track): when entering notes by hand, how long you hold the pad is the gate. <strong>Pad 31</strong> = fixed length (with both off it opens the selector; picking a length turns it on). A toggle that is on turns off when pressed again; pressing the other one switches.</li>
 </ul>
 </section>
-<section class="feat" id="c13-rollers"><h3><span class="code">C13</span>Drums micro-step rollers (since RC2)</h3>
+<section class="feat" id="c14-rollers"><h3><span class="code">C14</span>Drums micro-step rollers (since RC2)</h3>
 <div class="summary"><p><strong>Since RC2.</strong> Rows 1-3 of the drums&#x27; Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project&#x27;s tempo.</p></div>
 <ul>
 <li>Each column is the drum of its box below (with the mirrored copy: columns 1-4 = drums 4-1, 5-8 = drums 1-4); dim in the drum&#x27;s colour, lit while held.</li>
 <li>Several at once combine; with the step&#x27;s velocity (100 on an empty step); with Record they are recorded into the pattern.</li>
 </ul>
 </section>
-<section class="feat" id="c14-escala-propia"><h3><span class="code">C14</span>Custom scale (since RC2)</h3>
+<section class="feat" id="c15-escala-propia"><h3><span class="code">C15</span>Custom scale (since RC2)</h3>
 <div class="summary"><p><strong>Since RC2.</strong> <strong>Shift + Scales</strong> = an editor of a custom scale for the note tracks: up to 7 notes over the root and any <strong>period</strong> (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.</p></div>
 <ul>
 <li>The editor&#x27;s keyboard: two octaves of a piano from the root (rows 4 / 3 the first octave, white / black; rows 2 / 1 the second). The highest key pressed is the period (blue), the others the notes (green).</li>
@@ -4146,7 +4146,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>since RC4 — Jankó:</strong> in the editor, <strong>Shift + pad 8</strong> turns on the isomorphic Jankó layout: every column a whole tone up; the rows come in pairs as on the stock&#x27;s chromatic keyboard: the lower one starts on the root and the one above is a semitone lower (C D E F♯… / B C♯ D♯ F…); in the expanded Note view the upper pair is an octave up. <strong>Shift + pad 24</strong> = the earlier layout (every row a semitone above the one below). Every chord type has the same shape in any key; the root pads in the root colour. All 12 notes are in the scale (they all light, random-mutate picks any of its octave). Octave: a tap = a semitone, held = an octave; Shift + Octave still transposes the pattern. Saved with the project.</li>
 </ul>
 </section>
-<section class="feat" id="c15-acordes"><h3><span class="code">C15</span>Chord screen (since RC4)</h3>
+<section class="feat" id="c16-acordes"><h3><span class="code">C16</span>Chord screen (since RC4)</h3>
 <div class="summary"><p><strong>Since RC4.</strong> In the <strong>expanded Note view</strong> of Synth 1 / 2 and MIDI 1 / 2, <strong>Shift + pad 8</strong> opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.</p></div>
 <ul>
 <li><strong>Row 1:</strong> major, minor, 7, m7, maj7, sus4, dim, aug; <strong>Shift + pads 1-7</strong>: sus2, 6, m6, add9, 9, 7sus4, fifth (yellow with Shift, the chosen one white; Shift + pad 8 = on / off).</li>
@@ -4155,7 +4155,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>It sounds and is recorded with Record as plain notes of the pattern (it plays back the same without the screen); the arpeggiator arpeggiates the chord. The type and the modifiers are not saved.</li>
 </ul>
 </section>
-<section class="feat" id="c16-pareja-estereo"><h3><span class="code">C16</span>Stereo drum pairs (since RC4)</h3>
+<section class="feat" id="c17-pareja-estereo"><h3><span class="code">C17</span>Stereo drum pairs (since RC4)</h3>
 <div class="summary"><p><strong>Since RC4.</strong> <strong>Hold Drum 1 and press Drum 2</strong> (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3&#x27;s controls and pattern; Drum 2 / 4&#x27;s knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.</p></div>
 <ul>
 <li>The same gesture undoes the pair; not with Shift, Clear or Duplicate held, nor in Setup.</li>
@@ -4163,7 +4163,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>The knob table is in the guide by views («Drum track view»).</li>
 </ul>
 </section>
-<section class="feat" id="c18-modo-muestra"><h3><span class="code">C18</span>Sample mode of the MIDI tracks (since RC2)</h3>
+<section class="feat" id="c19-modo-muestra"><h3><span class="code">C19</span>Sample mode of the MIDI tracks (since RC2)</h3>
 <div class="summary"><p><strong>Since RC2.</strong> A new state of pad 27 (teal, after the granular): the MIDI track plays <strong>a pack sample one-shot</strong>, at the note&#x27;s pitch (<strong>C3 = note 60 = as recorded</strong>), through the engine&#x27;s filter, effect and LFO; the VCA stays open and the sample plays to its end.</p><p>The <strong>expanded Note view</strong> (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; <strong>a held step + a sample</strong> = that step&#x27;s sample flip, also live with Record.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Expanded Note view of MIDI 1 in the sample mode: steps on top, samples below.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -4319,7 +4319,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Without the sample mode, the expanded Note view is the usual one.</li>
 </ul>
 </section>
-<section class="feat" id="c19-matriz-mod"><h3><span class="code">C19</span>Mod matrix of the own synth (since RC2.02)</h3>
+<section class="feat" id="c20-matriz-mod"><h3><span class="code">C20</span>Mod matrix of the own synth (since RC2.02)</h3>
 <div class="summary"><p><strong>Since RC2.02.</strong> With the MIDI 1 / 2 engine on, <strong>pad 6</strong> of its Preset view is a new knob page: <strong>K1-K8 = eight sources</strong> (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).</p><p>Each knob&#x27;s <strong>position</strong> is the <strong>destination</strong> (every parameter of the knob pages, 33, one stretch each, in its page&#x27;s colour) and, inside the stretch, the <strong>amount</strong>. Slow knobs: two clicks a step, 16 steps a destination.</p></div>
 <ul>
 <li><strong>Sources:</strong> K1 velocity, K2 the note (C3 = 0), K3 a random value at each note, K4 LFO 2, K5 envelope 2 (attack / decay from each note), K6 a decay from each hit of a drum, K7 the pattern position (first to last step), K8 a random value every N steps.</li>
@@ -4330,7 +4330,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Saved with the own-synth patches</strong> (A14); not with the project nor across a power-down. No CC / NRPN. Some 100-250 updates a second, shared by what moves on the track.</li>
 </ul>
 </section>
-<section class="feat" id="c21-fm4"><h3><span class="code">C21</span>4-operator FM (since RC4)</h3>
+<section class="feat" id="c22-fm4"><h3><span class="code">C22</span>4-operator FM (since RC4)</h3>
 <div class="summary"><p><strong>Since RC4.</strong> A variant of the oscillator of the MIDI 1 / 2 own synth: <strong>pad 24</strong> of the engine row (a tap on pad 27), violet; its knobs on <strong>pad 7</strong>.</p><p><strong>K1-K4</strong> = the ratio of operators 1-4 (with a <strong>fine detune</strong> on each ratio&#x27;s clicks), <strong>K5-K8</strong> = their level; <strong>Shift + K1-K4</strong> = to the right its attack, to the left the operator <strong>percussive</strong> with its own decay; <strong>Shift + K5</strong> = the <strong>algorithm</strong> (16; also by <strong>holding pad 7</strong>: pads 9-24 are the algorithms, a press picks one and plays it), <strong>Shift + K6</strong> feedback, <strong>Shift + K7</strong> noise, <strong>Shift + K8</strong> release (longer with more velocity).</p></div>
 <ul>
 <li><strong>A/R envelopes with a fixed sustain:</strong> the sustained operators stay up while the note is held; the percussive ones (by the algorithm, or their Shift + knob to the left) fall even while it is held. The loudness comes from the operators (the engine&#x27;s VCA open).</li>
@@ -4342,7 +4342,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>White noise</strong> with one operator&#x27;s envelope, in any algorithm. The note, TUNE / FINE, the pitch envelope and the vibrato of the oscillator, the filter, the effect and the matrix still apply.</li>
 </ul>
 </section>
-<section class="feat" id="c24-master-fx-beta"><h3><span class="code">C24</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
+<section class="feat" id="c25-master-fx-beta"><h3><span class="code">C25</span>Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session</h3>
 <div class="summary"><p><strong>Since RC2.</strong> Pad 6 of Master FX is the <strong>Glitch</strong> and pad 31 a <strong>mechanical gesture</strong> (tape stop, scratch…); Digitise gains <strong>K3 = momentary send to the delay</strong> and <strong>K4 = envelope</strong>; the Master FX knobs and slots <strong>are saved with every project</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (it replaces the Vinyl): held, latched, assignable to the slots and to the FX sequencer like the other effects; its K1-K4 are the Glitch’s.</li>

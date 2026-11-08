@@ -405,6 +405,22 @@ def use_blep4():
     BLEP4 = True
 
 
+FMCAP = False                                   # (use_fmcap)
+
+
+def use_fmcap():
+    """SC55 (from RYTHM's RD44, tools/va0.py fmcap; the user, 2026-11-07: «el FM ha perdido volumen desde el antialiasing en las notas agudas»
+    -> «Yes, port it»): OSC 1's effective increment under FM (OSC4: |its modulated phase's step|, the one its BLEP uses) held to 3 x its own
+    increment.  Unlimited, a deep FM's step made almost every sample «within 2 increments of a wrap» and the BLEP corrected the whole ramp:
+    measured on this firmware in dspemu (a saw under FM from a sine OSC 2 an octave up, FM 90, MIX 0, C7 against C4): RC4.08 / SC52.3 the
+    fundamental +0.1 dB, the total -1.4; SC52.4-SC52.6 (OSC4) -2.8 / -5.5; SC52.7-SC54 (BLEP4) -4.3 / -6.8; a plain saw -0.1 in all.  3 x
+    rather than 2 x: on RYTHM's model against a 16 x oversampled reference, 3 x keeps the error against it unchanged at every note (2 x gave
+    the level back whole but 1-2 dB more error at C5).  Five instructions in the two-oscillator loop (after |the step|: a = 3 inc, b = min)."""
+    global FMCAP
+    assert OSC4
+    FMCAP = True
+
+
 OSC1X = False                                   # (use_osc1x)
 SX_PH, SX_OFF = 39, 8                           # (OSC1X) OSC1's word of the sub's phase (per voice; OSC4's O1_PREV, unused with one oscillator); OM_T + 48 t
                                                 #   + SX_OFF.. = the sub's base (0..127, the ARM's), LFO / env depths, level (the DSP's), then the noise's four
@@ -1608,7 +1624,9 @@ def code(base, tabs, premix, ret_old):
                     e("move a,x:(r4+23)", "move x:(r3+10),x1")
                     e("move x:(r4+23),y0", "move x:(r4+24),x0", "mpy y0,x0,b", "asl #3,b,b", "move x1,a", "add b,a", "move a1,x1")
                     e("move x:(r3+%d),y0" % PM_PREV, "move x1,x:(r3+%d)" % PM_PREV, "move x1,b", "sub y0,b", "move b1,y0", "move y0,b", "abs b")   # |the phase's step|
-                    e("move x:(r3+11),y0", "move y0,x:(r3+%d)" % INC_SV, "move b,x:(r3+11)", "clr a")
+                    e("move x:(r3+11),y0")
+                    if FMCAP: e("move y0,a", "asl #1,a,a", "add y0,a", "cmp a,b", "tgt a,b")     # (fmcap) at most 3 x OSC 1's increment
+                    e("move y0,x:(r3+%d)" % INC_SV, "move b,x:(r3+11)", "clr a")
                     wcall("r3")
                     e("move x:(r3+%d),y0" % INC_SV, "move y0,x:(r3+11)", "move a,x1", "move x1,x:(r3+%d)" % O1_PREV, "move x:(r4+23),y0")
                 else:

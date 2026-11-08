@@ -33,6 +33,14 @@ GATE, VEL, UNITS = V.SD_LEN, 100, 6
 BUF = 96                                                      # the chords' latched notes (16 slots x 6) on the stack
 COL_AV = 0x2D                                                 # with Shift: the step pads yellow
 HELDCUE = False                                               # SC52.2 (use_heldcue)
+TRIMANY = False                                               # SC54 (use_trimany)
+
+
+def use_trimany():
+    """SC54 (room): c_lsany left out (with HELDCUE nothing calls it)."""
+    global TRIMANY
+    assert HELDCUE
+    TRIMANY = True
 COL_HELD = 0x4D                                               # (HELDCUE) the step being written, the latch's cyan (arpx.COL_CYAN)
 
 
@@ -124,14 +132,15 @@ def arm_code(base, L, prev, chords):
     a.label("ln_x"); E(raw, RET)
 
     # ---- c_lsany(r0 = track) -> r0 != 0 when it has latched notes (keys or chords); clobbers r1-r3
-    a.label("c_lsany")
-    E(push_list, [4], lr=True); E(mov_reg, 4, 0)
-    E(raw, h(0xB080 | BUF >> 2)); E(movs_imm, 0, 0)
-    if chords: E(mov_reg, 0, 4); E(mov_reg, 1, 13); E(bl, L["c_chlat"])
-    E(push_list, [0]); E(mov_reg, 0, 4); E(movs_imm, 1, 0); E(bl, L["c_ltbit"]); E(pop_list, [1])
-    E(movs_imm, 2, 0)
-    a.label("ly_l"); E(ldrb_reg, 3, 0, 2); E(orrs_reg, 1, 3); E(adds_imm8, 2, 1); E(cmp_imm, 2, 16); E(b_cond, "ly_l", "lo")
-    E(raw, h(0xB000 | BUF >> 2)); E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
+    if not (HELDCUE and TRIMANY):                                                      # (HELDCUE: nothing calls it; TRIMANY leaves it out)
+        a.label("c_lsany")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        E(raw, h(0xB080 | BUF >> 2)); E(movs_imm, 0, 0)
+        if chords: E(mov_reg, 0, 4); E(mov_reg, 1, 13); E(bl, L["c_chlat"])
+        E(push_list, [0]); E(mov_reg, 0, 4); E(movs_imm, 1, 0); E(bl, L["c_ltbit"]); E(pop_list, [1])
+        E(movs_imm, 2, 0)
+        a.label("ly_l"); E(ldrb_reg, 3, 0, 2); E(orrs_reg, 1, 3); E(adds_imm8, 2, 1); E(cmp_imm, 2, 16); E(b_cond, "ly_l", "lo")
+        E(raw, h(0xB000 | BUF >> 2)); E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
 
     # ---- c_lsled (the LED task calls: ctrl, frame): the chain; then Shift + a Note view whose track has latched notes = the steps yellow
     a.label("c_lsled")

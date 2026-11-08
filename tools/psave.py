@@ -65,6 +65,24 @@ def use_dupsave():
     DUPSAVE = True
 
 
+CATSAVE = False                       # (use_savecat)
+CT_VT, KNOB_LEDS = 0x0805A62C, 0x44   # the track views' container: slot 4 knobs (cont, knob, delta), slot 7 the frame; its knob LEDs (entries 34..41)
+CAT_CLICKS = 4                        # K1: clicks per category
+CAT_FULL = (127 + 2) << 8             # a knob LED at full brightness ((brightness + 2) << 8 | colour)
+
+
+def use_savecat():
+    """Beta (the user, 2026-11-08: «when a patch is saved, before confirmation, all knobs but 1 light off. 1 allows to select the Category/Color.
+    Confirm save to store it (similar than project save color)»): while the save of a Synth 1 / 2 patch asks (Clear + pad: the slot blinks), the
+    knob LEDs are off but K1, in the colour of the category to save (packio.CAT_PAL; white = None), and the slot blinks in it; K1 picks the category
+    (CAT_CLICKS clicks each, None .. Voc; it starts at the synth's patch's own and keeps the question open), the other knobs do nothing; Clear + the
+    same pad again writes the patch with that category (byte 16, also in the synth's patch in RAM).  State: packio's PCR + 0x0E (the category),
+    + 0x0F (K1's clicks)."""
+    global CATSAVE
+    assert PK.PCAT
+    CATSAVE = True
+
+
 XLEN = 64                             # an exchange moves the 44 bytes of the patch and the 16 of the name tools/patchtool.py keeps after them (padding + 44)
 XBUF = PK.BUF + 128                   # the second patch of an exchange in the shared buffer
 INV8 = V.INV
@@ -149,10 +167,15 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 7, 2); E(cmp_reg, 0, 4); E(b_cond, "sp_ask", "ne")
     tick(0); E(ldrh_imm, 1, 7, 4); E(subs_reg, 0, 0, 1); E(lsls_imm, 0, 0, 16); E(lsrs_imm, 0, 0, 16); E(cmp_imm, 0, LIFE); E(b_cond, "sp_ask", "hs")
     E(movs_imm, 0, 0); E(strb_imm, 0, 7, 1)                                           # asked and confirmed: write
+    if CATSAVE:                                                                       # with the category chosen on K1
+        E(bl, L["c_pcst"]); E(ldrb_imm, 6, 0, 0x0E); E(mov_reg, 0, 4); E(bl, "c_psram"); E(strb_imm, 6, 0, 16)
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pswrite"); E(cmp_imm, 0, 0); E(b_cond, "sp_e", "ne")
     E(b, "sp_f")                                                                      # written: the stock chooses the slot
     a.label("sp_ask")
     E(strb_imm, 6, 7, 1); E(strb_imm, 4, 7, 2); tick(0); E(strh_imm, 0, 7, 4)
+    if CATSAVE:                                                                       # the category to save: the patch's own (None if unknown)
+        E(mov_reg, 0, 4); E(bl, "c_psram"); E(ldrb_imm, 6, 0, 16); E(cmp_imm, 6, 14); E(b_cond, "sp_c", "ls"); E(movs_imm, 6, 0)
+        a.label("sp_c"); E(bl, L["c_pcst"]); E(strb_imm, 6, 0, 0x0E); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0x0F)
     a.label("sp_e"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("sp_drop"); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 1)
     a.label("sp_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["pad"])
@@ -172,9 +195,61 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 1, 7, 1); E(movs_imm, 2, 0x7F); E(ands_reg, 1, 2); E(lsrs_imm, 2, 1, 5); E(cmp_reg, 2, 0); E(b_cond, "sl_x", "ne")
     E(movs_imm, 2, 31); E(ands_reg, 1, 2); E(lsls_imm, 1, 1, 1)
     imm32(0, PK.HAL_TICK); E(ldr_imm, 0, 0, 0); E(lsrs_imm, 0, 0, 7); E(movs_imm, 2, 1); E(ands_reg, 0, 2)
-    E(movs_imm, 2, COL_ASK); E(cmp_imm, 0, 0); E(b_cond, "sl_w", "eq"); E(movs_imm, 2, 0)
+    if CATSAVE:
+        E(mov_reg, 6, 1); E(mov_reg, 4, 0); E(bl, "c_pscol"); E(mov_reg, 2, 0); E(mov_reg, 1, 6); E(cmp_imm, 4, 0); E(b_cond, "sl_w", "eq")
+        E(movs_imm, 2, 0)
+    else:
+        E(movs_imm, 2, COL_ASK); E(cmp_imm, 0, 0); E(b_cond, "sl_w", "eq"); E(movs_imm, 2, 0)
     a.label("sl_w"); E(strh_reg, 2, 5, 1)
     a.label("sl_x"); E(mov_reg, 0, 5); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+
+    if CATSAVE:
+        # ---- c_psram(r0 = synth) -> r0 = its patch in RAM; clobbers r2
+        a.label("c_psram")
+        E(cmp_imm, 0, 0); imm32(0, PATCH_RAM); E(b_cond, "pr_x", "eq"); imm32(2, PATCH_RAM_STRIDE); E(adds_reg, 0, 0, 2)
+        a.label("pr_x"); E(raw, h(0x4770))
+        # ---- c_pscol() -> r0 = the colour of the category chosen (white = None); clobbers r1-r3
+        a.label("c_pscol")
+        E(push_list, [], lr=True)
+        E(bl, L["c_pcst"]); E(ldrb_imm, 1, 0, 0x0E); E(cmp_imm, 1, 0); E(b_cond, "pc_w", "eq")
+        E(adds_reg, 0, 0, 1); E(adds_imm8, 0, 0x90); E(ldrb_imm, 0, 0, 0); E(pop_list, [], pc=True)
+        a.label("pc_w"); E(movs_imm, 0, COL_ASK); E(pop_list, [], pc=True)
+        # ---- c_psq() -> r0 = the synth asked about when a synth question is open and its Preset view is on the screen, else 0xFF; r1 = the state
+        a.label("c_psq")
+        E(push_list, [4], lr=True)
+        E(bl, "c_psst"); E(mov_reg, 4, 0); E(cmp_imm, 0, 0); E(b_cond, "pq_n", "eq")
+        E(ldrb_imm, 0, 4, 1); E(cmp_imm, 0, 0); E(b_cond, "pq_n", "eq")
+        E(ldrb_imm, 0, 4, 2); E(cmp_imm, 0, K_MIDI); E(b_cond, "pq_n", "hs")
+        tick(0); E(ldrh_imm, 1, 4, 4); E(subs_reg, 0, 0, 1); E(lsls_imm, 0, 0, 16); E(lsrs_imm, 0, 0, 16); E(cmp_imm, 0, LIFE); E(b_cond, "pq_n", "hs")
+        E(bl, "c_pson"); E(ldrb_imm, 1, 4, 2); E(cmp_reg, 0, 1); E(b_cond, "pq_n", "ne")
+        E(mov_reg, 1, 4); E(pop_list, [4], pc=True)
+        a.label("pq_n"); E(movs_imm, 0, 0xFF); E(pop_list, [4], pc=True)
+        # ---- c_pskn (the container's slot 4: cont, knob, delta): during the question K1 = the category, the others nothing
+        a.label("c_pskn")
+        E(push_list, [0, 1, 2, 4], lr=True)
+        E(bl, "c_psq"); E(cmp_imm, 0, 0xFF); E(b_cond, "pk_p", "eq"); E(mov_reg, 4, 1)
+        E(raw, h(0x9801)); E(cmp_imm, 0, 0); E(b_cond, "pk_s", "ne")   # ldr r0, [sp, #4]: the knob
+        tick(0); E(strh_imm, 0, 4, 4)                                                 # the question stays open while K1 turns
+        E(bl, L["c_pcst"]); E(mov_reg, 3, 0)
+        E(ldrb_imm, 0, 3, 0x0F); E(raw, h(0x0600)); E(raw, h(0x1600)); E(raw, h(0x9902)); E(adds_reg, 0, 0, 1)   # lsls / asrs #24; ldr r1, [sp, #8]
+        E(ldrb_imm, 1, 3, 0x0E)
+        E(cmp_imm, 0, CAT_CLICKS); E(b_cond, "pk_u", "ge")
+        E(mov_reg, 2, 0); E(adds_imm8, 2, CAT_CLICKS); E(cmp_imm, 2, 0); E(b_cond, "pk_d", "le")
+        E(strb_imm, 0, 3, 0x0F); E(b, "pk_s")
+        a.label("pk_u"); E(cmp_imm, 1, 14); E(b_cond, "pk_z", "hs"); E(adds_imm8, 1, 1); E(b, "pk_z")
+        a.label("pk_d"); E(cmp_imm, 1, 0); E(b_cond, "pk_z", "eq"); E(subs_imm8, 1, 1)
+        a.label("pk_z"); E(strb_imm, 1, 3, 0x0E); E(movs_imm, 0, 0); E(strb_imm, 0, 3, 0x0F)
+        a.label("pk_s"); E(pop_list, [0, 1, 2, 4], pc=True)
+        a.label("pk_p"); E(pop_list, [0, 1, 2, 4]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, prev["knob"])   # pop {lr}
+        # ---- c_pskl (the container's slot 7: cont -> the frame): during the question K1 in the category's colour, the other knob LEDs off
+        a.label("c_pskl")
+        E(push_list, [4, 5], lr=True)
+        E(bl, prev["kled"]); E(mov_reg, 5, 0)
+        E(bl, "c_psq"); E(cmp_imm, 0, 0xFF); E(b_cond, "pl_x", "eq")
+        E(bl, "c_pscol"); imm32(1, CAT_FULL); E(orrs_reg, 0, 1); E(mov_reg, 1, 5); E(adds_imm8, 1, KNOB_LEDS); E(strh_imm, 0, 1, 0)
+        E(movs_imm, 0, 0)
+        for k in range(1, 8): E(strh_imm, 0, 1, 2 * k)
+        a.label("pl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5], pc=True)
 
     # ================= the own-synth patches of MIDI 1 / 2 =================
     def held(rd):
@@ -315,8 +390,9 @@ def install(img, report, base_addr):
     lab = lambda sec, n: int(report[sec]["labels"][n], 16)
     L = dict(c_gst=lab("sc14", "c_gst"), c_srcv=lab("packio", "c_srcv"), c_curpack=lab("packio", "c_curpack"))
     L.update({n: lab("mpatch", n) for n in ("c_mpsz", "c_mpr", "c_mpw", "c_mpon", "c_mpc", "c_mpsave")})
+    if CATSAVE: L["c_pcst"] = lab("packio", "c_pcst")
     L.update(c_edact=lab("vcf20", "c_edact"), c_vreset=lab("vcf20", "c_vreset"), c_sdio=lab("vcf20", "c_sdio"), c_sdtonic=lab("vcf20", "c_sdtonic"))
-    prev = dict(pad=u(SP_VT) & ~1, leds=u(SP_VT + 28) & ~1, xpad=u(TMPL_VT) & ~1, xrel=u(TMPL_VT + 4) & ~1, xleds=u(TMPL_VT + 28) & ~1, btn=MP.bw_target(img, BTN_ENTRY, BASE))
+    prev = dict(knob=u(CT_VT + 16) & ~1, kled=u(CT_VT + 28) & ~1, pad=u(SP_VT) & ~1, leds=u(SP_VT + 28) & ~1, xpad=u(TMPL_VT) & ~1, xrel=u(TMPL_VT + 4) & ~1, xleds=u(TMPL_VT + 28) & ~1, btn=MP.bw_target(img, BTN_ENTRY, BASE))
     assert prev["btn"] == lab("macroed", "c_mcbtn")
     assert prev["pad"] == lab("macroed", "c_mcpad") and prev["leds"] == lab("macroed", "c_mcleds")
     assert prev["xpad"] == lab("mpatch", "c_mppad") and prev["xleds"] == lab("mpatch", "c_mpleds")
@@ -331,4 +407,7 @@ def install(img, report, base_addr):
     struct.pack_into("<I", img, TMPL_VT + 28 - BASE, labels["c_psxleds"] | 1)
     struct.pack_into("<I", img, TMPL_VT + 4 - BASE, labels["c_psxrel"] | 1)
     img[BTN_ENTRY - BASE:BTN_ENTRY - BASE + 4] = b_w(BTN_ENTRY, labels["c_psbtn"])
+    if CATSAVE:
+        struct.pack_into("<I", img, CT_VT + 16 - BASE, labels["c_pskn"] | 1)
+        struct.pack_into("<I", img, CT_VT + 28 - BASE, labels["c_pskl"] | 1)
     return labels, code, prev

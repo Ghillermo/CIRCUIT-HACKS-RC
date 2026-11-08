@@ -151,12 +151,24 @@ def use_heads():
 
 
 def tables():
-    return [("kd", bytes(v for page in KD for e in page for v in e)), ("rat", struct.pack("<24H", *F.RAT256)),
+    t = [("kd", bytes(v for page in KD for e in page for v in e)), ("rat", struct.pack("<24H", *F.RAT256)),
             ("det", struct.pack("<64H", *[v for row in F.DET4096 for v in row])), ("olt", bytes(F.OLT)), ("atk2r", bytes(F.ATK2R)),
             ("rel2r", bytes(F.REL2R)), ("kvsa", bytes(F.KVS_ALG)), ("ksa", bytes(FE.KS)), ("susm", bytes(F.SUSM)), ("algf", ALGF), ("rof", ROF),
             ("opdef", F.op_default(4)), ("dxdef", DXDEF), ("voic", bytes(v for row in FE.VOICINGS for v in row)),
             ("strt", bytes(v for _, row in FE.STARTERS for v in row)), ("stc", bytes(c_ for f in FE.ST_OF for c_ in FE.ST_FAM[f])),
-            ("fam", bytes(x["fam"] for x in FE.ALGS)), ("famc", bytes(c_ for pair in FE.FAMC for c_ in pair))] + (v2_tables() if V2 else [])
+            ("fam", bytes(x["fam"] for x in FE.ALGS)), ("famc", bytes(c_ for pair in FE.FAMC for c_ in pair))]
+    if NOSTRT: t = [x for x in t if x[0] not in ("strt", "stc")]
+    return t + (v2_tables() if V2 else [])
+
+
+NOSTRT = False                                                         # (use_nostrt)
+
+
+def use_nostrt():
+    """SC54 (room for the patch morph): the starters' tables (strt / stc, 288 B) left out: with V2 nothing reads them (pad 8 = the instruments)."""
+    global NOSTRT
+    assert V2
+    NOSTRT = True
 
 
 def v2_tables():

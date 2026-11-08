@@ -436,8 +436,22 @@ BUILDS = [
     ("b5.32", "build_beta5_32.py", []),
     ("sc53", "build_sc53.py", []),
     ("b5.33", "build_beta5_33.py", []),
+    ("sc54", "build_sc54.py", []),
+    ("b5.34", "build_beta5_34.py", []),
+    ("sc54.1", "build_sc54_1.py", []),
+    ("sc55.1", "build_sc55_1.py", []),
+    ("b5.36", "build_beta5_36.py", []),
+    ("sc55.2", "build_sc55_2.py", []),
+    ("b5.37", "build_beta5_37.py", []),
+    ("s552d", "build_s552d.py", []),
+    ("sc55.3", "build_sc55_3.py", []),
+    ("b5.38", "build_beta5_38.py", []),
     ("r408", "build_r408.py", []),
     ("r408s", "build_r408s.py", []),
+    ("r409", "build_r409.py", []),
+    ("r409s", "build_r409s.py", []),
+    ("r410", "build_r410.py", []),
+    ("r410s", "build_r410s.py", []),
     ("r404", "build_r404.py", []),
     ("r404s", "build_r404s.py", []),
     ("r401", "build_r401.py", []),
@@ -509,6 +523,13 @@ def main(only):
         blk = b.read_bytes()[0x1C8:0x1C8 + 0x26]
         if blk in seen: print(f"SAME VERSION BLOCK: {seen[blk]} and {b.parent.name} (marker {blk[-6:]!r})"); bad += 1
         else: seen[blk] = b.parent.name
+        # a build rebuilt in place with other bytes but the same block never reaches a device that has the committed one (SC54 / Beta 5.34,
+        # 2026-11-08: the fixed morph was rebuilt under the same names and the device kept the build that resets): give it a new name
+        rel = b.relative_to(ROOT).as_posix()
+        r = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=ROOT, capture_output=True)
+        if r.returncode == 0 and r.stdout != b.read_bytes() and r.stdout[0x1C8:0x1C8 + 0x26] == blk:
+            print(f"REBUILT IN PLACE: {b.parent.name} differs from the committed build but keeps its version block (marker {blk[-6:]!r}): "
+                  "a device with the committed one will not install it; give the new build a new name"); bad += 1
     print("RESULT:", "ALL IDENTICAL" if bad == 0 else f"{bad} differ")
     return bad
 

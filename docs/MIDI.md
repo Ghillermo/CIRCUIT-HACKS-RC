@@ -27,24 +27,24 @@ Canal de la pista MIDI. Valores 0-127; los bipolares, 64 = centro. Sale al girar
 | 13 | Tipo de efecto | NRPN 4:13 | 1 / Shift + K8 |
 | 15 | Envolvente → nivel | NRPN 4:15 | 1 / K3 |
 | 16 | Tipo de filtro | NRPN 4:16 | 1 / Shift + K5 |
-| 17 | TUNE (granular: tono) | CC 26 | 2 / K1 (Beta 5.33: 2 / K1) |
-| 18 | FINE (granular: tamaño) | CC 27 | 2 / Shift + K1 (Beta 5.33: 2 / K2) |
-| 19 | WAVE (granular: posición) | CC 20 | 2 / K7 (Beta 5.33: 2 / K3) |
-| 20 | SHAPE (granular: densidad) | CC 21 | 2 / K2 (Beta 5.33: 2 / K4) |
-| 21 | LFO → tono (granular: scan) | NRPN 4:21 | 2 / K5 (Beta 5.33: 2 / Shift + K2) |
-| 22 | Envolvente → tono (granular: env → posición) | NRPN 4:22 | 2 / K3 (Beta 5.33: 2 / Shift + K1) |
-| 23 | Envolvente → forma (granular: zona) | NRPN 4:23 | 2 / K4 (Beta 5.33: 2 / Shift + K4) |
-| 24 | LFO → forma (granular: LFO → posición) | NRPN 4:24 | 2 / K6 (Beta 5.33: 2 / Shift + K7) |
-| 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 (Beta 5.33: 2 / Shift + K3) |
-| 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 (Beta 5.33: 2 / K7) |
-| 27 | TUNE 2 (granular: LFO → tamaño; Beta 5.33: el ratio de OSC 2, ¼ … 31) | CC 37 | 3 / K1 (Beta 5.33: 3 / K1) |
-| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.33: 3 / K2) |
-| 29 | WAVE 2 (granular: dispersión del tono; RC4: estéreo) | CC 30 | 3 / K7 (Beta 5.33: 3 / K3) |
-| 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 (Beta 5.33: 3 / K4) |
-| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.33: 3 / K8) |
-| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.33: 3 / K7) |
-| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.33: 3 / K5) |
-| 34 | RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.33: 3 / K6) |
+| 17 | TUNE (granular: tono) | CC 26 | 2 / K1 (Beta 5.38: 2 / K1) |
+| 18 | FINE (granular: tamaño) | CC 27 | 2 / Shift + K1 (Beta 5.38: 2 / K2) |
+| 19 | WAVE (granular: posición) | CC 20 | 2 / K7 (Beta 5.38: 2 / K3) |
+| 20 | SHAPE (granular: densidad) | CC 21 | 2 / K2 (Beta 5.38: 2 / K4) |
+| 21 | LFO → tono (granular: scan) | NRPN 4:21 | 2 / K5 (Beta 5.38: 2 / Shift + K2) |
+| 22 | Envolvente → tono (granular: env → posición) | NRPN 4:22 | 2 / K3 (Beta 5.38: 2 / Shift + K1) |
+| 23 | Envolvente → forma (granular: zona) | NRPN 4:23 | 2 / K4 (Beta 5.38: 2 / Shift + K4) |
+| 24 | LFO → forma (granular: LFO → posición) | NRPN 4:24 | 2 / K6 (Beta 5.38: 2 / Shift + K7) |
+| 25 | Envolvente → morph (granular: fuente) | NRPN 4:25 | 2 / Shift + K8 (Beta 5.38: 2 / Shift + K3) |
+| 26 | LFO → morph (granular: modo de nota) | NRPN 4:26 | 2 / K8 (Beta 5.38: 2 / K7) |
+| 27 | TUNE 2 (granular: LFO → tamaño; Beta 5.38: el ratio de OSC 2, ¼ … 31) | CC 37 | 3 / K1 (Beta 5.38: 3 / K1) |
+| 28 | FINE 2 (granular: fino) | CC 39 | 3 / K5 (RC2) · 3 / Shift + K1 (RC0.9) (Beta 5.38: 3 / K2) |
+| 29 | WAVE 2 (granular: dispersión del tono; RC4: estéreo) | CC 30 | 3 / K7 (Beta 5.38: 3 / K3) |
+| 30 | SHAPE 2 (granular: ventana) | CC 31 | 3 / K2 (Beta 5.38: 3 / K4) |
+| 31 | MIX OSC 1 ↔ OSC 2 | CC 52 | 2 / Shift + K2 · 3 / K3 (RC2) (Beta 5.38: 3 / K8) |
+| 32 | BITSYNC | NRPN 4:32 | 2 / Shift + K3 · 3 / K6 (RC2) (Beta 5.38: 3 / K7) |
+| 33 | FM (granular: dispersión de la posición) | NRPN 4:33 | 3 / K4 (RC2) · 3 / Shift + K2 (RC0.9) (Beta 5.38: 3 / K5) |
+| 34 | RING (granular: reverso; RC4: bipolar, reverso / dispersión del tono) | CC 54 | 3 / K8 (RC2) · 3 / Shift + K3 (RC0.9) (Beta 5.38: 3 / K6) |
 
 **Knobs secuenciables** (página 4: se graban en el patrón con Record): TUNE, Release, Envolvente → nivel, Envolvente → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto. *Solo RC4:* los ocho destinos se eligen con Shift + knob.
 

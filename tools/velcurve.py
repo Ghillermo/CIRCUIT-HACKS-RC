@@ -63,23 +63,24 @@ def arm_code(base, prev, L):
     a.label("vg_x"); E(raw, h(0xBD00))
 
     # ---- c_vcpad (the controller's pad entry: ctrl, pad, velocity): the curve on the velocity, then the stock
-    a.label("c_vcpad")
-    E(cmp_imm, 2, 0); E(b_cond, "vp_f", "eq")
-    E(push_list, [0, 1, 3, 4, 5], lr=True); E(mov_reg, 4, 2)                                     # r4 = v
-    E(bl, "c_vcget"); E(subs_imm8, 0, CMAX); E(b_cond, "vp_p", "eq"); E(mov_reg, 5, 0)          # r5 = c (signed)
-    E(movs_imm, 0, 127); E(subs_reg, 0, 0, 4)                                                   # r0 = 127 - v
-    E(cmp_imm, 5, 0); E(b_cond, "vp_n", "lt")
-    E(muls, 0, 0); E(movw, 1, 258); E(muls, 0, 1); E(lsrs_imm, 0, 0, 15); E(movs_imm, 1, 127); E(subs_reg, 0, 1, 0)   # t = 127 - (127 - v)^2 / 127
-    E(subs_reg, 0, 0, 4); E(muls, 0, 5); E(lsrs_imm, 0, 0, 3); E(adds_reg, 4, 4, 0); E(b, "vp_c")   # v + c (t - v) / 8 (t >= v)
-    a.label("vp_n")
-    E(mov_reg, 0, 4); E(muls, 0, 0); E(movw, 1, 258); E(muls, 0, 1); E(lsrs_imm, 0, 0, 15)          # t = v^2 / 127
-    E(subs_reg, 0, 4, 0); E(movs_imm, 1, 0); E(subs_reg, 1, 1, 5); E(muls, 0, 1); E(lsrs_imm, 0, 0, 3); E(subs_reg, 4, 4, 0)   # v - |c| (v - t) / 8
-    a.label("vp_c")
-    E(cmp_imm, 4, 1); E(b_cond, "vp_l", "ge"); E(movs_imm, 4, 1)
-    a.label("vp_l"); E(cmp_imm, 4, 127); E(b_cond, "vp_p", "le"); E(movs_imm, 4, 127)
-    a.label("vp_p"); E(mov_reg, 2, 4); E(pop_list, [0, 1, 3, 4, 5])
-    E(raw, h(0xF85D) + h(0xEB04))                                                                  # ldr.w lr, [sp], #4
-    a.label("vp_f"); E(b_w, prev["pad"])
+    if not TRIMPAD:                                                                               # (TRIMPAD: velglob takes the entry back)
+        a.label("c_vcpad")
+        E(cmp_imm, 2, 0); E(b_cond, "vp_f", "eq")
+        E(push_list, [0, 1, 3, 4, 5], lr=True); E(mov_reg, 4, 2)                                     # r4 = v
+        E(bl, "c_vcget"); E(subs_imm8, 0, CMAX); E(b_cond, "vp_p", "eq"); E(mov_reg, 5, 0)          # r5 = c (signed)
+        E(movs_imm, 0, 127); E(subs_reg, 0, 0, 4)                                                   # r0 = 127 - v
+        E(cmp_imm, 5, 0); E(b_cond, "vp_n", "lt")
+        E(muls, 0, 0); E(movw, 1, 258); E(muls, 0, 1); E(lsrs_imm, 0, 0, 15); E(movs_imm, 1, 127); E(subs_reg, 0, 1, 0)   # t = 127 - (127 - v)^2 / 127
+        E(subs_reg, 0, 0, 4); E(muls, 0, 5); E(lsrs_imm, 0, 0, 3); E(adds_reg, 4, 4, 0); E(b, "vp_c")   # v + c (t - v) / 8 (t >= v)
+        a.label("vp_n")
+        E(mov_reg, 0, 4); E(muls, 0, 0); E(movw, 1, 258); E(muls, 0, 1); E(lsrs_imm, 0, 0, 15)          # t = v^2 / 127
+        E(subs_reg, 0, 4, 0); E(movs_imm, 1, 0); E(subs_reg, 1, 1, 5); E(muls, 0, 1); E(lsrs_imm, 0, 0, 3); E(subs_reg, 4, 4, 0)   # v - |c| (v - t) / 8
+        a.label("vp_c")
+        E(cmp_imm, 4, 1); E(b_cond, "vp_l", "ge"); E(movs_imm, 4, 1)
+        a.label("vp_l"); E(cmp_imm, 4, 127); E(b_cond, "vp_p", "le"); E(movs_imm, 4, 127)
+        a.label("vp_p"); E(mov_reg, 2, 4); E(pop_list, [0, 1, 3, 4, 5])
+        E(raw, h(0xF85D) + h(0xEB04))                                                                  # ldr.w lr, [sp], #4
+        a.label("vp_f"); E(b_w, prev["pad"])
 
     # ---- c_vcadv() -> r0 = 1 with Advanced Setup on the screen; clobbers r1-r3
     a.label("c_vcadv")
@@ -135,6 +136,15 @@ def arm_code(base, prev, L):
     return a.assemble()
 
 
+TRIMPAD = False                                                      # SC54 (use_trimpad)
+
+
+def use_trimpad():
+    """SC54 (room): the pad curve (c_vcpad) left out: velglob (SC51) puts the controller's pad entry back to the stock's, so nothing reaches it."""
+    global TRIMPAD
+    TRIMPAD = True
+
+
 def install(img, report, base_addr):
     """The code at base_addr (hole.add); the controller's pad entry, the Setup view's slot 4, the LED task calls."""
     import ct_fw
@@ -149,7 +159,7 @@ def install(img, report, base_addr):
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
-    struct.pack_into("<I", img, CTRL_VT - BASE, labels["c_vcpad"] | 1)
+    if not TRIMPAD: struct.pack_into("<I", img, CTRL_VT - BASE, labels["c_vcpad"] | 1)
     struct.pack_into("<I", img, PG.SETUP_VT + 16 - BASE, labels["c_vcknob"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)

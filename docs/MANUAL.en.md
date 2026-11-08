@@ -22,7 +22,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A12 Cue mode, mutes on the bar and quantize (since RC2)](#a12-mixer-cue)
 - [A13 LFO synced to the tempo (since RC4)](#a13-lfo-sync)
 - [A14 Split keyboard Synth 1 + Synth 2](#a14-teclado-partido)
-- [A15 Synth patches by voice mode](#a15-colores-patch)
+- [A15 Synth patch colours](#a15-colores-patch)
 - [A16 Patches of the own synth (MIDI 1 / 2)](#a16-patches-midi)
 - [A17 Saving the synth’s patch into the pack](#a17-guardar-patch)
 - [A18 Macro knob destinations](#a18-destinos-macro)
@@ -44,30 +44,31 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 **C. New control modes**
 
-- [C1 Engine of the MIDI tracks (pad 27)](#c1-motor-midi)
-- [C2 Step-drummer](#c2-step-drummer)
-- [C3 FX sequencer](#c3-fx-seq)
-- [C4 Song pointer (Master FX)](#c4-song-pointer)
-- [C5 Captured sample](#c5-sample)
-- [C6 Glitch (pad 6) and its assignment](#c6-glitch-pad)
-- [C7 Assignable bottom row (Master FX / FX)](#c7-fila-inferior)
-- [C8 Random-mutate per step](#c8-random-mutate)
-- [C9 Step frequency and dynamics](#c9-frecuencia-dinamicas)
-- [C10 Pattern chains and scenes](#c10-cadenas)
-- [C11 Nudge and play orders](#c11-nudge-ordenes)
-- [C12 Arpeggiator (since RC2)](#c12-arpegiador)
-- [C13 Drums micro-step rollers (since RC2)](#c13-rollers)
-- [C14 Custom scale (since RC2)](#c14-escala-propia)
-- [C15 Chord screen (since RC4)](#c15-acordes)
-- [C16 Stereo drum pairs (since RC4)](#c16-pareja-estereo)
-- [C17 The drums' extra lane (Beta 5.33 only)](#c17-carril-extra)
-- [C18 Sample mode of the MIDI tracks (since RC2)](#c18-modo-muestra)
-- [C19 Mod matrix of the own synth (since RC2.02)](#c19-matriz-mod)
-- [C20 Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)](#c20-saltos)
-- [C21 4-operator FM (since RC4)](#c21-fm4)
-- [C22 8-operator FM (Beta 5.33 only)](#c22-fm8)
-- [C23 Wavetable (Beta 5.33 only)](#c23-wavetable)
-- [C24 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c24-master-fx-beta)
+- [C1 Patch morph (Beta 5.38 only)](#c1-morph)
+- [C2 Engine of the MIDI tracks (pad 27)](#c2-motor-midi)
+- [C3 Step-drummer](#c3-step-drummer)
+- [C4 FX sequencer](#c4-fx-seq)
+- [C5 Song pointer (Master FX)](#c5-song-pointer)
+- [C6 Captured sample](#c6-sample)
+- [C7 Glitch (pad 6) and its assignment](#c7-glitch-pad)
+- [C8 Assignable bottom row (Master FX / FX)](#c8-fila-inferior)
+- [C9 Random-mutate per step](#c9-random-mutate)
+- [C10 Step frequency and dynamics](#c10-frecuencia-dinamicas)
+- [C11 Pattern chains and scenes](#c11-cadenas)
+- [C12 Nudge and play orders](#c12-nudge-ordenes)
+- [C13 Arpeggiator (since RC2)](#c13-arpegiador)
+- [C14 Drums micro-step rollers (since RC2)](#c14-rollers)
+- [C15 Custom scale (since RC2)](#c15-escala-propia)
+- [C16 Chord screen (since RC4)](#c16-acordes)
+- [C17 Stereo drum pairs (since RC4)](#c17-pareja-estereo)
+- [C18 The drums' extra lane (Beta 5.33 only)](#c18-carril-extra)
+- [C19 Sample mode of the MIDI tracks (since RC2)](#c19-modo-muestra)
+- [C20 Mod matrix of the own synth (since RC2.02)](#c20-matriz-mod)
+- [C21 Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)](#c21-saltos)
+- [C22 4-operator FM (since RC4)](#c22-fm4)
+- [C23 8-operator FM (Beta 5.33 only)](#c23-fm8)
+- [C24 Wavetable (Beta 5.33 only)](#c24-wavetable)
+- [C25 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c25-master-fx-beta)
 
 **D. DSP**
 
@@ -149,8 +150,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
 
 <a id="a15-colores-patch"></a>
-### A15. Synth patches by voice mode
-- **Since RC2.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**.
+### A15. Synth patch colours
+- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.38 only:** each patch in the colour of its **Components category**.
 
 <a id="a16-patches-midi"></a>
 ### A16. Patches of the own synth (MIDI 1 / 2)
@@ -220,112 +221,116 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 ## C. New control modes
 
-<a id="c1-motor-midi"></a>
-### C1. Engine of the MIDI tracks (pad 27)
+<a id="c1-morph"></a>
+### C1. Patch morph (Beta 5.38 only)
+- **Beta 5.38 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope.
+
+<a id="c2-motor-midi"></a>
+### C2. Engine of the MIDI tracks (pad 27)
 - **Since RC2.08:** an external keyboard on the channel of MIDI 1 / 2 (USB or DIN) plays its own synth; its notes are not sent again to the MIDI out.
 - Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → **line** → **oscillator** → **VA-drum** → **granular** → **sample** (since RC2) → **FX sequencer**.
 - Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **since RC2:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
 
-<a id="c2-step-drummer"></a>
-### C2. Step-drummer
+<a id="c3-step-drummer"></a>
+### C3. Step-drummer
 - Sequencing by **pairs of steps** on top of the pattern: pads 1-16 steps, 17-24 destination / macro, the 8 knobs = the 8 pairs (pitch or velocity).
 - MIDI: Preset view, pad 30. Synths: source view, pad 30. While recording, the steps you play are recorded in real time.
 
-<a id="c3-fx-seq"></a>
-### C3. FX sequencer
+<a id="c4-fx-seq"></a>
+### C4. FX sequencer
 - **Blue** state of pad 27: the step-drummer of the track picks, for each pair of steps, **a slot of the Master FX bottom row** (0 = none); it plays on the steps with a note.
 - The knob moves slowly (**one slot every ~48 steps of the turn**) and lights in the **colour of the chosen effect**. **A slot with no effect assigned does nothing:** assign the effects to the Master FX bottom row first (see “Assignable bottom row”). **since RC2:** at the end of the travel there is the **random** value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).
 
-<a id="c4-song-pointer"></a>
-### C4. Song pointer (Master FX)
+<a id="c5-song-pointer"></a>
+### C5. Song pointer (Master FX)
 - Pads 9-24 = steps 1-16: one held step = retrigger; two steps = momentary phrase; Shift + two = latched phrase.
 - **Phrase mode:** Shift + step = start (end 16); a touch = the end; Shift + another step = new start; Shift + the start or the white pad 9 = exit.
 
-<a id="c5-sample"></a>
-### C5. Captured sample
+<a id="c6-sample"></a>
+### C6. Captured sample
 - **Pad 32** (red) records the output; **pad 7** (yellow) plays it: K1 pitch, K2 mode (one-shot / gate / loop by colour), K3 start, K4 end.
 - The sample can be assigned to the bottom row (pad 7 + a bottom pad) and can replace a drum (A8).
 
-<a id="c6-glitch-pad"></a>
-### C6. Glitch (pad 6) and its assignment
+<a id="c7-glitch-pad"></a>
+### C7. Glitch (pad 6) and its assignment
 - **Hold pad 6** (Master FX or FX view): the output breaks up and lags like a tape. K1 speed, K2 repeat, K3 delay, K4 chaos (lower half) or overload (upper half).
 - **Pad 6 held + a bottom-row pad** = that slot is a Glitch too, with its copy of K1-K4.
 
-<a id="c7-fila-inferior"></a>
-### C7. Assignable bottom row (Master FX / FX)
+<a id="c8-fila-inferior"></a>
+### C8. Assignable bottom row (Master FX / FX)
 - Hold an effect of the top rows (or pad 7, or pad 31) and touch a bottom pad: that slot stores the effect with a copy of its parameters. Saved with the project.
 
-<a id="c8-random-mutate"></a>
-### C8. Random-mutate per step
+<a id="c9-random-mutate"></a>
+### C9. Random-mutate per step
 - **Since RC2.** In the probability view, in mode 2 (**pad 25** of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
 
-<a id="c9-frecuencia-dinamicas"></a>
-### C9. Step frequency and dynamics
+<a id="c10-frecuencia-dinamicas"></a>
+### C10. Step frequency and dynamics
 - **Since RC2.** In the probability view of the note tracks: **row 4 = every how many plays of the pattern the step sounds** (1-8). With **pad 25 of Pattern Settings**: row 3 = random **dynamics** (velocity, position and length), row 4 = random-mutate.
 
-<a id="c10-cadenas"></a>
-### C10. Pattern chains and scenes
+<a id="c11-cadenas"></a>
+### C11. Pattern chains and scenes
 - **Since RC2.** Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. **Shift + Octave ▲ / ▼** in the Patterns view switches the **chain mode** of the whole project on / off; every scene remembers the mode it was saved in.
 
-<a id="c11-nudge-ordenes"></a>
-### C11. Nudge and play orders
+<a id="c12-nudge-ordenes"></a>
+### C12. Nudge and play orders
 - **Since RC2.** In the Pattern Settings view: **pad 26 = Nudge** (moves the content of the selected steps), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
 
-<a id="c12-arpegiador"></a>
-### C12. Arpeggiator (since RC2)
+<a id="c13-arpegiador"></a>
+### C13. Arpeggiator (since RC2)
 - **Since RC2.** In the Pattern Settings view of a note track: **Shift + pad 25** = the pattern's arpeggiator on / off, **Shift + pads 27-32** = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern's direction.
 
-<a id="c13-rollers"></a>
-### C13. Drums micro-step rollers (since RC2)
+<a id="c14-rollers"></a>
+### C14. Drums micro-step rollers (since RC2)
 - **Since RC2.** Rows 1-3 of the drums' Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project's tempo.
 
-<a id="c14-escala-propia"></a>
-### C14. Custom scale (since RC2)
+<a id="c15-escala-propia"></a>
+### C15. Custom scale (since RC2)
 - **Since RC2.** **Shift + Scales** = an editor of a custom scale for the note tracks: up to 7 notes over the root and any **period** (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.
 
-<a id="c15-acordes"></a>
-### C15. Chord screen (since RC4)
+<a id="c16-acordes"></a>
+### C16. Chord screen (since RC4)
 - **Since RC4.** In the **expanded Note view** of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8** opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.
 
-<a id="c16-pareja-estereo"></a>
-### C16. Stereo drum pairs (since RC4)
+<a id="c17-pareja-estereo"></a>
+### C17. Stereo drum pairs (since RC4)
 - **Since RC4.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.
 
-<a id="c17-carril-extra"></a>
-### C17. The drums' extra lane (Beta 5.33 only)
+<a id="c18-carril-extra"></a>
+### C18. The drums' extra lane (Beta 5.33 only)
 - **Beta 5.33 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
 
-<a id="c18-modo-muestra"></a>
-### C18. Sample mode of the MIDI tracks (since RC2)
+<a id="c19-modo-muestra"></a>
+### C19. Sample mode of the MIDI tracks (since RC2)
 - **Since RC2.** A new state of pad 27 (teal, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
 - The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
 
-<a id="c19-matriz-mod"></a>
-### C19. Mod matrix of the own synth (since RC2.02)
+<a id="c20-matriz-mod"></a>
+### C20. Mod matrix of the own synth (since RC2.02)
 - **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
 - Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
 
-<a id="c20-saltos"></a>
-### C20. Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)
+<a id="c21-saltos"></a>
+### C21. Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)
 - The notes of a MIDI track make another track's pattern jump to the step they indicate.
 
-<a id="c21-fm4"></a>
-### C21. 4-operator FM (since RC4)
+<a id="c22-fm4"></a>
+### C22. 4-operator FM (since RC4)
 - **Since RC4.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
 - **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
 
-<a id="c22-fm8"></a>
-### C22. 8-operator FM (Beta 5.33 only)
+<a id="c23-fm8"></a>
+### C23. 8-operator FM (Beta 5.33 only)
 - **Beta 5.33 only.** It replaces the 4-operator FM on **pad 24** of the engine row: **up to 8 operators**, each with a **DX7-style envelope** (4 rates, 4 levels), and **56 algorithms** (the 4-operator FM's 16, the DX7's 32 and 8 with eight operators). 4-operator FM patches load converted, with the same sound.
 - FM page = **pad 7** (with the engine row closed): **pads 9-16** = operator 1-8 (the ones the algorithm uses lit: carriers green, modulators light blue), **pad 3** = the pitch envelope (violet). **K1** ratio (0.5 … 31 or fixed in Hz), **K2** fine, **K3** level, **K4** velocity, **K5-K8** rates R1-R4; with Shift **K1** algorithm, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** levels L1-L4.
 
-<a id="c23-wavetable"></a>
-### C23. Wavetable (Beta 5.33 only)
+<a id="c24-wavetable"></a>
+### C24. Wavetable (Beta 5.33 only)
 - **Beta 5.33 only.** **Pad 21** of the engine row (sand) = the oscillator reading a **wavetable**: both oscillators, the FM / ring / sync between them, the filter, the VCA, polyphony and the voice modes stay as they are.
 - **One table per patch, up to 9 frames**, for both oscillators; each its own **position**: **K3** of the OSC 1 / OSC 2 page (WAVE; in Beta 5.24-5.26, K7), K7 = LFO → position, Shift + K3 = envelope → position. **SHAPE** (K2) and envelope / LFO → shape (K4 / K6) = **warp**, a bend of the phase.
 
-<a id="c24-master-fx-beta"></a>
-### C24. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
+<a id="c25-master-fx-beta"></a>
+### C25. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
 - **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
 
 ## D. DSP

@@ -311,6 +311,62 @@ def use_playhold():
     PLAYHOLD = True
 
 
+PM3 = False                                      # (use_pmode3)
+
+
+def use_pmode3():
+    """Fix (the user, 2026-11-08, also on the public builds: «when switching between patches, sometimes the patch doesn't load and loads init patch
+    (empty) instead», «quick flickers of magenta / pine … instead of steadily showing the voice mode color», on any pad, when a patch is tapped):
+    the selected patch was part of the cache's tag, so every tap cleared the modes (the stock's colours) and read the page's four banks from the card
+    synchronously, right while the stock was loading the chosen patch.  Now a new selection only moves the bright pad (the selection is read at every
+    paint) and puts the periodic reread 4 s later; a reread (pack, page, 4 s) builds the modes on the stack and keeps the old ones until it is done."""
+    global PM3
+    assert PMODE
+    PM3 = True
+
+
+PM4 = False                                      # (use_pmode4)
+PCAT = False                                     # (use_pcat): the colour by the patch's category instead of its voice mode
+PCR = 0x2004F800                                 # RAM (free: S514D, 0x2004F4B0-0x2004FC00): + 0 "PCT1", + 4 pack, + 5 a Clear / Duplicate gesture seen,
+                                                 # + 6 the banks read (u16), + 8 the last pad press (HAL_TICK >> 8), + 9 the page shown, + 10 the banks
+                                                 # to read again (u16, still shown), + 0x10 the class of the pack's 128 patches, + 0x90 the palette, + 0xB0 the last LED pass (ms)
+PCR_SIG = 0x31544350                             # "PCT1"
+PM_GAP = 250                                     # ms without an LED pass of the view (another view shown) = the next one is an entry
+PM_QUIET = 4                                     # no card read for PM_QUIET x 256 ms after a pad press in the view
+PM_FULL, PM_LSN = 0x0804D3C2, 0x0804D33A          # the stock's drawing of the patch pads: all of them; its listener's old / new patch
+PM_FULL_CALLS = (0x0804D206, 0x0804D322)          # the bl's to 0x0804D3C2 (and its tail branch at 0x0804D3B8)
+PM_PUT, PM_DEAD_END = 0x0804D342, 0x0804D3B2     # c_pmput goes into the listener's code made dead by the redirect at PM_LSN
+PM_CAT = 16                                      # the patch's byte: category (Components)
+# category 1..14 (Arp, Bass, Bell, Classic, Drum, Keyboard, Lead, Movement, Pad, Poly, SFX, String, User, Voc) -> its colour; 15 = an empty slot.  Category 0
+# (None) and unknown values: the track's colour as the stock draws it; the selected patch white (the stock's) whatever its category.  Steady codes only.
+CAT_PAL = {1: 0x4D, 2: 0x53, 3: 0x13, 4: 0x2B, 5: 0x45, 6: 0x29, 7: 0x2D, 8: 0x49, 9: 0x09, 10: 0x17, 11: 0x3B, 12: 0x6A, 13: 0x6D, 14: 0x07, 15: 0x02}
+CAT_NAMES = ("None", "Arp", "Bass", "Bell", "Classic", "Drum", "Keyboard", "Lead", "Movement", "Pad", "Poly", "SFX", "String", "User", "Voc")
+
+
+def use_pmode4():
+    """Fix (the user, 2026-11-08, on Beta 5.37: «pads still get bogus magenta and init patches»; on S552D, without the colouring: «patches dont seem
+    to go back to init»; «why not just draw the patches with color instead of drawing them twice»; «Why do we read from the card again? aren't the
+    patches always the same?»).  (1) The card reads of c_pmode broke the stock's patch load: now each page's four banks are read once per pack
+    (one bank per LED pass, never within 1 s of a pad press in the view) and again only after a Clear / Duplicate gesture in the view (a save, a copy);
+    the colours of those banks stay until the new read is done.  (2) The stock draws the patch pads itself (0x0804D3C2: all 32; its store listener
+    0x0804D2F0: the old patch dim, the new one bright) in the track's colour, from whichever task changes the patch, and c_pmode only corrected them
+    in the next LED pass: a tap showed the track's colour for a moment.  Now the stock's drawing is ours (c_pmfull, also for the listener's two pads): every pad written once,
+    in its colour.  Pads of a bank not read yet, the source / step-drummer views and poly patches: the stock's colours."""
+    global PM4
+    assert PM3
+    PM4 = True
+
+
+def use_pcat():
+    """Beta (the user, 2026-11-08: «It would be better if we had colored patches … color per "Category" field assigned by Components»; «Category
+    replaces mode»; «can you assign a specific color to empty patches?» «different color than "none" category»): with use_pmode4, each patch pad in
+    the colour of its category (byte 16 of the patch, CAT_PAL), the selected one white as the stock draws it; category None the track's colour (the
+    stock's); an empty slot dim white."""
+    global PCAT
+    assert PM4
+    PCAT = True
+
+
 def use_pmode2():
     """SC39 (the user, 2026-10-12: «el color purple se muestra parpadeando en vez de fijo»): 0x4C is one of the board's animated colour codes (its
     entry of the RGB table in RAM, 0x20003804, pulses; 0x4B blinks), so the glide patches pulsed.  Steady codes of the same family: 0x49 (lavender) for a
@@ -1429,6 +1485,8 @@ def patch_code(a, L, prev, imm32, bc):
     a.label("c_spp")
     a.emit(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
     a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
+    if PM4:                                                                                            # the press's time: no card read for a moment
+        a.emit(bl, "c_pcst"); imm32(1, HAL_TICK); a.emit(ldr_imm, 1, 1, 0); a.emit(lsrs_imm, 1, 1, 8); a.emit(strb_imm, 1, 0, 8)
     held(6); a.emit(movs_imm, 0, 2); a.emit(tst_reg, 6, 0); bc("sp_fwd", "eq")
     a.emit(bl, L["c_sdscr"]); a.emit(cmp_imm, 0, 0xFF); bc("sp_fwd", "ne")
     if SRCGUARD: a.emit(bl, "c_srcv"); a.emit(cmp_imm, 0, 0); bc("sp_fwd", "ne")
@@ -1471,11 +1529,12 @@ def patch_code(a, L, prev, imm32, bc):
     a.emit(lsls_imm, 7, 7, 27); a.emit(lsrs_imm, 7, 7, 26); a.emit(strh_reg, 6, 5, 7)
     a.label("sl_x"); a.emit(mov_reg, 0, 5); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
-    if PMODE:
+    if PMODE and not PM4:
         # ---- c_pmode (r0 = the synth Preset view, r1 = its LED buffer): the patch pads coloured by voice mode (see 19.)
         # frame r7: [0] cb [4] ctx [8] &done [12] done [16..27] item / colours [28] page [32] selected patch [36] pack [40] bank [44] size
         a.label("c_pmode")
-        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, 48); a.emit(mov_reg, 7, 13)
+        FR = 56 if PM3 else 48                                                                         # PM3: [48..55] the modes being read
+        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, FR); a.emit(mov_reg, 7, 13)
         a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1)
         a.emit(bl, "c_srcv"); a.emit(cmp_imm, 0, 0); bc("pm_x", "ne")                                   # the source / step-drummer views
         a.emit(ldr_imm, 0, 4, 0x28); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
@@ -1490,14 +1549,16 @@ def patch_code(a, L, prev, imm32, bc):
         a.emit(ldrh_imm, 0, 6, 0); a.emit(movw, 1, PM_MAGIC); a.emit(cmp_reg, 0, 1); bc("pm_ref", "ne")
         a.emit(ldrb_imm, 0, 6, 2); a.emit(ldr_imm, 1, 7, 36); a.emit(cmp_reg, 0, 1); bc("pm_ref", "ne")
         a.emit(ldrb_imm, 0, 6, 3); a.emit(ldr_imm, 1, 7, 28); a.emit(cmp_reg, 0, 1); bc("pm_ref", "ne")
-        a.emit(ldrb_imm, 0, 6, 14); a.emit(ldr_imm, 1, 7, 32); a.emit(cmp_reg, 0, 1); bc("pm_ref", "ne")
+        a.emit(ldrb_imm, 0, 6, 14); a.emit(ldr_imm, 1, 7, 32); a.emit(cmp_reg, 0, 1); bc("pm_sel" if PM3 else "pm_ref", "ne")
         imm32(0, HAL_TICK); a.emit(ldr_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 8); a.emit(ldrh_imm, 1, 6, 12)
         a.emit(subs_reg, 0, 0, 1); a.emit(lsls_imm, 0, 0, 16); a.emit(lsrs_imm, 0, 0, 16); a.emit(cmp_imm, 0, PM_LIFE); bc("pm_paint", "lo")
         if PLAYHOLD:                                                                                   # older, but playing: kept (no card access)
             imm32(0, TRANSPORT); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0); a.emit(cmp_imm, 0, 0); bc("pm_paint", "ne")
         # -- read the page's four banks again: size, then the bank (<= 4 KB) into the shared buffer; byte PM_VOICE of each record
         a.label("pm_ref")
-        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 6, 4); a.emit(str_imm, 0, 6, 8)                   # the modes: unknown (stock colours)
+
+        if PM3: a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 48); a.emit(str_imm, 0, 7, 52)          # the new modes (the old ones shown meanwhile)
+        else: a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 6, 4); a.emit(str_imm, 0, 6, 8)             # the modes: unknown (stock colours)
         a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
         a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 40)
         a.label("pm_bl")
@@ -1521,7 +1582,8 @@ def patch_code(a, L, prev, imm32, bc):
         a.emit(movs_imm, 2, 2); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "pm_kn", "ne")
         a.label("pm_set")                                                                              # mode r2 (1 mono, 2 glide) of pad 8 b + k
         a.emit(ldr_imm, 0, 7, 40); a.emit(lsls_imm, 0, 0, 3); a.emit(adds_reg, 0, 0, 3)
-        a.emit(lsrs_imm, 1, 0, 2); a.emit(adds_reg, 1, 1, 6)
+        if PM3: a.emit(lsrs_imm, 1, 0, 2); a.emit(adds_reg, 1, 1, 7); a.emit(adds_imm8, 1, 48 - 4)
+        else: a.emit(lsrs_imm, 1, 0, 2); a.emit(adds_reg, 1, 1, 6)
         a.emit(lsls_imm, 0, 0, 30); a.emit(lsrs_imm, 0, 0, 29); a.emit(raw, h(0x4082))                # lsls r2,r0  (2 x (pad & 3))
         a.emit(ldrb_imm, 0, 1, 4); a.emit(orrs_reg, 0, 2); a.emit(strb_imm, 0, 1, 4)
         a.label("pm_kn")
@@ -1529,6 +1591,7 @@ def patch_code(a, L, prev, imm32, bc):
         a.label("pm_nb")
         a.emit(ldr_imm, 0, 7, 40); a.emit(adds_imm8, 0, 1); a.emit(str_imm, 0, 7, 40); a.emit(cmp_imm, 0, 4); bc("pm_bl", "lo")
         a.emit(bl, BUF_UNLOCK)
+        if PM3: a.emit(ldr_imm, 0, 7, 48); a.emit(str_imm, 0, 6, 4); a.emit(ldr_imm, 0, 7, 52); a.emit(str_imm, 0, 6, 8)
         a.emit(movw, 0, PM_MAGIC); a.emit(strh_imm, 0, 6, 0)
         a.emit(ldr_imm, 0, 7, 36); a.emit(strb_imm, 0, 6, 2); a.emit(ldr_imm, 0, 7, 28); a.emit(strb_imm, 0, 6, 3)
         a.emit(ldr_imm, 0, 7, 32); a.emit(strb_imm, 0, 6, 14)
@@ -1560,7 +1623,129 @@ def patch_code(a, L, prev, imm32, bc):
         a.label("pm_w"); a.emit(lsls_imm, 1, 3, 1); a.emit(strh_reg, 2, 5, 1)
         a.label("pm_pn")
         a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 32); bc("pm_pl", "lo")
-        a.label("pm_x"); a.emit(add_sp_imm, 48); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("pm_x"); a.emit(add_sp_imm, FR); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        if PM3:                                                                                        # another patch chosen: no card access
+            a.label("pm_sel"); a.emit(ldr_imm, 0, 7, 32); a.emit(strb_imm, 0, 6, 14)
+            imm32(0, HAL_TICK); a.emit(ldr_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 8); a.emit(strh_imm, 0, 6, 12)   # the reread 4 s from now
+            a.emit(b_w, "pm_paint")
+
+    if PM4:
+        from thumb import ldrh_imm
+        CB, EMPTYC = (PM_CAT, 15) if PCAT else (PM_VOICE, 0)
+        pal = CAT_PAL if PCAT else {1: PM_MONO[0], 2: PM_GLIDE[0]}
+        pb = bytearray(16)
+        for c, col in pal.items(): pb[c] = col
+        nw = max(pal) // 4 + 1
+        # ---- c_pcst() -> r0 = PCR (the first time: nothing read, the palette); clobbers r1-r3
+        a.label("c_pcst")
+        imm32(0, PCR); a.emit(ldr_imm, 1, 0, 0); imm32(2, PCR_SIG); a.emit(cmp_reg, 1, 2); a.emit(b_cond, "pc_x", "eq")
+        a.emit(str_imm, 2, 0, 0); a.emit(movs_imm, 1, 0xFF); a.emit(strb_imm, 1, 0, 4); a.emit(movs_imm, 1, 0); a.emit(strb_imm, 1, 0, 5)
+        a.emit(strh_imm, 1, 0, 6); a.emit(strh_imm, 1, 0, 8); a.emit(strh_imm, 1, 0, 10); a.emit(strh_imm, 1, 0, 12)
+        a.emit(mov_reg, 3, 0); a.emit(adds_imm8, 3, 0x80)
+        for i in range(nw):
+            imm32(1, struct.unpack_from("<I", pb, 4 * i)[0]); a.emit(str_imm, 1, 3, 0x10 + 4 * i)
+        a.label("pc_x"); a.emit(raw, h(0x4770))
+        # ---- c_pminfo (r0 = the view) -> r0 = PCR with + 9 = the page shown, or 0 (source / step-drummer views, another pack); clobbers r1-r3
+        a.label("c_pminfo")
+        a.emit(push_list, [4, 5], lr=True); a.emit(mov_reg, 4, 0)
+        a.emit(bl, "c_srcv"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "mi_0", "ne")
+        a.emit(bl, "c_pcst"); a.emit(mov_reg, 5, 0)
+        a.emit(bl, "c_curpack"); a.emit(ldrb_imm, 1, 5, 4); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "mi_0", "ne")
+        a.emit(ldr_imm, 0, 4, 0x20); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(movs_imm, 1, 3); a.emit(ands_reg, 0, 1); a.emit(strb_imm, 0, 5, 9)
+        a.emit(mov_reg, 0, 5); a.emit(pop_list, [4, 5], pc=True)
+        a.label("mi_0"); a.emit(movs_imm, 0, 0); a.emit(pop_list, [4, 5], pc=True)
+        # ---- c_pmfull (r0 = the view): in place of the stock's 0x0804D3C2, all 32 pads
+        a.label("c_pmfull")
+        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(mov_reg, 4, 0)
+        a.emit(ldr_imm, 0, 4, 0x28); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(movs_imm, 1, 2); a.emit(tst_reg, 0, 1); a.emit(b_cond, "pf_s", "ne")
+        a.emit(bl, "c_pcst"); a.emit(movs_imm, 1, 0); a.emit(strb_imm, 1, 0, 12)                       # not shown: the next showing is an entry
+        a.emit(mov_reg, 0, 4); a.emit(bl, PM_FULL); a.emit(pop_list, [4, 5, 6, 7], pc=True)          # and the stock's drawing (cleared)
+        a.label("pf_s"); a.emit(mov_reg, 0, 4); a.emit(bl, "c_pminfo"); a.emit(mov_reg, 7, 0)
+        a.emit(ldr_imm, 0, 4, 0x14); a.emit(movs_imm, 1, 10); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 6, 0, 0)
+        a.emit(ldr_imm, 0, 4, 0x20); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(lsrs_imm, 1, 6, 5); a.emit(cmp_reg, 1, 0); a.emit(b_cond, "pf_e", "eq"); a.emit(movs_imm, 6, 32); a.emit(b, "pf_g")
+        a.label("pf_e"); a.emit(movs_imm, 1, 31); a.emit(ands_reg, 6, 1)
+        a.label("pf_g"); a.emit(movs_imm, 5, 0)
+        a.label("pf_l"); a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 5); a.emit(movs_imm, 2, 0); a.emit(cmp_reg, 5, 6); a.emit(b_cond, "pf_n", "ne"); a.emit(movs_imm, 2, 1)
+        a.label("pf_n"); a.emit(mov_reg, 3, 7); a.emit(bl, PM_PUT); a.emit(adds_imm8, 5, 1); a.emit(cmp_imm, 5, 32); a.emit(b_cond, "pf_l", "lo")
+        a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        # ---- c_pmode (r0 = the synth Preset view, r1 = its LED buffer; in c_spl): one bank of the page read when needed, then the page drawn
+        # frame r7: [0] cb [4] ctx [8] &done [12] done [16..27] item [40] bank [44] size
+        a.label("c_pmode")
+        a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, 48); a.emit(mov_reg, 7, 13); a.emit(mov_reg, 4, 0)
+        a.emit(bl, "c_pcst"); a.emit(mov_reg, 6, 0)
+        a.emit(bl, "c_srcv"); a.emit(cmp_imm, 0, 0); bc("pn_off", "ne")
+        a.emit(ldr_imm, 0, 4, 0x28); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(movs_imm, 1, 2); a.emit(tst_reg, 0, 1); bc("pn_off", "eq")                               # the view not shown
+        imm32(0, HAL_TICK); a.emit(ldr_imm, 0, 0, 0); a.emit(mov_reg, 2, 6); a.emit(adds_imm8, 2, 0x80)
+        a.emit(ldr_imm, 1, 2, 0x30); a.emit(str_imm, 0, 2, 0x30); a.emit(subs_reg, 0, 0, 1); a.emit(cmp_imm, 0, PM_GAP); a.emit(b_cond, "pn_in", "ls")
+        a.emit(movs_imm, 0, 0); a.emit(strb_imm, 0, 6, 12)                                             # no LED pass of the view for a while: an entry
+        a.label("pn_in")
+        held(0); a.emit(movs_imm, 1, 3); a.emit(tst_reg, 0, 1); a.emit(b_cond, "pn_ng", "eq")
+        a.emit(movs_imm, 0, 1); a.emit(strb_imm, 0, 6, 5); a.emit(b_w, "pn_x")                            # Clear / Duplicate held: nothing read
+        a.label("pn_ng"); a.emit(ldrb_imm, 0, 6, 5); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pn_nd", "eq")
+        a.emit(movs_imm, 0, 0); a.emit(strb_imm, 0, 6, 5); a.emit(subs_imm8, 0, 1); a.emit(strh_imm, 0, 6, 10)   # after a gesture: every bank again
+        a.label("pn_nd"); a.emit(bl, "c_curpack"); a.emit(ldrb_imm, 1, 6, 4); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "pn_sp", "eq")
+        a.emit(strb_imm, 0, 6, 4); a.emit(movs_imm, 0, 0); a.emit(strh_imm, 0, 6, 6); a.emit(strh_imm, 0, 6, 10)   # another pack: nothing read
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_pmfull")
+        a.label("pn_sp")
+        a.emit(ldr_imm, 0, 4, 0x20); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 5, 0, 0)
+        a.emit(movs_imm, 1, 3); a.emit(ands_reg, 5, 1)                                                 # r5 = the page
+        a.emit(ldrb_imm, 0, 6, 12); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pn_on", "ne")
+        a.emit(movs_imm, 0, 1); a.emit(strb_imm, 0, 6, 12); a.emit(strb_imm, 5, 6, 13)                 # the view entered: every bank again
+        a.emit(movs_imm, 0, 0); a.emit(subs_imm8, 0, 1); a.emit(strh_imm, 0, 6, 10); a.emit(b, "pn_pg")
+        a.label("pn_on"); a.emit(ldrb_imm, 0, 6, 13); a.emit(cmp_reg, 0, 5); a.emit(b_cond, "pn_pg", "eq")
+        a.emit(strb_imm, 5, 6, 13); a.emit(movs_imm, 0, 15); a.emit(lsls_imm, 1, 5, 2); a.emit(raw, h(0x4088))   # another page: its banks again
+        a.emit(ldrh_imm, 1, 6, 10); a.emit(orrs_reg, 1, 0); a.emit(strh_imm, 1, 6, 10)
+        a.label("pn_pg")
+        a.emit(ldrh_imm, 0, 6, 6); a.emit(raw, h(0x43C0)); a.emit(ldrh_imm, 1, 6, 10); a.emit(orrs_reg, 0, 1)   # mvns r0, r0: not read, or again
+        a.emit(lsls_imm, 1, 5, 2); a.emit(raw, h(0x40C8)); a.emit(movs_imm, 1, 15); a.emit(ands_reg, 0, 1); bc("pn_x", "eq")   # lsrs r0, r1
+        imm32(1, HAL_TICK); a.emit(ldr_imm, 1, 1, 0); a.emit(lsrs_imm, 1, 1, 8); a.emit(ldrb_imm, 2, 6, 8); a.emit(subs_reg, 1, 1, 2)
+        a.emit(lsls_imm, 1, 1, 24); a.emit(lsrs_imm, 1, 1, 24); a.emit(cmp_imm, 1, PM_QUIET); bc("pn_x", "lo")   # a pad pressed < 1 s ago
+        a.emit(lsls_imm, 3, 5, 2)
+        a.label("pn_b"); a.emit(lsrs_imm, 0, 0, 1); a.emit(b_cond, "pn_bk", "cs"); a.emit(adds_imm8, 3, 1); a.emit(b, "pn_b")   # r3 = the first such bank
+        a.label("pn_bk"); a.emit(str_imm, 3, 7, 40)
+        a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
+        a.emit(movs_imm, 0, KIND_PATCH); a.emit(str_imm, 0, 7, 16); a.emit(ldr_imm, 0, 7, 40); a.emit(str_imm, 0, 7, 20)
+        a.emit(ldrb_imm, 0, 6, 4); a.emit(str_imm, 0, 7, 24)                                           # u8 pack (the loaded one, by its number)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(bl, SIZE); a.emit(str_imm, 0, 7, 44)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pn_rd", "ne")
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 12); a.emit(b, "pn_cl")                          # no bank file: every slot empty
+        a.label("pn_rd")
+        a.emit(movs_imm, 1, 1); a.emit(lsls_imm, 1, 1, 12); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "pn_c", "ls"); a.emit(str_imm, 1, 7, 44)
+        a.label("pn_c")
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 0); a.emit(str_imm, 0, 7, 4); a.emit(str_imm, 0, 7, 12)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 12); a.emit(str_imm, 0, 7, 8)
+        a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, 16); a.emit(movs_imm, 1, 0); imm32(2, BUF); a.emit(ldr_imm, 3, 7, 44); a.emit(bl, READ)
+        a.emit(movs_imm, 1, 0); a.emit(str_imm, 1, 7, 8)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pn_cl", "eq")
+        a.emit(movs_imm, 0, 0); a.emit(str_imm, 0, 7, 12)                                              # not read: the stock's colours (class 0)
+        a.label("pn_cl")
+        a.emit(movs_imm, 3, 0)                                                                         # r3 = the record k: its class
+        a.label("pn_kl")
+        a.emit(lsls_imm, 0, 3, 9); a.emit(adds_imm8, 0, CB); a.emit(ldr_imm, 1, 7, 12); a.emit(movs_imm, 2, EMPTYC); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "pn_st", "hs")
+        a.emit(ldr_imm, 1, 7, 44); a.emit(cmp_reg, 0, 1); a.emit(b_cond, "pn_st", "hs")                # past the bank's end: empty
+        imm32(1, BUF); a.emit(lsls_imm, 2, 3, 9); a.emit(raw, h(0x5C8A))                               # ldrb r2, [r1, r2]: the record's first byte
+        a.emit(cmp_imm, 2, 0xFF); a.emit(b_cond, "pn_v", "ne"); a.emit(movs_imm, 2, EMPTYC); a.emit(b, "pn_st")   # 0xFF: an empty slot
+        a.label("pn_v")
+        a.emit(raw, h(0x5C08))                                                                         # ldrb r0, [r1, r0]
+        if PCAT:
+            a.emit(movs_imm, 2, 0); a.emit(cmp_imm, 0, 14); a.emit(b_cond, "pn_st", "hi"); a.emit(mov_reg, 2, 0)      # category 1..14 (0 None)
+        else:
+            a.emit(movs_imm, 2, 1); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pn_st", "eq")              # mono
+            a.emit(movs_imm, 2, 2); a.emit(cmp_imm, 0, 1); a.emit(b_cond, "pn_st", "eq"); a.emit(movs_imm, 2, 0)   # glide; poly: the stock's
+        a.label("pn_st")
+        a.emit(ldr_imm, 0, 7, 40); a.emit(lsls_imm, 0, 0, 3); a.emit(adds_reg, 0, 0, 3); a.emit(adds_reg, 0, 0, 6); a.emit(strb_imm, 2, 0, 0x10)
+        a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 8); a.emit(b_cond, "pn_kl", "lo")
+        a.emit(bl, BUF_UNLOCK)
+        a.emit(ldr_imm, 1, 7, 40); a.emit(movs_imm, 0, 1); a.emit(raw, h(0x4088))                      # lsls r0, r1: the bank's bit
+        a.emit(ldrh_imm, 1, 6, 6); a.emit(orrs_reg, 1, 0); a.emit(strh_imm, 1, 6, 6)
+        a.emit(ldrh_imm, 1, 6, 10); a.emit(bics_reg, 1, 0); a.emit(strh_imm, 1, 6, 10)
+        a.emit(mov_reg, 0, 4); a.emit(bl, "c_pmfull")                                                  # the page drawn again
+        a.label("pn_x"); a.emit(add_sp_imm, 48); a.emit(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("pn_off"); a.emit(movs_imm, 0, 0); a.emit(strb_imm, 0, 6, 12); a.emit(b, "pn_x")      # not shown: the next showing is an entry
 
 
 def install(img, report, base_addr):
@@ -1600,4 +1785,34 @@ def install(img, report, base_addr):
     if PATCHX:
         struct.pack_into("<I", img, SP_VT - BASE, labels["c_spp"] | 1)
         struct.pack_into("<I", img, SP_VT + 28 - BASE, labels["c_spl"] | 1)
+    if PM4:                                       # the stock's drawing of the patch pads -> c_pmfull / c_pmsel
+        for c in PM_FULL_CALLS:
+            assert bytes(img[c - BASE:c - BASE + 4]) == bl(c, PM_FULL), hex(c)
+            img[c - BASE:c - BASE + 4] = bl(c, labels["c_pmfull"])
+        T = 0x0804D3B8                            # mov r0, r4; pop.w {r4, r5, r6, lr}; b 0x0804D3C2 -> mov r0, r4; bl c_pmfull; pop {r4, r5, r6, pc}
+        assert bytes(img[T - BASE:T - BASE + 8]) == bytes.fromhex("2046bde8704000e0"), img[T - BASE:T - BASE + 8].hex()
+        img[T - BASE:T - BASE + 8] = bytes.fromhex("2046") + bl(T + 2, labels["c_pmfull"]) + bytes.fromhex("70bd")
+        assert bytes(img[PM_LSN - BASE:PM_LSN - BASE + 8]) == bytes.fromhex("0a21e8f780f80a21")   # the listener: the patch changed, shown
+        img[PM_LSN - BASE:PM_LSN - BASE + 8] = bytes.fromhex("2046") + bl(PM_LSN + 2, labels["c_pmfull"]) + bytes.fromhex("70bd")
+        from thumb import ldrh_imm
+        a = Asm(PM_PUT)
+
+        def imm32(rd, v): a.emit(movw, rd, v & 0xFFFF); a.emit(movt, rd, (v >> 16) & 0xFFFF)
+        # ---- c_pmput (r0 = the view, r1 = pad, r2 = 1 the selected patch, r3 = c_pminfo): the pad's colour, written once
+        a.emit(push_list, [4, 5, 6], lr=True); a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
+        a.emit(movs_imm, 0, 0); a.emit(cmp_imm, 3, 0); a.emit(b_cond, "pp_m", "eq")
+        a.emit(ldrb_imm, 0, 3, 9); a.emit(lsls_imm, 0, 0, 5); a.emit(adds_reg, 0, 0, 5)                # the patch 32 page + pad
+        a.emit(lsrs_imm, 1, 0, 3); a.emit(ldrh_imm, 2, 3, 6); a.emit(raw, h(0x40CA)); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 2, 1)   # lsrs r2, r1: its bank read?
+        a.emit(b_cond, "pp_0", "eq")
+        a.emit(adds_reg, 0, 0, 3); a.emit(ldrb_imm, 0, 0, 0x10); a.emit(b, "pp_m")                       # its class
+        a.label("pp_0"); a.emit(movs_imm, 0, 0)
+        a.label("pp_m"); a.emit(cmp_imm, 6, 0); a.emit(b_cond, "pp_s", "ne"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "pp_s", "eq")
+        a.emit(adds_reg, 0, 0, 3); a.emit(adds_imm8, 0, 0x90); a.emit(ldrb_imm, 0, 0, 0); a.emit(b, "pp_w")   # its class's colour
+        a.label("pp_s"); a.emit(ldrh_imm, 0, 4, 0x26); a.emit(cmp_imm, 6, 0); a.emit(b_cond, "pp_b", "ne"); a.emit(adds_imm8, 0, 1)   # the stock's: [idx + 1] / [idx] (selected)
+        a.label("pp_b"); a.emit(lsls_imm, 0, 0, 1); imm32(1, TRACK_COLS); a.emit(ldrh_reg, 0, 1, 0)
+        a.label("pp_w"); a.emit(ldr_imm, 1, 4, 4); a.emit(ldr_imm, 1, 1, 0); a.emit(lsls_imm, 2, 5, 1); a.emit(strh_reg, 0, 1, 2)
+        a.emit(pop_list, [4, 5, 6], pc=True)
+        chunk, _ = a.assemble()
+        assert PM_PUT + len(chunk) <= PM_DEAD_END, len(chunk)
+        img[PM_PUT - BASE:PM_PUT - BASE + len(chunk)] = chunk
     return labels, code, prev

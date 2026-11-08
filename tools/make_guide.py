@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.33"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.38"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -165,13 +165,16 @@ view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
      f"""
 | Gesto | Qué hace |
 |---|---|
-| Colores de los patches {B} | **Azul oscuro** = mono, **lavanda** = mono con glide, color de la pista = poly; el elegido, más claro. |
+| Colores de los patches | *Desde RC4.10*: los del original, los patches en el color de la pista y el elegido en blanco (de RC2 a RC4.08, el color del modo de voz: sus lecturas de la tarjeta a veces cargaban el patch inicial). |
+| {YB} Colores por **categoría** | Cada patch en el color de su **categoría de Components**: Arp verde azulado, Bass rojo, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rosa, String melocotón, User arena, Voc lavanda; None = el color de la pista, **hueco vacío blanco tenue**, el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. |
 | **Clear + pad**, **Clear + el mismo pad** antes de ~5 s {B} | **Guarda** en ese hueco el patch tal como suena (knobs, MIDI recibido, destinos de macro). El primer toque pregunta (parpadea en blanco); otro pad mueve la pregunta *(escribe en la tarjeta)*. |
+| {YB} **K1** mientras pregunta | Elige la **categoría** que se guarda (None, Arp, Bass… Voc; 4 clics cada una; empieza en la del patch): K1 y el hueco en su color, los demás knobs apagados y sin efecto. Al confirmar se guarda con esa categoría. |
 | **Duplicate + pad A + pad B** (mismo pack) | Intercambia los dos patches. |
 | **Duplicate + pad A**, cargar otro pack, **Duplicate + pad B** | Copia el patch A sobre B en el otro pack (el pack de A no cambia); B puede estar vacío *(escribe en la tarjeta)*. |
 
 - El original no puede guardar patches desde el aparato. El patch guardado conserva el nombre del que estaba cargado.
 - No funciona en el pack de la memoria interna (solo lectura para el mod): el LED de Save se pone rojo.
+- **Morph de patches** {YB}: en la vista Preset, **mantén dos o más patches** 0,4 s (o mantenidos + Duplicate): se abre la **vista del morph**, que pasa de uno a otro de los patches mantenidos (hasta 3), en el orden de los pads. Solo funcionan los knobs: **K1** = la posición en la cadena; **K2 / K3** = LFO triangular (cantidad / velocidad); **K4 / K5** = LFO de pasos al azar (cantidad / velocidad); **K6** = azar en cada paso de la pista; **K7 / K8** = envolvente (cantidad / tiempo; las cantidades a la derecha hacia el final de la cadena). **Clear + knob** = 0 (Clear no sale de la vista); **Clear + el botón de la pista** = los knobs a 0. **Pads 1 / 8** = la envolvente desde arriba, **sostenida mientras los mantienes**. **Pad 32** (rojo) = salir. **Preset** = los patches, los de la cadena en blanco: un toque carga ese patch y sale; mantener 0,4 s = cadena nueva con los knobs como están. El morph sigue en las otras vistas; el **botón de la pista** vuelve a la vista del morph (desde ella, a la Note). Los parámetros continuos se mezclan; los de tipo (onda, algoritmo, modo…) toman el del patch más cercano. No se guarda nada.
 """, [("colores-patch", 0), ("guardar-patch", 0)])
 
 # ===================================================================================================== III
@@ -179,6 +182,7 @@ view("midi-preset", "III", "Vista Preset de MIDI 1 / 2",
      "Pulsa **MIDI 1** o **MIDI 2** y luego **Preset** (*desde RC4*: o **MIDI 1 / MIDI 2 otra vez** con su vista Note en pantalla, o **Shift + MIDI 1 / 2**). Además de las plantillas de stock, aquí vive el sinte propio de la pista.",
      f"""
 - **Teclado externo** *(desde RC2.08)*: las notas que entran por MIDI (USB o DIN) en el canal de MIDI 1 / 2 **tocan su sinte propio** (antes solo se grababan); no se reenvían a la salida MIDI.
+- **Morph de patches** {YB}: como en la [vista Preset de Synth 1 / 2](#synth-preset), con los huecos del sinte propio (motor encendido; también su FM de 8 operadores). Aquí la vista del morph va sobre la Preset: **Preset** cambia entre el morph y los huecos.
 ### Pads
 | Pad | Función |
 |---|---|
@@ -888,7 +892,7 @@ view("setup", "VII", "Vista Setup",
 | **Pad 29 (PGM Rx)** {B} | Primer toque: los pads 1-16 enseñan el **canal de escucha** de los Program Change del proyecto (blanco); un pad lo elige; otra vez = encender / apagar. |
 | **Pad 30 (PGM Tx)** {B} | Lo mismo con el **canal de salida**. Por defecto los dos son el 16. Lo recibido en el de escucha se reenvía por el de salida. |
 | **Record** {B} | Amarillo = lo que una pista MIDI manda a un sinte por el canal compartido se graba también en ese sinte (cambios de escala u octava en tiempo real). Apagado por defecto; se apaga al reiniciar. {XB}: en amarillo, nada se graba en una pista de notas silenciada en el Mixer: sus pasos suenan y se graban solo en el sinte del canal compartido (un banco de acordes). |
-| **Note** {XB} | **Teclado externo al arpegiador**: las notas que llegan por MIDI (DIN o USB) al canal de Synth 1 / 2 o MIDI 1 / 2 pasan por su arpegiador (si está encendido en el patrón que suena) como los pads. Verde = encendido, rojo tenue = apagado (de fábrica); se guarda en los ajustes. |
+| **Note** {XB} | **Teclado externo al arpegiador**: las notas que llegan por MIDI (DIN o USB) al canal de Synth 1 / 2 o MIDI 1 / 2 pasan por su arpegiador (si está encendido en el patrón que suena) como los pads. Verde = encendido, rojo tenue = apagado (de fábrica); se guarda en los ajustes. {YB} Encendido, con un **paso mantenido** en la vista de esa pista, las notas del teclado externo **entran en ese paso** como los pads. |
 | **K4** {XB} | Modo **General MIDI** de los drums: a la derecha encendido (verde), a la izquierda apagado (tenue): **apagarlo cierra el número** y los drums vuelven a salir como en stock. Encendido, cada golpe de Drum 1-4 sale por MIDI con **su nota GM** en lugar de la de stock (60 / 62 / 64 / 65), por el canal de drums (el 10 de fábrica, el que elijas aquí). Dentro del aparato suena igual. |
 | **K5-K8** {XB} | Con el modo encendido, la nota GM de Drum 1-4 (los knobs sobre las pistas de drums; apagado no hacen nada): 35-81, dos clics por nota; de fábrica 36 bombo, 38 caja, 42 charles cerrado, 46 charles abierto. **Cada nota nueva suena** una vez por el canal de drums y **su número se ve en los pads**, en el color del drum; **Shift** o salir de Setup lo confirma (se guarda en los ajustes) y vuelven los pads de Setup. Mientras se ve el número, los pads de Setup no hacen nada. Luces: el color de cada drum, más brillante cuanto más alta la nota (apagadas con el modo apagado). |
 | **K1 / K2** {YB} | **velocity → amplitud / velocity → filtro**: de 0 (apagado, de fábrica: como el original) a 127, para Synth 1 / 2 y el sinte propio de MIDI 1 / 2. **K1** da velocity al volumen de los patches que no la tienen (velocity del amp a 0): a la derecha, las notas suaves suenan más bajo (al máximo, unos 22 dB entre velocity 20 y 120). **K2** da velocity a la frecuencia del filtro de los patches sin velocity en su matriz: las notas fuertes, más brillantes (en Synth 1 / 2 ocupa el último hueco libre de la matriz). En el sinte propio valen cuando su fuente velocity (página 6, K1) está a 0: las notas suaves, más bajas y más oscuras. Un patch que ya usa velocity no cambia. Sus LEDs en blanco, más brillantes cuanto más alto; se guardan en los ajustes. |
@@ -1185,7 +1189,8 @@ ABOUT = dict(
 - **Step-drummer del sinte** — secuencia los macros por pares de pasos: cada knob fija la posición de un macro en dos pasos del patrón.
 """,
        "synth-preset": f"""
-- **El modo de voz a la vista** {B} — los patches mono, mono con glide y poly se distinguen por el color.
+- **Los patches por categoría** {YB} — cada patch en el color de su categoría de Components; la categoría se elige al guardar.
+- **Morph de patches** {YB} — mantén varios patches y pasa de uno a otro con un knob, LFO y envolvente.
 - **Guardar el patch** {B} — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).
 - **Intercambiar y copiar** — reordena los patches del pack o lleva uno a otro pack.
 """,

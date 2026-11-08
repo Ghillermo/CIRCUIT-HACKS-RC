@@ -531,6 +531,10 @@ Los 8 knobs son 8 pares de pasos del patrón: cada par desplaza un destino solo 
 
 El toggle sube o baja un grado de la escala cada 8 pasos del knob, de −8 a +8 grados. Con el step-drummer activado, TUNE y Release dejan de reproducirse y grabarse como automatización, porque usa sus carriles.
 
+### Morph de patches (solo Beta 5.38)
+
+En la vista Preset de MIDI 1 / 2 con el motor encendido, **mantén dos o más huecos** 0,4 s: se abre la vista del morph sobre la Preset (**Preset** cambia entre el morph y los huecos). **K1** pasa de un patch al siguiente; K2 / K3 LFO triangular, K4 / K5 LFO de pasos al azar, K6 azar por paso, K7 / K8 envolvente; pads 1 / 8 la envolvente (sostenida mientras se mantienen), pad 32 sale. Se mezclan los códigos del motor y el FM de 8 operadores; los de tipo (motor, onda, algoritmo) toman el del patch más cercano. No se guarda nada.
+
 ### Secuenciador de efectos
 
 Con este motor, cada knob del step-drummer elige un hueco de la fila inferior de Master FX: nada, pads 26-31 o random. Un hueco sin efecto toca el efecto de arriba de su columna.

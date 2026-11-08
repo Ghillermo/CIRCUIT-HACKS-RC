@@ -63,7 +63,7 @@ VIEWS = {
 | **Pad 29 (PGM Rx)** {B} | First touch: pads 1-16 show the **listen channel** of the project's Program Changes (white); a pad picks it; again = on / off. |
 | **Pad 30 (PGM Tx)** {B} | The same with the **output channel**. Both are 16 by default. What arrives on the listen channel is sent again on the output one. |
 | **Record** {B} | Yellow = what a MIDI track sends to a synth over the shared channel is also recorded into that synth (scale or octave changes in real time). Off by default; off again after a restart. {XB}: while yellow, nothing is recorded into a note track muted in the Mixer: its steps sound and are recorded only into the synth on the shared channel (a chord bank). |
-| **Note** {XB} | **External keyboard to the arpeggiator**: the notes coming in over MIDI (DIN or USB) on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator (when on in the pattern that plays) like the pads. Green = on, dim red = off (the default); saved in the settings. |
+| **Note** {XB} | **External keyboard to the arpeggiator**: the notes coming in over MIDI (DIN or USB) on the channel of Synth 1 / 2 or MIDI 1 / 2 go through its arpeggiator (when on in the pattern that plays) like the pads. Green = on, dim red = off (the default); saved in the settings. {YB} When on, with a **step held** in that track's view, the external keyboard's notes **go into that step** like the pads. |
 | **K4** {XB} | **General MIDI** mode of the drums: to the right on (green), to the left off (dim): **turning it off closes the number** and the drums go out as on stock again. While on, every hit of Drum 1-4 goes out over MIDI with **its GM note** instead of the stock one (60 / 62 / 64 / 65), on the drums' channel (10 by default, the one you pick here). Inside the device it sounds the same. |
 | **K5-K8** {XB} | With the mode on, the GM note of Drum 1-4 (the knobs over the drum tracks; off, they do nothing): 35-81, two clicks a note; by default 36 kick, 38 snare, 42 closed hat, 46 open hat. **Every new note sounds** once on the drums' channel and **its number shows on the pads**, in the drum's colour; **Shift** or leaving Setup confirms it (saved in the settings) and the Setup pads come back. While the number shows, the Setup pads do nothing. LEDs: each drum's colour, brighter for a higher note (dark with the mode off). |
 | **K1 / K2** {YB} | **velocity → amplitude / velocity → filter**: from 0 (off, the default: as the original) to 127, for Synth 1 / 2 and the own synth of MIDI 1 / 2. **K1** gives velocity to the volume of patches that have none (amp velocity at 0): to the right, soft notes sound quieter (at the maximum, about 22 dB between velocity 20 and 120). **K2** gives velocity to the filter frequency of patches with no velocity in their matrix: hard notes brighter (on Synth 1 / 2 it takes the matrix's last free slot). On the own synth they work while its velocity source (page 6, K1) is at 0: soft notes quieter and darker. A patch that already uses velocity does not change. Their LEDs white, brighter the higher; saved in the settings. |
@@ -155,17 +155,21 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
     "Press **Preset** with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack's 128 patches).", f"""
 | Gesture | What it does |
 |---|---|
-| Patch colours {B} | **Dark blue** = mono, **lavender** = mono with glide, track colour = poly; the chosen one, lighter. |
+| Patch colours | *Since RC4.10*: the original's, the patches in the track colour and the chosen one white (RC2 to RC4.08 used the voice mode's colour: its card reads sometimes loaded the initial patch). |
+| {YB} Colours by **category** | Each patch in the colour of its **Components category**: Arp teal, Bass red, Bell light blue, Classic amber, Drum orange, Keyboard pale lime, Lead yellow, Movement violet, Pad blue, Poly green, SFX pink, String peach, User sand, Voc lavender; None = the track colour, **empty slot dim white**, the chosen one white. The card is read on entering the view, on a new page or pack and after a save or a copy, never on a patch tap. |
 | **Clear + pad**, **Clear + the same pad** within ~5 s {B} | **Saves** the patch as it sounds (knobs, received MIDI, macro destinations) into that slot. The first touch asks (blinks white); another pad moves the question *(writes to the card)*. |
+| {YB} **K1** while it asks | Picks the **category** to save (None, Arp, Bass… Voc; 4 clicks each; it starts at the patch's own): K1 and the slot in its colour, the other knobs dark and inactive. Confirming saves it with that category. |
 | **Duplicate + pad A + pad B** (same pack) | Swaps the two patches. |
 | **Duplicate + pad A**, load another pack, **Duplicate + pad B** | Copies patch A over B in the other pack (A's pack does not change); B may be empty *(writes to the card)*. |
 
 - The original cannot save patches from the device. The saved patch keeps the name of the one that was loaded.
 - Not in the internal memory's pack (read-only for the mod): the Save LED turns red.
+- **Patch morph** {YB}: in the Preset view, **hold two or more patches** for 0.4 s (or hold them + Duplicate): the **morph view** opens and moves from one held patch to the next (up to 3), in pad order. Only the knobs work: **K1** = the position along the chain; **K2 / K3** = triangle LFO (depth / rate); **K4 / K5** = random-step LFO (depth / rate); **K6** = random on each step of the track; **K7 / K8** = envelope (depth / time; the depths to the right go towards the chain's end). **Clear + knob** = 0 (Clear stays in the view); **Clear + the track button** = every knob to 0. **Pads 1 / 8** = the envelope from the top, **held while you hold them**. **Pad 32** (red) = out. **Preset** = the patches, the chain's in white: a tap loads that patch and leaves; holding 0.4 s = a new chain with the knobs as they are. The morph keeps going in the other views; the **track button** brings the morph view back (from it, to the Note view). Continuous parameters blend; type parameters (wave, algorithm, mode…) take the nearest patch's. Nothing is saved.
 """),
 "midi-preset": ("MIDI 1 / 2 Preset view",
     "Press **MIDI 1** or **MIDI 2**, then **Preset** (*since RC4*: or **MIDI 1 / MIDI 2 again** with its Note view on the screen, or **Shift + MIDI 1 / 2**). Besides the stock templates, the track's own synth lives here.", f"""
 - **External keyboard** *(since RC2.08)*: notes coming in over MIDI (USB or DIN) on the channel of MIDI 1 / 2 **play its own synth** (before, they were only recorded); they are not sent again to the MIDI out.
+- **Patch morph** {YB}: as in the [Synth 1 / 2 Preset view](#synth-preset), with the own synth's slots (engine on; its 8-operator FM too). Here the morph view sits over the Preset view: **Preset** switches between the morph and the slots.
 ### Pads
 | Pad | Function |
 |---|---|
@@ -1072,7 +1076,8 @@ ABOUT = {
 - **The synth's step-drummer** — sequences the macros by pairs of steps: each knob sets a macro's position on two steps of the pattern.
 """,
     "synth-preset": f"""
-- **The voice mode at a glance** {B} — mono, mono with glide and poly patches told apart by colour.
+- **Patches by category** {YB} — each patch in the colour of its Components category; the category is picked when saving.
+- **Patch morph** {YB} — hold several patches and move between them with a knob, LFOs and an envelope.
 - **Save the patch** {B} — stores the sound as you left it into the pack (the original only saves patches from Components).
 - **Swap and copy** — reorder the pack's patches or take one to another pack.
 """,

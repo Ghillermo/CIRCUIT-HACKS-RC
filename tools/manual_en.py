@@ -294,13 +294,24 @@ sec("teclado-partido", "Split keyboard Synth 1 + Synth 2",
 - **since RC4 — another track's knobs:** with the split keyboard open, **hold a track button** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4): while you hold it, the 8 knobs (and their lights) are that track's; let go and they go back to the first one. A short tap (no knob turned) closes it as always.
 """, ["Split keyboard: rows 1-2 = Synth 1, rows 3-4 = Synth 2."])
 
-sec("colores-patch", "Synth patches by voice mode",
-    ["**Since RC2.** In the Preset view of Synth 1 / 2 every patch is drawn by its voice mode: **mono dark blue**, **glide lavender**, **poly as always**."],
+sec("colores-patch", "Synth patch colours",
+    ["**From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.38 only:** each patch in the colour of its **Components category**."],
     """
-- Mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour, as on the original. The chosen patch is drawn lighter.
-- The modes are read from the card when the pack, the page or the patch changes, and every 4 s.
+- **Since RC4.10:** the patches in the track colour and the chosen one white, as on the original.
+- **Beta 5.38 only:** the colour of the patch's category (Arp teal, Bass red, Bell light blue, Classic amber, Drum orange, Keyboard pale lime, Lead yellow, Movement violet, Pad blue, Poly green, SFX pink, String peach, User sand, Voc lavender); None = the track colour; **empty slot = dim white**; the chosen one white. The card is read on entering the view, on a new page or pack and after a save or a copy, never on a patch tap. When saving (Clear + pad), **K1** picks the category.
+- RC2 to RC4.08: mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour.
 - In Advanced Setup pads 22 / 23 no longer light up (they never did anything there).
-""", ["Preset view of Synth 1: mono dark blue, glide lavender, poly the track colour."])
+""", ["Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour."])
+
+sec("morph", "Patch morph (Beta 5.38 only)",
+    ["**Beta 5.38 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope."],
+    """
+- **K1** = the position along the chain (up to 3 patches, in pad order); **K2 / K3** triangle LFO (depth / rate); **K4 / K5** random-step LFO; **K6** random on each step of the track; **K7 / K8** envelope (depth / time).
+- **Pads 1 / 8** = the envelope (held while held); **pad 32** = out; **Clear + knob** = 0; **Clear + the track button** = all to 0.
+- **Preset** = the patches with the chain's in white: a tap loads one and leaves; holding 0.4 s = a new chain.
+- Synth 1 / 2: the morph view is their alternative view (Synth or Preset twice). MIDI 1 / 2: Preset switches between the morph and the slots. The track button brings the morph view back.
+- Continuous parameters blend; type parameters take the nearest patch's. Nothing is saved.
+""")
 
 sec("patches-midi", "Patches of the own synth (MIDI 1 / 2)",
     ["**Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack)."],
@@ -329,6 +340,7 @@ sec("guardar-patch", "Saving the synth’s patch into the pack",
 - The saved patch keeps the name of the one that was loaded. Synth patches are managed with Components; `tools/patchtool.py slist / sname` lists and renames them on the card.
 - The own-synth patch that shares the slot (A14) is not touched.
 - Duplicate + A + B still copies / exchanges patches (A8).
+- **Beta 5.38 only:** while it asks, **K1** picks the category to save (the other knobs dark); the slot blinks in its colour.
 - In the safer build (RC2S) it does not write to the SD card: the Save LED turns red.
 """, ["Preset view of Synth 1: Clear + pad asks (it blinks), Clear + the same pad saves."])
 

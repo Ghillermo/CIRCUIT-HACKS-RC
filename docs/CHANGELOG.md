@@ -7,6 +7,14 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.38 — 2026-11-08
+
+**Beta 5.38** (marca `B5.38`; = SC55.3) = la Beta 5.33 + lo siguiente (las 5.34-5.37 no se publicaron: van dentro), sin probar en el aparato.
+
+- **Morph de patches** de Synth 1 / 2 y del sinte propio de MIDI 1 / 2 (con su FM de 8 operadores): en la vista Preset, **mantén dos o más patches** 0,4 s y se abre la vista del morph. **K1** pasa de un patch al siguiente; **K2-K8** = LFO triangular, LFO de pasos al azar, azar por paso y envolvente; **pads 1 / 8** disparan la envolvente (sostenida mientras los mantienes); **pad 32** sale; **Clear + knob** = 0, **Clear + el botón de la pista** = todos a 0. En Synth 1 / 2 es su vista alternativa (Synth o Preset dos veces); en MIDI 1 / 2, **Preset** cambia entre el morph y los huecos. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+- **Patches por categoría:** en la vista Preset de Synth 1 / 2 cada patch se ve en el color de su **categoría de Components**; None en el color de la pista, los huecos vacíos en blanco tenue. Al guardar (Clear + pad), **K1** elige la categoría (los demás knobs se apagan). → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+- **Teclado externo a un paso:** con **Note** de la vista Setup encendido, mantén un paso en la vista de Synth 1 / 2 o MIDI 1 / 2 y toca un teclado MIDI externo: las notas entran en ese paso como los pads. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup)
+
 ### Beta 5.33 — 2026-11-07
 
 **Beta 5.33** (marca `B5.33`; = SC53) = la Beta 5.32 + lo siguiente, sin probar en el aparato.
@@ -589,6 +597,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.10 / RC4.10S / Beta 5.38 — 2026-11-08
+
+**RC4.10** / **RC4.10S** (marcas `R410` / `R410S`) = RC4.08 / RC4.08S + este arreglo; **Beta 5.38** (marca `B5.38`; = SC55.3) = la Beta 5.33 + los dos. Sin probar en el aparato.
+
+- **Vista Preset de Synth 1 / 2: a veces se cargaba el patch inicial al elegir un patch** y los pads parpadeaban en el color de la pista. Lo causaban las lecturas de la tarjeta de los colores del modo de voz (desde RC2), que chocaban con la carga del patch. En las RC los patches vuelven a los colores del original; en la beta los colores son por categoría y la tarjeta solo se lee al entrar en la vista, al cambiar de página o de pack y tras guardar, nunca al tocar un patch. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#synth-preset)
+- Solo la beta: **el FM del sinte propio perdía volumen en las notas agudas** desde el antialias (unos −4 a −7 dB con FM fuerte); ahora el paso que ve el antialias se limita a 3 veces el del oscilador y vuelve el nivel. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+
 ### Beta 5.30 — 2026-11-06
 
 **Beta 5.30** (marca `B5.30`; = SC52.7) = la Beta 5.29 + lo siguiente. Sin probar en el aparato.
@@ -903,6 +918,14 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.38 — 2026-11-08
+
+**Beta 5.38** (marker `B5.38`; = SC55.3) = Beta 5.33 + the following (5.34-5.37 were not published: they are inside), not tested on the device.
+
+- **Patch morph** of Synth 1 / 2 and of the own synth of MIDI 1 / 2 (with its 8-operator FM): in the Preset view, **hold two or more patches** for 0.4 s and the morph view opens. **K1** moves from one patch to the next; **K2-K8** = triangle LFO, random-step LFO, random per step and envelope; **pads 1 / 8** fire the envelope (held while you hold them); **pad 32** leaves; **Clear + knob** = 0, **Clear + the track button** = all to 0. On Synth 1 / 2 it is their alternative view (Synth or Preset twice); on MIDI 1 / 2, **Preset** switches between the morph and the slots. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+- **Patches by category:** in the Synth 1 / 2 Preset view each patch shows in the colour of its **Components category**; None in the track colour, empty slots dim white. When saving (Clear + pad), **K1** picks the category (the other knobs go dark). → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+- **External keyboard into a step:** with the Setup view's **Note** on, hold a step in the Synth 1 / 2 or MIDI 1 / 2 view and play an external MIDI keyboard: the notes go into that step like the pads. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
 
 ### Beta 5.33 — 2026-11-07
 
@@ -1485,6 +1508,13 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.10 / RC4.10S / Beta 5.38 — 2026-11-08
+
+**RC4.10** / **RC4.10S** (markers `R410` / `R410S`) = RC4.08 / RC4.08S + this fix; **Beta 5.38** (marker `B5.38`; = SC55.3) = Beta 5.33 + both. Untested on the device.
+
+- **Synth 1 / 2 Preset view: picking a patch sometimes loaded the initial patch** and the pads flickered in the track colour. The voice-mode colours' card reads (since RC2) collided with the patch load. On the RCs the patches go back to the original's colours; on the beta the colours are by category and the card is only read on entering the view, on a new page or pack and after a save, never on a patch tap. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#synth-preset)
+- Beta only: **the own synth's FM lost level on high notes** since the antialiasing (about −4 to −7 dB with strong FM); the step the antialiasing sees is now held to 3 times the oscillator's and the level is back. → [Guide: MIDI 1 / 2 engine knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
 
 ### Beta 5.30 — 2026-11-06
 

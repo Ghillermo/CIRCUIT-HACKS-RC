@@ -282,7 +282,7 @@ async function movePack(pack, card, slot, ctx = {}) {       // the API has no fo
    own names stop there, and over USB a name over 31 overwrites the firmware's stack.  The NN_ prefix is the slot and is never typed: every
    reference (sessions to samples and patches, the device to its packs) goes by that number, so a new name changes nothing but the name.
    Names inside a file (Nova patch 16, custom patch 16, CC preset 32): printable ASCII. */
-const NAME_RULE = {packs: {file: true, max: FOLDER_MAX - 3}, drums: {file: true, max: 30 - 7}, nova: {max: 16, need: true}, custom: {max: NAME_LEN}, cc: {max: 32}};
+const NAME_RULE = {projects: {file: true, max: 31 - 3 - 4}, packs: {file: true, max: FOLDER_MAX - 3}, drums: {file: true, max: 30 - 7}, nova: {max: 16, need: true}, custom: {max: NAME_LEN}, cc: {max: 32}};
 const FAT_BAD = /[\\/:*?"<>|]/;
 function checkName(kind, raw) {
   const r = NAME_RULE[kind], s = String(raw).trim();
@@ -653,6 +653,61 @@ async function openSession(pack, s) {
   pack._open.set(s, o);
   return o;
 }
+// ---------------------------------------------------------------- projects: Sessions/NN_Name.ncs, whole files, the 64 slots of the Projects view
+/* (the user, 2026-11-07: «Add ALL EXISTING FEATURES of previous apps», from the Remix app)  A project is taken as it comes, byte for byte: only its size
+   and its head are checked (the device's own load checks the rest).  It plays the samples and patches of the pack it lands in.  A file from the PC
+   keeps its name without NN_ and .ncs, made safe for the card and for the device's 31 characters.  Nothing of a project points at another project:
+   a new order needs no rewrite. */
+const PROJ_NAME = 31 - 3 - 4;                               // the device's 31 characters, with NN_ and .ncs
+function projectProblem(b) {                                // -> null, or why these bytes are not a project (proj-*)
+  if (b.length !== SESS_SIZE) return "proj-size";
+  if (!/^[A-Z]{4}$/.test(latin(b, 0, 4))) return "proj-head";
+  return null;
+}
+function projectName(file) {
+  const s = file.replace(/\.ncs$/i, "").replace(/^\d{2,3}_/, "").replace(/[^ -~]|[\\/:*?"<>|]/g, "_").slice(0, PROJ_NAME).replace(/^[\s.]+|[\s.]+$/g, "");
+  return s || "SESSION";                                    // NN_SESSION.ncs: the name the device gives, the list shows the one inside
+}
+const projSlot = file => { const m = /^(\d\d)_.*\.ncs$/i.exec(file); return m && +m[1] < NSESS ? +m[1] : null; };
+function projDrop(pack, n) { pack._sessions = null; pack._info = null; pack._open.delete(n); pack._usage = null; }
+const Projects = {
+  size: NSESS,
+  async list(pl) {
+    const m = await sessionsOf(pl.pack), out = [];
+    for (let n = 0; n < NSESS; n++) { const e = m.get(n); out.push(e ? {slot: n, empty: false, name: e.label, size: e.size} : {slot: n, empty: true, name: ""}); }
+    return out;
+  },
+  async get(pl, n) {
+    const e = (await sessionsOf(pl.pack)).get(n);
+    return e ? {name: e.file.slice(e.file.indexOf("_") + 1).replace(/\.ncs$/i, ""), label: e.label, bytes: await readHandle(e.handle)} : null;
+  },
+  async put(pl, n, item, ctx = {}) {
+    if (!item) return Projects.clear(pl, n, ctx);
+    const bad = projectProblem(item.bytes);
+    if (bad) throw new Error(bad);
+    const pack = pl.pack, d = await subdir(pack.dir, "Sessions", true), old = (await sessionsOf(pack)).get(n), file = pad2(n) + "_" + item.name + ".ncs";
+    if (old && ctx.backup) await ctx.backup.file([pack.folder, "Sessions"], old.file, await readHandle(old.handle));
+    await writeFile(d, file, item.bytes);
+    if (old && old.file !== file) await d.removeEntry(old.file);
+    projDrop(pack, n);
+  },
+  async clear(pl, n, ctx = {}) {
+    const pack = pl.pack, old = (await sessionsOf(pack)).get(n);
+    if (!old) return;
+    if (ctx.backup) await ctx.backup.file([pack.folder, "Sessions"], old.file, await readHandle(old.handle));
+    await (await subdir(pack.dir, "Sessions")).removeEntry(old.file);
+    projDrop(pack, n);
+  },
+  async setName(pl, n, name, ctx = {}) {                   // the file's name after NN_; the number stays
+    name = checkName("projects", name);
+    const pack = pl.pack, old = (await sessionsOf(pack)).get(n);
+    if (!old) throw new Error("name-none");
+    const to = pad2(n) + "_" + name + ".ncs";
+    if (old.file !== to) await renameFile(await subdir(pack.dir, "Sessions"), old.file, to, ctx, [pack.folder, "Sessions"]);
+    projDrop(pack, n);
+  },
+};
+
 // n = 8 track + pattern: tracks 0 / 1 Synth 1 / 2, 2 / 3 MIDI 1 / 2, 4..7 the drums (a drum pattern: + 0 velocity, + 32 probability, + 64 sample flip, + 96 micro mask, 8 lanes)
 const patOff = n => n < 16 ? SYNTH0 + PAT * n : n < 32 ? MIDI0 + PAT * (n - 16) : DRUM0 + DPAT * (n - 32);
 const patSize = n => n < 32 ? PAT : DPAT;
@@ -952,7 +1007,7 @@ async function setProjectSounds(pl, sess, ch, ctx = {}) {   // ch: {nova: [[slot
   pl.pack._usage = null;
 }
 
-const ORDER_KIND = {nova: Nova, drums: Drums, custom: Custom};
+const ORDER_KIND = {nova: Nova, drums: Drums, custom: Custom, projects: Projects};
 async function reorder(kind, pl, from, to, ctx = {}, remap = true) {   // -> the sessions rewritten (remap false: the projects keep their numbers)
   const K = ORDER_KIND[kind];
   if (!K) throw new Error("order-kind");
@@ -973,7 +1028,7 @@ async function reorder(kind, pl, from, to, ctx = {}, remap = true) {   // -> the
     }
     pl.pack._samples = null; pl.pack._info = null;
   } else await transfer(K, pl, [from], pl, [to], {move: true, swap}, ctx);
-  if (kind === "custom" || !remap) return [];
+  if ((kind !== "nova" && kind !== "drums") || !remap) return [];
   return remapSessions(pl.pack, kind, new Map([[from, to], [to, from]]), ctx);     // both ways even to a free number: a project that pointed at it (silence) still does
 }
 async function slotPack(pack, slot, ctx = {}) {             // a pack to a free number of its card
@@ -1391,6 +1446,7 @@ async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
 
 return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
   entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
+  Projects, projectProblem, projectName, projSlot,
   Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
   RECN, extOf, fm8Rec, fm8Get, dx7Parse, dx7ToFm8, dx7Patch, projFm, projOwn, setProjOwn, projectSounds, setProjectSounds,
   patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
@@ -1411,9 +1467,9 @@ let LANG = (() => {
 })();
 const T = (es, en) => LANG === "es" ? es : en;
 
-const TABS = [["packs", "Packs", "Packs"], ["nova", "Sintes Nova", "Nova synths"], ["drums", "Drums", "Drums"], ["custom", "Parches custom", "Custom patches"],
+const TABS = [["packs", "Packs", "Packs"], ["projects", "Proyectos", "Projects"], ["nova", "Sintes Nova", "Nova synths"], ["drums", "Drums", "Drums"], ["custom", "Parches custom", "Custom patches"],
               ["patterns", "Patrones", "Patterns"], ["cc", "Presets CC", "CC presets"]];
-const KIND = {nova: SD.Nova, drums: SD.Drums, custom: SD.Custom, patterns: SD.Patterns, cc: SD.CC};
+const KIND = {projects: SD.Projects, nova: SD.Nova, drums: SD.Drums, custom: SD.Custom, patterns: SD.Patterns, cc: SD.CC};
 const state = {tab: "packs", busy: false, backup: null, noBackup: false};
 const audio = {ctx: null, src: null, key: null};
 
@@ -1472,7 +1528,8 @@ const errText = e => ({"no-packs": T("En esa carpeta no hay packs (NN_Nombre con
   "device-status-6": T("Ese pack no existe, o el destino está ocupado.", "That pack does not exist, or the target is taken."),
   "device-status-7": T("Ese elemento no vale.", "Not a valid item."),
   "device-status-8": T("Nombre de pack no válido.", "Not a valid pack name."),
-  "no-session": T("No existe esa sesión.", "No such session."), "bad-session": T("Ese fichero de sesión no tiene el formato esperado.", "That session file is not in the expected format.")}[e.message] || e.message || String(e));
+  "no-session": T("No existe esa sesión.", "No such session."), "proj-size": T("No es un proyecto del Circuit Tracks: un proyecto (.ncs) ocupa 160 780 bytes.", "Not a Circuit Tracks project: a project (.ncs) is 160 780 bytes."),
+  "proj-head": T("No es un proyecto del Circuit Tracks: la cabecera no es la de un proyecto.", "Not a Circuit Tracks project: the head is not a project's."), "bad-session": T("Ese fichero de sesión no tiene el formato esperado.", "That session file is not in the expected format.")}[e.message] || e.message || String(e));
 
 // ---- log, progress, dialogs
 function log(text, cls) {
@@ -1601,6 +1658,7 @@ function cols(tab, it) {
   const dash = "—";
   switch (tab) {
     case "packs": return [SD.pad2(it.slot), `Pad ${it.slot + 2}`, it.empty ? dash : it.name, it.info || ""];
+    case "projects": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, ""];
     case "nova": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (["Mono", "Mono AG", "Poly"][it.mode] || "")];
     case "drums": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (Math.max(0, it.size - 44) / 96000).toFixed(2) + " s"];
     case "custom": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.bad ? T("dañado", "damaged") : it.name || T("(sin nombre)", "(no name)"), it.empty ? "" : engineName(it.flags, it.fm, it.wt)];
@@ -1664,7 +1722,7 @@ function headHtml(p) {
   const canEdit = tab === "custom" || tab === "patterns" || tab === "cc";
   if (tab === "custom" && pack) s += `<div class="prow"><button type="button" data-act="dx7">${T("Importar DX7…", "Import DX7…")}</button><span class="dim">${T("voces de un .syx del DX7 como parches FM de 8 operadores", "voices of a DX7 .syx as 8-operator FM patches")}</span></div>`;
   s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? side + " " : ""}${T("Copiar", "Copy")}${p.i ? "" : " " + side}</button><button type="button" data-act="move">${p.i ? side + " " : ""}${T("Mover", "Move")}${p.i ? "" : " " + side}</button>` +
-       `<button type="button" data-act="export">${T("Exportar…", "Export…")}</button><button type="button" class="dng" data-act="del">${T("Eliminar", "Delete")}</button>${SD.NAME_RULE[tab] ? `<button type="button" data-act="rename">${T("Renombrar / orden…", "Rename / order…")}</button>` : ""}${canEdit ? `<button type="button" data-act="edit">${T("Editar", "Edit")}</button>` : ""}<span class="hint" data-hint></span></div>`;
+       `${tab === "projects" ? `<button type="button" data-act="upload">${T("Subir…", "Upload…")}</button>` : ""}<button type="button" data-act="export">${T("Exportar…", "Export…")}</button><button type="button" class="dng" data-act="del">${T("Eliminar", "Delete")}</button>${SD.NAME_RULE[tab] ? `<button type="button" data-act="rename">${T("Renombrar / orden…", "Rename / order…")}</button>` : ""}${canEdit ? `<button type="button" data-act="edit">${T("Editar", "Edit")}</button>` : ""}<span class="hint" data-hint></span></div>`;
   return s;
 }
 async function loadItems(p) {
@@ -2449,13 +2507,14 @@ async function restAct() {
 }
 const fileSafe = s => String(s).replace(/[<>:"/\\|?*\x00-\x1f]/g, "_").replace(/[\s.]+$/, "") || "_";
 const EXPORTS = {
-  nova: ["Novation patch", ".syx"], custom: ["CIRCUIT-HACKS patch", ".ctm"], drums: ["WAV", ".wav"], patterns: ["MIDI", ".mid"],
+  projects: ["Circuit Tracks .ncs", ".ncs"], nova: ["Novation patch", ".syx"], custom: ["CIRCUIT-HACKS patch", ".ctm"], drums: ["WAV", ".wav"], patterns: ["MIDI", ".mid"],
 };
 async function exportFiles(p, n, it, ext) {                 // -> [[file name, bytes]]
   const pl = p.place(), tab = state.tab;
   if (tab === "nova") { const b = await SD.Nova.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(it.name)}.syx`, Uint8Array.from([0xF0, 0, 0x20, 0x29, 1, 0x64, 0, 0, 0, ...b.subarray(0, SD.PSZ), 0xF7])]]; }
   if (tab === "custom") { const c = await SD.Custom.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(it.name || "patch")}.ctm`, c.subarray(0, c.subarray(SD.PADN).every(x => x === 0xFF) ? SD.PADN : c.length)]]; }   // + the FM record when there is one
   if (tab === "drums") { const x = await SD.Drums.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(x.name)}.wav`, x.bytes]]; }
+  if (tab === "projects") { const x = await SD.Projects.get(pl, n); return [[`${SD.pad2(n)}_${fileSafe(x.name)}.ncs`, x.bytes]]; }      // as Upload takes it back: the slot and the name
   const b = await SD.Patterns.get(pl, n), s = (await SD.sessionsOf(pl.pack)).get(pl.sess), base = fileSafe(`${s.label} ${TRACKS[n >> 3]} P${(n & 7) + 1}`), d = pl.pack.card.device;
   const ch = d && d.chans ? d.chans[Math.min(4, n >> 3)] : [0, 1, 2, 3, 9][Math.min(4, n >> 3)], out = [];
   if (ext !== ".ctpat") out.push([base + ".mid", SD.patMidi(b, n, ch)]);
@@ -2470,6 +2529,36 @@ async function ccExport(p) {
       p.cc.title = "Circuit Tracks"; p.cc.handle = null; p.cc.dirty = false;
     });
     const w = await h.createWritable(); await w.write(p.cc.bytes); await w.close();
+  });
+}
+/* Projects from the PC (.ncs, as Export leaves them or as any card has them) into the pack of this side (the Remix app's Upload).  Where they go: from
+   the slot chosen in the list on; else, when every file carries its own NN_ and they differ, those slots; else the first run of free slots. */
+async function uploadAct(p) {
+  const pl = p.place();
+  if (!pl) return say(T("Nada abierto", "Nothing open"), T("Abre la carpeta de la tarjeta o conecta el aparato, y elige un pack.", "Open the card's folder or connect the device, and choose a pack."));
+  let files;
+  try { files = await Promise.all((await window.showOpenFilePicker({id: "sdupload", multiple: true, types: [{description: "Circuit Tracks .ncs", accept: {"application/octet-stream": [".ncs"]}}]})).map(h => h.getFile())); }
+  catch (_) { return; }
+  const items = [], refused = [];
+  for (const f of files.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0)) {
+    const b = new Uint8Array(await f.arrayBuffer()), bad = SD.projectProblem(b);
+    if (bad) refused.push(`${f.name}: ${errText(new Error(bad))}`);
+    else items.push({from: f.name, name: SD.projectName(f.name), bytes: b});
+  }
+  if (refused.length) await say(T("Ficheros que no se suben", "Files left out"), nameList(refused));
+  if (!items.length) return;
+  const own = items.map(it => SD.projSlot(it.from));
+  const to = p.sel.size ? targets(p, items.length) : own.every(n => n !== null) && new Set(own).size === own.length ? own : targets(p, items.length);
+  if (!to) return say(T("No cabe", "It does not fit"), T("No hay huecos de proyecto suficientes: elige en la lista el primer hueco o elimina alguno.", "Not enough project slots: choose the first slot in the list or delete some."));
+  const hit = to.filter(n => !p.items[n].empty);
+  const c = await ask(T("Subir proyectos", "Upload projects"), nameList(items.map((it, i) => `${it.from} → ${SD.pad2(to[i])}_${it.name}.ncs (${where("projects", to[i])})${p.items[to[i]].empty ? "" : " · " + T("sustituye a ", "replaces ") + p.items[to[i]].name}`), 64) +
+    `<p class="dim">${T(`Van al pack <b>${esc(pl.pack.folder)}</b> y tocan sus samples y patches.`, `They go to the pack <b>${esc(pl.pack.folder)}</b> and play its samples and patches.`)}</p>` +
+    (hit.length ? `<p class="warn">${T(`${hit.length} hueco(s) ocupado(s): se sustituyen${state.backup ? " (se guarda antes una copia)" : ""}.`, `${hit.length} slot(s) in use: they are replaced${state.backup ? " (a backup is kept first)" : ""}.`)}</p>` : ""),
+    [[T("Subir", "Upload"), true, hit.length ? "dng" : "pri"], [T("Cancelar", "Cancel"), false]]);
+  if (!c || !await ready(pl.pack.card) || !await loadedOK(pl.pack)) return;
+  p.sel.clear();
+  await run(`${T("Subir", "Upload")} ${items.length}`, async ctx => {
+    for (let i = 0; i < items.length; i++) { await SD.Projects.put(pl, to[i], items[i], ctx); ctx.progress(items[i].from, i + 1, items.length); }
   });
 }
 async function exportAct(p) {
@@ -2534,6 +2623,7 @@ for (const p of panes) {
     if (act === "del") return deleteAct(p);
     if (act === "rename") return renameAct(p);
     if (act === "export") return exportAct(p);
+    if (act === "upload") return uploadAct(p);
     if (act === "edit") return editAct(p);
     if (act === "dx7") return dx7Act(p);
     if (act === "psnd") return projSoundsAct(p);
