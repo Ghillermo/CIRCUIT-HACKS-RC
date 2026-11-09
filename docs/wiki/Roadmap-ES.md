@@ -2,15 +2,17 @@
 
 *[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Cambios](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Actualizada el 2026-11-07. Versiones actuales: **RC4.08 / RC4.08S** (arreglos) y la **Beta 5.33** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
+Actualizada el 2026-11-09. Versiones actuales: **RC4.11 / RC4.11S** (arreglos) y la **Beta 5.41** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
 
 El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantidad**: que lo que ya existe suene mejor, sea más fácil de usar, sea sólido y esté bien documentado. Las funciones nuevas grandes esperan hasta entonces.
 
 ## En marcha
 
+- **Morph de patches** (Beta 5.38; probado en el aparato en la Beta 5.39): mantén dos o más patches en la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 y K1 pasa de uno al siguiente, con LFO, azar y una envolvente en K2-K8.
+- **Patches en el color de su categoría** (Beta 5.38; Bass en azul acero desde la Beta 5.40): la vista Preset de Synth 1 / 2 enseña cada patch en el color de su categoría de Components, y K1 elige la categoría al guardar.
 - **FM de 8 operadores** (Beta 5.20, probado en el aparato; listas e instrumentos desde la Beta 5.21): envolventes al estilo DX7, 56 algoritmos, 48 instrumentos en dos páginas (la segunda, con pianos, cuerdas, vientos y sonidos largos, desde la Beta 5.33), patches del DX7 importados con la app de la tarjeta.
 - **Funciones propias del modo de un oscilador** (Beta 5.32, por probar en el aparato): sub-oscilador y ruido, con su envolvente y su LFO.
-- **Vista de flip** (Beta 5.32, por probar en el aparato): el pad 26 abre una vista para elegir patch flip (PGM seq) o step flip y su destino; más adelante, un modo morph.
+- **Vista de flip** (Beta 5.32, por probar en el aparato): el pad 26 abre una vista para elegir patch flip (PGM seq) o step flip y su destino.
 - **Motor wavetable** (Betas 5.24-5.28, por probar en el aparato): las 16 wavetables de stock, o una tabla propia de hasta 9 cuadros hecha con ellas y con los samples del pack, con la posición en K3.
 - **Los dos osciladores reordenados y más limpios** (Beta 5.27, por probar en el aparato): FM con centro (en los dos sentidos, los dos en los extremos), sync clásico, LFO / envolvente → FM, ring y mix, menos ruido en FM, sync y bitwise.
 - **Interfaz nueva del random-mutate** (Beta 5.4; dinámicas rehechas en la Beta 5.12): una botonera por paso para la nota, la octava, las dinámicas (ghost, accent staccato, longitud; en los drums más suave con roller o más fuerte) y los micropasos, y un factor en Octave (×0, ×1, ×2, ×4, ×8) para toda la pista, en notas y drums.

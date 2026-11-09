@@ -28,8 +28,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [A18 Macro knob destinations](#a18-destinos-macro)
 - [A19 Copying projects to another slot or another pack](#a19-copiar-proyectos)
 - [A20 Own-synth patches to another pack](#a20-patches-entre-packs)
-- [A21 Shift = a flash on every note (Beta 5.33 only)](#a21-luces-disparo)
-- [A22 Shift + Preset = the project's sound (Beta 5.33 only)](#a22-proyecto-init)
+- [A21 Shift = a flash on every note (Beta 5.41 only)](#a21-luces-disparo)
+- [A22 Shift + Preset = the project's sound (Beta 5.41 only)](#a22-proyecto-init)
 
 **B. Exposed controls**
 
@@ -44,7 +44,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 **C. New control modes**
 
-- [C1 Patch morph (Beta 5.40 only)](#c1-morph)
+- [C1 Patch morph (Beta 5.41 only)](#c1-morph)
 - [C2 Engine of the MIDI tracks (pad 27)](#c2-motor-midi)
 - [C3 Step-drummer](#c3-step-drummer)
 - [C4 FX sequencer](#c4-fx-seq)
@@ -61,13 +61,13 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - [C15 Custom scale (since RC2)](#c15-escala-propia)
 - [C16 Chord screen (since RC4)](#c16-acordes)
 - [C17 Stereo drum pairs (since RC4)](#c17-pareja-estereo)
-- [C18 The drums' extra lane (Beta 5.33 only)](#c18-carril-extra)
+- [C18 The drums' extra lane (Beta 5.41 only)](#c18-carril-extra)
 - [C19 Sample mode of the MIDI tracks (since RC2)](#c19-modo-muestra)
 - [C20 Mod matrix of the own synth (since RC2.02)](#c20-matriz-mod)
-- [C21 Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)](#c21-saltos)
+- [C21 Jump sequencer of MIDI 1 / 2 (Beta 5.41 only)](#c21-saltos)
 - [C22 4-operator FM (since RC4)](#c22-fm4)
-- [C23 8-operator FM (Beta 5.33 only)](#c23-fm8)
-- [C24 Wavetable (Beta 5.33 only)](#c24-wavetable)
+- [C23 8-operator FM (Beta 5.41 only)](#c23-fm8)
+- [C24 Wavetable (Beta 5.41 only)](#c24-wavetable)
 - [C25 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c25-master-fx-beta)
 
 **D. DSP**
@@ -151,7 +151,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="a15-colores-patch"></a>
 ### A15. Synth patch colours
-- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.40 only:** each patch in the colour of its **Components category**.
+- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.41 only:** each patch in the colour of its **Components category**.
 
 <a id="a16-patches-midi"></a>
 ### A16. Patches of the own synth (MIDI 1 / 2)
@@ -174,18 +174,18 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
 
 <a id="a21-luces-disparo"></a>
-### A21. Shift = a flash on every note (Beta 5.33 only)
+### A21. Shift = a flash on every note (Beta 5.41 only)
 - With Shift held, each track's button flashes white on every note it plays.
 
 <a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = the project's sound (Beta 5.33 only)
+### A22. Shift + Preset = the project's sound (Beta 5.41 only)
 - Shift + Preset brings the track's sound back to the one saved in the project.
 
 ## B. Exposed controls
 
 <a id="b1-knobs-drums"></a>
 ### B1. Drum knobs as printed on the panel
-- Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.33), tilt), LFO, start point, bitcrush and distortion.
+- Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.41), tilt), LFO, start point, bitcrush and distortion.
 
 <a id="b2-rev-delay"></a>
 ### B2. Reverb and delay parameters
@@ -222,8 +222,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 ## C. New control modes
 
 <a id="c1-morph"></a>
-### C1. Patch morph (Beta 5.40 only)
-- **Beta 5.40 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope.
+### C1. Patch morph (Beta 5.41 only)
+- **Beta 5.41 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two or more patches** for 0.4 s and a knob moves from one to the next, with LFOs, randomness and an envelope.
 
 <a id="c2-motor-midi"></a>
 ### C2. Engine of the MIDI tracks (pad 27)
@@ -297,8 +297,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **Since RC4.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.
 
 <a id="c18-carril-extra"></a>
-### C18. The drums' extra lane (Beta 5.33 only)
-- **Beta 5.33 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
+### C18. The drums' extra lane (Beta 5.41 only)
+- **Beta 5.41 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
 
 <a id="c19-modo-muestra"></a>
 ### C19. Sample mode of the MIDI tracks (since RC2)
@@ -311,7 +311,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
 
 <a id="c21-saltos"></a>
-### C21. Jump sequencer of MIDI 1 / 2 (Beta 5.33 only)
+### C21. Jump sequencer of MIDI 1 / 2 (Beta 5.41 only)
 - The notes of a MIDI track make another track's pattern jump to the step they indicate.
 
 <a id="c22-fm4"></a>
@@ -320,13 +320,13 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 - **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
 
 <a id="c23-fm8"></a>
-### C23. 8-operator FM (Beta 5.33 only)
-- **Beta 5.33 only.** It replaces the 4-operator FM on **pad 24** of the engine row: **up to 8 operators**, each with a **DX7-style envelope** (4 rates, 4 levels), and **56 algorithms** (the 4-operator FM's 16, the DX7's 32 and 8 with eight operators). 4-operator FM patches load converted, with the same sound.
+### C23. 8-operator FM (Beta 5.41 only)
+- **Beta 5.41 only.** It replaces the 4-operator FM on **pad 24** of the engine row: **up to 8 operators**, each with a **DX7-style envelope** (4 rates, 4 levels), and **56 algorithms** (the 4-operator FM's 16, the DX7's 32 and 8 with eight operators). 4-operator FM patches load converted, with the same sound.
 - FM page = **pad 7** (with the engine row closed): **pads 9-16** = operator 1-8 (the ones the algorithm uses lit: carriers green, modulators light blue), **pad 3** = the pitch envelope (violet). **K1** ratio (0.5 … 31 or fixed in Hz), **K2** fine, **K3** level, **K4** velocity, **K5-K8** rates R1-R4; with Shift **K1** algorithm, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** levels L1-L4.
 
 <a id="c24-wavetable"></a>
-### C24. Wavetable (Beta 5.33 only)
-- **Beta 5.33 only.** **Pad 21** of the engine row (sand) = the oscillator reading a **wavetable**: both oscillators, the FM / ring / sync between them, the filter, the VCA, polyphony and the voice modes stay as they are.
+### C24. Wavetable (Beta 5.41 only)
+- **Beta 5.41 only.** **Pad 21** of the engine row (sand) = the oscillator reading a **wavetable**: both oscillators, the FM / ring / sync between them, the filter, the VCA, polyphony and the voice modes stay as they are.
 - **One table per patch, up to 9 frames**, for both oscillators; each its own **position**: **K3** of the OSC 1 / OSC 2 page (WAVE; in Beta 5.24-5.26, K7), K7 = LFO → position, Shift + K3 = envelope → position. **SHAPE** (K2) and envelope / LFO → shape (K4 / K6) = **warp**, a bend of the phase.
 
 <a id="c25-master-fx-beta"></a>
@@ -362,7 +362,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anythi
 
 <a id="d7-drums-dsp"></a>
 ### D7. Drum DSP
-- Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.33) / tilt filters, bitcrush, start point, distortions and sidechain between drums.
+- Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.41) / tilt filters, bitcrush, start point, distortions and sidechain between drums.
 
 <a id="d8-entradas"></a>
 ### D8. Audio inputs and returns

@@ -603,6 +603,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.11 / RC4.11S / Beta 5.41 — 2026-11-09
+
+**RC4.11** / **RC4.11S** (marcas `R411` / `R411S`) = RC4.10 / RC4.10S + este arreglo; **Beta 5.41** (marca `B5.41`; = SC55.6) = la Beta 5.40 + el mismo. Sin probar en el aparato.
+
+- **El reloj se retrasaba al cargar un patch propio del sinte de MIDI 1 / 2** (sobre todo con FM o con el morph): la carga leía la tarjeta una vez por cada parte del patch (7 lecturas seguidas en la RC, 11 en la beta) y el secuenciador esperaba. Ahora el patch se lee una vez y cada parte lo toma de la memoria (1 lectura en la RC, 2 en la beta). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#midi-preset)
+
 ### Beta 5.40 — 2026-11-08
 
 - **Entrar en el morph de Synth 1 / 2 paraba la reproducción y reiniciaba el aparato** a los pocos segundos: sus escrituras esperaban al servicio del DSP desde la tarea de los LEDs; ahora las hace el propio servicio. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
@@ -1525,6 +1531,12 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.11 / RC4.11S / Beta 5.41 — 2026-11-09
+
+**RC4.11** / **RC4.11S** (markers `R411` / `R411S`) = RC4.10 / RC4.10S + this fix; **Beta 5.41** (marker `B5.41`; = SC55.6) = Beta 5.40 + the same. Untested on the device.
+
+- **The clock lagged when loading an own patch of the MIDI 1 / 2 synth** (mostly with FM or the morph): the load read the SD card once for each part of the patch (7 reads in a row in the RC, 11 in the beta) and the sequencer waited. Now the patch is read once and each part takes it from memory (1 read in the RC, 2 in the beta). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#midi-preset)
 
 ### Beta 5.40 — 2026-11-08
 
