@@ -48,8 +48,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#a18-destinos-macro">A18 Destinos de los macro knobs</a></li>
 <li><a href="#a19-copiar-proyectos">A19 Copiar proyectos a otro hueco o a otro pack</a></li>
 <li><a href="#a20-patches-entre-packs">A20 Patches del sinte propio a otro pack</a></li>
-<li><a href="#a21-luces-disparo">A21 Shift = destello de cada nota (solo Beta 5.33)</a></li>
-<li><a href="#a22-proyecto-init">A22 Shift + Preset = el sonido del proyecto (solo Beta 5.33)</a></li>
+<li><a href="#a21-luces-disparo">A21 Shift = destello de cada nota (solo Beta 5.40)</a></li>
+<li><a href="#a22-proyecto-init">A22 Shift + Preset = el sonido del proyecto (solo Beta 5.40)</a></li>
 </ol>
 <h3>B. Controles expuestos</h3><ol>
 <li><a href="#b1-knobs-drums">B1 Knobs de los drums según el panel</a></li>
@@ -79,13 +79,13 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#c15-escala-propia">C15 Escala propia (desde RC2)</a></li>
 <li><a href="#c16-acordes">C16 Pantalla de acordes (desde RC4)</a></li>
 <li><a href="#c17-pareja-estereo">C17 Parejas estéreo de drums (desde RC4)</a></li>
-<li><a href="#c18-carril-extra">C18 Carril extra de los drums (solo Beta 5.33)</a></li>
+<li><a href="#c18-carril-extra">C18 Carril extra de los drums (solo Beta 5.40)</a></li>
 <li><a href="#c19-modo-muestra">C19 Modo muestra de las pistas MIDI (desde RC2)</a></li>
 <li><a href="#c20-matriz-mod">C20 Matriz de modulación del sinte propio (desde RC2.02)</a></li>
-<li><a href="#c21-saltos">C21 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.33)</a></li>
+<li><a href="#c21-saltos">C21 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.40)</a></li>
 <li><a href="#c22-fm4">C22 FM de 4 operadores (desde RC4)</a></li>
-<li><a href="#c23-fm8">C23 FM de 8 operadores (solo Beta 5.33)</a></li>
-<li><a href="#c24-wavetable">C24 Wavetable (solo Beta 5.33)</a></li>
+<li><a href="#c23-fm8">C23 FM de 8 operadores (solo Beta 5.40)</a></li>
+<li><a href="#c24-wavetable">C24 Wavetable (solo Beta 5.40)</a></li>
 <li><a href="#c25-master-fx-beta">C25 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
@@ -2380,14 +2380,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.</li>
 </ul>
 </section>
-<section class="feat" id="a21-luces-disparo"><h3><span class="code">A21</span>Shift = destello de cada nota (solo Beta 5.33)</h3>
+<section class="feat" id="a21-luces-disparo"><h3><span class="code">A21</span>Shift = destello de cada nota (solo Beta 5.40)</h3>
 <div class="summary"><p>Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.</p></div>
 <ul>
 <li><strong>Solo Beta 5.40.</strong> Con <strong>Shift</strong> mantenido, en cualquier vista, los ocho <strong>botones de pista</strong> (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en <strong>blanco</strong> durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI (con Shift el original los deja apagados).</li>
 <li>Una nota ligada a la siguiente es una sola nota: un destello.</li>
 </ul>
 </section>
-<section class="feat" id="a22-proyecto-init"><h3><span class="code">A22</span>Shift + Preset = el sonido del proyecto (solo Beta 5.33)</h3>
+<section class="feat" id="a22-proyecto-init"><h3><span class="code">A22</span>Shift + Preset = el sonido del proyecto (solo Beta 5.40)</h3>
 <div class="summary"><p>Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.</p></div>
 <ul>
 <li><strong>Solo Beta 5.40.</strong> En las vistas de Synth 1 / 2, <strong>Shift + Preset</strong> = el patch entero del sinte vuelve a como está guardado en el proyecto (o como se cargó: lo que se ha girado después se pierde).</li>
@@ -2397,7 +2397,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </section>
 <h2 class="group">B. Controles expuestos</h2>
 <section class="feat" id="b1-knobs-drums"><h3><span class="code">B1</span>Knobs de los drums según el panel</h3>
-<div class="summary"><p>Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.33), tilt), LFO, start point, bitcrush y distorsión.</p></div>
+<div class="summary"><p>Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.40), tilt), LFO, start point, bitcrush y distorsión.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Knobs de un drum.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#00ffb5" stroke-width="4"/>
@@ -2550,7 +2550,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>K2 Osc mod</td><td>Frecuencia del ring mod</td><td>Cantidad del ring mod</td></tr>
 <tr><td>K3 Amp envelope</td><td>Izquierda: decay; pasado el máximo, <strong>ataque</strong> (centro neutro)</td><td>Izquierda: <strong>inicio</strong> del sample; derecha: <strong>corte</strong> (centro = entero)</td></tr>
 <tr><td>K4 Filter envelope</td><td>Envolvente → corte</td><td>Forma de la envolvente</td></tr>
-<tr><td>K5 Filter frequency</td><td>Filtro / EQ (por defecto, el EQ tilt de stock)</td><td><strong>Modo de filtro</strong>: EQ tilt de stock (por defecto), paso banda, notch, comb (no en la Beta 5.33: ahí suena el EQ tilt), DJ</td></tr>
+<tr><td>K5 Filter frequency</td><td>Filtro / EQ (por defecto, el EQ tilt de stock)</td><td><strong>Modo de filtro</strong>: EQ tilt de stock (por defecto), paso banda, notch, comb (no en la Beta 5.40: ahí suena el EQ tilt), DJ</td></tr>
 <tr><td>K6 Resonance</td><td>Resonancia</td><td>—</td></tr>
 <tr><td>K7 Modulation</td><td>Cantidad del LFO (derecha trémolo; izquierda vibrato; desde RC4: izquierda = scan del inicio)</td><td>Velocidad del LFO</td></tr>
 <tr><td>K8 FX</td><td>Distorsión; a la izquierda de 0, <strong>bitcrush</strong></td><td><strong>Tipo de distorsión</strong>: stock, suave, dura, plegada</td></tr>
@@ -4212,8 +4212,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>La tabla de knobs está en la guía por vistas («Vista de pista de un drum»).</li>
 </ul>
 </section>
-<section class="feat" id="c18-carril-extra"><h3><span class="code">C18</span>Carril extra de los drums (solo Beta 5.33)</h3>
-<div class="summary"><p><strong>Solo Beta 5.33.</strong> Cada drum tiene <strong>un carril de automatización más</strong>, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el <strong>pitch cromático</strong> (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); <strong>Record mantenido + un knob</strong> le asigna otro parámetro y <strong>Record mantenido + un pad cromático</strong> lo devuelve al pitch cromático.</p></div>
+<section class="feat" id="c18-carril-extra"><h3><span class="code">C18</span>Carril extra de los drums (solo Beta 5.40)</h3>
+<div class="summary"><p><strong>Solo Beta 5.40.</strong> Cada drum tiene <strong>un carril de automatización más</strong>, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el <strong>pitch cromático</strong> (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); <strong>Record mantenido + un knob</strong> le asigna otro parámetro y <strong>Record mantenido + un pad cromático</strong> lo devuelve al pitch cromático.</p></div>
 <ul>
 <li>Knobs asignables: K2, K4, K6, K7 y Shift + K1, K2, K4, K7 (los knobs nuevos del mod sin carril propio). Mientras mantienes Record, el knob asignado se ve blanco (el pitch cromático: Preset parpadea).</li>
 <li>Grabando, girar el knob asignado escribe el paso que suena (un valor por paso); Clear + ese knob a la izquierda borra el carril; Record mantenido + paso (la foto) incluye su valor.</li>
@@ -4390,7 +4390,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Se guarda con los patches del sinte propio</strong> (A14); no con el proyecto ni al apagar el aparato. Sin CC / NRPN. Unas 100-250 actualizaciones por segundo, repartidas entre lo que se mueve en la pista.</li>
 </ul>
 </section>
-<section class="feat" id="c21-saltos"><h3><span class="code">C21</span>Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.33)</h3>
+<section class="feat" id="c21-saltos"><h3><span class="code">C21</span>Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.40)</h3>
 <div class="summary"><p>Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.</p></div>
 <ul>
 <li><strong>Solo Beta 5.40.</strong> Vista Preset de MIDI 1 / 2: el <strong>pad 26</strong> abre la vista de flip; en la fila 3, <strong>pad 17 = patch flip (PGM seq)</strong> y <strong>pad 18 = step flip</strong> (uno u otro; tocar el encendido lo apaga); con step flip, la <strong>fila 2</strong> son las ocho pistas y un toque elige el destino (sin elegir, el último usado). Con la vista cerrada, en step flip el pad 26 parpadea en el color del destino.</li>
@@ -4413,8 +4413,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Clear + knob</strong> = su valor en la voz del algoritmo; <strong>Clear + MIDI 1 / 2</strong> = todo a los valores iniciales. Se guarda con los patches del sinte propio (A14). Sin CC / NRPN. <strong>Solo Beta 5.40:</strong> sustituido por el FM de 8 operadores (C, siguiente).</li>
 </ul>
 </section>
-<section class="feat" id="c23-fm8"><h3><span class="code">C23</span>FM de 8 operadores (solo Beta 5.33)</h3>
-<div class="summary"><p><strong>Solo Beta 5.33.</strong> Sustituye al FM de 4 operadores en el <strong>pad 24</strong> de la fila de motores: <strong>hasta 8 operadores</strong>, cada uno con una <strong>envolvente como la del DX7</strong> (4 rates, 4 niveles), y <strong>56 algoritmos</strong> (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.</p><p>Página FM = <strong>pad 7</strong> (con la fila de motores cerrada): <strong>pads 9-16</strong> = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), <strong>pad 3</strong> = la envolvente de pitch (violeta). <strong>K1</strong> ratio (0,5 … 31 o fijo en Hz), <strong>K2</strong> fino, <strong>K3</strong> nivel, <strong>K4</strong> velocity, <strong>K5-K8</strong> rates R1-R4; con Shift <strong>K1</strong> algoritmo, <strong>K2</strong> feedback, <strong>K3</strong> rate scaling, <strong>K4</strong> level scaling, <strong>K5-K8</strong> niveles L1-L4.</p></div>
+<section class="feat" id="c23-fm8"><h3><span class="code">C23</span>FM de 8 operadores (solo Beta 5.40)</h3>
+<div class="summary"><p><strong>Solo Beta 5.40.</strong> Sustituye al FM de 4 operadores en el <strong>pad 24</strong> de la fila de motores: <strong>hasta 8 operadores</strong>, cada uno con una <strong>envolvente como la del DX7</strong> (4 rates, 4 niveles), y <strong>56 algoritmos</strong> (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.</p><p>Página FM = <strong>pad 7</strong> (con la fila de motores cerrada): <strong>pads 9-16</strong> = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), <strong>pad 3</strong> = la envolvente de pitch (violeta). <strong>K1</strong> ratio (0,5 … 31 o fijo en Hz), <strong>K2</strong> fino, <strong>K3</strong> nivel, <strong>K4</strong> velocity, <strong>K5-K8</strong> rates R1-R4; con Shift <strong>K1</strong> algoritmo, <strong>K2</strong> feedback, <strong>K3</strong> rate scaling, <strong>K4</strong> level scaling, <strong>K5-K8</strong> niveles L1-L4.</p></div>
 <ul>
 <li><strong>Solo los operadores del algoritmo</strong> gastan tiempo del DSP: con 4, unas 10 voces; con 6 (los del DX7), unas 6-7; con 8, unas 5. Polifonía, unísono y glide como antes.</li>
 <li><strong>Envolvente de pitch</strong> (pad 3): R1-R4 / L1-L4 (L = 50 sin desplazamiento), transposición, ruido y el operador que lo lleva.</li>
@@ -4424,8 +4424,8 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Sin CC / NRPN. <strong>Voces del DX7:</strong> la app de la tarjeta (<code>sd_app.html</code>, <strong>Parches custom</strong> → <strong>Importar DX7…</strong>) convierte un <code>.syx</code> de 32 voces o de una en parches custom con este FM.</li>
 </ul>
 </section>
-<section class="feat" id="c24-wavetable"><h3><span class="code">C24</span>Wavetable (solo Beta 5.33)</h3>
-<div class="summary"><p><strong>Solo Beta 5.33.</strong> El <strong>pad 21</strong> de la fila de motores (arena) = el oscilador leyendo una <strong>wavetable</strong>: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.</p><p><strong>Una tabla por patch, de hasta 9 cuadros</strong>, para los dos osciladores; cada uno con su <strong>posición</strong>: <strong>K3</strong> de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. <strong>SHAPE</strong> (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = <strong>warp</strong>, una doblez de la fase.</p></div>
+<section class="feat" id="c24-wavetable"><h3><span class="code">C24</span>Wavetable (solo Beta 5.40)</h3>
+<div class="summary"><p><strong>Solo Beta 5.40.</strong> El <strong>pad 21</strong> de la fila de motores (arena) = el oscilador leyendo una <strong>wavetable</strong>: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.</p><p><strong>Una tabla por patch, de hasta 9 cuadros</strong>, para los dos osciladores; cada uno con su <strong>posición</strong>: <strong>K3</strong> de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. <strong>SHAPE</strong> (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = <strong>warp</strong>, una doblez de la fase.</p></div>
 <ul>
 <li><strong>Tablas Nova:</strong> con la wavetable sonando, <strong>pad 7 mantenido</strong> = las 16 wavetables del sinte de stock (las ondas 14-29: sine table, analogue pulse, analogue sync, digital vocal…) en los pads 9-24, en arena (brillante la que está cargada); un toque llena la tabla con sus 9 cuadros; <strong>Shift</strong> + una tabla cambia solo el cuadro que señala la posición (K3; por el mismo cuadro de esa tabla). También con la fila de motores abierta. La primera vez la tabla viene llena con la 7.ª (digital saw-square).</li>
 <li><strong>Samples:</strong> <strong>pad 8 mantenido</strong> = los samples del pack en los pads 9-32 (Octave ▼ / ▲ = página); un toque pone <strong>un ciclo</strong> de ese sample <strong>en el cuadro que señala la posición</strong> (K3 de OSC 1): el aparato busca su periodo, lo corta y hace sus versiones de banda limitada (tarda un momento).</li>
@@ -4673,9 +4673,9 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ul>
 </section>
 <section class="feat" id="d7-drums-dsp"><h3><span class="code">D7</span>DSP de los drums</h3>
-<div class="summary"><p>Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.33) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.</p></div>
+<div class="summary"><p>Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.40) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.</p></div>
 <ul>
-<li>Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación (no en la Beta 5.33) y el EQ tilt de stock.</li>
+<li>Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación (no en la Beta 5.40) y el EQ tilt de stock.</li>
 <li>Ring mod con oscilador propio, LFO trémolo / vibrato, distorsión suave / dura / plegada, bitcrush.</li>
 <li><strong>Sidechain entre drums:</strong> Shift + FX y Octave ▼: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). <strong>Desde RC2:</strong> los pads 1-4 de la fila 1 = Synth 1, Synth 2, MIDI 1, MIDI 2 como disparo (cada nota de su patrón).</li>
 </ul>
