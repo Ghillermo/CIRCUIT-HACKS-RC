@@ -70,16 +70,16 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><a href="#c9-random-mutate">C9 Random-mutate por paso</a></li>
 <li><a href="#c10-frecuencia-dinamicas">C10 Frecuencia y dinámicas por paso</a></li>
 <li><a href="#c11-cadenas">C11 Cadenas de patrones y escenas</a></li>
-<li><a href="#c12-nudge-ordenes">C12 Nudge y órdenes de reproducción</a></li>
-<li><a href="#c13-arpegiador">C13 Arpegiador (desde RC2)</a></li>
-<li><a href="#c14-rollers">C14 Rollers de micropasos de los drums (desde RC2)</a></li>
-<li><a href="#c15-escala-propia">C15 Escala propia (desde RC2)</a></li>
-<li><a href="#c16-acordes">C16 Pantalla de acordes (desde RC4)</a></li>
-<li><a href="#c17-pareja-estereo">C17 Parejas estéreo de drums (desde RC4)</a></li>
-<li><a href="#c19-modo-muestra">C19 Modo muestra de las pistas MIDI (desde RC2)</a></li>
-<li><a href="#c20-matriz-mod">C20 Matriz de modulación del sinte propio (desde RC2.02)</a></li>
-<li><a href="#c22-fm4">C22 FM de 4 operadores (desde RC4)</a></li>
-<li><a href="#c25-master-fx-beta">C25 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</a></li>
+<li><a href="#c13-nudge-ordenes">C13 Nudge y órdenes de reproducción</a></li>
+<li><a href="#c14-arpegiador">C14 Arpegiador (desde RC2)</a></li>
+<li><a href="#c15-rollers">C15 Rollers de micropasos de los drums (desde RC2)</a></li>
+<li><a href="#c16-escala-propia">C16 Escala propia (desde RC2)</a></li>
+<li><a href="#c17-acordes">C17 Pantalla de acordes (desde RC4)</a></li>
+<li><a href="#c18-pareja-estereo">C18 Parejas estéreo de drums (desde RC4)</a></li>
+<li><a href="#c20-modo-muestra">C20 Modo muestra de las pistas MIDI (desde RC2)</a></li>
+<li><a href="#c21-matriz-mod">C21 Matriz de modulación del sinte propio (desde RC2.02)</a></li>
+<li><a href="#c23-fm4">C23 FM de 4 operadores (desde RC4)</a></li>
+<li><a href="#c26-master-fx-beta">C26 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</a></li>
 </ol>
 <h3>D. DSP</h3><ol>
 <li><a href="#d1-efectos-grid">D1 Efectos de Master FX</a></li>
@@ -341,6 +341,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>50</td><td>Página FM: <strong>pad 8</strong> mantenido</td><td>16 sonidos de partida (piano, pluck, cuerdas, vientos, percusión…) en los pads 9-24 (<strong>desde RC4</strong>)</td></tr>
 <tr><td>58</td><td>Knobs bipolares</td><td>Izquierda en un tono más claro del mismo color, centro tenue;</td></tr>
 <tr><td>59</td><td>OSC 1 con un oscilador: <strong>K5 / K6 / K8</strong></td><td>K5 = nivel del sub-oscilador, K6 = nivel del ruido, Shift = envolvente → ellos;</td></tr>
+<tr><td>61</td><td>Patterns / Mixer: <strong>Shift + Duplicate</strong></td><td>Mutate de patrones: cada pista elegida toca una lista de patrones de su cadena en otro orden; mantenido en Patterns = sus ajustes;</td></tr>
 </tbody></table>
 </section>
 <section class="feat" id="a2-master-fx-acceso"><h3><span class="code">A2</span>Master FX en el botón Mixer</h3>
@@ -1876,6 +1877,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Valores iniciales:</strong> <strong>Clear + el botón de la pista</strong> (MIDI 1 o MIDI 2, con una vista de esa pista en pantalla y el editor de CC cerrado) devuelve todos los valores del motor a los iniciales; el motor elegido se queda.</li>
 <li>Colores: melocotón tenue = hueco con patch; melocotón brillante = el último cargado o guardado; <strong>violeta = vacío</strong> (tocarlo no hace nada).</li>
 <li><strong>En el PC:</strong> <code>tools/patchtool.py</code> (en el PC, con la tarjeta en un lector) trata cada patch como un fichero <code>.ctm</code>: <code>list</code> enseña los 64 huecos con su índice, nombre y motor; <code>copy</code> sube un fichero a un hueco, lo baja o lo copia entre huecos y packs; <code>show</code> lee el motor y todos los parámetros y <code>set</code> los cambia (<code>set bajo.ctm filt=90 engine=granular</code>); <code>new</code> crea un patch con los valores iniciales; <code>name</code> le da nombre y <code>clear</code> vacía un hueco. El aparato no tiene pantalla: el nombre es para la herramienta; Duplicate + A + B lo mueve con el patch, guardar encima lo borra.</li>
+<li><strong>Patches de ejemplo:</strong> <a href="https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches">81 ficheros <code>.ctm</code></a> (la lista con sus destinos, en <code>LEEME.md</code>): 33 sonidos clásicos (bajos ladder, acid, Reese, sub, wobble; solos sync, supersaw, hoover; pads de cuerdas, PWM, barrido; metales, plucks, órgano, campana; bombo, caja, charles y efectos del VA-drum) y los 48 instrumentos del FM de 8 operadores; cada uno con los destinos de la página 4 y de Shift + pad 4 elegidos para su sonido. Se suben con la app de la tarjeta (<strong>Parches custom → Subir .ctm</strong>). Los del FM y el sub / ruido de un oscilador necesitan la beta; lo que una versión no conoce se ignora.</li>
 <li>En BETA2 / BETA3 los gestos eran otros: Duplicate + pad guardaba, Clear + pad vaciaba y los vacíos estaban apagados.</li>
 <li><strong>Octave ▼</strong> = página siguiente, <strong>Octave ▲</strong> = la anterior (encendidos cuando hay página en ese sentido). Al volver de Master FX o de la vista Preset de un sinte se empieza en la página 1.</li>
 <li>Dónde se guardan: en el hueco libre que hay detrás de cada uno de los 64 primeros patches de sinte del pack (<code>Patches/</code>). Si ese patch de sinte no existe todavía, se crea con el Initial Patch (y los anteriores del banco que falten).</li>
@@ -4105,7 +4107,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Las reglas se guardan con el patrón (viajan al duplicarlo); el modo y lo de las escenas, con el proyecto.</li>
 </ul>
 </section>
-<section class="feat" id="c12-nudge-ordenes"><h3><span class="code">C12</span>Nudge y órdenes de reproducción</h3>
+<section class="feat" id="c13-nudge-ordenes"><h3><span class="code">C13</span>Nudge y órdenes de reproducción</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Pattern Settings: <strong>pad 26 = Nudge</strong> (mueve el contenido de los pasos elegidos), <strong>pad 27 = orden fractal</strong>, <strong>pad 28 = orden deconstruido</strong>. En todas las pistas, drums incluidos.</p></div>
 <ul>
 <li><strong>Nudge (pad 26, azul), desde RC4.05:</strong> el contenido del tramo elegido (del primer al último paso) se mueve un paso atrás; <strong>Shift + pad 26</strong>, un paso adelante. Lo que sale por un extremo del tramo entra por el otro y <strong>el primer y el último paso no se mueven</strong>. Mueve los pasos completos con su automatización, y en los drums sus valores propios. La vista lo enseña al momento. En las RC movía también el primer y el último paso, y la vista no enseñaba el contenido movido hasta el siguiente Play.</li>
@@ -4116,7 +4118,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>El orden se guarda con el patrón. Borrar el patrón con Clear lo quita.</li>
 </ul>
 </section>
-<section class="feat" id="c13-arpegiador"><h3><span class="code">C13</span>Arpegiador (desde RC2)</h3>
+<section class="feat" id="c14-arpegiador"><h3><span class="code">C14</span>Arpegiador (desde RC2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> En la vista Pattern Settings de una pista de notas: <strong>Shift + pad 25</strong> = arpegiador del patrón encendido / apagado, <strong>Shift + pads 27-32</strong> = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), independiente de la dirección del patrón.</p></div>
 <ul>
 <li>Con Shift, el pad 25 y los pads 27-32 se ven en amarillo y lo elegido en verde; sin Shift, el pad 25 se ve verde mientras el arpegiador está encendido.</li>
@@ -4131,14 +4133,14 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Gate por pulsación</strong> (vista Micro Step = Gate dos veces, pad 32, por pista): al introducir notas a mano, el tiempo que mantienes el pad es el gate. <strong>Pad 31</strong> = longitud fija (con los dos apagados abre el selector; elegir una longitud la enciende). Un toggle encendido se apaga al pulsarlo otra vez; pulsar el otro cambia de uno a otro.</li>
 </ul>
 </section>
-<section class="feat" id="c14-rollers"><h3><span class="code">C14</span>Rollers de micropasos de los drums (desde RC2)</h3>
+<section class="feat" id="c15-rollers"><h3><span class="code">C15</span>Rollers de micropasos de los drums (desde RC2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> Filas 1-3 de la vista Note de los drums: mantener un roller hace sonar su drum en cada paso en ese micropaso (dos columnas por drum, micropasos 1-3 y 4-6), en directo; con el transporte parado, al tempo del proyecto.</p></div>
 <ul>
 <li>Cada columna es el drum de su cuadro de abajo (con la copia en espejo: columnas 1-4 = drums 4-1, 5-8 = drums 1-4); tenues en el color del drum, encendidos al mantenerlos.</li>
 <li>Varios a la vez se combinan; con la velocity del paso (100 en un paso vacío); con Record se graban en el patrón.</li>
 </ul>
 </section>
-<section class="feat" id="c15-escala-propia"><h3><span class="code">C15</span>Escala propia (desde RC2)</h3>
+<section class="feat" id="c16-escala-propia"><h3><span class="code">C16</span>Escala propia (desde RC2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> <strong>Shift + Scales</strong> = editor de una escala propia para las pistas de notas: hasta 7 notas sobre la tónica y un <strong>periodo</strong> cualquiera (hasta 24 semitonos) que es la tónica de la siguiente iteración; cada fila de pads es una iteración (dos con 4 notas o menos). Se guarda con el proyecto.</p></div>
 <ul>
 <li>Teclado del editor: dos octavas en piano desde la tónica (filas 4 / 3 la primera octava, blancas / negras; filas 2 / 1 la segunda). La tecla más alta pulsada es el periodo (azul), las demás las notas (verdes).</li>
@@ -4146,7 +4148,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Desde RC4 — Jankó:</strong> en el editor, <strong>Shift + pad 8</strong> enciende la disposición isomórfica Jankó: cada columna sube un tono; las filas van por parejas como en el teclado cromático de stock: la de abajo empieza en la tónica y la de encima es medio tono más grave (C D E F♯… / B C♯ D♯ F…); en la Note ampliada la pareja de arriba es una octava más aguda. <strong>Shift + pad 24</strong> = la disposición anterior (cada fila medio tono más aguda que la de abajo). Cada tipo de acorde tiene la misma forma en cualquier tono; los pads de la tónica, en el color de la tónica. Las 12 notas están en la escala (se iluminan todas, el random-mutate elige cualquiera de su octava). Octave: un toque = medio tono, mantenido = una octava; Shift + Octave sigue transponiendo el patrón. Se guarda con el proyecto.</li>
 </ul>
 </section>
-<section class="feat" id="c16-acordes"><h3><span class="code">C16</span>Pantalla de acordes (desde RC4)</h3>
+<section class="feat" id="c17-acordes"><h3><span class="code">C17</span>Pantalla de acordes (desde RC4)</h3>
 <div class="summary"><p><strong>Desde RC4.</strong> En la <strong>Note ampliada</strong> de Synth 1 / 2 y MIDI 1 / 2, <strong>Shift + pad 8</strong> abre la pantalla de acordes: fila 1 el tipo, fila 2 la inversión y los modificadores, filas 3-4 las fundamentales; cada fundamental toca su acorde mientras se mantiene.</p></div>
 <ul>
 <li><strong>Fila 1:</strong> mayor, menor, 7, m7, maj7, sus4, dim, aum; <strong>Shift + pads 1-7</strong>: sus2, 6, m6, add9, 9, 7sus4, quinta (con Shift amarillos, el elegido blanco; Shift + pad 8 = encendido / apagado).</li>
@@ -4155,7 +4157,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Suena y se graba con Record como notas normales del patrón (se reproduce igual sin la pantalla); el arpegiador arpegia el acorde. El tipo y los modificadores no se guardan.</li>
 </ul>
 </section>
-<section class="feat" id="c17-pareja-estereo"><h3><span class="code">C17</span>Parejas estéreo de drums (desde RC4)</h3>
+<section class="feat" id="c18-pareja-estereo"><h3><span class="code">C18</span>Parejas estéreo de drums (desde RC4)</h3>
 <div class="summary"><p><strong>Desde RC4.</strong> <strong>Mantén Drum 1 y pulsa Drum 2</strong> (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.</p></div>
 <ul>
 <li>El mismo gesto deshace la pareja; no con Shift, Clear o Duplicate pulsados, ni en Setup.</li>
@@ -4163,7 +4165,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>La tabla de knobs está en la guía por vistas («Vista de pista de un drum»).</li>
 </ul>
 </section>
-<section class="feat" id="c19-modo-muestra"><h3><span class="code">C19</span>Modo muestra de las pistas MIDI (desde RC2)</h3>
+<section class="feat" id="c20-modo-muestra"><h3><span class="code">C20</span>Modo muestra de las pistas MIDI (desde RC2)</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> Un estado nuevo del pad 27 (verde azulado, tras el granular): la pista MIDI toca <strong>un sample del pack de un golpe</strong>, a la altura de la nota (<strong>C3 = nota 60 = como se grabó</strong>), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero.</p><p>La <strong>vista Note ampliada</strong> (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; <strong>paso mantenido + sample</strong> = sample flip de ese paso, también en vivo con Record.</p></div>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista Note ampliada de MIDI 1 en modo muestra: pasos arriba, samples abajo.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -4319,7 +4321,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li>Sin el modo muestra, la vista Note ampliada es la de siempre.</li>
 </ul>
 </section>
-<section class="feat" id="c20-matriz-mod"><h3><span class="code">C20</span>Matriz de modulación del sinte propio (desde RC2.02)</h3>
+<section class="feat" id="c21-matriz-mod"><h3><span class="code">C21</span>Matriz de modulación del sinte propio (desde RC2.02)</h3>
 <div class="summary"><p><strong>Desde RC2.02.</strong> Con el motor de MIDI 1 / 2 encendido, el <strong>pad 6</strong> de su vista Preset es una página de knobs nueva: <strong>K1-K8 = ocho fuentes</strong> (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos).</p><p>La <strong>posición</strong> de cada knob es el <strong>destino</strong> (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la <strong>cantidad</strong>. Knobs lentos: dos clics por paso, 16 pasos por destino.</p></div>
 <ul>
 <li><strong>Fuentes:</strong> K1 velocity, K2 nota (C3 = 0), K3 un valor al azar en cada nota, K4 LFO 2, K5 envolvente 2 (ataque / caída desde cada nota), K6 una caída desde cada golpe de un drum, K7 la posición en el patrón (del primer al último paso), K8 un valor al azar cada N pasos.</li>
@@ -4330,7 +4332,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Se guarda con los patches del sinte propio</strong> (A14); no con el proyecto ni al apagar el aparato. Sin CC / NRPN. Unas 100-250 actualizaciones por segundo, repartidas entre lo que se mueve en la pista.</li>
 </ul>
 </section>
-<section class="feat" id="c22-fm4"><h3><span class="code">C22</span>FM de 4 operadores (desde RC4)</h3>
+<section class="feat" id="c23-fm4"><h3><span class="code">C23</span>FM de 4 operadores (desde RC4)</h3>
 <div class="summary"><p><strong>Desde RC4.</strong> Una variante del oscilador del sinte propio de MIDI 1 / 2: <strong>pad 24</strong> de la fila de motores (un toque al pad 27), violeta; sus knobs en el <strong>pad 7</strong>.</p><p><strong>K1-K4</strong> = ratio de los operadores 1-4 (con <strong>desafinación fina</strong> en los clics de cada ratio), <strong>K5-K8</strong> = su nivel; <strong>Shift + K1-K4</strong> = a la derecha su ataque, a la izquierda el operador <strong>percusivo</strong> con su propio decay; <strong>Shift + K5</strong> = el <strong>algoritmo</strong> (16; también <strong>manteniendo el pad 7</strong>: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), <strong>Shift + K6</strong> feedback, <strong>Shift + K7</strong> ruido, <strong>Shift + K8</strong> release (más largo con más velocity).</p></div>
 <ul>
 <li><strong>Envolventes A/R con sustain fijo:</strong> los operadores sostenidos se quedan arriba mientras se pulsa la nota; los percusivos (según el algoritmo o su Shift + knob a la izquierda) caen aunque se mantenga. El volumen lo dan los operadores (el VCA del motor abierto).</li>
@@ -4342,7 +4344,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <li><strong>Ruido</strong> blanco con la envolvente de un operador, en cualquier algoritmo. La nota, TUNE / FINE, la envolvente de pitch y el vibrato del oscilador, el filtro, el efecto y la matriz siguen valiendo.</li>
 </ul>
 </section>
-<section class="feat" id="c25-master-fx-beta"><h3><span class="code">C25</span>Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</h3>
+<section class="feat" id="c26-master-fx-beta"><h3><span class="code">C26</span>Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión</h3>
 <div class="summary"><p><strong>Desde RC2.</strong> El pad 6 de Master FX es el <strong>Glitch</strong> y el pad 31 un <strong>gesto mecánico</strong> (parada de cinta, scratch…); Digitise gana <strong>K3 = envío momentáneo al delay</strong> y <strong>K4 = envolvente</strong>; los knobs y los huecos de Master FX <strong>se guardan con cada proyecto</strong>.</p></div>
 <ul>
 <li><strong>Pad 6 = Glitch</strong> (sustituye al Vinyl): mantenido, fijado, asignable a los huecos y al secuenciador de efectos como los demás efectos; sus K1-K4 son los del Glitch.</li>
