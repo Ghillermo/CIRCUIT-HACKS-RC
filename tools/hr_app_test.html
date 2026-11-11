@@ -114,8 +114,31 @@ async function main() {
     const vis = W.document.body.classList.contains("appmode") && !f.hidden && f.getBoundingClientRect().height > 200;
     check(ok && vis, `the «${v}» view: ${what}, shown full height (${Math.round(f.getBoundingClientRect().height)} px)`);
   }
+  // (2026-11-10) the patch colours, the demo patches and the patch editor
+  check(SDT.novaColour(2).rgb === "#5e84cc" && SDT.novaColour(11).rgb === "#ff0000" && SDT.novaColour(0).rgb2 === "#3db24f" && SDT.novaColour(99).cat === 0,
+        "Nova colours: Bass steel blue, SFX red, None = the two tracks' colours, an unknown category = None");
+  A.state.view = "both"; A.state.tab = "fm"; await A.renderAll();
+  check(pT.items[3].rgb === "#00ff00" && pT.items[2].rgb === "#9865ff" && pT.el.querySelectorAll(".row .c1 .sw").length >= 4, `custom patch colours by engine: VA green, FM violet, drawn in the list (${pT.items[3].rgb}, ${pT.items[2].rgb})`);
+  await A.openDemos(pR);
+  const nd = (W.HR_DEMOS || []).length;
+  check(pR.kind === "demos" && nd === 81 && pR.items.length === nd && pR.items.every(x => x.rgb) && pR.el.querySelector('[data-act="demos"]'), `the demo patches as a source: ${pR.items.length} of ${nd}, each with its colour`);
+  pR.sel = new Set([0]); pT.sel = new Set([20]); await A.copyAct(pR); await sleep(200);
+  const d0 = Uint8Array.from(atob(W.HR_DEMOS[0].b64), c => c.charCodeAt(0)), t20 = await SDT.Custom.get({pack: pT.card.pack(4)}, 20);
+  check(t20 && eq(t20.subarray(0, SDT.PADN), d0.subarray(0, SDT.PADN)), `a demo patch copied into Hacks custom 20 (${t20 ? SDT.ctmName(t20) : "none"})`);
+  pT.sel = new Set([2]); pR.sel = new Set([5]); const ro2 = A.copyAct(pT); await sleep(150);
+  const dl = W.document.getElementById("dlg"), dtxt = dl.open ? dl.textContent : ""; if (dl.open) dl.querySelector("button").click(); await ro2;
+  check(/lectura|read-only/i.test(dtxt) && eq((await SDT.Custom.get({pack: pT.card.pack(4)}, 20)).subarray(0, SDT.PADN), d0.subarray(0, SDT.PADN)), "the demo patches are read-only (a copy into them is refused)");
+  await A.renderAll(); pT.sel = new Set([3]); await A.editAct(pT);
+  const EW = W.HRFRAMES.editor && W.HRFRAMES.editor.contentWindow, PE = EW && EW.PE, sb = EW && EW.document.getElementById("saveback");
+  check(PE && A.state.view === "editor" && PE.val[27] === -7 && EW.document.getElementById("name").value === "TESTVA" && sb && !sb.hidden, `«Editar» on Hacks custom 3: the editor view with its values (OSC 2 ratio ${PE && PE.val[27]}) and «${sb && sb.textContent}»`);
+  PE.set(1, 33, true); EW.document.getElementById("name").value = "TESTVA2"; sb.click();
+  let t3 = null; for (let k = 0; k < 30; k++) { await sleep(100); t3 = await SDT.Custom.get({pack: pT.card.pack(4)}, 3); if (t3 && SDT.ctmName(t3) === "TESTVA2") break; }
+  check(t3 && SDT.ctmCode(t3, 1) === 33 && SDT.ctmCode(t3, 27) === -7 && SDT.ctmName(t3) === "TESTVA2" && SDT.ctmState(t3.subarray(0, SDT.PADN)) === "ok" && t3[4] === vaPatch[4],
+        `«Guardar en …» writes the edit back to the slot (filter ${t3 && SDT.ctmCode(t3, 1)}, name ${t3 && SDT.ctmName(t3)}, the sum ok, the engine kept)`);
+  A.state.view = "both"; await A.renderAll(); pR.sel = new Set([4]); await A.editAct(pR);
+  check(sb.hidden && PE.val[1] !== 33, "«Editar» on a demo patch: no «Guardar en …» (read-only), its own values");
   A.state.view = "both"; try { W.localStorage.setItem("hrapp.view", "both"); } catch (_) { /* none */ } await A.renderAll();
-  check(!W.document.body.classList.contains("appmode") && W.HRFRAMES.hacks.hidden && W.HRFRAMES.remix.hidden && W.document.getElementById("pane0").offsetHeight > 0, "back to «Entre los dos»: the panes, the frames kept hidden");
+  check(!W.document.body.classList.contains("appmode") && W.HRFRAMES.hacks.hidden && W.HRFRAMES.remix.hidden && W.HRFRAMES.editor.hidden && W.document.getElementById("pane0").offsetHeight > 0, "back to «Entre los dos»: the panes, the frames kept hidden");
   window.RESULT = {pass, fail, lines};
   const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
 }

@@ -7,6 +7,37 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.48 — 2026-11-11
+
+**Beta 5.48** (marca `B5.48`; = SC56.3) = la Beta 5.47 + lo siguiente, sin probar en el aparato.
+
+- **Mapa del algoritmo del FM de 8 operadores:** en la página FM, un toque al pad 7 lo fija (mantenido ½ s: mientras lo mantienes). En los pads 9-32 cada fila es una cadena que se lee de izquierda (moduladora) a derecha (portadora); un hueco = no interactúan. El color dice la relación armónica del ratio (verde entero, verde azulado x,5, naranja inarmónico, rojo fijo; violeta el feedback) y el brillo, el nivel. Un toque elige el operador (todas sus copias laten), Shift + operador lo calla mientras se ve el mapa, y mantener uno y tocar otro los enlaza o desenlaza: un algoritmo propio que se guarda con el patch y el proyecto. La lista de los 56 algoritmos pasa a **Shift + pad 7**. → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+
+### Beta 5.47 — 2026-11-11
+
+**Beta 5.47** (marca `B5.47`; = SC56.2) = la Beta 5.46 + lo siguiente, sin probar en el aparato.
+
+- **El aparato dice qué firmware lleva, y las apps se adaptan:** la app de la tarjeta le pregunta al conectarlo por USB; la Beta 5.47 y las posteriores contestan con su nombre y la app ofrece todo. Con el firmware oficial (o una versión anterior, que no contesta) solo quedan las funciones que entiende el oficial: sin Parches custom ni Importar DX7…, sin el sinte propio en Sonidos del proyecto y sin los campos propios al editar un patrón. Un selector **Firmware: automático / solo stock / Hacks** lo fija a mano (Hacks para una versión anterior a la 5.47). El Editor de patches de la app Hacks + Remix pregunta lo mismo y, sin respuesta, no envía nada al aparato. Si el aparato no contesta, o lleva una versión más antigua que la última publicada de su serie, las dos enlazan el instalador. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#app-sd)
+
+### Beta 5.44 — 2026-11-10
+
+**Beta 5.44** (marca `B5.44`; = SC55.9) = la Beta 5.43 + lo siguiente, sin probar en el aparato.
+
+- **Mutate de patrones: Amount en ocho pasos y final de escena.** En la página de ajustes, Amount ocupa las columnas 4 y 5 (de todo a 1/8 de los huecos de la cadena; Repeats y Keep slot 1 pasan a las columnas 6 y 7). Para una pista que muta, su cadena termina con el último patrón de su lista: con escenas encadenadas, la escena cambia cuando la lista termina entera. → [Guía: Vista Patterns y cadenas de patrones](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns)
+
+### Beta 5.43 — 2026-11-10
+
+**Beta 5.43** (marca `B5.43`; = SC55.8) = la Beta 5.42 + lo siguiente, sin probar en el aparato.
+
+- **Mutate de patrones** (portado de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus), MIT): en la vista Patterns o el Mixer, **Shift + un toque a Duplicate** da a cada pista una lista corta de patrones de su cadena en otro orden, que suena en bucle; **Shift + Duplicate mantenido** abre sus ajustes (longitud, tipo de longitud, cuánto cambia, repeticiones, mantener el primero); **Clear + Duplicate** lo termina. La misma semilla da la misma lista, también al volver a una escena. → [Guía: Vista Patterns y cadenas de patrones](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns)
+
+### Beta 5.42 — 2026-11-10
+
+**Beta 5.42** (marca `B5.42`; = SC55.7) = la Beta 5.41 + lo siguiente, sin probar en el aparato.
+
+- **Patches de ejemplo del sinte propio de MIDI 1 / 2:** [81 ficheros `.ctm`](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches): 33 sonidos clásicos (bajos, solos, pads, metales, plucks, órgano, campana y percusión del VA-drum) y los 48 instrumentos del FM de 8 operadores, cada uno con los destinos de la página 4 (knobs secuenciables) y de Shift + pad 4 (no secuenciables) elegidos para su sonido. Se suben con la app de la tarjeta (Parches custom → Subir .ctm). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Los instrumentos FM traen sus destinos:** al cargar uno de la lista del pad 8, la página 4 y Shift + pad 4 pasan a los knobs que convienen a su familia (teclados, bajos, leads, pads, punteados, percusión, campanas, vientos). → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+
 ### Beta 5.40 — 2026-11-08
 
 **Beta 5.40** (marca `B5.40`; = SC55.5) = la Beta 5.38 + lo siguiente (la 5.39 no se publicó: va dentro). Probada en el aparato la parte de la 5.39 (morph y colores).
@@ -603,6 +634,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 5.46 — 2026-11-10
+
+**Beta 5.46** (marca `B5.46`; = SC56.1) = la Beta 5.44 + estas mejoras internas (la 5.45 = la primera sola), sin probar en el aparato. Nada cambia en el uso.
+
+- **Más sitio en la flash para lo que venga** (5,8 KB): los programas del DSP se guardan con un empaquetado más fuerte y se quitó código al que ya no llegaba nada. Al encender, el aparato tarda unos 50 ms más en cargar el DSP.
+- **El oscilador del sinte propio de MIDI 1 / 2 gasta mucho menos DSP** (un 22-62 % menos por voz, según la onda): ya no calcula las ondas del morph que no suenan. El sonido es exactamente el mismo; caben más voces antes de que el DSP se quede sin tiempo.
+
 ### RC4.11 / RC4.11S / Beta 5.41 — 2026-11-09
 
 **RC4.11** / **RC4.11S** (marcas `R411` / `R411S`) = RC4.10 / RC4.10S + este arreglo; **Beta 5.41** (marca `B5.41`; = SC55.6) = la Beta 5.40 + el mismo. Sin probar en el aparato.
@@ -935,6 +973,37 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.48 — 2026-11-11
+
+**Beta 5.48** (marker `B5.48`; = SC56.3) = Beta 5.47 + the following, untested on the device.
+
+- **Algorithm map of the 8-operator FM:** on the FM page, a tap on pad 7 pins it (held ½ s: while held). On pads 9-32 each row is a chain read left (modulator) to right (carrier); a gap = no interaction. The colour tells the ratio's harmonic relation (green integer, teal x.5, orange inharmonic, red fixed; violet the feedback) and the brightness, the level. A tap picks the operator (all its copies pulse), Shift + operator silences it while the map shows, and holding one and tapping another links or unlinks them: an own algorithm saved with the patch and the project. The list of the 56 algorithms moves to **Shift + pad 7**. → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
+
+### Beta 5.47 — 2026-11-11
+
+**Beta 5.47** (marker `B5.47`; = SC56.2) = Beta 5.46 + the following, untested on the device.
+
+- **The device says which firmware it runs, and the apps adapt:** the card app asks it when it is connected by USB; Beta 5.47 and later answer with their name and the app offers everything. With the official firmware (or an older build, which does not answer) only what the official firmware understands is left: no Custom patches or Import DX7…, no own synth in Project sounds and no Hacks-only fields when editing a pattern. A **Firmware: automatic / stock only / Hacks** selector sets it by hand (Hacks for a build older than 5.47). The Patch editor of the Hacks + Remix app asks the same and, with no answer, sends nothing to the device. When the device does not answer, or runs an older version than the newest published one of its series, both link the installer. → [Guide: Card and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#app-sd)
+
+### Beta 5.44 — 2026-11-10
+
+**Beta 5.44** (marker `B5.44`; = SC55.9) = Beta 5.43 + the following, untested on the device.
+
+- **Pattern mutate: Amount in eight steps and the scene's end.** On the settings page, Amount takes columns 4 and 5 (from all to 1/8 of the chain's slots; Repeats and Keep slot 1 move to columns 6 and 7). For a mutating track, its chain ends with the last pattern of its list: with chained scenes, the scene moves on when the whole list is over. → [Guide: Patterns view and pattern chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
+
+### Beta 5.43 — 2026-11-10
+
+**Beta 5.43** (marker `B5.43`; = SC55.8) = Beta 5.42 + the following, untested on the device.
+
+- **Pattern mutate** (ported from [mefisme's Rhythm Plus](https://github.com/mefisme/rhythm-plus), MIT): in the Patterns view or the Mixer, **Shift + a tap on Duplicate** gives each track a short list of patterns from its chain in another order, played in a loop; **Shift + Duplicate held** opens its settings (length, length type, how much changes, repeats, keep the first); **Clear + Duplicate** ends it. The same seed gives the same list, also when going back to a scene. → [Guide: Patterns view and pattern chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
+
+### Beta 5.42 — 2026-11-10
+
+**Beta 5.42** (marker `B5.42`; = SC55.7) = Beta 5.41 + the following, untested on the device.
+
+- **Example patches for the MIDI 1 / 2 own synth:** [81 `.ctm` files](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches): 33 classic sounds (basses, leads, pads, brass, plucks, organ, bell and VA-drum percussion) and the 48 instruments of the 8-operator FM, each with page 4's (sequenceable knobs) and Shift + pad 4's (non-sequenceable) destinations chosen for its sound. Upload them with the card app (Custom patches → Upload .ctm). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **The FM instruments bring their destinations:** loading one from the pad 8 list sets page 4 and Shift + pad 4 to the knobs that suit its family (keys, basses, leads, pads, plucks, percussion, bells, winds). → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 
 ### Beta 5.40 — 2026-11-08
 
@@ -1531,6 +1600,13 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 5.46 — 2026-11-10
+
+**Beta 5.46** (marker `B5.46`; = SC56.1) = Beta 5.44 + these internal improvements (5.45 = the first one alone), untested on the device. Nothing changes in use.
+
+- **More room in the flash for what comes next** (5.8 KB): the DSP programs are stored with a stronger packing, and code that nothing reached any more is gone. At power-up the unit takes about 50 ms longer to load the DSP.
+- **The MIDI 1 / 2 own synth's oscillator uses much less DSP** (22-62 % less per voice, depending on the wave): it no longer computes the morph's waves that are silent. The sound is exactly the same; more voices fit before the DSP runs out of time.
 
 ### RC4.11 / RC4.11S / Beta 5.41 — 2026-11-09
 

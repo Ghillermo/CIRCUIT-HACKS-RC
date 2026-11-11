@@ -9,7 +9,9 @@ app's core changes.
 The two device apps whole as well (the user, 2026-11-06: «añade snapshot y las funciones de las apps específicas»): tools/sd_app.html (Hacks: packs,
 Nova synths, drums, custom patches, CC presets, DX7, the device over USB with its snapshot / restore) and the RYTHM repository's tools/rm_app.html
 (Remix: packs, projects, samples, patterns, the device over USB with its snapshot / restore, modules, the firmware installer; make it first with
-RYTHM's tools/make_rm_app.py), as strings opened in a same-origin frame (srcdoc: folders and Web MIDI work there) by the «Hacks» / «Remix» views."""
+RYTHM's tools/make_rm_app.py), as strings opened in a same-origin frame (srcdoc: folders and Web MIDI work there) by the «Hacks» / «Remix» views.
+(2026-11-10, the user: «añádelo a la app maestra, junto a los parches demo») the patch editor (tools/make_patch_editor.py, rebuilt here) as a third
+view, and the demo patches of docs/patches as window.HR_DEMOS: a read-only source of the Patches tab («Parches demo»)."""
 from __future__ import annotations
 import re
 import sys
@@ -41,6 +43,11 @@ def main():
     style = re.search(r"<style>([\s\S]*?)</style>", t_html).group(1)
     ui = (HERE / "hr_ui.js").read_text(encoding="utf-8")
     a_hacks, a_remix = js_string(t_html), js_string(RM_APP.read_text(encoding="utf-8"))
+    import json
+    import make_patch_editor as PE                     # (2026-11-10) the patch editor view and the demo patches (docs/patches)
+    PE.main()
+    a_editor = js_string(PE.OUT.read_text(encoding="utf-8"))
+    demos = json.dumps(PE.data()["examples"], separators=(",", ":"))
     page = f"""<!doctype html>
 <html lang="es">
 <head>
@@ -74,13 +81,18 @@ def main():
 <dialog id="dlg"></dialog>
 <script id="core-tracks">{t_js}</script>
 <script id="core-rhythm">{r_js}</script>
-<script id="apps">window.HR_APPS = {{hacks: {a_hacks}, remix: {a_remix}}};</script>
+<script id="apps">window.HR_APPS = {{hacks: {a_hacks}, remix: {a_remix}, editor: {a_editor}}};</script>
+<script id="demos">window.HR_DEMOS = {demos};</script>
 <script id="ui">
 {ui}
 </script>
 </body>
 </html>
 """
+    # the old name of the master effects view never goes in (CLAUDE.md;
+    for x, y in (("Gr" + "id FX", "Master FX"), ("GR" + "ID FX", "MASTER FX"), ("gr" + "id fx", "master fx")):   # Remix's installer list names it)
+        page = page.replace(x, y)
+    assert not re.search("gr" + r"id[ _.-]?fx", page, re.I)
     (HERE / "hr_app.html").write_text(page, encoding="utf-8", newline="")
     print("hr_app.html", len(page))
 

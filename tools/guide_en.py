@@ -414,10 +414,19 @@ It replaces the 4-operator FM: **up to 8 operators**, each with a **DX7-style en
 | 9-16 | Picks **operator 1-8**: the ones the algorithm uses lit (carriers green, modulators light blue; the picked one bright), the others off |
 | 3 | The **pitch envelope** (violet, FM's colour; bright while you edit it), like a ninth operator. From any knob page it opens the FM page with it picked |
 | 17-24 | **The engine row**: no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand), sample, granular and FM (bright); a tap changes the engine (no patches load) |
-| 7 held | (Bright only while held.) **The 56 algorithms** on pads 9-32, in three pages: **Octave ▼ / ▲** while you hold it (lit = there is another page). Page 1: the 16 four-operator ones (teal) and the 8 eight-operator ones (amber); page 2: the DX7's 1-24 (white); page 3: the DX7's 25-32. The current one bright; press one: chosen, and it sounds |
-| 8 held | **24 instruments** on pads 9-32, in their type's colour: keys orange (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), basses blue (FM Bass, Synth Bass, Deep Bass), leads and brass red (Brass, Sync Lead, Flute), pads and strings green (Strings, Warm Pad, Choir, Glass Pad), plucks yellow (Harp, Koto, Nylon), percussion white (Kick, Snare, Hi-Hat), bells and fx violet (Tubular Bell, Space Sweep); the loaded one bright. Press one: loaded, and it sounds. {YB} **Second page: Octave ▼ with pad 8 held** (Octave ▲ goes back; the Octave that leads to the other page is lit): pianos orange (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), strings green (Slow Strings, Ensemble, Cello, Violin, String Swell; Pizzicato yellow), **winds teal** (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) and long sounds (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Page 1's have longer releases (electric pianos, strings, pads, choir, flute, brass, harp, nylon, bell, basses). |
+| 7 | {YB} A tap: the **algorithm map** (below); held ½ s: the map while held |
+| Shift + 7 held | (Bright only while held; {YB} before, pad 7 held.) **The 56 algorithms** on pads 9-32, in three pages: **Octave ▼ / ▲** while you hold it (lit = there is another page). Page 1: the 16 four-operator ones (teal) and the 8 eight-operator ones (amber); page 2: the DX7's 1-24 (white); page 3: the DX7's 25-32. The current one bright; press one: chosen, and it sounds |
+| 8 held | **24 instruments** on pads 9-32, in their type's colour: keys orange (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), basses blue (FM Bass, Synth Bass, Deep Bass), leads and brass red (Brass, Sync Lead, Flute), pads and strings green (Strings, Warm Pad, Choir, Glass Pad), plucks yellow (Harp, Koto, Nylon), percussion white (Kick, Snare, Hi-Hat), bells and fx violet (Tubular Bell, Space Sweep); the loaded one bright. Press one: loaded, and it sounds. {YB} **Second page: Octave ▼ with pad 8 held** (Octave ▲ goes back; the Octave that leads to the other page is lit): pianos orange (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), strings green (Slow Strings, Ensemble, Cello, Violin, String Swell; Pizzicato yellow), **winds teal** (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) and long sounds (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Page 1's have longer releases (electric pianos, strings, pads, choir, flute, brass, harp, nylon, bell, basses). {YB} **Loading one also sets page 4 (sequenceable knobs) and Shift + pad 4 to the knobs that suit its family** (keys: Filter, Resonance, Env > filter, FX, LFO > pitch, LFO speed, Tune, VCA gain; pads and winds: the LFO and the filter; percussion: Tune and Decay first…); the values do not change. |
 
 With the FM page showing, pads 9-24 load no patches: load them from another knob page. With FM, **pad 28** (two oscillators) goes dark and does nothing (the setting stays for when FM is off), and **pad 3** leaves the OSC 2 page and becomes the pitch envelope. The pad 7 / 8 lists also show with the engine row open or a flip mode on.
+
+**The algorithm map** {YB}: on the FM page, **a tap on pad 7** pins the map (another tap removes it; pad 7 bright while it shows) and **holding it ½ s** shows it only while held; from another page, a tap opens the FM page. The map uses pads 9-32:
+
+- **Each row reads left to right: the wave on the left modulates the one on its right**, and the last on the right is a **carrier** (the one you hear). **A dark gap = no interaction**. An operator that modulates several shows in each chain (copies). Longer chains come first.
+- **The colour tells the ratio's harmonic relation**: **green** = integer (harmonic: 1, 2, 3…), **teal** = x.5 (half-way: 0.5, 1.5…), **orange** = anything else (inharmonic, bell-like), **red** = fixed frequency; the **feedback** operator, **violet**. **Bright** = output level half or more (the feedback, half or more); **dim** = less.
+- **A tap on an operator picks it** (the knobs edit it, as pads 9-16): **all its copies pulse**.
+- **Shift + operator** = silenced while you look at the map (dark; to hear what it adds). Not saved: closing the map brings it back.
+- **Hold an operator**: it pulses, the ones it modulates show **white**, the ones modulating it normal and the rest dim. **Hold one and tap another** (any copy) = **the first modulates the second, or stops doing so**: a patch's **own algorithm** (the map redraws when you let go). An operator that modulates none becomes a carrier; a link that would close a loop is refused. The own algorithm is saved with the patch and the project; **Shift + K1** (or the list) goes back to one of the 56 (the own one is lost).
 
 **Knobs with an operator picked:**
 
@@ -436,6 +445,7 @@ With the FM page showing, pads 9-24 load no patches: load them from another knob
 - **Patches from Beta 5.19 or earlier** (4-operator FM) load converted: same algorithms, ratios, levels and envelopes, the same sound.
 - **Saved with the own-synth patches**: each patch's FM goes in an extra slot of the same bank on the card (`Patches/NN_PATCHBANK.cpb`), after the 8 stock patches; the bank grows up to 8 KB. Swapping patches (Duplicate + A + B) or copying them from another pack takes the FM along.
 - **Saved with the project**: MIDI 1 / 2's FM goes in the settings of Synth 1 / 2's patterns (changing nothing of theirs); loading a project brings its sound back.
+- **Example patches**: [81 ready-made own-synth patches](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches) (33 classic sounds and the 48 FM instruments), each with page 4's and Shift + pad 4's destinations chosen for its sound; upload them with the card app (**Custom patches → Upload .ctm**) and load them here.
 - **Components**: reading the pack and sending one patch leave the FM alone. **«Send patches» / «Send pack»** change the stock patches as always and **the device puts the own-synth patches and the FM back** in each bank (they used to be lost); if Components deletes a bank that holds own-synth patches, it stays with its 8 stock patches empty. Not on the internal pack. A copy saved by Components (its zip) has no own-synth patches: the card app's copy (Snapshot) has them.
 - Polyphony, unison and glide as with the 4-operator FM (chapter «Voices»). No CC / NRPN.
 """),
@@ -781,9 +791,13 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | In the mode: **a pattern** | **A** (yellow); A again = one more repeat (up to 8, the knob LEDs count them). |
 | In the mode: **another pattern of the track** | **B** (green); the next one = **C** (red). |
 | **Clear + pattern** | In the mode: removes the rule (without a rule, clears the pattern). Outside: clears the pattern, its rule and its order. |
+| **Shift + tap Duplicate** {YB} | **Pattern mutate** (from [mefisme's Rhythm Plus](https://github.com/mefisme/rhythm-plus)): each selected track loops a short list of patterns from its chain in another order; the patterns themselves don't change. In its column, the patterns not in the list go dark (the playing one keeps its colour). Another tap = another list. Also in the Mixer. With Shift, Duplicate lights yellow. |
+| **Shift + Duplicate held** {YB} | **Mutate settings** (peach: the chosen value bright): column 1 Length 1-4, 2 Length 5-8, 3 length type (as the chain / exact / random up to Length), 4 and 5 Amount in eight steps (column 4 top to bottom all, 7/8, 6/8, 5/8; column 5 half, 3/8, 2/8, 1/8 of the chain's slots change), 6 Repeats (on / off: two neighbours never the same), 7 Keep slot 1 (off / on). Track buttons: bright = selected. Duplicate closes. A new setting is heard at once; going back to a value brings the same list back. |
+| **Clear + Duplicate** {YB} | In any view: the lists end and the tracks go back to their chains. A pattern pad also ends its track's list. |
 
 - Examples: n = 3 → A A A B A A A C; no C → A A A B; n = 1 → A B A C. B and C play once and the track goes back to A (unless they have a rule).
 - Rules travel with the pattern (when duplicated); the mode, with the project and with each scene (9.2).
+- **Mutate and scenes** {YB}: saving a scene saves which tracks mutate, the seed and the settings; going back to the scene (playing, or stopped from the Mixer) brings the same list back. A mutating track doesn't follow the chain rules; the others do. Changing a track's chain while playing remakes its list with the same seed. **For a mutating track the chain ends with the last pattern of its list**: with chained scenes, the scene moves on when the whole list is over.
 """),
 "mixer": ("Mixer view and scenes",
     "The **Mixer** button: levels (Octave ▲) and pan (Octave ▼) as always; **Mixer again** = Master FX.", f"""
@@ -867,6 +881,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Master FX**: the 20 knobs, the effects assigned to the slots, compressor attack / release | [Master FX](#master-fx), [Side-chain](#sidechain) |
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
+| {YB} **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; {XB} with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
 | **Custom scale** and {XB} **Jankó** | [Scales](#escalas) |
@@ -982,6 +997,8 @@ It organises, from the computer, what is on the microSD card or on the device co
 - **Open folder…**: choose the `Tracks` folder of the card or of a copy on the computer.
 - **Device…**: the Circuit Tracks over USB. Close Components and accept the MIDI permission. Save the project first. The transport stops and the panel stays locked until **Disconnect device**; closing the page without disconnecting releases it too.
 - **↻** reads what is open again. **Backups:** choose the folder on the computer where the app keeps what it replaces or deletes.
+- **Firmware** (top) {YB}: **automatic** = with the device connected, the app asks it which firmware it runs. Beta 5.47 and later answer with their name (shown in the notice at the top) and the app offers everything. With no answer (the official firmware or an older build), only what the official firmware understands is left: no **Custom patches** (nor **Import DX7…**), no own synth in **Project sounds…** and, when editing a pattern, no order, random-mutate, frequency, dynamics or automation-release mark. With a folder (no device) everything is there. **Stock only** / **Hacks** set it by hand: choose **Hacks** if the device runs a Hacks build older than Beta 5.47. The **Patch editor** of the Hacks + Remix app asks the same question: with no answer it sends nothing to the device (button **Es Hacks: enviar igualmente**).
+- **Old version** {YB}: with an internet connection, the app looks at the published versions. If the device does not answer, or runs a Beta or an RC older than the newest published one of its series, the notice at the top links the **installer**; the Patch editor shows the same link next to its status.
 
 ### The two columns
 Each column opens a folder, a card or the device, with its own pack. A click chooses a row; Ctrl adds and Shift chooses a range.
@@ -1146,6 +1163,7 @@ ABOUT = {
 """,
     "patterns": f"""
 - **Pattern chains** {B} — a pattern plays n times and jumps to another, and the next time to a third: A A A B structures without chaining by hand.
+- **Pattern mutate** {YB} — Shift + Duplicate: each track plays its patterns in another order, and the scene brings the same list back.
 """,
     "mixer": f"""
 - **Level to 100 or 0** — Shift + knob puts a track at its nominal level or silent in one move.

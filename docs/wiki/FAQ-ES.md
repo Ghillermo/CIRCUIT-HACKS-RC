@@ -15,7 +15,7 @@ El bootloader de Novation no se toca nunca: siempre se puede enviar otra vez el 
 **3. RC, RC «S» o Beta: ¿cuál instalo?**
 - **RC** (versión candidata, ahora RC4.11): las funciones probadas en conjunto.
 - **RC S** (RC4.11S): lo mismo, pero el mod nunca escribe ficheros propios en la tarjeta SD (sin guardar patches propios, samples ni copias entre packs). La opción más segura.
-- **Beta** (ahora la Beta 5.41, probada en parte en el aparato): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
+- **Beta** (ahora la Beta 5.48, probada en parte en el aparato): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
 
 **4. ¿Funciona en el Circuit original o en el Circuit Rhythm?**
 No: CIRCUIT-HACKS es solo para el **Circuit Tracks** (firmware 1.2.1, build 4486). Para el **Circuit Rhythm** hay un proyecto aparte, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), que lleva estas funciones y añade otras propias.

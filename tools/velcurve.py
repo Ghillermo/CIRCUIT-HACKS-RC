@@ -1,5 +1,5 @@
-"""SC48 / Beta 3.37 (the user, 2026-10-27: «añade un atajo en advanced setup en K1 para cambiar la curva de respuesta de los pads (con centro por
-defecto) al moverlo se muestra número y se ilumina velocity»): the pads' velocity curve.
+"""SC48 / Beta 3.37 (the user, 2026-10-27: Â«aÃ±ade un atajo en advanced setup en K1 para cambiar la curva de respuesta de los pads (con centro por
+defecto) al moverlo se muestra nÃºmero y se ilumina velocityÂ»): the pads' velocity curve.
 
   * Advanced Setup (the Setup view with + 0x24 set), K1: the curve, -8 .. +8, 2 clicks a step; the centre (0) = the stock's response (the default).
     Right = more sensitive (soft hits come out louder: v + c (127 - (127 - v)^2 / 127 - v) / 8), left = harder (v + |c| (v^2 / 127 - v) / 8),
@@ -82,14 +82,7 @@ def arm_code(base, prev, L):
         E(raw, h(0xF85D) + h(0xEB04))                                                                  # ldr.w lr, [sp], #4
         a.label("vp_f"); E(b_w, prev["pad"])
 
-    # ---- c_vcadv() -> r0 = 1 with Advanced Setup on the screen; clobbers r1-r3
-    a.label("c_vcadv")
-    E(raw, h(0xB500))
-    imm32(0, PG.MGR); E(ldr_imm, 0, 0, PG.MODE_STORE); E(movs_imm, 1, 0); E(bl, PG.PARAM_GET); E(ldrb_imm, 0, 0, 0)
-    E(cmp_imm, 0, PG.MODE_SETUP); E(b_cond, "va_0", "ne")
-    imm32(0, PG.SETUP_OBJ); E(ldrb_w, 0, 0, PG.ADV_OFF); E(cmp_imm, 0, 0); E(b_cond, "va_0", "eq")
-    E(movs_imm, 0, 1); E(raw, h(0xBD00))
-    a.label("va_0"); E(movs_imm, 0, 0); E(raw, h(0xBD00))
+    adv(a, imm32)
 
     # ---- c_vcknob (the Setup view's slot 4: view, knob, delta): Advanced Setup's K1 = the curve
     a.label("c_vcknob")
@@ -136,7 +129,34 @@ def arm_code(base, prev, L):
     return a.assemble()
 
 
+def adv(a, imm32):
+    """c_vcadv() -> r0 = 1 with Advanced Setup on the screen; clobbers r1-r3"""
+    E = a.emit
+    a.label("c_vcadv")
+    E(raw, h(0xB500))
+    imm32(0, PG.MGR); E(ldr_imm, 0, 0, PG.MODE_STORE); E(movs_imm, 1, 0); E(bl, PG.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+    E(cmp_imm, 0, PG.MODE_SETUP); E(b_cond, "va_0", "ne")
+    imm32(0, PG.SETUP_OBJ); E(ldrb_w, 0, 0, PG.ADV_OFF); E(cmp_imm, 0, 0); E(b_cond, "va_0", "eq")
+    E(movs_imm, 0, 1); E(raw, h(0xBD00))
+    a.label("va_0"); E(movs_imm, 0, 0); E(raw, h(0xBD00))
+
+
+def arm_adv(base, prev, L):
+    a = Asm(base)
+    def imm32(rd, v): a.emit(movw, rd, v & 0xFFFF); a.emit(movt, rd, (v >> 16) & 0xFFFF)
+    adv(a, imm32)
+    return a.assemble()
+
+
 TRIMPAD = False                                                      # SC54 (use_trimpad)
+TRIMALL = False                                                      # SC56 (use_trimall)
+
+
+def use_trimall():
+    """SC56 (room; the user, 2026-11-10: «build 1 and then 2»): only c_vcadv (ingain and velglob use it).  Since SC51.2 velglob swallows Advanced Setup's
+    K1 before c_vcknob and the curve no longer acts, so the knob, its number on the pads (c_vcled) and the curve's helpers never ran."""
+    global TRIMALL, TRIMPAD
+    TRIMALL = TRIMPAD = True
 
 
 def use_trimpad():
@@ -155,11 +175,13 @@ def install(img, report, base_addr):
     L = dict(c_ednum=lab("vcf20", "c_ednum"), c_gmp=lab("gmdrum", "c_gmp"), c_gmsave=lab("gmdrum", "c_gmsave"))
     prev = dict(pad=u(CTRL_VT) & ~1, knob=u(PG.SETUP_VT + 16) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert prev["pad"] == PAD_ENTRY, hex(prev["pad"])
-    code, labels = arm_code(base_addr, prev, L)
+    code, labels = (arm_adv if TRIMALL else arm_code)(base_addr, prev, L)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
         img += bytes([0xFF])
     if not TRIMPAD: struct.pack_into("<I", img, CTRL_VT - BASE, labels["c_vcpad"] | 1)
+    if TRIMALL:
+        return labels, code, prev
     struct.pack_into("<I", img, PG.SETUP_VT + 16 - BASE, labels["c_vcknob"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl_enc(c, prev["ledtask"]), hex(c)

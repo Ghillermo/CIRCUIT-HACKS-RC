@@ -2425,6 +2425,8 @@ def build(stock: bytes, listing: Path):
         if NOVTAB and name in VINYL_TABS: continue                             # (NOVTAB) nothing reads them
         if NOGOFF and name == "GOFF": continue                                 # (NOGOFF)
         if GENTAB and name in gen_ram: tabaddr[name] = gen_ram[name]; continue   # (GENTAB) in RAM, written by c_gtgen
+        import tabpack
+        if tabpack.wants(name): tabaddr[name] = tabpack.want(name, struct.pack("<128I", *[v & 0xFFFFFFFF for v in vals]), 4); continue   # (SC55.8)
         tabaddr[name] = ext + len(data); data += struct.pack("<128I", *vals)
     defaults_addr = ext + len(data); data += bytes(x for d in DEFAULTS for x in d)
     setmap_addr = ext + len(data); data += bytes(SETMAP + ([SMP_SET] if SMP2 else []) + ([GL_SET] if GLITCH else []))

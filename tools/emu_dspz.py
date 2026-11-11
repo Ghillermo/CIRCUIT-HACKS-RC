@@ -54,18 +54,23 @@ def main(old_path, new_path):
     man = json.loads((Path(new_path).parent / "manifest.json").read_text())["report"]["dspz"]
     c_dspz = int(man["labels"]["c_dspz"], 16)
     for s in dspz.SITES:
-        check(new[s - dspz.BASE:s - dspz.BASE + 4] == bl_enc(s, c_dspz), f"bl {s:#x} -> c_dspz")
+        rep = json.loads((Path(new_path).parent / "manifest.json").read_text())["report"]
+        wraps = {int(rep[m]["labels"][k], 16) for m, k in (("tabpack", "c_tboot"), ("c1ms", "c_c1ms")) if m in rep}   # (SC51.5 / SC55.8) the heads in front of c_dspz
+        check(any(new[s - dspz.BASE:s - dspz.BASE + 4] == bl_enc(s, t) for t in {c_dspz} | wraps), f"bl {s:#x} -> c_dspz (or a head in front of it)")
     for core in (0, 1):
         at = int(man[f"core{core}"]["block"], 16)
-        check(new[at - dspz.BASE:at - dspz.BASE + 4] == dspz.MAGIC, f"core {core}: block packed at {at:#x}")
+        check(new[at - dspz.BASE:at - dspz.BASE + 4] in (dspz.MAGIC, dspz.MAGIC2), f"core {core}: block packed at {at:#x} ({bytes(new[at - dspz.BASE:at - dspz.BASE + 3]).decode()})")
         check(dspz.block_at(new, at) == dspz.block_at(old, at), f"core {core}: unpacks to SC50.7's block ({man[f'core{core}']['raw']} -> {man[f'core{core}']['packed']} B)")
     pattern = bytes((i * 7 + 3) & 0xFF for i in range(0x2000))
     for mode in (0, 1):
-        eo, _, _ = run(old, mode)
+        eo, itcm_o, _ = run(old, mode)
         en, itcm, below = run(new, mode)
         spi_o = [x for x in eo if x[0] == "spi"]
         check(len(eo) > 10 and en == eo, f"mode {mode}: {len(en)} calls, {len(spi_o)} chunks, {sum(len(x[1]) for x in spi_o)} B: the same as SC50.7")
-        check(itcm == pattern, f"mode {mode}: ITCM 0x0000-0x1FFF untouched")
+        if "tabpack" in json.loads((Path(new_path).parent / "manifest.json").read_text())["report"]:   # (SC55.8) tabpack's tables in 0x18A4..: as the old build
+            check(itcm == itcm_o, f"mode {mode}: ITCM 0x0000-0x1FFF as the old build's")
+        else:
+            check(itcm == pattern, f"mode {mode}: ITCM 0x0000-0x1FFF untouched")
         check(below == b"\x5A" * 0x200, f"mode {mode}: RAM below the buffer untouched")
     print("RESULT:", "ALL PASS" if not fails else f"{fails} FAIL")
     return fails

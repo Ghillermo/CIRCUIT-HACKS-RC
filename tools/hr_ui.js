@@ -133,8 +133,15 @@ try { const v = localStorage.getItem("hrapp.view"); if (v === "hacks" || v === "
 
 /* ---- the views: «Entre los dos» (the panes below) or one device's own app whole (its packs, editors, the device over USB, snapshot / restore ...;
    window.HR_APPS from make_hr_app.py), each in a same-origin frame made the first time it is shown and kept */
-const VIEWS = [["both", "Entre los dos", "Between the two"], ["hacks", "Hacks · Circuit Tracks", "Hacks · Circuit Tracks"], ["remix", "Remix · Circuit Rhythm", "Remix · Circuit Rhythm"]];
+const VIEWS = [["both", "Entre los dos", "Between the two"], ["hacks", "Hacks · Circuit Tracks", "Hacks · Circuit Tracks"], ["remix", "Remix · Circuit Rhythm", "Remix · Circuit Rhythm"],
+               ["editor", "Editor de patches", "Patch editor"]];
 const frames = {};
+/* (2026-11-10) the patch editor (tools/patch_editor.html: the own synth's 33 values sent live over MIDI) is a view too; «Editar» opens the chosen
+   patch of a pane in it, and its «Guardar en …» writes it back to that slot */
+function frameReady(v) {
+  const f = frames[v];
+  return new Promise(res => { const ok = () => f.contentWindow && f.contentWindow.PE ? res(f.contentWindow) : setTimeout(ok, 50); ok(); });
+}
 function showView() {
   const app = state.view !== "both";
   document.body.classList.toggle("appmode", app);
@@ -142,7 +149,7 @@ function showView() {
   for (const [k, f] of Object.entries(frames)) f.hidden = k !== state.view;
   if (app && !frames[state.view] && window.HR_APPS) {
     const f = document.createElement("iframe");
-    f.setAttribute("allow", "midi; clipboard-write"); f.title = state.view === "hacks" ? "Hacks" : "Remix";
+    f.setAttribute("allow", "midi; clipboard-write"); f.title = ({hacks: "Hacks", remix: "Remix", editor: T("Editor de patches", "Patch editor")})[state.view];
     f.srcdoc = window.HR_APPS[state.view]; box.append(f); frames[state.view] = f;
   }
   $("views").innerHTML = VIEWS.map(v => `<button type="button" data-view="${v[0]}" class="${v[0] === state.view ? "on" : ""}">${esc(T(v[1], v[2]))}</button>`).join("");
@@ -189,7 +196,21 @@ async function openPane(p, dir) {
   log(`${T("Abierta", "Opened")}: ${dir.name} (${kindLabel(k)})`);
   await renderAll();
 }
-const kindLabel = k => ({tracks: "Hacks · Circuit Tracks", rhythm: "Remix · Circuit Rhythm", folder: T("carpeta", "folder")})[k] || "";
+const kindLabel = k => ({tracks: "Hacks · Circuit Tracks", rhythm: "Remix · Circuit Rhythm", folder: T("carpeta", "folder"), demos: T("parches demo", "demo patches")})[k] || "";
+/* (2026-11-10) the demo patches (docs/patches, tools/make_examples.py: 33 classic sounds + the 48 FM instruments; window.HR_DEMOS from make_hr_app.py)
+   as a read-only source of the Patches tab: copy them into a Tracks or Rhythm card, a folder, or open them in the editor */
+const demoBytes = d => { const t = atob(d.b64), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; };
+async function openDemos(p) {
+  p.kind = "demos"; p.dir = {name: T("Parches demo", "Demo patches")}; p.card = null; p.packSlot = null; p.sess = null; p.sel.clear();
+  if (state.tab !== "fm") state.tab = "fm";
+  log(T("Abiertos los parches demo", "Demo patches opened") + ` (${(window.HR_DEMOS || []).length})`);
+  await renderAll();
+}
+/* the colour the device shows a custom patch in (its engine: MIDI 1 / 2's Preset slots), SDT.customColour */
+function patchRgb(pad) {
+  if (!pad || SDT.ctmState(pad.subarray(0, SDT.PADN)) !== "ok") return null;
+  return SDT.customColour(pad[4], SDT.fmGet(pad), pad[150] === 0xB7 && pad[151] === 1).rgb;
+}
 
 // ---- the items of a pane in the current tab: {slot, empty, name, extra}
 const FOLDER_EXT = {samples: /\.wav$/i, patterns: /\.(ctpat|rmpat)$/i, fm: /\.(fm8|ctm)$/i};
@@ -201,7 +222,12 @@ async function folderFiles(p) {
 }
 async function loadItems(p) {
   const tab = state.tab;
-  if (p.kind === "folder") return (await folderFiles(p)).map((f, i) => ({slot: i, empty: false, name: f.n, file: f}));
+  if (p.kind === "demos") return tab !== "fm" ? [] : (window.HR_DEMOS || []).map((d, i) => { const pad = demoBytes(d); return {slot: i, empty: false, name: d.name.slice(3), extra: engineOf(pad), rgb: patchRgb(pad), demo: d}; });
+  if (p.kind === "folder") {
+    const F = (await folderFiles(p)).map((f, i) => ({slot: i, empty: false, name: f.n, file: f}));
+    if (tab === "fm") for (const x of F) if (/\.ctm$/i.test(x.name)) { try { const pad = new Uint8Array(await (await x.file.h.getFile()).arrayBuffer()); x.rgb = patchRgb(pad); if (x.rgb) x.extra = engineOf(pad); } catch (_) { /* unreadable */ } }
+    return F;
+  }
   const pl = place(p); if (!pl) return [];
   if (tab === "samples") return (p.kind === "rhythm" ? SDR.Samples : SDT.Drums).list(pl);
   if (tab === "patterns") {
@@ -211,13 +237,14 @@ async function loadItems(p) {
     const TN = core(p).TRACK_NAME;
     return (await core(p).Patterns.list({pack: pl.pack, sess: p.sess})).map(x => Object.assign(x, {name: `${TN[x.slot >> 3]} · ${(x.slot & 7) + 1}`, extra: x.empty ? "" : `${x.notes} ${T("notas", "notes")}${x.lanes ? `, ${x.lanes} ${T("carriles", "lanes")}` : ""}`}));
   }
-  if (p.kind === "rhythm") return RFM.list(pl);
+  if (p.kind === "rhythm") { const L = await RFM.list(pl); for (const x of L) if (!x.empty) x.rgb = patchRgb(await RFM.get(pl, x.slot)); return L; }
   const L = await SDT.Custom.list(pl);
-  for (const x of L) if (!x.empty && !x.bad) x.extra = engineOf(await SDT.Custom.get(pl, x.slot));
+  for (const x of L) if (!x.empty && !x.bad) { const pad = await SDT.Custom.get(pl, x.slot); x.extra = engineOf(pad); x.rgb = patchRgb(pad); }
   return L.map(x => Object.assign(x, {empty: x.empty || x.bad, name: x.name || ""}));
 }
 async function getItem(p, n) {                              // -> {kind, name, bytes / pad / rec}
   const tab = state.tab, it = p.items[n];
+  if (p.kind === "demos") { const pad = demoBytes(it.demo); return {name: it.name, pad, rec: HR.fmOfCustom(pad)}; }
   if (p.kind === "folder") {
     const b = new Uint8Array(await (await it.file.h.getFile()).arrayBuffer()), nm = it.name.replace(/\.[^.]+$/, "");
     if (tab === "samples") return {name: nm, bytes: b};
@@ -232,6 +259,7 @@ async function getItem(p, n) {                              // -> {kind, name, b
 }
 async function putItem(q, n, x, ctx) {                       // into pane q's slot n (a folder: a new file)
   const tab = state.tab;
+  if (q.kind === "demos") throw new Error(T("los parches demo son de solo lectura", "the demo patches are read-only"));
   if (q.kind === "folder") {
     const ext = tab === "samples" ? ".wav" : tab === "patterns" ? (x.from === "rhythm" ? ".rmpat" : ".ctpat") : x.pad ? ".ctm" : ".fm8";
     const data = tab === "fm" ? (x.pad || x.rec) : x.bytes;
@@ -258,6 +286,7 @@ async function copyAct(p) {
   const q = p.other, from = [...p.sel].sort((a, b) => a - b).filter(n => p.items[n] && !p.items[n].empty);
   if (!from.length) return say(T("Nada elegido", "Nothing chosen"), T("Elige filas con contenido.", "Choose rows with content."));
   if (!q.kind) return say(T("Falta el destino", "No target"), T("Abre una carpeta en el otro lado.", "Open a folder on the other side."));
+  if (q.kind === "demos") return say(T("Solo lectura", "Read-only"), T("Los parches demo no se pueden cambiar: abre una tarjeta o una carpeta en el otro lado.", "The demo patches cannot be changed: open a card or a folder on the other side."));
   if (state.tab === "patterns" && q.kind !== "folder" && q.sess === null) return say(T("Sin proyecto", "No project"), T("El otro lado no tiene un proyecto elegido.", "The other side has no project chosen."));
   let to = [];
   if (q.kind !== "folder") {
@@ -268,7 +297,7 @@ async function copyAct(p) {
     const hit = to.filter(n => !q.items[n].empty);
     if (hit.length && !await ask(T("Huecos ocupados", "Slots in use"), `<p>${hit.map(n => esc(`${n} ${q.items[n].name}`)).join("<br>")}</p>`, [[T("Sobrescribir", "Overwrite"), true, "dng"], [T("Cancelar", "Cancel"), false]])) return;
   }
-  const across = p.kind !== q.kind && p.kind !== "folder" && q.kind !== "folder";
+  const across = p.kind !== q.kind && !["folder", "demos"].includes(p.kind) && q.kind !== "folder";
   await run(`${T("Copiar", "Copy")} ${from.length}${across ? " · " + T("adaptado", "adapted") : ""}`, async ctx => {
     for (let i = 0; i < from.length; i++) {
       const x = await getItem(p, from[i]);
@@ -281,20 +310,42 @@ async function copyAct(p) {
   q.sel.clear();
 }
 
+/* «Editar»: the chosen patch into the editor view; a slot of a card (or a .ctm of a folder) gets «Guardar en …», a demo patch only the editor's own .ctm */
+async function editAct(p) {
+  const n = p.sel.size === 1 ? [...p.sel][0] : null, it = n === null ? null : p.items[n];
+  if (!it || it.empty) return say(T("Nada elegido", "Nothing chosen"), T("Elige un parche (una fila con contenido).", "Choose a patch (a row with content)."));
+  const x = await getItem(p, n), pad = x && x.pad && SDT.ctmState(x.pad.subarray(0, SDT.PADN)) === "ok" ? x.pad : x && x.rec ? HR.customOfFm(x.rec, x.name) : null;
+  if (!pad) return say(T("No es un parche", "Not a patch"), T("Solo se editan parches del sinte propio (.ctm).", "Only own-synth patches (.ctm) can be edited."));
+  const label = p.kind === "demos" ? null : p.kind === "folder" ? it.name : `${p.kind === "rhythm" ? "Remix" : "Hacks"} ${SDT.pad2(pack(p).slot)} · ${SDT.pad2(it.slot)}`;
+  const save = p.kind === "demos" ? null : async (bytes, name) => {
+    const b = Uint8Array.from(bytes), ctx = {backup: state.backup};
+    if (name !== undefined) { SDT.ctmSetName(b, name); SDT.ctmSum(b); }
+    if (p.kind === "folder") await SDT.writeFile(p.dir, it.name, b);
+    else if (p.kind === "rhythm") { const pk = pack(p); pk._fmb = null; await RFM.put(place(p), it.slot, b, ctx); pk._fmb = null; }
+    else { const pk = pack(p); pk._banks = null; await SDT.Custom.put(place(p), it.slot, b, ctx); pk._banks = null; }
+    log(`${T("Guardado en", "Saved to")} ${label}`, "ok");
+  };
+  state.view = "editor"; try { localStorage.setItem("hrapp.view", "editor"); } catch (_) { /* none */ }
+  showView();
+  const w = await frameReady("editor");
+  w.PE.openFrom({bytes: pad, name: x.name, label, save});
+}
+
 // ---- drawing
 function paneHtml(p) {
-  let s = `<div class="prow"><b class="grow">${esc(p.dir ? p.dir.name : T("Sin carpeta", "No folder"))}</b>${p.kind ? `<span class="kind ${p.kind[0]}">${esc(kindLabel(p.kind))}</span>` : ""}<button type="button" data-act="open">${T("Abrir carpeta…", "Open folder…")}</button></div>`;
+  let s = `<div class="prow"><b class="grow">${esc(p.dir ? p.dir.name : T("Sin carpeta", "No folder"))}</b>${p.kind ? `<span class="kind ${p.kind[0]}">${esc(kindLabel(p.kind))}</span>` : ""}<button type="button" data-act="open">${T("Abrir carpeta…", "Open folder…")}</button>${state.tab === "fm" ? `<button type="button" data-act="demos">${T("Parches demo", "Demo patches")}</button>` : ""}</div>`;
   if (p.card) {
     s += `<div class="prow"><select data-sel="pack">${p.card.packs.map(x => `<option value="${x.slot}"${x.slot === p.packSlot ? " selected" : ""}>${SDT.pad2(x.slot)} ${esc(x.name)}</option>`).join("")}</select>`;
     if (state.tab === "patterns") s += `<select data-sel="sess"></select>`;
     s += "</div>";
   }
-  s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? "← " : ""}${T("Copiar", "Copy")}${p.i ? "" : " →"}</button><span class="hint">${esc(hintOf(p))}</span></div><div class="list"></div>`;
+  s += `<div class="tool"><button type="button" class="pri" data-act="copy">${p.i ? "← " : ""}${T("Copiar", "Copy")}${p.i ? "" : " →"}</button>${state.tab === "fm" && p.kind ? `<button type="button" data-act="edit" title="${esc(T("Abre el parche elegido en el editor: sus valores suenan en el aparato al moverlos", "Opens the chosen patch in the editor: its values play on the device as you move them"))}">${T("Editar", "Edit")}</button>` : ""}<span class="hint">${esc(hintOf(p))}</span></div><div class="list"></div>`;
   return s;
 }
 function hintOf(p) {
   const q = p.other;
-  if (!p.kind || !q.kind || p.kind === q.kind || p.kind === "folder" || q.kind === "folder") return "";
+  if (p.kind === "demos") return T("solo lectura: cópialos a una tarjeta o carpeta, o ábrelos con Editar", "read-only: copy them to a card or folder, or open them with Edit");
+  if (!p.kind || !q.kind || p.kind === q.kind || p.kind === "folder" || q.kind === "folder" || q.kind === "demos") return "";
   return state.tab === "patterns" ? T("Tracks → Rhythm: la nota más grave de cada paso; Rhythm → Tracks: una nota por paso", "Tracks → Rhythm: each step's lowest note; Rhythm → Tracks: one note a step")
        : state.tab === "fm" ? T("el parche entero, tal cual: motor (VA, granular, FM…), valores y nombre", "the whole patch as it is: engine (VA, granular, FM…), values and name")
        : T("los WAV tal cual", "the WAVs as they are");
@@ -305,7 +356,7 @@ async function render(p) {
   const ss = p.el.querySelector('[data-sel="sess"]');
   if (ss) { const m = await core(p).sessionsOf(pack(p)); ss.innerHTML = [...m.values()].map(e => `<option value="${e.slot}"${e.slot === p.sess ? " selected" : ""}>${SDT.pad2(e.slot)} ${esc(e.label || "")}</option>`).join(""); }
   const l = p.el.querySelector(".list");
-  l.innerHTML = p.items.map((it, n) => `<div class="row${it.empty ? " empty" : ""}${p.sel.has(n) ? " sel" : ""}" data-n="${n}"><span class="c0">${p.kind === "folder" ? "" : SDT.pad2(it.slot)}</span><span class="c1"></span><span class="c2">${esc(it.empty ? "—" : it.name || T("(sin nombre)", "(no name)"))}</span><span class="c3">${esc(it.extra || "")}</span><span></span></div>`).join("") ||
+  l.innerHTML = p.items.map((it, n) => `<div class="row${it.empty ? " empty" : ""}${p.sel.has(n) ? " sel" : ""}" data-n="${n}"><span class="c0">${p.kind === "folder" ? "" : SDT.pad2(it.slot)}</span><span class="c1">${state.tab === "fm" && !it.empty && it.rgb ? `<span class="sw" style="background:${it.rgb}" title="${esc(T("El color del hueco en el aparato (su motor)", "The slot's colour on the device (its engine)"))}"></span>` : ""}</span><span class="c2">${esc(it.empty ? "—" : it.name || T("(sin nombre)", "(no name)"))}</span><span class="c3">${esc(it.extra || "")}</span><span></span></div>`).join("") ||
     `<div class="blank dim" style="padding:10px">${p.kind ? T("Nada aquí.", "Nothing here.") : T("Abre una tarjeta (o una copia / snapshot) del Tracks o del Rhythm, o una carpeta de ficheros.", "Open a Tracks or Rhythm card (or a copy / snapshot), or a folder of files.")}</div>`;
 }
 async function renderAll() {
@@ -335,6 +386,8 @@ for (const p of panes) {
     const act = e.target.dataset ? e.target.dataset.act : null;
     if (act === "open") { let d; try { d = await window.showDirectoryPicker({mode: "readwrite"}); } catch (_) { return; } try { await openPane(p, d); } catch (er) { log(er.message || String(er), "bad"); } return; }
     if (act === "copy") return copyAct(p);
+    if (act === "demos") return openDemos(p);
+    if (act === "edit") return editAct(p);
     const row = e.target.closest(".row"); if (!row) return;
     const n = +row.dataset.n;
     if (e.ctrlKey || e.metaKey) { p.sel.has(n) ? p.sel.delete(n) : p.sel.add(n); }
@@ -348,6 +401,6 @@ for (const p of panes) {
     else if (w === "sess") { p.sess = +e.target.value; p.sel.clear(); await render(p); }
   });
 }
-window.HRAPP = {state, panes, openPane, renderAll, copyAct, showView, ask: null};
+window.HRAPP = {state, panes, openPane, openDemos, editAct, frameReady, renderAll, copyAct, showView, ask: null};
 renderAll();
 })();

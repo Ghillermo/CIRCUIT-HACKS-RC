@@ -142,6 +142,18 @@ def use_shsync():
 
 
 SUPERSAW = False                                # SC45.5 (use_supersaw)
+WSKIP = False                                   # SC56.1 (use_wskip)
+
+
+def use_wskip():
+    """SC56.1 (the user, 2026-11-10: «build 1 and then 2», the CPU items): the oscillator computed all four waves every sample (sine, triangle, the
+    supersaw's seven saws with their BLEP checks, the pulse with its two) and mixed them with the morph weights, of which at most two are not 0.  Now
+    each wave tests its weight (+15..+18) first and is skipped at 0: the output is the same bit for bit (a mac by 0 adds nothing); the supersaw's six
+    detuned phases only pause while its weight is 0 (they free-run, so nothing is heard).  The pulse's BLEP checks need the increment in x0, which the
+    saw's part loaded: x0 is loaded again after it.  Cost: 3 instructions a wave and sample + 1 (the increment); 13 words of core 0."""
+    global WSKIP
+    assert SUPERSAW and BLEP
+    WSKIP = True
 SS_PH, SS_D, SS_W = 28, 35, 42                  # (SUPERSAW) words of each oscillator block: the six side phases (+28..+33), the detune steps D, 3 D, 6 D (+35..+37),
                                                 # the side saws' weight (+42; OSC1: the sampler's words are +40, +41, +44..+47; OSC2: +40 is lfosync's)
 SS_D1 = 0.0183                                  # the inner pair's detune at the knob's far right (x the increment); 3 D / 6 D = 0.055 / 0.11: the classic supersaw's spread
@@ -1368,18 +1380,25 @@ def code(base, tabs, premix, ret_old):
             def fold():                                                           # b = p (4 g s) -> (1 - 2 |wrap(p - 0.5)|) / 2; x0 is the scratch (x1 keeps the phase)
                 e("move b1,x0", "move x0,b", "sub #>$400000,b", "move b1,x0", "move x0,b", "abs b", "asl b", "neg b", "add #>$7fffff,b", "asr b")
             def waves(OW):                                                        # the phase is in x1: a += the four waves of the oscillator whose block is OW (a is clear)
+                def wsk(off, k):                                                  # (WSKIP) the wave at weight 0: skipped
+                    if WSKIP: e("move x:(%s+%d),b" % (OW, off), "tst b"); a.emit(J("eq"), p + "wk%d%s" % (k, OW))
+                def wsl(k):
+                    if WSKIP: L(p + "wk%d%s" % (k, OW))
+                wsk(15, 0)
                 if SINEFIX:                                                       # P = 4 u (1 - |u|) refined to P (0.775 + 0.225 |P|) (THD 5 % -> 0.1 %), then the drive: p = 4 gh s
                     e("move x1,b", "abs b", "move b,y0", "move #>$7fffff,b", "sub y0,b", "move b,y0", "mpy x1,y0,b", "asl #2,b,b", "move b,y1", "move y1,b", "abs b", "move b,y0", "mpy y1,y0,b",
                       "move b1,y0", "move #>$1ccccd,x0", "mpy y0,x0,b", "move #>$633333,x0", "mac x0,y1,b", "move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #2,b,b"); fold()
                 else:
                     e("move x1,b", "abs b", "move b,y0", "move #>$7fffff,b", "sub y0,b", "move b,y0", "mpy x1,y0,b", "move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #4,b,b"); fold()
                 e("move b1,y1", "move x:(%s+15),y0" % OW, "mac y1,y0,a")                  # 0 sine (wavefold)
+                wsl(0); wsk(16, 1)
                 e("move x1,b", "abs b", "asl b", "sub #>$7fffff,b")
                 if SUPERSAW:                                                              # t' = t - c / 2 (1 - t^2): the exponential ramps left of the centre
                     e("move b,y1", "move b,y0", "mpy y0,y0,b", "move b,x0", "move #>$7fffff,b", "sub x0,b", "move b,x0", "move x:(%s+13),y0" % OW, "mpy y0,x0,b",
                       "move b,x0", "move y1,b", "sub x0,b")
                 e("move b,y1", "move x:(%s+12),x0" % OW, "mpy x0,y1,b", "asl #2,b,b"); fold()
                 e("move b1,y1", "move x:(%s+16),y0" % OW, "mac y1,y0,a")                  # 1 triangle (wavefold)
+                wsl(1); wsk(17, 2)
                 if not SUPERSAW:
                     e("move x1,b", "asr b", "add #>$400000,b", "move b,y0", "mpy y0,y0,b", "sub y0,b", "move b,y1", "move x:(%s+13),x0" % OW, "mpy x0,y1,b", "add y0,b", "sub #>$400000,b")
                     e("move b1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a")              # 2 saw (slope)
@@ -1391,6 +1410,7 @@ def code(base, tabs, premix, ret_old):
                     for k in range(6):
                         e("move x:(%s+%d),b" % (OW, SS_PH + k), "add x0,b", "move x:(%s+%d),y0" % (OW, SS_D + k // 2), "add y0,b" if k % 2 == 0 else "sub y0,b",
                           "move b1,x:(%s+%d)" % (OW, SS_PH + k), "move b1,y0", "mac y1,y0,a"); chk()
+                    if WSKIP: wsl(2); e("move x:(%s+11),x0" % OW); wsk(18, 3)              # (the pulse's checks: x0 = the increment)
                 else:                                                                     # 2 the supersaw: the centre (the phase) and six detuned ones
                     e("move x1,y1", "move x:(%s+17),y0" % OW, "mac y1,y0,a", "move x:(%s+%d),y1" % (OW, SS_W), "move x:(%s+11),x0" % OW)
                     for k in range(6):
@@ -1401,6 +1421,7 @@ def code(base, tabs, premix, ret_old):
                     e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "move b1,x1", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
                     e("move b1,y0", "mac y1,y0,a", "mac y1,y0,a")                                  # +-0.5 x w
                     e("bchg #23,x1", "move x1,y0"); chk()                                           # the falling edge, as before
+                    wsl(3)
                 elif BLEP:                                                                # 3 pulse: v = wrap(u - thr) in x1 (the phase is not needed any more)
                     e("move x:(%s+14),y0" % OW, "move x1,b", "sub y0,b", "move b1,x1", "asr #23,b,b", "and #>$800000,b", "eor #>$c00000,b")
                     e("move b1,y1", "move x:(%s+18),y0" % OW, "mac y1,y0,a")

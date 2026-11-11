@@ -21,7 +21,8 @@ def main(img, man):
     gen = int(R["labels"]["c_gtgen"], 16)
     S.LFOSYNC = "LDIV" in R["tables"]                                                # (the build's option: LDIV)
     tabs = S.tables()
-    ram = {k: int(v, 16) for k, v in R["tables"].items() if int(v, 16) >= 0x20000000}
+    import tabpack as TP                                                             # (SC55.8) tabpack's tables are rebuilt at power-up, not by c_gtgen
+    ram = {k: int(v, 16) for k, v in R["tables"].items() if int(v, 16) >= 0x20000000 and not TP.RAM[0] <= int(v, 16) < TP.RAM[1]}
     e = T.EL(img)
     check(set(ram) == set(n for n in G.GEN if n in tabs), f"the generated tables in RAM: {sorted(ram)}")
     for a in ram.values(): e.uc.mem_write(a, b"\xAA" * 512)

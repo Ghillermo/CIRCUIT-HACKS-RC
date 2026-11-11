@@ -23,6 +23,17 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 | Memoria externa del DSP (16 bits por palabra) | 16 M palabras (`$000000–$FFFFFF`) | `$337000–$57EFFF` + `$E80000–$FFEFFF` ≈ 4 M palabras (≈ 82 s mono a 48 kHz) | ≈ 1,75 M | **≈ 2,2 M palabras (≈ 45 s)** |
 | Tarjeta SD | la de la tarjeta | — | ficheros `PCM/NN_PCM.wav` del pack al guardar (solo RC0; RC0S nada) | — |
 
+> **SC56.3 / Beta 5.48 (2026-11-11):** `tools/fmmap.py` (el mapa del algoritmo FM): 1 660 B en el primer hueco de `dspz` (quedan **5 256 B** ahí; imagen igual, `0x6FED0`); RAM `0x2004F500-0x2004F597` (`FMAP`, firma `FMM1`) y los bytes + 240..255 de cada bloque de pista del FM (la entrada del algoritmo propio); guardado: bytes libres de los parámetros del FM (+ 21 de cada operador, GLB + 13 / 14), que ya viajaban con el patch y el proyecto. Sin DSP; SPI igual (el enrutado se manda al cambiar, como al cambiar de algoritmo). CPU: la disposición del mapa en cada fotograma de la tarea de LEDs con el mapa en pantalla (≤ 8 × 255 pasos del recorrido).
+> **SC56.2 / Beta 5.47 (2026-11-11):** `tools/fwid.py` (la pregunta del firmware): 164 B al final; imagen `0x6FED0` (304 B al final; **7 282 B libres** en total). Sin RAM ni DSP.
+
+> **SC56.1 / Beta 5.46 (2026-11-10):** `vcf21_dsp.use_wskip()`: núcleo 0 hasta `P:$3F26` (**40 palabras libres** antes de las tablas en `$3F4E`); CPU del oscilador del sinte propio −22 a −62 % por voz (según la onda). Imagen `0x6FE2C` (468 B al final; **7 446 B libres** en total).
+
+> **SC56 / Beta 5.45 (2026-11-10):** **7 471 B de flash libres** (SC55.9: 1 679): los programas del DSP con `dspz.use_v2()` (26 808 B en lugar de 32 646; desempaquetador 792 B) en el primer hueco de `dspz` (**6 905 B libres**), final 504 B, segundo hueco 19 B, hueco antiguo 35 B. ITCM `0x2000-0x2D93` (probabilidades) y `0x3000-0x3FFF` (ventana), solo durante el envío al DSP; RAM `0x20048200..0x2004821B` como antes. Envío del modo 0: ≈ 50 ms más de ARM.
+
+> **SC55.9 / Beta 5.44 (2026-11-10):** `patmut.use_v2()` +108 B (ocho pasos de Amount, `c_pmend`). Imagen `0x6FE08` (**504 B libres**) + ≈ 1,1 KB en el hueco del FM. RAM: `patmut` usa también `RAM + 5` (`R_END`).
+
+> **SC55.8 / Beta 5.43 (2026-11-10):** `tabpack` libera 2 412 B (tablas de curvas en RAM `0x20048620-0x20048FB0`, tablas del FM en la ITCM `0x18A4-0x1FFF`, rehechas al enviar el programa del núcleo 0); `patmut` 2 426 B. Imagen `0x6FD9C` (**612 B libres**) + ≈ 1,1 KB en el hueco del FM (`dspz` gap 0). RAM `modmx.MXR + 0x22C0..0x22FF` (firma `PMU1`). Guardado: cola + 367..375 (firma `0xB7`), bytes 34..39 de cada escena. DSP sin cambios.
+
 > **SC44.7 (2026-10-19):** el código del núcleo 1 pasa sus `move x:(Rn+d)` a la forma corta de una palabra: **1871 palabras de 2 048** (antes 2 047), con el granular estéreo dentro.
 
 > **SC44.8 (2026-10-19): flash nueva:** la copia de stock de los programas del DSP (`0x080101F0–0x0801865A`, 33 KB) ya no se carga y aloja código ARM (`tools/hole.py`; solo módulos que no escriban en la tarjeta ni guarden ajustes). En SC44.8 ocupa 4260 B (`modmx`, `split4`, `lfosync`).

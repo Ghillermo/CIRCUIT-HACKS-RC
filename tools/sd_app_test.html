@@ -48,6 +48,7 @@ async function main() {
     tx = bridge(); dev = new SD.Device(tx);
     await dev.identify();
     check(dev.loaded === 0, `the inquiry answers; the loaded pack: ${dev.loaded}`);
+    check(dev.fw === null, `the stock image answers no firmware query (tools/fwid.py): fw = ${dev.fw}`);
     check(await dev.open() === "opened" && dev.sess, "session open: the probe got no reply, so 40 was sent");
     const second = new SD.Device(tx);
     check(await second.open() === "adopted", "a page that comes back finds the session open and does not send 40 again");

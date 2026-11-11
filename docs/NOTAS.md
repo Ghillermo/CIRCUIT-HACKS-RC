@@ -143,6 +143,144 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 
 ## Parches
 
+### SC56.3 / Beta 5.48 (2026-11-11): el mapa del algoritmo del FM de 8 operadores — pendientes de probar
+
+El usuario: «cómo podemos mostrar de forma más clara qué hace un algoritmo FM? qué operadores modulan a otros, relaciones armónicas... algo con pads y colores que el usuario pueda mover». Dos maquetas en la conversación; elegido: **pad 7 mantenido ½ s = el mapa mientras se mantiene, un toque lo fija** (la lista de algoritmos a Shift + pad 7); **cada fila se lee de izquierda (moduladora) a derecha (portadora)**, **dos ondas separadas por uno o más huecos = no interactúan**; color por la relación armónica del ratio (como la maqueta); elegir + knobs, Shift = callar, mantener A + tocar B (cualquier copia) = enlace; sin números de operador: **el elegido late en todas sus copias** (los códigos de pulso de la misma familia de la paleta).
+
+`tools/fmmap.py` (`dspz.add`, 1 660 B en el primer hueco; las cabezas más externas de las ranuras 0 / 1 / 7 de la vista de plantillas):
+- **Disposición** (`c_mmlay`, el modelo `fmmap.layout`): los caminos hoja → … → portadora desde cada portadora (DFS con la pila en `SCR`, un operador puede salir en varios caminos), los más largos primero, primer hueco con un pad oscuro entre caminos, alineados a la derecha, en las filas 2-4. **Los 56 algoritmos caben en 3 filas** (24 en una, 31 en dos, 1 en tres); un algoritmo propio que no quepa pierde los caminos que sobran. Se congela mientras un operador está mantenido (el enlace se ve al soltar).
+- **Colores:** ratio × 200 = (100 + fino) con grueso 0, 2 × grueso × (100 + fino) si no: múltiplo de 200 verde (`0x17`), de 100 verde azulado (`0x4D`), si no naranja (`0x45`); fijo rojo (`0x53`); el operador del feedback (`A_FBS` de la entrada) violeta (`0x49`, brillo por el feedback ≥ 64). Nivel ≥ 50 = el código fijo, si no el tenue (+ 1); elegido = pulso (+ 2: `0x1A`, `0x50`, `0x48`, `0x5A`, `0x4C`; **el de rojo, por confirmar en el aparato**); mantenido: sus destinos blanco `0x01`, sus fuentes fijas, el resto tenue. Callado = apagado. Pad 7 brillante con el mapa.
+- **Callar** (Shift + operador): máscara en la RAM del mapa; `c_mmol` sustituye a `ldrb r2, [r1, #16]; cmp r2, #0` (el nivel de salida) en el bucle de operadores de `c_fm8run` (r5 = el bloque de la pista, también en poly) y da 0 mientras el mapa se dibujó hace menos de 300 ms; al volver al mapa tras un rato la máscara se borra. No se guarda nada.
+- **Algoritmo propio** (índice 56 = `F.NALG`): en los bytes libres de los parámetros, + 21 de cada operador = quién lo modula (bit s), GLB + 13 = feedback origen | destino << 4 (15 = ninguno), GLB + 14 = `0xC0 | N`; un operador sin destino es portadora. Al primer enlace se copia la ruta del algoritmo que suena. **`c_mcalg` en la cabeza de `c_fmalg` de fm8arm** construye su entrada de 16 B en el byte + 240 del bloque de la pista (libres 235..255) y devuelve su dirección; cualquier otro índice sigue como antes. Un enlace que cerraría un bucle (B ya llega a A) no se hace. Dirty = el enrutado se manda en el siguiente tick. Se guarda con el patch, el proyecto y el morph (bytes discretos) sin cambios en `fm8store`. Shift + K1 o la lista vuelven a uno de los 56.
+- RAM `FMAP = 0x2004F500` (libre: S514D, `0x2004F4B0-0x2004F7FF`): firma `FMM1`, 48 B por pista, el mapa dibujado, el modo, el mantenido, el pad 7, la máscara de callados, horas; `SCR` (la pila de la disposición) en + 0x80.
+
+Pruebas: `emu_fmmap.py` (los 56 algoritmos frente al modelo en disposición y colores, elegir, callar, `c_mmol`, enlace / bucle / desenlace con `c_fmalg` = `fmmap.custom_entry`, pad 7 toque / mantenido / Shift): todo bien. `emu_fm8arm`, `emu_fm8poly`, `emu_fm8store`: bien; `emu_fm8`, `emu_p4ovl`, `emu_morph` dan los mismos fallos que en SC56.2; `emu_fm8v2` además falla en «pad 7 mantenido = la lista» (ahora Shift + pad 7, por diseño). Imagen igual (`0x6FED0`); hueco de `dspz` 5 256 B libres.
+
+### SC56.2 / Beta 5.47 (2026-11-11): el aparato dice qué firmware lleva; las apps, solo lo de stock si no — pendientes de probar
+
+El usuario: «In the app, if the device is stock / an unknown custom build, support only stock-compatible features»; preguntado cómo saberlo
+(la respuesta de identidad `F0 7E … 01 64 00 00 01 01 23 06` es una constante de la imagen, `23 06` = build 4486: la misma en el oficial y en
+todas nuestras versiones), eligió **una pregunta de versión** y **los dos aparatos**.
+
+**Firmware (`tools/fwid.py`):** cabeza de la entrada de SysEx `0x0801EB30` (la de `rdiag`; si `rdiag` ya está, sigue hacia `c_rdin`):
+`F0 7D 43 54 00 seq` + 7 ceros + `F7` (exactamente 14 bytes) → la respuesta se escribe en el propio búfer (`40`, `seq`, `01` = formato, los 6
+bytes de la marca en `0x080101E8` & `0x7F`, `F7`) y sale por el enrutador de stock `0x08020C90` al mismo puerto, como la identidad. Todo lo
+demás pasa intacto (8 registros en la pila: sp alineado a 8 en la llamada). El oficial no contesta a `7D`. **Comprobado por el anillo USB y el
+analizador real** (`emu_sdsysex.Fw.usb_feed`): la build contesta, la imagen oficial calla.
+
+**Apps:** `SD.Device.identify()` termina con `fwQuery()` (800 ms; `dev.fw` = la marca o `null`). `sd_app.html`: selector «Firmware:
+automático / solo stock / Hacks» (`localStorage sdapp.fw`); automático = con aparato, su respuesta; sin aparato (carpetas), todo. Sin Hacks:
+fuera la pestaña Parches custom (e Importar DX7…), el sinte propio de Sonidos del proyecto y, en el editor de patrones, Orden, Random-mutate,
+Frecuencia, Dinámicas y la marca de soltar la automatización (`hacksOK()`, `HACKS_TABS`). Editor de patches (`patch_editor_src.html`):
+pide MIDI con SysEx (si no, sin pregunta), pregunta al elegir los puertos; sin respuesta = no envía (En tiempo real y Enviar todo apagados;
+**Es Hacks: enviar igualmente**, recordado, para versiones anteriores). **La parte del Rhythm (las builds de Remix contestan lo mismo, `fwQuery`
+en `rm_sd_app.html`) se pidió a la sesión de RYTHM.** Las versiones anteriores a SC56.2 / Beta 5.47 (todas las publicadas) no contestan: la
+app las trata como oficiales hasta que se elija «Hacks».
+
+**Enlace al instalador** (el usuario: «Add a link to the installer when a version is outdated»): al conectar, la app lee `builds/index.json` de las páginas (la lista del instalador, la escribe `publish_rc`; responde con `Access-Control-Allow-Origin: *`); sin respuesta del aparato, o una Beta (`Bn.m`) / RC (`Rnnn`, `RCn`, con o sin S) más antigua que la más nueva publicada de su serie, el aviso enlaza `rc_uploader.zip`. Las builds de desarrollo (`SCnn`, diagnósticos) nunca salen antiguas. Sin internet, solo el caso sin respuesta. El Editor de patches igual (`#fwlink`).
+
+### SC56 / SC56.1 / Beta 5.45 / Beta 5.46 (2026-11-10): sitio en la flash y CPU del oscilador — pendientes de probar
+
+El usuario, 2026-11-10, tras el análisis de optimización («analyze and list optimization pads…»): «build 1 and then 2» (1 = sitio sin perder
+nada, 2 = la CPU).
+
+**SC56 / Beta 5.45 (sitio):**
+- **`dspz.use_v2()`, formato `DZ2`:** LZ + codificación aritmética binaria adaptativa, el modelo de LZMA con menos partes (lc = lp = pb = 0,
+  solo rep0, short rep, literales con el byte del match), ventana de 4 KB, 1 738 probabilidades de 11 bits. Medido antes: deflate 25 074 + 4 163,
+  LZMA real 22 455 + 3 763 (8 KB de ventana 22 719; 4 KB 22 953); el nuestro 23 032 + 3 752 de flujo (26 808 B con las cabeceras; LZSS 32 646).
+  Con el contexto por posición % 3 (las palabras del DSP son de 3 bytes) serían 425 B menos, pero las probabilidades no caben en 4 KB.
+  - Cabecera `DZ2\0` + palabras + CRC-32 + el flujo (sin el primer byte, siempre 0, del codificador: los cuatro primeros son el `code` inicial,
+    leídos con `ldr` + `rev`: el bloque tiene que estar alineado a 4, comprobado).
+  - **Desempaquetador** (`arm_code2`, 792 B): el mismo bucle de envío (trozos de 170 palabras, esperas, selección); `dz_fill` decodifica a la
+    ventana (ITCM `0x3000-0x3FFF`) y al búfer; probabilidades en halfwords en ITCM `0x2000-0x2D93` (iniciadas a 1024 en cada envío); estado en
+    `0x20048200` (+ 0 src, + 4 range, + 8 code, + 12 estado, + 16 rep0, + 20 lo que queda del match, + 24 índice de escritura). Subrutinas
+    `dz_rb` (un bit), `dz_tr` (árbol: devuelve los dos órdenes), `dz_len`, `dz_dir` (bits directos), `dz_sym` (un elemento).
+  - **El codificador** (`_pack2`) es solo de enteros y determinista: dos pasadas de análisis óptimo hacia delante (cada posición guarda coste,
+    estado y rep0 del mejor camino; los precios con la tabla entera de LZMA sobre las probabilidades finales de la pasada anterior). El
+    instalador lo repite en JavaScript (`DZ2` / `dzPack2` en `make_rc_uploader.py`; `dz_split` marca los bloques `DZ2` con un 2 en `dz`):
+    mismos bytes que Python (página de prueba en `build/dz2test/`, 0,3 s en el navegador).
+  - **Coste en tiempo:** el envío del modo 0 pasa de 1,17 M a 11,7 M instrucciones del ARM (emulado): ≈ 50 ms más al encender y al volver al modo 0.
+- **Código muerto fuera** (comprobado que nada llega a él): `mixsolo.use_trim1()` (v1: la v2 toma lo que v1 encadenaba), `velcurve.use_trimall()`
+  (queda `c_vcadv`), `morphz.use_trimpanel()` (`c_mzpanel` con `use_nocur`). El buscador de etiquetas sin referencias (bl, b.w, bcond, cbz,
+  palabras, movw / movt) también señala `c_conv1-3`, `c_wavp`, `c_txf_st`, `c_pgup_out`, `c_fmalg` y los manejadores de `jumpflip`: falsos
+  positivos (direcciones calculadas, entradas a mitad, caídas) o ya reutilizados por el morph.
+- **`morphz.ENDLAST`:** el reparto del morph elegía el área más ajustada; con el primer hueco de `dspz` más grande que el final de la imagen,
+  mandaba media vista al final y la imagen no cabía (0x70028). Ahora el final va el último.
+- Flash libre: SC55.9 1 679 B (hueco 0 1 148, final 504) → SC56 7 471 B (hueco 0 6 905, final 504, hueco 1 19, hueco antiguo 35).
+
+**SC56.1 / Beta 5.46 (CPU):** `vcf21_dsp.use_wskip()`: `waves()` (la subrutina `wv` de la supersaw) mira el peso de cada onda (+15..+18) antes
+de calcularla y la salta a 0 (3 instrucciones por onda y muestra; `move x:(OW+11),x0` antes del pulso porque sus comprobaciones de BLEP usan
+el incremento que cargaba la sierra). Bit a bit igual (`emu_wskip_dsp.py`, 12 casos); medido: seno 7 754 → 2 941 instrucciones por bloque,
+triángulo → 3 997, sierra / supersaw / pulso ≈ −23 %, dos osciladores −21 / −43 %. En WAVE 42 / 84 el morph deja un peso ínfimo a la onda de
+al lado (por redondeo): se sigue calculando. 13 palabras (núcleo 0 hasta `P:$3F26`).
+- **Medidos y dejados:** el latido de `vcf21` (`use_heartbeat`: ACT / NOTE / VEL / GATE cada 8 ms por pista, también con el motor apagado; el
+  barrido `sd_sw` de los códigos 27..34 cada 4 ms con el motor encendido, ≈ 375 escrituras por segundo y pista; una vez por segundo todos los
+  valores) es el único camino de los códigos 27..34 (no tienen bit de sucio): espaciarlo haría lentos esos knobs. El dibujo de `patmut` en la
+  vista Patterns: ≈ 32 × 170 instrucciones por fotograma, solo con listas en esa vista.
+
+### SC55.9 / Beta 5.44 (2026-11-10): ocho pasos de Amount y el final de escena con listas mutadas — pendientes de probar
+
+El usuario: «make 8 amounts and mutated patterns end the scene, like Remix just did» (RH88 de Remix: `mutate` / `patchain` OPT `mtend`).
+`patmut.use_v2()` (`AMT8`, `END`; SC55.8 / Beta 5.43 iguales):
+- **Amount 0..7** en los bits 5-7 de S0 (cambian `n (8 − a) + 4 >> 3` huecos, al menos 1; 0 = todo al azar como antes); Repeats off pasa al
+  bit 1 de S1 (Keep slot 1 sigue en el bit 0). Página: columnas 4 / 5 = Amount 4 (columna − 3) + fila, columna 6 Repeats, 7 Keep slot 1, 8
+  apagada. Los ajustes de la 5.43 se leen con otro Amount / Repeats (no se publicó).
+- **`c_pmend`** en el `bl` de `0x0802C65E` (delante de `c_pcend` de `patchain`, que no cambia): sin cadena pendiente, pista < 8 con lista y
+  hueco en marcha (`R_POS` ≠ `0xFF`) → final = `R_POS + 1` = longitud de la lista; la respuesta va en `RAM + 5` (`R_END`: fp o `0xFF`) con
+  Z puesto, como la del stock (`ldrbeq r0, [r0, #1]; cmpeq fp, r0`). Lo demás pasa a `c_pcend` con los registros intactos. Antes de su primer
+  hueco (justo tras el toque) la pista sigue la regla de antes.
+- Imagen `0x6FE08` (504 B libres; +108 B). Prueba: `emu_patmut.py` (ocho pasos con valor y LED, Amount 1/8 = el modelo, el final con una lista
+  de 6 exacta que pasa por el patrón 3 a mitad, la pista sin lista = el stock).
+
+### SC55.8 / Beta 5.43 (2026-11-10): el mutate de patrones (de mefisme) y sitio en la flash — pendientes de probar
+
+**Pedido** (el usuario, por la sesión de RYTHM, que tiene el diseño decidido para Remix RH86 en `../RYTHM/docs/DISENO_RH86.md`): portar a Hacks
+el Pattern Mutate de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus) (MIT, commit 7fb8ddd, `modules/mutset.py`). Preguntado:
+cómo pagar la flash → «Both» (tablas de curvas y del FM); color de la página → «Peach».
+
+**Lo que hace el stock (emulación, `firmware/sc55.7` y stock 4486):** Shift + Duplicate cambia el patrón en las vistas de pista (Synth, MIDI,
+drums, Note, Velocity, Gate, Pattern Settings: 122-312 bytes de RAM) y nada en Preset, Patterns, Mixer, FX, Scales y Projects (los 3 bytes de
+siempre); Clear + Duplicate no hace nada en ninguna vista. Comparado SC55.7 / SC55.8 vista a vista: lo único nuevo es el apagado de pads de la
+vista Patterns tras el toque.
+
+**`tools/patmut.py`:**
+- **El generador** `c_pmgen(pista, cadena, sello)` = `patmut.model` (comprobado en 300 casos): estado = (sello + 0x1000193 t + 0x9E37 cadena)
+  × 0x9E3779B1, después un LCG (1664525, 1013904223) y `(estado >> 16) × n >> 16`. Longitud: como la cadena / Length / 1 + azar(Length); Keep
+  slot 1 (con 2 o más) = el primero de la cadena; Amount (1-3) = (n (4 − amount) + 2) / 4 huecos de la cadena cambian (al menos 1), los demás
+  = el patrón de la cadena en ese hueco; los demás huecos, al azar dentro de la cadena; Repeats no = hasta 16 intentos para no repetir el vecino
+  anterior ni el siguiente ya puesto (en vuelta). La lista = un word: longitud << 24 | 3 bits por hueco; caché por pista con la cadena y el
+  sello (semilla | S0 << 16 | S1 << 24).
+- **`c_pmnext`** en el `bl` de `0x0802CD4A` (antes `c_pcnext`, al que salta con la pila intacta cuando la pista no muta): forzado o escena
+  nueva = hueco 1; la previsión (fp = 1) da lo mismo sin mover nada; una escena nueva en la previsión = la lista de esa escena con su sello.
+- **Cadena actual** = `PARAM_GET([0x20038EC0 + 0x9C], t)` (primero, último), la del avance (`r8`, `[sp + 2]`).
+- **Bytes guardados:** bloque del proyecto en la cola + 367..375 (+0 marca `0xB7`, +1 pistas con lista, +2 pistas no elegidas, +3/+4 semilla,
+  +5 S0 = (Length − 1) ^ 3 | tipo << 3 | amount << 5 | repeats no << 7, +6 S1 = keep slot 1, +7 suma de +1..+6 ^ 0x5A). En los 173
+  proyectos de la tarjeta solo el pack Shadow Child tiene algo ahí (basura). **Escenas:** bytes 34..38 de `rec + 0x40 + 40 s` (pistas,
+  semilla, S0, S1) y 39 = suma ^ 0xA5, válidos con el byte 32 (escena guardada) ≠ 0. **El guardado de escena del stock escribe el byte 33**
+  (lo vio `emu_patmut`); 34..39 se quedan (también al guardar otra escena).
+- **Gestos:** cabeza de `0x08033320` (`c_pmbtn`: Duplicate con Clear = fin; con la página = cerrar; con Shift en Patterns / Mixer = pendiente
+  + hora; un botón de pista con la página = elegir, y con listas sonando entra / sale; Record, Play, Clear y Shift no la cierran, los demás
+  sí), cabeza de `0x0803381A` (`c_pmrel`: Duplicate soltado aún pendiente = semilla nueva), ranura 0 de la vista Patterns (`c_pmpad`: la página
+  o el fin de la lista de la pista), ranura 0 del Mixer (`c_pmmix`: parado, un pad de escena = sus listas), la tarea de LEDs (`c_pmled`: 1/3 s
+  con Duplicate pendiente en Patterns = la página; dibujo de la página; apagado de la vista Patterns; Duplicate amarillo con Shift). **El bit
+  de Duplicate mantenido de `[[ctrl + 0x20] + 0xC]` no se pone en emulación al pulsarlo:** el «mantenido» es el pendiente propio.
+- **Sin probar:** la copia de escena (`c_pmscopy`, ruta `0x0802DE42`); el final de escena con pistas que mutan (la prueba de `c_pcend` sigue
+  siendo «el patrón = el último de la cadena»).
+
+**`tools/tabpack.py`** (2 412 B): medido antes de elegir: LZ de todas las tablas del FM 4 368 → 3 299 B; las segundas diferencias de las curvas
+no caben en un byte (GK 9 638, AFTAB 221 469, PHTAB 2 645; PHPER 34, SMPI 118), así que van en 1 o 2 bytes. RAM: `0x20048620-0x20048FB0`
+(tras las dos tablas de `mfxgen` en `RAM_B`) y la ITCM `0x18A4-0x1FFF` (tras los instrumentos, antes de la ventana de `dspz`). Lo del FM sale
+del hueco del FM (`dspz` gap 0, ≈ 1,1 KB libres ahí); lo de Master FX, del final de la imagen.
+
+### SC55.7 / Beta 5.42 (2026-11-10): patches de ejemplo del sinte propio y los destinos de los instrumentos FM — pendientes de probar
+
+El usuario: «Build example patches based on traditional and popular synth patches. assign pertinent macro destinations to new and existing patches»; preguntado: **el sinte propio de MIDI 1 / 2** (no los Nova de Synth 1 / 2) y **ficheros para la tarjeta** (no en el firmware; los destinos de los instrumentos FM sí, en el firmware).
+
+- **`tools/make_examples.py`** → `docs/patches/`: 81 `.ctm` (el formato de la app de la tarjeta: relleno 172 B + registro FM de 8 operadores 224 B) y `README.md` / `LEEME.md` con la lista. 33 sonidos clásicos con nombres genéricos (bajos ladder / acid / Reese / sub / square / wobble / FM de dos operadores; solos clásico, sync, supersaw, chip, hoover, silbido, wavefold; pads de cuerdas, analógico, PWM, trance, barrido, cristal; metales, stab, plucks, órgano, clavinet, campana de ring; bombo, tom, caja, charles, láser con el VA-drum; un barrido de ruido) y los 48 instrumentos FM. Cada uno: motor y códigos 1..34, forma del LFO, **destinos de la página 4 (`P4`, + 88) y de Shift + pad 4 (`NS`, + 130)** elegidos para el sonido (tablas `D_*`; los FM por familia, `FAM_DEST`), modo de voz (+ 126), sub / ruido de un oscilador (+ 142), profundidades de dos osciladores (+ 163), bloque FM versión 3 (+ 100, encendido solo en los FM). Valores: el filtro por zonas de su knob de tipo (zona t, posición f = el seguimiento de nota: p = (128 t + f) / 7), corte = (FILT + 64) / 2 de 64 pasos de 8 por octava con un tipo distinto de DJ; ENVF en pasos de esa tabla con la envolvente arriba; el ratio de OSC 2 = `vcf21.r2_ratio` al revés.
+- **El bloque `0xC4` (+ 163) en todos:** sin él, una build convierte el FM (código 33) desde la escala antigua (0..127) a la de centro: un patch de un oscilador con FM 64 cargaba con FM 86 (visto en `emu_examples.py`).
+- **`tools/fm8dest.py`** (SC55.7): la lista del pad 8 carga un instrumento con `mov r7, r0; mov r1, r6; bl c_fminst` (r4 = la pista): ese `bl` → `c_fmidest` = `c_fminst` y después las dos filas de destinos (`vcf21` `c_vrow` / `c_vrow2`, a sus valores de fábrica la primera vez) con los 8 + 8 códigos de la familia del instrumento (48 B de familias + 16 B por familia). No se manda nada: los valores se quedan y la automatización de los carriles mueve los destinos nuevos (como Shift + knob). Al final de la imagen: `0x6F988` (1 656 B libres).
+- Pruebas: `emu_examples.py` (los 81 en SC55.6: `c_mpload` + `c_mpsave`, cada bloque vuelve igual y los códigos están en la RAM del motor: 678 comprobaciones), `emu_fm8dest.py` (contra SC55.6 / Beta 5.41), `emu_inst2.py` y `emu_loadcache.py` sobre SC55.7.
+
 ### SC55.6 / Beta 5.41 / RC4.11 / RC4.11S (2026-11-09): cargar un patch propio leía la tarjeta una vez por parte — pendientes de probar
 
 **S555D2 en el aparato (el usuario): Play blanco** al cargar patches propios del motor = el tick del secuenciador tarde mientras el mod leía la tarjeta. **Causa:** `mpatch.c_mpload` lee el patch (44 B del relleno) y cada envoltura de `c_mpapply` lee su propio trozo del mismo registro con `c_mpr`: modmx (+ 64, 24 B), p4dest (+ 88 y + 130), fmeng (+ 100), fm8store (el registro FM de 8 operadores, 224 B en 4096 + 512 (hueco & 7)), smst (+ 121), vmode (+ 126), wtui (+ 150), oscmod (+ 142 y + 163): **11 lecturas síncronas seguidas en la beta, 7 en la RC**, cada una por la tarea de almacenamiento, en la pulsación del pad. **`tools/loadcache.py`:** cabeza de `c_mpload` = el relleno entero (172 B) y, con `fm8` en la build, el área del registro FM (224 B) a RAM `0x2004EE00` (entre el morph, que acaba en `0x2004EDBC`, y `0x2004F400`), con su estado y bytes leídos; cabeza de `mp_io` = una lectura de ese banco que cae dentro de una de las dos áreas sale de la copia (con su estado y su longitud) mientras dura la carga (palabra `LCAN` en + 0: la RAM no se borra al encender); el resto, a la tarjeta. Huecos 128+ (el virtual `0xFF` de projsyn) sin tocar. **2 lecturas en la beta, 1 en la RC.** Imagen SC55.6 `0x6F88C`, RC4.11 `0x6FE0C`, RC4.11S `0x6FDFC`. Prueba `emu_loadcache.py` (guarda un patch con FM, cambia el sonido, lo carga: las lecturas y el estado contra la build anterior; el arnés contesta en `mp_io + 4`, el cuerpo tras las cabezas).

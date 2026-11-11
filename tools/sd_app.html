@@ -27,6 +27,7 @@
   nav button.on { background:var(--panel); color:var(--ink); box-shadow:inset 0 -2px 0 var(--acc); }
   #notice { padding:6px 16px; color:var(--warn); }
   #notice:empty { display:none; }
+  #notice a { color:inherit; font-weight:600; }
   main { flex:1; min-height:0; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px 16px; }
   .pane { min-width:0; min-height:0; display:flex; flex-direction:column; background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
   .phead { padding:8px 10px; display:flex; flex-direction:column; gap:6px; border-bottom:1px solid var(--line); }
@@ -58,6 +59,8 @@
   .use { display:inline-block; min-width:30px; margin-right:6px; font-size:.78rem; font-weight:600; color:var(--ok); }
   .use.free { color:#5c626d; font-weight:400; }
   .use.ghost { color:var(--warn); }
+  .sw { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:7px; vertical-align:-1px; box-shadow:0 0 0 1px rgba(0,0,0,.45); }
+  .sw.none { background:transparent; box-shadow:inset 0 0 0 1px #3a3f48; }
   .usebox { border-top:1px solid var(--line); padding:4px 10px; font-size:.82rem; color:var(--dim); max-height:7.5em; overflow:auto; }
   .usebox[hidden] { display:none; }
   .usebox b { color:var(--ink); font-weight:600; }
@@ -112,6 +115,7 @@
     <button id="bRest" type="button" hidden></button>
     <button id="bDev" type="button" class="dng" hidden></button>
     <button id="bBackup" type="button"></button>
+    <select id="fwMode" aria-label="Firmware"></select>
     <div class="lang" role="group" aria-label="Idioma / Language"><button type="button" data-lang="es">Español</button><button type="button" data-lang="en">English</button></div>
   </div>
 </header>
@@ -392,7 +396,7 @@ const Nova = {
     const banks = await banksOf(pl.pack), out = [];
     for (let n = 0; n < SLOTS; n++) {
       const p = recordOf(banks, n).nova, empty = p.length < 16 || isFF(p, 0, 16);
-      out.push({slot: n, empty, name: empty ? "" : latin(p, 0, 16), mode: empty || p.length <= 32 ? null : p[32]});
+      out.push({slot: n, empty, name: empty ? "" : latin(p, 0, 16), mode: empty || p.length <= 32 ? null : p[32], cat: empty || p.length <= 16 ? null : p[16]});
     }
     return out;
   },
@@ -406,6 +410,25 @@ const Nova = {
     await writeRecord(pl.pack, n, 0, b, ctx);
   },
 };
+
+/* ---------------------------------------------------------------- the colours the device gives a patch (2026-11-10), as RGB from the LED table
+   (bytes B, G, R at 0x20003804; tools/led_palette.json).  A Nova patch: its Components category (byte 16), the colour of the Beta's Preset view
+   (packio.CAT_PAL from Beta 5.40: Bass steel blue 0x12, SFX red 0x53); None = the track's colour (Synth 1 magenta, Synth 2 green).  A custom patch:
+   its engine, the colour of MIDI 1 / 2's Preset slots (fm8ui scol: modesel.COLS by the flags, FM violet 0x49, wavetable sand 0x6D). */
+const NOVA_CATS = [["Ninguna", "None"], ["Arp", "Arp"], ["Bass", "Bass"], ["Bell", "Bell"], ["Classic", "Classic"], ["Drum", "Drum"], ["Keyboard", "Keyboard"],
+  ["Lead", "Lead"], ["Movement", "Movement"], ["Pad", "Pad"], ["Poly", "Poly"], ["SFX", "SFX"], ["String", "String"], ["User", "User"], ["Voc", "Voc"]];
+const NOVA_CAT_RGB = [null, "#00ffb5", "#5e84cc", "#44ddff", "#ffaf2f", "#ff4e13", "#e7ff9e", "#ffff19", "#9865ff", "#1a47ff", "#00ff00", "#ff0000", "#ff8682", "#ffd966", "#2929cc"];
+const TRACK_RGB = ["#c63ac6", "#3db24f"];                    // Synth 1 (0x32) / Synth 2 (0x20): category None
+function novaColour(cat) {                                  // -> {rgb, rgb2 (None: the two tracks), cat, name: [es, en]}
+  const c = cat >= 1 && cat <= 14 ? cat : 0;
+  return c ? {rgb: NOVA_CAT_RGB[c], cat: c, name: NOVA_CATS[c]} : {rgb: TRACK_RGB[0], rgb2: TRACK_RGB[1], cat: 0, name: NOVA_CATS[0]};
+}
+const ENGINE_RGB = {off: "#ffffff", line: "#ffaf2f", va: "#00ff00", vadrum: "#ff4e13", granular: "#c63ac6", sample: "#00ffb5", fxseq: "#1a47ff", fm: "#9865ff", wt: "#ffd966"};
+function customColour(flags, fm, wt) {                      // -> {rgb, key}: the engine's slot colour on the device
+  const k = flags & 1 ? flags & 15 : 0;
+  const key = k === 3 ? (fm && fm.on ? "fm" : wt ? "wt" : "va") : {1: "line", 7: "vadrum", 15: "vadrum", 11: "granular", 9: "sample", 5: "fxseq", 13: "fxseq"}[k] || "off";
+  return {rgb: ENGINE_RGB[key], key};
+}
 
 // ---------------------------------------------------------------- custom patches: the padding of a record (its Nova patch stays)
 function ctmState(pad) {
@@ -1172,7 +1195,15 @@ class Device {
       this.tx.send(Uint8Array.of(...NOVATION, 0x49, 0xF7));
       const s = await this.next(x => x[6] === 9 && x.length >= 20, 1000).catch(() => null);
       this.loaded = s ? s[s.length - 2] : null; this.chans = s ? [...s.subarray(7, 12)] : null;      // Synth 1, Synth 2, MIDI 1, MIDI 2, Drums
+      this.fw = await this.fwQuery();
     });
+  }
+  async fwQuery() {                                         // the firmware's own marker (tools/fwid.py, SC56.2 / Beta 5.47 on); null = stock or an older build
+    this.tx.send(Uint8Array.of(0xF0, 0x7D, 0x43, 0x54, 0x00, 0x23, 0, 0, 0, 0, 0, 0, 0, 0xF7));
+    const r = await this.next(x => x.length >= 14 && x[1] === 0x7D && x[2] === 0x43 && x[3] === 0x54 && x[4] === 0x40 && x[5] === 0x23, 800).catch(() => null);
+    if (!r || r[6] !== 1) return null;
+    const m = String.fromCharCode(...[...r.subarray(7, 13)].filter(c => c >= 0x20 && c < 0x7F)).trim();
+    return m || null;
   }
   open() {
     return this.run(async () => {
@@ -1449,7 +1480,7 @@ return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0,
   Projects, projectProblem, projectName, projSlot,
   Device, DevRoot, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
   RECN, extOf, fm8Rec, fm8Get, dx7Parse, dx7ToFm8, dx7Patch, projFm, projOwn, setProjOwn, projectSounds, setProjectSounds,
-  patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2};
+  patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2, NOVA_CATS, novaColour, customColour, ENGINE_RGB};
 })();
 if (typeof window !== "undefined") window.SD = SD;
 </script>
@@ -1470,7 +1501,32 @@ const T = (es, en) => LANG === "es" ? es : en;
 const TABS = [["packs", "Packs", "Packs"], ["projects", "Proyectos", "Projects"], ["nova", "Sintes Nova", "Nova synths"], ["drums", "Drums", "Drums"], ["custom", "Parches custom", "Custom patches"],
               ["patterns", "Patrones", "Patterns"], ["cc", "Presets CC", "CC presets"]];
 const KIND = {projects: SD.Projects, nova: SD.Nova, drums: SD.Drums, custom: SD.Custom, patterns: SD.Patterns, cc: SD.CC};
-const state = {tab: "packs", busy: false, backup: null, noBackup: false};
+const state = {tab: "packs", busy: false, backup: null, noBackup: false, fwMode: "auto"};
+try { const s = localStorage.getItem("sdapp.fw"); if (s === "stock" || s === "hacks") state.fwMode = s; } catch (_) { /* no storage */ }
+/* (2026-11-11, the user: «if the device is stock / an unknown custom build, support only stock-compatible features»): with a device connected, «auto»
+   follows its answer to the firmware query (tools/fwid.py): a marker = a Hacks build, every feature; no answer = the stock firmware, or a build before
+   SC56.2 / Beta 5.47 that cannot tell: only what the stock reads (no custom patches nor DX7 import, no own synth in Project sounds, no Hacks-only
+   pattern fields).  A folder alone keeps every feature.  The selector forces either way («Hacks» for an older build). */
+const hacksOK = () => state.fwMode === "hacks" || (state.fwMode === "auto" && (!state.dev || !!state.dev.dev.fw));
+const HACKS_TABS = new Set(["custom"]);
+const tabsShown = () => TABS.filter(t => hacksOK() || !HACKS_TABS.has(t[0]));
+/* (2026-11-11, the user: «Add a link to the installer when a version is outdated»): the published versions (the installer's own list, builds/index.json
+   of the pages, written by publish_rc) are read when a device connects; the notice links the installer when the device does not answer (stock or a
+   build before Beta 5.47) or runs an older version of its line (Beta n.m, RC = R + digits); development builds (SCnn, diagnostics) are never "old". */
+const PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/", INSTALLER = PAGES + "rc_uploader.zip";
+const verOf = m => { let x;
+  if ((x = /^B(\d+)\.(\d+)$/.exec(m || ""))) return {line: "B", n: +x[1] * 1000 + +x[2]};
+  if ((x = /^R(\d)(\d\d)S?$/.exec(m || ""))) return {line: "R", n: +x[1] * 1000 + +x[2]};
+  if ((x = /^RC(\d)S?$/.exec(m || ""))) return {line: "R", n: +x[1] * 1000};
+  return null; };
+async function readLatest() {
+  try { const c = new AbortController(), k = setTimeout(() => c.abort(), 6000), r = await fetch(PAGES + "builds/index.json", {cache: "no-store", signal: c.signal}); clearTimeout(k);
+        const l = r.ok ? await r.json() : null; state.latest = Array.isArray(l) ? l.filter(x => x && typeof x.v === "string") : null; }
+  catch (_) { state.latest = null; }
+}
+const newerOf = m => { const v = verOf(m); if (!v || !state.latest) return null;
+  let best = null; for (const x of state.latest) { const w = verOf(x.v); if (w && w.line === v.line && w.n > v.n && (!best || w.n > verOf(best.v).n)) best = x; } return best; };
+const verName = x => String(T(x.es, x.en) || x.v).split(" — ")[0];
 const audio = {ctx: null, src: null, key: null};
 
 // ---- labels
@@ -1659,7 +1715,7 @@ function cols(tab, it) {
   switch (tab) {
     case "packs": return [SD.pad2(it.slot), `Pad ${it.slot + 2}`, it.empty ? dash : it.name, it.info || ""];
     case "projects": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, ""];
-    case "nova": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (["Mono", "Mono AG", "Poly"][it.mode] || "")];
+    case "nova": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : [it.cat >= 1 && it.cat <= 14 ? SD.NOVA_CATS[it.cat][1] : "", ["Mono", "Mono AG", "Poly"][it.mode] || ""].filter(Boolean).join(" · ")];
     case "drums": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.name, it.empty ? "" : (Math.max(0, it.size - 44) / 96000).toFixed(2) + " s"];
     case "custom": return [SD.pad2(it.slot), where(tab, it.slot), it.empty ? dash : it.bad ? T("dañado", "damaged") : it.name || T("(sin nombre)", "(no name)"), it.empty ? "" : engineName(it.flags, it.fm, it.wt)];
     case "patterns": return [String(it.slot + 1), `${TRACKS[it.slot >> 3]}·${(it.slot & 7) + 1}`, it.empty ? dash : `${it.notes} ${it.slot >= 32 ? T("golpes", "hits") : T("notas", "notes")}` + (it.lanes ? ` · ${it.lanes} ${T("carriles", "lanes")}` : ""), (state.dev && state.dev.dev.chans ? `${T("Canal", "Ch")} ${state.dev.dev.chans[Math.min(4, it.slot >> 3)] + 1} · ` : "") + `${it.first + 1}-${it.last + 1}`];
@@ -1699,10 +1755,23 @@ async function fillUsage(p, token, force) {                 // a folder: at once
   if (token !== p.token) return;
   for (const q of panes) if (q.pack === pack) paintUse(q);
 }
+/* (2026-11-10) the colour the device shows the patch in: a Nova patch by its Components category (the Beta's Preset view; None = the track's colour,
+   magenta / green), a custom patch by its engine (MIDI 1 / 2's Preset slots) */
+function swatchHtml(c, title) {
+  const bg = c.rgb2 ? `linear-gradient(135deg, ${c.rgb} 50%, ${c.rgb2} 50%)` : c.rgb;
+  return `<span class="sw" style="background:${bg}" title="${esc(title)}"></span>`;
+}
+function swatch(tab, it) {
+  if (it.empty || it.bad) return tab === "nova" || tab === "custom" ? `<span class="sw none"></span>` : "";
+  if (tab === "nova") { const c = SD.novaColour(it.cat); return swatchHtml(c, T("Categoría: ", "Category: ") + T(c.name[0], c.name[1]) + (c.cat ? "" : T(" (el color de la pista)", " (the track's colour)"))); }
+  if (tab === "custom") return swatchHtml(SD.customColour(it.flags, it.fm, it.wt), engineName(it.flags, it.fm, it.wt));
+  return "";
+}
 function rowHtml(tab, it) {
   const c = cols(tab, it), mini = tab === "patterns" && it.cells.length ? `<canvas class="mini" width="176" height="20" data-mini="${it.slot}"></canvas>` : "";
   const use = USED.has(tab) ? `<span class="use" data-use></span>` : "";
-  return `<div class="row${it.empty ? " empty" : ""}${it.bad ? " badrow" : ""}" data-n="${it.slot}"><span class="c0">${c[0]}</span><span class="c1">${c[1]}</span><span class="c2" title="${esc(c[2])}">${use}${mini}${esc(c[2])}</span><span class="c3">${esc(c[3])}</span>` +
+  const sw = swatch(tab, it);
+  return `<div class="row${it.empty ? " empty" : ""}${it.bad ? " badrow" : ""}" data-n="${it.slot}"><span class="c0">${c[0]}</span><span class="c1">${c[1]}</span><span class="c2" title="${esc(c[2])}">${use}${mini}${sw}${esc(c[2])}</span><span class="c3">${esc(c[3])}</span>` +
          (tab === "drums" && !it.empty ? `<button type="button" class="play" data-play="${it.slot}" title="${T("Escuchar", "Listen")}">▶</button>` : "<span></span>") + "</div>";
 }
 function headHtml(p) {
@@ -2149,7 +2218,7 @@ async function projSoundsAct(p) {
   const pl = p.place();
   if (!pl || p.sess === null) return say(T("Ninguna sesión", "No session"), T("Elige un pack con proyectos.", "Choose a pack with projects."));
   const sess = p.sess, b = (await SD.openSession(pl.pack, sess)).bytes, cur = SD.projectSounds(b);
-  const nv = await SD.Nova.list(pl), cu = await SD.Custom.list(pl), dr = await SD.Drums.list(pl), d = $("ed");
+  const nv = await SD.Nova.list(pl), cu = hacksOK() ? await SD.Custom.list(pl) : [], dr = await SD.Drums.list(pl), d = $("ed");
   const ch = {nova: [null, null], own: [null, null], drums: [null, null, null, null]};
   const nvo = (sel, extra) => extra + nv.map(x => opt(x.slot, `${SD.pad2(x.slot)} ${x.empty ? "—" : x.name}`, sel)).join("");
   const draw = () => {
@@ -2162,7 +2231,7 @@ async function projSoundsAct(p) {
         ${pad ? `<p style="margin:0 0 6px"><button type="button" data-do="oe${t}">${T("Editar su estado inicial…", "Edit its initial state…")}</button>${ch.own[t] ? " " + T("(cambiado)", "(changed)") : ""}</p>` : ""}`; };
     const drow = k => `<label class="fld"><span>Drum ${k + 1}</span><select data-k="dr${k}">${dr.map(x => opt(x.slot, `${SD.pad2(x.slot)} ${x.empty ? "—" : x.name}`, ch.drums[k] !== null ? ch.drums[k] : cur.drums[k])).join("")}</select></label>`;
     d.innerHTML = `<h3>${T("Sonidos del proyecto", "Project sounds")} ${SD.pad2(sess)} · ${esc(pl.pack.name)}</h3>
-      <div class="form"><fieldset><legend>Synth 1 / 2</legend>${nr(0)}${nr(1)}</fieldset><fieldset><legend>${T("Sinte propio", "Own synth")}</legend>${orow(0)}${orow(1)}</fieldset>
+      <div class="form"><fieldset><legend>Synth 1 / 2</legend>${nr(0)}${nr(1)}</fieldset>${hacksOK() ? `<fieldset><legend>${T("Sinte propio", "Own synth")}</legend>${orow(0)}${orow(1)}</fieldset>` : ""}
       <fieldset><legend>Drums</legend>${[0, 1, 2, 3].map(drow).join("")}</fieldset></div>
       <p class="dim" style="margin:8px 0 0;font-size:.82rem">${T("Lo que el proyecto carga: el patch al que apunta cada sinte y la copia que suena (su estado inicial), el sinte propio de MIDI 1 / 2 (desde un parche custom, con su FM y su wavetable) y el sample de cada drum. Nada cambia en los huecos del pack.", "What the project loads: the patch each synth points at and the copy that plays (its initial state), the own synth of MIDI 1 / 2 (from a custom patch, with its FM and wavetable) and each drum's sample. The pack's slots do not change.")}</p>
       <div class="btns"><button type="button" data-do="cancel">${T("Cancelar", "Cancel")}</button><button type="button" class="pri" data-do="save">${T("Guardar en el proyecto", "Save to the project")}</button></div>`;
@@ -2215,7 +2284,7 @@ async function editPattern(p, n) {
       <label>${T("Último paso", "Last step")} <input type="number" min="1" max="32" data-k="last" value="${m.last + 1}"></label>
       <label>Sync rate <select data-k="rate">${RATES.map((r, i) => opt(i, r, m.rate)).join("")}</select></label>
       <label>${T("Dirección", "Direction")} <select data-k="dir">${DIRS.map((r, i) => opt(i, T(r[0], r[1]), m.dir)).join("")}</select></label>
-      <label>${T("Orden", "Order")} <select data-k="order">${ORDERS.map((r, i) => opt(i, T(r[0], r[1]), m.order)).join("")}</select></label>
+      ${hacksOK() ? `<label>${T("Orden", "Order")} <select data-k="order">${ORDERS.map((r, i) => opt(i, T(r[0], r[1]), m.order)).join("")}</select></label>` : ""}
     </div>
     <div class="edgrid"><div>
       <div class="roll" id="rollBox"><canvas id="roll" width="${W}" height="${H}"></canvas></div>
@@ -2261,7 +2330,7 @@ async function editPattern(p, n) {
     const st = m.steps[sel.s], u = sel.u === undefined ? null : st.units[sel.u];
     const num = (k, label, min, max, v) => `<label class="fld"><span>${esc(label)}</span><input type="number" min="${min}" max="${max}" value="${v}" data-i="${k}"></label>`;
     q.innerHTML = (u ? `<fieldset><legend>${T("Nota", "Note")} ${noteName(u.note)}</legend>${num("note", T("Nota (0-127)", "Note (0-127)"), 0, 127, u.note)}${num("vel", "Velocity", 1, 127, u.vel)}${num("gate", T("Duración (6 = un paso)", "Length (6 = one step)"), 1, 96, u.gate)}${num("micro", T("Micropaso", "Micro step"), 0, 5, u.micro)}<label class="fld"><span>${T("Ligada", "Tied")}</span><input type="checkbox" data-i="tie"${u.tie ? " checked" : ""}></label><button type="button" data-do="delnote">${T("Quitar nota", "Remove note")}</button></fieldset>` : "") +
-      `<fieldset><legend>${T("Paso", "Step")} ${sel.s + 1}</legend>${num("prob", T("Probabilidad (1-8)", "Probability (1-8)"), 1, 8, st.prob + 1)}${num("mutate", "Random-mutate", 0, 7, st.mutate)}${num("freq", T("Frecuencia (1 de N)", "Frequency (1 in N)"), 1, 8, (st.b3 & 7) + 1)}${num("dyn", T("Dinámicas", "Dynamics"), 0, 7, st.b3 >> 4 & 7)}<label class="fld"><span>${T("Suelta la automatización", "Releases automation")}</span><input type="checkbox" data-i="mark"${st.b3 & 128 ? " checked" : ""}></label></fieldset>`;
+      `<fieldset><legend>${T("Paso", "Step")} ${sel.s + 1}</legend>${num("prob", T("Probabilidad (1-8)", "Probability (1-8)"), 1, 8, st.prob + 1)}${!hacksOK() ? "" : `${num("mutate", "Random-mutate", 0, 7, st.mutate)}${num("freq", T("Frecuencia (1 de N)", "Frequency (1 in N)"), 1, 8, (st.b3 & 7) + 1)}${num("dyn", T("Dinámicas", "Dynamics"), 0, 7, st.b3 >> 4 & 7)}<label class="fld"><span>${T("Suelta la automatización", "Releases automation")}</span><input type="checkbox" data-i="mark"${st.b3 & 128 ? " checked" : ""}></label>`}</fieldset>`;
   }
   const redraw = () => { drawRoll(); drawBars(); drawInsp(); };
   const hit = ev => {
@@ -2404,9 +2473,11 @@ async function attach(tx, p) {                              // only here is a se
   const how = await dev.open();
   const card = await SD.Card.open(new SD.DevRoot(dev));
   card.device = dev; state.dev = {dev, card, tx};
+  readLatest().then(() => { if (state.dev && state.dev.dev === dev) drawChrome(); });
   p.card = card; p.packSlot = card.packs.length ? card.packs[0].slot : null; p.sess = null; p.sel.clear();
   if (!p.other.card) { p.other.card = card; p.other.packSlot = p.packSlot; p.other.sess = null; }
-  log(T("Aparato conectado", "Device connected") + (how === "adopted" ? T(" (la sesión ya estaba abierta)", " (the session was already open)") : "") + `: ${card.packs.length} packs`, "ok");
+  log(T("Aparato conectado", "Device connected") + (how === "adopted" ? T(" (la sesión ya estaba abierta)", " (the session was already open)") : "") + `: ${card.packs.length} packs` +
+      (dev.fw ? ` · firmware ${dev.fw}` : T(" · firmware de stock o sin identificar", " · stock or unidentified firmware")), "ok");
   drawChrome(); await renderAll();
 }
 async function connectDevice(p) {
@@ -2656,10 +2727,19 @@ for (const p of panes) {
 function drawChrome() {
   document.documentElement.lang = LANG;
   $("sub").textContent = T("Packs, sintes, drums, parches y patrones de la tarjeta microSD", "Packs, synths, drums, patches and patterns of the microSD card");
-  $("tabs").innerHTML = TABS.map(t => `<button type="button" role="tab" data-tab="${t[0]}">${esc(T(t[1], t[2]))}</button>`).join("");
+  if (!hacksOK() && HACKS_TABS.has(state.tab)) { state.tab = "packs"; for (const p of panes) p.sel.clear(); }
+  $("tabs").innerHTML = tabsShown().map(t => `<button type="button" role="tab" data-tab="${t[0]}">${esc(T(t[1], t[2]))}</button>`).join("");
+  $("fwMode").innerHTML = [["auto", T("Firmware: automático", "Firmware: automatic")], ["stock", T("Firmware: solo stock", "Firmware: stock only")], ["hacks", T("Firmware: Hacks", "Firmware: Hacks")]]
+    .map(([v, l]) => `<option value="${v}"${v === state.fwMode ? " selected" : ""}>${esc(l)}</option>`).join("");
+  $("fwMode").title = T("Automático: con el aparato conectado, lo que contesta su firmware; sin aparato, todo.", "Automatic: with the device connected, what its firmware answers; without a device, everything.");
   for (const b of document.querySelectorAll(".lang button")) b.classList.toggle("on", b.dataset.lang === LANG);
-  $("notice").textContent = state.dev ? T("Aparato conectado: transporte parado y panel bloqueado hasta Desconectar.", "Device connected: transport stopped and panel locked until Disconnect.")
-    : window.showDirectoryPicker ? "" : T("Este navegador no puede abrir carpetas: usa Chrome o Edge en un ordenador.", "This browser cannot open folders: use Chrome or Edge on a computer.");
+  const fw = state.dev ? state.dev.dev.fw : null, nw = fw ? newerOf(fw) : null, inst = `<a href="${INSTALLER}" target="_blank" rel="noopener">${T("instalador", "installer")}</a>`;
+  const fwl = !state.dev ? "" : fw ? " " + esc(`Firmware: ${fw}.`) + (nw ? " " + T(`Hay una versión más nueva, ${esc(verName(nw))}: ${inst}.`, `A newer version is out, ${esc(verName(nw))}: ${inst}.`) : "")
+    : " " + esc(T("Firmware de stock o sin identificar: solo las funciones que lee el firmware de stock (elige «Firmware: Hacks» si lleva una versión de Hacks anterior a la Beta 5.47).",
+                  "Stock or unidentified firmware: only what the stock firmware reads (choose «Firmware: Hacks» if it runs a Hacks build older than Beta 5.47).")) +
+      " " + T(`Para instalar la última versión: ${inst}.`, `To install the latest version: ${inst}.`);
+  $("notice").innerHTML = state.dev ? esc(T("Aparato conectado: transporte parado y panel bloqueado hasta Desconectar.", "Device connected: transport stopped and panel locked until Disconnect.")) + fwl
+    : window.showDirectoryPicker ? "" : esc(T("Este navegador no puede abrir carpetas: usa Chrome o Edge en un ordenador.", "This browser cannot open folders: use Chrome or Edge on a computer."));
   $("bDev").hidden = !state.dev; $("bDev").textContent = T("Desconectar aparato", "Disconnect device");
   $("bSnap").hidden = $("bRest").hidden = !state.dev; $("bSnap").textContent = T("Snapshot…", "Snapshot…"); $("bRest").textContent = T("Restaurar…", "Restore…");
   paintBackup();
@@ -2677,13 +2757,18 @@ document.querySelector(".lang").addEventListener("click", async e => {
   drawChrome(); await renderAll();
 });
 $("bBackup").addEventListener("click", pickBackup);
+$("fwMode").addEventListener("change", async e => {
+  if (state.busy) { e.target.value = state.fwMode; return; }
+  state.fwMode = e.target.value; try { localStorage.setItem("sdapp.fw", state.fwMode); } catch (_) { /* this page only */ }
+  drawChrome(); await renderAll();
+});
 $("bDev").addEventListener("click", disconnect);
 $("bSnap").addEventListener("click", snapAct);
 $("bRest").addEventListener("click", restAct);
 window.addEventListener("pagehide", () => { if (state.dev) state.dev.dev.closeNow(); });   // an abandoned session keeps the panel locked
 drawChrome();
 renderAll();
-window.SDAPP = {state, panes, openRoot, renderAll, attach, disconnect, snapTo, restoreFrom, setBackup: dir => { state.backup = dir ? new SD.Backup(dir) : null; state.noBackup = !dir; paintBackup(); }};
+window.SDAPP = {state, panes, openRoot, renderAll, attach, disconnect, snapTo, restoreFrom, hacksOK, tabsShown, drawChrome, verOf, newerOf, readLatest, setBackup: dir => { state.backup = dir ? new SD.Backup(dir) : null; state.noBackup = !dir; paintBackup(); }};
 })();
 </script>
 </body>

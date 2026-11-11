@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor de patches</title>
+<!-- Source of tools/patch_editor.html: python tools/make_patch_editor.py fills DATA (vcf21.CC_TAB, defaults, the example patches). -->
+<style>
+:root {
+  --bg: #f4f3ef; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a64; --line: #dddbd3;
+  --accent: #c2410c; --accent-soft: #fde7da; --track: #e7e5de; --ok: #15803d; --warn: #b45309; --bad: #b91c1c;
+  --sec-amp: #2563eb; --sec-flt: #c2410c; --sec-lfo: #7c3aed; --sec-fx: #0f766e; --sec-o1: #be185d; --sec-o2: #4d7c0f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161614; --panel: #201f1c; --ink: #ecebe6; --muted: #9c9a92; --line: #34322d;
+    --accent: #fb923c; --accent-soft: #3a2416; --track: #34322d; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+    --sec-amp: #60a5fa; --sec-flt: #fb923c; --sec-lfo: #a78bfa; --sec-fx: #2dd4bf; --sec-o1: #f472b6; --sec-o2: #a3e635;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161614; --panel: #201f1c; --ink: #ecebe6; --muted: #9c9a92; --line: #34322d;
+  --accent: #fb923c; --accent-soft: #3a2416; --track: #34322d; --ok: #4ade80; --warn: #fbbf24; --bad: #f87171;
+  --sec-amp: #60a5fa; --sec-flt: #fb923c; --sec-lfo: #a78bfa; --sec-fx: #2dd4bf; --sec-o1: #f472b6; --sec-o2: #a3e635;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { position: sticky; top: 0; z-index: 5; background: var(--panel); border-bottom: 1px solid var(--line); padding: 10px 16px; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+h1 { font-size: 17px; margin: 0 12px 0 0; }
+label.f { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+select, input[type=text], input[type=number], button {
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px;
+}
+button { cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+#status { font-size: 13px; }
+#fwlink { font-size: 13px; font-weight: 600; color: var(--warn); }
+#status.ok { color: var(--ok); } #status.warn { color: var(--warn); } #status.bad { color: var(--bad); }
+main { padding: 16px; max-width: 1400px; margin: 0 auto; }
+.note { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+section.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 8px; border-top: 4px solid var(--c); }
+section.card h2 { font-size: 14px; margin: 0 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
+section.card h2 small { color: var(--muted); font-weight: normal; font-size: 12px; }
+.p { display: grid; grid-template-columns: 112px 1fr 64px; gap: 8px; align-items: center; padding: 3px 0; }
+.p .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p .n small { color: var(--muted); }
+.p .v { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+.p .v small { display: block; color: var(--muted); font-size: 11px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p.changed .n { color: var(--c); font-weight: 600; }
+input[type=range] { width: 100%; accent-color: var(--c); }
+input[type=range].bip { background: linear-gradient(90deg, transparent calc(50% - 1px), var(--line) calc(50% - 1px), var(--line) calc(50% + 1px), transparent calc(50% + 1px)); }
+.kbd { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.kbd .bar { margin-bottom: 10px; }
+.keys { position: relative; height: 110px; user-select: none; touch-action: none; }
+.key { position: absolute; top: 0; border: 1px solid var(--line); border-radius: 0 0 5px 5px; cursor: pointer; }
+.key.w { background: #fafaf7; height: 110px; z-index: 1; }
+.key.b { background: #2a2925; height: 66px; z-index: 2; }
+.key.on { background: var(--accent) !important; }
+.key span { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 10px; color: #8a8880; }
+details { margin-top: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+details summary { cursor: pointer; font-weight: 600; }
+details table { border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+details td, details th { border-bottom: 1px solid var(--line); padding: 3px 10px 3px 0; text-align: left; }
+#log { font: 12px/1.35 ui-monospace, Consolas, monospace; color: var(--muted); max-height: 120px; overflow: auto; white-space: pre; margin-top: 8px; }
+@media (max-width: 640px) {
+  header { padding: 8px 16px; }
+  .p { grid-template-columns: 92px 1fr 56px; }
+  .grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Editor de patches · sinte propio de MIDI 1 / 2</h1>
+    <label class="f">Salida <select id="out"><option value="">(sin MIDI)</option></select></label>
+    <label class="f">Entrada <select id="inp"><option value="">(ninguna)</option></select></label>
+    <label class="f">Pista <select id="track"><option value="0">MIDI 1</option><option value="1">MIDI 2</option></select></label>
+    <label class="f">Canal <select id="chan"></select></label>
+    <label class="f"><input type="checkbox" id="live" checked> En tiempo real</label>
+    <span id="status"></span><button id="fwforce" hidden title="Para una versión de Hacks anterior a la Beta 5.47, que no contesta a la pregunta del firmware">Es Hacks: enviar igualmente</button><a id="fwlink" hidden target="_blank" rel="noopener" href="https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip"></a>
+  </div>
+  <div class="bar" style="margin-top:8px">
+    <label class="f">Ejemplo <select id="ex"><option value="">—</option></select></label>
+    <label class="f">Nombre <input type="text" id="name" maxlength="16" size="16" placeholder="(sin nombre)"></label>
+    <label class="f">Motor <select id="engine"></select></label>
+    <label class="f">LFO <select id="lshape"></select></label>
+    <button id="sendall" class="primary" title="Manda los 33 valores al aparato">Enviar todo</button>
+    <button id="reset" title="Valores iniciales del motor">Inicial</button>
+    <button id="open">Abrir .ctm…</button>
+    <button id="save">Guardar .ctm</button>
+    <button id="saveback" class="primary" hidden></button>
+    <input type="file" id="file" accept=".ctm" hidden>
+  </div>
+</header>
+<main>
+  <p class="note">
+    Con el motor de la pista encendido en el aparato (vista Preset de MIDI 1 / 2) y <b>CC Rx</b> encendido en la vista Setup, cada slider manda su CC / NRPN por el canal de la pista y el aparato lo aplica al momento, sin guardarlo.
+    El motor, la forma del LFO y los destinos de las páginas 4 / 8 no se mandan por MIDI: elige el motor en el aparato; aquí solo cambian los nombres y el fichero .ctm.
+    Para quedarte el sonido en el aparato: Clear + pad dos veces en la vista Preset; o guarda el .ctm y súbelo con la app de la tarjeta (Parches custom → Subir).
+    Doble clic en un slider = su valor inicial. Con una entrada MIDI elegida y <b>CC Tx</b> encendido, los knobs del aparato mueven los sliders.
+  </p>
+  <div class="grid" id="grid"></div>
+  <div class="kbd">
+    <div class="bar">
+      <b>Teclado de prueba</b>
+      <button id="octd">Oct −</button><span id="octv"></span><button id="octu">Oct +</button>
+      <label class="f">Velocity <input type="range" id="vel" min="1" max="127" value="100" style="width:120px"><span id="velv">100</span></label>
+      <button id="panic">Notas fuera</button>
+      <span class="note" style="margin:0">Teclado del ordenador: A W S E D F T G Y H U J K O L P</span>
+    </div>
+    <div class="keys" id="keys"></div>
+  </div>
+  <details>
+    <summary>Mensajes de cada parámetro</summary>
+    <table id="map"><thead><tr><th>Código</th><th>Parámetro</th><th>Mensaje</th><th>Rango</th></tr></thead><tbody></tbody></table>
+  </details>
+  <details>
+    <summary>Registro MIDI</summary>
+    <div id="log"></div>
+  </details>
+</main>
+<script>
+"use strict";
+const DATA = {"params":{"1":{"name":"Filtro","min":-64,"max":63,"kind":"bip","msg":[0,74],"def":0},"2":{"name":"Resonancia","min":0,"max":127,"kind":"uni","msg":[0,71],"def":0},"3":{"name":"Env > filtro","min":-64,"max":63,"kind":"bip","msg":[0,79],"def":0},"4":{"name":"LFO > filtro","min":-64,"max":63,"kind":"bip","msg":[132,4],"def":0},"5":{"name":"Ataque","min":0,"max":127,"kind":"uni","msg":[0,73],"def":0},"6":{"name":"Decay","min":0,"max":127,"kind":"uni","msg":[0,75],"def":0},"7":{"name":"Sustain","min":0,"max":127,"kind":"uni","msg":[0,70],"def":127},"8":{"name":"Release","min":0,"max":127,"kind":"uni","msg":[0,72],"def":0},"9":{"name":"Efecto","min":0,"max":127,"kind":"uni","msg":[0,91],"def":0},"10":{"name":"Ganancia VCA","min":0,"max":127,"kind":"uni","msg":[0,59],"def":0},"11":{"name":"Velocidad LFO","min":-64,"max":63,"kind":"bip","msg":[128,76],"def":20},"12":{"name":"LFO > nivel","min":-64,"max":63,"kind":"bip","msg":[132,12],"def":0},"13":{"name":"Tipo de efecto","min":0,"max":127,"kind":"uni","msg":[132,13],"def":0},"15":{"name":"Env > nivel","min":-64,"max":63,"kind":"bip","msg":[132,15],"def":63},"16":{"name":"Tipo de filtro","min":0,"max":127,"kind":"uni","msg":[132,16],"def":0},"17":{"name":"Tono","min":-64,"max":63,"kind":"bip","msg":[0,26],"def":0},"18":{"name":"Fino","min":-64,"max":63,"kind":"bip","msg":[0,27],"def":0},"19":{"name":"Onda","min":0,"max":127,"kind":"uni","msg":[0,20],"def":0},"20":{"name":"Forma","min":0,"max":100,"kind":"uni","msg":[0,21],"def":50},"21":{"name":"LFO > tono","min":-64,"max":63,"kind":"bip","msg":[132,21],"def":0},"22":{"name":"Env > tono","min":-64,"max":63,"kind":"bip","msg":[132,22],"def":0},"23":{"name":"Env > forma","min":-64,"max":63,"kind":"bip","msg":[132,23],"def":0},"24":{"name":"LFO > forma","min":-64,"max":63,"kind":"bip","msg":[132,24],"def":0},"25":{"name":"Env > morph","min":-64,"max":63,"kind":"bip","msg":[132,25],"def":0},"26":{"name":"LFO > morph","min":-64,"max":63,"kind":"bip","msg":[132,26],"def":0},"27":{"name":"Ratio OSC 2","min":-64,"max":63,"kind":"bip","msg":[0,37],"def":0},"28":{"name":"Detune OSC 2","min":-64,"max":63,"kind":"bip","msg":[0,39],"def":0},"29":{"name":"Onda 2","min":0,"max":127,"kind":"uni","msg":[0,30],"def":0},"30":{"name":"Forma 2","min":0,"max":100,"kind":"uni","msg":[0,31],"def":50},"31":{"name":"Mezcla 1 / 2","min":0,"max":127,"kind":"uni","msg":[0,52],"def":64},"32":{"name":"Sync / bitwise","min":0,"max":127,"kind":"uni","msg":[132,32],"def":0},"33":{"name":"FM","min":0,"max":127,"kind":"uni","msg":[132,33],"def":64},"34":{"name":"Ring","min":0,"max":127,"kind":"uni","msg":[0,54],"def":0}},"byCc":{"74":1,"71":2,"79":3,"73":5,"75":6,"70":7,"72":8,"91":9,"59":10,"26":17,"27":18,"20":19,"21":20,"37":27,"39":28,"30":29,"31":30,"52":31,"54":34},"byNrpn":{"516":4,"76":11,"524":12,"525":13,"527":15,"528":16,"533":21,"534":22,"535":23,"536":24,"537":25,"538":26,"544":32,"545":33},"examples":[{"name":"01 Ladder Bass","b64":"Q1RNMRMA3igmAAAuRhIYABQACDw/ZQAAVAAAAAAAAADwBn4yOABAAEsCAv9MYWRkZXIgQmFzcyAgICAg/////////////////////////////////////1A0AQECAwYRCQgPHEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TAQUHFBAECxYKW////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"02 Acid Line","b64":"Q1RNMQMA2GgsAAAiAAouABQACDw/ZQAAVAAAAAAAAAAAAAAyQABAAMsCAv9BY2lkIExpbmUgICAgICAg/////////////////////////////////////1A0AQECAwYRCQ8EGEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlIWAE5TARQFBwgQDQsKVsUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"03 Reese Bass","b64":"Q1RNMRMA7hQIBgA8bhgeAAgACDw/ZQAAVAAAAAAAAAAAFlQAQABAADECAv9SZWVzZSBCYXNzICAgICAg/////////////////////////////////////1A0AQECAwYRCQgPHEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TARwFBxQECx8KcP///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"04 Sub Bass","b64":"Q1RNMQMAFAAAAAI8eBQSABQACDw/HAAAADIAAAAAAAAAAAAyQABAAIoCAv9TdWIgQmFzcyAgICAgICAg/////////////////////////////////////1A0AQECAwYRCQgPHEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TAQUHFBAECxYKW8UAAMAAGgD5/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"05 Square Bass","b64":"Q1RNMQMA5h4eAAAoPA4AABQAADw/ZQAAfiYAAAAAAAAAAAAyQABAAOECAv9TcXVhcmUgQmFzcyAgICAg/////////////////////////////////////1A0AQECAwYRCQgPHEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlAAAE5TAQUHFBAECxYKW8UAAMAA/ADb/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"06 Wobble Bass","b64":"Q1RNMRMA4kYALAA8fxAoANgAGDw/ZQAAVB4AAAAAAADwAH4yPABAALgCBP9Xb2JibGUgQmFzcyAgICAg/////////////////////////////////////1A0AQsEAQIJEQMMGkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TARQcHw0FCBAKf////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"07 2-Op FM Bass","b64":"Q1RNMRMACgoUAAAsKBAAABQAADw/HAAAADIAAAAAAAAAAAAyAABUAAICAv8yLU9wIEZNIEJhc3MgICAg/////////////////////////////////////1A0ASEBBgMRCQIILkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlAAAE5TARsFBw8cHxQKi////////////////////////////8QAAAAAAChG////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"08 Classic Lead","b64":"Q1RNMRMABB4QAAIyZBoAAB4AADw/ZQAAVAAAAAAAAAAAClQAQABAACcCAv9DbGFzc2ljIExlYWQgICAg/////////////////////////////////////1A0AQECAxURCQgLJ0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlIeAE5TAQUGBxQcHxYKff///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"09 Hard Sync Lead","b64":"Q1RNMRMAHgoKAAA8bhgUABQACDw/HAAAVAAAAAAAAAAAAFQAYBtAADECAv9IYXJkIFN5bmMgTGVhZCAg/////////////////////////////////////1A0ASABAxURCQgCPEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TARcUGxwfBQYKkv///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"10 Supersaw Lead","b64":"Q1RNMQMAJAgGAAA8bigoABQAeDw/HAAAVGQAAAAAAAAAAAAyQABAALwCAv9TdXBlcnNhdyBMZWFkICAg/////////////////////////////////////1A0AQECAxURCQgLJ0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUGBxQcHxYKfcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"11 Chip Lead","b64":"Q1RNMQMAAAAAAAAobggAAC4AADw/AAAAfhgAAAAAAAAAAAAyQABAAJICA/9DaGlwIExlYWQgICAgICAg/////////////////////////////////////1A0ARQBFQsRCAkGPEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlAAAE5TAQUHFhgQAgMKVcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"12 Rave Hoover","b64":"Q1RNMRMAKAoAAAAobh48ABQAeDw/HAAAVDwA9gAAAAAAHlQoQABAAPgCAv9SYXZlIEhvb3ZlciAgICAg/////////////////////////////////////1A0AREBFgkcCAILQUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlcybk5TAQUGBxQfAxUKY////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"13 Whistle Lead","b64":"Q1RNMQMAFAAAAAo8eB4UACIAeDw/HAAAADIDAAAAAAAAAAAyQABAAB8CBP9XaGlzdGxlIExlYWQgICAg/////////////////////////////////////1A0AQECAxURCQgLJ0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlIoAE5TAQUGBxQcHxYKfcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"14 Fold Lead","b64":"Q1RNMQMAKAAAAAAyWhgUABQALjw/HAAAAFoAAOwAAAAAAAAyQABAALQCAv9Gb2xkIExlYWQgICAgICAg/////////////////////////////////////1A0ARQXARgLCQgRUEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlEAAE5TAQUGBwIVAw0KP8UAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"15 String Machine","b64":"Q1RNMQMAGgAAADI8bjxaABYAeDw/HAAAVAAAAAAAAAAAAAAyQABAALoCAv9TdHJpbmcgTWFjaGluZSAg/////////////////////////////////////1A0AQEFCAkVCxQCLEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQYHAwQcHwwKYcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"16 Analog Pad","b64":"Q1RNMRMA+g4KBkBQbkwyAAoAeDw/ZQAAVAoAAAAAAAAADFQKQABAAFECAv9BbmFsb2cgUGFkICAgICAg/////////////////////////////////////1A0AQEFCAQLCRQCG0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQYHAxgcHwwKdf///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"17 PWM Pad","b64":"Q1RNMQMAFAYAADI8bkY8AA4AeDw/HAAAfjIAAAAYAAAAAAAyQABAABICAv9QV00gUGFkICAgICAgICAg/////////////////////////////////////1A0AQEUGAsFCAkCL0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQYHAwQXHAwKWcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"18 Trance Pad","b64":"Q1RNMQMAFAoABChQeFAyAAwAeDw/HAAAVFoAAAAAAAAAAAAyQABAABICAv9UcmFuY2UgUGFkICAgICAg/////////////////////////////////////1A0AQEFCAQLCRQCG0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQYHAxgcHwwKdcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"19 Sweep Pad","b64":"Q1RNMRMA1Dw2AFpkPFooABQAeDw/ZQAAVBQAAAAAAAAACH4yOABAANkCAv9Td2VlcCBQYWQgICAgICAg/////////////////////////////////////1A0AQEDBQYCCAkEBUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQcLGBQcHwwKi////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"20 Ring Glass Pad","b64":"Q1RNMRMAKAAAAChaWlo8ABAAeDw/HAAAADIAAAAAAAABBAAyMgBAKM8CBP9SaW5nIEdsYXNzIFBhZCAg/////////////////////////////////////1A0ASIGCAEbCSERZkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUHHxwVCwIKb////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"21 Synth Brass","b64":"Q1RNMRMA5AwoAA44Wh4eAB4AeDw/ZQAAVAAAAAAAAAAACFQAQABAAK0CAv9TeW50aCBCcmFzcyAgICAg/////////////////////////////////////1A0AQEDBQYCCQgVFkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQcUHB8LFhAKjf///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"22 Rave Stab","b64":"Q1RNMQMAGBQeAAAkABgoABQAeDw/HAAAVFAAAAAAAAAAAAAyQABAACoCAv9SYXZlIFN0YWIgICAgICAg/////////////////////////////////////1A0AQEGAgMJFAgRIUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQcUHB8LFhAKjcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"23 Poly Pluck","b64":"Q1RNMQMA7B4sAAAeAB4eABQAeDw/HAAAVAoAAAAAAAAAAAAyQABAAMYCAv9Qb2x5IFBsdWNrICAgICAg/////////////////////////////////////1A0AQEGCAMCCRQRIUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUHFQsfHBAKfcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"24 Arp Pluck","b64":"Q1RNMQMA8CgkAAAaAA4AABQAADw/ZQAAfigAAAAAAAAAAAAyQABAALMCAv9BcnAgUGx1Y2sgICAgICAg/////////////////////////////////////1A0AQEGCAMCCRQRIUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlAAAE5TAQUHFQsfHBAKfcUAAMAA6ADH/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"25 Drawbar Organ","b64":"Q1RNMRMAAAAAAAI8fwgUACgACDw/AAAAADIBAAAAAAABAAAyNABAAHECBP9EcmF3YmFyIE9yZ2FuICAg/////////////////////////////////////1A0AR8VCwEJGwwIV0ZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUGBxMdHAIKZv///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"26 Pulse Clav","b64":"Q1RNMQMA6BQAAAAiCgoeABQACDw/LgAAfgwAAAAAAAAAAAAyQABAAFQCAv9QdWxzZSBDbGF2ICAgICAg/////////////////////////////////////1A0AQEGCAMCCRQRIUZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUHFQsfHBAKfcUAAMAAwACf/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"27 Ring Bell","b64":"Q1RNMRMAMgAAAABGAEYeABQAeDw/HAAAADIAAAAAAAAEAAAyHgBAbkYCAv9SaW5nIEJlbGwgICAgICAg/////////////////////////////////////1A0ASIGCAEbCSERZkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUHHxwVCwIKb////////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"28 Boom Kick","b64":"Q1RNMQcAHgAAAABQHhQeAMAACDw/HOgAADIAKAAAAAAAAAAyQABAABgCAv9Cb29tIEtpY2sgICAgICAg/////////////////////////////////////1A0AREGFgcBCAsJMEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQMCEBMUDQUKVP///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"29 Tom","b64":"Q1RNMQcAKAAAAAAyKAAAAM4AADw/HAAAADIAGAAAAAAAAAAyQABAAOoCAv9Ub20gICAgICAgICAgICAg/////////////////////////////////////1A0AREGFgcBCAsJMEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQMCEBMUDQUKVP///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"30 Analog Snare","b64":"Q1RNMQcA2AAKAAAkFB4UACgAGDw/LgwAKjIAFAAAAAAAAAAyQABAAGoCAv9BbmFsb2cgU25hcmUgICAg/////////////////////////////////////1A0AQsGERYBCAMJLEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQMCEBMUDQUKVP///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"31 Analog Hat","b64":"Q1RNMQcAHhQAAAASChQKAD8AGDw/dyQAfjIAAAAAAAAAAAAyQABAAEICAv9BbmFsb2cgSGF0ICAgICAg/////////////////////////////////////1A0AQYBCwIIEQkDGEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQMCEBMUDQUKVP///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"32 Laser Zap","b64":"Q1RNMQcAMigAAAAuJAAeAMAAeDw/HBgAVDIAPwAAAAAAAAAyQABAAC8CAv9MYXNlciBaYXAgICAgICAg/////////////////////////////////////1A0ARYRBgECCwkVOEZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQUHCAMUEw0KUf///////////////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"33 Noise Sweep","b64":"Q1RNMQMA9lAAKFBaf1ooAAYAeDw/QAAAADIAAAAAAAAAAAAyQABAADkCAv9Ob2lzZSBTd2VlcCAgICAg/////////////////////////////////////1A0AQEECwIFCAkDCkZNAwAAAAAAAAAAAAAAAAAAAAAA8P//////tlMAAE5TAQYHEA0MFBMKY8UAACQAwAAD/////////////////8QAAAAAAAAe////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////"},{"name":"34 E.Piano","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9FLlBpYW5vICAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFgGRkwY0sAACcAAAAAAwACYwABAAcAAABfMiMwY0sAACcAHgAAAwAHOgAOAAcAAABfFBQwY18AACcAAAAAAwACYwABAAcAAABfHRQwY18AACcAGQAAAwAGVgABAAcAAABfFBQwY18AACcAAAAAAwACYwABAAoAAABfHRQwY18AACcAGQAAAwAGTAABAAQAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRaARgAAAAAAAAAAAAAAAAsb///"},{"name":"35 Bright EP","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9CcmlnaHQgRVAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFiHhkwY0YAACcAAAAAAwADYwABAAcAAABiNyMwYzwAACcAIwAAAwAHRAAOAAcAAABgGRYwY1oAACcAAAAAAwADYQABAAkAAABgIxkwY1UAACcAHgAAAwAGWgABAAcAAABgGRYwY1oAACcAAAAAAwADWgACAAUAAABgLR4wYzwAACcAHgAAAwAGRgADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQtARgAAAAAAAAAAAAAAAAMb///"},{"name":"36 Clav","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9DbGF2ICAgICAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjLR5GYzIAACcAAAAAAgADYwABAAcAAABjPChGYx4AACcAAAAAAgAGVAADAAcAAABjLR5GYzIAACcAAAAAAgADXAACAAcAAABjQShGYxkAACcAAAAAAgAGSAAFAAcAAABjLR5GYzIAACcAAAAAAgADVgABAAkAAABjPChGYx4AACcAAAAAAgAFTAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRAARgAAAAAAAAAAAAAAAD+bv//"},{"name":"37 Organ","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9PcmdhbiAgICAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjY2M+Y2NjACcAAAAAAQAAYwABAAcAAABjY2M+Y2NjACcAAAAAAQAAXAAAAAcAAABjY2M+Y2NjACcAAAAAAQAAWgACAAcAAABjY2M+Y2NjACcAAAAAAQAAVAADAAgAAABjY2M+Y2NjACcAAAAAAQAAUAAEAAcAAABjY2M+Y2NjACcAAAAAAQAASAAGAAYAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMi8XARgAAAAAAAAAAAAAAAD0dP//"},{"name":"38 Marimba","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9NYXJpbWJhICAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjLR48YwAAACcAAAAAAwADYwABAAcAAABjSyg8YwAAACcAAAAAAwAFSAAEAAcAAABjPCg8YwAAACcAAAAAAwADTAAEAAgAAABjVTI8YwAAACcAAAAAAwAFMgAKAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAABvb///"},{"name":"39 Vibes","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9WaWJlcyAgICAgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjHhkgYzwAACcAAAAAAgADYwABAAcAAABjMh4gYygAACcAAAAAAgAFPgAEAAcAAABjKBkgYwAAACcAAAAAAgADUAAEAAgAAABjLR4gYwAAACcAAAAAAgAEKAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAACvbv//"},{"name":"40 FM Bass","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9GTSBCYXNzICAgICAgICAg/////////////////////////////////////1A0AQECAwYRCQoEE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCBANCxUMWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjKB48Y1BGACcAAAAAAQACYwAAAAcAAABjNx48YzIAACcAAAAAAQAEVQAAAAcAAABjKB48Y1BGACcAAAAAAQACWAAAAAkAAABjPB48Yx4AACcAAAAAAQAESwABMgcAAABjUDI8YwAAACcAAAAAAQADRgABAAcAAABjVTw8YwAAACcAAAAAAQAEMgAHAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRAARgAAAAAAAAAAAAAAACGb///"},{"name":"41 Synth Bass","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TeW50aCBCYXNzICAgICAg/////////////////////////////////////1A0AQECAwYRCQoEE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCBANCxUMWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjMiM8Y1VLACcAAAAAAQACYwAAAAcAAABjPB48YzcoACcAAAAAAQAFUAAAAAcAAABjRig8Yx4AACcAAAAAAQAFRgABAAcAAABjUDI8YwAAACcAAAAAAQAFPAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMgBaARgAAAAAAAAAAAAAAAC7cP//"},{"name":"42 Deep Bass","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9EZWVwIEJhc3MgICAgICAg/////////////////////////////////////1A0AQECAwYRCQoEE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCBANCxUMWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFaKB5IY1xVACcAAAAAAAACYwAAAAcAAABjLR5IYygeACcAAAAAAAAEPgAAAAcAAABaKB5IY1pQACcAAAAAAAACUAABAAgAAABjNyNIYx4AACcAAAAAAAAEMgACAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMgQgARgAAAAAAAAAAAAAAAC+cP//"},{"name":"43 Brass","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9CcmFzcyAgICAgICAgICAg/////////////////////////////////////1A0AQEVCwIJEQMKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE8KB4qY1xYACcAAAAAAgACYwABAAcAAAA3KB4qY1BLACcAAAAAAgAEUgABAAcAAAA8KB4qY1xYACcAAAAAAgACXwABAAgAAAA8KB4qY1xYACcAAAAAAgACXwABAAYAAAA8KB4qY1xYACcAAAAAAgACWgABAAkAAAA3LR4qY0tGACcAAAAAAgAETgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABaPGNjLTIyMiVaARgAAAAAAAAAAAAAAAANcP//"},{"name":"44 Sync Lead","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TeW5jIExlYWQgICAgICAg/////////////////////////////////////1A0AQEVCwIJEQMKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjPCg3Y1pVACcAAAAAAQABYwABAAcAAABjMiM3Y1hQACcAAAAAAQADVQABAAcAAABjPCg3Y1pVACcAAAAAAQABUAACAAkAAABjNyM3Y1BGACcAAAAAAQADRgADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhF/ARgAAAAAAAAAAAAAAABLcv//"},{"name":"45 Flute","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9GbHV0ZSAgICAgICAgICAg/////////////////////////////////////1A0AQEVCwIJEQMKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFBKB4oY19cACcAAAAAAQACYwABAAcAAAA8KB4oY1pVACcAAAAAAQAENwABAAcAAABGLR4oY1pVACcAAAAAAQACRgACAAgAAAA8KB4oY1VQACcAAAAAAQADKAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQQARgAAAAAAAAAEgAAAACqcP//"},{"name":"46 Strings","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TdHJpbmdzICAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEtHhkeY19cACcAAAAAAQABYwABAAcAAAAtHhkeY1xaACcAAAAAAQADSAABAAcAAAAtHhkeY19cACcAAAAAAQABYQABAAoAAAAtHhkeY1pYACcAAAAAAQADPAADAAcAAAAtHhkeY1pYACcAAAAAAQADNwABAAUAAAAtHhkeY1pYACcAAAAAAQADMgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhBAARgAAAAAAAAAAAAAAADxbv//"},{"name":"47 Warm Pad","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9XYXJtIFBhZCAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEjGRQaY19aACcAAAAAAAABXwABAAQAAAAeGRQaY1pVACcAAAAAAAACPAABAAcAAAAjGRQaY19aACcAAAAAAAABXwABAAoAAAAeGRQaY1pVACcAAAAAAAACMgACAAcAAAAjGRQaY19aACcAAAAAAAABXAABAAcAAAAeGRQaY1pVACcAAAAAAAACNwABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQgARgAAAAAAAAAAAAAAAAtbv//"},{"name":"48 Choir","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9DaG9pciAgICAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEoHhkcY1xYACcAAAAAAAABYwABAAcAAAAoHhkcY1hVACcAAAAAAAACNwACAAcAAAAoHhkcY1xYACcAAAAAAAABUgADAAgAAAAoHhkcY1VQACcAAAAAAAACMgABAAcAAAAoHhkcY1xYACcAAAAAAAABRgAEAAYAAAAoHhkcY1VQACcAAAAAAAACLQABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQXARgAAAAAAAAACgAAAABVbv//"},{"name":"49 Glass Pad","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9HbGFzcyBQYWQgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEoHBYcY1xYACcAAAAAAAABYwABAAcAAAAjGRQcY1VQACcAFAAAAAADMAAHAAcAAAAoHBYcY1xYACcAAAAAAAABWAACAAkAAAAjGRQcY1VQACcAFAAAAAADKgAFAAcAAAAoHBYcY1xYACcAAAAAAAABVQABAAUAAAAjGRQcY1BLACcAAAAAAAACLQABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQXARgAAAAAAAAAAAAAAAAybv//"},{"name":"50 Harp","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9IYXJwICAgICAgICAgICAg/////////////////////////////////////1A0AQEDBgIJERUKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjKB4iYwAAACcAAAAAAwADYwABAAcAAABjNyMiYwAAACcAAAAAAwAFRgABAAcAAABjLR4iYwAAACcAAAAAAwADUAACAAgAAABjPCgiYwAAACcAAAAAAwAFMgAEAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAACkbv//"},{"name":"51 Koto","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Lb3RvICAgICAgICAgICAg/////////////////////////////////////1A0AQEDBgIJERUKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjMiM8YwAAACcAAAAAAwADYwABAAcAAABjRig8YwAAACcAAAAAAwAFUgADAAcAAABjNyM8YwAAACcAAAAAAwADVQABAAoAAABjUDI8YwAAACcAAAAAAwAFPAAFAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQtARgAAAAAAAAAAAAAAACob///"},{"name":"52 Nylon","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9OeWxvbiAgICAgICAgICAg/////////////////////////////////////1A0AQEDBgIJERUKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjKh4qYygAACcAAAAAAgADYwABAAcAAABjPCgqYxQAACcAAAAAAgAFSwABAAcAAABjLR4qYx4AACcAAAAAAgADVQACAAgAAABjRi0qYwAAACcAAAAAAgAFNwADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRAARgAAAAAAAAAAAAAAACDb///"},{"name":"53 Kick","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9LaWNrICAgICAgICAgICAg/////////////////////////////////////1A0AREBAgkDBgoVJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjNyM3YwAAACcAAAAAAAACYwAAAAcAAABjVTI8YwAAACcAAAAAAAAENwAAAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjPmNjRjIyMggAAQwAAAAAAAAAAAAAAADacP//"},{"name":"54 Snare","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TbmFyZSAgICAgICAgICAg/////////////////////////////////////1A0AREBAgkDBgoVJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjQShBYwAAACcAAAAAAAACXwABAAcAAABjUDJBYwAAACcAAAAAAAADPAABMgcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjRmNjOjIyMgkAARgAAAAAAAAAZAAAAACUcf//"},{"name":"55 Hi-Hat","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9IaS1IYXQgICAgICAgICAg/////////////////////////////////////1A0AREBAgkDBgoVJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjUDxQYwAAACcAAAAAAAACVQAHAAcAAABjY2NjY2NjACcAAAAAAAAAVQALKQcAAABjY2NjY2NjACcAAAAAAAAAUAAPAgcAAABjY2NjY2NjACcAAAAAAAAAUAAJTgcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMgoAARgAAAAAAAAARgAAAABRdP//"},{"name":"56 Tubular Bell","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9UdWJ1bGFyIEJlbGwgICAg/////////////////////////////////////1A0AQEJFQsRAgwKMkZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgDBA0QOsUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjHhYYYwAAACcAAAAAAgACYwABAAcAAABjIxkYYwAAACcAAAAAAgAESwADMgcAAABjHhYYYwAAACcAAAAAAgACVQABAAoAAABjIxkYYwAAACcAAAAAAgAERgABKQcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAAB+bv//"},{"name":"57 Space Sweep","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TcGFjZSBTd2VlcCAgICAg/////////////////////////////////////1A0AQEJFQsRAgwKMkZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgDBA0QOsUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEeFA8ZY1pQACcAAAAAAAAAYwABAAcAAAAUDwwZY0Y8ACcAAAAAAAAARgABMgcAAAAeFA8ZY1pQACcAAAAAAAAAVQACAAsAAAAUDwwZY0s8ACcAAAAAAAAAPAADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAAAUD2MoUCgyMhQtARgAAAAAAAAAKAAAAACUbv//"},{"name":"58 Grand Piano","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9HcmFuZCBQaWFubyAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFhIBYtY1IAACcAAAAAAwADYwABAAcAAABjMB4wYz4AACcAHgAAAwAHSgABAAcAAABhHhQtY1UAACcAAAAAAwADXAABAAkAAABjPCMwYygAACcAIwAAAwAHPgADAAcAAABhIhgtY1AAACcAAAAAAwADTgACAAUAAABjNyMwYy0AACcAHgAAAwAGPAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQgARgAAAAAAAAAAAAAAAC3bv//"},{"name":"59 Mellow Piano","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9NZWxsb3cgUGlhbm8gICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFgHhQsY1UAACcAAAAAAwADYwABAAcAAABjLRwuYzcAACcAHgAAAwAGPAABAAcAAABgHhQsY1UAACcAAAAAAwADWgABAAkAAABjMh4uYy0AACcAHgAAAwAGNAACAAcAAABgIBYsY1AAACcAAAAAAwADRgACAAYAAABjNx4uYygAACcAAAAAAwAGLQABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQQARgAAAAAAAAAAAAAAAAgbv//"},{"name":"60 Honky-Tonk","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Ib25reS1Ub25rICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFhIhguY1AAACcAAAAAAwADYwABAAMAAABjMh4wYzwAACcAHgAAAwAHSgABAAcAAABhIhguY1AAACcAAAAAAwADYQABAAwAAABjMh4wYzwAACcAHgAAAwAHSAABAAcAAABhJBouY0sAACcAAAAAAwADSwACAAcAAABjPCMwYygAACcAAAAAAwAGPgADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQgARgAAAAAAAAAAAAAAACvbv//"},{"name":"61 Tine Piano","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9UaW5lIFBpYW5vICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFgFhIoY04AACcAAAAAAwACYwABAAcAAABfMiMyY0gAACcAHgAAAwAHOgAOAAcAAABfEhAoY18AACcAAAAAAwACYwABAAcAAABfHBQqY1wAACcAGQAAAwAGVAABAAcAAABfEhAoY18AACcAAAAAAwACYQABAAoAAABfHBQqY1wAACcAGQAAAwAGTAABAAQAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRaARgAAAAAAAAAAAAAAADobv//"},{"name":"62 Toy Piano","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Ub3kgUGlhbm8gICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjLR4wYzIAACcAAAAAAwADYwABAAcAAABjNygyYx4AACcAAAAAAwAFRgAHAAcAAABjKBwwYzcAACcAAAAAAwADVgACAAkAAABjPCgyYxkAACcAAAAAAwAFPAAJMgcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAADRb///"},{"name":"63 Slow Strings","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TbG93IFN0cmluZ3MgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEgHBgcY2BdACcAAAAAAQABYwABAAYAAAAmHhkcY1pYACcAAAAAAQADTAABAAcAAAAgHBgcY2BdACcAAAAAAQABYQABAAkAAAAkHhkcY1pYACcAAAAAAQADPgABAAcAAAAkHhkcY1hVACcAAAAAAQADOgADAAcAAAAkHhkcY1VSACcAAAAAAQADMgABAAoAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhFaARgAAAAAAAAAAAAAAAC6bv//"},{"name":"64 Ensemble","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9FbnNlbWJsZSAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEqHhkgY19cACcAAAAAAQABXwABAAQAAAAtHhkgY1pYACcAAAAAAQADSgABAAcAAAAqHhkgY19cACcAAAAAAQABXwABAAoAAAAtHhkgY1pYACcAAAAAAQADSAABAAcAAAAqHhkgY19cACcAAAAAAQABWgACAAcAAAAtHhkgY1hVACcAAAAAAQADQgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhRAARgAAAAAAAAAAAAAAAAvb///"},{"name":"65 Cello","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9DZWxsbyAgICAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE3IxwmY15aACcAAAAAAQACYwABAAcAAAA0IxwmY1pWACcAAAAAAQAEUgABAAcAAAA3IxwmY15aACcAAAAAAQACWgABAAkAAAA0IxwmY1VQACcAAAAAAQAEQgACAAcAAAA0IxwmY1VQACcAAAAAAQAEOgABAAcAAAA0IxwmY1BLACcAAAAAAQAENAADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhFaAQwAAAAAAAAAAAAAAABpb///"},{"name":"66 Violin","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9WaW9saW4gICAgICAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE6IxwoY15cACcAAAAAAQACYwABAAcAAAA3IxwoY1xYACcAAAAAAQAEVgABAAcAAAA6IxwoY15cACcAAAAAAQACUgABAAgAAAA3IxwoY1VSACcAAAAAAQAERgADAAcAAAA3IxwoY1VSACcAAAAAAQAEPAACAAcAAAA3IxwoY1BLACcAAAAAAQAENwAEAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABURmNjMTIyMhF/ARgAAAAAAAAAAAAAAACeb///"},{"name":"67 Pizzicato","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9QaXp6aWNhdG8gICAgICAg/////////////////////////////////////1A0AQEDBgIJERUKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUHCAQLDRAMSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjLSAtYwAAACcAAAAAAwADYwABAAcAAABjPCgwYwAAACcAAAAAAwAFSAABAAcAAABjLSAtYwAAACcAAAAAAwADWgABAAkAAABjQS0wYwAAACcAAAAAAwAFOgADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQXARgAAAAAAAAAAAAAAAAdb///"},{"name":"68 String Swell","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9TdHJpbmcgU3dlbGwgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEYGhYaY2BeACcAAAAAAAABXwABAAUAAAAWGhYaY1xaACcAAAAAAAACSgABAAcAAAAYGhYaY2BeACcAAAAAAAABXwABAAkAAAAWGhYaY1xaACcAAAAAAAACRgABAAcAAAAYGhYaY2BeACcAAAAAAAABWAACAAcAAAAWGhYaY1pYACcAAAAAAAACPgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQtARgAAAAAAAAAAAAAAABYbv//"},{"name":"69 Clarinet","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9DbGFyaW5ldCAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE+KB4qY19dACcAAAAAAQACYwABAAcAAAA8KB4qY1pYACcAAAAAAQAETgACAAcAAAA+KB4qY1xaACcAAAAAAQACPAADAAcAAAA8KB4qY1VSACcAAAAAAQAEMgACAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABbRmNjMjIyMhQXARgAAAAAAAAACAAAAAChcP//"},{"name":"70 Oboe","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9PYm9lICAgICAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFAKh4qY19cACcAAAAAAQACYwABAAcAAAA+Kh4qY1xaACcAAAAAAQAEVgABAAcAAABAKh4qY1xaACcAAAAAAQACSgADAAcAAAA+Kh4qY1hVACcAAAAAAQAEPgABAAcAAABAKh4qY1hVACcAAAAAAQACNwAFAAcAAAA+Kh4qY1JQACcAAAAAAQAEMAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABbRmNjMjIyMhQgARgAAAAAAAAABgAAAACvb///"},{"name":"71 Bassoon","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9CYXNzb29uICAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE8KB4qY15cACcAAAAAAQACYwABAAcAAAA6KB4qY1pWACcAAAAAAQAEUAACAAcAAAA8KB4qY1xaACcAAAAAAQACSgABAAgAAAA6KB4qY1ZSACcAAAAAAQAERgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQgAQwAAAAAAAAABgAAAADYcP//"},{"name":"72 Alto Sax","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9BbHRvIFNheCAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFGLSAtY15aACcAAAAAAQACYwABAAcAAABCLSAtY1xYACcAAAAAAQAFVAABAAcAAABGLSAtY1xaACcAAAAAAQACWAABAAgAAABCLSAtY1VQACcAAAAAAQAFSAABAAcAAABCLSAtY1JOACcAAAAAAQAEPgACAAcAAABCLSAtY05IACcAAAAAAQAENwADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABPRmNjMDIyMhFAARgAAAAAAAAACgAAAAAMcP//"},{"name":"73 French Horn","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9GcmVuY2ggSG9ybiAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEyJh4oY15aACcAAAAAAQACYwABAAcAAAAwJh4oY1BLACcAAAAAAQAERgABAAcAAAAyJh4oY15aACcAAAAAAQACWgABAAgAAAAyJh4oY15aACcAAAAAAQACWAABAAYAAAAyJh4oY1xYACcAAAAAAQACUAACAAcAAAAwKB4oY0tGACcAAAAAAQAEQgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABZRmNjMTIyMiUgARgAAAAAAAAAAAAAAABmb///"},{"name":"74 Trumpet","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9UcnVtcGV0ICAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFGKh4wY15aACcAAAAAAgACYwABAAcAAABCKh4wY1ZSACcAAAAAAgAFVAABAAcAAABGKh4wY15aACcAAAAAAgACXwABAAgAAABGKh4wY15aACcAAAAAAgACXAABAAYAAABGKh4wY1xYACcAAAAAAgACVgACAAcAAABCLR4wY1JOACcAAAAAAgAFUAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABKRmNjMDIyMiVaARgAAAAAAAAAAAAAAACccP//"},{"name":"75 Pan Flute","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9QYW4gRmx1dGUgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAE6KB4oY19cACcAAAAAAQACYwABAAcAAAA3KB4oY1VQACcAAAAAAQAEKgABAAcAAAA6KB4oY1pYACcAAAAAAQACNwACAAgAAAA3KB4oY1BLACcAAAAAAQADHgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABZRmNjMTIyMhQQARgAAAAAAAAAHgAAAAA1cP//"},{"name":"76 Recorder","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9SZWNvcmRlciAgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFCKh4sY19dACcAAAAAAQACYwABAAcAAABAKh4sY1hVACcAAAAAAQAEMgACAAcAAABCKh4sY1pYACcAAAAAAQACKAACAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAADAAAAAAxcf//"},{"name":"77 Harmonica","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9IYXJtb25pY2EgICAgICAg/////////////////////////////////////1A0AQEVCwkCAwwKJEZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgEEQ0QSMUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFILSAuY15aACcAAAAAAQACYwABAAcAAABGLSAuY1pWACcAAAAAAQAFUAABAAcAAABILSAuY1xaACcAAAAAAQACUAACAAkAAABGLSAuY1VQACcAAAAAAQAFRgABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABXRmNjMTIyMhQtARgAAAAAAAAACAAAAAApcf//"},{"name":"78 Cathedral","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9DYXRoZWRyYWwgICAgICAg/////////////////////////////////////1A0AQECAwkVCxEKKUZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQYHCAUEDRAMQ8UAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFQY2MeY2NjACcAAAAAAQAAYwABAAcAAABQY2MeY2NjACcAAAAAAQAAWgAAAAcAAABQY2MeY2NjACcAAAAAAQAAWAACAAcAAABQY2MeY2NjACcAAAAAAQAAUgADAAgAAABQY2MeY2NjACcAAAAAAQAATgAEAAcAAABQY2MeY2NjACcAAAAAAQAASgAIAAYAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMi8XARgAAAAAAAAAAAAAAAC+c///"},{"name":"79 Bowed Glass","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Cb3dlZCBHbGFzcyAgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEeGhYaY15aACcAAAAAAAABYwABAAcAAAAaGBQaY1hUACcAAAAAAAADNAADMgcAAAAeGhYaY15aACcAAAAAAAABWAACAAkAAAAaGBQaY1VQACcAAAAAAAADLgAFAAcAAAAeGhYaY1xYACcAAAAAAAABUgABAAUAAAAaGBQaY1JOACcAAAAAAAACKAAHAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQXARgAAAAAAAAAAAAAAAAEbv//"},{"name":"80 Evolving Pad","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Fdm9sdmluZyBQYWQgICAg/////////////////////////////////////1A0AQEECwkCDAMKE0ZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgVDRARWcUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAEgGBQYY15cACcAAAAAAAABXwABAAUAAAASFBIYY19aACcAAAAAAAACTgABAAcAAAAgGBQYY15cACcAAAAAAAABXwABAAkAAAAQFBIYY1xYACcAAAAAAAACRgACAAcAAAAgGBQYY1xaACcAAAAAAAABWAACAAcAAAAOFBIYY1pVACcAAAAAAAACPgADAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQtARgAAAAAAAAAAAAAAAAdbv//"},{"name":"81 Long Bell","b64":"Q1RNMQMAAAAAAAAAfwAAABQAADw/AAAAADIAAAAAAAAAAAAyQABAAPUCAv9Mb25nIEJlbGwgICAgICAg/////////////////////////////////////1A0AQEJFQsRAgwKMkZNAwEAAAAAAAAAAAAAAAAAAAAA8f//////tlMwKE5TAQUGBwgDBA0QOsUAAMAAwACf/////////////////8QAAAAAAAAe/0ZNOAFjGBIWYwAAACcAAAAAAgACYwABAAcAAABjHBQWYwAAACcAAAAAAgAESwADMgcAAABjGBIWYwAAACcAAAAAAgACVQABAAoAAABjHBQWYwAAACcAAAAAAgAERgABKQcAAABjFhAWYwAAACcAAAAAAgACRgACAAUAAABjGhQWYwAAACcAAAAAAgAENwAFFAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2M8Y2NjACcAAAAAAAAAAAABAAcAAABjY2NjMjIyMhQAARgAAAAAAAAAAAAAAADYa///"}]};
+
+// ---- the parameters ----------------------------------------------------------------------------------------------------------------------
+// sections (codes in each), osc labels and granular labels
+const SECTIONS = [
+  { id: "amp", title: "Amplificador", sub: "VCA y envolvente", c: "--sec-amp", codes: [5, 6, 7, 8, 15, 10] },
+  { id: "flt", title: "Filtro", sub: "VCF", c: "--sec-flt", codes: [16, 1, 2, 3, 4] },
+  { id: "lfo", title: "LFO", sub: "velocidad y destinos", c: "--sec-lfo", codes: [11, 12, 21, 24, 26] },
+  { id: "fx", title: "Efecto", sub: "", c: "--sec-fx", codes: [13, 9] },
+  { id: "o1", title: "Oscilador 1", sub: "", gtitle: "Granular", c: "--sec-o1", codes: [17, 18, 19, 20, 22, 23, 25] },
+  { id: "o2", title: "Oscilador 2", sub: "y su interacción", gtitle: "Granular (2)", c: "--sec-o2", codes: [27, 28, 29, 30, 31, 32, 33, 34] },
+];
+const GRAN = { 17: "Tono", 18: "Tamaño", 19: "Posición", 20: "Densidad", 21: "Scan", 22: "Env > posición", 23: "Zona", 24: "LFO > posición",
+  25: "Fuente", 26: "Modo de nota", 27: "LFO > tamaño", 28: "Fino", 29: "Estéreo", 30: "Ventana", 33: "Dispersión pos.", 34: "Reverso / disp." };
+const FTYPES = ["DJ", "LP 12", "HP 12", "Paso banda", "Notch", "LP 24", "HP 24"];
+const FXTYPES = ["Suave", "Dura", "Plegado", "Wavefold", "Ring", "Comb", "Chorus"];
+const ENGINES = [["osc", "Oscilador", 0x03], ["osc2", "Dos osciladores", 0x13], ["va-drum", "VA-drum", 0x07], ["granular", "Granular", 0x0B],
+  ["sample", "Muestra", 0x09], ["line", "Entrada de línea", 0x01], ["fxseq", "Secuenciador de efectos", 0x05]];
+const LSHAPES = ["Sierra inversa", "Sierra", "Triángulo", "Cuadrada", "Seno", "Sample & hold", "S&H suavizado"];
+
+const P = {};                       // code -> {code, name, min, max, def, kind, msg}
+for (const [k, v] of Object.entries(DATA.params)) P[k] = Object.assign({ code: +k }, v);
+const val = {};                     // code -> stored value (signed for the bipolar ones)
+let base = null;                    // the opened .ctm (Uint8Array), kept for everything the page does not edit
+let engine = "osc";
+
+const $ = (id) => document.getElementById(id);
+const store = (k, v) => { try { localStorage.setItem("pe." + k, v); } catch (e) {} };
+const recall = (k, d) => { try { const v = localStorage.getItem("pe." + k); return v === null ? d : v; } catch (e) { return d; } };
+
+// ---- what a value means ------------------------------------------------------------------------------------------------------------------
+function zoneOf(v, n) { const t = Math.min(n - 1, (7 * v) >> 7); return [t, (7 * v) & 127]; }
+function describe(p, v) {
+  const g = engine === "granular";
+  if (p.code === 16) { const [t, f] = zoneOf(v, 7); return FTYPES[t] + " · " + f; }
+  if (p.code === 13) { const [t, f] = zoneOf(v, 7); return FXTYPES[t] + " · " + f; }
+  if (p.code === 32 && !g) { const [t, f] = zoneOf(v, 7); return "zona " + (t + 1) + " · " + f; }
+  if ((p.code === 19 || p.code === 29) && !g) {
+    const names = ["seno", "triángulo", "sierra", "cuadrada"], i = Math.round(v / 42);
+    return Math.abs(v - 42 * i) <= 3 ? names[Math.min(3, i)] : names[Math.min(3, Math.floor(v / 42))] + " → " + names[Math.min(3, Math.floor(v / 42) + 1)];
+  }
+  if (p.code === 11) return v < 0 ? "a tempo" : "libre";
+  if (p.code === 33 && !g) return v === 64 ? "centro" : v > 64 ? "OSC 2 → 1" : "OSC 1 → 2";
+  if (p.code === 31) return v === 64 ? "50 / 50" : v < 64 ? "más OSC 1" : "más OSC 2";
+  if (p.kind === "bip") return v === 0 ? "centro" : "";
+  return "";
+}
+const label = (p) => engine === "granular" && GRAN[p.code] ? GRAN[p.code] : p.name;
+const fmt = (p, v) => (p.kind === "bip" && v > 0 ? "+" : "") + v;
+const toMidi = (p, v) => (p.kind === "bip" ? v + 64 : v);            // the CC value the device reads (vcf21.c_vfromu: bipolar - 64)
+const fromMidi = (p, u) => (p.kind === "bip" ? u - 64 : Math.min(u, p.max));
+
+// ---- MIDI ---------------------------------------------------------------------------------------------------------------------------------
+let access = null, out = null, inp = null, sysexOK = false;
+/* (2026-11-11, the user: «if the device is stock / an unknown custom build, support only stock-compatible features»): the device is asked for its
+   firmware (tools/fwid.py, SC56.2 / Beta 5.47 on: F0 7D 43 54 00 ..); no answer = the stock firmware (or an older build): nothing is sent, only the
+   .ctm files and the test keyboard.  «Es Hacks: enviar igualmente» for a build older than 5.47 (remembered). */
+const fw = { state: "unknown", marker: "", timer: 0, gated: false };
+/* (2026-11-11, the user: «Add a link to the installer when a version is outdated»): no answer, or an older version of its line than the newest published
+   (builds/index.json of the pages, the installer's list) = a link to the installer next to the status */
+const PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/";
+let latest = null;
+const verOf = (m) => { let x;
+  if ((x = /^B(\d+)\.(\d+)$/.exec(m || ""))) return { line: "B", n: +x[1] * 1000 + +x[2] };
+  if ((x = /^R(\d)(\d\d)S?$/.exec(m || ""))) return { line: "R", n: +x[1] * 1000 + +x[2] };
+  if ((x = /^RC(\d)S?$/.exec(m || ""))) return { line: "R", n: +x[1] * 1000 };
+  return null; };
+const newerOf = (m) => { const v = verOf(m); if (!v || !latest) return null;
+  let best = null; for (const x of latest) { const w = verOf(x.v); if (w && w.line === v.line && w.n > v.n && (!best || w.n > verOf(best.v).n)) best = x; } return best; };
+async function readLatest() {
+  if (latest || TEST) return;
+  try { const r = await fetch(PAGES + "builds/index.json", { cache: "no-store" }); const l = r.ok ? await r.json() : null; latest = Array.isArray(l) ? l.filter((x) => x && typeof x.v === "string") : null; }
+  catch (e) { latest = null; }
+}
+function fwLink() {
+  const nw = fw.state === "hacks" ? newerOf(fw.marker) : null, a = $("fwlink");
+  a.hidden = !(fw.state === "stock" || nw);
+  a.textContent = nw ? "Hay una versión más nueva, " + String(nw.es || nw.v).split(" — ")[0] + ": instalador" : "Instalar la última versión de Hacks";
+}
+const liveOK = () => fw.state !== "stock" || recall("fwforce", "") === "1";
+function gate() {
+  const ok = liveOK();
+  if (!ok && $("live").checked) { $("live").checked = false; fw.gated = true; }                  // back on when the answer comes
+  else if (ok && fw.gated) { $("live").checked = true; fw.gated = false; }
+  $("live").disabled = $("sendall").disabled = !ok;
+  $("fwforce").hidden = fw.state !== "stock" || ok;
+  if (fw.state === "stock" && !ok) status("El aparato no contesta como una versión de Hacks (firmware de stock, o anterior a la Beta 5.47): el editor no le envía nada; quedan abrir / guardar .ctm y el teclado de prueba", "warn");
+  else if (fw.state === "hacks") status("Salida: " + (out ? out.name : "") + " · firmware " + fw.marker, "ok");
+  fwLink();
+}
+function probe() {
+  clearTimeout(fw.timer); fw.state = "unknown"; gate();
+  if (TEST || !out || !inp || !sysexOK) return;
+  try { out.send([0xF0, 0x7D, 0x43, 0x54, 0x00, 0x23, 0, 0, 0, 0, 0, 0, 0, 0xF7]); } catch (e) { return; }
+  fw.timer = setTimeout(() => { if (fw.state === "unknown") { fw.state = "stock"; gate(); } }, 800);
+}
+function onFw(d) {
+  if (d.length < 14 || d[1] !== 0x7D || d[2] !== 0x43 || d[3] !== 0x54 || d[4] !== 0x40 || d[5] !== 0x23 || d[6] !== 1) return;
+  clearTimeout(fw.timer); fw.state = "hacks"; fw.marker = String.fromCharCode(...[...d.slice(7, 13)].filter((c) => c >= 0x20 && c < 0x7F)).trim(); gate();
+  readLatest().then(fwLink);
+}
+const SENT = [];                    // the test page reads it
+function chan() { return +$("chan").value; }
+function logLine(s) { const L = $("log"); L.textContent = (s + "\n" + L.textContent).slice(0, 6000); }
+function send(bytes) {
+  SENT.push(bytes.slice());
+  if (out) { try { out.send(bytes); } catch (e) { status("Error al enviar: " + e.message, "bad"); return; } }
+  logLine(bytes.map((b) => b.toString(16).padStart(2, "0")).join(" "));
+}
+function sendParam(code) {
+  const p = P[code], u = toMidi(p, val[code]), st = 0xB0 | chan(), [type, num] = p.msg;
+  if (type === 0) send([st, num, u]);
+  else { send([st, 99, type & 0x7F]); send([st, 98, num]); send([st, 6, u]); }
+}
+// coalesce slider moves: one message per parameter per frame
+const dirty = new Set(); let frame = 0;
+function queue(code) { if (!$("live").checked || !liveOK()) return; dirty.add(code); if (!frame) frame = requestAnimationFrame(flush); }
+function flush() { frame = 0; for (const c of dirty) sendParam(c); dirty.clear(); }
+function sendAll() {
+  if (!liveOK()) { gate(); return; }
+  if (!out && !TEST) { status("Elige una salida MIDI", "warn"); return; }
+  for (const s of SECTIONS) for (const c of s.codes) sendParam(c);
+  status("33 valores enviados por el canal " + (chan() + 1), "ok");
+}
+function status(t, cls) { const s = $("status"); s.textContent = t; s.className = cls || ""; }
+
+// incoming: the device's knobs (CC Tx) on the track's channel
+const nrpn = { msb: -1, lsb: -1 };
+function onMessage(ev) {
+  const d = ev.data; if (d && d[0] === 0xF0) { onFw(d); return; }
+  if (!d || d.length < 3 || (d[0] & 0xF0) !== 0xB0 || (d[0] & 0x0F) !== chan()) return;
+  const [, cc, u] = d;
+  let code = null;
+  if (cc === 99) { nrpn.msb = u; return; }
+  if (cc === 98) { nrpn.lsb = u; return; }
+  if (cc === 6) code = DATA.byNrpn[(nrpn.msb << 7) | nrpn.lsb];
+  else code = DATA.byCc[cc];
+  if (code == null) return;
+  const p = P[code]; set(code, fromMidi(p, u), false);
+}
+
+async function initMidi() {
+  if (TEST) { access = TEST.access; }
+  else {
+    if (!navigator.requestMIDIAccess) { status("Este navegador no tiene Web MIDI: usa Chrome o Edge", "bad"); return; }
+    try { access = await navigator.requestMIDIAccess({ sysex: true }); sysexOK = true; }                       // SysEx: only the firmware question
+    catch (e) { try { access = await navigator.requestMIDIAccess(); } catch (e2) { status("Sin permiso para MIDI: " + e2.message, "bad"); return; } }
+  }
+  const fill = () => {
+    const keepO = recall("out", ""), keepI = recall("inp", "");
+    const so = $("out"), si = $("inp");
+    so.length = 1; si.length = 1;
+    for (const o of access.outputs.values()) so.add(new Option(o.name, o.id));
+    for (const i of access.inputs.values()) si.add(new Option(i.name, i.id));
+    const pick = (sel, keep) => {
+      if ([...sel.options].some((o) => o.value === keep && keep)) { sel.value = keep; return; }
+      const c = [...sel.options].find((o) => /circuit/i.test(o.text)); if (c) sel.value = c.value;
+    };
+    pick(so, keepO); pick(si, keepI); useOut(); useIn();
+  };
+  access.onstatechange = fill; fill();
+}
+function useOut() {
+  out = access && $("out").value ? access.outputs.get($("out").value) || null : null;
+  store("out", $("out").value);
+  status(out ? "Salida: " + out.name : "Sin salida MIDI: elige el Circuit Tracks", out ? "ok" : "warn");
+  probe();
+}
+function useIn() {
+  if (inp) inp.onmidimessage = null;
+  inp = access && $("inp").value ? access.inputs.get($("inp").value) || null : null;
+  if (inp) inp.onmidimessage = onMessage;
+  store("inp", $("inp").value);
+  probe();
+}
+
+// ---- the sliders ----------------------------------------------------------------------------------------------------------------------------
+const rows = {};
+function build() {
+  const grid = $("grid"); grid.textContent = "";
+  for (const s of SECTIONS) {
+    const card = document.createElement("section"); card.className = "card"; card.style.setProperty("--c", "var(" + s.c + ")");
+    const h = document.createElement("h2"); card.append(h); s.h = h;
+    for (const code of s.codes) {
+      const p = P[code], row = document.createElement("div"); row.className = "p";
+      const n = document.createElement("div"); n.className = "n";
+      const r = document.createElement("input"); r.type = "range"; r.min = p.min; r.max = p.max; r.step = 1; if (p.kind === "bip") r.className = "bip";
+      const v = document.createElement("div"); v.className = "v";
+      r.addEventListener("input", () => set(code, +r.value, true));
+      r.addEventListener("dblclick", () => set(code, p.def, true));
+      r.addEventListener("keydown", (e) => { if (e.key === "Delete" || e.key === "Backspace") { set(code, p.def, true); e.preventDefault(); } });
+      row.append(n, r, v); card.append(row); rows[code] = { row, n, r, v };
+    }
+    grid.append(card);
+  }
+  relabel();
+}
+function relabel() {
+  for (const s of SECTIONS) s.h.innerHTML = (engine === "granular" && s.gtitle ? s.gtitle : s.title) + (s.sub && !(engine === "granular" && s.gtitle) ? " <small>" + s.sub + "</small>" : "");
+  for (const code in rows) { rows[code].n.innerHTML = label(P[code]) + " <small>" + code + "</small>"; rows[code].n.title = msgText(P[code]); show(code); }
+}
+function show(code) {
+  const p = P[code], v = val[code], R = rows[code];
+  R.r.value = v; R.row.classList.toggle("changed", v !== p.def);
+  const d = describe(p, v); R.v.innerHTML = fmt(p, v) + (d ? "<small>" + d + "</small>" : "");
+}
+function set(code, v, fromUser) {
+  const p = P[code]; v = Math.max(p.min, Math.min(p.max, Math.round(v)));
+  if (val[code] === v && fromUser) return;
+  val[code] = v; show(code);
+  if (fromUser) queue(code);
+}
+function msgText(p) { const [t, n] = p.msg; return t === 0 ? "CC " + n : "NRPN " + (t & 0x7F) + ":" + n; }
+
+// ---- .ctm ---------------------------------------------------------------------------------------------------------------------------------
+const sb = (b) => (b > 127 ? b - 256 : b);
+function load(bytes, nameHint) {
+  const b = new Uint8Array(bytes);
+  if (b.length < 42 || String.fromCharCode(...b.slice(0, 4)) !== "CTM1") { status("No es un patch del sinte propio (.ctm)", "bad"); return false; }
+  base = new Uint8Array(Math.max(b.length, 172)).fill(0xFF); base.set(b);
+  for (let c = 1; c <= 34; c++) if (P[c]) { const raw = c <= 26 ? b[5 + c] : b[32 + c - 27]; set(c, P[c].kind === "bip" ? sb(raw) : raw, false); }
+  const fl = b[4] & 0x1F, e = ENGINES.find((x) => x[2] === fl) || ENGINES.find((x) => x[2] === (fl & 0x0F));
+  setEngine(e ? e[0] : "osc");
+  $("lshape").value = b[41] === 2 && b[42] < LSHAPES.length ? b[42] : 2;
+  let nm = ""; if (b.length >= 60 && b[44] !== 0xFF) nm = String.fromCharCode(...b.slice(44, 60)).trimEnd();
+  $("name").value = nm || (nameHint || "");
+  return true;
+}
+function bytesOut() {
+  const b = base ? base.slice() : new Uint8Array(172).fill(0xFF);
+  b.set([67, 84, 77, 49], 0);                                                     // "CTM1"
+  const e = ENGINES.find((x) => x[0] === engine);
+  b[4] = base ? (base[4] & ~0x1F) | e[2] : e[2]; if (!base) b[5] = 0;
+  for (let c = 1; c <= 34; c++) if (P[c]) { const v = val[c] & 0xFF; if (c <= 26) b[5 + c] = v; else b[32 + c - 27] = v; }
+  if (!base) b[19] = 0;                                                           // code 14 (the second note: no knob)
+  let s = 0; for (let i = 4; i < 40; i++) s += b[i]; b[40] = s & 0xFF;
+  b[41] = 2; b[42] = +$("lshape").value;
+  const nm = $("name").value.replace(/[^\x20-\x7E]/g, "").slice(0, 16);
+  for (let i = 0; i < 16; i++) b[44 + i] = nm ? (i < nm.length ? nm.charCodeAt(i) : 32) : 0xFF;
+  return b;
+}
+function saveFile() {
+  const nm = ($("name").value.trim() || "patch").replace(/[^A-Za-z0-9 _-]/g, "").replace(/ +/g, "_");
+  const url = URL.createObjectURL(new Blob([bytesOut()], { type: "application/octet-stream" }));
+  const a = document.createElement("a"); a.href = url; a.download = nm + ".ctm"; a.click(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+// opened by the Hacks + Remix app from a slot (tools/hr_ui.js): its bytes, a name, where it is and how to write it back
+let host = null;
+function openFrom(o) {
+  host = o.save ? o : null;
+  if (!load(o.bytes, o.name)) return false;
+  $("ex").value = "";
+  const b = $("saveback"); b.hidden = !host; if (host) b.textContent = "Guardar en " + o.label;
+  status("Abierto " + (o.label || o.name || ""), "ok");
+  if ($("live").checked && out) sendAll();
+  return true;
+}
+async function saveBack() {
+  if (!host) return;
+  const b = $("saveback"); b.disabled = true;
+  try { await host.save(bytesOut(), $("name").value.trim()); status("Guardado en " + host.label, "ok"); }
+  catch (e) { status("No se pudo guardar: " + (e && e.message || e), "bad"); }
+  b.disabled = false;
+}
+function setEngine(e) { engine = e; $("engine").value = e; relabel(); store("engine", e); }
+function initial() { base = null; for (const c in P) set(+c, P[c].def, false); $("name").value = ""; $("ex").value = ""; $("lshape").value = 2; }
+function b64(s) { const t = atob(s), u = new Uint8Array(t.length); for (let i = 0; i < t.length; i++) u[i] = t.charCodeAt(i); return u; }
+
+// ---- the test keyboard ------------------------------------------------------------------------------------------------------------------
+let oct = +recall("oct", 4); const held = new Map();
+const KEYMAP = "awsedftgyhujkolp";
+function noteOn(n) { if (held.has(n)) return; held.set(n, true); send([0x90 | chan(), n, +$("vel").value]); paintKey(n, true); }
+function noteOff(n) { if (!held.has(n)) return; held.delete(n); send([0x80 | chan(), n, 0]); paintKey(n, false); }
+function panic() { for (const n of [...held.keys()]) noteOff(n); }
+function paintKey(n, on) { const k = document.querySelector('.key[data-n="' + n + '"]'); if (k) k.classList.toggle("on", on); }
+function buildKeys() {
+  panic(); const K = $("keys"); K.textContent = ""; $("octv").textContent = "C" + (oct - 1); store("oct", oct);
+  const lo = 12 * oct, whites = []; let wi = 0;
+  const W = 100 / 15;
+  for (let i = 0; i <= 24; i++) {
+    const n = lo + i, black = [1, 3, 6, 8, 10].includes(i % 12), k = document.createElement("div");
+    k.className = "key " + (black ? "b" : "w"); k.dataset.n = n;
+    if (black) { k.style.left = "calc(" + (wi * W - W * 0.3) + "% )"; k.style.width = W * 0.6 + "%"; }
+    else { k.style.left = wi * W + "%"; k.style.width = W + "%"; if (i % 12 === 0) k.innerHTML = "<span>C" + (oct + Math.floor(i / 12) - 1) + "</span>"; wi++; }
+    if (wi > 15) break;
+    k.addEventListener("pointerdown", (e) => { k.setPointerCapture(e.pointerId); noteOn(n); });
+    k.addEventListener("pointerup", () => noteOff(n)); k.addEventListener("pointercancel", () => noteOff(n));
+    K.append(k); whites.push(k);
+  }
+}
+
+// ---- start ---------------------------------------------------------------------------------------------------------------------------------
+const TEST = new URLSearchParams(location.search).has("test") ? (() => {
+  const sent = [], listeners = {};
+  const o = { id: "t-out", name: "Circuit Tracks (prueba)", send: (b) => sent.push([...b]) };
+  const i = { id: "t-in", name: "Circuit Tracks (prueba)", onmidimessage: null };
+  return { sent, input: i, access: { outputs: new Map([[o.id, o]]), inputs: new Map([[i.id, i]]), onstatechange: null } };
+})() : null;
+
+function main() {
+  for (let c = 0; c < 16; c++) $("chan").add(new Option(String(c + 1), c));
+  const keepTrack = +recall("track", 0); $("track").value = keepTrack;
+  $("chan").value = recall("chan" + keepTrack, keepTrack ? 3 : 2);
+  for (const [id, nm] of ENGINES) $("engine").add(new Option(nm, id));
+  LSHAPES.forEach((nm, i) => $("lshape").add(new Option(nm, i)));
+  for (const [i, ex] of DATA.examples.entries()) $("ex").add(new Option(ex.name, i));
+  engine = recall("engine", "osc"); $("engine").value = engine;
+  build(); initial(); buildKeys();
+  const tb = $("map").tBodies[0];
+  for (const s of SECTIONS) for (const c of s.codes) { const p = P[c]; tb.insertRow().innerHTML = "<td>" + c + "</td><td>" + p.name + (GRAN[c] ? " (granular: " + GRAN[c] + ")" : "") + "</td><td>" + msgText(p) + "</td><td>" + p.min + " … " + p.max + (p.kind === "bip" ? " (MIDI + 64)" : "") + "</td>"; }
+
+  $("track").onchange = () => { const t = +$("track").value; store("track", t); $("chan").value = recall("chan" + t, t ? 3 : 2); };
+  $("chan").onchange = () => { panic(); store("chan" + $("track").value, $("chan").value); };
+  $("out").onchange = useOut; $("inp").onchange = useIn;
+  $("engine").onchange = () => setEngine($("engine").value);
+  $("sendall").onclick = sendAll;
+  $("fwforce").onclick = () => { store("fwforce", "1"); gate(); status("Enviando a una versión sin identificar", "warn"); };
+  $("reset").onclick = () => { initial(); if ($("live").checked) sendAll(); };
+  $("open").onclick = () => $("file").click();
+  $("file").onchange = async () => { const f = $("file").files[0]; if (!f) return; host = null; $("saveback").hidden = true; if (load(await f.arrayBuffer(), f.name.replace(/\.ctm$/i, "").replace(/^\d+_/, "").replace(/_/g, " "))) { $("ex").value = ""; status("Abierto " + f.name, "ok"); if ($("live").checked && out) sendAll(); } $("file").value = ""; };
+  $("save").onclick = saveFile; $("saveback").onclick = saveBack;
+  $("ex").onchange = () => { const i = $("ex").value; if (i === "") return; host = null; $("saveback").hidden = true; if (load(b64(DATA.examples[i].b64), DATA.examples[i].name) && $("live").checked && out) sendAll(); };
+  $("vel").oninput = () => { $("velv").textContent = $("vel").value; };
+  $("octd").onclick = () => { if (oct > 1) { oct--; buildKeys(); } };
+  $("octu").onclick = () => { if (oct < 8) { oct++; buildKeys(); } };
+  $("panic").onclick = panic;
+  const keyNote = (e) => { const i = KEYMAP.indexOf(e.key.toLowerCase()); return i < 0 || e.target.tagName === "INPUT" && e.target.type === "text" ? null : 12 * oct + i; };
+  addEventListener("keydown", (e) => { if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return; const n = keyNote(e); if (n != null) { noteOn(n); e.preventDefault(); } });
+  addEventListener("keyup", (e) => { const n = keyNote(e); if (n != null) noteOff(n); });
+  addEventListener("blur", panic);
+  initMidi();
+  window.PE = { openFrom, DATA, b64, P, val, set, sendParam, sendAll, load, bytesOut, SENT, TEST, onMessage, setEngine, flush, describe, fw, onFw, gate, liveOK, verOf, newerOf, setLatest: (l) => { latest = l; fwLink(); } };
+}
+main();
+</script>
+</body>
+</html>

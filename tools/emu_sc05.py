@@ -25,6 +25,8 @@ class E:
         import itcm                                                       # (2026-11-06) a build with code in the ITCM: unpacked as at power-up
         it = itcm.unpack_image(bytes(image))
         if it: uc.mem_write(it[0], it[1])
+        import tabpack                                                    # (SC55.8) packed tables: rebuilt as at power-up
+        tabpack.emu_load(uc, image)
         self.ev = []
         self.stubs = {0x08031DA4: "sound", 0x08021064: "dsp", 0x0803FC20: "rec_param"}
         self.marks = {0x0802E5BC: ("rec_note_on", 0x0802E5CA), 0x0802E61C: ("rec_note_off", 0x0802E628)}

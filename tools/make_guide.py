@@ -18,7 +18,7 @@ NBETA = "RC2.02"                    # the newest release: its own «desde» mark
 NB = f"*(desde {NBETA})*"
 XBETA = "RC4"                         # the newest release candidate (2026-10-28: the betas up to 3.43 went out as RC4): «desde RC4»
 XB = f"*(desde {XBETA})*"
-YBETA = "Beta 5.41"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
+YBETA = "Beta 5.48"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
@@ -461,10 +461,19 @@ Sustituye al FM de 4 operadores: **hasta 8 operadores** con **envolventes como l
 | 9-16 | Elige el **operador 1-8**: los que usa el algoritmo encendidos (portadores verdes, moduladores azul claro; el elegido brillante), los demás apagados |
 | 3 | La **envolvente de pitch** (violeta, el color del FM; brillante mientras la editas), como un noveno operador. Desde cualquier página de knobs abre la página FM con ella elegida |
 | 17-24 | **La fila de motores**: sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena), muestra, granular y FM (brillante); un toque cambia de motor (no cargan patches) |
-| 7 mantenido | (Brillante solo mientras lo mantienes.) **Los 56 algoritmos** en los pads 9-32, en tres páginas: **Octave ▼ / ▲** mientras lo mantienes (encendido = hay otra página). Página 1: los 16 de 4 operadores (verde azulado) y los 8 de 8 (ámbar); página 2: los del DX7 1-24 (blanco); página 3: los del DX7 25-32. El actual brillante; pulsa uno: elegido y suena |
-| 8 mantenido | **24 instrumentos** en los pads 9-32, en el color de su tipo: teclados naranja (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), bajos azul (FM Bass, Synth Bass, Deep Bass), leads y metales rojo (Brass, Sync Lead, Flute), pads y cuerdas verde (Strings, Warm Pad, Choir, Glass Pad), punteados amarillo (Harp, Koto, Nylon), percusión blanco (Kick, Snare, Hi-Hat), campanas y efectos violeta (Tubular Bell, Space Sweep); el cargado brillante. Pulsa uno: se carga y suena. {YB} **Segunda página: Octave ▼ con el pad 8 mantenido** (Octave ▲ vuelve; el Octave que lleva a la otra página se enciende): pianos naranja (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), cuerdas verde (Slow Strings, Ensemble, Cello, Violin, String Swell; Pizzicato amarillo), **vientos verde azulado** (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) y sonidos largos (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Los de la página 1 tienen el release más largo (pianos eléctricos, cuerdas, pads, coro, flauta, metales, arpa, nylon, campana, bajos). |
+| 7 | {YB} Un toque: el **mapa del algoritmo** (abajo); mantenido ½ s: el mapa mientras lo mantienes |
+| Shift + 7 mantenido | (Brillante solo mientras lo mantienes; {YB} antes, el pad 7 mantenido.) **Los 56 algoritmos** en los pads 9-32, en tres páginas: **Octave ▼ / ▲** mientras lo mantienes (encendido = hay otra página). Página 1: los 16 de 4 operadores (verde azulado) y los 8 de 8 (ámbar); página 2: los del DX7 1-24 (blanco); página 3: los del DX7 25-32. El actual brillante; pulsa uno: elegido y suena |
+| 8 mantenido | **24 instrumentos** en los pads 9-32, en el color de su tipo: teclados naranja (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), bajos azul (FM Bass, Synth Bass, Deep Bass), leads y metales rojo (Brass, Sync Lead, Flute), pads y cuerdas verde (Strings, Warm Pad, Choir, Glass Pad), punteados amarillo (Harp, Koto, Nylon), percusión blanco (Kick, Snare, Hi-Hat), campanas y efectos violeta (Tubular Bell, Space Sweep); el cargado brillante. Pulsa uno: se carga y suena. {YB} **Segunda página: Octave ▼ con el pad 8 mantenido** (Octave ▲ vuelve; el Octave que lleva a la otra página se enciende): pianos naranja (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), cuerdas verde (Slow Strings, Ensemble, Cello, Violin, String Swell; Pizzicato amarillo), **vientos verde azulado** (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) y sonidos largos (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Los de la página 1 tienen el release más largo (pianos eléctricos, cuerdas, pads, coro, flauta, metales, arpa, nylon, campana, bajos). {YB} **Al cargar uno, la página 4 (knobs secuenciables) y Shift + pad 4 pasan a los knobs que convienen a su familia** (teclados: Filtro, Resonancia, Env > filtro, Efecto, LFO > tono, Velocidad LFO, Tono, Ganancia; pads y vientos: el LFO y el filtro; percusión: Tono y Decay primero…); los valores no cambian. |
 
 Con la página FM en pantalla, los pads 9-24 no cargan patches: cárgalos desde la página de otro knob. Con el FM, el **pad 28** (dos osciladores) se apaga y no hace nada (el ajuste se queda para cuando el FM se apaga), y el **pad 3** deja la página OSC 2 y es la envolvente de pitch. Las listas del pad 7 / 8 se ven también con la fila de motores abierta o un modo flip encendido.
+
+**El mapa del algoritmo** {YB}: en la página FM, **un toque al pad 7** fija el mapa (otro toque lo quita; el pad 7 brillante mientras se ve) y **mantenerlo ½ s** lo enseña solo mientras lo mantienes; desde otra página, un toque abre la página FM. El mapa usa los pads 9-32:
+
+- **Cada fila se lee de izquierda a derecha: la onda de la izquierda modula a la de su derecha**, y la última de la derecha es una **portadora** (la que se oye). **Un hueco oscuro = no interactúan**. Un operador que modula a varios aparece en cada cadena (copias). Las cadenas largas van primero.
+- **El color dice la relación armónica del ratio**: **verde** = entero (armónico: 1, 2, 3…), **verde azulado** = x,5 (media octava de los enteros: 0,5, 1,5…), **naranja** = cualquier otro (inarmónico, de campana), **rojo** = frecuencia fija; el operador con **feedback**, **violeta**. **Brillante** = nivel de salida de la mitad o más (el feedback, de la mitad o más); **tenue** = menos.
+- **Un toque a un operador lo elige** (los knobs lo editan, como los pads 9-16): **todas sus copias laten**.
+- **Shift + operador** = callado mientras ves el mapa (apagado; para oír qué aporta). No se guarda: al cerrar el mapa vuelve a sonar.
+- **Mantén un operador**: late, a los que modula se ven en **blanco**, los que le modulan normales y el resto tenue. **Mantén uno y toca otro** (cualquier copia) = **el primero modula al segundo, o deja de hacerlo**: un **algoritmo propio** del patch (el mapa se redibuja al soltar). Un operador que no modula a ninguno pasa a ser portadora; un enlace que cerraría un bucle no se hace. El algoritmo propio se guarda con el patch y con el proyecto; **Shift + K1** (o la lista) vuelve a uno de los 56 (el propio se pierde).
 
 **Knobs con un operador elegido:**
 
@@ -483,6 +492,7 @@ Con la página FM en pantalla, los pads 9-24 no cargan patches: cárgalos desde 
 - **Los patches de la Beta 5.19 o anterior** (FM de 4 operadores) se cargan convertidos: mismos algoritmos, ratios, niveles y envolventes, el mismo sonido.
 - **Se guarda con los patches del sinte propio**: el FM de cada patch va en una ranura extra del mismo banco de la tarjeta (`Patches/NN_PATCHBANK.cpb`), después de los 8 patches de stock; el banco crece hasta 8 KB. Intercambiar patches (Duplicate + A + B) o copiarlos de otro pack lleva el FM con ellos.
 - **Se guarda con el proyecto**: el FM de MIDI 1 / 2 va en los ajustes de los patrones de Synth 1 / 2 (sin cambiar nada de ellos); al cargar un proyecto vuelve su sonido.
+- **Patches de ejemplo**: [81 patches del sinte propio listos](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches) (33 sonidos clásicos y los 48 instrumentos FM), cada uno con los destinos de la página 4 y de Shift + pad 4 elegidos para su sonido; súbelos con la app de la tarjeta (**Parches custom → Subir .ctm**) y cárgalos aquí.
 - **Components**: leer el pack y mandar un patch no tocan el FM. **«Send patches» / «Send pack»** cambian los patches de stock como siempre y **el aparato devuelve los patches propios y el FM** a cada banco (antes se perdían); si Components borra un banco que tiene patches propios, queda con los 8 patches de stock vacíos. No en el pack interno. Una copia guardada por Components (su zip) no lleva los patches propios: la copia de la app de la tarjeta (Snapshot) sí.
 - Polifonía, unísono y glide como el FM de 4 operadores (capítulo «Voces»). No tiene CC / NRPN.
 """, [])
@@ -762,9 +772,13 @@ view("patterns", "V", "Vista Patterns y cadenas de patrones",
 | En el modo: **patrón** | **A** (amarillo); A otra vez = una repetición más (hasta 8, los LEDs de los knobs las cuentan). |
 | En el modo: **otro patrón de la pista** | **B** (verde); el siguiente = **C** (rojo). |
 | **Clear + patrón** | En el modo: quita la regla (sin regla, borra el patrón). Fuera: borra el patrón, su regla y su orden. |
+| **Shift + toque a Duplicate** {YB} | **Mutate de patrones** (de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus)): cada pista elegida toca en bucle una lista corta de patrones de su cadena en otro orden; los patrones no cambian. En su columna se apagan los que no están en la lista (el que suena, con su color). Otro toque = otra lista. También en el Mixer. Con Shift, Duplicate en amarillo. |
+| **Shift + Duplicate mantenido** {YB} | **Ajustes del mutate** (melocotón: el elegido brillante): columna 1 Length 1-4, 2 Length 5-8, 3 tipo de longitud (como la cadena / exacta / al azar hasta Length), 4 y 5 Amount en ocho pasos (columna 4 de arriba abajo todo, 7/8, 6/8, 5/8; columna 5 la mitad, 3/8, 2/8, 1/8 de los huecos de la cadena cambian), 6 Repeats (sí / no: dos vecinos nunca iguales), 7 Keep slot 1 (no / sí). Botones de pista: brillante = elegida. Duplicate cierra. Un ajuste nuevo se oye al momento; volver al valor de antes devuelve la misma lista. |
+| **Clear + Duplicate** {YB} | En cualquier vista: las listas terminan y las pistas vuelven a sus cadenas. Un pad de patrón también termina la lista de su pista. |
 
 - Ejemplos: n = 3 → A A A B A A A C; sin C → A A A B; n = 1 → A B A C. B y C suenan una vez y la pista vuelve a A (salvo que tengan regla).
 - Las reglas viajan con el patrón (al duplicarlo); el modo, con el proyecto y con cada escena (9.2).
+- **Mutate y escenas** {YB}: guardar una escena guarda qué pistas mutan, la semilla y los ajustes; al volver a la escena (sonando o parado desde el Mixer) vuelve la misma lista. Una pista que muta no sigue las reglas de cadena; las demás sí. Cambiar la cadena de una pista sonando rehace su lista con la misma semilla. **Para una pista que muta, la cadena termina con el último patrón de su lista**: con escenas encadenadas, la escena cambia al acabar la lista entera.
 """)
 
 # ===================================================================================================== VI
@@ -969,6 +983,7 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | **Master FX**: los 20 knobs, los efectos asignados a los huecos, ataque / release del compresor | [Master FX](#master-fx), [Sidechain](#sidechain) |
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
+| {YB} **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; {XB} con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
 | **Escala propia** y {XB} **Jankó** | [Scales](#escalas) |
@@ -1095,6 +1110,8 @@ Ordena desde el ordenador lo que hay en la microSD o en el aparato conectado por
 - **Abrir carpeta…**: elige la carpeta `Tracks` de la tarjeta o de una copia en el ordenador.
 - **Aparato…**: el Circuit Tracks por USB. Cierra Components y acepta el permiso de MIDI. Guarda antes el proyecto. El transporte se para y el panel queda bloqueado hasta **Desconectar aparato**; si cierras la página sin desconectar, también se libera.
 - **↻** vuelve a leer lo abierto. **Copias:** elige la carpeta del ordenador donde se guarda lo que la app sustituye o borra.
+- **Firmware** (arriba) {YB}: **automático** = con el aparato conectado, la app le pregunta qué firmware lleva. La Beta 5.47 y las posteriores contestan con su nombre (sale en el aviso de arriba) y la app ofrece todo. Si no contesta (el firmware oficial o una versión anterior), solo quedan las funciones que entiende el firmware oficial: sin **Parches custom** (ni **Importar DX7…**), sin el sinte propio en **Sonidos del proyecto…** y, al editar un patrón, sin el orden, el random-mutate, la frecuencia, las dinámicas ni la marca de soltar la automatización. Con una carpeta (sin aparato) está todo. **Solo stock** / **Hacks** lo fijan a mano: elige **Hacks** si el aparato lleva una versión de Hacks anterior a la Beta 5.47. El **Editor de patches** de la app Hacks + Remix hace la misma pregunta: si no hay respuesta no envía nada al aparato (botón **Es Hacks: enviar igualmente**).
+- **Versión antigua** {YB}: con conexión a internet, la app mira las versiones publicadas. Si el aparato no contesta, o lleva una Beta o una RC más antigua que la última publicada de su serie, el aviso de arriba enlaza el **instalador**; el Editor de patches enseña el mismo enlace junto al estado.
 
 ### Las dos columnas
 Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un clic elige una fila; Ctrl añade y Shift elige un tramo.
@@ -1259,6 +1276,7 @@ ABOUT = dict(
 """,
     patterns=f"""
 - **Cadenas de patrones** {B} — un patrón suena n veces y salta a otro, y la vez siguiente a un tercero: estructuras A A A B sin encadenar a mano.
+- **Mutate de patrones** {YB} — Shift + Duplicate: cada pista toca sus patrones en otro orden, y vuelve a la misma lista con la escena.
 """,
     mixer=f"""
 - **Nivel a 100 o a 0** — Shift + knob deja una pista a su nivel nominal o en silencio de un gesto.

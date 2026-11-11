@@ -28,8 +28,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [A18 Destinos de los macro knobs](#a18-destinos-macro)
 - [A19 Copiar proyectos a otro hueco o a otro pack](#a19-copiar-proyectos)
 - [A20 Patches del sinte propio a otro pack](#a20-patches-entre-packs)
-- [A21 Shift = destello de cada nota (solo Beta 5.41)](#a21-luces-disparo)
-- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.41)](#a22-proyecto-init)
+- [A21 Shift = destello de cada nota (solo Beta 5.48)](#a21-luces-disparo)
+- [A22 Shift + Preset = el sonido del proyecto (solo Beta 5.48)](#a22-proyecto-init)
 
 **B. Controles expuestos**
 
@@ -44,7 +44,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 **C. Nuevos modos de control**
 
-- [C1 Morph de patches (solo Beta 5.41)](#c1-morph)
+- [C1 Morph de patches (solo Beta 5.48)](#c1-morph)
 - [C2 Motor de las pistas MIDI (pad 27)](#c2-motor-midi)
 - [C3 Step-drummer](#c3-step-drummer)
 - [C4 Secuenciador de efectos](#c4-fx-seq)
@@ -55,20 +55,21 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - [C9 Random-mutate por paso](#c9-random-mutate)
 - [C10 Frecuencia y dinámicas por paso](#c10-frecuencia-dinamicas)
 - [C11 Cadenas de patrones y escenas](#c11-cadenas)
-- [C12 Nudge y órdenes de reproducción](#c12-nudge-ordenes)
-- [C13 Arpegiador (desde RC2)](#c13-arpegiador)
-- [C14 Rollers de micropasos de los drums (desde RC2)](#c14-rollers)
-- [C15 Escala propia (desde RC2)](#c15-escala-propia)
-- [C16 Pantalla de acordes (desde RC4)](#c16-acordes)
-- [C17 Parejas estéreo de drums (desde RC4)](#c17-pareja-estereo)
-- [C18 Carril extra de los drums (solo Beta 5.41)](#c18-carril-extra)
-- [C19 Modo muestra de las pistas MIDI (desde RC2)](#c19-modo-muestra)
-- [C20 Matriz de modulación del sinte propio (desde RC2.02)](#c20-matriz-mod)
-- [C21 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.41)](#c21-saltos)
-- [C22 FM de 4 operadores (desde RC4)](#c22-fm4)
-- [C23 FM de 8 operadores (solo Beta 5.41)](#c23-fm8)
-- [C24 Wavetable (solo Beta 5.41)](#c24-wavetable)
-- [C25 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c25-master-fx-beta)
+- [C12 Mutate de patrones (solo Beta 5.48)](#c12-mutate-patrones)
+- [C13 Nudge y órdenes de reproducción](#c13-nudge-ordenes)
+- [C14 Arpegiador (desde RC2)](#c14-arpegiador)
+- [C15 Rollers de micropasos de los drums (desde RC2)](#c15-rollers)
+- [C16 Escala propia (desde RC2)](#c16-escala-propia)
+- [C17 Pantalla de acordes (desde RC4)](#c17-acordes)
+- [C18 Parejas estéreo de drums (desde RC4)](#c18-pareja-estereo)
+- [C19 Carril extra de los drums (solo Beta 5.48)](#c19-carril-extra)
+- [C20 Modo muestra de las pistas MIDI (desde RC2)](#c20-modo-muestra)
+- [C21 Matriz de modulación del sinte propio (desde RC2.02)](#c21-matriz-mod)
+- [C22 Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.48)](#c22-saltos)
+- [C23 FM de 4 operadores (desde RC4)](#c23-fm4)
+- [C24 FM de 8 operadores (solo Beta 5.48)](#c24-fm8)
+- [C25 Wavetable (solo Beta 5.48)](#c25-wavetable)
+- [C26 Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión](#c26-master-fx-beta)
 
 **D. DSP**
 
@@ -151,7 +152,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="a15-colores-patch"></a>
 ### A15. Colores de los patches de sinte
-- **De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.41:** cada patch en el color de su **categoría de Components**.
+- **De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.48:** cada patch en el color de su **categoría de Components**.
 
 <a id="a16-patches-midi"></a>
 ### A16. Patches del sinte propio (MIDI 1 / 2)
@@ -174,18 +175,18 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 - **Desde RC2.** En la vista Preset de MIDI 1 / 2: **Duplicate + hueco A**, carga otro pack y **Duplicate + hueco B** copia el patch (motor, parámetros y nombre).
 
 <a id="a21-luces-disparo"></a>
-### A21. Shift = destello de cada nota (solo Beta 5.41)
+### A21. Shift = destello de cada nota (solo Beta 5.48)
 - Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca.
 
 <a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.41)
+### A22. Shift + Preset = el sonido del proyecto (solo Beta 5.48)
 - Shift + Preset devuelve el sonido de la pista al guardado en el proyecto.
 
 ## B. Controles expuestos
 
 <a id="b1-knobs-drums"></a>
 ### B1. Knobs de los drums según el panel
-- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.41), tilt), LFO, start point, bitcrush y distorsión.
+- Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.48), tilt), LFO, start point, bitcrush y distorsión.
 
 <a id="b2-rev-delay"></a>
 ### B2. Parámetros de reverb y delay
@@ -222,8 +223,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 ## C. Nuevos modos de control
 
 <a id="c1-morph"></a>
-### C1. Morph de patches (solo Beta 5.41)
-- **Solo Beta 5.41.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén dos o más patches** 0,4 s y un knob pasa de uno a otro, con LFO, azar y envolvente.
+### C1. Morph de patches (solo Beta 5.48)
+- **Solo Beta 5.48.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén dos o más patches** 0,4 s y un knob pasa de uno a otro, con LFO, azar y envolvente.
 
 <a id="c2-motor-midi"></a>
 ### C2. Motor de las pistas MIDI (pad 27)
@@ -272,65 +273,69 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 ### C11. Cadenas de patrones y escenas
 - **Desde RC2.** Cada patrón puede llevar una regla «suena n veces, luego salta a B; la vez siguiente, a C». **Shift + Octave ▲ / ▼** en la vista Patterns activa / desactiva el **modo cadena** de todo el proyecto; cada escena recuerda el modo con que se guardó.
 
-<a id="c12-nudge-ordenes"></a>
-### C12. Nudge y órdenes de reproducción
+<a id="c12-mutate-patrones"></a>
+### C12. Mutate de patrones (solo Beta 5.48)
+- **Solo Beta 5.48.** Portado del Pattern Mutate de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus) (licencia MIT). En la vista Patterns o en el Mixer, **Shift + un toque a Duplicate** da a cada pista elegida una lista corta de patrones de su cadena, en otro orden, que suena en bucle en lugar de la cadena. Los patrones no cambian.
+
+<a id="c13-nudge-ordenes"></a>
+### C13. Nudge y órdenes de reproducción
 - **Desde RC2.** En la vista Pattern Settings: **pad 26 = Nudge** (mueve el contenido de los pasos elegidos), **pad 27 = orden fractal**, **pad 28 = orden deconstruido**. En todas las pistas, drums incluidos.
 
-<a id="c13-arpegiador"></a>
-### C13. Arpegiador (desde RC2)
+<a id="c14-arpegiador"></a>
+### C14. Arpegiador (desde RC2)
 - **Desde RC2.** En la vista Pattern Settings de una pista de notas: **Shift + pad 25** = arpegiador del patrón encendido / apagado, **Shift + pads 27-32** = su orden (fractal, deconstruido, arriba, abajo, ping-pong, aleatorio), independiente de la dirección del patrón.
 
-<a id="c14-rollers"></a>
-### C14. Rollers de micropasos de los drums (desde RC2)
+<a id="c15-rollers"></a>
+### C15. Rollers de micropasos de los drums (desde RC2)
 - **Desde RC2.** Filas 1-3 de la vista Note de los drums: mantener un roller hace sonar su drum en cada paso en ese micropaso (dos columnas por drum, micropasos 1-3 y 4-6), en directo; con el transporte parado, al tempo del proyecto.
 
-<a id="c15-escala-propia"></a>
-### C15. Escala propia (desde RC2)
+<a id="c16-escala-propia"></a>
+### C16. Escala propia (desde RC2)
 - **Desde RC2.** **Shift + Scales** = editor de una escala propia para las pistas de notas: hasta 7 notas sobre la tónica y un **periodo** cualquiera (hasta 24 semitonos) que es la tónica de la siguiente iteración; cada fila de pads es una iteración (dos con 4 notas o menos). Se guarda con el proyecto.
 
-<a id="c16-acordes"></a>
-### C16. Pantalla de acordes (desde RC4)
+<a id="c17-acordes"></a>
+### C17. Pantalla de acordes (desde RC4)
 - **Desde RC4.** En la **Note ampliada** de Synth 1 / 2 y MIDI 1 / 2, **Shift + pad 8** abre la pantalla de acordes: fila 1 el tipo, fila 2 la inversión y los modificadores, filas 3-4 las fundamentales; cada fundamental toca su acorde mientras se mantiene.
 
-<a id="c17-pareja-estereo"></a>
-### C17. Parejas estéreo de drums (desde RC4)
+<a id="c18-pareja-estereo"></a>
+### C18. Parejas estéreo de drums (desde RC4)
 - **Desde RC4.** **Mantén Drum 1 y pulsa Drum 2** (o Drum 3 + Drum 4): Drum 1 / 3 suena a la izquierda y Drum 2 / 4 a la derecha con el sample siguiente, los dos con los controles y el patrón de Drum 1 / 3; los knobs de Drum 2 / 4 = apertura estéreo (K2), desafinación (K1) y desviaciones. Se guarda con el proyecto.
 
-<a id="c18-carril-extra"></a>
-### C18. Carril extra de los drums (solo Beta 5.41)
-- **Solo Beta 5.41.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
+<a id="c19-carril-extra"></a>
+### C19. Carril extra de los drums (solo Beta 5.48)
+- **Solo Beta 5.48.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático.
 
-<a id="c19-modo-muestra"></a>
-### C19. Modo muestra de las pistas MIDI (desde RC2)
+<a id="c20-modo-muestra"></a>
+### C20. Modo muestra de las pistas MIDI (desde RC2)
 - **Desde RC2.** Un estado nuevo del pad 27 (verde azulado, tras el granular): la pista MIDI toca **un sample del pack de un golpe**, a la altura de la nota (**C3 = nota 60 = como se grabó**), por el filtro, el efecto y el LFO del motor; el VCA se queda abierto y el sample suena entero.
 - La **vista Note ampliada** (Note dos veces) es el selector: filas 3-4 = 16 samples × 4 páginas (Octave ▼ / ▲: los 64 del pack), filas 1-2 = los pasos; **paso mantenido + sample** = sample flip de ese paso, también en vivo con Record.
 
-<a id="c20-matriz-mod"></a>
-### C20. Matriz de modulación del sinte propio (desde RC2.02)
+<a id="c21-matriz-mod"></a>
+### C21. Matriz de modulación del sinte propio (desde RC2.02)
 - **Desde RC2.02.** Con el motor de MIDI 1 / 2 encendido, el **pad 6** de su vista Preset es una página de knobs nueva: **K1-K8 = ocho fuentes** (velocity, nota, azar por nota, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos).
 - La **posición** de cada knob es el **destino** (todos los parámetros de las páginas de knobs, 33, un tramo cada uno, en el color de su página) y, dentro del tramo, la **cantidad**. Knobs lentos: dos clics por paso, 16 pasos por destino.
 
-<a id="c21-saltos"></a>
-### C21. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.41)
+<a id="c22-saltos"></a>
+### C22. Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.48)
 - Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican.
 
-<a id="c22-fm4"></a>
-### C22. FM de 4 operadores (desde RC4)
+<a id="c23-fm4"></a>
+### C23. FM de 4 operadores (desde RC4)
 - **Desde RC4.** Una variante del oscilador del sinte propio de MIDI 1 / 2: **pad 24** de la fila de motores (un toque al pad 27), violeta; sus knobs en el **pad 7**.
 - **K1-K4** = ratio de los operadores 1-4 (con **desafinación fina** en los clics de cada ratio), **K5-K8** = su nivel; **Shift + K1-K4** = a la derecha su ataque, a la izquierda el operador **percusivo** con su propio decay; **Shift + K5** = el **algoritmo** (16; también **manteniendo el pad 7**: los pads 9-24 son los algoritmos, pulsar uno lo elige y suena), **Shift + K6** feedback, **Shift + K7** ruido, **Shift + K8** release (más largo con más velocity).
 
-<a id="c23-fm8"></a>
-### C23. FM de 8 operadores (solo Beta 5.41)
-- **Solo Beta 5.41.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.
+<a id="c24-fm8"></a>
+### C24. FM de 8 operadores (solo Beta 5.48)
+- **Solo Beta 5.48.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.
 - Página FM = **pad 7** (con la fila de motores cerrada): **pads 9-16** = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), **pad 3** = la envolvente de pitch (violeta). **K1** ratio (0,5 … 31 o fijo en Hz), **K2** fino, **K3** nivel, **K4** velocity, **K5-K8** rates R1-R4; con Shift **K1** algoritmo, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** niveles L1-L4.
 
-<a id="c24-wavetable"></a>
-### C24. Wavetable (solo Beta 5.41)
-- **Solo Beta 5.41.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.
+<a id="c25-wavetable"></a>
+### C25. Wavetable (solo Beta 5.48)
+- **Solo Beta 5.48.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.
 - **Una tabla por patch, de hasta 9 cuadros**, para los dos osciladores; cada uno con su **posición**: **K3** de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. **SHAPE** (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = **warp**, una doblez de la fase.
 
-<a id="c25-master-fx-beta"></a>
-### C25. Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión
+<a id="c26-master-fx-beta"></a>
+### C26. Master FX desde RC2: gesto mecánico, Glitch, Digitise y guardado por sesión
 - **Desde RC2.** El pad 6 de Master FX es el **Glitch** y el pad 31 un **gesto mecánico** (parada de cinta, scratch…); Digitise gana **K3 = envío momentáneo al delay** y **K4 = envolvente**; los knobs y los huecos de Master FX **se guardan con cada proyecto**.
 
 ## D. DSP
@@ -362,7 +367,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no a
 
 <a id="d7-drums-dsp"></a>
 ### D7. DSP de los drums
-- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.41) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
+- Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.48) / tilt, bitcrush, start point, distorsiones y sidechain entre drums.
 
 <a id="d8-entradas"></a>
 ### D8. Entradas de audio y retornos

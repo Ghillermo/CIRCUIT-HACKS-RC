@@ -1,4 +1,4 @@
-"""SC50.5 / Beta 5.8 (the user, 2026-11-02: «pad 16 de mixer función sólo. Mantener este pad y cualquier combinación de pads mutea el resto», «Se queda así»): solo in the Mixer view.
+"""SC50.5 / Beta 5.8 (the user, 2026-11-02: Â«pad 16 de mixer funciÃ³n sÃ³lo. Mantener este pad y cualquier combinaciÃ³n de pads mutea el restoÂ», Â«Se queda asÃ­Â»): solo in the Mixer view.
 
 The stock's pads 10-16 of the Mixer do nothing.  Pad 16 held ([MGR + 0x84], a bit per held pad) + pads 1-8: those tracks sound, every other track muted, through the stock's own
 toggle (0x08046626, so the pads show it as always); the choice starts anew with each press of pad 16 and adds up while it is held; letting it go leaves the mutes as they are.
@@ -65,12 +65,24 @@ def arm_code(base, L, prev):
     return a.assemble()
 
 
+TRIM1 = False                                                # SC56 (use_trim1)
+
+
+def use_trim1():
+    """SC56 (room; the user, 2026-11-10: «build 1 and then 2»): v1's code left out.  v2 (SC50.9) replaced it in front of what it chained to, so
+    since then nothing reached it; v1's install only notes what v2 needs (the Mixer's slot 0 and the LED task's previous target)."""
+    global TRIM1
+    TRIM1 = True
+
+
 def install(img, report, base_addr):
     import ct_fw
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     L = dict(c_shift=int(report["sc15"]["labels"]["c_shift"], 16), c_gact=int(report["sc17"]["labels"]["c_gact"], 16))
     prev = dict(pad=u(Q.MIX_VT) & ~1, ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
+    if TRIM1:
+        return {}, b"", prev
     code, labels = arm_code(base_addr, L, prev)
     at_end = base_addr - BASE >= len(img)                    # (SC52.7) or in hole.py's hole: the tail goes there and the image is cut back
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
@@ -92,7 +104,7 @@ def install(img, report, base_addr):
     until they are let go: the mixer as it was.  Pad 16 held + track pads in flip = solo (flip off).
   * Loading a project leaves either mode without restoring (the saved mutes were the other project's).
 Installed after dspz in its freed flash (dspz.add): the head of the Mixer's slot 0 in front of v1's predecessor (v1's code is skipped), the LED task
-calls in front of v1's predecessor, the end of «apply session».  Pad 16 let go and the flip pads let go are seen by the LED task from [MGR + 0x84].
+calls in front of v1's predecessor, the end of Â«apply sessionÂ».  Pad 16 let go and the flip pads let go are seen by the LED task from [MGR + 0x84].
 RAM: MXR + 0x2220: + 0 'SOL2', + 4 mode (0 off, 1 solo, 2 flip), + 5 the saved mutes (bit = track), + 6 pad 16 (bit 0 down, bit 1 used with a track),
 + 7 the flip pads held, + 8 the solo's choice in this press.
 """
@@ -202,7 +214,7 @@ def arm_code2(base, L, prev):
     a.label("sl_w2"); E(strh_imm, 1, 4, 2 * PAD_SOLO)
     a.label("sl_x2"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
-    # ---- c_soload (the end of the stock's «apply session»): either mode off, nothing restored
+    # ---- c_soload (the end of the stock's Â«apply sessionÂ»): either mode off, nothing restored
     a.label("c_soload")
     E(raw, pushw([0, 1, 2, 3, 12], lr=True))
     E(bl, "c_sost"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 4); E(strb_imm, 1, 0, 6); E(strb_imm, 1, 0, 7)
@@ -219,6 +231,7 @@ def install2(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     v1 = {k: int(v, 16) for k, v in report["mixsolo"]["labels"].items()}
     p1 = {k: int(v, 16) for k, v in report["mixsolo"]["prev"].items()}
+    if TRIM1: v1 = dict(c_sopad=p1["pad"], c_soled=p1["ledtask"])              # (TRIM1) v1 never went in: what it would have chained to
     assert u(Q.MIX_VT) == v1["c_sopad"] | 1, "the Mixer's slot 0: v1 is not the head"
     L = dict(c_shift=int(report["sc15"]["labels"]["c_shift"], 16), c_gact=int(report["sc17"]["labels"]["c_gact"], 16))
     prev = dict(pad=p1["pad"], ledtask=p1["ledtask"], load=MP.bw_target(img, P19.LOAD_END, BASE))

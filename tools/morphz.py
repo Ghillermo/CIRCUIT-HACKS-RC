@@ -75,6 +75,8 @@ CLEAR = 23
 CLR2 = False                             # SC55.1 (use_clr2)
 SUS = False                              # SC55.1 (use_sus)
 NOCUR = False                            # SC55.1 (use_nocur)
+TRIMP = False                            # SC56 (use_trimpanel): c_mzpanel left out (NOCUR never calls it)
+ENDLAST = False                          # SC56: the image's end only when nothing else fits (dspz v2's first gap is bigger than the end)
 SVC = False                              # SC55.4 (use_svc)
 NV = END                                 # (use_svc) + 0 a write pending, + 1 t, + 2 f, + 3 / 4 the links' cache indices, + 5 inside the
 NV_END = NV + 12                         #   service's writes, + 8 the service's SP then (word)
@@ -108,6 +110,13 @@ def use_nocur():
     end, out of K1's range: ORD = 1, 2, 3, 0 and n - 2 segments); Octave in the morph view (the initial patch's place) has no meaning: nothing, unlit."""
     global NOCUR
     NOCUR = True
+
+
+def use_trimpanel():
+    """SC56 (room): with use_nocur the panel's Octave (c_mzpanel) is never called: left out."""
+    global TRIMP, ENDLAST
+    assert NOCUR
+    TRIMP = ENDLAST = True
 
 
 def use_clr2():
@@ -933,7 +942,7 @@ def place(img, report):
     end = BASE + len(img)
     areas.append(["end", (end + 3) & ~3, BASE + 0x70000])
     disc = fm_disc()
-    names = [n for n in FUNCS if SVC or n not in SVC_FUNCS]
+    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel")]
     dummy = {n: 0x08300000 + 64 * i for i, n in enumerate(names)}
     dummy["t_disc"] = 0x08380000
     size = {n: len(assemble(0x08020000, [n], dummy, prev, L, SP)[0]) for n in names}
@@ -946,7 +955,7 @@ def place(img, report):
         need = size[n] + (size["t_disc"] if n == "c_mzfm" else 0)
         cands = [a[0] for a in areas if room[a[0]] >= need]
         assert cands, f"morphz: no room for {n} ({size[n]} B; free {room}; left {[(x, size[x]) for x in order[order.index(n):]]}; areas {[(a_[0], a_[2] - a_[1]) for a_ in areas]})"
-        k = min(cands, key=lambda k_: room[k_])                                       # best fit
+        k = min(cands, key=lambda k_: (ENDLAST and k_ == "end", room[k_]))           # best fit (ENDLAST: the image's end last)
         parts[k].append(n); room[k] -= need
     base_of = {a[0]: a[1] for a in areas}
     hi_of = {a[0]: a[2] for a in areas}

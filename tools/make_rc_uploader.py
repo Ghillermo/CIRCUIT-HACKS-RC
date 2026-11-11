@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: B5.41 R411 R411S; until 2026-11-09 (RC4.11): B5.40 R410 R410S B5.38; until 2026-11-08 (Beta 5.40): B5.38 R410 R410S; until 2026-11-08 (RC4.10): B5.33 R408 R408S B5.32 B5.29 B5.28 (the user, 2026-11-07: «pon antes la última beta, rc debajo»); until 2026-11-07 (Beta 5.33): R408 R408S B5.32 B5.29 B5.28; until 2026-11-07 (Beta 5.32): R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: B5.48 R411 R411S B5.41; until 2026-11-11 (Beta 5.48): B5.41 R411 R411S; until 2026-11-09 (RC4.11): B5.40 R410 R410S B5.38; until 2026-11-08 (Beta 5.40): B5.38 R410 R410S; until 2026-11-08 (RC4.10): B5.33 R408 R408S B5.32 B5.29 B5.28 (the user, 2026-11-07: «pon antes la última beta, rc debajo»); until 2026-11-07 (Beta 5.33): R408 R408S B5.32 B5.29 B5.28; until 2026-11-07 (Beta 5.32): R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -70,11 +70,12 @@ def dz_split(img: bytes, man):
         o = int(rep[k]["block"], 16) - dspz.BASE
         raw = dspz.block_at(img, o + dspz.BASE)
         assert len(raw) == rep[k]["raw"]
+        f2 = bytes(img[o:o + 4]) == dspz.MAGIC2                                     # (SC56 on) the range-coded format: the page's dzPack2
         u[o:o + len(raw)] = raw
-        dz.append([o, len(raw)])
+        dz.append([o, len(raw)] + ([2] if f2 else []))
     v = bytearray(u)
-    for o, n in dz:
-        blob = dspz.pack(bytes(u[o:o + n]))
+    for o, n, *f in dz:
+        blob = dspz.pack(bytes(u[o:o + n]), v2=bool(f))
         v[o:o + len(blob)] = blob; v[o + len(blob):o + n] = bytes([0xFF]) * (n - len(blob))
     post, i = [], 0
     while i < len(img):
@@ -88,7 +89,7 @@ def dz_split(img: bytes, man):
     # 2026-11-05 (Beta 5.25): since SC51.4 core 1's block is longer than the stock one (dspz.OVERRIDE), so unpacked it covers ~2.6 KB of our own ARM
     # code past the old block, which `post` writes back: the old bound (freed + 1024) no longer holds.  What matters is where post's bytes are: never
     # in the stock part of the image (Novation's ARM code, below MOD_START) and never inside the packed programs (Novation's DSP code).
-    blobs = [(o, o + len(dspz.pack(bytes(u[o:o + n])))) for o, n in dz]
+    blobs = [(o, o + len(dspz.pack(bytes(u[o:o + n]), v2=bool(f)))) for o, n, *f in dz]
     for i0, b64 in post:
         j0 = i0 + len(base64.b64decode(b64))
         assert i0 + dspz.BASE >= 0x0805CDDC, f"post at {i0 + dspz.BASE:#x}: in the stock image"
@@ -358,7 +359,8 @@ assert all(len(t) <= 50 for t in DESC["B5.40"])
 DESC["R411"] = ("RC4.11 — versión candidata actual", "RC4.11 — current release candidate")
 DESC["R411S"] = ("RC4.11S — sin escrituras propias en la SD", "RC4.11S — no own writes to the SD card")
 DESC["B5.41"] = ("Beta 5.41 — morph, colores, carga de patches ágil", "Beta 5.41 — morph, colours, quicker patch loads")
-assert all(len(t) <= 50 for k in ("R411", "R411S", "B5.41") for t in DESC[k])
+DESC["B5.48"] = ("Beta 5.48 — mapa del algoritmo FM, pattern mutate", "Beta 5.48 — FM algorithm map, pattern mutate")
+assert all(len(t) <= 50 for k in ("R411", "R411S", "B5.41", "B5.48") for t in DESC[k])
 assert all(len(t) <= 50 for t in DESC["B5.33"])
 assert all(len(t) <= 50 for t in DESC["B5.32"])
 assert all(len(t) <= 50 for t in DESC["B5.29"])
@@ -575,9 +577,144 @@ function dzPack(raw) {
   if (nf) out.push(flags, ...items);
   return Uint8Array.from(out);
 }
+// SC56 on: the range-coded format (tools/dspz.py _pack2, byte for byte): LZ with an optimal parse (two passes, integer prices) + LZMA's range coder.
+const DZ2 = (() => {
+  const PB = 11, ONE = 2048, MOVE = 5, TOP = 16777216, WIN = 4096, MAXL = 273;
+  const ISM = 0x300, ISR = 0x30C, ISR0L = 0x318, MLEN = 0x324, RLEN = 0x324 + 274, SLOT = RLEN + 274, SPEC = SLOT + 256, ALIGN = SPEC + 114, NPROB = ALIGN + 16;
+  const NEXT_LIT = [0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 4, 5];
+  const PT = [];
+  for (let i = 0; i < ONE >> 4; i++) {
+    let w = (i << 4) + 8, bc = 0;
+    for (let k = 0; k < 4; k++) { w = w * w; bc <<= 1; while (w >= 65536) { w = Math.floor(w / 2); bc++; } }
+    PT.push((PB << 4) - 15 - bc);
+  }
+  const slotOf = d => { if (d < 4) return d; const n = 31 - Math.clz32(d); return 2 * n + ((d >> (n - 1)) & 1); };
+  // the coders push (index, bit) pairs to a flat list; direct bits as (-1 - value, n)
+  function litBits(L, byte, st, mbyte) {
+    let offs = st >= 7 ? 0x100 : 0, m = mbyte, sym = 1;
+    for (let k = 7; k >= 0; k--) { m <<= 1; const bit = m & offs, b = (byte >> k) & 1; L.push(offs + bit + sym, b); sym = sym << 1 | b; offs = b ? offs & bit : offs & ~bit; }
+  }
+  function lenBits(L, o, l) {
+    l -= 2; let sub, nb, base;
+    if (l < 8) { L.push(o, 0); sub = l; nb = 3; base = o + 2; }
+    else if (l < 16) { L.push(o, 1, o + 1, 0); sub = l - 8; nb = 3; base = o + 10; }
+    else { L.push(o, 1, o + 1, 1); sub = l - 16; nb = 8; base = o + 18; }
+    let m = 1; for (let j = nb - 1; j >= 0; j--) { const b = (sub >> j) & 1; L.push(base + m, b); m = m << 1 | b; }
+  }
+  function distBits(L, l, d) {
+    const sl = slotOf(d), base = SLOT + 64 * Math.min(l - 2, 3); let m = 1;
+    for (let j = 5; j >= 0; j--) { const b = (sl >> j) & 1; L.push(base + m, b); m = m << 1 | b; }
+    if (sl >= 4) {
+      const nd = (sl >> 1) - 1, bse = (2 | (sl & 1)) << nd, rem = d - bse;
+      if (sl < 14) { const o = SPEC + bse - sl - 1; m = 1; for (let j = 0; j < nd; j++) { const b = (rem >> j) & 1; L.push(o + m, b); m = m << 1 | b; } }
+      else { L.push(-1 - (rem >> 4), nd - 4); m = 1; for (let j = 0; j < 4; j++) { const b = (rem >> j) & 1; L.push(ALIGN + m, b); m = m << 1 | b; } }
+    }
+  }
+  function encoder() {
+    let low = 0, rng = 0xFFFFFFFF, cache = 0, csize = 1; const out = [];
+    const shift = () => {
+      if (low < 0xFF000000 || low >= 4294967296) {
+        const c = low >= 4294967296 ? 1 : 0; let t = cache;
+        while (true) { out.push((t + c) & 0xFF); t = 0xFF; if (--csize === 0) break; }
+        cache = Math.floor(low / 16777216) & 0xFF;
+      }
+      csize++; low = (low % 16777216) * 256;
+    };
+    return {
+      bits(P, L) {
+        for (let q = 0; q < L.length; q += 2) {
+          const i = L[q], b = L[q + 1];
+          if (i < 0) {
+            const v = -1 - i;
+            for (let k = b - 1; k >= 0; k--) { rng = Math.floor(rng / 2); if ((v >> k) & 1) low += rng; if (rng < TOP) { rng *= 256; shift(); } }
+            continue;
+          }
+          const p = P[i], bound = Math.floor(rng / 2048) * p;
+          if (b === 0) { rng = bound; P[i] = p + ((ONE - p) >> MOVE); } else { low += bound; rng -= bound; P[i] = p - (p >> MOVE); }
+          if (rng < TOP) { rng *= 256; shift(); }
+        }
+      },
+      flush() { for (let k = 0; k < 5; k++) shift(); if (out[0] !== 0) throw Error("dz2"); return out.slice(1); }
+    };
+  }
+  function pack(raw) {
+    const n = raw.length, cand = new Array(n), heads = new Map();
+    for (let i = 0; i < n; i++) {
+      const out = [];
+      if (i + 2 <= n) {
+        const key = raw[i] << 8 | raw[i + 1], ch = heads.get(key);
+        if (ch) {
+          let bl = 1;
+          for (let k = ch.length - 1; k >= 0; k--) {
+            const j = ch[k]; if (i - j > WIN) break;
+            let l = 0; while (l < MAXL && i + l < n && raw[j + l] === raw[i + l]) l++;
+            if (l > bl) { bl = l; out.push(l, i - j - 1); }
+            if (l === MAXL) break;
+          }
+          ch.push(i);
+        } else heads.set(key, [i]);
+      }
+      cand[i] = out;
+    }
+    let P = new Array(NPROB).fill(ONE / 2), res = null;
+    for (let ps = 0; ps < 2; ps++) {
+      const Q = ps ? P.slice() : new Array(NPROB).fill(ONE / 2);
+      const bp = (i, b) => PT[(b === 0 ? Q[i] : ONE - Q[i]) >> 4];
+      const price = L => { let c = 0; for (let q = 0; q < L.length; q += 2) c += L[q] < 0 ? 16 * L[q + 1] : bp(L[q], L[q + 1]); return c; };
+      const cost = new Float64Array(n + 1).fill(Infinity); cost[0] = 0;
+      const stt = new Int32Array(n + 1), rep = new Int32Array(n + 1), bi = new Int32Array(n + 1), bk = new Int32Array(n + 1), bln = new Int32Array(n + 1);
+      const set = (j, pc, s, r, i, k, l) => { if (pc < cost[j]) { cost[j] = pc; stt[j] = s; rep[j] = r; bi[j] = i; bk[j] = k; bln[j] = l; } };
+      for (let i = 0; i < n; i++) {
+        const c0 = cost[i], st = stt[i], r0 = rep[i], mb = i - r0 - 1 >= 0 ? raw[i - r0 - 1] : 0;
+        let L = []; litBits(L, raw[i], st, mb);
+        set(i + 1, c0 + bp(ISM + st, 0) + price(L), NEXT_LIT[st], r0, i, 0, 1);
+        if (i > r0) {
+          let lr = 0; const j = i - r0 - 1;
+          while (lr < MAXL && i + lr < n && raw[j + lr] === raw[i + lr]) lr++;
+          if (lr) {
+            const base = c0 + bp(ISM + st, 1) + bp(ISR + st, 1);
+            set(i + 1, base + bp(ISR0L + st, 0), st < 7 ? 9 : 11, r0, i, 1, 1);
+            const b2 = base + bp(ISR0L + st, 1);
+            for (let l = 2; l <= lr; l++) { L = []; lenBits(L, RLEN, l); set(i + l, b2 + price(L), st < 7 ? 8 : 11, r0, i, 2, l); }
+          }
+        }
+        const base = c0 + bp(ISM + st, 1) + bp(ISR + st, 0), cd = cand[i]; let prevl = 1;
+        for (let q = 0; q < cd.length; q += 2) {
+          const l = cd[q], d = cd[q + 1];
+          for (let ll = Math.max(2, prevl + 1); ll <= l; ll++) {
+            L = []; lenBits(L, MLEN, ll); const a = price(L); L = []; distBits(L, ll, d);
+            set(i + ll, base + a + price(L), st < 7 ? 7 : 10, d, i, 3, ll);
+          }
+          prevl = l;
+        }
+      }
+      const ops = []; let i = n;
+      while (i > 0) { ops.push([bi[i], bk[i], bln[i], rep[i]]); i = bi[i]; }
+      ops.reverse();
+      const E = encoder(); P = new Array(NPROB).fill(ONE / 2); let st = 0, r0 = 0;
+      for (const [i, k, l, d] of ops) {
+        const L = [];
+        if (k === 0) { const mb = i - r0 - 1 >= 0 ? raw[i - r0 - 1] : 0; L.push(ISM + st, 0); litBits(L, raw[i], st, mb); st = NEXT_LIT[st]; }
+        else if (k === 1) { L.push(ISM + st, 1, ISR + st, 1, ISR0L + st, 0); st = st < 7 ? 9 : 11; }
+        else if (k === 2) { L.push(ISM + st, 1, ISR + st, 1, ISR0L + st, 1); lenBits(L, RLEN, l); st = st < 7 ? 8 : 11; }
+        else { L.push(ISM + st, 1, ISR + st, 0); lenBits(L, MLEN, l); distBits(L, l, d); st = st < 7 ? 7 : 10; r0 = d; }
+        E.bits(P, L);
+      }
+      res = E.flush();
+    }
+    return res;
+  }
+  return { pack };
+})();
+function dzPack2(raw) {
+  const words = raw.length / 3, crc = crc32(raw), s = DZ2.pack(raw), out = new Uint8Array(12 + s.length);
+  out.set([0x44, 0x5A, 0x32, 0, words & 255, words >> 8 & 255, words >> 16 & 255, words >>> 24, crc & 255, crc >> 8 & 255, crc >> 16 & 255, crc >>> 24]);
+  out.set(s, 12);
+  return out;
+}
 function applyDz(img, P) {
   if (!P.dz) return img;
-  for (const [o, n] of P.dz) { const b = dzPack(img.slice(o, o + n)); if (b.length > n) throw Error("dz"); img.set(b, o); img.fill(0xFF, o + b.length, o + n); }
+  for (const [o, n, f] of P.dz) { const b = (f === 2 ? dzPack2 : dzPack)(img.slice(o, o + n)); if (b.length > n) throw Error("dz"); img.set(b, o); img.fill(0xFF, o + b.length, o + n); }
   for (const [o, s64] of P.post) { const s = atob(s64); for (let i = 0; i < s.length; i++) img[o + i] = s.charCodeAt(i); }
   return img;
 }
@@ -781,4 +918,4 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--old"]:
         main(OLD, "tools/rc_uploader_old.html")
     else:
-        main(sys.argv[1:] or ["B5.41", "R411", "R411S"])
+        main(sys.argv[1:] or ["B5.48", "R411", "R411S", "B5.41"])

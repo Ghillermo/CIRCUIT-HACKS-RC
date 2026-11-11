@@ -83,7 +83,10 @@ class Ctx:
 def data(c, T, extra=()):
     """The tables, emitted first: T[name] = their addresses."""
     d = bytearray()
+    import tabpack
     def put(name, bs):
+        if tabpack.wants(name):                                                 # (SC55.8) packed, rebuilt at power-up
+            T[name] = tabpack.want(name, bs, 4 if name in tabpack.CURVES_FM else None); return
         while len(d) % 4: d.append(0)
         T[name] = c.base + len(d); d.extend(bs)
     put("exp", struct.pack("<256H", *F.EXP))
