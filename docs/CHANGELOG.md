@@ -7,6 +7,24 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.51 — 2026-11-12
+
+**Beta 5.51** (marca `B5.51`; = SC56.6) = la Beta 5.50 + lo siguiente, probada en el aparato.
+
+- **Caja negra.** Si el panel se queda colgado mientras suena (la música sigue, nada responde), a los 15 s el aparato apunta lo último que pasó (las últimas pulsaciones, la vista, dónde estaba el programa) y se reinicia; al volver, Save parpadea en violeta 30 s. La app de la tarjeta lo lee con **Caja negra…** y lo guarda en un fichero para mandarlo. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#app-sd)
+
+### Beta 5.50 — 2026-11-11
+
+**Beta 5.50** (marca `B5.50`; = SC56.5) = la Beta 5.49 + lo siguiente, sin probar en el aparato.
+
+- **Morph de patches: morph lento, LFO cuadrado y colores.** K5 elige un destino y K6 la duración (al momento, o de ¼ a 32 compases del tempo): con K5 quieto medio segundo el sonido va de K1 a K5 y, al llegar, K1 toma el valor de K5. K1 y K5 muestran su patch en color (rojo, amarillo, verde, azul, con tonos intermedios). El LFO triangular pasa a cuadrado; K3 es la velocidad de los dos LFO; K8, además del tiempo de la envolvente, suaviza los LFO. El azar en cada paso desaparece. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
+### Beta 5.49 — 2026-11-11
+
+**Beta 5.49** (marca `B5.49`; = SC56.4) = la Beta 5.48 + lo siguiente, sin probar en el aparato.
+
+- **El morph de patches con hasta 4 patches:** mantén hasta cuatro patches 0,4 s en la vista Preset (Synth 1 / 2 o el sinte propio de MIDI 1 / 2); K1 los recorre en el orden de los pads. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
 ### Beta 5.48 — 2026-11-11
 
 **Beta 5.48** (marca `B5.48`; = SC56.3) = la Beta 5.47 + lo siguiente, sin probar en el aparato.
@@ -973,6 +991,24 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.51 — 2026-11-12
+
+**Beta 5.51** (marker `B5.51`; = SC56.6) = Beta 5.50 + the following, tested on the device.
+
+- **Black box.** If the panel hangs while playing (the music goes on, nothing answers), after 15 s the device records what happened last (the last presses, the view, where the program was) and restarts; when it comes back, Save blinks violet for 30 s. The SD app reads it with **Black box…** and saves it to a file to send. → [Guide: SD and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#app-sd)
+
+### Beta 5.50 — 2026-11-11
+
+**Beta 5.50** (marker `B5.50`; = SC56.5) = Beta 5.49 + the following, untested on the device.
+
+- **Patch morph: slow morph, square LFO and colours.** K5 picks a destination and K6 the length (at once, or ¼ to 32 bars of the tempo): with K5 left alone for half a second the sound moves from K1 to K5 and, once there, K1 takes K5's value. K1 and K5 show their patch in colour (red, yellow, green, blue, with shades in between). The triangle LFO becomes a square; K3 is the rate of both LFOs; K8, besides the envelope's time, smooths the LFOs. The random-on-each-step modulation is gone. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+
+### Beta 5.49 — 2026-11-11
+
+**Beta 5.49** (marker `B5.49`; = SC56.4) = Beta 5.48 + the following, untested on the device.
+
+- **Patch morph with up to 4 patches:** hold up to four patches for 0.4 s in the Preset view (Synth 1 / 2 or the own synth of MIDI 1 / 2); K1 runs through them in pad order. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
 
 ### Beta 5.48 — 2026-11-11
 

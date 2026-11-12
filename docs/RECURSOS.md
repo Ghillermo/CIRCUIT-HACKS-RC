@@ -23,6 +23,8 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 | Memoria externa del DSP (16 bits por palabra) | 16 M palabras (`$000000–$FFFFFF`) | `$337000–$57EFFF` + `$E80000–$FFEFFF` ≈ 4 M palabras (≈ 82 s mono a 48 kHz) | ≈ 1,75 M | **≈ 2,2 M palabras (≈ 45 s)** |
 | Tarjeta SD | la de la tarjeta | — | ficheros `PCM/NN_PCM.wav` del pack al guardar (solo RC0; RC0S nada) | — |
 
+> **SC56.6 / Beta 5.51 (2026-11-12):** `tools/blackbox.py` (la caja negra): 1 164 B en el primer hueco de `dspz` (quedan **3 704 B** ahí; imagen igual, `0x6FED0`); RAM `0x2004F000-0x2004F3FF` (firma `BBX1`, sobrevive al reinicio). Sin DSP ni SPI. CPU: una lectura del transporte por ms en el bucle principal y unas pocas instrucciones por entrada y por fotograma.
+
 > **SC56.3 / Beta 5.48 (2026-11-11):** `tools/fmmap.py` (el mapa del algoritmo FM): 1 660 B en el primer hueco de `dspz` (quedan **5 256 B** ahí; imagen igual, `0x6FED0`); RAM `0x2004F500-0x2004F597` (`FMAP`, firma `FMM1`) y los bytes + 240..255 de cada bloque de pista del FM (la entrada del algoritmo propio); guardado: bytes libres de los parámetros del FM (+ 21 de cada operador, GLB + 13 / 14), que ya viajaban con el patch y el proyecto. Sin DSP; SPI igual (el enrutado se manda al cambiar, como al cambiar de algoritmo). CPU: la disposición del mapa en cada fotograma de la tarea de LEDs con el mapa en pantalla (≤ 8 × 255 pasos del recorrido).
 > **SC56.2 / Beta 5.47 (2026-11-11):** `tools/fwid.py` (la pregunta del firmware): 164 B al final; imagen `0x6FED0` (304 B al final; **7 282 B libres** en total). Sin RAM ni DSP.
 

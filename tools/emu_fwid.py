@@ -26,7 +26,8 @@ def main(img, man):
         nonlocal fails
         print(("ok  : " if c else "FAIL: ") + m); fails += 0 if c else 1
     L = {k: int(v, 16) for k, v in man["report"]["fwid"]["labels"].items()}
-    check(bytes(img[RD.HOOK - 0x08010000:RD.HOOK - 0x08010000 + 4]) == RD.b_w(RD.HOOK, L["c_fwin"]), "0x0801EB30 = b.w c_fwin")
+    first = int(man["report"]["blackbox"]["labels"]["c_bbsx"], 16) if "blackbox" in man["report"] else L["c_fwin"]   # (SC56.6) the black box in front
+    check(bytes(img[RD.HOOK - 0x08010000:RD.HOOK - 0x08010000 + 4]) == RD.b_w(RD.HOOK, first), f"0x0801EB30 = b.w {first:#x}")
     mark = bytes(img[0x1E8:0x1E8 + 6])
     check(mark.rstrip(b"\0").decode() == man["marker"][:6], f"the marker in the image: {mark!r}")
     gc.collect()

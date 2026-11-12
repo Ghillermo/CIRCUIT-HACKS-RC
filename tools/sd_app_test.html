@@ -33,6 +33,33 @@ function bridge() {                                        // ?device=1 (served 
   return tx;
 }
 const useList = u => { const o = new Set(); for (const k of ["nova", "drums", "custom"]) for (const [n, l] of u[k]) for (const x of l) o.add(`${k} ${n} ${x.sess} ${x.track} ${x.flip ? 1 : 0}`); return [...o].sort(); };
+async function bbt() {                                       // ?bb=1 on a bridge with Beta 5.51 or later (preview "sd-bridge-b5.51"): the black box over USB
+  const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
+  (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
+  const SD = window.SD;
+  await fetch("/reset", {method: "POST"});
+  const tx = bridge(), dev = new SD.Device(tx);
+  await dev.identify();
+  check(!!dev.fw, `the firmware answers: ${dev.fw}`);
+  let raw = await dev.bbRead(), r = raw && SD.bbParse(raw);
+  check(raw && raw.length === SD.BB_SIZE && r.signed && !r.frozen, `read: 1 KB, signed, nothing frozen (${r && r.state})`);
+  check(await dev.bbCmd(3) === 5, "capture now: the state frozen + by hand");
+  r = SD.bbParse(await dev.bbRead());
+  check(r.frozen && r.manual && !r.restarted && r.freezeMs > 0, `read again: frozen by hand at ${r.freezeMs} ms`);
+  check(await dev.bbCmd(2) === 0, "clear: answered");
+  r = SD.bbParse(await dev.bbRead());
+  check(r.signed && !r.frozen && r.ring.length === 0 && r.pcs.length === 0, "read again: empty");
+  const t = new Uint8Array(SD.BB_SIZE), v = new DataView(t.buffer);
+  v.setUint32(0, 0x31584242, true); t[4] = 1 | 2 | 8; v.setUint32(8, 60000, true); v.setUint32(12, 15000, true); t[6] = 1; v.setUint32(80, 0x0803abcc, true);
+  t[7] = 2; v.setUint32(240, 44000, true); t[244] = 1; t[245] = 17; v.setUint32(248, 45000, true); t[252] = 5; t[253] = 2; v.setUint16(254, 0x0db8, true);
+  t.set([..."LEDs"].map(c => c.charCodeAt(0)), 368 + 52); v.setUint32(464 + 40, 0x08041235, true);
+  r = SD.bbParse(t);
+  check(r.restarted && r.playing && r.stallMs === 15000 && r.pcs[0].pc === "0x0803abcc" && r.taskName === "LEDs" && r.ledStack[0] === "0x08041235",
+        "parse: restarted, playing, the stall, the PC, the task's name, a return address in the stack");
+  check(r.ring.length === 2 && r.ring[0].kind === "button-down" && r.ring[0].id === 17 && r.ring[0].before === 16000 && r.ring[1].kind === "knob" && r.ring[1].view === "0x20040db8",
+        "parse: the ring in time order, before the freeze, the view");
+  window.RESULT = {pass, fail, lines};
+}
 async function main() {
   const html = await (await fetch("sd_app.html", {cache: "no-store"})).text();
   (0, eval)(/<script id="core">([\s\S]*?)<\/script>/.exec(html)[1]);
@@ -493,7 +520,7 @@ async function dx7() {                                      // ?dx7=1 (python to
   const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);
 }
 const QS = new URLSearchParams(location.search);
-(QS.get("full") ? sweep() : QS.get("snap") ? snap() : QS.get("dx7") ? dx7() : main()).catch(e => { check(false, "exception: " + (e && e.stack || e)); window.RESULT = {pass, fail, lines}; });
+(QS.get("full") ? sweep() : QS.get("snap") ? snap() : QS.get("dx7") ? dx7() : QS.get("bb") ? bbt() : main()).catch(e => { check(false, "exception: " + (e && e.stack || e)); window.RESULT = {pass, fail, lines}; });
 </script>
 </body>
 </html>

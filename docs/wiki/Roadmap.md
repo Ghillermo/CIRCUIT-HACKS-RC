@@ -2,7 +2,7 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-11-11. Current versions: **RC4.11 / RC4.11S** (fixes) and **Beta 5.48** (new features; the betas that extend RC4 are numbered 5.x).
+Updated 2026-11-12. Current versions: **RC4.11 / RC4.11S** (fixes) and **Beta 5.51** (new features; the betas that extend RC4 are numbered 5.x).
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 

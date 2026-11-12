@@ -59,8 +59,8 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 *Cómo se llega:* Pulsa **Preset** con Synth 1 / 2 elegido. Los pads eligen patch como siempre (4 páginas, 128 patches del pack).
 
-- **Los patches por categoría** *(solo Beta 5.48)* — cada patch en el color de su categoría de Components; la categoría se elige al guardar.
-- **Morph de patches** *(solo Beta 5.48)* — mantén varios patches y pasa de uno a otro con un knob, LFO y envolvente.
+- **Los patches por categoría** *(solo Beta 5.51)* — cada patch en el color de su categoría de Components; la categoría se elige al guardar.
+- **Morph de patches** *(solo Beta 5.51)* — mantén varios patches y pasa de uno a otro con un knob, LFO y envolvente.
 - **Guardar el patch** *(desde RC2)* — guarda en el pack el sonido tal como lo has dejado (el original solo guarda patches desde Components).
 - **Intercambiar y copiar** — reordena los patches del pack o lleva uno a otro pack.
 
@@ -77,7 +77,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
-- **Secuenciador de saltos** *(solo Beta 5.48)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
+- **Secuenciador de saltos** *(solo Beta 5.51)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
@@ -114,7 +114,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 
 ### FM de 8 operadores
 
-*Cómo se llega:* *(solo Beta 5.48)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.
+*Cómo se llega:* *(solo Beta 5.51)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
 
@@ -261,7 +261,7 @@ Cada vista del aparato y lo que ofrece. Cada una enlaza con su capítulo complet
 *Cómo se llega:* Botón **Patterns**. Columnas = pistas, filas = patrones. Con el **modo cadena** *(desde RC2)*, cada patrón puede llevar una regla «suena n veces, salta a B; la vez siguiente, a C».
 
 - **Cadenas de patrones** *(desde RC2)* — un patrón suena n veces y salta a otro, y la vez siguiente a un tercero: estructuras A A A B sin encadenar a mano.
-- **Mutate de patrones** *(solo Beta 5.48)* — Shift + Duplicate: cada pista toca sus patrones en otro orden, y vuelve a la misma lista con la escena.
+- **Mutate de patrones** *(solo Beta 5.51)* — Shift + Duplicate: cada pista toca sus patrones en otro orden, y vuelve a la misma lista con la escena.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns)
 

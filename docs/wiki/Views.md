@@ -59,8 +59,8 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 *How to get there:* Press **Preset** with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack's 128 patches).
 
-- **Patches by category** *(Beta 5.48 only)* — each patch in the colour of its Components category; the category is picked when saving.
-- **Patch morph** *(Beta 5.48 only)* — hold several patches and move between them with a knob, LFOs and an envelope.
+- **Patches by category** *(Beta 5.51 only)* — each patch in the colour of its Components category; the category is picked when saving.
+- **Patch morph** *(Beta 5.51 only)* — hold several patches and move between them with a knob, LFOs and an envelope.
 - **Save the patch** *(since RC2)* — stores the sound as you left it into the pack (the original only saves patches from Components).
 - **Swap and copy** — reorder the pack's patches or take one to another pack.
 
@@ -77,7 +77,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 - **Own-synth patches** *(since RC2)* — 64 sounds a pack for those engines, one touch away.
 - **Mod matrix** *(since RC2.02)* — eight sources (velocity, note, random, LFO 2, envelope 2, a drum hit, the pattern position, stepped random) that move any parameter of the engine.
 - **Patch flip** — every note sends a program change: the outside gear changes sound step by step.
-- **Jump sequencer** *(Beta 5.48 only)* — the track's notes make another track's pattern jump to the step they indicate.
+- **Jump sequencer** *(Beta 5.51 only)* — the track's notes make another track's pattern jump to the step they indicate.
 - **CC editor** — changes which CC each knob of the template sends, without Components.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
@@ -114,7 +114,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 
 ### 8-operator FM
 
-*How to get there:* *(Beta 5.48 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.
+*How to get there:* *(Beta 5.51 only)* MIDI 1 / 2: Preset view, a tap on **pad 27** and **pad 24** of the engine row (violet); close the row (pad 27) and **pad 7** opens its page.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 
@@ -261,7 +261,7 @@ Every view of the device and what it offers. Each one links to its full chapter 
 *How to get there:* The **Patterns** button. Columns = tracks, rows = patterns. With the **chain mode** *(since RC2)*, each pattern can carry a rule «play n times, jump to B; next time, to C».
 
 - **Pattern chains** *(since RC2)* — a pattern plays n times and jumps to another, and the next time to a third: A A A B structures without chaining by hand.
-- **Pattern mutate** *(Beta 5.48 only)* — Shift + Duplicate: each track plays its patterns in another order, and the scene brings the same list back.
+- **Pattern mutate** *(Beta 5.51 only)* — Shift + Duplicate: each track plays its patterns in another order, and the scene brings the same list back.
 
 → [Full details in the guide](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
 

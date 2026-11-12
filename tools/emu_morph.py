@@ -25,6 +25,8 @@ import mpatch as MP  # noqa: E402
 
 MGR, PRESS, RELEASE = S.MGR, T6.PRESS, T6.RELEASE
 SUS, NOCUR = "--sus" in sys.argv, "--nocur" in sys.argv     # SC55.1
+FOUR = "--four" in sys.argv                                 # SC56.4 (use_four): 4 held patches
+SLOW = "--slow" in sys.argv                                 # SC56.5 (use_slow): slow morph, square LFO, slew, K1 / K5 colours
 BASE = 0x08010000
 
 
@@ -86,6 +88,72 @@ def main(img, man):
         f = None
         for _ in range(n): at(10); f = X.frame(e); svc()
         return f
+    def slow_tests():                                                          # (SC56.5 use_slow) K1 = 64 on the chain 4, 5, 6, 7
+        SL = M.SL
+        flags = lambda: e.r8(SL)
+        col = lambda f, k: f[60 + k] & 0xFF
+        f = frames(1)
+        check(col(f, 0) == M.GRAD[7] and col(f, 4) == M.GRAD[0] and f[60] >> 8 == 127,
+              f"K1 64 in the gradient ({col(f, 0):#x}), K5 0 = patch 1 red ({col(f, 4):#x})")
+        for _ in range(70): e.knob(5, -1)
+        check(st(M.O_K + 5) == 0, f"K6 fully left ({st(M.O_K + 5)})")
+        for _ in range(130): e.knob(4, 1)
+        frames(2)
+        check(st(M.O_K) == 64 and flags() & 1, f"K5 turned: aimed, nothing yet (K1 {st(M.O_K)}, flags {flags()})")
+        at(600); frames(2)
+        f = frames(1)
+        check(st(M.O_K) == 127 and flags() == 0 and col(f, 0) == M.GRAD[15] and col(f, 4) == M.GRAD[15],
+              f"K6 left, K5 at rest 0.5 s: K1 = K5 at once, both blue ({st(M.O_K)}, flags {flags()}, {col(f, 0):#x})")
+        frames(14); lv = live()
+        bad = [(k, off) for k, off, cont, lo, hi in RW if lv[off - 30] != P7[off]]
+        check(not bad, f"the sound = patch 7 ({len(bad)} rows differ)")
+        e.knob(5, 1)                                                           # K6 1 = 1/4 bar
+        for _ in range(130): e.knob(4, -1)
+        at(600); frames(1)
+        check(flags() == 2, f"K6 1, K5 to 0 and at rest: gliding ({flags()})")
+        pos = []
+        for _ in range(60):
+            frames(1); pos.append(e.r32(SL + 24))
+            if flags() == 0: break
+        mono = all(b <= a for a, b in zip(pos, pos[1:]))
+        check(flags() == 0 and st(M.O_K) == 0 and mono and len(pos) > 5,
+              f"the glide down to K5 over {len(pos) * 10} ms (1/4 bar at the tempo), K1 = 0 at the end ({st(M.O_K)}, {pos[:3]} .. {pos[-2:]})")
+        for _ in range(127): e.knob(4, 1)
+        at(600); frames(5); p_ = e.r32(SL + 24)
+        e.knob(0, 1); frames(1)
+        check(flags() == 0 and st(M.O_K) == (p_ >> 8) + 1, f"K1 turned while gliding: from the glide's place, the glide off ({st(M.O_K)}, {p_ >> 8})")
+        for _ in range(127): e.knob(5, 1)                                     # K6 at the end: 32 bars
+        for _ in range(127): e.knob(4, -1)
+        at(600); frames(3); a_ = e.r32(SL + 24); frames(50); b_ = e.r32(SL + 24)
+        check(flags() == 2 and 0 < a_ - b_ < 600, f"K6 at the end: a slow glide ({a_ - b_} in 0.5 s)")
+        for _ in range(130): e.knob(4, 1)                                     # K5 back: re-aimed from where it is
+        at(600); frames(1)
+        gs = struct.unpack("<H", bytes(e.uc.mem_read(SL + 2, 2)))[0]
+        check(flags() == 2 and abs(gs - b_) < 300, f"K5 turned again mid-glide: re-aimed from the glide's place ({gs}, {b_})")
+        # LFO 1 square, slewed by K8
+        for _ in range(127): e.knob(5, -1)
+        for _ in range(127): e.knob(4, -1)
+        at(600); frames(2)
+        for _ in range(30): e.knob(1, 1)                                      # K2 depth
+        for _ in range(24): e.knob(2, -1)                                     # K3 rate 40: a cycle in about 0.6 s
+        vals = []
+        for _ in range(150): frames(1); vals.append(struct.unpack("<i", bytes(e.uc.mem_read(SL + 4, 4)))[0])
+        top, bot, mid_ = max(vals), min(vals), [v for v in vals if -30000 < v < 30000]
+        check(top == 0x7FFF and bot == -32768 and mid_, f"LFO 1 square: both tops ({top}, {bot}), slewed in between ({len(mid_)} frames)")
+        for _ in range(127): e.knob(7, 1)                                     # K8 at the end: a slow slew
+        vals = []
+        for _ in range(150): frames(1); vals.append(struct.unpack("<i", bytes(e.uc.mem_read(SL + 4, 4)))[0])
+        steps = max(abs(b - a) for a, b in zip(vals, vals[1:]))
+        check(steps < 400, f"K8 at the end: the slew slower (largest step {steps} / frame)")
+        tg = struct.unpack("<i", bytes(e.uc.mem_read(SL + 12, 4)))[0]
+        check(-32768 <= tg <= 32512, f"LFO 2: a random target ({tg})")
+        for _ in range(130): e.knob(7, -1)
+        for _ in range(40): e.knob(1, -1)
+        for _ in range(130): e.knob(2, -1)
+        for _ in range(127): e.knob(0, -1)
+        for _ in range(64): e.knob(0, 1)
+        frames(2)
+
     # ---- Synth 1
     live = lambda: bytes(e.uc.mem_read(M.LIVE + 30, 310))
     e.btn(0); e.btn(8); frames(2)
@@ -98,8 +166,8 @@ def main(img, man):
                 span = (hi - lo) if lo < 0 else hi
                 b[off - 30] = (64 + lo + (seed * 37 + k * 11) % (span + 1)) if lo < 0 else (seed * 29 + k * 7) % (hi + 1)
         return bytes(range(0)) + bytes(30) + bytes(b)
-    P4, P5, P6 = patch_like(1), patch_like(2), patch_like(3)
-    for n, p in ((4, P4), (5, P5), (6, P6)): recs[(n >> 3, 512 * (n & 7))] = p
+    P4, P5, P6, P7 = patch_like(1), patch_like(2), patch_like(3), patch_like(4)
+    for n, p in ((4, P4), (5, P5), (6, P6), (7, P7)): recs[(n >> 3, 512 * (n & 7))] = p
     f_stock = frames(1)
     e.call(int(R["sc14"]["labels"]["c_gst"], 16)); GS = e.uc.reg_read(UC_ARM_REG_R0)
     src = lambda: bool(e.r8(GS + M.S_PAINT) & M.F_SRC)
@@ -110,7 +178,8 @@ def main(img, man):
     check(f[0] == pal(9) and f[7] == pal(9) and f[31] == M.RED and all(f[q] == 0 for q in range(32) if q not in (0, 7, 31)),
           f"the morph view: pads 1 / 8 dim Synth 1, pad 32 red, the rest dark ({[hex(x) for x in f[:32]]})")
     frames(4)
-    check(st(M.O_CV) & 7 == 7, f"the chain cached ({st(M.O_CV):#x})")
+    cv = 6 if FOUR else 7                                                      # (use_four) cache 0 only for a 4th patch
+    check(st(M.O_CV) & 7 == cv, f"the chain cached ({st(M.O_CV):#x})")
     for _ in range(130): e.knob(0, 1)
     frames(14)
     lv = live()
@@ -215,6 +284,31 @@ def main(img, man):
     check(src() and st(M.O_ACT) == 0xFF, f"the morph out: Preset twice = Synth 1's alternative view ({src()})")
     e.btn(8); frames(1)
     check(not src() and e.r8(MGR + 0x152) == 0, "Preset in the alternative view: the patches")
+    if FOUR:                                                                   # (SC56.4 use_four) four held patches
+        for q in (4, 5, 6, 7): hold(q)
+        frames(1); at(450); frames(2)
+        for q in (4, 5, 6, 7): let(q)
+        sl = bytes(e.uc.mem_read(M.MZ + M.O_SL, 4))
+        check(st(M.O_ACT) == 0 and st(M.O_N) == 5 and sl == b"" and src(),
+              f"patches 4-7 held 0.4 s: the morph on, a chain of four (n {st(M.O_N)}, slots {sl.hex()})")
+        frames(6)
+        check(st(M.O_CV) & 0xF == 0xF, f"the four cached, the 4th in cache 0 ({st(M.O_CV):#x})")
+        for _ in range(130): e.knob(0, 1)
+        frames(14); lv = live()
+        bad = [(k, off) for k, off, cont, lo, hi in RW if lv[off - 30] != P7[off]]
+        check(not bad, f"K1 at the end: the live patch = patch 7, the 4th ({len(bad)} rows differ: {bad[:6]})")
+        for _ in range(130): e.knob(0, -1)
+        frames(14); lv = live()
+        bad = [(k, off) for k, off, cont, lo, hi in RW if lv[off - 30] != P4[off]]
+        check(not bad, f"K1 at 0: the live patch = patch 4, the 1st ({len(bad)} rows differ: {bad[:6]})")
+        for _ in range(64): e.knob(0, 1)
+        frames(14); lv = live()
+        x = 64 * 256 * 3; i_, f_ = x // 32512, ((x % 32512) >> 8)
+        A_, B_ = (P5, P6) if i_ == 1 else (P6, P7)
+        bad = [(k, off) for k, off, cont, lo, hi in RW if cont and lv[off - 30] != A_[off] + (((B_[off] - A_[off]) * f_) >> 7)]
+        check(i_ == 1 and not bad, f"K1 64: between patches 5 and 6 (link {i_}, f {f_}; {len(bad)} rows differ: {bad[:4]})")
+        if SLOW: slow_tests()
+        pad(31); frames(1)
     hold(4); hold(5); frames(1); at(450); frames(2); let(4); let(5)
     check(st(M.O_ACT) == 0, "on again by holding")
     import split4 as S4

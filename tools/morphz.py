@@ -75,6 +75,15 @@ CLEAR = 23
 CLR2 = False                             # SC55.1 (use_clr2)
 SUS = False                              # SC55.1 (use_sus)
 NOCUR = False                            # SC55.1 (use_nocur)
+FOUR = False                             # SC56.4 (use_four): up to 4 held patches
+SLOW = False                             # SC56.5 (use_slow): K5 / K6 slow morph, square LFO, LFO slew on K8, colour K1 / K5
+SL = 0x2004EDC0                          # (use_slow) + 0 flags (bit 0 K5 aimed, bit 1 gliding), + 1 the square's half, + 2 the glide's start (h),
+                                         #   + 4 S1, + 8 S2, + 12 S2's target, + 16 K5's last turn (ms), + 20 the glide's progress (24 bits), + 24 its position
+SL_END = SL + 28
+AIM_MS = 500                             # K5 at rest this long = the glide starts
+GRAD = bytes([0x53, 0x45, 0x7F, 0x51, 0x6D, 0x2D, 0x6F, 0x70, 0x71, 0x72, 0x17, 0x74, 0x4D, 0x13, 0x12, 0x09])   # red > yellow > green > blue
+SLOW_FUNCS = ("c_mzslow", "c_mzslw", "c_mzgc")
+TEMPO = 0x20011404
 TRIMP = False                            # SC56 (use_trimpanel): c_mzpanel left out (NOCUR never calls it)
 ENDLAST = False                          # SC56: the image's end only when nothing else fits (dspz v2's first gap is bigger than the end)
 SVC = False                              # SC55.4 (use_svc)
@@ -110,6 +119,36 @@ def use_nocur():
     end, out of K1's range: ORD = 1, 2, 3, 0 and n - 2 segments); Octave in the morph view (the initial patch's place) has no meaning: nothing, unlit."""
     global NOCUR
     NOCUR = True
+
+
+def use_four():
+    """SC56.4 (the user, 2026-11-11: «Make it up to 4 patches»): with use_nocur the chain takes up to 4 held patches.  Cache 0 (the present sound,
+    never reached with use_nocur) holds the 4th; its slot is byte O_SL + 3, so O_SNAP moves to the free byte 27 and the signature changes (an
+    install does not clear the RAM).  ORD stays 1, 2, 3, 0: 3 held = 2 segments over caches 1-3, 4 held = 3 segments over 1, 2, 3, 0."""
+    global FOUR, O_SNAP, SIG
+    assert NOCUR
+    FOUR = True
+    O_SNAP = 27
+    SIG = 0x325A524D                     # "MRZ2"
+
+
+def use_slow():
+    """SC56.5 (the user, 2026-11-11): «Random lfo speed is now k3 too. K5 and k6 become slow morph: K5 sets the morph destination. K6 sets the
+    speed … the patch morphs from k1 into K5. The more clockwise k6, the longer the morph time. When the destination is reached, K5 value is
+    assigned to K1 knob. K5 and K1 now show their patches with colors … a color palette that blends into each other. K8 is not only the envelope
+    decay time, it adjusts the slew on the lfos. The tri lfo is now square with slew»; chosen: the glide starts when K5 has rested 0.5 s (turning
+    it again re-aims from where the sound is), K6 fully left = at once, then 1/4 .. 32 bars of the project's tempo (an octave every 18 clicks),
+    a fixed gradient (patch 1 red, 2 yellow, 3 green, 4 blue, palette shades in between), the old K6 (random each step) dropped.
+      K1 position (turned while gliding: from where the glide is, the glide off), K2 / K4 depth of LFO 1 (square) / LFO 2 (random, a new value
+      at each of the square's halves), K3 their rate, K5 destination, K6 time, K7 envelope depth, K8 envelope time = the LFOs' slew (the same rate:
+      a full swing takes the envelope's time).  RAM SL (28 B between the morph's and loadcache's)."""
+    global SLOW, UNI, DEF_K, SIG
+    assert FOUR
+    SLOW = True
+    UNI = 0xB5                           # K1, K3, K5, K6, K8 unipolar
+    DEF_K = (0, 0, 64, 0, 0, 64, 0, 64)
+    SIG = 0x335A524D                     # "MRZ3"
+    assert NV_END <= SL and SL_END <= 0x2004EE00
 
 
 def use_trimpanel():
@@ -322,13 +361,14 @@ def c_mzchain(c):                        # (r0 = the patch pads held, r4 = t, r6
     E(cmp_imm, 4, 2); E(b_cond, "ch_s", "lo"); E(movs_imm, 1, 8); E(movs_imm, 3, 24); E(movs_imm, 7, 16)
     c.lab("ch_s"); E(ldrb_imm, 2, 6, O_PG); E(muls, 7, 2); E(subs_reg, 7, 7, 1)          # r7 = page x size - the first pad: slot = pad + r7
     E(movs_imm, 2, 1)
-    c.lab("ch_l"); E(cmp_reg, 1, 3); E(b_cond, "ch_d", "hs"); E(cmp_imm, 2, 4); E(b_cond, "ch_d", "hs")
+    c.lab("ch_l"); E(cmp_reg, 1, 3); E(b_cond, "ch_d", "hs"); E(cmp_imm, 2, 5 if FOUR else 4); E(b_cond, "ch_d", "hs")
     E(movs_imm, 5, 1); E(lsls_reg, 5, 1); E(tst_reg, 0, 5); E(b_cond, "ch_n", "eq")
     E(adds_reg, 5, 1, 7); E(adds_reg, 4, 6, 2); E(strb_imm, 5, 4, O_SL - 1); E(adds_imm8, 2, 1)
     c.lab("ch_n"); E(adds_imm8, 1, 1); E(b, "ch_l")
     c.lab("ch_d"); E(strb_imm, 2, 6, O_N)
     if NOCUR:                                                                             # (NOCUR) the held patches only: ORD = 1, 2, 3, 0
-        E(ldrb_imm, 0, 6, O_CV); E(movs_imm, 1, 0x11); E(ands_reg, 0, 1); E(strb_imm, 0, 6, O_CV)
+        if FOUR: E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_CV)                              # (FOUR) cache 0 may be the 4th held patch
+        else: E(ldrb_imm, 0, 6, O_CV); E(movs_imm, 1, 0x11); E(ands_reg, 0, 1); E(strb_imm, 0, 6, O_CV)
         c.imm32(0, 0x00030201); E(str_imm, 0, 6, O_ORD)
         E(ldrb_imm, 0, 6, O_N); E(pop_list, [4], pc=True)
     E(ldrb_imm, 0, 6, O_CV); E(movs_imm, 1, 0x11); E(ands_reg, 0, 1); E(strb_imm, 0, 6, O_CV)
@@ -349,6 +389,9 @@ def c_mzenter(c):                        # (r0 = the patch pads held, r4 = t, r6
     c.lab("en_s"); E(strb_imm, 0, 6, O_SHOW)                                                # MIDI: over the Preset view
     for j in (0, 4): c.imm32(0, struct.unpack("<I", bytes(DEF_K[j:j + 4]))[0]); E(str_imm, 0, 6, O_K + j)
     E(movs_imm, 0, 0); E(strh_imm, 0, 6, O_ENV); E(strb_imm, 0, 6, O_HP); E(str_imm, 0, 6, O_SHT)
+    if SLOW:                                                                                # (SLOW) no glide, the LFOs' values at 0
+        c.imm32(1, SL)
+        for o in (0, 4, 8, 12): E(str_imm, 0, 1, o)
     E(cmp_imm, 4, 2); E(b_cond, "en_1", "hs"); E(movs_imm, 0, 2); c.call("c_mzsrc")         # synth: its alternative view
     c.lab("en_1"); E(movs_imm, 0, 1); E(pop_list, [], pc=True)
     c.lab("en_0"); E(movs_imm, 0, 0); E(pop_list, [], pc=True)
@@ -471,6 +514,7 @@ def c_mzbtn(c):                          # the controller's button press, the he
         c.call("c_mzcd"); E(movs_imm, 1, 1); E(tst_reg, 0, 1); E(b_cond, "bt_tk0", "eq")
         E(movs_imm, 0, 0)
         for k in range(8): E(strb_imm, 0, 6, O_K + k)
+        if SLOW: c.imm32(1, SL); E(strb_imm, 0, 1, 0)
         E(b, "bt_y")
         c.lab("bt_tk0")
     c.call("c_shift"); E(cmp_imm, 0, 0); c.bc("bt_p", "ne")                                  # from anywhere else the stock, then the morph view
@@ -567,6 +611,10 @@ def c_mzknob(c):                         # slot 4 of the macro handlers (obj, kn
     E = c.E; E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
     c.call("c_mzobj"); E(cmp_imm, 0, 0); E(b_cond, "kn_p", "eq"); E(mov_reg, 6, 0)
     E(ldr_sp, 5, 4); E(movs_imm, 0, 7); E(ands_reg, 5, 0); E(adds_reg, 7, 6, 5); E(adds_imm8, 7, O_K)   # r7 = the knob's byte
+    if SLOW:                                                                                # (SLOW) K1 while gliding: from the glide's place, the glide off
+        E(cmp_imm, 5, 0); E(b_cond, "kn_g", "ne"); c.imm32(0, SL); E(ldrb_imm, 1, 0, 0); E(movs_imm, 2, 2); E(tst_reg, 1, 2); E(b_cond, "kn_g", "eq")
+        E(bics_reg, 1, 2); E(strb_imm, 1, 0, 0); E(ldr_imm, 1, 0, 24); E(lsrs_imm, 1, 1, 8); E(strb_imm, 1, 7, 0)
+        c.lab("kn_g")
     c.call("c_mxclrh"); E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kn_w", "ne")                       # Clear + knob = 0
     E(ldr_sp, 2, 8); E(movs_imm, 0, UNI); E(lsrs_reg, 0, 5); E(movs_imm, 1, 1); E(tst_reg, 0, 1); E(b_cond, "kn_u", "ne")
     E(movs_imm, 0, 0); E(raw, ldrsb_reg(1, 7, 0)); E(adds_reg, 1, 1, 2); E(movs_imm, 0, 63); E(cmp_reg, 1, 0); E(b_cond, "kn_b1", "le"); E(mov_reg, 1, 0)
@@ -574,6 +622,10 @@ def c_mzknob(c):                         # slot 4 of the macro handlers (obj, kn
     c.lab("kn_u"); E(ldrb_imm, 1, 7, 0); E(adds_reg, 1, 1, 2); E(b_cond, "kn_u1", "pl"); E(movs_imm, 1, 0)
     c.lab("kn_u1"); E(cmp_imm, 1, 127); E(b_cond, "kn_w", "le"); E(movs_imm, 1, 127)
     c.lab("kn_w"); E(strb_imm, 1, 7, 0)
+    if SLOW:                                                                                # (SLOW) K5 turned: aimed, the time
+        E(cmp_imm, 5, 4); E(b_cond, "kn_x", "ne"); c.imm32(0, SL); E(ldrb_imm, 1, 0, 0); E(movs_imm, 2, 1); E(orrs_reg, 1, 2); E(strb_imm, 1, 0, 0)
+        c.now(1); E(str_imm, 1, 0, 16)
+        c.lab("kn_x")
     E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     c.lab("kn_p"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, c.prev["knob"])
 
@@ -595,6 +647,11 @@ def c_mzkled(c):                         # slot 7 of the macro handlers (obj) ->
     c.lab("kl_c"); E(adds_imm8, 0, 2); E(cmp_imm, 0, 127); E(b_cond, "kl_m", "le"); E(movs_imm, 0, 127)
     c.lab("kl_m"); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 4); E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1)
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "kl_l", "lo")
+    if SLOW:                                                                                # (SLOW) K1 (the glide's place while gliding) / K5: their patch's colour
+        c.imm32(0, SL); E(ldrb_imm, 1, 0, 0); E(movs_imm, 2, 2); E(tst_reg, 1, 2); E(b_cond, "kl_k1", "eq"); E(ldr_imm, 0, 0, 24); E(b, "kl_kc")
+        c.lab("kl_k1"); E(ldrb_imm, 0, 6, O_K); E(lsls_imm, 0, 0, 8)
+        c.lab("kl_kc"); c.call("c_mzgc"); E(movs_imm, 1, 127); E(lsls_imm, 1, 1, 8); E(orrs_reg, 0, 1); E(strh_imm, 0, 5, 0)
+        E(ldrb_imm, 0, 6, O_K + 4); E(lsls_imm, 0, 0, 8); c.call("c_mzgc"); E(movs_imm, 1, 127); E(lsls_imm, 1, 1, 8); E(orrs_reg, 0, 1); E(strh_imm, 0, 5, 8)
     c.lab("kl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
 
 
@@ -602,12 +659,16 @@ def c_mzkled(c):                         # slot 7 of the macro handlers (obj) ->
 def c_mzfill(c):                         # (r4 = t, r6 = MZ): one uncached link read -> r0 = 1 when one was read; clobbers r0-r3, r5, r7
     E = c.E; E(push_list, [], lr=True)
     E(ldrb_imm, 0, 6, O_CV); E(ldrb_imm, 1, 6, O_N); E(movs_imm, 5, 1)
-    c.lab("fl_f"); E(cmp_reg, 5, 1); E(b_cond, "fl_0", "hs"); E(movs_imm, 2, 1); E(lsls_reg, 2, 5); E(tst_reg, 0, 2); E(b_cond, "fl_go", "eq")
+    c.lab("fl_f"); E(cmp_reg, 5, 1); E(b_cond, "fl_0", "hs"); E(movs_imm, 2, 1)
+    if FOUR: E(movs_imm, 3, 3); E(ands_reg, 3, 5); E(lsls_reg, 2, 3)                       # (FOUR) entry 4 = cache 0
+    else: E(lsls_reg, 2, 5)
+    E(tst_reg, 0, 2); E(b_cond, "fl_go", "eq")
     E(adds_imm8, 5, 1); E(b, "fl_f")
     c.lab("fl_0"); E(movs_imm, 0, 0); E(pop_list, [], pc=True)
     c.lab("fl_go"); E(orrs_reg, 0, 2); E(strb_imm, 0, 6, O_CV)
     E(movs_imm, 0, 5); c.call(PK.BUF_LOCK)
     E(adds_reg, 0, 6, 5); E(ldrb_imm, 7, 0, O_SL - 1)                                      # r7 = the slot / patch
+    if FOUR: E(movs_imm, 0, 3); E(ands_reg, 5, 0)                                          # r5 = the cache index
     E(lsrs_imm, 0, 7, 3); E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 20)                     # the bank, 512 (slot & 7)
     E(cmp_imm, 4, 2); E(b_cond, "fl_own", "hs")
     c.imm32(2, PK.BUF); E(movw, 3, 340); c.call("c_mpr")
@@ -670,6 +731,7 @@ def c_mzhold(c):                         # (r4 = t, r6 = MZ): patches held 0.4 s
 @fn
 def c_mzmod(c):                          # (r4 = t, r5 = dt, r6 = MZ) -> r0 = the position 0..32512; clobbers r1-r3, r7
     E = c.E; E(push_list, [], lr=True)
+    if SLOW: return mod_slow(c)
     E(movs_imm, 7, 0)
     E(mov_reg, 0, 6); E(adds_imm8, 0, O_PH1); E(ldrb_imm, 1, 6, O_K + 2); c.call("c_mzlfo")
     E(lsrs_imm, 0, 0, 8); E(subs_imm8, 0, 128); E(b_cond, "md_a", "pl"); E(raw, h(0x4240))
@@ -691,6 +753,72 @@ def c_mzmod(c):                          # (r4 = t, r5 = dt, r6 = MZ) -> r0 = th
     E(b_cond, "md_c0", "pl"); E(movs_imm, 0, 0)
     c.lab("md_c0"); E(movw, 1, 127 * 256); E(cmp_reg, 0, 1); E(b_cond, "md_c1", "le"); E(mov_reg, 0, 1)
     c.lab("md_c1"); E(pop_list, [], pc=True)
+
+
+def mod_slow(c):                         # (SLOW) c_mzmod: LFO 1 square / LFO 2 random at its halves (K3), slewed by K8's rate; the envelope; the glide's base
+    E = c.E; E(movs_imm, 7, 0)
+    E(ldrb_imm, 1, 6, O_K + 7); E(movs_imm, 0, 129); E(subs_reg, 1, 0, 1); E(muls, 1, 1); E(lsrs_imm, 1, 1, 2); E(adds_imm8, 1, 16); E(muls, 1, 5)
+    E(push_list, [1])                                                                       # [sp] = the rate (the envelope's fall = the slew)
+    E(mov_reg, 0, 6); E(adds_imm8, 0, O_PH1); E(ldrb_imm, 1, 6, O_K + 2); c.call("c_mzlfo"); E(lsrs_imm, 0, 0, 15)   # r0 = the half
+    c.imm32(3, SL); E(ldrb_imm, 1, 3, 1); E(cmp_reg, 0, 1); E(b_cond, "ms_h", "eq")
+    E(strb_imm, 0, 3, 1); c.call("c_mzrnd"); E(lsls_imm, 0, 0, 8); c.imm32(3, SL); E(str_imm, 0, 3, 12)    # a new random target
+    c.lab("ms_h"); c.imm32(3, SL); E(ldrb_imm, 0, 3, 1); E(movw, 1, 0x7FFF); E(cmp_imm, 0, 0); E(b_cond, "ms_t", "eq"); E(movs_imm, 1, 1)
+    E(lsls_imm, 1, 1, 15); E(raw, h(0x4249))                                                # rsbs r1, r1: -32768
+    c.lab("ms_t"); E(ldr_sp, 3, 0); c.imm32(0, SL + 4); c.call("c_mzslw"); E(movs_imm, 1, O_K + 1); c.call("c_mzdep")
+    c.imm32(0, SL + 12); E(ldr_imm, 1, 0, 0); E(subs_imm8, 0, 4); E(ldr_sp, 3, 0); c.call("c_mzslw"); E(movs_imm, 1, O_K + 3); c.call("c_mzdep")
+    E(pop_list, [1])
+    if SUS:                                                                               # (SUS) pad 1 / 8 held in the morph view: the envelope stays
+        E(push_list, [1]); c.call("c_mzmv"); E(mov_reg, 2, 0); E(pop_list, [1]); E(cmp_imm, 2, 0); E(b_cond, "ms_ns", "eq")
+        c.imm32(2, MP.MGR + 0x84); E(ldr_imm, 2, 2, 0); E(movs_imm, 3, sum(1 << q for q in TRIG)); E(tst_reg, 2, 3); E(b_cond, "ms_ns", "eq"); E(movs_imm, 1, 0)
+        c.lab("ms_ns")
+    E(ldrh_imm, 0, 6, O_ENV); E(subs_reg, 0, 0, 1); E(b_cond, "ms_e", "pl"); E(movs_imm, 0, 0)
+    c.lab("ms_e"); E(strh_imm, 0, 6, O_ENV); E(lsrs_imm, 0, 0, 9); E(movs_imm, 1, O_K + 6); c.call("c_mzdep")
+    c.call("c_mzslow"); E(lsls_imm, 7, 7, 2); E(adds_reg, 0, 0, 7)                        # the base + 4 x the sum, clamped
+    E(b_cond, "ms_c0", "pl"); E(movs_imm, 0, 0)
+    c.lab("ms_c0"); E(movw, 1, 127 * 256); E(cmp_reg, 0, 1); E(b_cond, "ms_c1", "le"); E(mov_reg, 0, 1)
+    c.lab("ms_c1"); E(pop_list, [], pc=True)
+
+
+@fn
+def c_mzslw(c):                          # (SLOW; r0 = a value's address (word), r1 = its target, r3 = the step) -> r0 = the value >> 8; clobbers r2
+    E = c.E; E(ldr_imm, 2, 0, 0); E(cmp_reg, 2, 1); E(b_cond, "sw_d", "ge")
+    E(adds_reg, 2, 2, 3); E(cmp_reg, 2, 1); E(b_cond, "sw_s", "le"); E(mov_reg, 2, 1); E(b, "sw_s")
+    c.lab("sw_d"); E(subs_reg, 2, 2, 3); E(cmp_reg, 2, 1); E(b_cond, "sw_s", "ge"); E(mov_reg, 2, 1)
+    c.lab("sw_s"); E(str_imm, 2, 0, 0); E(raw, asrs(0, 2, 8)); E(raw, RET)
+
+
+@fn
+def c_mzslow(c):                         # (SLOW; r5 = dt, r6 = MZ) -> r0 = the base 0..32512: K1 or the glide's place; clobbers r1-r3
+    E = c.E; E(push_list, [], lr=True)
+    c.imm32(3, SL); E(ldrb_imm, 2, 3, 0)
+    E(movs_imm, 0, 1); E(tst_reg, 2, 0); E(b_cond, "sl_a", "eq")                            # K5 aimed and at rest: the glide from where the sound is
+    c.now(0); E(ldr_imm, 1, 3, 16); E(subs_reg, 0, 0, 1); E(movw, 1, AIM_MS); E(cmp_reg, 0, 1); E(b_cond, "sl_a", "lo")
+    E(movs_imm, 0, 2); E(tst_reg, 2, 0); E(b_cond, "sl_k", "eq"); E(ldr_imm, 0, 3, 24); E(b, "sl_st")
+    c.lab("sl_k"); E(ldrb_imm, 0, 6, O_K); E(lsls_imm, 0, 0, 8)
+    c.lab("sl_st"); E(strh_imm, 0, 3, 2); E(str_imm, 0, 3, 24); E(movs_imm, 0, 0); E(str_imm, 0, 3, 20); E(movs_imm, 2, 2); E(strb_imm, 2, 3, 0)
+    c.lab("sl_a"); E(movs_imm, 0, 2); E(tst_reg, 2, 0); E(b_cond, "sl_k1", "eq")
+    E(ldrb_imm, 0, 6, O_K + 5); E(cmp_imm, 0, 0); E(b_cond, "sl_d", "eq")                   # K6 fully left: at once
+    E(subs_imm8, 0, 1); E(movs_imm, 1, 18); E(raw, udiv(2, 0, 1)); E(muls, 1, 2); E(subs_reg, 0, 0, 1)   # r2 = the octave, r0 = the 18ths
+    E(movs_imm, 1, 57); E(muls, 0, 1); c.imm32(1, 1024); E(adds_reg, 0, 0, 1); E(push_list, [0, 2])       # [sp] = 1024 x 2^(f / 18) (linear), [sp + 4] = e
+    c.imm32(0, TEMPO); E(movs_imm, 1, 0); c.call(PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "sl_b", "ne"); E(movs_imm, 0, 120)
+    c.lab("sl_b"); c.imm32(1, 240000); E(raw, udiv(1, 1, 0))                                # r1 = a bar in ms
+    E(pop_list, [0, 2]); E(muls, 1, 0); E(lsrs_imm, 1, 1, 10); E(lsls_reg, 1, 2); E(lsrs_imm, 1, 1, 2)   # 1/4 bar x 2^(K6 / 18)
+    E(cmp_imm, 1, 0); E(b_cond, "sl_n", "ne"); E(movs_imm, 1, 1)
+    c.lab("sl_n"); E(lsls_imm, 0, 5, 24); E(raw, udiv(0, 0, 1)); c.imm32(3, SL); E(ldr_imm, 2, 3, 20); E(adds_reg, 2, 2, 0)
+    E(movs_imm, 0, 1); E(lsls_imm, 0, 0, 24); E(cmp_reg, 2, 0); E(b_cond, "sl_d", "hs"); E(str_imm, 2, 3, 20)
+    E(ldrb_imm, 0, 6, O_K + 4); E(lsls_imm, 0, 0, 8); E(ldrh_imm, 1, 3, 2); E(subs_reg, 0, 0, 1); E(lsrs_imm, 2, 2, 8); E(muls, 0, 2)
+    E(raw, asrs(0, 0, 16)); E(adds_reg, 0, 0, 1); E(str_imm, 0, 3, 24); E(pop_list, [], pc=True)
+    c.lab("sl_d"); c.imm32(3, SL); E(ldrb_imm, 0, 6, O_K + 4); E(strb_imm, 0, 6, O_K); E(movs_imm, 0, 0); E(strb_imm, 0, 3, 0)   # there: K1 = K5
+    c.lab("sl_k1"); E(ldrb_imm, 0, 6, O_K); E(lsls_imm, 0, 0, 8); E(pop_list, [], pc=True)
+
+
+@fn
+def c_mzgc(c):                           # (SLOW; r0 = a place 0..32512, r6 = MZ) -> r0 = its colour in the gradient (5 shades a link); clobbers r1, r2
+    E = c.E; E(push_list, [], lr=True)
+    E(ldrb_imm, 1, 6, O_N); E(subs_imm8, 1, 2); E(movs_imm, 2, 5); E(muls, 1, 2); E(muls, 0, 1); E(movw, 1, 127 * 256); E(raw, udiv(0, 0, 1))
+    E(cmp_imm, 0, 15); E(b_cond, "gc_l", "ls"); E(movs_imm, 0, 15)
+    c.lab("gc_l"); E(bl, "gc_t"); E(raw, GRAD)
+    c.lab("gc_t"); E(raw, mov_hi(1, 14)); E(subs_imm8, 1, 1); E(ldrb_reg, 0, 1, 0); E(pop_list, [], pc=True)
 
 
 @fn
@@ -942,7 +1070,7 @@ def place(img, report):
     end = BASE + len(img)
     areas.append(["end", (end + 3) & ~3, BASE + 0x70000])
     disc = fm_disc()
-    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel")]
+    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel") and (SLOW or n not in SLOW_FUNCS)]
     dummy = {n: 0x08300000 + 64 * i for i, n in enumerate(names)}
     dummy["t_disc"] = 0x08380000
     size = {n: len(assemble(0x08020000, [n], dummy, prev, L, SP)[0]) for n in names}

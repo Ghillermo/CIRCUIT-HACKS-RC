@@ -15,7 +15,7 @@ El bootloader de Novation no se toca nunca: siempre se puede enviar otra vez el 
 **3. RC, RC «S» o Beta: ¿cuál instalo?**
 - **RC** (versión candidata, ahora RC4.11): las funciones probadas en conjunto.
 - **RC S** (RC4.11S): lo mismo, pero el mod nunca escribe ficheros propios en la tarjeta SD (sin guardar patches propios, samples ni copias entre packs). La opción más segura.
-- **Beta** (ahora la Beta 5.48, probada en parte en el aparato): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
+- **Beta** (ahora la Beta 5.51, probada en parte en el aparato): la RC + las funciones más nuevas. Todo arreglo va a la RC y a la beta; las funciones nuevas, primero a la beta.
 
 **4. ¿Funciona en el Circuit original o en el Circuit Rhythm?**
 No: CIRCUIT-HACKS es solo para el **Circuit Tracks** (firmware 1.2.1, build 4486). Para el **Circuit Rhythm** hay un proyecto aparte, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), que lleva estas funciones y añade otras propias.
@@ -98,7 +98,7 @@ Ver [Matriz de modulación y destinos de los macros](https://ghillermo.github.io
 ## El proyecto
 
 **24. ¿Cómo informo de un fallo?**
-Abre un [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) con la versión (por ejemplo RC4 o RC4S), lo que hiciste paso a paso, lo que esperabas y lo que pasó. Si puedes, adjunta el proyecto o el pack, o una grabación corta.
+Abre un [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) con la versión (por ejemplo RC4 o RC4S), lo que hiciste paso a paso, lo que esperabas y lo que pasó. Si puedes, adjunta el proyecto o el pack, o una grabación corta. **Si el panel se quedó colgado mientras la música seguía** (Beta 5.51 y posteriores): a los 15 s el aparato se reinicia solo y Save parpadea en violeta; abre la [app de la tarjeta](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), pulsa **Caja negra…**, luego **Guardar…**, y adjunta el fichero `.json`.
 
 **25. ¿Cómo propongo una función?**
 En [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) o con un issue. Mira antes la [hoja de ruta](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES): las propuestas sobre control, usabilidad y cómo se guardan los datos son especialmente bienvenidas.
