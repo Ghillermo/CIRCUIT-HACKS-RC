@@ -128,13 +128,25 @@ window.RFM = RFM;
 
 // ================================================================ the panes
 const TABS = [["samples", "Samples", "Samples"], ["patterns", "Patrones", "Patterns"], ["fm", "Parches", "Patches"]];
-const state = {tab: "samples", busy: false, backup: null, view: "both"};
-try { const v = localStorage.getItem("hrapp.view"); if (v === "hacks" || v === "remix") state.view = v; } catch (_) { /* no storage */ }
+const state = {tab: "samples", busy: false, backup: null, view: "both", fwT: "auto", fwR: "auto", fwdev: "hacks"};
+try { const v = localStorage.getItem("hrapp.view"); if (v === "hacks" || v === "remix" || v === "firmware") state.view = v; } catch (_) { /* no storage */ }
+/* (2026-11-13, the user: «add Remix to the master app … under firmware options», «Both») the firmware of each device: automatic (no device here:
+   everything), stock only, Hacks / Remix.  The Tracks one is the Hacks app's own setting (sdapp.fw: its view follows it); stock only = no own patches
+   on that side (the Tracks' custom patches are Hacks', the Rhythm's patches are Remix's) */
+try {
+  const t = localStorage.getItem("sdapp.fw"); if (t === "stock" || t === "hacks") state.fwT = t;
+  const r = localStorage.getItem("hrapp.rfw"); if (r === "stock" || r === "remix") state.fwR = r;
+  const d = localStorage.getItem("hrapp.fwdev"); if (d === "hacks" || d === "remix") state.fwdev = d;
+} catch (_) { /* no storage */ }
+const fwOK = kind => kind === "rhythm" ? state.fwR !== "stock" : kind === "tracks" ? state.fwT !== "stock" : true;
 
 /* ---- the views: «Entre los dos» (the panes below) or one device's own app whole (its packs, editors, the device over USB, snapshot / restore ...;
    window.HR_APPS from make_hr_app.py), each in a same-origin frame made the first time it is shown and kept */
 const VIEWS = [["both", "Entre los dos", "Between the two"], ["hacks", "Hacks · Circuit Tracks", "Hacks · Circuit Tracks"], ["remix", "Remix · Circuit Rhythm", "Remix · Circuit Rhythm"],
-               ["editor", "Editor de patches", "Patch editor"]];
+               ["editor", "Editor de patches", "Patch editor"], ["firmware", "Firmware", "Firmware"]];
+/* (2026-11-13) the Firmware view: the two installers, Hacks for the Circuit Tracks (tools/rc_uploader.html) and Remix for the Circuit Rhythm (the
+   published Remix app opened on its Firmware tab), each in its own frame (fwhacks / fwremix) */
+const FWDEV = [["hacks", "Circuit Tracks · Hacks", "Circuit Tracks · Hacks"], ["remix", "Circuit Rhythm · Remix", "Circuit Rhythm · Remix"]];
 const frames = {};
 /* (2026-11-10) the patch editor (tools/patch_editor.html: the own synth's 33 values sent live over MIDI) is a view too; «Editar» opens the chosen
    patch of a pane in it, and its «Guardar en …» writes it back to that slot */
@@ -146,11 +158,16 @@ function showView() {
   const app = state.view !== "both";
   document.body.classList.toggle("appmode", app);
   const box = $("appview"); box.hidden = !app;
-  for (const [k, f] of Object.entries(frames)) f.hidden = k !== state.view;
-  if (app && !frames[state.view] && window.HR_APPS) {
+  const fw = state.view === "firmware", key = fw ? "fw" + state.fwdev : state.view;
+  const nav = $("fwnav"); nav.hidden = !fw;
+  nav.innerHTML = FWDEV.map(d => `<button type="button" data-fwdev="${d[0]}" class="${d[0] === state.fwdev ? "on" : ""}">${esc(T(d[1], d[2]))}</button>`).join("");
+  for (const [k, f] of Object.entries(frames)) f.hidden = k !== key;
+  if (app && !frames[key] && window.HR_APPS) {
     const f = document.createElement("iframe");
-    f.setAttribute("allow", "midi; clipboard-write"); f.title = ({hacks: "Hacks", remix: "Remix", editor: T("Editor de patches", "Patch editor")})[state.view];
-    f.srcdoc = window.HR_APPS[state.view]; box.append(f); frames[state.view] = f;
+    f.setAttribute("allow", "midi; clipboard-write");
+    f.title = ({hacks: "Hacks", remix: "Remix", editor: T("Editor de patches", "Patch editor"), fwhacks: T("Instalador de Hacks", "Hacks installer"), fwremix: T("Instalador de Remix", "Remix installer")})[key];
+    if (key === "fwremix") f.onload = () => { try { const b = f.contentDocument.querySelector('[data-tab="firmware"]'); if (b) b.click(); } catch (_) { /* not reachable */ } };
+    f.srcdoc = window.HR_APPS[key === "fwhacks" ? "hinst" : key === "fwremix" ? "remix" : key]; box.append(f); frames[key] = f;
   }
   $("views").innerHTML = VIEWS.map(v => `<button type="button" data-view="${v[0]}" class="${v[0] === state.view ? "on" : ""}">${esc(T(v[1], v[2]))}</button>`).join("");
 }
@@ -228,6 +245,8 @@ async function loadItems(p) {
     if (tab === "fm") for (const x of F) if (/\.ctm$/i.test(x.name)) { try { const pad = new Uint8Array(await (await x.file.h.getFile()).arrayBuffer()); x.rgb = patchRgb(pad); if (x.rgb) x.extra = engineOf(pad); } catch (_) { /* unreadable */ } }
     return F;
   }
+  p.fwOff = tab === "fm" && !fwOK(p.kind);                  // (2026-11-13) own patches need Hacks / Remix: nothing with «stock only»
+  if (p.fwOff) return [];
   const pl = place(p); if (!pl) return [];
   if (tab === "samples") return (p.kind === "rhythm" ? SDR.Samples : SDT.Drums).list(pl);
   if (tab === "patterns") {
@@ -260,6 +279,8 @@ async function getItem(p, n) {                              // -> {kind, name, b
 async function putItem(q, n, x, ctx) {                       // into pane q's slot n (a folder: a new file)
   const tab = state.tab;
   if (q.kind === "demos") throw new Error(T("los parches demo son de solo lectura", "the demo patches are read-only"));
+  if (tab === "fm" && !fwOK(q.kind)) throw new Error(q.kind === "rhythm" ? T("los parches del Rhythm necesitan el firmware Remix (selector Firmware)", "the Rhythm's patches need the Remix firmware (Firmware selector)")
+                                                                         : T("los parches custom del Tracks necesitan el firmware Hacks (selector Firmware)", "the Tracks' custom patches need the Hacks firmware (Firmware selector)"));
   if (q.kind === "folder") {
     const ext = tab === "samples" ? ".wav" : tab === "patterns" ? (x.from === "rhythm" ? ".rmpat" : ".ctpat") : x.pad ? ".ctm" : ".fm8";
     const data = tab === "fm" ? (x.pad || x.rec) : x.bytes;
@@ -357,7 +378,8 @@ async function render(p) {
   if (ss) { const m = await core(p).sessionsOf(pack(p)); ss.innerHTML = [...m.values()].map(e => `<option value="${e.slot}"${e.slot === p.sess ? " selected" : ""}>${SDT.pad2(e.slot)} ${esc(e.label || "")}</option>`).join(""); }
   const l = p.el.querySelector(".list");
   l.innerHTML = p.items.map((it, n) => `<div class="row${it.empty ? " empty" : ""}${p.sel.has(n) ? " sel" : ""}" data-n="${n}"><span class="c0">${p.kind === "folder" ? "" : SDT.pad2(it.slot)}</span><span class="c1">${state.tab === "fm" && !it.empty && it.rgb ? `<span class="sw" style="background:${it.rgb}" title="${esc(T("El color del hueco en el aparato (su motor)", "The slot's colour on the device (its engine)"))}"></span>` : ""}</span><span class="c2">${esc(it.empty ? "—" : it.name || T("(sin nombre)", "(no name)"))}</span><span class="c3">${esc(it.extra || "")}</span><span></span></div>`).join("") ||
-    `<div class="blank dim" style="padding:10px">${p.kind ? T("Nada aquí.", "Nothing here.") : T("Abre una tarjeta (o una copia / snapshot) del Tracks o del Rhythm, o una carpeta de ficheros.", "Open a Tracks or Rhythm card (or a copy / snapshot), or a folder of files.")}</div>`;
+    `<div class="blank dim" style="padding:10px">${p.fwOff ? (p.kind === "rhythm" ? T("Los parches del Rhythm son de Remix: elige «Rhythm: Remix» o «automático» en el firmware de arriba.", "The Rhythm's patches are Remix's: pick «Rhythm: Remix» or «automatic» in the firmware options above.")
+      : T("Los parches custom del Tracks son de Hacks: elige «Tracks: Hacks» o «automático» en el firmware de arriba.", "The Tracks' custom patches are Hacks': pick «Tracks: Hacks» or «automatic» in the firmware options above.")) : p.kind ? T("Nada aquí.", "Nothing here.") : T("Abre una tarjeta (o una copia / snapshot) del Tracks o del Rhythm, o una carpeta de ficheros.", "Open a Tracks or Rhythm card (or a copy / snapshot), or a folder of files.")}</div>`;
 }
 async function renderAll() {
   document.documentElement.lang = LANG;
@@ -366,6 +388,11 @@ async function renderAll() {
   $("tabs").innerHTML = TABS.map(t => `<button type="button" data-tab="${t[0]}" class="${t[0] === state.tab ? "on" : ""}">${esc(T(t[1], t[2]))}</button>`).join("");
   for (const b of document.querySelectorAll(".lang button")) b.classList.toggle("on", b.dataset.lang === LANG);
   $("bBackup").textContent = state.backup ? T("Copias: ", "Backups: ") + state.backup.dir.name : T("Copias de seguridad…", "Backups…");
+  const opts = (sel, L) => L.map(([v, es, en]) => `<option value="${v}"${v === sel ? " selected" : ""}>${esc(T(es, en))}</option>`).join("");
+  $("fwT").innerHTML = opts(state.fwT, [["auto", "Tracks: automático", "Tracks: automatic"], ["stock", "Tracks: solo stock", "Tracks: stock only"], ["hacks", "Tracks: Hacks", "Tracks: Hacks"]]);
+  $("fwR").innerHTML = opts(state.fwR, [["auto", "Rhythm: automático", "Rhythm: automatic"], ["stock", "Rhythm: solo stock", "Rhythm: stock only"], ["remix", "Rhythm: Remix", "Rhythm: Remix"]]);
+  $("fwT").title = $("fwR").title = T("El firmware de cada aparato. Automático: todo (las apps de cada aparato preguntan al aparato conectado). Solo stock: sin lo propio de Hacks / Remix (los parches).",
+                                      "Each device's firmware. Automatic: everything (each device's app asks the connected device). Stock only: nothing of Hacks / Remix (the patches).");
   $("notice").textContent = window.showDirectoryPicker ? "" : T("Este navegador no puede abrir carpetas: usa Chrome o Edge en un ordenador.", "This browser cannot open folders: use Chrome or Edge on a computer.");
   for (const p of panes) await render(p);
 }
@@ -377,6 +404,19 @@ $("views").addEventListener("click", e => {
   state.view = v; try { localStorage.setItem("hrapp.view", v); } catch (_) { /* none */ }
   if (v === "both") renderAll(); else showView();
 });
+$("fwnav").addEventListener("click", e => {
+  const d = e.target.dataset && e.target.dataset.fwdev;
+  if (!d || d === state.fwdev) return;
+  state.fwdev = d; try { localStorage.setItem("hrapp.fwdev", d); } catch (_) { /* none */ }
+  showView();
+});
+for (const [id, k, key] of [["fwT", "fwT", "sdapp.fw"], ["fwR", "fwR", "hrapp.rfw"]])
+  $(id).addEventListener("change", e => {
+    if (state.busy) { e.target.value = state[k]; return; }
+    state[k] = e.target.value; try { localStorage.setItem(key, state[k]); } catch (_) { /* none */ }
+    for (const p of panes) p.sel.clear();
+    renderAll();
+  });
 $("tabs").addEventListener("click", e => { const t = e.target.dataset && e.target.dataset.tab; if (t && !state.busy) { state.tab = t; for (const p of panes) p.sel.clear(); renderAll(); } });
 for (const b of document.querySelectorAll(".lang button")) b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem("hrapp.lang", LANG); } catch (_) { /* none */ } renderAll(); };
 $("bBackup").onclick = async () => { let d; try { d = await window.showDirectoryPicker({mode: "readwrite"}); } catch (_) { return; } state.backup = new SDT.Backup(d, d.name); renderAll(); };
@@ -401,6 +441,6 @@ for (const p of panes) {
     else if (w === "sess") { p.sess = +e.target.value; p.sel.clear(); await render(p); }
   });
 }
-window.HRAPP = {state, panes, openPane, openDemos, editAct, frameReady, renderAll, copyAct, showView, ask: null};
+window.HRAPP = {state, panes, openPane, openDemos, editAct, frameReady, renderAll, copyAct, showView, fwOK, ask: null};
 renderAll();
 })();

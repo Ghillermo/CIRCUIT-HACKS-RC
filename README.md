@@ -90,6 +90,7 @@ Para pasar samples, patrones y parches FM entre un Circuit Tracks (Hacks) y un C
 
 - **Dos columnas:** cada una abre una tarjeta del Tracks (carpeta con `Tracks/`), una del Rhythm (`Rhythm/`), un snapshot o una carpeta de ficheros sueltos.
 - **Samples:** el WAV tal cual. **Patrones:** del Tracks al Rhythm, cada paso con la nota más grave del acorde; del Rhythm al Tracks, una nota por paso; los drums con golpes, velocity, probabilidad y micropasos. Los carriles de automatización y los sample flips no pasan de un aparato a otro. **Parches FM:** el FM de 8 operadores, el mismo en los dos.
+- **Firmware:** la vista **Firmware** lleva los dos instaladores, Hacks para el Circuit Tracks y Remix para el Circuit Rhythm. Arriba, el firmware de cada aparato (**Tracks:** automático / solo stock / Hacks; **Rhythm:** automático / solo stock / Remix): con «solo stock» los parches de ese lado no aparecen.
 - Sin probar aún con tarjetas reales: haz antes una copia.
 
 ### Con Python (`tools/patch_official.py`)
@@ -215,6 +216,7 @@ To move samples, patterns and FM patches between a Circuit Tracks (Hacks) and a 
 
 - **Two columns:** each opens a Tracks card (a folder with `Tracks/`), a Rhythm card (`Rhythm/`), a snapshot or a folder of loose files.
 - **Samples:** the WAV as it is. **Patterns:** Tracks to Rhythm, each step takes the chord's lowest note; Rhythm to Tracks, one note a step; drums with hits, velocity, probability and micro steps. Automation lanes and sample flips do not cross from one device to the other. **FM patches:** the 8-operator FM, the same on both.
+- **Firmware:** the **Firmware** view holds both installers, Hacks for the Circuit Tracks and Remix for the Circuit Rhythm. At the top, each device's firmware (**Tracks:** automatic / stock only / Hacks; **Rhythm:** automatic / stock only / Remix): with «stock only» that side's patches are left out.
 - Not yet tested with real cards: make a backup first.
 
 ### Build

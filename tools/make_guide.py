@@ -1128,7 +1128,7 @@ Cada columna abre una carpeta, una tarjeta o el aparato, con su propio pack. Un 
 | Pestaña | Qué hay | Qué se hace |
 |---|---|---|
 | **Packs** | Los packs de la tarjeta o del aparato | Copiar, mover, eliminar y exportar packs enteros. El pack interno no aparece |
-| **Sintes Nova** | Los patches de Synth 1 / 2 de cada pack | Copiar, mover, eliminar, exportar |
+| **Sintes Nova** | Los patches de Synth 1 / 2 de cada pack, cada uno con el color de su categoría (arriba, la clave de colores) | Copiar, mover, eliminar, exportar |
 | **Drums** | Los samples del pack y la memoria de samples que ocupan | Escuchar con ▶ o doble clic, copiar, mover, eliminar, exportar |
 | **Parches custom** | Los patches del sinte propio de MIDI 1 / 2 | Editar el motor, sus parámetros y el nombre; copiar, mover, eliminar, exportar; **Importar DX7…** |
 | **Patrones** | Los 64 patrones de una sesión: 8 por pista | Ver, copiar, mover, borrar, exportar; editar las pistas de notas |

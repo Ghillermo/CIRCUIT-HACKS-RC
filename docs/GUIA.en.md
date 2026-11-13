@@ -1526,7 +1526,7 @@ Each column opens a folder, a card or the device, with its own pack. A click cho
 | Tab | What is there | What you do |
 |---|---|---|
 | **Packs** | The packs of the card or the device | Copy, move, delete and export whole packs. The internal pack is not shown |
-| **Nova synths** | The Synth 1 / 2 patches of each pack | Copy, move, delete, export |
+| **Nova synths** | The Synth 1 / 2 patches of each pack, each in its category's colour (the colour key on top) | Copy, move, delete, export |
 | **Drums** | The pack's samples and the sample memory they take | Listen with ▶ or a double click, copy, move, delete, export |
 | **Custom patches** | The patches of the MIDI 1 / 2 own synth | Edit the engine, its parameters and the name; copy, move, delete, export; **Import DX7…** |
 | **Patterns** | The 64 patterns of a session: 8 per track | See, copy, move, clear, export; edit the note tracks |

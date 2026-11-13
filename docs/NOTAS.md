@@ -143,6 +143,14 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 
 ## Parches
 
+### App de la tarjeta: la clave de colores de los sintes Nova (2026-11-13)
+
+El usuario: «Give me the list of Categories and colors for the Nova synth patches. Add those colors to the app». Las filas ya tenían el color (`SD.novaColour`); ahora la pestaña **Sintes Nova** lleva encima una clave (`#legend`, `paintLegend` en `renderAll`) con las 15 categorías en su color (`NOVA_CAT_RGB` = `packio.CAT_PAL` de la Beta 5.40 por la tabla de LEDs; Ninguna = magenta / verde de Synth 1 / 2). También en la vista Hacks de la app maestra. `sd_app_test.html` 73 / 73.
+
+### App Hacks + Remix: Firmware (2026-11-13)
+
+El usuario: «add Remix to the master app», «under firmware options»; elegido «Both»: (1) **vista Firmware** con los dos instaladores: Hacks (`tools/rc_uploader.html` entero como `HR_APPS.hinst`, en su propio marco) y Remix (la app de Remix en otro marco, con un clic a su pestaña Firmware al cargar); (2) **selectores de firmware en la cabecera**: Tracks (automático / solo stock / Hacks; es la clave `sdapp.fw` de la app de Hacks, que su vista sigue) y Rhythm (automático / solo stock / Remix, `hrapp.rfw`). «Solo stock» = la pestaña Parches no lista ni escribe nada de ese lado (los parches custom del Tracks son de Hacks, los del Rhythm de Remix); «automático» = todo (sin aparato; las apps de cada aparato preguntan al conectado). **La app de Remix ahora es la publicada** (`RYTHM/build/public/rm_app.html`: su instalador solo con las versiones públicas de Circuit Remix; antes iba la de desarrollo, con builds de diagnóstico en su lista). **Arreglo:** `#appview iframe { display:block }` pisaba `hidden`: un marco oculto ocupaba media altura (la vista Remix salía a 259 px). `hr_app.html` 6,1 MB. Prueba `hr_app_test.html` 26 / 26; la vista Firmware y los selectores comprobados en el navegador.
+
 ### SC57.1 / Beta 5.56 (2026-11-13): Master FX mantenido y el ataque del morph — pendiente de probar, sin publicar
 
 = SC57 + `tools/mfxhold.py` + `morphz.use_fastatk()`.
