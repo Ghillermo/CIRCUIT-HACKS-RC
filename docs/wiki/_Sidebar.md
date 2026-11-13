@@ -8,13 +8,14 @@
 - [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP)
 - [Usability](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability)
 - [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI)
+- [Patch colours](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Patch-Colours)
 - [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap)
 
 **Español**
 
 - [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES)
 - [Vistas](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views-ES) · [Datos](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Data-ES) · [Funciones](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Features-ES)
-- [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES) · [Usabilidad](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability-ES) · [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI-ES)
+- [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES) · [Usabilidad](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability-ES) · [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI-ES) · [Colores de los patches](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Patch-Colours-ES)
 - [Hoja de ruta](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES)
 
 **Manual**

@@ -15,6 +15,7 @@ Current versions (2026-10-28): **RC4** and the safer **RC4S** (everything from t
 | [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP) | The sound: the MIDI track synth engines, the drum controls, Master FX, FX and side-chain. |
 | [Usability](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability) | The conventions, the shortcuts that work in every view, and the playing and recording helpers. |
 | [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI) | The mod's MIDI behaviours, the new CCs and NRPNs, the mod matrix and the macro destinations. |
+| [Patch colours](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Patch-Colours) | The Nova patches' colour by Components category in the Synth 1 / 2 Preset view: the chart and how to set a category. |
 | [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) | What we are working on, and the ideas open for discussion. |
 
 ## Start here
@@ -46,6 +47,7 @@ Parches de firmware para el **Novation Circuit Tracks** (firmware oficial 1.2.1,
 | [DSP](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/DSP-ES) | El sonido: los motores del sinte de las pistas MIDI, los controles de los drums, Master FX, FX y sidechain. |
 | [Usabilidad](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Usability-ES) | Las convenciones, los atajos que valen en todas las vistas y las ayudas para tocar y grabar. |
 | [MIDI](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/MIDI-ES) | Los comportamientos MIDI del mod, los CC y NRPN nuevos, la matriz de modulación y los destinos de los macros. |
+| [Colores de los patches](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Patch-Colours-ES) | El color de los patches Nova por categoría de Components en la vista Preset de Synth 1 / 2: la tabla y cómo elegir la categoría. |
 | [Hoja de ruta](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) | En qué trabajamos y las ideas abiertas. |
 
 - **Instalar:** [`rc_uploader.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip); **haz antes una copia de la tarjeta SD**.
