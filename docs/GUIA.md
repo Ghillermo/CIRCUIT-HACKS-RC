@@ -907,6 +907,7 @@ La misma vista para un drum: **Pattern Settings dos veces** (modo 1) o el **pad 
 | K7 Modulation | Cantidad del LFO: derecha = trémolo; izquierda = vibrato (*(desde RC4)*: izquierda = **scan del inicio**: cada golpe empieza donde está el LFO, desde el inicio de Shift + K3 hasta un 64avo del sample más allá por cada paso del knob (a la izquierda del todo, todo el sample), sin pasar el corte; el LFO ya no vuelve a empezar con cada golpe) | Velocidad del LFO (bipolar *(desde RC4)*: derecha libre, izquierda a tempo; 0.2; a tempo, el scan empieza en el inicio en el primer tiempo) |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
+- **Shift + K5, el color del LED = el modo de filtro:** **verde** = EQ tilt de stock, **amarillo** = paso banda, **magenta** = notch, **verde azulado** = comb, **blanco** = DJ. *(solo Beta 5.56)* El comb ya no está: Shift + K5 se lo salta.
 - **K3:** girando a la izquierda el ataque vuelve a 0 antes de que baje el decay; con Shift, uno de los dos (inicio o corte) vuelve a 0 antes de que se mueva el otro. LED: ataque en blanco; con Shift, inicio en el color del drum, corte en blanco.
 - **Clear + K3 a la derecha** pone a 0 ataque, inicio y corte; **Clear + K8 a la derecha** quita también el bitcrush *(desde RC2)*. Clear + knob restablece las dos capas en los demás.
 - **Clear + el botón del drum** *(desde RC2)* (con una de sus vistas en pantalla): los ocho knobs del drum, con su capa Shift, a sus valores por defecto.

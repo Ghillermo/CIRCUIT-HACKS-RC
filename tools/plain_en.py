@@ -200,6 +200,7 @@ Each knob does what its panel label says, with a second layer under Shift. Every
 | K7 Modulation | LFO amount (right, tremolo; *since RC4:* left, every hit starts at another point of the sample, like a scan) | LFO speed |
 | K8 FX | Distortion; left of zero, bitcrush | Distortion type: stock, soft, hard, folded |
 
+- **Shift + K5, the LED's colour = the filter mode:** green = EQ tilt (stock), yellow = band pass, magenta = notch, teal = comb and white = DJ (in the betas, since 5.0, the comb is gone: Shift + K5 skips it).
 - **Reset:** Clear + knob right = default (both layers; LED lavender, as on the original); Clear + knob left = delete that knob's automation (red), as on the original. {B}: Clear + K3 right also puts attack, start and cut to 0; Clear + K8 right also removes the bitcrush; **Clear + the drum's button** (with its view on screen) puts all its knobs back to their defaults.
 - **RC0.9:** a new or untouched project starts with the filter mode in DJ, which removes the stock EQ: drums can sound different from a stock Circuit. Shift + K5 to «EQ tilt» brings the stock sound back. {B}: fixed (the default is the stock EQ).
 
