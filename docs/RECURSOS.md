@@ -23,6 +23,16 @@ Cifras de **RC0** (= SC36.2) sobre el firmware oficial 1.2.1 (build 4486). Salen
 | Memoria externa del DSP (16 bits por palabra) | 16 M palabras (`$000000–$FFFFFF`) | `$337000–$57EFFF` + `$E80000–$FFEFFF` ≈ 4 M palabras (≈ 82 s mono a 48 kHz) | ≈ 1,75 M | **≈ 2,2 M palabras (≈ 45 s)** |
 | Tarjeta SD | la de la tarjeta | — | ficheros `PCM/NN_PCM.wav` del pack al guardar (solo RC0; RC0S nada) | — |
 
+> **SC57.1 / Beta 5.56 (2026-11-13):** `mfxhold` (≈ 130 B en el hueco de `dspz`, RAM `0x2004FAD0` 12 B) + `morphz.use_fastatk()` (≈ 40 B; tras un disparo, una pasada del servicio del DSP con ≈ 250 escrituras de parámetros de Synth 1 / 2 en lugar de 40); imagen `0x6FEE8`.
+
+> **SC57 / Beta 5.55 (2026-11-12):** `morphz.use_newstop()` (`c_mzarm` + dos ramas, ≈ 100 B en las zonas libres); imagen `0x6FEE8`, RAM y CPU sin cambios.
+
+> **SC56.9 / Beta 5.54 (2026-11-12):** `morphz.use_rrfix()` (12 B de código en el morph); imagen `0x6FEE8`, RAM y CPU sin cambios.
+
+> **SC56.8 / Beta 5.53 (2026-11-12):** `knobhold.use_freeze()` + `blackbox.use_v2()` (vectores de fallo y SysTick): caja negra 1832 B, retener knob 880 B en el primer hueco de `dspz` (quedan **2132 B**); imagen `0x6FEE8`. RAM sin cambios. CPU: el SysTick (1 ms) hace unas 10 instrucciones más.
+
+> **SC56.7 / Beta 5.52 (2026-11-12):** `tools/knobhold.py` (retener knob): 776 B en el primer hueco de `dspz` (quedan **2904 B**; imagen `0x6FEE8`: + 24 B de `patmut.use_lrram`); RAM `0x2004F900-0x2004FAA7` (firma `KHL1`) + `0x2004FAC0-0x2004FACB` (LR de `patmut.c_pmled` / `fmmap.c_mmled`, arreglo de la issue #22). Sin DSP ni SPI. CPU: con el interruptor encendido, unas 4 lecturas de parámetros y 19 bytes recorridos por evento de knob.
+
 > **SC56.6 / Beta 5.51 (2026-11-12):** `tools/blackbox.py` (la caja negra): 1 164 B en el primer hueco de `dspz` (quedan **3 704 B** ahí; imagen igual, `0x6FED0`); RAM `0x2004F000-0x2004F3FF` (firma `BBX1`, sobrevive al reinicio). Sin DSP ni SPI. CPU: una lectura del transporte por ms en el bucle principal y unas pocas instrucciones por entrada y por fotograma.
 
 > **SC56.3 / Beta 5.48 (2026-11-11):** `tools/fmmap.py` (el mapa del algoritmo FM): 1 660 B en el primer hueco de `dspz` (quedan **5 256 B** ahí; imagen igual, `0x6FED0`); RAM `0x2004F500-0x2004F597` (`FMAP`, firma `FMM1`) y los bytes + 240..255 de cada bloque de pista del FM (la entrada del algoritmo propio); guardado: bytes libres de los parámetros del FM (+ 21 de cada operador, GLB + 13 / 14), que ya viajaban con el patch y el proyecto. Sin DSP; SPI igual (el enrutado se manda al cambiar, como al cambiar de algoritmo). CPU: la disposición del mapa en cada fotograma de la tarea de LEDs con el mapa en pantalla (≤ 8 × 255 pasos del recorrido).

@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldrb_imm, ldrh_imm, lsls_imm, lsrs_imm,  # noqa: E402
-                   mov_reg, movs_imm, movt, movw, pop_list, push_list, raw, str_imm, strb_imm, strh_imm, subs_reg, subs_imm8)
+                   ands_reg, muls, orrs_reg, mov_reg, movs_imm, movt, movw, pop_list, push_list, raw, str_imm, strb_imm, strh_imm, subs_reg, subs_imm8)
 import rdiag as RD  # noqa: E402
 import mpatch as MP  # noqa: E402
 import build_sc14 as S14  # noqa: E402
@@ -50,6 +50,31 @@ assert O.MGR1 + N_MGR1 == O.MGR2 and O.MGR2 + N_MGR2 == O.RING and O.RING + N_RI
 assert O.STK1 + N_STK1 == O.STK2 and O.STK2 + N_STK2 == SIZE and O.PC + 8 * NSAMP <= O.MGR1
 assert BB >= 0x2004EFB0 and BB + SIZE <= 0x2004F400
 RAM_LO, RAM_HI = 0x20000000, 0x20050000
+
+# ---- v2 (SC56.8 / Beta 5.53; the user, 2026-11-12: entering the morph «la unidad se colgó y se reinició a los 3 segundos», «mejora el diagnóstico»):
+# the stock's fault handlers loop (HardFault / MemManage: b .; BusFault / UsageFault: bkpt, then the same) until a watchdog restarts the unit, so a
+# crash never reached the 15 s watchdog above.  Three captures more, each frozen across the restart (Save violet 30 s after it):
+#   * a fault (vectors 3-6, in front of the stock's handlers): the exception frame (PC, LR, r0-r3, r12, xPSR), CFSR / HFSR, MMFAR or BFAR, the
+#     vector and EXC_RETURN, the task's TCB, 384 B of the stack from the frame, 176 B of the main loop's task's stack; then the stock's handler;
+#   * a stall (SysTick, every ms, in front of HAL_IncTick): the main loop (this module's head of the DSP service chain) not run for STALL2_MS = the
+#     task that was running (the interrupted frame: its PC / LR, sampled every 50 ms), its TCB and stack; a stall that ends (the main loop runs
+#     again) is dropped: only one that ends in a restart stays;
+#   * a restart (the main loop's first tick after one): RCC_CSR kept (and its flags cleared, RMVF); a watchdog restart (IWDGRSTF / WWDGRSTF) with
+#     nothing frozen = the breadcrumbs of before frozen as they were.
+V2 = False
+ST_FAULT, ST_STALL, ST_WARM = 16, 32, 64
+STALL2_MS = 1500
+RCC_CSR, CSR_RMVF, CSR_WD = 0x40023874, 1 << 24, (1 << 29) | (1 << 30)
+SCB_CFSR = 0xE000ED28                                         # + 4 HFSR, + 12 MMFAR, + 16 BFAR
+FAULT_VECS = (3, 4, 5, 6)
+SYSTICK_VEC = 15
+O2 = type("O2", (), dict(XTRA=76, CSR=176, RTCB=180, RPC=184, RLR=188, MTCB=192, CFSR=196, HFSR=200, FADR=204))
+N_MGR1_V2 = 32                                                # MGR1 copies 32 B; + 176..207 = the fields above
+
+
+def use_v2():
+    global V2, FMT
+    V2, FMT = True, 2
 LEN_READ, LEN_CMD = 137, 14
 CHUNK = 64
 assert SIZE // CHUNK <= 16 and LEN_READ == 8 + 2 * CHUNK + 1
@@ -134,7 +159,7 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     imm32(1, MGR); E(ldr_imm, 0, 1, 0x6C); E(str_imm, 0, 4, O.VIEW)
     def cpy(dst_off, src_reg_setup, n):
         E(movw, 0, dst_off); E(adds_reg, 0, 0, 4); src_reg_setup(); E(movw, 2, n); E(bl, "c_bbcpy")
-    cpy(O.MGR1, lambda: imm32(1, MGR + MGR1), N_MGR1)
+    cpy(O.MGR1, lambda: imm32(1, MGR + MGR1), N_MGR1_V2 if V2 else N_MGR1)
     cpy(O.MGR2, lambda: imm32(1, MGR + MGR2), N_MGR2)
     cpy(O.TCB, lambda: E(ldr_imm, 1, 4, O.LTCB), N_TCB)
     E(ldr_imm, 0, 4, O.LTCB); E(bl, "c_bbtos"); E(mov_reg, 6, 0); E(str_imm, 6, 4, O.LTOS)
@@ -153,11 +178,20 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     E(bl, "c_bbst"); E(mov_reg, 4, 0); now(5)
     E(ldrb_imm, 6, 4, O.ST)
     E(ldr_imm, 1, 4, O.NOW); E(str_imm, 5, 4, O.NOW); E(cmp_reg, 1, 5); E(b_cond, "tk_s", "ls")
-    E(lsls_imm, 0, 6, 31); E(b_cond, "tk_s", "mi")                                      # a restart, not frozen: this boot's frames from 0
-    E(movs_imm, 0, 0); E(str_imm, 0, 4, O.LF0); E(str_imm, 0, 4, O.LF1); E(str_imm, 0, 4, O.LFN); E(str_imm, 0, 4, O.PLAY)
+    if V2:
+        E(bl, "c_bbrst")                                                                # a restart: RCC_CSR, the frozen captures marked
+    else:
+        E(lsls_imm, 0, 6, 31); E(b_cond, "tk_s", "mi")                                  # a restart, not frozen: this boot's frames from 0
+        E(movs_imm, 0, 0); E(str_imm, 0, 4, O.LF0); E(str_imm, 0, 4, O.LF1); E(str_imm, 0, 4, O.LFN); E(str_imm, 0, 4, O.PLAY)
     a.label("tk_s")
+    if V2:
+        imm32(0, CUR_TCB); E(ldr_imm, 0, 0, 0); E(raw, str_w(0, 4, O2.MTCB))             # the main loop's task
     E(lsls_imm, 0, 6, 31); E(b_cond, "tk_live", "pl")
-    E(movs_imm, 0, ST_MANUAL | ST_RESET); E(raw, h(0x4230)); bc("tk_x", "ne")             # tst r0, r6
+    if V2:                                                                              # a stall that ended (the main loop runs): dropped
+        E(movs_imm, 0, ST_STALL | ST_RESET); E(ands_reg, 0, 6); E(cmp_imm, 0, ST_STALL); E(b_cond, "tk_ns", "ne")
+        E(movs_imm, 6, 0); E(strb_imm, 6, 4, O.ST); E(strb_imm, 6, 4, O.NS); E(b, "tk_live")
+        a.label("tk_ns")
+    E(movs_imm, 0, (ST_MANUAL | ST_RESET | ST_FAULT | ST_STALL | ST_WARM) if V2 else (ST_MANUAL | ST_RESET)); E(raw, h(0x4230)); bc("tk_x", "ne")   # tst r0, r6
     E(ldrb_imm, 7, 4, O.NS); E(cmp_imm, 7, NSAMP); E(b_cond, "tk_rs", "hs")
     E(ldr_imm, 0, 4, O.FT); E(subs_reg, 0, 5, 0); E(movs_imm, 1, SAMPLE_MS); E(raw, h(0x4379))   # muls r1, r7
     E(cmp_reg, 0, 1); bc("tk_x", "lo"); E(bl, "c_bbsmp"); E(b, "tk_x")
@@ -175,6 +209,8 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     E(subs_reg, 0, 5, 0); E(movw, 1, STALL_MS); E(cmp_reg, 0, 1); E(b_cond, "tk_x", "lo")
     E(movs_imm, 0, ST_FROZEN | ST_PLAY); E(bl, "c_bbfrz")
     a.label("tk_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["svc"])
+    if V2:
+        v2_code(a, E, bc, imm32, now, prev)
 
     # ---- c_bbled (the LED task's two calls: ctrl, frame): LR / frame in RAM, nothing on the stack while the chain runs; the frame's start / end, the
     #      task and SP; Save blinking violet for SHOW_MS after the watchdog's restart
@@ -276,6 +312,93 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     return a.assemble()
 
 
+def v2_code(a, E, bc, imm32, now, prev):
+    MRS_MSP2, MRS_PSP2 = h(0xF3EF) + h(0x8208), h(0xF3EF) + h(0x8209)                     # mrs r2, msp / psp
+    TST_LR4, ITE_EQ = h(0xF01E) + h(0x0F04), h(0xBF0C)
+
+    # ---- c_bbrst (c_bbtick, a restart: r4 = BB, r6 = the state, r1 = the last tick before it) -> r6; clobbers r0-r3
+    a.label("c_bbrst")
+    E(raw, h(0xB500))
+    imm32(3, RCC_CSR); E(ldr_imm, 0, 3, 0); E(raw, str_w(0, 4, O2.CSR))
+    imm32(2, CSR_RMVF); E(orrs_reg, 2, 0); E(str_imm, 2, 3, 0)                            # the flags cleared for the next restart
+    E(lsls_imm, 2, 6, 31); E(b_cond, "rs_n", "pl")
+    E(movs_imm, 2, ST_FAULT | ST_STALL); E(raw, h(0x4216)); E(b_cond, "rs_x", "eq")      # tst r6, r2: a capture of ours: the restart seen
+    E(movs_imm, 2, ST_RESET); E(orrs_reg, 6, 2); E(strb_imm, 6, 4, O.ST); E(b, "rs_x")
+    a.label("rs_n")
+    imm32(2, CSR_WD); E(raw, h(0x4210)); E(b_cond, "rs_c", "eq")                          # tst r0, r2: a watchdog restart
+    E(movs_imm, 6, ST_FROZEN | ST_WARM | ST_RESET); E(strb_imm, 6, 4, O.ST); E(str_imm, 1, 4, O.FT)
+    E(movs_imm, 0, 0); E(str_imm, 0, 4, O.STALL); E(strb_imm, 0, 4, O.NS); E(b, "rs_x")
+    a.label("rs_c")                                                                       # else: this boot's frames from 0
+    E(movs_imm, 0, 0); E(str_imm, 0, 4, O.LF0); E(str_imm, 0, 4, O.LF1); E(str_imm, 0, 4, O.LFN); E(str_imm, 0, 4, O.PLAY)
+    a.label("rs_x"); E(raw, h(0xBD00))
+
+    # ---- c_bbcap(r0 = state, r1 = the exception frame, r2 = 1: the frame's registers too; r4 = BB): freeze from a handler; clobbers r0-r3
+    a.label("c_bbcap")
+    E(push_list, [5, 6, 7], lr=True); E(mov_reg, 6, 1); E(mov_reg, 7, 2)
+    E(strb_imm, 0, 4, O.ST); now(5); E(str_imm, 5, 4, O.FT); E(ldr_imm, 0, 4, O.NOW); E(subs_reg, 0, 5, 0); E(str_imm, 0, 4, O.STALL)
+    imm32(1, MGR); E(ldr_imm, 0, 1, 0x6C); E(str_imm, 0, 4, O.VIEW)
+    def cpy(dst_off, src_setup, n):
+        E(movw, 0, dst_off); E(adds_reg, 0, 0, 4); src_setup(); E(movw, 2, n); E(bl, "c_bbcpy")
+    cpy(O.MGR1, lambda: imm32(1, MGR + MGR1), N_MGR1_V2)
+    cpy(O.MGR2, lambda: imm32(1, MGR + MGR2), N_MGR2)
+    imm32(1, CUR_TCB); E(ldr_imm, 1, 1, 0); E(raw, str_w(1, 4, O2.RTCB))
+    cpy(O.TCB, lambda: E(raw, ldr_w(1, 4, O2.RTCB)), N_TCB)
+    E(mov_reg, 0, 6); E(movs_imm, 1, 32); E(bl, "c_bbval"); E(mov_reg, 6, 0); E(str_imm, 6, 4, O.LTOS)
+    E(movs_imm, 0, 0); E(movs_imm, 1, 0); E(cmp_imm, 6, 0); E(b_cond, "cp_pw", "eq")
+    E(ldr_imm, 0, 6, 24); E(ldr_imm, 1, 6, 20)
+    a.label("cp_pw")
+    E(raw, str_w(0, 4, O2.RPC)); E(raw, str_w(1, 4, O2.RLR)); E(str_imm, 0, 4, O.PC); E(str_imm, 1, 4, O.PC + 4)
+    E(movs_imm, 0, 1); E(cmp_imm, 7, 0); E(b_cond, "cp_ns", "eq"); E(cmp_imm, 6, 0); E(b_cond, "cp_ns", "eq")
+    for k, (x, y) in enumerate(((0, 4), (8, 12), (16, 28)), 1):                           # r0 / r1, r2 / r3, r12 / xPSR
+        E(ldr_imm, 0, 6, x); E(str_imm, 0, 4, O.PC + 8 * k); E(ldr_imm, 0, 6, y); E(str_imm, 0, 4, O.PC + 8 * k + 4)
+    E(movs_imm, 0, 4)
+    a.label("cp_ns"); E(strb_imm, 0, 4, O.NS)
+    cpy(O.STK1, lambda: E(mov_reg, 1, 6), N_STK1)
+    E(raw, ldr_w(0, 4, O2.MTCB)); E(bl, "c_bbtos"); E(str_imm, 0, 4, O.ITOS)
+    cpy(O.STK2, lambda: E(ldr_imm, 1, 4, O.ITOS), N_STK2)
+    E(pop_list, [5, 6, 7], pc=True)
+
+    # ---- the stubs (vectors): r1 = EXC_RETURN, r2 = the frame (MSP / PSP by its bit 2), r4-r7 / LR pushed, then the stock's handler
+    def stub(lab, vec_no, body, orig):
+        a.label(lab)
+        E(raw, h(0x4671)); E(raw, TST_LR4); E(raw, ITE_EQ); E(raw, MRS_MSP2); E(raw, MRS_PSP2)   # mov r1, lr
+        E(raw, pushw([4, 5, 6, 7], lr=True)); E(movs_imm, 0, vec_no); E(bl, body)
+        E(raw, popw([4, 5, 6, 7], lr=True)); E(b_w, orig)
+    for v in FAULT_VECS:
+        stub(f"c_bbv{v}", v, "c_bbfltc", prev[f"vec{v}"])
+    stub("c_bbsys", SYSTICK_VEC, "c_bbsysc", prev[f"vec{SYSTICK_VEC}"])
+
+    # ---- c_bbfltc(r0 = the vector, r1 = EXC_RETURN, r2 = the frame): a fault, unless something is frozen
+    a.label("c_bbfltc")
+    E(raw, h(0xB500)); E(mov_reg, 5, 0); E(mov_reg, 6, 1); E(mov_reg, 7, 2)
+    E(bl, "c_bbst"); E(mov_reg, 4, 0)
+    E(ldrb_imm, 0, 4, O.ST); E(lsls_imm, 0, 0, 31); E(b_cond, "fl_x", "mi")
+    E(lsls_imm, 1, 6, 24); E(lsrs_imm, 1, 1, 16); E(orrs_reg, 1, 5); E(str_imm, 1, 4, O2.XTRA)   # the vector | EXC_RETURN's low byte << 8
+    imm32(3, SCB_CFSR); E(ldr_imm, 0, 3, 0); E(raw, str_w(0, 4, O2.CFSR)); E(ldr_imm, 1, 3, 4); E(raw, str_w(1, 4, O2.HFSR))
+    E(lsls_imm, 0, 0, 24); E(ldr_imm, 1, 3, 16); E(b_cond, "fl_a", "pl"); E(ldr_imm, 1, 3, 12)   # MMARVALID: MMFAR, else BFAR
+    a.label("fl_a"); E(raw, str_w(1, 4, O2.FADR))
+    E(movs_imm, 0, ST_FROZEN | ST_FAULT); E(mov_reg, 1, 7); E(movs_imm, 2, 1); E(bl, "c_bbcap")
+    a.label("fl_x"); E(raw, h(0xBD00))
+
+    # ---- c_bbsysc(r1 = EXC_RETURN, r2 = the frame): the main loop's heartbeat (O.NOW, written by c_bbtick every ms)
+    a.label("c_bbsysc")
+    E(raw, h(0xB500)); E(mov_reg, 6, 2)
+    imm32(4, BB); E(ldr_imm, 0, 4, 0); imm32(1, SIG); E(cmp_reg, 0, 1); E(b_cond, "sy_x", "ne")
+    now(5); E(ldrb_imm, 7, 4, O.ST); E(lsls_imm, 0, 7, 31); E(b_cond, "sy_f", "mi")
+    E(ldr_imm, 0, 4, O.NOW); E(cmp_imm, 0, 0); E(b_cond, "sy_x", "eq"); E(cmp_reg, 0, 5); E(b_cond, "sy_x", "hi")   # a heartbeat of this boot
+    E(subs_reg, 0, 5, 0); E(movw, 1, STALL2_MS); E(cmp_reg, 0, 1); E(b_cond, "sy_x", "lo")
+    E(movs_imm, 0, ST_FROZEN | ST_STALL); E(mov_reg, 1, 6); E(movs_imm, 2, 0); E(bl, "c_bbcap"); E(b, "sy_x")
+    a.label("sy_f")                                                                       # a stall frozen: the running task's PC / LR every 50 ms
+    E(movs_imm, 0, ST_STALL | ST_RESET); E(ands_reg, 0, 7); E(cmp_imm, 0, ST_STALL); E(b_cond, "sy_x", "ne")
+    E(ldrb_imm, 7, 4, O.NS); E(cmp_imm, 7, NSAMP); E(b_cond, "sy_x", "hs")
+    E(ldr_imm, 0, 4, O.FT); E(subs_reg, 0, 5, 0); E(movs_imm, 1, SAMPLE_MS); E(muls, 1, 7); E(cmp_reg, 0, 1); E(b_cond, "sy_x", "lo")
+    E(mov_reg, 0, 6); E(movs_imm, 1, 32); E(bl, "c_bbval"); E(movs_imm, 1, 0); E(movs_imm, 2, 0); E(cmp_imm, 0, 0); E(b_cond, "sy_w", "eq")
+    E(ldr_imm, 1, 0, 24); E(ldr_imm, 2, 0, 20)
+    a.label("sy_w"); E(lsls_imm, 3, 7, 3); E(adds_reg, 3, 3, 4); E(str_imm, 1, 3, O.PC); E(str_imm, 2, 3, O.PC + 4)
+    E(adds_imm8, 7, 1); E(strb_imm, 7, 4, O.NS)
+    a.label("sy_x"); E(raw, h(0xBD00))
+
+
 def install(img, report, base_addr):
     """Append the code; hooks: the DSP service chain's head, the LED task's two calls, the controller's five input entries, the SysEx dispatcher
     (in front of fwid)."""
@@ -289,6 +412,9 @@ def install(img, report, base_addr):
         cur = old(addr)
         if cur in PROLOGUES: conts.append(cur)
         else: conts.append(MP.bw_target(img, addr, BASE))
+    if V2:
+        for v in FAULT_VECS + (SYSTICK_VEC,):
+            prev[f"vec{v}"] = struct.unpack_from("<I", img, 4 * v)[0] & ~1
     fw = int(report["fwid"]["labels"]["c_fwin"], 16)
     assert old(RD.HOOK) == RD.b_w(RD.HOOK, fw), old(RD.HOOK).hex()
     router_ptr = struct.unpack_from("<I", img, RD.ROUTER_LIT - BASE)[0]
@@ -303,6 +429,10 @@ def install(img, report, base_addr):
     for addr, kind in ENTRIES:
         img[addr - BASE:addr - BASE + 4] = b_w(addr, labels[f"c_bbin{kind}"])
     img[RD.HOOK - BASE:RD.HOOK - BASE + 4] = b_w(RD.HOOK, labels["c_bbsx"])
+    if V2:
+        for v in FAULT_VECS:
+            struct.pack_into("<I", img, 4 * v, labels[f"c_bbv{v}"] | 1)
+        struct.pack_into("<I", img, 4 * SYSTICK_VEC, labels["c_bbsys"] | 1)
     out = dict(prev, sx_cont=fw, bb=BB)
     for (addr, kind), c in zip(ENTRIES, conts):
         if isinstance(c, int): out[f"in{kind}"] = c

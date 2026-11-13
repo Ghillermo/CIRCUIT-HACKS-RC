@@ -100,6 +100,18 @@ def custom_entry(params):
 
 
 # ---------------------------------------------------------------------------------------------------------------------------- the code
+LRRAM = False               # (SC56.7) c_mmled: LR in RAM while the chain below runs (the LED task's stack, issue #22)
+LR_SLOT = 0x2004FAC8        # 4 B (free: after knobhold's 0x2004F900..0x2004FAA7, below 0x2004FC00)
+
+
+def use_lrram():
+    """SC56.7 / Beta 5.52 (fix, issue #22 of the public repository: «Beta 5.48 – Circuit Tracks crashes when opening MIDI 1/2 presets»): c_mmled
+    (slot 7 of the template view = MIDI 1 / 2's Preset view) pushed 36 B before calling the chain below it, 1 804 -> 1 840 B of the LED task's
+    stack in emulation (SC54 reset the unit there at 1 808).  Now LR goes to RAM (LR_SLOT) while the chain runs, the registers are pushed after."""
+    global LRRAM
+    LRRAM = True
+
+
 def arm_code(base, L, prev, fmalg_back):
     a = Asm(base)
     E = a.emit
@@ -317,8 +329,12 @@ def arm_code(base, L, prev, fmalg_back):
 
     # ---- c_mmled (slot 7 of the template view: view) -> r0 = the LED buffer; the map over pads 9-32, pad 7 bright
     lab("c_mmled")
-    E(raw, h(0xE92D) + h(0x4FF0))
-    E(bl, prev["leds"]); E(mov_reg, 5, 0)
+    if LRRAM:
+        imm32(1, LR_SLOT); E(raw, h(0xF8C1) + h(0xE000))                                  # str.w lr, [r1]
+        E(bl, prev["leds"]); E(raw, h(0xE92D) + h(0x0FF0)); E(mov_reg, 5, 0)                # push.w {r4-r11}
+    else:
+        E(raw, h(0xE92D) + h(0x4FF0))
+        E(bl, prev["leds"]); E(mov_reg, 5, 0)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("le_x", "hi"); E(mov_reg, 4, 0)
     E(bl, "c_mmst"); E(mov_reg, 6, 0)
     E(mov_reg, 0, 4); E(bl, "c_mmshow"); E(cmp_imm, 0, 0); E(b_cond, "le_on", "ne")
@@ -367,7 +383,9 @@ def arm_code(base, L, prev, fmalg_back):
         E(cmp_imm, 2, i); E(b_cond, f"le_t{i}", "ne"); E(movs_imm, 3, code); lab(f"le_t{i}")
     lab("le_w"); E(mov_reg, 0, 9); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 3, 5, 0)
     E(mov_reg, 0, 9); E(adds_imm8, 0, 1); E(mov_reg, 9, 0); E(cmp_imm, 0, 24); bc("le_c", "lo")
-    lab("le_x"); E(mov_reg, 0, 5); E(raw, h(0xE8BD) + h(0x8FF0))
+    lab("le_x"); E(mov_reg, 0, 5)
+    if LRRAM: E(raw, h(0xE8BD) + h(0x0FF0)); imm32(1, LR_SLOT); E(raw, h(0xF8D1) + h(0xF000))  # pop.w {r4-r11}; ldr.w pc, [r1]
+    else: E(raw, h(0xE8BD) + h(0x8FF0))
     return a.assemble()
 
 

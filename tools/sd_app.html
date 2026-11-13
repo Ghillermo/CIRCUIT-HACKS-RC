@@ -1174,7 +1174,10 @@ function ccDecode(d) {
 const BB_SIZE = 1024;
 const BB = {sig: 0, st: 4, fmt: 5, ns: 6, ri: 7, ft: 8, stall: 12, view: 16, ltos: 20, itos: 24, lf0: 28, lf1: 32, lfn: 36, lsp: 40, ltcb: 44, itcb: 48, isp: 52,
             play: 56, now: 68, itime: 72, pc: 80, mgr1: 144, mgr2: 208, ring: 240, tcb: 368, stk1: 464, stk2: 848};
-const BB_ST = {frozen: 1, reset: 2, manual: 4, play: 8};
+const BB_ST = {frozen: 1, reset: 2, manual: 4, play: 8, fault: 16, stall: 32, warm: 64};
+const BB2 = {xtra: 76, csr: 176, rtcb: 180, rpc: 184, rlr: 188, mtcb: 192, cfsr: 196, hfsr: 200, fadr: 204};   // format 2 (Beta 5.53 on)
+const BB_FAULTS = {3: "HardFault", 4: "MemManage", 5: "BusFault", 6: "UsageFault"};
+const BB_CSR = [[31, "low-power"], [30, "WWDG"], [29, "IWDG"], [28, "software"], [27, "power-on"], [26, "pin"], [25, "brown-out"]];
 const BB_KINDS = [null, "button-down", "button-up", "pad-down", "pad-up", "knob"];
 function bbParse(b) {
   const v = new DataView(b.buffer, b.byteOffset, b.byteLength), u32 = o => v.getUint32(o, true), hx = n => "0x" + (n >>> 0).toString(16).padStart(8, "0");
@@ -1186,15 +1189,24 @@ function bbParse(b) {
     ring.push({t: u32(o), before: st & BB_ST.frozen ? ft - u32(o) : null, kind: BB_KINDS[k] || String(k), id: b[o + 5], view: "0x2004" + v.getUint16(o + 6, true).toString(16).padStart(4, "0")});
   }
   ring.sort((x, y) => x.t - y.t);
-  const pcs = [];
-  for (let i = 0; i < b[BB.ns] && i < 8; i++) pcs.push({pc: hx(u32(BB.pc + 8 * i)), lr: hx(u32(BB.pc + 8 * i + 4))});
+  const pcs = [], fmt = b[BB.fmt], fault = fmt >= 2 && !!(st & BB_ST.fault);
+  for (let i = 0; i < b[BB.ns] && i < 8 && !(fault && i > 0); i++) pcs.push({pc: hx(u32(BB.pc + 8 * i)), lr: hx(u32(BB.pc + 8 * i + 4))});
+  let v2 = {};
+  if (fmt >= 2) {
+    const csr = u32(BB2.csr), x = u32(BB2.xtra);
+    v2 = {fault, stall: !!(st & BB_ST.stall), warm: !!(st & BB_ST.warm), csr: hx(csr), resetCauses: BB_CSR.filter(([bit]) => csr >>> bit & 1).map(([, n]) => n),
+      runTask: hx(u32(BB2.rtcb)), runPc: hx(u32(BB2.rpc)), runLr: hx(u32(BB2.rlr)), mainTask: hx(u32(BB2.mtcb))};
+    if (fault) Object.assign(v2, {faultType: BB_FAULTS[x & 0xFF] || String(x & 0xFF), excReturn: "0xffffff" + (x >> 8 & 0xFF).toString(16).padStart(2, "0"),
+      cfsr: hx(u32(BB2.cfsr)), hfsr: hx(u32(BB2.hfsr)), faultAddress: hx(u32(BB2.fadr)),
+      regs: {r0: hx(u32(BB.pc + 8)), r1: hx(u32(BB.pc + 12)), r2: hx(u32(BB.pc + 16)), r3: hx(u32(BB.pc + 20)), r12: hx(u32(BB.pc + 24)), xpsr: hx(u32(BB.pc + 28))}});
+  }
   const name = [...b.subarray(BB.tcb + 52, BB.tcb + 68)], nz = name.indexOf(0);
   const code = (from, n) => { const out = []; for (let o = from; o < from + n; o += 4) { const w = u32(o); if (w & 1 && w >= 0x08010000 && w < 0x08080000 && !out.includes(hx(w))) out.push(hx(w)); } return out; };
   return {signed: true, state: st, frozen: !!(st & BB_ST.frozen), restarted: !!(st & BB_ST.reset), manual: !!(st & BB_ST.manual), playing: !!(st & BB_ST.play),
     freezeMs: ft, stallMs: u32(BB.stall), view: hx(u32(BB.view)), ledFrames: u32(BB.lfn), ledStart: u32(BB.lf0), ledEnd: u32(BB.lf1),
     insideLed: u32(BB.lf0) > u32(BB.lf1), ledTask: hx(u32(BB.ltcb)), inputTask: hx(u32(BB.itcb)), ledSp: hx(u32(BB.lsp)), inputSp: hx(u32(BB.isp)),
     taskName: String.fromCharCode(...(nz < 0 ? name : name.slice(0, nz)).filter(c => c >= 0x20 && c < 0x7F)), lastInputMs: u32(BB.itime),
-    ring, pcs, ledStack: code(BB.stk1, 384), inputStack: code(BB.stk2, 176)};
+    ring, pcs, ledStack: code(BB.stk1, 384), inputStack: code(BB.stk2, 176), format: fmt, ...v2};
 }
 
 class Device {
@@ -2597,9 +2609,19 @@ function bbHtml(r, fw) {
   const kind = e => ({"button-down": T("botón", "button") + " ↓", "button-up": T("botón", "button") + " ↑", "pad-down": "pad ↓", "pad-up": "pad ↑", knob: "knob"}[e.kind] || e.kind);
   const what = e => e.kind.startsWith("button") ? (BTN_NAMES[e.id] || `${T("botón", "button")} ${e.id}`) : e.kind.startsWith("pad") ? `pad ${e.id + 1}` : `K${e.id + 1}`;
   const s = ms => (ms / 1000).toFixed(1) + " s";
-  let h = `<p><b>${r.frozen ? (r.manual ? T("Capturado a mano.", "Captured by hand.") : T("El panel se colgó y el aparato se reinició.", "The panel hung and the device restarted.")) : T("Nada capturado: sigue apuntando.", "Nothing captured: still recording.")}</b>` +
-    (fw ? ` Firmware ${esc(fw)}.` : "") + `</p>`;
-  if (r.frozen && !r.ledFrames) h += `<p>${T("Captura", "Capture")}: ${s(r.freezeMs)} ${T("tras encender", "after power-on")}; ${T("ningún fotograma del panel apuntado.", "no panel frame recorded.")}</p>`;
+  const rs = r.restarted ? T(" El aparato se reinició.", " The device restarted.") : "";
+  const head = !r.frozen ? T("Nada capturado: sigue apuntando.", "Nothing captured: still recording.")
+    : r.fault ? T(`Fallo del procesador (${r.faultType}).`, `Processor fault (${r.faultType}).`) + rs
+    : r.stall ? T("El aparato se bloqueó: el bucle principal dejó de correr.", "The device locked up: the main loop stopped running.") + rs
+    : r.warm ? T("El vigilante reinició el aparato sin captura: estas son las últimas entradas de antes.", "The watchdog restarted the device with no capture: these are the last inputs before it.")
+    : r.manual ? T("Capturado a mano.", "Captured by hand.") : T("El panel se colgó y el aparato se reinició.", "The panel hung and the device restarted.");
+  let h = `<p><b>${head}</b>` + (fw ? ` Firmware ${esc(fw)}.` : "") + `</p>`;
+  if (r.fault) h += `<p>PC <b>${r.runPc}</b> · LR ${r.runLr} · ${T("tarea", "task")} ${esc(r.taskName || "?")} · CFSR ${r.cfsr} · HFSR ${r.hfsr} · ${T("dirección", "address")} ${r.faultAddress}</p>` +
+    `<p class="dim">r0 ${r.regs.r0} · r1 ${r.regs.r1} · r2 ${r.regs.r2} · r3 ${r.regs.r3} · r12 ${r.regs.r12} · xPSR ${r.regs.xpsr} · EXC_RETURN ${r.excReturn}</p>`;
+  if (r.stall) h += `<p>${T("Tarea en marcha", "Running task")} ${esc(r.taskName || "?")} · PC <b>${r.runPc}</b> · LR ${r.runLr}</p>`;
+  if (r.format >= 2 && r.resetCauses && r.resetCauses.length) h += `<p class="dim">${T("Último reinicio", "Last restart")}: ${r.resetCauses.join(", ")} (RCC_CSR ${r.csr})</p>`;
+  if (r.fault || r.stall || r.warm) h += `<p>${T("Captura", "Capture")}: ${s(r.freezeMs)} ${T("tras encender", "after power-on")}.</p>`;
+  else if (r.frozen && !r.ledFrames) h += `<p>${T("Captura", "Capture")}: ${s(r.freezeMs)} ${T("tras encender", "after power-on")}; ${T("ningún fotograma del panel apuntado.", "no panel frame recorded.")}</p>`;
   else if (r.frozen) h += `<p>${T("Captura", "Capture")}: ${s(r.freezeMs)} ${T("tras encender", "after power-on")}; ${T("sin dibujar el panel durante", "no panel frame for")} ${s(r.stallMs)}` +
     `${r.playing ? T(", sonando", ", playing") : ""}. ${r.insideLed ? T("La tarea de LEDs empezó un fotograma y no lo terminó.", "The LED task started a frame and never finished it.") : T("La tarea de LEDs terminó su último fotograma y no empezó otro.", "The LED task finished its last frame and never started another.")}</p>`;
   h += `<p>${T("Últimas entradas", "Last inputs")}:</p><ul>${r.ring.map(e => `<li>${e.before != null ? "−" + s(e.before) : s(e.t)}: ${esc(kind(e))} ${esc(what(e))} <span class="dim">(${T("vista", "view")} ${e.view})</span></li>`).join("") || `<li>${T("ninguna", "none")}</li>`}</ul>`;

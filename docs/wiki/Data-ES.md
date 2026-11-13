@@ -23,8 +23,8 @@ Cada pista tiene 8 patrones por proyecto. Lo que está en un patrón viaja con �
 | **Valores del secuenciador de efectos** | MIDI 1 / 2 | [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#step-drummer) |
 | **Sample flips del modo muestra** (en el carril de nivel de la pista) *(desde RC2)* | MIDI 1 / 2 | [Selector de samples](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-muestra) |
 | **Pasos cromáticos de los drums** (en el carril de pitch del drum) *(desde RC2)* | drums | [Vista cromática](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-cromatica) con Record |
-| *(solo Beta 5.51)* **Carril extra de los drums** (el pitch cromático o el knob asignado; en los bits libres de cada paso; el código 126 = la **marca** de la vista de automatización) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) con Record; la vista de automatización |
-| *(solo Beta 5.51)* **Estados y rampas de los drums** (bloqueos de estado: en los mismos bits, el número de estado o «rampa»; los estados, en el proyecto) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) con Record; la vista de automatización |
+| *(solo Beta 5.56)* **Carril extra de los drums** (el pitch cromático o el knob asignado; en los bits libres de cada paso; el código 126 = la **marca** de la vista de automatización) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) con Record; la vista de automatización |
+| *(solo Beta 5.56)* **Estados y rampas de los drums** (bloqueos de estado: en los mismos bits, el número de estado o «rampa»; los estados, en el proyecto) | drums | [Vista de pista de un drum](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) con Record; la vista de automatización |
 | Golpes de los **rollers** y del **arpegio de drums** | drums | Con Record, como golpes normales |
 | *(desde RC4)* La **copia del sinte propio** de MIDI 1 / 2 (en los ajustes de los patrones 1-5, sin cambiar lo que suenan) | MIDI 1 / 2 | Sola, al guardar el proyecto |
 
@@ -55,23 +55,23 @@ Cinco sitios: el **patrón**, el **proyecto** (los dos, al guardar el proyecto),
 | **Master FX**: los 20 knobs, los efectos asignados a los huecos, ataque / release del compresor | [Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx), [Sidechain](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#sidechain) |
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns), [Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer) |
-| *(solo Beta 5.51)* **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns) |
+| *(solo Beta 5.56)* **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; *(desde RC4)* con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings), [Micro Step](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#micropasos) |
 | **Escala propia** y *(desde RC4)* **Jankó** | [Scales](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#escalas) |
 | Sinte propio de MIDI 1 / 2: **gate retrigger**, **forma del LFO**, el toggle pitch-vel y el destino de la página 2 del step-drummer | [Páginas de knobs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs), [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#step-drummer) |
 | *(desde RC4)* **Parejas estéreo de drums**: encendidas, distancia, apertura y desviaciones | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) |
-| *(solo Beta 5.51)* **Factor del random-mutate** de cada pista y **micropasos** de cada drum (modo 2) | [Vista de probabilidad](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#probabilidad) |
-| *(solo Beta 5.51)* **Secuenciador de saltos** de MIDI 1 / 2: a qué pista apunta cada una | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset) |
-| *(solo Beta 5.51)* **Qué lleva el carril extra** de cada drum (carril o bloqueos de estado) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) |
-| *(solo Beta 5.51)* **Los estados de los drums** (hasta 80, con sus 14 valores; guardados con el proyecto y sus escenas) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) |
-| *(desde RC4)* **El sinte propio entero** de MIDI 1 / 2: motor, valores, matriz, destinos de los knobs secuenciables y *(desde RC4)* no secuenciables, FM, modo de voz, estéreo (al cargar un proyecto que lo lleva manda el del proyecto; uno anterior deja el sonido como estaba); *(solo Beta 5.51)* el FM de 8 operadores, en los ajustes de los patrones de Synth 1 / 2 | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset), [FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8) |
+| *(solo Beta 5.56)* **Factor del random-mutate** de cada pista y **micropasos** de cada drum (modo 2) | [Vista de probabilidad](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#probabilidad) |
+| *(solo Beta 5.56)* **Secuenciador de saltos** de MIDI 1 / 2: a qué pista apunta cada una | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset) |
+| *(solo Beta 5.56)* **Qué lleva el carril extra** de cada drum (carril o bloqueos de estado) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) |
+| *(solo Beta 5.56)* **Los estados de los drums** (hasta 80, con sus 14 valores; guardados con el proyecto y sus escenas) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-pista) |
+| *(desde RC4)* **El sinte propio entero** de MIDI 1 / 2: motor, valores, matriz, destinos de los knobs secuenciables y *(desde RC4)* no secuenciables, FM, modo de voz, estéreo (al cargar un proyecto que lo lleva manda el del proyecto; uno anterior deja el sonido como estaba); *(solo Beta 5.56)* el FM de 8 operadores, en los ajustes de los patrones de Synth 1 / 2 | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset), [FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8) |
 
 ### El pack (se escribe en la tarjeta al hacer el gesto)
 | Qué | Dónde se usa |
 |---|---|
 | **Patches de Synth 1 / 2 guardados** *(desde RC2)* (Clear + pad dos veces); intercambios y copias entre packs | [Vista Preset de Synth](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset) |
-| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, *(desde RC4)* 128; comunes a las dos pistas: motor, valores, step-drummer, *(desde RC2.02)* matriz, *(desde RC4)* FM, destinos de los knobs secuenciables y *(desde RC4)* no secuenciables, modo de voz; *(solo Beta 5.51)* sub-oscilador y ruido del modo de un oscilador; el FM de 8 operadores en una ranura extra del mismo banco, después de sus 8 patches; «Send patches» de Components ya no los borra) | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset), [FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8) |
+| **Patches del sinte propio** de MIDI 1 / 2 (64 por pack, *(desde RC4)* 128; comunes a las dos pistas: motor, valores, step-drummer, *(desde RC2.02)* matriz, *(desde RC4)* FM, destinos de los knobs secuenciables y *(desde RC4)* no secuenciables, modo de voz; *(solo Beta 5.56)* sub-oscilador y ruido del modo de un oscilador; el FM de 8 operadores en una ranura extra del mismo banco, después de sus 8 patches; «Send patches» de Components ya no los borra) | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset), [FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8) |
 | **Samples**: intercambios, copias entre packs y la **captura** que sustituye a un drum (esta, al guardar el proyecto, si cabe) | [Vista Preset de drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-preset) |
 | **Proyectos copiados** a otro hueco o pack; **packs borrados** | [Projects](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#projects), [Packs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#packs) |
 
@@ -81,8 +81,9 @@ Cinco sitios: el **patrón**, el **proyecto** (los dos, al guardar el proyecto),
 | Como en el original: canales, filtros de CC / notas / Program Change, reloj, compresor master encendido, brillo, Save Lock | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup) |
 | **Motor de MIDI 1 / 2**: motor elegido, todos sus valores, osciladores y orden (pads 28 / 29), step-drummer encendido y su destino, secuenciador de efectos, patch flip | [Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset) |
 | **Modo del jack MIDI Thru** (Thru, Out 2, Merge, Filter), **canales de Program Change** del proyecto, **modo cue** | [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup), [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup), [Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer) |
-| *(desde RC4)* **Modo General MIDI** de los drums y sus notas; **fusión USB**; **teclado externo al arpegiador**; **curva de velocity** de los pads; *(solo Beta 5.51)* **velocity → amplitud / filtro** (K1 / K2 de Setup), **ganancia de las entradas** (K3 de Advanced Setup) | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup) |
+| *(desde RC4)* **Modo General MIDI** de los drums y sus notas; **fusión USB**; **teclado externo al arpegiador**; **curva de velocity** de los pads; *(solo Beta 5.56)* **velocity → amplitud / filtro** (K1 / K2 de Setup), **ganancia de las entradas** (K3 de Advanced Setup) | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup) |
 | *(desde RC4.05)* **Guardado diferido** | [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#advanced-setup) |
+| *(solo Beta 5.56)* **Retener knob** | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup) |
 
 ## Qué se pierde al reiniciar
 
@@ -95,10 +96,11 @@ Lo que no está en ninguna de las tablas anteriores vive solo en la memoria y de
 | **Metrónomo** encendido / apagado y **View Lock** (como en el original) | Apagados |
 | **Efectos fijados**, **song pointer** y sample fijado de Master FX | Apagados; el song pointer, a 0 |
 | **Record de la vista Setup** (grabar los ruteos internos) | Apagado |
+| *(solo Beta 5.56)* **Retener knob** (Preset de Setup) | Apagado |
 | En la vista Sidechain, los **disparos de un drum** por otro drum o por un patrón (pads de las páginas de drums) | Los del preset del drum |
 | **Mutes en el compás siguiente** pendientes (Mixer, Shift + pad) | — |
 | **Notas y acordes en latch** (Shift + tecla, Shift + fundamental), **pantalla de acordes** (tipo y modificadores) y el medio tono de **Octave con Jankó** *(desde RC4)* | Sin latch; los de fábrica; Octave a 0 |
-| **Teclado partido** y vistas abiertas (step-drummer, editor de macros, selector, *(solo Beta 5.51)* la vista de flip); *(solo Beta 5.51)* el **último destino** del step flip | Cerrados; el destino, Synth 1 |
+| **Teclado partido** y vistas abiertas (step-drummer, editor de macros, selector, *(solo Beta 5.56)* la vista de flip); *(solo Beta 5.56)* el **último destino** del step flip | Cerrados; el destino, Synth 1 |
 | Un **sample o patch esperando** a copiarse en otro pack (Duplicate + A) | Nada esperando |
 | La **captura** de Master FX sin usar, o usada en un drum sin guardar el proyecto | Vacía; el drum, con su sample del pack |
 | **Matriz de modulación** del sinte propio sin guardar en un patch *(desde RC2.02)* (*(desde RC4)*: guardada también con el proyecto) | Apagada |

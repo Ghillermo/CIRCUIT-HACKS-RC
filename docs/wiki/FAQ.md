@@ -15,7 +15,7 @@ Novation's bootloader is never touched, so you can always send the official firm
 **3. RC, RC "S" or Beta: which one should I install?**
 - **RC** (release candidate, now RC4.11): the features that have been tested together.
 - **RC S** (RC4.11S): the same, but the mod never writes files of its own to the SD card (no saving of own patches, samples or copies between packs). The safest choice.
-- **Beta** (now Beta 5.51, partly tested on the device): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
+- **Beta** (now Beta 5.56, partly tested on the device): RC + the newest features. Every fix goes to both the RC and the Beta; new features go to the Beta first.
 
 **4. Does it work on the original Circuit or the Circuit Rhythm?**
 No: CIRCUIT-HACKS is for the **Circuit Tracks** (firmware 1.2.1, build 4486) only. For the **Circuit Rhythm** there is a separate project, [Circuit Remix](https://github.com/Ghillermo/CIRCUIT-REMIX), which ports these features and adds its own.
@@ -98,7 +98,7 @@ See [Mod matrix and macro destinations](https://ghillermo.github.io/CIRCUIT-HACK
 ## The project
 
 **24. How do I report a bug?**
-Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC4 or RC4S), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording. **If the panel froze while the music kept playing** (Beta 5.51 and later): after 15 s the device restarts by itself and Save blinks violet; open the [SD app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), press **Black box…**, then **Save…**, and attach the `.json` file.
+Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC4 or RC4S), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording. **If the panel froze while the music kept playing** (Beta 5.51 and later; since 5.56 also when the device restarts by itself after a fault): after 15 s the device restarts by itself and Save blinks violet; open the [SD app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), press **Black box…**, then **Save…**, and attach the `.json` file.
 
 **25. How do I suggest a feature?**
 Use [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) or an issue. Check the [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) first: suggestions on control, usability and on how the data is saved are especially welcome.

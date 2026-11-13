@@ -132,6 +132,47 @@ def use_four():
     SIG = 0x325A524D                     # "MRZ2"
 
 
+RRFIX = False                            # SC56.9 (use_rrfix): c_mznova's round-robin place checked first
+NEWSTOP = False                          # SC57 (use_newstop): patches held 0.4 s on another track = its morph, the running one stopped
+NEWSTOP_FUNCS = ("c_mzarm",)
+FASTATK = False                          # SC57.1 (use_fastatk): an envelope trigger = Synth 1 / 2's whole patch rewritten in one service pass
+
+
+def use_newstop():
+    """SC57 / Beta 5.55 (the user, 2026-11-12: «either several morphs co-exist or enabling a new morph stops the old one»; one morph at a time, so
+    the second): with a morph running, patches held on another track's Preset view did nothing of ours (the stock loaded them, the hold never
+    armed).  Now the first patch press there arms that track (O_SNAP = it, O_PG, O_HP = ARMED; no snapshot: cache 0 is the running chain's 4th
+    link and use_four refills every cache at entry) and the LED task's tick, before the running morph's hold check (c_mzhold would drop the arm:
+    the running track's Preset is not on the screen), runs c_mzarm: the same 0.4 s / two held / no Clear or Duplicate rules as the off case; on
+    entry c_mzenter takes the new track (O_ACT) and the old morph stops where its sound is.  A single tap on the other track = that patch loaded,
+    the running morph goes on."""
+    global NEWSTOP
+    assert NOCUR and FOUR
+    NEWSTOP = True
+
+
+def use_fastatk():
+    """SC57.1 / Beta 5.56 (the user, 2026-11-12: «morph envelope attack should be shorter, almost instant, slew should barely affect it, and affect
+    mostly the decay instead»; asked: Synth 1 / 2): the envelope already jumps to the top on pad 1 / 8 (O_ENV = 0xFFFF; K8 sets only its fall;
+    held = sustained), but Synth 1 / 2's 310 rows are rewritten at most BUDGET (40) a frame from the round robin's place, so the attack took several
+    frames to reach the whole patch.  Now the trigger (c_mzpadX's px_env) sets NV + 7; the LED task's tick, when it hands the frame's position to
+    the DSP service, turns it into NV + 6; c_mznova's next pass takes it (cleared) with a budget of every row (one whole round).  The decay
+    afterwards goes on at BUDGET a frame."""
+    global FASTATK
+    assert SVC
+    FASTATK = True
+
+
+def use_rrfix():
+    """SC56.9 / Beta 5.54 (fix; the user's black box of Beta 5.53, Synth 1, three patches held 0.4 s: «Main» stuck in c_mznova, the unit restarted by
+    the watchdog ~3 s later): O_RR (the halfword where Synth 1 / 2's round robin of rows goes on) was never set: c_mzst writes the signature,
+    O_ACT and O_SNAP only, and the RAM is not cleared at power-on or by an install.  With O_RR >= NROWS the loop's end (back at O_RR) never comes;
+    with nothing to write (the sound already the first patch's) the budget never runs out either: an endless loop in the DSP service.  In
+    emulation the RAM starts at zero.  Now an O_RR out of range is set to 0 before the round."""
+    global RRFIX
+    RRFIX = True
+
+
 def use_slow():
     """SC56.5 (the user, 2026-11-11): «Random lfo speed is now k3 too. K5 and k6 become slow morph: K5 sets the morph destination. K6 sets the
     speed … the patch morphs from k1 into K5. The more clockwise k6, the longer the morph time. When the destination is reached, K5 value is
@@ -412,7 +453,7 @@ def c_mzpad(c):                          # (r4 = t, r5 = pad, r6 = 1 when a patc
     E(strb_imm, 0, 3, O_PVEL); c.now(0); E(str_imm, 0, 3, O_TP); E(movs_imm, 0, 1)
     c.lab("pd_2"); E(strb_imm, 0, 3, O_HP)
     c.lab("pd_y"); E(movs_imm, 0, 1); E(pop_list, [], pc=True)
-    c.lab("pd_off"); E(cmp_imm, 0, 0xFF); E(b_cond, "pd_n", "ne")
+    c.lab("pd_off"); E(cmp_imm, 0, 0xFF); E(b_cond, "pd_ot" if NEWSTOP else "pd_n", "ne")
     E(cmp_imm, 6, 0); E(b_cond, "pd_n", "eq")
     E(push_list, [3]); c.call("c_mzheld"); E(pop_list, [3]); E(movs_imm, 1, 1); E(lsls_reg, 1, 5); E(bics_reg, 0, 1)
     E(cmp_imm, 0, 0); E(b_cond, "pd_rt", "ne")                                               # another patch held: not the first press
@@ -421,6 +462,13 @@ def c_mzpad(c):                          # (r4 = t, r5 = pad, r6 = 1 when a patc
     c.lab("pd_n"); E(movs_imm, 0, 0); E(pop_list, [], pc=True)
     c.lab("pd_rt"); E(ldrb_imm, 0, 3, O_HP); E(cmp_imm, 0, ARMED); E(b_cond, "pd_n", "ne")     # armed: the 0.4 s from this press
     c.now(0); E(str_imm, 0, 3, O_TP); E(b, "pd_n")
+    if NEWSTOP:                                                                             # (NEWSTOP) another track's morph running: arm this one
+        c.lab("pd_ot"); E(cmp_imm, 6, 0); E(b_cond, "pd_n", "eq")
+        E(push_list, [3]); c.call("c_mzheld"); E(pop_list, [3]); E(movs_imm, 1, 1); E(lsls_reg, 1, 5); E(bics_reg, 0, 1)
+        E(cmp_imm, 0, 0); E(b_cond, "pd_o2", "ne")
+        E(strb_imm, 4, 3, O_SNAP); E(strb_imm, 7, 3, O_PG); E(movs_imm, 0, ARMED); E(strb_imm, 0, 3, O_HP); c.now(0); E(str_imm, 0, 3, O_TP)
+        E(b, "pd_n")
+        c.lab("pd_o2"); E(ldrb_imm, 0, 3, O_SNAP); E(cmp_reg, 0, 4); E(b_cond, "pd_n", "ne"); E(b, "pd_rt")
 
 
 @fn
@@ -433,6 +481,7 @@ def c_mzpadX(c):                         # slot 0 of both Preset views (view, pa
     E(movs_imm, 0, 0xFF); E(strb_imm, 0, 6, O_ACT); E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_HP)
     E(cmp_imm, 4, 2); E(b_cond, "px_y", "hs"); E(movs_imm, 0, 0); c.call("c_mzsrc"); E(b, "px_y")   # synth: back to the patches
     c.lab("px_env"); E(movw, 0, 0xFFFF); E(strh_imm, 0, 6, O_ENV)
+    if FASTATK: c.imm32(0, NV); E(movs_imm, 1, 1); E(strb_imm, 1, 0, 7)                  # (FASTATK) a trigger: the next frame's pass writes every row
     c.lab("px_y"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     c.lab("px_v"); E(ldr_sp, 0, 0)
     c.call("c_mzsp"); E(b_cond, "px_o", "ne")
@@ -865,8 +914,15 @@ def c_mznova(c):                         # (r4 = t, r5 = f, r6 = MZ, r8 / r11 = 
     E = c.E; E(push_list, [], lr=True)
     c.imm32(0, LIVE + 30); E(movw, 1, 344); E(muls, 1, 4); E(adds_reg, 0, 0, 1); E(raw, mov_hi(9, 0))      # r9 = the live bytes 30..
     c.imm32(0, CTX); E(ldr_imm, 0, 0, 0); E(ldr_imm, 0, 0, 0x10); E(ldr_imm, 0, 0, 0); E(adds_imm8, 0, 4); E(raw, mov_hi(10, 0))   # r10 = this + 4
-    E(movs_imm, 0, BUDGET); E(raw, mov_hi(12, 0))                                           # r12 = the budget (kept on the stack around the call)
+    E(movs_imm, 0, BUDGET)
+    if FASTATK:                                                                             # (FASTATK) after a trigger: every row in this pass
+        c.imm32(3, NV); E(ldrb_imm, 2, 3, 6); E(cmp_imm, 2, 0); E(b_cond, "nv_b", "eq"); E(movs_imm, 2, 0); E(strb_imm, 2, 3, 6); E(movw, 0, NROWS + 1)
+        c.lab("nv_b")
+    E(raw, mov_hi(12, 0))                                                                   # r12 = the budget (kept on the stack around the call)
     E(ldrh_imm, 7, 6, O_RR)
+    if RRFIX:                                                                               # out of range (the RAM never set): from row 0
+        E(movw, 0, NROWS); E(cmp_reg, 7, 0); E(b_cond, "nv_r", "lo"); E(movs_imm, 7, 0); E(strh_imm, 7, 6, O_RR)
+        c.lab("nv_r")
     c.lab("nv_l")
     E(movw, 0, NROWS); E(cmp_reg, 7, 0); E(b_cond, "nv_k", "lo"); E(movs_imm, 7, 0)
     c.lab("nv_k")
@@ -903,9 +959,15 @@ def c_mztick(c):                         # the LED task's call (ctrl, frame): th
     E(cmp_imm, 5, 100); E(b_cond, "tk_d", "ls"); E(movs_imm, 5, 100)
     c.lab("tk_d")
     c.lab("tk_b2"); E(strh_imm, 5, 6, O_DT); E(ldrb_imm, 4, 6, O_ACT); E(cmp_imm, 4, 3); E(b_cond, "tk_arm", "hi")
+    if NEWSTOP:                                                                             # (NEWSTOP) another track armed: its hold first
+        E(ldrb_imm, 0, 6, O_HP); E(cmp_imm, 0, ARMED); E(b_cond, "tk_nx", "ne")
+        c.call("c_mzarm"); E(cmp_imm, 0, 0); c.bc("tk_x", "ne")
+        E(ldrb_imm, 4, 6, O_ACT); E(b, "tk_fl")                                              # waiting: the running morph on, its hold check skipped
+        c.lab("tk_nx")
     c.call("c_mzmv"); E(cmp_imm, 0, 0); E(b_cond, "tk_h", "eq")
     if not NOCUR: E(ldr_sp, 3, 56); c.call("c_mzpanel")
     c.lab("tk_h"); c.call("c_mzhold")
+    if NEWSTOP: c.lab("tk_fl")
     c.call("c_mzfill"); E(cmp_imm, 0, 0); E(b_cond, "tk_x", "ne")
     E(ldrh_imm, 5, 6, O_DT); c.call("c_mzmod")                                             # (r1 = 32512)
     # i = x / 32512, f = the rest >> 8, x = pos (n - 1)
@@ -918,7 +980,10 @@ def c_mztick(c):                         # the LED task's call (ctrl, frame): th
     E(cmp_imm, 4, 2); E(b_cond, "tk_o", "hs")
     if SVC:                                                                                 # the writes go to the DSP service (c_mzsvc)
         c.imm32(0, NV); E(strb_imm, 4, 0, 1); E(strb_imm, 5, 0, 2); E(raw, mov_hi(1, 9)); E(strb_imm, 1, 0, 3); E(raw, mov_hi(1, 10)); E(strb_imm, 1, 0, 4)
-        E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(b, "tk_x")
+        E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0)
+        if FASTATK:                                                                          # (FASTATK) the trigger's frame: the pass writes every row
+            E(ldrb_imm, 1, 0, 7); E(cmp_imm, 1, 0); E(b_cond, "tk_x", "eq"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 7); E(movs_imm, 1, 1); E(strb_imm, 1, 0, 6)
+        E(b, "tk_x")
     else:
         c.call("c_mznova"); E(b, "tk_x")
     c.lab("tk_o"); c.call("c_mzown"); c.call("c_mzfm")
@@ -936,6 +1001,21 @@ def c_mztick(c):                         # the LED task's call (ctrl, frame): th
     c.lab("tk_bt"); E(ldrb_imm, 0, 6, O_ACT); E(cmp_imm, 0, 3); E(b_cond, "tk_b1", "ls")       # off (a patch armed): dt 100, on as always
     E(movs_imm, 5, 100); E(b, "tk_b2")
     c.lab("tk_b1"); E(movs_imm, 0, 0xFF); E(strb_imm, 0, 6, O_ACT); E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_HP); E(b, "tk_x")   # a morph running: off
+
+
+@fn
+def c_mzarm(c):                          # (NEWSTOP; r6 = MZ, another track's morph running, O_HP = ARMED) -> r0 = 1 when the armed track's morph is on
+    E = c.E; E(push_list, [], lr=True)
+    E(ldrb_imm, 4, 6, O_SNAP); E(cmp_imm, 4, 3); E(b_cond, "ar_d", "hi")
+    E(mov_reg, 0, 4); c.call("c_mzon"); E(cmp_imm, 0, 0); E(b_cond, "ar_d", "eq")
+    c.call("c_mzheld"); E(cmp_imm, 0, 0); E(b_cond, "ar_d", "eq"); E(mov_reg, 7, 0)
+    c.now(1); E(ldr_imm, 2, 6, O_TP); E(subs_reg, 1, 1, 2); E(movw, 2, HOLD_MS); E(cmp_reg, 1, 2); E(b_cond, "ar_w", "lo")
+    E(mov_reg, 0, 7); E(subs_imm3, 1, 0, 1); E(raw, h(0x4208)); E(b_cond, "ar_w", "eq")                    # two held at least
+    c.call("c_mzcd"); E(cmp_imm, 0, 0); E(b_cond, "ar_d", "ne")                           # a Clear / Duplicate gesture: disarmed
+    E(mov_reg, 0, 7); c.call("c_mzenter"); E(cmp_imm, 0, 0); E(b_cond, "ar_d", "eq")      # the armed track's morph; the old one stops
+    E(movs_imm, 0, 1); E(pop_list, [], pc=True)
+    c.lab("ar_d"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, O_HP)
+    c.lab("ar_w"); E(movs_imm, 0, 0); E(pop_list, [], pc=True)
 
 
 @fn
@@ -1070,7 +1150,7 @@ def place(img, report):
     end = BASE + len(img)
     areas.append(["end", (end + 3) & ~3, BASE + 0x70000])
     disc = fm_disc()
-    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel") and (SLOW or n not in SLOW_FUNCS)]
+    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel") and (SLOW or n not in SLOW_FUNCS) and (NEWSTOP or n not in NEWSTOP_FUNCS)]
     dummy = {n: 0x08300000 + 64 * i for i, n in enumerate(names)}
     dummy["t_disc"] = 0x08380000
     size = {n: len(assemble(0x08020000, [n], dummy, prev, L, SP)[0]) for n in names}

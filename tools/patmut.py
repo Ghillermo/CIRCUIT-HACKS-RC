@@ -58,6 +58,16 @@ INV = dict(PC.INV, cs="cc", cc="cs")
 AMT8 = False                # (SC55.9) eight Amount levels (columns 4 / 5 of the page; S0 bits 5-7; Repeats off = S1 bit 1, columns 6 / 7)
 END = False                 # (SC55.9) a mutating track's chain ends with its list's last slot (c_pmend ahead of patchain's c_pcend)
 R_END = 5                   # (END) the byte c_pmend's answer points at: fp or 0xFF
+LRRAM = False               # (SC56.7) c_pmled: LR and the frame in RAM while the chain below runs (the LED task's stack, issue #22)
+LR_SLOT = 0x2004FAC0        # 8 B (free: after knobhold's 0x2004F900..0x2004FAA7, below 0x2004FC00)
+
+
+def use_lrram():
+    """SC56.7 / Beta 5.52 (fix, issue #22 of the public repository: «Beta 5.48 – Circuit Tracks crashes when opening MIDI 1/2 presets»): c_pmled
+    pushed 36 B before calling the LED chain below it; the LED task's stack is tight in MIDI 1 / 2's Preset view (SC54).  Now LR and the frame go to
+    RAM (LR_SLOT) while the chain runs and the registers are pushed after it."""
+    global LRRAM
+    LRRAM = True
 
 
 def use_v2():
@@ -494,8 +504,14 @@ def arm_code(base, L, prev):
 
     # ---- c_pmled (the LED task calls: ctrl, frame): the page / the lists over the stock's picture
     a.label("c_pmled")
-    E(raw, PC.pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
-    E(mov_reg, 5, 1); E(bl, prev["led"])
+    if LRRAM:
+        imm32(2, LR_SLOT); E(raw, h(0xF8C2) + h(0xE000)); E(str_imm, 1, 2, 4)             # str.w lr, [r2]; str r1, [r2, #4]
+        E(bl, prev["led"])
+        E(raw, PC.pushw([4, 5, 6, 7, 8, 9, 10, 11]))
+        imm32(5, LR_SLOT); E(ldr_imm, 5, 5, 4)
+    else:
+        E(raw, PC.pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
+        E(mov_reg, 5, 1); E(bl, prev["led"])
     E(bl, "c_pmram"); E(mov_reg, 6, 0)
     E(bl, "c_pmview"); E(mov_reg, 8, 0)                                              # r8 = the view (1 Patterns, 2 Mixer)
     E(ldrb_imm, 7, 6, R_FL)
@@ -567,7 +583,9 @@ def arm_code(base, L, prev):
     a.label("pg_bw"); E(mov_reg, 0, 4); E(adds_imm8, 0, LED_TRK); E(lsls_imm, 0, 0, 1); E(raw, h(0x522A))
     E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "pg_b", "lo")
     E(movs_imm, 0, 2 * LED_DUP); E(movs_imm, 2, C_ON); E(raw, h(0x522A))
-    a.label("ld_x"); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], pc=True))
+    a.label("ld_x")
+    if LRRAM: E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11])); imm32(2, LR_SLOT); E(raw, h(0xF8D2) + h(0xF000))   # ldr.w pc, [r2]
+    else: E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], pc=True))
 
     if END:
         # ---- c_pmend (at 0x0802C65E, ahead of patchain's c_pcend; r7 = the track, fp = its pattern ending, sl = a chain pending, r0 its chain

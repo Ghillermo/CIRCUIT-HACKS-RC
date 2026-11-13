@@ -7,6 +7,32 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Beta 5.56 — 2026-11-13
+
+**Beta 5.56** (marca `B5.56`; = SC57.1) = la Beta 5.55 + lo siguiente, probada en el aparato. Incluye las Betas 5.52-5.55, que no se publicaron.
+
+- **Master FX mantenido.** En el Mixer, Mixer mantenido medio segundo o más enseña Master FX solo hasta que lo sueltas, y al soltar vuelve el Mixer; en Master FX, mantenido enseña el Mixer hasta que lo sueltas. Un toque cambia como siempre. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **Morph de patches: ataque al momento.** Los pads 1 / 8 llevan la envolvente arriba de golpe; en Synth 1 / 2 todo el patch cambia en el mismo fotograma (antes 40 parámetros por fotograma: el ataque se notaba lento). K8 marca solo la caída; mantenidos, la envolvente se queda arriba. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
+### Beta 5.55 — 2026-11-12
+
+**Beta 5.55** (marca `B5.55`; = SC57) = la Beta 5.54 + lo siguiente, sin probar en el aparato.
+
+- **Morph de patches: un morph a la vez.** Con un morph sonando, mantener patches 0,4 s en la vista Preset de otra pista abre el morph de esa pista y para el anterior (su sonido se queda donde está). Antes no se podía: esos patches solo se cargaban. Un toque en otra pista sigue cargando solo ese patch. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
+### Beta 5.53 — 2026-11-12
+
+**Beta 5.53** (marca `B5.53`; = SC56.8) = la Beta 5.52 + lo siguiente, sin probar en el aparato.
+
+- **Retener knob: la luz se queda.** Mientras un knob retiene su asignación anterior, su luz sigue con el color y el brillo de antes del cambio de vista. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup)
+- **Caja negra: también los reinicios.** Además del panel colgado, apunta un fallo del procesador (dónde estaba el programa y qué falló), un bloqueo del aparato que acaba en reinicio y un reinicio por el vigilante (las últimas pulsaciones de antes), y el motivo del último reinicio. Lo apuntado sobrevive al reinicio y a seguir usando el aparato; solo se pierde si se queda sin corriente. La app de la tarjeta lo enseña con **Caja negra…**. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#app-sd)
+
+### Beta 5.52 — 2026-11-12
+
+**Beta 5.52** (marca `B5.52`; = SC56.7) = la Beta 5.51 + lo siguiente, sin probar en el aparato.
+
+- **Retener knob.** En la vista Setup, **Preset** lo enciende (verde) o lo apaga (de fábrica). Encendido, un knob que estás girando sigue con lo que hacía aunque cambies de vista, de pista o de página, o pulses o sueltes Shift a media vuelta, hasta que lo dejas quieto un segundo. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup)
+
 ### Beta 5.51 — 2026-11-12
 
 **Beta 5.51** (marca `B5.51`; = SC56.6) = la Beta 5.50 + lo siguiente, probada en el aparato.
@@ -652,6 +678,18 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Beta 5.54 — 2026-11-12
+
+**Beta 5.54** (marca `B5.54`; = SC56.9) = la Beta 5.53 + este arreglo, sin probar en el aparato.
+
+- **El aparato se colgaba y se reiniciaba a los 3 s al entrar en el morph de Synth 1 / 2** (desde la Beta 5.34; encontrado con la caja negra de la Beta 5.53). El morph recorre los parámetros del sinte desde un contador que nunca se ponía a cero: al encender, la memoria del aparato trae lo que tenía, y con un valor fuera de rango y nada que cambiar el recorrido no terminaba. Ahora el contador se comprueba antes de empezar.
+
+### Beta 5.52 — 2026-11-12
+
+**Beta 5.52** (marca `B5.52`; = SC56.7) = la Beta 5.51 + este arreglo, sin probar en el aparato.
+
+- **El aparato se reiniciaba al abrir la vista Preset de MIDI 1 / 2** (desde la Beta 5.48; issue #22). Dos funciones de las últimas betas, el mapa del algoritmo FM y el mutate de patrones, dejaban 36 bytes cada una en la pila de la tarea que dibuja el panel, y en esa vista la pila va justa. Ahora no dejan nada mientras dibuja lo demás: en emulación, la vista vuelve a gastar lo que gastaba en la Beta 5.41.
+
 ### Beta 5.46 — 2026-11-10
 
 **Beta 5.46** (marca `B5.46`; = SC56.1) = la Beta 5.44 + estas mejoras internas (la 5.45 = la primera sola), sin probar en el aparato. Nada cambia en el uso.
@@ -991,6 +1029,32 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Beta 5.56 — 2026-11-13
+
+**Beta 5.56** (marker `B5.56`; = SC57.1) = Beta 5.55 + the following, tested on the device. It holds Betas 5.52-5.55, which were not released.
+
+- **Master FX held.** In the Mixer, Mixer held for half a second or more shows Master FX only until you let go, then the Mixer is back; in Master FX, held shows the Mixer until you let go. A tap switches as always. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **Patch morph: instant attack.** Pads 1 / 8 take the envelope to the top at once; on Synth 1 / 2 the whole patch changes in the same frame (before, 40 parameters a frame: the attack sounded slow). K8 sets only the fall; held, the envelope stays at the top. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+
+### Beta 5.55 — 2026-11-12
+
+**Beta 5.55** (marker `B5.55`; = SC57) = Beta 5.54 + the following, untested on the device.
+
+- **Patch morph: one morph at a time.** With a morph running, holding patches for 0.4 s in another track's Preset view opens that track's morph and stops the previous one (its sound stays where it is). Before, it could not be done: those patches only loaded. A tap on another track still just loads that patch. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+
+### Beta 5.53 — 2026-11-12
+
+**Beta 5.53** (marker `B5.53`; = SC56.8) = Beta 5.52 + the following, untested on the device.
+
+- **Knob hold: the light stays.** While a knob keeps its old assignment, its light keeps the colour and brightness it had before the view changed. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
+- **Black box: restarts too.** Besides a hung panel, it records a processor fault (where the program was and what failed), a lock-up that ends in a restart and a watchdog restart (the last presses before it), and the cause of the last restart. The record survives the restart and further use; it is only lost if the power goes. The SD app shows it with **Black box…**. → [Guide: SD and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#app-sd)
+
+### Beta 5.52 — 2026-11-12
+
+**Beta 5.52** (marker `B5.52`; = SC56.7) = Beta 5.51 + the following, untested on the device.
+
+- **Knob hold.** In the Setup view, **Preset** switches it on (green) or off (the default). On, a knob you are turning keeps doing what it did even if you change view, track or page, or press or release Shift mid-turn, until you leave it still for a second. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
 
 ### Beta 5.51 — 2026-11-12
 
@@ -1636,6 +1700,18 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Beta 5.54 — 2026-11-12
+
+**Beta 5.54** (marker `B5.54`; = SC56.9) = Beta 5.53 + this fix, untested on the device.
+
+- **The unit hung and restarted after 3 s when entering Synth 1 / 2's morph** (since Beta 5.34; found with Beta 5.53's black box). The morph walks the synth's parameters from a counter that was never reset: at power-up the unit's memory holds whatever it had, and with a value out of range and nothing to change the walk never ended. Now the counter is checked before starting.
+
+### Beta 5.52 — 2026-11-12
+
+**Beta 5.52** (marker `B5.52`; = SC56.7) = Beta 5.51 + this fix, untested on the device.
+
+- **The unit restarted when opening MIDI 1 / 2's Preset view** (since Beta 5.48; issue #22). Two features of the latest betas, the FM algorithm map and the pattern mutate, each left 36 bytes on the stack of the task that draws the panel, and in that view the stack is tight. Now they leave nothing while the rest draws: in emulation the view uses again what it used in Beta 5.41.
 
 ### Beta 5.46 — 2026-11-10
 

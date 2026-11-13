@@ -35,8 +35,13 @@ def main(img, man):
     prev = {k: int(v, 16) for k, v in R["prev"].items()}
     import fxdiag as FD
     hooks = [bw(img, S14.SVC_HOOK) == lab["c_bbtick"], bw(img, RD.HOOK) == lab["c_bbsx"]]
-    hooks += [FD.bl_target(img, c, 0x08010000) == lab["c_bbled"] for c in PK.LED_CALLS]
-    hooks += [bw(img, a) == lab[f"c_bbin{k}"] for a, k in BX.ENTRIES]
+    kh = man["report"].get("knobhold", {}).get("prev", {})                                # SC56.7: knobhold's heads in front of the LED calls / the knob entry
+    led_at = lambda c: FD.bl_target(img, c, 0x08010000)
+    hooks += [(led_at(c) == lab["c_bbled"]) or (kh and int(kh["ledtask"], 16) == lab["c_bbled"]) for c in PK.LED_CALLS]
+    mh = man["report"].get("mfxhold", {}).get("prev", {})                                 # SC57.1: mfxhold's heads in front of the button press / release
+    mh_at = {0x08033320: "btn", 0x0803381A: "rel"}
+    hooks += [(bw(img, a) == lab[f"c_bbin{k}"]) or (kh and a == 0x08033848 and int(kh["knob"], 16) == lab[f"c_bbin{k}"])
+              or (mh and a in mh_at and int(mh[mh_at[a]], 16) == lab[f"c_bbin{k}"]) for a, k in BX.ENTRIES]
     check(all(hooks), f"the hooks: service head, SysEx, the LED task's two calls, the 5 input entries ({hooks})")
     e = T.EL(img)
     def skip(uc): uc.reg_write(UC_ARM_REG_PC, uc.reg_read(UC_ARM_REG_LR) | 1)
@@ -55,7 +60,7 @@ def main(img, man):
     e.uc.mem_write(TOS, struct.pack(f"<{len(stk)}I", *stk))
     e.w32(BX.CUR_TCB, TCB)
     tick(100000)
-    check(r32(0) == BX.SIG and r8(O.ST) == 0 and r8(O.FMT) == BX.FMT, f"signed, nothing frozen ({r32(0):#x}, state {r8(O.ST)})")
+    check(r32(0) == BX.SIG and r8(O.ST) == 0 and r8(O.FMT) == (2 if "c_bbsys" in lab else 1), f"signed, nothing frozen ({r32(0):#x}, state {r8(O.ST)})")
     tick(100001); n0 = r32(O.LFN); X.frame(e); X.frame(e)
     check(r32(O.LFN) == n0 + 2 and r32(O.LF1) == 100001 and r32(O.LTCB) == TCB, f"two LED frames: counted, the time, the task ({r32(O.LFN) - n0}, {r32(O.LTCB):#x})")
     ri0 = r8(O.RI)
@@ -91,7 +96,8 @@ def main(img, man):
     check(tcb == struct.pack("<I", TOS) + bytes(range(4, 0x5C)) and r32(O.LTOS) == TOS and s1 == allstk[:BX.N_STK1],
           "the TCB and 384 B of the saved stack copied")
     check(r32(O.ITOS) == TOS + BX.N_STK1 and s2 == bytes(e.uc.mem_read(TOS + BX.N_STK1, BX.N_STK2)), "the same task: its stack goes on in the second copy")
-    check(bytes(e.uc.mem_read(BX.BB + O.MGR1, 64)) == bytes(e.uc.mem_read(T.MGR + 0x60, 64)), "64 B of the controller")
+    nm = BX.N_MGR1_V2 if r8(O.FMT) == 2 else 64                                             # (v2: 32 B, the rest are the fault fields)
+    check(bytes(e.uc.mem_read(BX.BB + O.MGR1, nm)) == bytes(e.uc.mem_read(T.MGR + 0x60, nm)), f"{nm} B of the controller")
     check(r8(O.NS) == 1 and r32(O.PC) == PC0 and r32(O.PC + 4) == LR0, f"sample 0: the saved PC / LR ({r32(O.PC):#x}, {r32(O.PC + 4):#x})")
     ri1 = r8(O.RI); e.btn(3); X.frame(e)
     check(r8(O.RI) == ri1 and r32(O.LF1) == 240002, "frozen: no breadcrumb, no frame time")
