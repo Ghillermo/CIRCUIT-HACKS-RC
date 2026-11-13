@@ -115,6 +115,19 @@ def svg(f):
     return "\n".join(out)
 
 
+def cat_fig():
+    """(2026-11-13, the user: the Nova category colour chart «to the manuals too») the Preset view of Synth 1 with one patch of each Components
+    category (pads 1-15: None, Arp ... Voc; pad 16 an empty slot), the colours read from the SD app (tools/wiki_colours.py): beta only"""
+    import wiki_colours as WC
+    cats, rgb, trk = WC.app_colours()
+    def ink(h): return "#111" if (30 * int(h[1:3], 16) + 59 * int(h[3:5], 16) + 11 * int(h[5:7], 16)) // 100 >= 120 else "#ffffff"
+    pads = {1: (trk[0], cats[0][0], False, "#ffffff")}
+    for c in range(1, 15): pads[c + 1] = (rgb[c], cats[c][0], False, ink(rgb[c]))
+    pads[16] = ("white", "", True)
+    return fig("Solo Beta 5.56: la vista Preset de Synth 1 con un patch de cada categoría de Components; pad 1 = Ninguna (el color de la pista), pad 16 = hueco vacío (blanco tenue).",
+               pads=pads, buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1")
+
+
 # ---------------------------------------------------------------------------------------------------- content
 # ===== A. Accesos directos y usabilidad
 sec("atajos", "A", "Mapa de atajos",
@@ -394,7 +407,8 @@ sec("colores-patch", "A", "Colores de los patches de sinte",
 - En Advanced Setup los pads 22 / 23 ya no se encienden (allí nunca hacían nada).
 """, [fig("Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 2: ("blue", "mono", True), 5: ("blue", "mono", True),
                                                                                                           3: ("purple", "glide"), 6: ("purple", "glide"), 1: ("white", "")},
-          buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1")])
+          buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1"),
+      cat_fig()])
 
 sec("morph", "C", "Morph de patches (solo Beta 5.56)",
     ["**Solo Beta 5.56.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén de dos a cuatro patches** 0,4 s y un knob pasa de uno a otro, con LFO, envolvente y un morph lento."],
@@ -1476,6 +1490,7 @@ def write_html():
             summ = [docset.rc(b_) if SET == "rc" else b_ for b_ in s_["summary"]]
             parts.append('<div class="summary">' + "".join(f"<p>{inline(b_)}</p>" for b_ in summ if b_.strip()) + "</div>")
             for f in s_["figs"]:
+                if SET == "rc" and docset.titled(f["caption"]): continue          # (2026-11-13) a beta-only figure: not in the RC's set
                 parts.append(f"<figure>{svg(f)}<figcaption>{html.escape(f['caption'])}</figcaption></figure>")
             parts.append(md2html(s_["detail"]))
             parts.append("</section>")

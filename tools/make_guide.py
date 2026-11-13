@@ -175,7 +175,7 @@ view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
 - El original no puede guardar patches desde el aparato. El patch guardado conserva el nombre del que estaba cargado.
 - No funciona en el pack de la memoria interna (solo lectura para el mod): el LED de Save se pone rojo.
 - **Morph de patches** {YB}: en la vista Preset, **mantén de dos a cuatro patches** 0,4 s (o mantenidos + Duplicate): se abre la **vista del morph**, que pasa de uno a otro de los patches mantenidos, en el orden de los pads. Solo funcionan los knobs: **K1** = la posición en la cadena; **K2** = LFO cuadrado (cantidad); **K3** = la velocidad de los dos LFO; **K4** = LFO de pasos al azar (cantidad; un valor nuevo en cada medio ciclo); **K5** = destino del **morph lento**; **K6** = su duración (a la izquierda del todo, al momento; luego de ¼ a 32 compases del tempo del proyecto: más a la derecha, más largo); **K7 / K8** = envolvente (cantidad / tiempo); **K8** también suaviza los dos LFO (más a la derecha, cambios más lentos). Las cantidades a la derecha van hacia el final de la cadena. **Morph lento:** gira K5 y déjalo quieto medio segundo: el sonido va de K1 a K5 en el tiempo de K6 y, al llegar, K1 toma el valor de K5; girar K5 otra vez cambia el destino desde donde está el sonido; girar K1 lo para ahí. **K1 y K5 en color:** patch 1 rojo, 2 amarillo, 3 verde, 4 azul, con tonos intermedios entre ellos. **Clear + knob** = 0 (Clear no sale de la vista); **Clear + el botón de la pista** = los knobs a 0. **Pads 1 / 8** = la envolvente desde arriba, **sostenida mientras los mantienes**; K8 marca solo la caída (en Synth 1 / 2, desde la Beta 5.56, el ataque llega a todo el patch a la vez). **Pad 32** (rojo) = salir. **Preset** = los patches, los de la cadena en blanco: un toque carga ese patch y sale; mantener 0,4 s = cadena nueva con los knobs como están. El morph sigue en las otras vistas; el **botón de la pista** vuelve a la vista del morph (desde ella, a la Note). **Un morph a la vez:** mantener patches 0,4 s en la vista Preset de otra pista abre el morph de esa pista y para el anterior (su sonido se queda donde está); un toque en otra pista solo carga ese patch. Los parámetros continuos se mezclan; los de tipo (onda, algoritmo, modo…) toman el del patch más cercano. No se guarda nada.
-""", [("colores-patch", 0), ("guardar-patch", 0)])
+""", [("colores-patch", 0), ("colores-patch", 1), ("guardar-patch", 0)])
 
 # ===================================================================================================== III
 view("midi-preset", "III", "Vista Preset de MIDI 1 / 2",
@@ -1435,6 +1435,9 @@ def write(lang, md=True):
             parts_h.append(f'<div class="summary"><p><strong>{html.escape(U["how"])}</strong> {M.inline(v["how"])}</p>{about}</div>')
             for sid, k in v["figs"]:
                 f = figs[sid][k]
+                if M.SET == "rc":                                            # (2026-11-13) a beta-only figure: not in the RC's set
+                    import docset
+                    if docset.titled(f["caption"]): continue
                 parts_h.append(f"<figure>{M.svg(f)}<figcaption>{html.escape(f['caption'])}</figcaption></figure>")
             parts_h.append(M.md2html(v["detail"]))
             parts_h.append("</section>")

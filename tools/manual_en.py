@@ -24,7 +24,7 @@ UI = dict(
     features_manual="User manual: [guide by views](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)) · [MIDI reference](docs/MIDI.en.md) · this list: [illustrated colour](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html) · [short](docs/MANUAL.en.md) · **guide in plain words, illustrated** ([web](https://ghillermo.github.io/CIRCUIT-HACKS-RC/plain.html), [PDF](https://ghillermo.github.io/CIRCUIT-HACKS-RC/plain.pdf); first draft by [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [the original guide](https://files.catbox.moe/xgogqy.pdf)). New features and fixes of every version: [`docs/CHANGELOG.md`](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog). What is marked **since RC2** is new in RC2 / RC2S (not in RC0.9).",
 )
 
-LABEL = {
+LABEL = {"Ninguna": "None", 
     "Apagar": "All off", "Atajos": "Shortcuts", "Ataque": "Attack", "Caos": "Chaos", "Densidad": "Density", "Filtro": "Filter", "Fuente del sinte": "Synth source",
     "Grabar": "Record", "Granular": "Granular", "Gran.": "Gran.", "Modo": "Mode", "Motor": "Engine", "Orden": "Order", "Posición": "Position",
     "Preset de MIDI 1": "MIDI 1 Preset", "Preset de drums": "Drum Preset", "Repet.": "Repeat", "Retraso": "Delay", "Ruido": "Noise", "Sec.": "Seq.",
@@ -303,7 +303,8 @@ sec("colores-patch", "Synth patch colours",
 - **Beta 5.56 only:** the colour of the patch's category (Arp teal, Bass steel blue, Bell light blue, Classic amber, Drum orange, Keyboard pale lime, Lead yellow, Movement violet, Pad blue, Poly green, SFX red, String peach, User sand, Voc lavender); None = the track colour; **empty slot = dim white**; the chosen one white. The card is read on entering the view, on a new page or pack and after a save or a copy, never on a patch tap. When saving (Clear + pad), **K1** picks the category.
 - RC2 to RC4.08: mono = dark blue; mono with glide (Mono AG) = lavender; poly = the track colour.
 - In Advanced Setup pads 22 / 23 no longer light up (they never did anything there).
-""", ["Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour."])
+""", ["Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.",
+      "Beta 5.56 only: Synth 1's Preset view with one patch of each Components category; pad 1 = None (the track's colour), pad 16 = an empty slot (dim white)."])
 
 sec("morph", "Patch morph (Beta 5.56 only)",
     ["**Beta 5.56 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two to four patches** for 0.4 s and a knob moves from one to the next, with LFOs, an envelope and a slow morph."],

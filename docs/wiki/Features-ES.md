@@ -65,6 +65,10 @@ Cada función en una línea, por temas. Cada una enlaza con su entrada ilustrada
 
   *Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.*
 
+  <img src="img/feat-colores-patch-2-es.svg" width="640" alt="Solo Beta 5.56: la vista Preset de Synth 1 con un patch de cada categoría de Components; pad 1 = Ninguna (el color de la pista), pad 16 = hueco vacío (blanco tenue).">
+
+  *Solo Beta 5.56: la vista Preset de Synth 1 con un patch de cada categoría de Components; pad 1 = Ninguna (el color de la pista), pad 16 = hueco vacío (blanco tenue).*
+
 - **[Patches del sinte propio (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/index.html#a16-patches-midi)** — **Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack).
 
   <img src="img/feat-patches-midi-1-es.svg" width="640" alt="Vista Preset de MIDI 1: filas 2-3 = patches del sinte propio.">

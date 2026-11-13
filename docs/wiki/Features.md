@@ -65,6 +65,10 @@ Every feature in one line, by topic. Each one links to its illustrated entry; th
 
   *Preset view of Synth 1 from RC2 to RC4.08: mono dark blue, glide lavender, poly the track colour.*
 
+  <img src="img/feat-colores-patch-2-en.svg" width="640" alt="Beta 5.56 only: Synth 1's Preset view with one patch of each Components category; pad 1 = None (the track's colour), pad 16 = an empty slot (dim white).">
+
+  *Beta 5.56 only: Synth 1's Preset view with one patch of each Components category; pad 1 = None (the track's colour), pad 16 = an empty slot (dim white).*
+
 - **[Patches of the own synth (MIDI 1 / 2)](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/en.html#a16-patches-midi)** — **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
 
   <img src="img/feat-patches-midi-1-en.svg" width="640" alt="Preset view of MIDI 1: rows 2-3 = patches of the own synth.">
