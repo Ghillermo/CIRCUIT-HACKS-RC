@@ -69,29 +69,24 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 La página no contiene código de Novation: solo los bytes del mod y las instrucciones para copiar el resto del firmware oficial que tú aportas. **Haz antes una copia de la tarjeta SD.**
 
-### App de la tarjeta y del aparato: `tools/sd_app.html`
+### La app: `tools/hr_app.html`
 
-Una página para ordenar packs, sintes, samples, patrones y presets desde el ordenador, con la microSD o con el Circuit Tracks conectado por USB. Funciona también con el firmware oficial; los parches custom son lo único propio del mod.
+📖 [Manual ilustrado en color](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html)
 
-1. **[Descarga la app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip)** (`sd_app.zip`), descomprímela y abre `sd_app.html` en Chrome o Edge (es el mismo [`tools/sd_app.html`](tools/sd_app.html) del repositorio). No necesita instalación ni servidor.
-2. **Elige de dónde leer:**
-   - **Abrir carpeta…**: la carpeta `Tracks` de la tarjeta o de una copia en el ordenador.
-   - **Aparato…**: el Circuit Tracks por USB. Cierra Components y acepta el permiso de MIDI. El transporte se para y el panel queda bloqueado hasta **Desconectar aparato**.
-3. **Trabaja con las dos columnas:** pestañas **Packs**, **Sintes Nova**, **Drums** (con escucha), **Parches custom**, **Patrones** y **Presets CC**. **Copiar** y **Mover** pasan lo elegido a la otra columna.
-4. **Patrones** enseña las ocho pistas con su vista previa y, con el aparato conectado, su canal. Las pistas de notas se abren en piano roll con doble clic; los drums se ven, se copian y se exportan, pero aún no se editan.
-5. **Exportar…** guarda lo elegido en el ordenador sin hacer un volcado completo: parches (`.syx` / `.ctm`), samples (`.wav`), patrones (`.mid` y `.ctpat`), presets (`.ctcc`) y packs enteros. Lo exportado todavía no se puede volver a cargar desde la app, salvo los `.ctcc`.
-6. **Snapshot…** y **Restaurar…** (con el aparato conectado) guardan en el ordenador todos los packs, el pack interno y los presets de CC, y devuelven al aparato solo lo que haya cambiado, tras enseñarte un plan. El pack interno no se escribe de vuelta, y los packs que no estén en el snapshot se quedan. No incluye los ajustes del aparato ni lo que no hayas guardado del proyecto.
+Una sola página para todo lo que se hace desde el ordenador, con la microSD o con el aparato conectado por USB, para un Circuit Tracks (Hacks) y un Circuit Rhythm (Remix). Funciona también con el firmware oficial. **[Ábrela en el navegador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html)** (Chrome o Edge, sin instalar nada) o **[descarga la app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), descomprímela y abre `hr_app.html` en Chrome o Edge (es el mismo [`tools/hr_app.html`](tools/hr_app.html) del repositorio, hecho con `python tools/make_hr_app.py`). No necesita instalación ni servidor. Las apps sueltas de cada aparato ya no se mantienen: todo está aquí.
+
+Arriba se elige la vista:
+
+- **Hacks · Circuit Tracks:** la tarjeta y el aparato.
+  1. **Elige de dónde leer:** **Abrir carpeta…** (la carpeta `Tracks` de la tarjeta o de una copia en el ordenador) o **Aparato…** (el Circuit Tracks por USB: cierra Components y acepta el permiso de MIDI; el transporte se para y el panel queda bloqueado hasta **Desconectar aparato**).
+  2. **Trabaja con las dos columnas:** pestañas **Packs**, **Proyectos**, **Sintes Nova**, **Drums** (con escucha), **Parches custom**, **Patrones** y **Presets CC**. **Copiar** y **Mover** pasan lo elegido a la otra columna.
+  3. **Patrones** enseña las ocho pistas con su vista previa; las pistas de notas se abren en piano roll con doble clic.
+  4. **Exportar…** guarda lo elegido en el ordenador; con el aparato conectado, **Snapshot…** y **Restaurar…** guardan todos los packs, el pack interno y los presets de CC, y devuelven al aparato solo lo que haya cambiado, tras enseñarte un plan.
+- **Remix · Circuit Rhythm:** lo mismo para el Circuit Rhythm.
+- **Entre los dos:** samples, patrones y parches FM de 8 operadores entre un Circuit Tracks y un Circuit Rhythm, o en carpetas del ordenador y snapshots. Los patrones pasan del Tracks al Rhythm con la nota más grave de cada paso, y del Rhythm al Tracks con una nota por paso; los carriles de automatización y los sample flips no cruzan de un aparato a otro.
+- **Editor de patches:** el sinte propio de MIDI 1 / 2 en vivo por MIDI. **Firmware:** los dos instaladores.
 
 **Antes de escribir:** la app guarda lo que sustituye en una carpeta tuya del ordenador, nunca en la tarjeta: el aparato busca los ficheros por su prefijo `NN_` y una copia dentro de un pack puede ocupar el lugar del original. Por USB, cada escritura borra primero el fichero antiguo. **La escritura por USB ya está probada en un aparato real, pero puede haber fallos aún sin descubrir:** haz antes un snapshot o una copia de la tarjeta. Al escribir en el pack cargado, se recarga al desconectar y se pierde lo no guardado.
-
-### App Hacks + Remix: `tools/hr_app.html`
-
-Para pasar samples, patrones y parches FM entre un Circuit Tracks (Hacks) y un Circuit Rhythm ([Remix](https://github.com/Ghillermo/CIRCUIT-REMIX)), o guardarlos en carpetas del ordenador y snapshots. **[Descarga la app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), descomprímela y abre `hr_app.html` en Chrome o Edge.
-
-- **Dos columnas:** cada una abre una tarjeta del Tracks (carpeta con `Tracks/`), una del Rhythm (`Rhythm/`), un snapshot o una carpeta de ficheros sueltos.
-- **Samples:** el WAV tal cual. **Patrones:** del Tracks al Rhythm, cada paso con la nota más grave del acorde; del Rhythm al Tracks, una nota por paso; los drums con golpes, velocity, probabilidad y micropasos. Los carriles de automatización y los sample flips no pasan de un aparato a otro. **Parches FM:** el FM de 8 operadores, el mismo en los dos.
-- **Firmware:** la vista **Firmware** lleva los dos instaladores, Hacks para el Circuit Tracks y Remix para el Circuit Rhythm. Arriba, el firmware de cada aparato (**Tracks:** automático / solo stock / Hacks; **Rhythm:** automático / solo stock / Remix): con «solo stock» los parches de ese lado no aparecen.
-- Sin probar aún con tarjetas reales: haz antes una copia.
 
 ### Con Python (`tools/patch_official.py`)
 
@@ -195,29 +190,24 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 The page contains no Novation code: only the bytes of the mod and the instructions to copy the rest from the official firmware you provide. **Back up the SD card first.**
 
-### Card and device app: `tools/sd_app.html`
+### The app: `tools/hr_app.html`
 
-A page to organise packs, synths, samples, patterns and presets from the computer, with the microSD card or with the Circuit Tracks connected by USB. It also works with the official firmware; only the custom patches belong to the mod.
+📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
-1. **[Download the app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip)** (`sd_app.zip`), unzip it and open `sd_app.html` in Chrome or Edge (it is the repository's [`tools/sd_app.html`](tools/sd_app.html)). It needs no installation and no server.
-2. **Choose where to read from:**
-   - **Open folder…**: the `Tracks` folder of the card or of a copy on the computer.
-   - **Device…**: the Circuit Tracks over USB. Close Components and accept the MIDI permission. The transport stops and the panel stays locked until **Disconnect device**.
-3. **Work with the two columns:** the tabs **Packs**, **Nova synths**, **Drums** (with listening), **Custom patches**, **Patterns** and **CC presets**. **Copy** and **Move** send the selection to the other column.
-4. **Patterns** shows the eight tracks with their preview and, with the device connected, their channel. Note tracks open in a piano roll with a double click; drums can be seen, copied and exported, but not edited yet.
-5. **Export…** saves the selection on the computer without a full dump: patches (`.syx` / `.ctm`), samples (`.wav`), patterns (`.mid` and `.ctpat`), presets (`.ctcc`) and whole packs. Exported files cannot be loaded back from the app yet, except `.ctcc`.
-6. **Snapshot…** and **Restore…** (with the device connected) save all the packs, the internal pack and the CC presets on the computer, and send back only what has changed, after showing you a plan. The internal pack is not written back, and packs that are not in the snapshot stay. The device's settings and anything unsaved in the project are not included.
+One page for everything done from the computer, with the microSD card or with the device connected over USB, for a Circuit Tracks (Hacks) and a Circuit Rhythm (Remix). It also works with the official firmware. **[Open it in the browser](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html)** (Chrome or Edge, nothing to install) or **[download the app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), unzip it and open `hr_app.html` in Chrome or Edge (it is the repository's [`tools/hr_app.html`](tools/hr_app.html), made with `python tools/make_hr_app.py`). It needs no installation and no server. The separate apps of each device are no longer maintained: everything is here.
+
+Pick the view at the top:
+
+- **Hacks · Circuit Tracks:** the card and the device.
+  1. **Choose where to read from:** **Open folder…** (the `Tracks` folder of the card or of a copy on the computer) or **Device…** (the Circuit Tracks over USB: close Components and accept the MIDI permission; the transport stops and the panel stays locked until **Disconnect device**).
+  2. **Work with the two columns:** the tabs **Packs**, **Projects**, **Nova synths**, **Drums** (with listening), **Custom patches**, **Patterns** and **CC presets**. **Copy** and **Move** send the selection to the other column.
+  3. **Patterns** shows the eight tracks with their preview; note tracks open in a piano roll with a double click.
+  4. **Export…** saves the selection on the computer; with the device connected, **Snapshot…** and **Restore…** save all the packs, the internal pack and the CC presets, and send back only what has changed, after showing you a plan.
+- **Remix · Circuit Rhythm:** the same for the Circuit Rhythm.
+- **Between the two:** samples, patterns and 8-operator FM patches between a Circuit Tracks and a Circuit Rhythm, or into folders on the computer and snapshots. Patterns go from Tracks to Rhythm with each step's lowest note, and from Rhythm to Tracks with one note a step; automation lanes and sample flips do not cross from one device to the other.
+- **Patch editor:** MIDI 1 / 2's own synth live over MIDI. **Firmware:** the two installers.
 
 **Before writing:** the app keeps what it replaces in a folder of yours on the computer, never on the card: the device finds files by their `NN_` prefix and a copy inside a pack can take the original's place. Over USB, each write deletes the old file first. **Writing over USB has been tested on a real device, but there may be bugs still undiscovered:** take a snapshot or a copy of the card first. Writing to the loaded pack makes it reload on disconnect, and unsaved edits are lost.
-
-### Hacks + Remix app: `tools/hr_app.html`
-
-To move samples, patterns and FM patches between a Circuit Tracks (Hacks) and a Circuit Rhythm ([Remix](https://github.com/Ghillermo/CIRCUIT-REMIX)), or keep them in folders on the computer and in snapshots. **[Download the app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)** (`hr_app.zip`), unzip it and open `hr_app.html` in Chrome or Edge.
-
-- **Two columns:** each opens a Tracks card (a folder with `Tracks/`), a Rhythm card (`Rhythm/`), a snapshot or a folder of loose files.
-- **Samples:** the WAV as it is. **Patterns:** Tracks to Rhythm, each step takes the chord's lowest note; Rhythm to Tracks, one note a step; drums with hits, velocity, probability and micro steps. Automation lanes and sample flips do not cross from one device to the other. **FM patches:** the 8-operator FM, the same on both.
-- **Firmware:** the **Firmware** view holds both installers, Hacks for the Circuit Tracks and Remix for the Circuit Rhythm. At the top, each device's firmware (**Tracks:** automatic / stock only / Hacks; **Rhythm:** automatic / stock only / Remix): with «stock only» that side's patches are left out.
-- Not yet tested with real cards: make a backup first.
 
 ### Build
 
