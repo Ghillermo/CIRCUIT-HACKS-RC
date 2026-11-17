@@ -97,8 +97,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 - *(since RC2)* = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - *(since RC2.02)* = new in RC2.02 (not in RC2.01).
 - *(since RC4)* = new in **RC4** (not in RC2.11 or earlier).
-- *(since RC4.05)* = a fix of **RC4.05** (in RC4.11 and Alpha 7 too; not in RC4.02 or earlier).
-- *(Beta 5.65 only)* = only in **Alpha 7** (not in RC4.11).
+- *(since RC4.05)* = a fix of **RC4.05** (in RC4.11 and Alpha 7.01 too; not in RC4.02 or earlier).
+- *(Beta 5.65 only)* = only in **Alpha 7.01** (not in RC4.11).
 - **The features are in the chapter of the view where they are used** (before, in the feature list): every chapter starts with the index of its features, goes on with the view and ends with each feature in its own section, with its drawings and animations. The **glossary**, at the end, lists them all under the groups of the former list (A-E).
 
 <a id="botones"></a>

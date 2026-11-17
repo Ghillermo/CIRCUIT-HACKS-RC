@@ -97,8 +97,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - *(desde RC2.02)* = nuevo en RC2.02 (no está en RC2.01).
 - *(desde RC4)* = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.11 y en la Alpha 7; en RC4.02 y antes no).
-- *(solo Beta 5.65)* = solo en la **Alpha 7** (no está en RC4.11).
+- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.11 y en la Alpha 7.01; en RC4.02 y antes no).
+- *(solo Beta 5.65)* = solo en la **Alpha 7.01** (no está en RC4.11).
 - **Las funciones están en el capítulo de la vista donde se usan** (antes, en la lista de características): cada capítulo empieza con el índice de sus funciones, sigue con la vista y termina con cada función en su apartado, con sus dibujos y sus animaciones. El **glosario**, al final, las lista todas con los grupos de la antigua lista (A-E).
 
 <a id="botones"></a>

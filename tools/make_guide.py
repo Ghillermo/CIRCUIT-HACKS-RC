@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7"                      # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.01"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"

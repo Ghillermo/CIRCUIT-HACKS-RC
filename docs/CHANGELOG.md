@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.01 — 2026-11-17
+
+**Alpha 7.01** (marca `A7.01`) = la Alpha 7 + este aviso, sin probar en el aparato. Sustituye a la Alpha 7 en el instalador (que pasa al instalador antiguo).
+
+- **Save parpadea en violeta mientras la caja negra tiene un registro por leer** (un cuelgue, un bloqueo, un reinicio solo o un valor saltado por una vista), hasta que la vacías con la app (vista Hacks → **Caja negra…** → Guardar…, Vaciar); antes solo parpadeaba unos 30 s tras un reinicio y un valor saltado no se veía. **No apagues el aparato antes de leerla:** al apagarlo se pierde. → [Guía: Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#instalar)
+
 ### Alpha 7 — 2026-11-17
 
 **Alpha 7** (marca `ALPHA7`) = la Beta 5.65: todo lo de las Betas 5.57-5.65 (abajo), publicado junto a RC4.11 / RC4.11S y la Beta 5.56. **Versión experimental, sin probar en el aparato:** úsala solo con una copia de la SD. Si el aparato se cuelga o se reinicia solo, Save parpadea en violeta al volver a arrancar: sin apagarlo, guarda la caja negra con la app (vista Hacks → **Caja negra…**) y adjúntala a tu informe. → [Guía: Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#instalar)
@@ -1106,6 +1112,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.01 — 2026-11-17
+
+**Alpha 7.01** (marker `A7.01`) = Alpha 7 + this notice, untested on the device. It replaces Alpha 7 in the installer (Alpha 7 moves to the old installer).
+
+- **Save blinks violet while the black box holds a record to read** (a crash, a lock-up, a restart by itself or a value a view skipped), until you clear it with the app (Hacks view → **Black box…** → Save…, Clear); before, it blinked only for about 30 s after a restart and a skipped value showed nothing. **Do not switch the device off before reading it:** switching off loses it. → [Guide: Install and go back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#instalar)
 
 ### Alpha 7 — 2026-11-17
 

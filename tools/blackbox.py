@@ -63,6 +63,16 @@ RAM_LO, RAM_HI = 0x20000000, 0x20050000
 #     nothing frozen = the breadcrumbs of before frozen as they were.
 V2 = False
 MEMRD = False                                            # (S564D4, use_memrd) the read command with an address = any memory
+SHOWALL = False                                          # (Alpha 7.01, use_showall) Save violet while a record waits to be read
+
+
+def use_showall():
+    """Alpha 7.01 (2026-11-17, the user: «we need users to know when they need to dump the blackbox»): Save blinks violet for as long as a record
+    waits to be read (frozen, and not a hand capture: a crash, a lock-up, a watchdog restart, or paintguard's skipped value, state 0x85 = MANUAL |
+    0x80), not only the first 30 s after a restart: the app's Clear (or switching the device off, which loses the record) ends it.  A hand capture
+    (state FROZEN | MANUAL without 0x80) keeps the old rule."""
+    global SHOWALL
+    SHOWALL = True
 
 
 def use_memrd():
@@ -236,8 +246,13 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     E(ldrb_imm, 6, 4, O.ST); E(lsls_imm, 0, 6, 31); E(b_cond, "ld_f", "mi")
     E(str_imm, 5, 4, O.LF1); E(ldr_imm, 0, 4, O.LFN); E(adds_imm8, 0, 1); E(str_imm, 0, 4, O.LFN)
     a.label("ld_f")
+    if SHOWALL:                                                                          # frozen and not a hand capture: blink until cleared
+        E(lsls_imm, 0, 6, 31); E(b_cond, "ld_r", "pl")
+        E(movs_imm, 0, 0x80 | ST_MANUAL); E(ands_reg, 0, 6); E(cmp_imm, 0, ST_MANUAL); E(b_cond, "ld_b", "ne")
+        a.label("ld_r")
     E(movs_imm, 0, ST_RESET); E(raw, h(0x4230)); E(b_cond, "ld_x", "eq")                  # tst r0, r6
     E(movw, 0, SHOW_MS); E(cmp_reg, 5, 0); E(b_cond, "ld_x", "hs")
+    if SHOWALL: a.label("ld_b")
     E(movs_imm, 1, 0); E(lsls_imm, 0, 5, 24); E(b_cond, "ld_d", "pl"); E(movs_imm, 1, COL_SHOW)   # bit 7 of the ms: 128 ms on / off
     a.label("ld_d"); E(ldr_imm, 0, 4, O.FR); E(movs_imm, 2, 2 * LED_SAVE); E(raw, h(0x5281))       # strh r1, [r0, r2]
     a.label("ld_x"); E(pop_list, [0, 4, 5, 6, 7])

@@ -511,6 +511,7 @@ BUILDS = [
     ("s564d5", "build_s564d5.py", []),
     ("b5.65", "build_beta5_65.py", []),
     ("alpha7", "build_alpha7.py", []),
+    ("a7.01", "build_a7_01.py", []),
     ("r408", "build_r408.py", []),
     ("r408s", "build_r408s.py", []),
     ("r409", "build_r409.py", []),
