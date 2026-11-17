@@ -21,6 +21,14 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 section.feat a { color:var(--accent); text-underline-offset:2px; }
+.anims { margin:18px 0 4px; } .anims p.anim-h { margin:0 0 6px; color:var(--muted); }
+figure.anim { margin:10px 0 4px; } figure.anim img { display:block; width:100%; max-width:656px; height:auto; border-radius:14px; }
+details.anim-steps { max-width:656px; margin:0 0 16px; font-size:.95em; } details.anim-steps summary { cursor:pointer; color:var(--muted); }
+section.sub { border-top:2px solid var(--line); margin:30px 0 0; padding-top:14px; } section.sub h4 { margin:0 0 10px; font-size:1.15em; }
+section.sub h5 { font-size:1em; margin:18px 0 6px; } section.sub .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+nav.vindex { background:rgba(255,106,19,.06); border:1px solid var(--line); border-radius:10px; padding:10px 16px; margin:14px 0; }
+nav.vindex p { margin:4px 0; } nav.vindex ul { margin:4px 0; padding-left:20px; } nav.vindex a, ul.gloss a, .gl a { color:var(--accent); }
+ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { color:var(--muted); font-size:.92em; } ul.gloss .gsum { color:var(--muted); font-size:.95em; }
 .feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>
 <header class="cover"><h1>MIDI tracks and voice modes</h1><p>CIRCUIT-HACKS · RC4.08</p><p><a style="color:#fff" href="voces.html">Español</a> · <a style="color:#fff" href="guide.html">Guide by views</a></p><div class="bar"></div></header><main>
 <nav class="toc"><h2>Contents</h2><ol>
@@ -37,7 +45,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ol></nav>
 <section class="feat" id="s1"><h3>Summary</h3>
 <p>MIDI 1 and MIDI 2 are two complete synths inside the Circuit Tracks: each track keeps sending MIDI and also sounds through its own engine, with up to 4 voices (6 in FM). The <strong>voice mode</strong> decides how notes are shared out among those voices: eight modes on pad 32 of the Preset view.</p>
-<p>This document describes the release candidate <strong>RC4.08</strong>; the beta has its own document.</p>
+<p>This document describes the release candidate <strong>RC4.11</strong>; the beta has its own document.</p>
 <p>The voice mode has no CC or NRPN: it is chosen on the device and saved with the patch and the project.</p>
 </section>
 <section class="feat" id="s2"><h3>Block diagram</h3>
@@ -2819,7 +2827,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Expanded Note, the 32 pads</td><td>Steps 1-32</td></tr>
 </tbody></table>
 <p>While it points, the track does not sound. Each note, from the sequencer, the pads or the arpeggiator, makes the other track jump. Saved with the project.</p>
-<p>Pad 26 blinks in the target track&#x27;s colour. Pointing turns the engine off and turning an engine on stops pointing: only one of the two at a time. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded Note view. With the transport stopped, a pad sounds that step of the target track while you hold it, with no jump (on the drums, with the chosen sample).</p>
+<p>Pad 26 blinks in the target track&#x27;s colour. Pointing turns the engine off and turning an engine on stops pointing: only one of the two at a time. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded Note view. With the transport stopped, a pad sounds that step of the target track while you hold it, with no jump (on the drums, with the step&#x27;s sample flip or, without one, the chosen sample).</p>
 <p>If the target and the MIDI track have the same length, one jump is only noticeable the first time: on the next passes the target is already on that step. To hear it on every pass the pattern needs two jumps: one to move it and one to bring it back.</p>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flip view (pad 26, white) with step flip to Drum 1: row 3, pad 17 patch flip (PGM seq) and pad 18 step flip in the target&#x27;s colour; row 2, the tracks (Drum 1 bright, MIDI 1 dark).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
