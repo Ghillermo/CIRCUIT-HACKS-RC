@@ -1272,7 +1272,9 @@ function bbParse(b) {
     freezeMs: ft, stallMs: u32(BB.stall), view: hx(u32(BB.view)), ledFrames: u32(BB.lfn), ledStart: u32(BB.lf0), ledEnd: u32(BB.lf1),
     insideLed: u32(BB.lf0) > u32(BB.lf1), ledTask: hx(u32(BB.ltcb)), inputTask: hx(u32(BB.itcb)), ledSp: hx(u32(BB.lsp)), inputSp: hx(u32(BB.isp)),
     taskName: String.fromCharCode(...(nz < 0 ? name : name.slice(0, nz)).filter(c => c >= 0x20 && c < 0x7F)), lastInputMs: u32(BB.itime),
-    ring, pcs, ledStack: code(BB.stk1, 384), inputStack: code(BB.stk2, 176), format: fmt, ...v2};
+    ring, pcs, ledStack: code(BB.stk1, 384), inputStack: code(BB.stk2, 176), format: fmt, ...v2,
+    // (Alpha 7 / Beta 5.65, tools/paintguard.py) state 0x85 + tag 1 / 2 at STK1: a pad painter skipped a value it cannot draw (the value at + 4)
+    skip: st === 0x85 && (u32(BB.stk1) === 1 || u32(BB.stk1) === 2) ? {what: u32(BB.stk1), value: u32(BB.stk1 + 4)} : null};
 }
 
 class Device {
@@ -2689,6 +2691,10 @@ function bbHtml(r, fw) {
     : r.fault ? T(`Fallo del procesador (${r.faultType}).`, `Processor fault (${r.faultType}).`) + rs
     : r.stall ? T("El aparato se bloqueó: el bucle principal dejó de correr.", "The device locked up: the main loop stopped running.") + rs
     : r.warm ? T("El vigilante reinició el aparato sin captura: estas son las últimas entradas de antes.", "The watchdog restarted the device with no capture: these are the last inputs before it.")
+    : r.skip ? (r.skip.what === 1 ? T(`La vista de probabilidad se saltó un valor que no puede dibujar (probabilidad ${r.skip.value}; válida 0-7): sin el arreglo, el aparato se habría reiniciado. Las entradas de abajo son las de antes.`,
+                                      `The probability view skipped a value it cannot draw (probability ${r.skip.value}; valid 0-7): without the fix, the device would have restarted. The inputs below are the ones before it.`)
+                                  : T(`La barra de velocity de un drum se saltó un valor que no puede dibujar (velocity ${r.skip.value}; válida 0-127): sin el arreglo, el aparato se habría reiniciado. Las entradas de abajo son las de antes.`,
+                                      `A drum's velocity bar skipped a value it cannot draw (velocity ${r.skip.value}; valid 0-127): without the fix, the device would have restarted. The inputs below are the ones before it.`))
     : r.manual ? T("Capturado a mano.", "Captured by hand.") : T("El panel se colgó y el aparato se reinició.", "The panel hung and the device restarted.");
   let h = `<p><b>${head}</b>` + (fw ? ` Firmware ${esc(fw)}.` : "") + `</p>`;
   if (r.fault) h += `<p>PC <b>${r.runPc}</b> · LR ${r.runLr} · ${T("tarea", "task")} ${esc(r.taskName || "?")} · CFSR ${r.cfsr} · HFSR ${r.hfsr} · ${T("dirección", "address")} ${r.faultAddress}</p>` +
