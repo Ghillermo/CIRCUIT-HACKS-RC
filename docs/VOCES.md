@@ -514,6 +514,8 @@ Los 8 knobs secuenciables graban con Record + Play en 8 carriles del patrón. Ha
 
 En la foto, un parámetro sin carril toma uno cuyo parámetro sí está en su valor inicial, y ese carril se borra antes. Si no caben, quedan los primeros en el orden de la matriz.
 
+*(solo Beta 5.58)* **Carriles extra:** cada parámetro del motor que no está en los knobs secuenciables tiene su propio carril (hasta 25 por patrón), con **dos valores por paso** (al principio y a la mitad). Grabar, Clear + knob, la foto, Nudge y los pasos marcados con Shift valen también para ellos; en la foto, un parámetro que no está en los secuenciables va a su carril extra y los destinos no cambian. Se guardan en el fichero del proyecto, detrás de los datos del original. Los destinos de los knobs secuenciables y no secuenciables se eligen con **Duplicate + knob**: en otra página del motor lo añade, en la suya lo quita.
+
 ### Step-drummer
 
 <!--panel:step-->
@@ -552,7 +554,9 @@ Las notas de la pista hacen saltar el patrón de otra pista al paso que indican,
 
 Mientras apunta, la pista no suena. Cada nota, del secuenciador, de los pads o del arpegiador, hace saltar la otra pista. Se guarda con el proyecto.
 
-El pad 26 parpadea en el color de la pista destino. Apuntar apaga el motor y encender un motor deja de apuntar: solo una de las dos funciones a la vez. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. Con el transporte parado, un pad hace sonar ese paso de la pista destino mientras lo mantienes, sin saltar (en los drums, con su sample elegido).
+*(solo Beta 5.57)* Con varias notas en un paso, el salto va a uno de sus pasos al azar, todos con la misma probabilidad; en cada vuelta se vuelve a elegir.
+
+El pad 26 parpadea en el color de la pista destino. Apuntar apaga el motor y encender un motor deja de apuntar: solo una de las dos funciones a la vez. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. Con el transporte parado, un pad hace sonar ese paso de la pista destino mientras lo mantienes, sin saltar (en los drums, con el sample flip del paso o, si no tiene, con su sample elegido).
 
 Si el destino y la pista MIDI tienen la misma longitud, un mismo salto solo se nota la primera vez: en las vueltas siguientes el destino ya está en ese paso. Para que se oiga en cada vuelta hacen falta dos saltos en el patrón: uno que lo mueva y otro que lo devuelva.
 

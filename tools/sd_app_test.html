@@ -252,6 +252,43 @@ async function main() {
   check(eq(backed(samp), originals[samp]), "backup: a deleted sample");
   check(Object.keys(kept).some(k => k.startsWith(`${stamp}/07${E.beta.slice(2)}/`)), "backup: the deleted pack");
 
+  // ---- (2026-11-13) duplicate a pack into a new number, a new pack (empty / with another's sounds), an empty project (a folder only: the files are walked)
+  if (!DEV) {
+    const tree = async pk => { const o = {}; for (const [k, v] of Object.entries(await walk(pk.dir))) o[k] = v; return o; };
+    const sameT = (a, b) => Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(k => b[k] && eq(a[k], b[k]));
+    const Bp = c.pack(3), Ap = c.pack(9);
+    const d = await SD.copyPack(Bp, c, 12, Object.assign({}, ctx, {name: "Dup Beta"}));
+    check(d && d.folder === "12_Dup Beta" && sameT(await tree(Bp), await tree(d)), `duplicate: ${d && d.folder}, the same files as ${Bp.folder}`);
+    let why = null; try { await SD.newPack(c, 12, "X", null, ctx); } catch (e) { why = e.message; }
+    let why2 = null; try { await SD.newPack(c, 15, "a/b", null, ctx); } catch (e) { why2 = e.message; }
+    check(why === "slot-used" && why2 === "name-chars-file" && !c.pack(15), `a new pack on a taken number / with a bad name is refused (${why}, ${why2})`);
+    const ne = await SD.newPack(c, 13, "Empty Pack", null, ctx), te = await tree(ne);
+    check(ne && ne.folder === "13_Empty Pack" && Object.keys(te).join() === "meta/00_META.ncm" && eq(te["meta/00_META.ncm"], [0, 7]) &&
+          await SD.subdir(ne.dir, "Sessions") && await SD.subdir(ne.dir, "Patches") && await SD.subdir(ne.dir, "PCM"),
+          `an empty pack: ${ne && ne.folder}, the meta file 00 07 and empty Sessions / Patches / PCM (${Object.keys(te)})`);
+    const nf = await SD.newPack(c, 14, "From Alpha", Ap, ctx), tf = await tree(nf), ta = await tree(Ap);
+    const pick = (t, re) => Object.fromEntries(Object.entries(t).filter(([k]) => re.test(k)));
+    check(nf && sameT(pick(tf, /^(Patches|PCM)\//), pick(ta, /^(Patches|PCM)\//)) && !Object.keys(tf).some(k => k.startsWith("Sessions/")) && Object.keys(pick(tf, /^(Patches|PCM)\//)).length > 0,
+          `a new pack with ${Ap.folder}'s sounds: its banks and samples (${Object.keys(pick(tf, /^(Patches|PCM)\//)).length} files), no projects`);
+    check(c.pack(12) && c.pack(13) && c.pack(14) && (await SD.Card.open(tracks)).pack(13), "the new packs are packs of the card (a fresh read finds them)");
+    // the empty project
+    const pl = {pack: Bp}, L = await SD.Projects.list(pl), srcIt = L.find(x => !x.empty), free = L.find(x => x.empty);
+    const src = await SD.Projects.get(pl, srcIt.slot), e = SD.projectEmpty(src.bytes, "Blank");
+    let notes = 0, hits = 0;
+    for (let n = 0; n < 32; n++) { const m = SD.patParse(e.subarray(SD.patOff(n), SD.patOff(n) + SD.PAT)); for (const st of m.steps) notes += st.units.filter(u => u.on).length; }
+    for (let n = 32; n < 64; n++) { const o = SD.patOff(n); for (let s = 0; s < 32; s++) hits += e[o + s] ? 1 : 0; }
+    const PATCHES = 0x26D14;
+    check(e.length === SD.SESS_SIZE && notes === 0 && hits === 0 && e.subarray(0x40, 0x2E4).every(x => x === 0) && String.fromCharCode(...e.subarray(0x10, 0x15)) === "Blank" && e[0x15] === 32 &&
+          eq(e.subarray(PATCHES, PATCHES + 2 * 0x154), src.bytes.subarray(PATCHES, PATCHES + 2 * 0x154)) && eq(e.subarray(0, 0x10), src.bytes.subarray(0, 0x10)),
+          `an empty project from ${srcIt.name}: no notes or hits, scenes and chains zero, its synth patches and header kept, the name inside`);
+    await SD.Projects.put(pl, free.slot, {name: "Blank", bytes: e}, ctx);
+    const L2 = await SD.Projects.list(pl), got = await SD.Projects.get(pl, free.slot);
+    check(!L2[free.slot].empty && got && got.name === "Blank" && eq(got.bytes, e) && !SD.projectProblem(got.bytes), `written as ${SD.pad2(free.slot)}_Blank.ncs, a project the app reads back`);
+    await SD.Projects.clear(pl, free.slot, ctx);
+    for (const n of [12, 13, 14]) await SD.deletePack(c.pack(n), ctx);
+    check(!c.pack(12) && !c.pack(13) && !c.pack(14) && (await SD.Projects.list(pl))[free.slot].empty, "and they go again");
+  }
+
   // ---- rename: only the name changes (the slot, the bytes, what the projects use stay)
   {
     const why = (kind, s) => { try { SD.checkName(kind, s); return "ok"; } catch (e) { return e.message; } };

@@ -28,4 +28,4 @@ In the **Synth 1 / 2 Preset view** each Nova patch lights in the colour of its *
 
 - **On the device:** save the patch in the Synth 1 / 2 Preset view (**Clear + pad**, then **Clear + the same pad** to confirm); while it asks, **K1** picks the category.
 - **In Novation Components:** the category of each patch of the pack.
-- **In the SD app** ([download](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip)): the **Nova synths** tab shows each patch's colour and, on top, this chart as a colour key.
+- **In the app** ([download](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip), the Hacks view): the **Nova synths** tab shows each patch's colour and, on top, this chart as a colour key.

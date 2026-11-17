@@ -514,6 +514,8 @@ The 8 sequenceable knobs record with Record + Play into 8 lanes of the pattern. 
 
 In the snapshot, a parameter with no lane takes one whose parameter is at its initial value, and that lane is erased first. If they do not fit, the first ones in the matrix's order stay.
 
+*(Beta 5.58 only)* **Extra lanes:** every parameter of the engine that is not on the sequenceable knobs has a lane of its own (up to 25 a pattern), with **two values a step** (at its start and halfway). Recording, Clear + knob, the snapshot, Nudge and the steps marked with Shift work on them too; in the snapshot, a parameter that is not on the sequenceable knobs goes into its extra lane and the destinations stay. They are saved in the project's file, after the original's data. The destinations of the sequenceable and non-sequenceable knobs are picked with **Duplicate + knob**: on another page of the engine it adds, on their own page it removes.
+
 ### Step-drummer
 
 <!--panel:step-->
@@ -552,7 +554,9 @@ The track's notes make another track's pattern jump to the step they indicate, o
 
 While it points, the track does not sound. Each note, from the sequencer, the pads or the arpeggiator, makes the other track jump. Saved with the project.
 
-Pad 26 blinks in the target track's colour. Pointing turns the engine off and turning an engine on stops pointing: only one of the two at a time. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded Note view. With the transport stopped, a pad sounds that step of the target track while you hold it, with no jump (on the drums, with the chosen sample).
+*(Beta 5.57 only)* With several notes on a step, the jump goes to one of their steps at random, each with the same chance; every loop picks again.
+
+Pad 26 blinks in the target track's colour. Pointing turns the engine off and turning an engine on stops pointing: only one of the two at a time. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded Note view. With the transport stopped, a pad sounds that step of the target track while you hold it, with no jump (on the drums, with the step's sample flip or, without one, the chosen sample).
 
 If the target and the MIDI track have the same length, one jump is only noticeable the first time: on the next passes the target is already on that step. To hear it on every pass the pattern needs two jumps: one to move it and one to bring it back.
 

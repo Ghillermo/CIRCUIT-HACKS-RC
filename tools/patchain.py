@@ -84,6 +84,13 @@ V3 = False                                                    # SC40.9: one chai
 RULECHK = False                                               # SC41.2: c_pcrule refuses a track or a pattern out of 0..7 (see use_rulecheck)
 ITERLED = False                                               # SC45.2: the repeat now playing in the Mixer's Shift row (see use_iterled)
 COL_ITER = 0x01                                               # (white)
+GROUPS = False                                                # SC57.4: chains of pattern groups (see use_groups)
+G_RB, G_SIG = 0x0E00, struct.unpack("<I", b"SCR3")[0]        # scrules' RAM in the ITCM: + 20 the tracks with a chain, + 24 their words
+G_CURM, G_CURW, G_SCM, G_SCW = 20, 24, 56, 72                  # (+ 56 each scene's tracks with a chain, + 72 its words: 32 B a scene)
+G_PEND, G_DUP, G_ACC = S_RET, S_RET + 1, S_RET + 2            # the running part: a group's start waiting for its end, Duplicate's source, K1
+COL_PEND, COL_BLUE = 0x01, 0x09
+PV_KNOB = PV_VT + 16                                          # the Patterns view's slot 4 (knobs): a stub in the stock
+TRIMCC = False                                                # SC57.5 (use_trimcc)
 
 
 def use_v2():
@@ -120,6 +127,28 @@ def use_v3():
     V2 = V3 = True
 
 
+def use_groups():
+    """SC57.4 (the user, 2026-11-13: «Instead of chaining patterns, we chain consecutive pattern groups.  For example: A can be patterns 1 to 4,
+    B 3 to 5, C 5 to 8»; «A x i --> B x j --> C x k», i, j, k 1-16; no B = A x i, no C = A x i, B x j; after C back to A unless it is the
+    longest chain (the scene moves on); the old per-pattern rules dropped).  A track's chain = one 32-bit word: three groups of 10 bits
+    (start, length - 1, repeats - 1: 3 + 3 + 4), bit 30 = B, bit 31 = C; the words live with scrules (the ITCM, the card section, each scene).
+    In the chain mode (Patterns view, Shift + Octave up as before): Shift + a start pad and an end pad of a track = its next group (A yellow,
+    B green, C red on the start pads); a start pad = that group's repeats on K1 (the knob LEDs count them: 9-16 = all eight, the first n - 8
+    blue); Clear + A = the track's chain gone (Clear + B / C = that group); Duplicate + a start pad, then a pad of another track = the chain
+    copied there.  The engine: c_pcstep / c_pcend / the restarts of c_pcnext; the per-track state = S_CNT (the passes) and S_TOG (the group)."""
+    global GROUPS
+    use_v3(); GROUPS = True
+
+
+def use_trimcc():
+    """SC57.5 (flash for the extra lanes' reload and the pattern reverse): with GROUPS, c_pcchained answers from scrules' scene words and returns
+    at gc_x; the old body after it (the per-pattern rule of each flagged track's first pattern there: cc_l / cc_n / cc_y, 60 B) is reached from
+    nowhere: not emitted."""
+    global TRIMCC
+    assert GROUPS
+    TRIMCC = True
+
+
 INV = dict(eq="ne", ne="eq", lo="hs", hs="lo", hi="ls", ls="hi", ge="lt", lt="ge", gt="le", le="gt", mi="pl", pl="mi")
 
 
@@ -149,6 +178,73 @@ def arm_code(base, L, prev):
         E(b_cond, n, INV[cond]); E(b, target); a.label(n)
     def get(store, k): imm32(0, store); E(movs_imm, 1, k); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0)
     t_eq = base; E(raw, bytes(range(8)) + b"\xFF\xFF\xFF\xFF")
+    if GROUPS:
+        # ---- c_pcgi() -> r0 = scrules' RAM, its header made the first time (no chain, nothing pending); clobbers r1, r2
+        a.label("c_pcgi")
+        imm32(0, G_RB); E(ldr_imm, 1, 0, 0); imm32(2, G_SIG); E(cmp_reg, 1, 2); E(b_cond, "gi_x", "eq")
+        E(movs_imm, 1, 0)
+        for o in range(4, G_CURW, 4): E(str_imm, 1, 0, o)
+        E(str_imm, 2, 0, 0)
+        a.label("gi_x"); E(raw, BX_LR)
+        # ---- c_pcgw(r0 = track) -> r0 = its chain word, r1 = 1 when it has one; clobbers r2, r3
+        a.label("c_pcgw")
+        imm32(2, G_RB); E(ldr_imm, 1, 2, 0); imm32(3, G_SIG); E(cmp_reg, 1, 3); E(b_cond, "gw_0", "ne")
+        E(ldrb_imm, 1, 2, G_CURM); E(lsrs_reg, 1, 0); E(movs_imm, 3, 1); E(ands_reg, 1, 3); E(b_cond, "gw_0", "eq")
+        E(lsls_imm, 0, 0, 2); E(adds_reg, 0, 0, 2); E(ldr_imm, 0, 0, G_CURW); E(raw, BX_LR)
+        a.label("gw_0"); E(movs_imm, 0, 0); E(movs_imm, 1, 0); E(raw, BX_LR)
+        # ---- c_pcgf(r0 = word, r1 = group) -> r0 = its start, r1 = its end, r2 = its repeats (1..16); clobbers r3
+        a.label("c_pcgf")
+        E(movs_imm, 3, 10); E(muls, 3, 1); E(lsrs_reg, 0, 3)
+        E(mov_reg, 2, 0); E(lsrs_imm, 2, 2, 6); E(movs_imm, 3, 15); E(ands_reg, 2, 3); E(adds_imm8, 2, 1)
+        E(mov_reg, 1, 0); E(lsrs_imm, 1, 1, 3); E(movs_imm, 3, 7); E(ands_reg, 1, 3); E(ands_reg, 0, 3); E(adds_reg, 1, 1, 0); E(raw, BX_LR)
+        # ---- c_pcgp(r0 = word, r1 = group) -> r0 = 1 when the group is there (A always); clobbers r2
+        a.label("c_pcgp")
+        E(cmp_imm, 1, 0); E(b_cond, "gp_y", "eq"); E(cmp_imm, 1, 3); E(b_cond, "gp_n", "hs")
+        E(movs_imm, 2, 29); E(adds_reg, 2, 2, 1); E(lsrs_reg, 0, 2); E(movs_imm, 2, 1); E(ands_reg, 0, 2); E(raw, BX_LR)
+        a.label("gp_y"); E(movs_imm, 0, 1); E(raw, BX_LR)
+        a.label("gp_n"); E(movs_imm, 0, 0); E(raw, BX_LR)
+        # ---- c_pcgnx(r0 = word, r1 = group) -> r0 = the next group there, 0 after the last; clobbers r1-r3
+        a.label("c_pcgnx")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        a.label("gn_l"); E(adds_imm8, 1, 1); E(cmp_imm, 1, 3); E(b_cond, "gn_z", "hs")
+        E(mov_reg, 0, 4); E(push_list, [1]); E(bl, "c_pcgp"); E(pop_list, [1]); E(cmp_imm, 0, 0); E(b_cond, "gn_l", "eq")
+        E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
+        a.label("gn_z"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
+        # ---- c_pcgs(r0 = word, r1 = 1 the track has a chain, r2 = pattern) -> r0 = the group starting there, 0xFF none; clobbers r1-r3
+        a.label("c_pcgs")
+        E(push_list, [4, 5, 6], lr=True); E(mov_reg, 4, 0); E(mov_reg, 5, 2); E(movs_imm, 6, 0); E(cmp_imm, 1, 0); E(b_cond, "gs2_n", "eq")
+        a.label("gs2_l"); E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_pcgp"); E(cmp_imm, 0, 0); E(b_cond, "gs2_c", "eq")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(bl, "c_pcgf"); E(cmp_reg, 0, 5); E(b_cond, "gs2_y", "eq")
+        a.label("gs2_c"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 3); E(b_cond, "gs2_l", "lo")
+        a.label("gs2_n"); E(movs_imm, 0, 0xFF); E(pop_list, [4, 5, 6], pc=True)
+        a.label("gs2_y"); E(mov_reg, 0, 6); E(pop_list, [4, 5, 6], pc=True)
+        # ---- c_pcgst(r0 = the tail, r1 = track) -> r0 = the start of its group A when it follows the rules and has a chain, else 0xFF
+        a.label("c_pcgst")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 1)
+        E(movs_imm, 2, SCR + S_LIVE); E(ldrb_reg, 2, 0, 2); E(lsrs_reg, 2, 1); E(lsls_imm, 2, 2, 31); E(b_cond, "gt_f", "eq")
+        E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); E(b_cond, "gt_f", "eq"); E(movs_imm, 1, 0); E(bl, "c_pcgf"); E(pop_list, [4], pc=True)
+        a.label("gt_f"); E(movs_imm, 0, 0xFF); E(pop_list, [4], pc=True)
+        # ---- c_pcgadd(r0 = track, r1 = start, r2 = end) -> r0 = the group made (the next one free), 0xFF when A, B and C are there
+        a.label("c_pcgadd")
+        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
+        E(cmp_reg, 1, 2); E(b_cond, "ga_o", "ls"); E(mov_reg, 3, 1); E(mov_reg, 1, 2); E(mov_reg, 2, 3)
+        a.label("ga_o"); E(subs_reg, 2, 2, 1); E(lsls_imm, 2, 2, 3); E(orrs_reg, 1, 2); E(mov_reg, 5, 1)          # r5 = the field (1 repeat)
+        E(bl, "c_pcgi"); E(mov_reg, 6, 0)
+        E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); E(b_cond, "ga_h", "ne")
+        E(mov_reg, 0, 5); E(movs_imm, 7, 0); E(b, "ga_w")                                  # no chain: A
+        a.label("ga_h"); E(mov_reg, 7, 0)
+        E(movs_imm, 1, 1); E(bl, "c_pcgp"); E(movs_imm, 1, 1); E(cmp_imm, 0, 0); E(b_cond, "ga_g", "eq")
+        E(mov_reg, 0, 7); E(movs_imm, 1, 2); E(bl, "c_pcgp"); E(movs_imm, 1, 2); E(cmp_imm, 0, 0); E(b_cond, "ga_g", "eq")
+        E(movs_imm, 0, 0xFF); E(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("ga_g")                                                                   # r1 = B / C: its field, its bit
+        E(movs_imm, 2, 10); E(muls, 2, 1); E(movw, 3, 0x3FF); E(lsls_reg, 3, 2); E(bics_reg, 7, 3)
+        E(mov_reg, 3, 5); E(lsls_reg, 3, 2); E(orrs_reg, 7, 3)
+        E(movs_imm, 3, 29); E(adds_reg, 3, 3, 1); E(movs_imm, 2, 1); E(lsls_reg, 2, 3); E(orrs_reg, 7, 2)
+        E(mov_reg, 0, 7); E(mov_reg, 7, 1)
+        a.label("ga_w")                                                                   # r0 = the word, r7 = the group
+        E(lsls_imm, 1, 4, 2); E(adds_reg, 1, 1, 6); E(str_imm, 0, 1, G_CURW)
+        E(ldrb_imm, 0, 6, G_CURM); E(movs_imm, 1, 1); E(lsls_reg, 1, 4); E(orrs_reg, 0, 1); E(strb_imm, 0, 6, G_CURM)
+        E(mov_reg, 0, 7); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_pcsumv (r0 = the tail) -> r0 = the checksum its persistent part should carry; clobbers r1-r3
     a.label("c_pcsumv")
@@ -241,15 +337,17 @@ def arm_code(base, L, prev):
 
     # ---- c_pcget (r0 = track, r1 = pattern) -> r0 = n | (B + 1) << 8 | (C + 1) << 16 of a rule that can run, else 0; clobbers r1-r3
     a.label("c_pcget")
-    E(push_list, [3, 4], lr=True)
-    E(mov_reg, 4, 1); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "ge_0", "eq")
-    E(ldrb_imm, 1, 0, 0); E(ldrb_imm, 2, 0, 1); E(ldrb_imm, 3, 0, 2)
-    E(cmp_imm, 1, 0); E(b_cond, "ge_0", "eq"); E(cmp_imm, 1, MAX_N); E(b_cond, "ge_0", "hi")
-    E(cmp_imm, 2, 0); E(b_cond, "ge_0", "eq"); E(cmp_imm, 2, 8); E(b_cond, "ge_0", "hi"); E(cmp_imm, 3, 8); E(b_cond, "ge_0", "hi")
-    E(subs_imm3, 0, 2, 1); E(cmp_reg, 0, 4); E(b_cond, "ge_0", "eq")                 # B = the pattern itself
-    E(lsls_imm, 2, 2, 8); E(orrs_reg, 1, 2); E(lsls_imm, 3, 3, 16); E(orrs_reg, 1, 3); E(mov_reg, 0, 1)
-    E(pop_list, [3, 4], pc=True)
-    a.label("ge_0"); E(movs_imm, 0, 0); E(pop_list, [3, 4], pc=True)
+    if GROUPS: E(movs_imm, 0, 0); E(raw, BX_LR)
+    if not GROUPS:
+        E(push_list, [3, 4], lr=True)
+        E(mov_reg, 4, 1); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "ge_0", "eq")
+        E(ldrb_imm, 1, 0, 0); E(ldrb_imm, 2, 0, 1); E(ldrb_imm, 3, 0, 2)
+        E(cmp_imm, 1, 0); E(b_cond, "ge_0", "eq"); E(cmp_imm, 1, MAX_N); E(b_cond, "ge_0", "hi")
+        E(cmp_imm, 2, 0); E(b_cond, "ge_0", "eq"); E(cmp_imm, 2, 8); E(b_cond, "ge_0", "hi"); E(cmp_imm, 3, 8); E(b_cond, "ge_0", "hi")
+        E(subs_imm3, 0, 2, 1); E(cmp_reg, 0, 4); E(b_cond, "ge_0", "eq")                 # B = the pattern itself
+        E(lsls_imm, 2, 2, 8); E(orrs_reg, 1, 2); E(lsls_imm, 3, 3, 16); E(orrs_reg, 1, 3); E(mov_reg, 0, 1)
+        E(pop_list, [3, 4], pc=True)
+        a.label("ge_0"); E(movs_imm, 0, 0); E(pop_list, [3, 4], pc=True)
 
     # ---- c_pczr (r0 = track, r1 = pattern): its rule gone; clobbers r0-r3
     a.label("c_pczr")
@@ -260,41 +358,69 @@ def arm_code(base, L, prev):
 
     # ---- c_pcstep (r0 = the tail, r1 = track, r2 = the pattern that ends, r3 = 1 to move the state on) -> r0 = the next pattern by the
     #      rules, 0xFF = the stock's choice
-    a.label("c_pcstep")
-    E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
-    E(mov_reg, 6, 0); E(mov_reg, 4, 1); E(mov_reg, 5, 2); E(str_sp, 3, 0)
-    if V3:                                                                            # the mode is off: a track left on a B / C pattern goes back to its A
-        E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "sp_lv", "ne")
+    if not GROUPS:
+        a.label("c_pcstep")
+        E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
+        E(mov_reg, 6, 0); E(mov_reg, 4, 1); E(mov_reg, 5, 2); E(str_sp, 3, 0)
+        if V3:                                                                            # the mode is off: a track left on a B / C pattern goes back to its A
+            E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "sp_lv", "ne")
+            E(adds_reg, 7, 6, 4); E(adds_imm8, 7, SCR + S_CNT)
+            E(ldrb_imm, 0, 7, S_RET - S_CNT); E(cmp_imm, 0, 0); bc("sp_stock", "eq")
+            E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); bc("sp_s3", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, S_RET - S_CNT); E(b, "sp_s3")
+            a.label("sp_lv")
+        else:
+            E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); bc("sp_stock", "eq")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(str_sp, 0, 4)
+        E(adds_reg, 7, 6, 4); E(adds_imm8, 7, SCR + S_CNT)                               # r7 -> the track's count (+ 8 its return, + 16 its B / C bits)
+        E(cmp_imm, 0, 0); E(b_cond, "sp_nr", "eq")
+        E(lsls_imm, 1, 0, 24); E(lsrs_imm, 1, 1, 24)                                     # n
+        E(ldrb_imm, 2, 7, 0); E(adds_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "sp_j", "hs")
+        E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s1", "eq"); E(strb_imm, 2, 7, 0)
+        a.label("sp_s1"); E(mov_reg, 0, 5); E(b, "sp_x")
+        a.label("sp_j")
+        E(ldr_sp, 0, 4); E(lsrs_imm, 1, 0, 8); E(lsls_imm, 1, 1, 24); E(lsrs_imm, 1, 1, 24); E(lsrs_imm, 2, 0, 16)   # r1 = B + 1, r2 = C + 1
+        E(ldrb_imm, 3, 7, S_TOG - S_CNT); E(lsrs_reg, 3, 5); E(lsls_imm, 3, 3, 31); E(b_cond, "sp_b", "eq")
+        E(cmp_imm, 2, 0); E(b_cond, "sp_b", "eq"); E(mov_reg, 1, 2)
+        a.label("sp_b"); E(subs_imm8, 1, 1)                                              # r1 = the target
+        E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s2", "eq")
+        E(movs_imm, 3, 0); E(strb_imm, 3, 7, 0)
+        E(adds_imm3, 3, 5, 1); E(strb_imm, 3, 7, S_RET - S_CNT)
+        E(cmp_imm, 2, 0); E(b_cond, "sp_s2", "eq")
+        E(ldrb_imm, 3, 7, S_TOG - S_CNT); E(movs_imm, 0, 1); E(lsls_reg, 0, 5); E(eors_reg, 3, 0); E(strb_imm, 3, 7, S_TOG - S_CNT)
+        a.label("sp_s2"); E(mov_reg, 0, 1); E(b, "sp_x")
+        a.label("sp_nr")
+        E(ldrb_imm, 0, 7, S_RET - S_CNT); E(cmp_imm, 0, 0); E(b_cond, "sp_stock", "eq")
+        E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s3", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, S_RET - S_CNT)
+        a.label("sp_s3"); E(subs_imm8, 0, 1); E(b, "sp_x")
+        a.label("sp_stock"); E(movs_imm, 0, 0xFF)
+        a.label("sp_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    if GROUPS:
+        # [sp] = 1 to move the state on, [sp + 4] = the word, [sp + 8] = the group; r4 = track, r5 = the pattern that ends, r6 = the tail,
+        # r7 = its passes (S_CNT + t; its group at + 16)
+        a.label("c_pcstep")
+        E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 12)
+        E(mov_reg, 6, 0); E(mov_reg, 4, 1); E(mov_reg, 5, 2); E(raw, str_sp(3, 0))
+        E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); bc("gs_stock", "eq")
+        E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); bc("gs_stock", "eq"); E(raw, str_sp(0, 4))
         E(adds_reg, 7, 6, 4); E(adds_imm8, 7, SCR + S_CNT)
-        E(ldrb_imm, 0, 7, S_RET - S_CNT); E(cmp_imm, 0, 0); bc("sp_stock", "eq")
-        E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); bc("sp_s3", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, S_RET - S_CNT); E(b, "sp_s3")
-        a.label("sp_lv")
-    else:
-        E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); bc("sp_stock", "eq")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(str_sp, 0, 4)
-    E(adds_reg, 7, 6, 4); E(adds_imm8, 7, SCR + S_CNT)                               # r7 -> the track's count (+ 8 its return, + 16 its B / C bits)
-    E(cmp_imm, 0, 0); E(b_cond, "sp_nr", "eq")
-    E(lsls_imm, 1, 0, 24); E(lsrs_imm, 1, 1, 24)                                     # n
-    E(ldrb_imm, 2, 7, 0); E(adds_imm8, 2, 1); E(cmp_reg, 2, 1); E(b_cond, "sp_j", "hs")
-    E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s1", "eq"); E(strb_imm, 2, 7, 0)
-    a.label("sp_s1"); E(mov_reg, 0, 5); E(b, "sp_x")
-    a.label("sp_j")
-    E(ldr_sp, 0, 4); E(lsrs_imm, 1, 0, 8); E(lsls_imm, 1, 1, 24); E(lsrs_imm, 1, 1, 24); E(lsrs_imm, 2, 0, 16)   # r1 = B + 1, r2 = C + 1
-    E(ldrb_imm, 3, 7, S_TOG - S_CNT); E(lsrs_reg, 3, 5); E(lsls_imm, 3, 3, 31); E(b_cond, "sp_b", "eq")
-    E(cmp_imm, 2, 0); E(b_cond, "sp_b", "eq"); E(mov_reg, 1, 2)
-    a.label("sp_b"); E(subs_imm8, 1, 1)                                              # r1 = the target
-    E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s2", "eq")
-    E(movs_imm, 3, 0); E(strb_imm, 3, 7, 0)
-    E(adds_imm3, 3, 5, 1); E(strb_imm, 3, 7, S_RET - S_CNT)
-    E(cmp_imm, 2, 0); E(b_cond, "sp_s2", "eq")
-    E(ldrb_imm, 3, 7, S_TOG - S_CNT); E(movs_imm, 0, 1); E(lsls_reg, 0, 5); E(eors_reg, 3, 0); E(strb_imm, 3, 7, S_TOG - S_CNT)
-    a.label("sp_s2"); E(mov_reg, 0, 1); E(b, "sp_x")
-    a.label("sp_nr")
-    E(ldrb_imm, 0, 7, S_RET - S_CNT); E(cmp_imm, 0, 0); E(b_cond, "sp_stock", "eq")
-    E(ldr_sp, 3, 0); E(cmp_imm, 3, 0); E(b_cond, "sp_s3", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, S_RET - S_CNT)
-    a.label("sp_s3"); E(subs_imm8, 0, 1); E(b, "sp_x")
-    a.label("sp_stock"); E(movs_imm, 0, 0xFF)
-    a.label("sp_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
+        E(ldrb_imm, 1, 7, S_TOG - S_CNT); E(raw, str_sp(1, 8)); E(bl, "c_pcgp"); E(cmp_imm, 0, 0); E(b_cond, "gs_g", "ne")
+        E(movs_imm, 1, 0); E(raw, str_sp(1, 8)); E(strb_imm, 1, 7, S_TOG - S_CNT); E(strb_imm, 1, 7, 0)   # a group gone: back to A
+        a.label("gs_g")
+        E(raw, ldr_sp(0, 4)); E(raw, ldr_sp(1, 8)); E(bl, "c_pcgf")
+        E(cmp_reg, 5, 0); E(b_cond, "gs_out", "lo"); E(cmp_reg, 5, 1); E(b_cond, "gs_out", "hi"); E(b_cond, "gs_end", "eq")
+        E(adds_imm3, 0, 5, 1); E(b, "gs_x")                                                  # inside the group: the next pattern
+        a.label("gs_out")                                                                 # outside: the group's start
+        E(raw, ldr_sp(3, 0)); E(cmp_imm, 3, 0); E(b_cond, "gs_x", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, 0); E(b, "gs_x")
+        a.label("gs_end")
+        E(ldrb_imm, 3, 7, 0); E(adds_imm8, 3, 1); E(cmp_reg, 3, 2); E(b_cond, "gs_nx", "hs")
+        E(raw, ldr_sp(1, 0)); E(cmp_imm, 1, 0); E(b_cond, "gs_x", "eq"); E(strb_imm, 3, 7, 0); E(b, "gs_x")   # once more
+        a.label("gs_nx")                                                                  # the next group (after the last: A)
+        E(raw, ldr_sp(0, 4)); E(raw, ldr_sp(1, 8)); E(bl, "c_pcgnx"); E(mov_reg, 1, 0)
+        E(raw, ldr_sp(3, 0)); E(cmp_imm, 3, 0); E(b_cond, "gs_n2", "eq"); E(movs_imm, 3, 0); E(strb_imm, 3, 7, 0); E(strb_imm, 1, 7, S_TOG - S_CNT)
+        a.label("gs_n2"); E(raw, ldr_sp(0, 4)); E(bl, "c_pcgf")
+        a.label("gs_x"); E(add_sp_imm, 12); E(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("gs_stock"); E(movs_imm, 0, 0xFF); E(b, "gs_x")
 
     # ---- c_pcnext (from the track advance, in place of its choice of the next pattern): [sp] = the track, r9 = the pattern that ends,
     #      r8 = the first of the chain, [sp, #2] = the last, [sp, #0x18] = forced, [sp, #0x44] = a scene change, [sp, #0x48] = the scene,
@@ -323,11 +449,15 @@ def arm_code(base, L, prev):
     E(raw, ldrb_sp(0, F + 0x18)); E(cmp_imm, 0, 0); E(b_cond, "nx_go", "eq")
     a.label("nx_rs")                                                                  # a restart: the track's state cleared
     E(adds_reg, 1, 6, 4); E(adds_imm8, 1, SCR + S_CNT); E(movs_imm, 0, 0)
-    E(strb_imm, 0, 1, 0); E(strb_imm, 0, 1, S_RET - S_CNT); E(strb_imm, 0, 1, S_TOG - S_CNT)
+    E(strb_imm, 0, 1, 0)
+    if not GROUPS: E(strb_imm, 0, 1, S_RET - S_CNT)
+    E(strb_imm, 0, 1, S_TOG - S_CNT)
+    if GROUPS:                                                                        # (the groups: the restart begins at the start of A)
+        a.label("nx_ga"); E(mov_reg, 0, 6); E(mov_reg, 1, 4); E(bl, "c_pcgst"); E(cmp_imm, 0, 0xFF); E(b_cond, "nx_x", "eq"); E(mov_reg, 7, 0)
     E(b, "nx_x")
     a.label("nx_go"); E(movs_imm, 3, 1); E(b, "nx_st")
     a.label("nx_pv")                                                                  # the look-ahead: the same answer, nothing changed
-    E(raw, ldrb_sp(0, F + 0x44)); E(raw, ldrb_sp(1, F + 0x18)); E(orrs_reg, 0, 1); E(b_cond, "nx_x", "ne")
+    E(raw, ldrb_sp(0, F + 0x44)); E(raw, ldrb_sp(1, F + 0x18)); E(orrs_reg, 0, 1); E(b_cond, "nx_ga" if GROUPS else "nx_x", "ne")
     E(movs_imm, 3, 0)
     a.label("nx_st")
     E(mov_reg, 0, 6); E(mov_reg, 1, 4); E(mov_reg, 2, 5); E(bl, "c_pcstep")
@@ -354,11 +484,23 @@ def arm_code(base, L, prev):
     E(cmp_imm, 4, 8); E(b_cond, "en_s", "hs")
     E(bl, "c_pcst"); E(cmp_imm, 0, 0); E(b_cond, "en_s", "eq"); E(mov_reg, 6, 0)
     E(movs_imm, 0, SCR + S_LIVE); E(ldrb_reg, 0, 6, 0); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "en_s", "eq")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "en_n", "ne")     # a rule: the cycle goes on
-    E(adds_reg, 1, 6, 4); E(adds_imm8, 1, SCR + S_CNT)
-    E(ldrb_imm, 0, 1, S_RET - S_CNT); E(cmp_imm, 0, 0); E(b_cond, "en_s", "eq")        # nothing of ours running: the stock's test
-    E(subs_imm8, 0, 1); E(ldrb_imm, 2, 1, S_TOG - S_CNT); E(lsrs_reg, 2, 0); E(lsls_imm, 2, 2, 31); E(b_cond, "en_n", "ne")   # B played, C to come
-    imm32(0, t_eq - 1); E(adds_reg, 0, 0, 5); E(b, "en_o")                             # the end: [r0, #1] = the pattern
+    if GROUPS:
+        E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); E(b_cond, "en_s", "eq"); E(mov_reg, 7, 0)
+        E(adds_reg, 1, 6, 4); E(adds_imm8, 1, SCR + S_CNT); E(ldrb_imm, 2, 1, S_TOG - S_CNT); E(ldrb_imm, 3, 1, 0); E(push_list, [2, 3])
+        E(mov_reg, 0, 7); E(mov_reg, 1, 2); E(bl, "c_pcgp"); E(cmp_imm, 0, 0); E(b_cond, "en_g", "ne")
+        E(movs_imm, 0, 0); E(raw, str_sp(0, 0)); E(raw, str_sp(0, 4))
+        a.label("en_g")
+        E(mov_reg, 0, 7); E(raw, ldr_sp(1, 0)); E(bl, "c_pcgnx"); E(cmp_imm, 0, 0); E(b_cond, "en_n2", "ne")   # not the last group
+        E(mov_reg, 0, 7); E(raw, ldr_sp(1, 0)); E(bl, "c_pcgf"); E(cmp_reg, 5, 1); E(b_cond, "en_n2", "ne")
+        E(raw, ldr_sp(3, 4)); E(adds_imm8, 3, 1); E(cmp_reg, 3, 2); E(b_cond, "en_n2", "lo")
+        E(add_sp_imm, 8); imm32(0, t_eq - 1); E(adds_reg, 0, 0, 5); E(b, "en_o")
+        a.label("en_n2"); E(add_sp_imm, 8); E(b, "en_n")
+    if not GROUPS:
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "en_n", "ne")     # a rule: the cycle goes on
+        E(adds_reg, 1, 6, 4); E(adds_imm8, 1, SCR + S_CNT)
+        E(ldrb_imm, 0, 1, S_RET - S_CNT); E(cmp_imm, 0, 0); E(b_cond, "en_s", "eq")        # nothing of ours running: the stock's test
+        E(subs_imm8, 0, 1); E(ldrb_imm, 2, 1, S_TOG - S_CNT); E(lsrs_reg, 2, 0); E(lsls_imm, 2, 2, 31); E(b_cond, "en_n", "ne")   # B played, C to come
+        imm32(0, t_eq - 1); E(adds_reg, 0, 0, 5); E(b, "en_o")                             # the end: [r0, #1] = the pattern
     a.label("en_n"); imm32(0, t_eq + 8 - 1)                                            # not the end: [r0, #1] = 0xFF
     a.label("en_o")
     E(add_sp_imm, 4); E(pop_list, [4, 5, 6, 7]); E(raw, POP_LR); E(cmp_reg, 0, 0); E(raw, BX_LR)
@@ -496,37 +638,75 @@ def arm_code(base, L, prev):
         a.label("pp_zo"); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("pp_ch", "eq"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 3); E(b, "pp_ch")
     else:
         E(lsls_imm, 0, 7, 31); bc("pp_ch", "eq"); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pczr"); E(b, "pp_ch")   # Clear: the rule too
-    # the edit
-    a.label("pp_e")
-    E(lsls_imm, 0, 7, 30); bc("pp_ch", "mi")                                           # Duplicate: the stock's copy
-    E(lsls_imm, 0, 7, 31); E(b_cond, "pp_e2", "eq")
-    if V3:                                                                            # Clear + a pattern without a rule: the stock's clear (and its play order)
-        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("pp_ch", "eq")
-        E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("pp_zo", "eq")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pczr")                                # Clear: the rule only
-    E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 4); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); bc("pp_x", "ne")
-    E(ldrb_imm, 0, 6, S_A); E(cmp_reg, 0, 5); bc("pp_x", "ne"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_FOCUS); E(b, "pp_x")
-    a.label("pp_e2")
-    E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 4); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); E(b_cond, "pp_new", "ne")
-    E(mov_reg, 0, 4); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("pp_x", "eq"); E(mov_reg, 7, 0)   # r7 = the rule
-    E(ldrb_imm, 0, 6, S_A); E(cmp_reg, 5, 0); E(b_cond, "pp_bc", "ne")
-    E(ldrb_imm, 1, 7, 0); E(cmp_imm, 1, MAX_N); bc("pp_x", "hs"); E(adds_imm8, 1, 1); E(strb_imm, 1, 7, 0); E(b, "pp_x")   # A again: once more
-    a.label("pp_bc")
-    E(adds_imm3, 1, 5, 1); E(ldrb_imm, 0, 6, S_STAGE); E(cmp_imm, 0, 0); E(b_cond, "pp_c", "ne")
-    E(strb_imm, 1, 7, 1); E(movs_imm, 0, 1); E(strb_imm, 0, 6, S_STAGE); E(b, "pp_x")
-    a.label("pp_c"); E(strb_imm, 1, 7, 2); E(movs_imm, 0, 2); E(strb_imm, 0, 6, S_STAGE); E(b, "pp_x")
-    a.label("pp_new")
-    E(mov_reg, 0, 4); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, S_FOCUS); E(strb_imm, 5, 6, S_A)
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "pp_fr", "eq")
-    E(lsrs_imm, 0, 0, 16); E(movs_imm, 1, 1); E(cmp_imm, 0, 0); E(b_cond, "pp_st", "eq"); E(movs_imm, 1, 2); E(b, "pp_st")
-    a.label("pp_fr")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "pp_f0", "eq")
-    E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1); E(strb_imm, 1, 0, 2)
-    a.label("pp_f0"); E(movs_imm, 1, 0)
-    a.label("pp_st"); E(strb_imm, 1, 6, S_STAGE)
-    E(ldrb_imm, 0, 6, S_LIVE); E(movs_imm, 1, 1); E(lsls_reg, 1, 4); E(orrs_reg, 0, 1); E(strb_imm, 0, 6, S_LIVE)   # the track follows the rules
-    E(mov_reg, 0, 6); E(subs_imm8, 0, SCR); E(bl, "c_pcfix")
-    E(mov_reg, 0, 6); E(subs_imm8, 0, SCR); E(bl, "c_pcmir")
+    if not GROUPS:
+        # the edit
+        a.label("pp_e")
+        E(lsls_imm, 0, 7, 30); bc("pp_ch", "mi")                                           # Duplicate: the stock's copy
+        E(lsls_imm, 0, 7, 31); E(b_cond, "pp_e2", "eq")
+        if V3:                                                                            # Clear + a pattern without a rule: the stock's clear (and its play order)
+            E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("pp_ch", "eq")
+            E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); bc("pp_zo", "eq")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pczr")                                # Clear: the rule only
+        E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 4); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); bc("pp_x", "ne")
+        E(ldrb_imm, 0, 6, S_A); E(cmp_reg, 0, 5); bc("pp_x", "ne"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_FOCUS); E(b, "pp_x")
+        a.label("pp_e2")
+        E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 4); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); E(b_cond, "pp_new", "ne")
+        E(mov_reg, 0, 4); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("pp_x", "eq"); E(mov_reg, 7, 0)   # r7 = the rule
+        E(ldrb_imm, 0, 6, S_A); E(cmp_reg, 5, 0); E(b_cond, "pp_bc", "ne")
+        E(ldrb_imm, 1, 7, 0); E(cmp_imm, 1, MAX_N); bc("pp_x", "hs"); E(adds_imm8, 1, 1); E(strb_imm, 1, 7, 0); E(b, "pp_x")   # A again: once more
+        a.label("pp_bc")
+        E(adds_imm3, 1, 5, 1); E(ldrb_imm, 0, 6, S_STAGE); E(cmp_imm, 0, 0); E(b_cond, "pp_c", "ne")
+        E(strb_imm, 1, 7, 1); E(movs_imm, 0, 1); E(strb_imm, 0, 6, S_STAGE); E(b, "pp_x")
+        a.label("pp_c"); E(strb_imm, 1, 7, 2); E(movs_imm, 0, 2); E(strb_imm, 0, 6, S_STAGE); E(b, "pp_x")
+        a.label("pp_new")
+        E(mov_reg, 0, 4); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, S_FOCUS); E(strb_imm, 5, 6, S_A)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "pp_fr", "eq")
+        E(lsrs_imm, 0, 0, 16); E(movs_imm, 1, 1); E(cmp_imm, 0, 0); E(b_cond, "pp_st", "eq"); E(movs_imm, 1, 2); E(b, "pp_st")
+        a.label("pp_fr")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "pp_f0", "eq")
+        E(movs_imm, 1, 1); E(strb_imm, 1, 0, 0); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 1); E(strb_imm, 1, 0, 2)
+        a.label("pp_f0"); E(movs_imm, 1, 0)
+        a.label("pp_st"); E(strb_imm, 1, 6, S_STAGE)
+        E(ldrb_imm, 0, 6, S_LIVE); E(movs_imm, 1, 1); E(lsls_reg, 1, 4); E(orrs_reg, 0, 1); E(strb_imm, 0, 6, S_LIVE)   # the track follows the rules
+        E(mov_reg, 0, 6); E(subs_imm8, 0, SCR); E(bl, "c_pcfix")
+        E(mov_reg, 0, 6); E(subs_imm8, 0, SCR); E(bl, "c_pcmir")
+    if GROUPS:
+        # the chain mode: r4 = track, r5 = pattern, r6 = the running part, r7 = Clear (bit 0) / Duplicate (bit 1) held; [sp, #12] = the word
+        a.label("pp_e")
+        E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(raw, str_sp(0, 12)); E(mov_reg, 2, 5); E(bl, "c_pcgs")       # r0 = the group starting here
+        E(lsls_imm, 1, 7, 31); E(b_cond, "pg_d", "eq")
+        # Clear + a start pad: A = the chain gone, B / C = that group; on another pad the stock's clear
+        E(cmp_imm, 0, 0xFF); bc("pp_ch", "eq")
+        E(push_list, [0]); E(bl, "c_pcgi"); E(mov_reg, 2, 0); E(pop_list, [0])
+        E(cmp_imm, 0, 0); E(b_cond, "pg_cb", "ne")
+        E(ldrb_imm, 0, 2, G_CURM); E(movs_imm, 1, 1); E(lsls_reg, 1, 4); E(bics_reg, 0, 1); E(strb_imm, 0, 2, G_CURM); E(b, "pg_cf")
+        a.label("pg_cb")
+        E(movs_imm, 1, 29); E(adds_reg, 1, 1, 0); E(movs_imm, 3, 1); E(lsls_reg, 3, 1); E(raw, ldr_sp(0, 12)); E(bics_reg, 0, 3)
+        E(lsls_imm, 1, 4, 2); E(adds_reg, 1, 1, 2); E(str_imm, 0, 1, G_CURW)
+        a.label("pg_cf"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_FOCUS); E(b, "pp_x")
+        a.label("pg_d")
+        E(lsls_imm, 1, 7, 30); E(b_cond, "pg_s", "pl")
+        # Duplicate: a start pad = the source; then a pad of another track = the chain copied there
+        E(ldrb_imm, 1, 6, G_DUP); E(cmp_imm, 1, 0); E(b_cond, "pg_dd", "ne")
+        E(cmp_imm, 0, 0xFF); bc("pp_ch", "eq"); E(mov_reg, 0, 4); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, G_DUP); E(b, "pp_x")
+        a.label("pg_dd")
+        E(movs_imm, 0, 0); E(strb_imm, 0, 6, G_DUP); E(movs_imm, 0, 7); E(ands_reg, 1, 0); E(cmp_reg, 1, 4); bc("pp_x", "eq")
+        E(push_list, [1]); E(bl, "c_pcgi"); E(mov_reg, 2, 0); E(pop_list, [1])
+        E(lsls_imm, 3, 1, 2); E(adds_reg, 3, 3, 2); E(ldr_imm, 0, 3, G_CURW); E(lsls_imm, 3, 4, 2); E(adds_reg, 3, 3, 2); E(str_imm, 0, 3, G_CURW)
+        E(ldrb_imm, 0, 2, G_CURM); E(mov_reg, 3, 0); E(lsrs_reg, 3, 1); E(movs_imm, 1, 1); E(ands_reg, 3, 1)
+        E(lsls_reg, 1, 4); E(bics_reg, 0, 1); E(lsls_reg, 3, 4); E(orrs_reg, 0, 3); E(strb_imm, 0, 2, G_CURM); E(b, "pp_x")
+        a.label("pg_s")
+        E(push_list, [0]); E(bl, L["c_shift"]); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "pg_p", "eq")
+        # Shift + pad: the group's start, then its end (the same track)
+        E(ldrb_imm, 0, 6, G_PEND); E(lsrs_imm, 1, 0, 3); E(movs_imm, 2, 0x17); E(ands_reg, 1, 2); E(movs_imm, 2, 0x10); E(orrs_reg, 2, 4)
+        E(cmp_reg, 1, 2); E(b_cond, "pg_ps", "ne")                                        # (bit 7 set and the same track)
+        E(movs_imm, 1, 7); E(ands_reg, 1, 0); E(movs_imm, 0, 0); E(strb_imm, 0, 6, G_PEND)
+        E(mov_reg, 0, 4); E(mov_reg, 2, 5); E(bl, "c_pcgadd"); E(cmp_imm, 0, 0xFF); bc("pp_x", "eq")
+        E(strb_imm, 0, 6, S_A); E(mov_reg, 0, 4); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, S_FOCUS); E(b, "pp_x")
+        a.label("pg_ps"); E(lsls_imm, 0, 4, 3); E(orrs_reg, 0, 5); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, G_PEND); E(b, "pp_x")
+        a.label("pg_p")                                                                   # a start pad: its repeats on K1; then the stock's
+        E(cmp_imm, 0, 0xFF); bc("pp_ch", "eq"); E(strb_imm, 0, 6, S_A); E(mov_reg, 0, 4); E(adds_imm8, 0, 0x80); E(strb_imm, 0, 6, S_FOCUS)
+        E(movs_imm, 0, 0); E(strb_imm, 0, 6, G_ACC); E(b, "pp_ch")
     a.label("pp_ch"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["pad"])
     a.label("pp_x"); E(pop_list, [0, 1, 2, 3, 4, 5, 6, 7], pc=True)
 
@@ -556,32 +736,58 @@ def arm_code(base, L, prev):
         a.label("lt_j")
         E(cmp_imm, 4, 0); bc("lt_x", "eq")
         E(mov_reg, 0, 8); E(ldrb_w, 7, 0, 0x78); E(lsls_imm, 7, 7, 2)                      # r7 = the first pattern of the page
-        E(movs_imm, 4, 0)
-        a.label("lt_l")
-        E(mov_reg, 0, 4); E(bl, TRACKFN); E(mov_reg, 10, 0)                                # r10 = the track of the pad
-        E(lsrs_imm, 1, 4, 3); E(adds_reg, 1, 1, 7); E(mov_reg, 11, 1)                      # r11 = its pattern
-        E(cmp_imm, 0, 8); bc("lt_n", "hs")
-        E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "lt_f", "eq")
-        E(movs_imm, 2, COL_OFF); E(ldrb_imm, 1, 6, S_LIVE); E(mov_reg, 3, 10); E(lsrs_reg, 1, 3); E(lsls_imm, 1, 1, 31); E(b_cond, "lt_w", "eq")
-        E(movs_imm, 2, COL_RULE)
-        a.label("lt_w"); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
-        a.label("lt_f")                                                                    # the rule being edited
-        E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 10); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); E(b_cond, "lt_n", "ne")
-        E(mov_reg, 0, 10); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "lt_n", "eq")
-        E(mov_reg, 1, 11); E(ldrb_imm, 2, 6, S_A); E(cmp_reg, 1, 2); E(b_cond, "lt_b", "ne"); E(movs_imm, 2, COL_A); E(b, "lt_p")
-        a.label("lt_b"); E(adds_imm8, 1, 1); E(ldrb_imm, 2, 0, 1); E(cmp_reg, 2, 1); E(b_cond, "lt_c", "ne"); E(movs_imm, 2, COL_B); E(b, "lt_p")
-        a.label("lt_c"); E(ldrb_imm, 2, 0, 2); E(cmp_reg, 2, 1); E(b_cond, "lt_n", "ne"); E(movs_imm, 2, COL_C)
-        a.label("lt_p"); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
-        a.label("lt_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 32); bc("lt_l", "lo")
-        # the knob LEDs: the plays of the rule being edited
-        E(ldrb_imm, 0, 6, S_FOCUS); E(cmp_imm, 0, 0x80); bc("lt_x", "lo")
-        E(subs_imm8, 0, 0x80); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("lt_x", "eq")
-        E(ldrb_imm, 4, 0, 0); E(movs_imm, 3, 0)
-        a.label("lt_k")
-        E(movs_imm, 2, 0); E(cmp_reg, 3, 4); E(b_cond, "lt_kw", "hs"); E(movw, 2, KNOB_ON)
-        a.label("lt_kw"); E(mov_reg, 0, 3); E(adds_imm8, 0, 60); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
-        E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "lt_k", "lo")
-        E(b, "lt_x")
+        if not GROUPS:
+            E(movs_imm, 4, 0)
+            a.label("lt_l")
+            E(mov_reg, 0, 4); E(bl, TRACKFN); E(mov_reg, 10, 0)                                # r10 = the track of the pad
+            E(lsrs_imm, 1, 4, 3); E(adds_reg, 1, 1, 7); E(mov_reg, 11, 1)                      # r11 = its pattern
+            E(cmp_imm, 0, 8); bc("lt_n", "hs")
+            E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "lt_f", "eq")
+            E(movs_imm, 2, COL_OFF); E(ldrb_imm, 1, 6, S_LIVE); E(mov_reg, 3, 10); E(lsrs_reg, 1, 3); E(lsls_imm, 1, 1, 31); E(b_cond, "lt_w", "eq")
+            E(movs_imm, 2, COL_RULE)
+            a.label("lt_w"); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
+            a.label("lt_f")                                                                    # the rule being edited
+            E(ldrb_imm, 0, 6, S_FOCUS); E(mov_reg, 1, 10); E(adds_imm8, 1, 0x80); E(cmp_reg, 0, 1); E(b_cond, "lt_n", "ne")
+            E(mov_reg, 0, 10); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "lt_n", "eq")
+            E(mov_reg, 1, 11); E(ldrb_imm, 2, 6, S_A); E(cmp_reg, 1, 2); E(b_cond, "lt_b", "ne"); E(movs_imm, 2, COL_A); E(b, "lt_p")
+            a.label("lt_b"); E(adds_imm8, 1, 1); E(ldrb_imm, 2, 0, 1); E(cmp_reg, 2, 1); E(b_cond, "lt_c", "ne"); E(movs_imm, 2, COL_B); E(b, "lt_p")
+            a.label("lt_c"); E(ldrb_imm, 2, 0, 2); E(cmp_reg, 2, 1); E(b_cond, "lt_n", "ne"); E(movs_imm, 2, COL_C)
+            a.label("lt_p"); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
+            a.label("lt_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 32); bc("lt_l", "lo")
+            # the knob LEDs: the plays of the rule being edited
+            E(ldrb_imm, 0, 6, S_FOCUS); E(cmp_imm, 0, 0x80); bc("lt_x", "lo")
+            E(subs_imm8, 0, 0x80); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcrule"); E(cmp_imm, 0, 0); bc("lt_x", "eq")
+            E(ldrb_imm, 4, 0, 0); E(movs_imm, 3, 0)
+            a.label("lt_k")
+            E(movs_imm, 2, 0); E(cmp_reg, 3, 4); E(b_cond, "lt_kw", "hs"); E(movw, 2, KNOB_ON)
+            a.label("lt_kw"); E(mov_reg, 0, 3); E(adds_imm8, 0, 60); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
+            E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "lt_k", "lo")
+            E(b, "lt_x")
+        if GROUPS:
+            E(movs_imm, 4, 0)
+            a.label("gl_l")
+            E(mov_reg, 0, 4); E(bl, TRACKFN); E(mov_reg, 10, 0)                            # r10 = the track of the pad
+            E(lsrs_imm, 1, 4, 3); E(adds_reg, 1, 1, 7); E(mov_reg, 11, 1)                  # r11 = its pattern
+            E(cmp_imm, 0, 8); bc("gl_n", "hs")
+            E(bl, "c_pcgw"); E(mov_reg, 2, 11); E(bl, "c_pcgs"); E(cmp_imm, 0, 0xFF); E(b_cond, "gl_p", "eq")
+            E(movs_imm, 2, COL_A); E(cmp_imm, 0, 0); E(b_cond, "gl_w", "eq"); E(movs_imm, 2, COL_B); E(cmp_imm, 0, 1); E(b_cond, "gl_w", "eq"); E(movs_imm, 2, COL_C)
+            a.label("gl_w"); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
+            a.label("gl_p")                                                                # a start waiting for its end: white
+            E(ldrb_imm, 0, 6, G_PEND); E(cmp_imm, 0, 0x80); E(b_cond, "gl_n", "lo"); E(subs_imm8, 0, 0x80)
+            E(mov_reg, 1, 10); E(lsls_imm, 1, 1, 3); E(mov_reg, 2, 11); E(orrs_reg, 1, 2); E(cmp_reg, 0, 1); E(b_cond, "gl_n", "ne")
+            E(movs_imm, 2, COL_PEND); E(lsls_imm, 0, 4, 1); E(strh_reg, 2, 5, 0)
+            a.label("gl_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 32); bc("gl_l", "lo")
+            # the knob LEDs: the repeats of the group on K1 (1-8 white; 9-16 all eight, the first n - 8 blue)
+            E(ldrb_imm, 0, 6, S_FOCUS); E(cmp_imm, 0, 0x80); bc("lt_x", "lo"); E(subs_imm8, 0, 0x80)
+            E(bl, "c_pcgw"); E(cmp_imm, 1, 0); bc("lt_x", "eq"); E(mov_reg, 10, 0)
+            E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcgp"); E(cmp_imm, 0, 0); bc("lt_x", "eq")
+            E(mov_reg, 0, 10); E(ldrb_imm, 1, 6, S_A); E(bl, "c_pcgf"); E(mov_reg, 4, 2); E(movs_imm, 3, 0)
+            a.label("gk_l")
+            E(movs_imm, 2, 0); E(cmp_reg, 3, 4); E(b_cond, "gk_w", "hs"); E(movw, 2, KNOB_ON)
+            E(mov_reg, 1, 3); E(adds_imm8, 1, 8); E(cmp_reg, 1, 4); E(b_cond, "gk_w", "hs"); E(movw, 2, COL_BLUE | (127 + 2) << 8)
+            a.label("gk_w"); E(mov_reg, 0, 3); E(adds_imm8, 0, 60); E(lsls_imm, 0, 0, 1); E(strh_reg, 2, 5, 0)
+            E(adds_imm8, 3, 1); E(cmp_imm, 3, 8); E(b_cond, "gk_l", "lo")
+            E(b, "lt_x")
         # the Mixer view (not its Master FX page): the scenes with rules, the tracks that run one, the repeats with Shift
         a.label("lt_mix")
         imm32(0, MGR); E(ldr_imm, 1, 0, 0x6C); imm32(0, MIXV); E(cmp_reg, 0, 1); bc("lt_x", "ne")
@@ -600,9 +806,12 @@ def arm_code(base, L, prev):
         E(movs_imm, 4, 0)
         a.label("mb_l")
         E(ldrb_imm, 0, 6, S_LIVE); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "mb_n", "eq")
-        E(adds_reg, 1, 6, 4); E(ldrb_imm, 7, 1, S_RET)
-        imm32(0, ENG + 0x30); E(lsls_imm, 1, 4, 2); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET)
-        E(ldrb_imm, 1, 0, 0); E(mov_reg, 0, 4); E(bl, "c_pcget"); E(orrs_reg, 0, 7); E(b_cond, "mb_n", "eq")
+        if GROUPS:
+            E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); E(b_cond, "mb_n", "eq")
+        else:
+            E(adds_reg, 1, 6, 4); E(ldrb_imm, 7, 1, S_RET)
+            imm32(0, ENG + 0x30); E(lsls_imm, 1, 4, 2); E(adds_reg, 0, 0, 1); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET)
+            E(ldrb_imm, 1, 0, 0); E(mov_reg, 0, 4); E(bl, "c_pcget"); E(orrs_reg, 0, 7); E(b_cond, "mb_n", "eq")
         E(lsls_imm, 0, 4, 1); E(movs_imm, 2, 0); E(strh_reg, 2, 5, 0)
         a.label("mb_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "mb_l", "lo")
         a.label("mb_x")
@@ -625,16 +834,22 @@ def arm_code(base, L, prev):
         # ---- c_pcchained (r0 = the tail, r1 = scene) -> r0 = 1 when a track of that scene runs a rule: its flag there and a rule on the first
         #      pattern of its chain there
         a.label("c_pcchained")
-        E(push_list, [3, 4, 5, 6, 7], lr=True)
-        E(mov_reg, 6, 0); E(mov_reg, 5, 1); E(bl, "c_pcsflag"); E(mov_reg, 7, 0)
-        E(movs_imm, 4, 0)
-        a.label("cc_l")
-        E(mov_reg, 0, 7); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "cc_n", "eq")
-        imm32(0, ENG + 0x24); E(ldr_imm, 0, 0, 0); E(mov_reg, 1, 5); E(mov_reg, 2, 4); E(bl, SC_FIRST)
-        E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "cc_y", "ne")
-        a.label("cc_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "cc_l", "lo")
-        E(movs_imm, 0, 0); E(pop_list, [3, 4, 5, 6, 7], pc=True)
-        a.label("cc_y"); E(movs_imm, 0, 1); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+        if GROUPS:
+            E(push_list, [4, 5], lr=True); E(mov_reg, 5, 1); E(bl, "c_pcsflag"); E(mov_reg, 4, 0)
+            imm32(2, G_RB); E(ldr_imm, 1, 2, 0); imm32(3, G_SIG); E(movs_imm, 0, 0); E(cmp_reg, 1, 3); E(b_cond, "gc_x", "ne")
+            E(cmp_imm, 5, 16); E(b_cond, "gc_x", "hs"); E(adds_imm8, 2, G_SCM); E(ldrb_reg, 0, 2, 5); E(ands_reg, 0, 4)
+            a.label("gc_x"); E(pop_list, [4, 5], pc=True)
+        if not (TRIMCC and GROUPS):                                                         # (TRIMCC) the old body: reached from nowhere with GROUPS
+            E(push_list, [3, 4, 5, 6, 7], lr=True)
+            E(mov_reg, 6, 0); E(mov_reg, 5, 1); E(bl, "c_pcsflag"); E(mov_reg, 7, 0)
+            E(movs_imm, 4, 0)
+            a.label("cc_l")
+            E(mov_reg, 0, 7); E(lsrs_reg, 0, 4); E(lsls_imm, 0, 0, 31); E(b_cond, "cc_n", "eq")
+            imm32(0, ENG + 0x24); E(ldr_imm, 0, 0, 0); E(mov_reg, 1, 5); E(mov_reg, 2, 4); E(bl, SC_FIRST)
+            E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_pcget"); E(cmp_imm, 0, 0); E(b_cond, "cc_y", "ne")
+            a.label("cc_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "cc_l", "lo")
+            E(movs_imm, 0, 0); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+            a.label("cc_y"); E(movs_imm, 0, 1); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
         # ---- c_pcmixpad (the Mixer view's pad press: view, pad, velocity): Shift + pads 9-16 = the repeats of the current scene
         a.label("c_pcmixpad")
@@ -650,6 +865,27 @@ def arm_code(base, L, prev):
         a.label("mp_x"); E(pop_list, [0, 1, 2, 4, 5], pc=True)
         a.label("mp_c"); E(raw, popw([0, 1, 2, 4, 5], lr=True))
         a.label("mp_f"); E(b_w, prev["mixpad"])
+        if GROUPS:
+            # ---- c_pckn (the Patterns view's slot 4: view, knob, delta): K1 = the repeats (1-16) of the group picked, 4 clicks a step
+            a.label("c_pckn")
+            E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+            E(cmp_imm, 1, 0); bc("kn_f", "ne")
+            E(bl, "c_pcst"); E(cmp_imm, 0, 0); bc("kn_f", "eq"); E(mov_reg, 6, 0); E(adds_imm8, 6, SCR)
+            E(ldrb_imm, 0, 6, S_EDIT); E(cmp_imm, 0, 0); bc("kn_f", "eq")
+            E(ldrb_imm, 4, 6, S_FOCUS); E(cmp_imm, 4, 0x80); bc("kn_f", "lo"); E(subs_imm8, 4, 0x80)
+            E(ldrb_imm, 0, 6, G_ACC); E(lsls_imm, 0, 0, 24); E(raw, h(0x1600)); E(raw, ldr_sp(1, 8)); E(adds_reg, 0, 0, 1)   # asrs r0, r0, #24
+            E(movs_imm, 5, 1); E(cmp_imm, 0, 4); E(b_cond, "kn_s", "ge")
+            E(movs_imm, 5, 0); E(subs_imm8, 5, 1); E(adds_imm3, 1, 0, 3); E(b_cond, "kn_s", "mi")
+            E(strb_imm, 0, 6, G_ACC); E(b, "kn_x")
+            a.label("kn_s"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, G_ACC)
+            E(mov_reg, 0, 4); E(bl, "c_pcgw"); E(cmp_imm, 1, 0); E(b_cond, "kn_x", "eq"); E(mov_reg, 7, 0)
+            E(ldrb_imm, 1, 6, S_A); E(movs_imm, 2, 10); E(muls, 2, 1); E(adds_imm8, 2, 6)
+            E(mov_reg, 0, 7); E(lsrs_reg, 0, 2); E(movs_imm, 3, 15); E(ands_reg, 0, 3)
+            E(adds_reg, 0, 0, 5); E(b_cond, "kn_x", "mi"); E(cmp_imm, 0, 15); E(b_cond, "kn_x", "hi")
+            E(lsls_reg, 3, 2); E(bics_reg, 7, 3); E(lsls_reg, 0, 2); E(orrs_reg, 7, 0)
+            E(bl, "c_pcgi"); E(lsls_imm, 1, 4, 2); E(adds_reg, 1, 1, 0); E(str_imm, 7, 1, G_CURW)
+            a.label("kn_x"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
+            a.label("kn_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
         return a.assemble()
     # ---- c_pcledtask (the LED task calls: ctrl, frame): the chain; the chain edit on the screen: the rules over the stock's picture
     a.label("c_pcledtask")
@@ -700,6 +936,7 @@ def install(img, report, base_addr):
     prev = dict(pad=u(PV_VT) & ~1, btn=MP.bw_target(img, BTN_ENTRY, BASE), ledtask=lab("stepmod", "c_rfledtask"), load=MP.bw_target(img, P19.LOAD_END, BASE))
     assert prev["pad"] == PV_PAD and prev["load"] == lab("persist19", "c_pl_load")
     if V2: prev["mixpad"] = u(MIX_VT) & ~1
+    if GROUPS: prev["knob"] = u(PV_KNOB) & ~1
     code, labels = arm_code(base_addr, L, prev)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
     while len(img) % 4:
@@ -719,6 +956,7 @@ def install(img, report, base_addr):
     struct.pack_into("<I", img, PV_VT - BASE, labels["c_pcpad"] | 1)
     img[BTN_ENTRY - BASE:BTN_ENTRY - BASE + 4] = b_w(BTN_ENTRY, labels["c_pcbtn"])
     if V2: struct.pack_into("<I", img, MIX_VT - BASE, labels["c_pcmixpad"] | 1)
+    if GROUPS: struct.pack_into("<I", img, PV_KNOB - BASE, labels["c_pckn"] | 1)
     for c in PK.LED_CALLS:
         assert bytes(img[c - BASE:c - BASE + 4]) == bl(c, prev["ledtask"]), hex(c)
         img[c - BASE:c - BASE + 4] = bl(c, labels["c_pcledtask"])

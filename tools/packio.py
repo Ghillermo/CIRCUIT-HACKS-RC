@@ -210,6 +210,7 @@ PV_OBJ = 0x20044128                              # the packs view object (heap, 
 CROSS_COL = MAGENTA                              # SC37.1: YELLOW
 PATCHX = False                                   # SC37.1: swap synth patches between packs (see 5.)
 TRIMX = False                                    # SC49 (use_trimx): the old swaps (c_xswap, c_xswap2) not emitted: c_xcopy2 replaced them (COPYX)
+TRIM2 = False                                    # SC57.5 (use_trim2): the tails that CROSS / PKLED2 branch around not emitted
 SP_VT = 0x0805AC9C                               # the synth Preset view: slot 0 pad, slot 7 LEDs
 KIND_PATCH, PATCH_SZ, PATCH_STRIDE, PER_BANK = 3, 340, 512, 8
 PCLIP_MAGIC = 0xA6
@@ -221,6 +222,17 @@ def use_trimx():
     global TRIMX
     assert COPYX
     TRIMX = True
+
+
+def use_trim2():
+    """SC57.5 (flash for tools/patrev.py): three tails nothing reaches (tools/fullwalk.py on Beta 5.59's image, 264 B), not emitted.  With CROSS,
+    c_pdp's clip code ends every path with "b dp_eat" and c_pdl's mirror code with "b dl_x": the SC35 swap that follows each of them (SWAP_MAGIC,
+    dp_has / dl_held, 46 + 86 B) is never run.  With PKLED2, c_ppl branches to pl_x at once (the frame is drawn by c_pkled): its blink of the
+    LED buffer (fresh, pl_al / pl_an / pl_one, 132 B) is never run.  The three jumps over them ("b dp_eat", "b dl_x", "b pl_x") then land on
+    the next instruction: not emitted either."""
+    global TRIM2
+    assert CROSS and PKLED2
+    TRIM2 = True
 
 
 def use_dupmask():
@@ -733,14 +745,16 @@ def arm_code(base, L, prev):
         if FIX2 and not EXACT: a.emit(bl, "c_resel")                                                                  # (r0 = the loaded pack)
         a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 5); a.emit(bl, "c_swap2" if EXACT else "c_swap"); a.emit(b, "dp_eat")
         a.label("dx_other")
-        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 2, 5); a.emit(bl, "c_xcopy2" if COPYX else "c_xswap2" if EXACT else "c_xswap"); a.emit(b, "dp_eat")
-    a.emit(ldrb_w, 6, 4, SWAP_OFF); a.emit(cmp_imm, 6, SWAP_MAGIC); a.emit(b_cond, "dp_has", "eq")
-    a.emit(movs_imm, 0, SWAP_MAGIC); a.emit(strb_w, 0, 4, SWAP_OFF); a.emit(strb_w, 5, 4, SWAP_OFF + 1); a.emit(b, "dp_eat")   # A chosen
-    a.label("dp_has")
-    a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, SWAP_OFF)
-    a.emit(ldrb_w, 6, 4, SWAP_OFF + 1); a.emit(cmp_imm, 6, 64); a.emit(b_cond, "dp_eat", "hs")   # (never out of range)
-    a.emit(cmp_reg, 6, 5); a.emit(b_cond, "dp_eat", "eq")                                      # A again: cancel
-    a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 5); a.emit(bl, "c_swap")
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 2, 5); a.emit(bl, "c_xcopy2" if COPYX else "c_xswap2" if EXACT else "c_xswap")
+        if not TRIM2: a.emit(b, "dp_eat")        # (TRIM2: dp_eat follows)
+    if not (TRIM2 and CROSS):                    # (CROSS: never reached, every path above ends in "b dp_eat")
+        a.emit(ldrb_w, 6, 4, SWAP_OFF); a.emit(cmp_imm, 6, SWAP_MAGIC); a.emit(b_cond, "dp_has", "eq")
+        a.emit(movs_imm, 0, SWAP_MAGIC); a.emit(strb_w, 0, 4, SWAP_OFF); a.emit(strb_w, 5, 4, SWAP_OFF + 1); a.emit(b, "dp_eat")   # A chosen
+        a.label("dp_has")
+        a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, SWAP_OFF)
+        a.emit(ldrb_w, 6, 4, SWAP_OFF + 1); a.emit(cmp_imm, 6, 64); a.emit(b_cond, "dp_eat", "hs")   # (never out of range)
+        a.emit(cmp_reg, 6, 5); a.emit(b_cond, "dp_eat", "eq")                                      # A again: cancel
+        a.emit(mov_reg, 0, 6); a.emit(mov_reg, 1, 5); a.emit(bl, "c_swap")
     a.label("dp_eat")
     a.emit(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); a.emit(raw, h(0x4770))
     a.label("dp_nod")                                # Duplicate not held: a pending A is dropped (CROSS: the clip stays)
@@ -770,15 +784,16 @@ def arm_code(base, L, prev):
         a.emit(cmp_imm, 0, 0); a.emit(b_cond, "dl_d", "ne"); a.emit(movs_imm, 6, DARK)
         a.label("dl_d")
         a.emit(lsls_imm, 7, 7, 27); a.emit(lsrs_imm, 7, 7, 26); a.emit(strh_reg, 6, 5, 7)                              # 2 x (A % 32)
-        a.emit(b, "dl_x")
-    a.emit(ldrb_w, 6, 4, SWAP_OFF); a.emit(cmp_imm, 6, SWAP_MAGIC); bc("dl_x", "ne")
-    held(7); a.emit(movs_imm, 0, 2); a.emit(tst_reg, 7, 0); a.emit(b_cond, "dl_held", "ne")
-    a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, SWAP_OFF); a.emit(b, "dl_x")
-    a.label("dl_held")
-    a.emit(ldr_imm, 0, 4, 0x20); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
-    a.emit(ldrb_w, 6, 4, SWAP_OFF + 1); a.emit(lsrs_imm, 1, 6, 5); a.emit(cmp_reg, 1, 0); bc("dl_x", "ne")    # another page
-    a.emit(lsls_imm, 6, 6, 27); a.emit(lsrs_imm, 6, 6, 26)                                      # 2 x (A % 32)
-    blink(BLUE, DARK); a.emit(strh_reg, 0, 5, 6)
+        if not TRIM2: a.emit(b, "dl_x")          # (TRIM2: dl_x follows)
+    if not (TRIM2 and CROSS):                    # (CROSS: never reached, the mirror code above ends in "b dl_x")
+        a.emit(ldrb_w, 6, 4, SWAP_OFF); a.emit(cmp_imm, 6, SWAP_MAGIC); bc("dl_x", "ne")
+        held(7); a.emit(movs_imm, 0, 2); a.emit(tst_reg, 7, 0); a.emit(b_cond, "dl_held", "ne")
+        a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, SWAP_OFF); a.emit(b, "dl_x")
+        a.label("dl_held")
+        a.emit(ldr_imm, 0, 4, 0x20); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 0, 0, 0)
+        a.emit(ldrb_w, 6, 4, SWAP_OFF + 1); a.emit(lsrs_imm, 1, 6, 5); a.emit(cmp_reg, 1, 0); bc("dl_x", "ne")    # another page
+        a.emit(lsls_imm, 6, 6, 27); a.emit(lsrs_imm, 6, 6, 26)                                      # 2 x (A % 32)
+        blink(BLUE, DARK); a.emit(strh_reg, 0, 5, 6)
     a.label("dl_x"); a.emit(mov_reg, 0, 5); a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
     def pv_active(fail):                         # r4 = the active view when it is the packs view, else -> fail
@@ -886,22 +901,23 @@ def arm_code(base, L, prev):
     a.label("c_ppl")
     a.emit(push_list, [4, 5, 6, 7], lr=True)
     a.emit(mov_reg, 4, 0); a.emit(ldr_imm, 0, 0, 4); a.emit(ldr_imm, 5, 0, 0)                 # r5 = [[view + 4]]
-    if PKLED2: a.emit(b, "pl_x")                 # (drawn on the frame by c_pkled)
-    fresh("pl_x")
-    if FIX2:
-        a.emit(ldrb_w, 6, 4, PQ_OFF + 1); a.emit(cmp_imm, 6, PQ_ARMED); bc("pl_one", "ne")
-        a.emit(ldr_imm, 0, 4, 0x10); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 7, 0, 0)    # r7 = the loaded pack
-        blink(RED, DARK); a.emit(mov_reg, 6, 0); a.emit(movs_imm, 3, 0)                       # r6 = the colour, r3 = pad
-        a.label("pl_al")
-        a.emit(cmp_reg, 3, 7); a.emit(b_cond, "pl_an", "eq")
-        a.emit(lsls_imm, 1, 3, 1); a.emit(ldrh_reg, 2, 5, 1); a.emit(cmp_imm, 2, 0); a.emit(b_cond, "pl_an", "eq")   # an empty slot stays dark
-        a.emit(strh_reg, 6, 5, 1)
-        a.label("pl_an")
-        a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 32); a.emit(b_cond, "pl_al", "lo")
-        a.emit(b, "pl_x")
-        a.label("pl_one")
-    a.emit(ldrb_w, 6, 4, PQ_OFF + 1); a.emit(cmp_imm, 6, 32); bc("pl_x", "hs"); a.emit(lsls_imm, 6, 6, 1)
-    blink(RED, DARK); a.emit(strh_reg, 0, 5, 6)
+    if PKLED2 and not TRIM2: a.emit(b, "pl_x")   # (drawn on the frame by c_pkled; TRIM2: pl_x follows)
+    if not (TRIM2 and PKLED2):                   # (PKLED2: never reached)
+        fresh("pl_x")
+        if FIX2:
+            a.emit(ldrb_w, 6, 4, PQ_OFF + 1); a.emit(cmp_imm, 6, PQ_ARMED); bc("pl_one", "ne")
+            a.emit(ldr_imm, 0, 4, 0x10); a.emit(movs_imm, 1, 0); a.emit(bl, PARAM_GET); a.emit(ldrb_imm, 7, 0, 0)    # r7 = the loaded pack
+            blink(RED, DARK); a.emit(mov_reg, 6, 0); a.emit(movs_imm, 3, 0)                       # r6 = the colour, r3 = pad
+            a.label("pl_al")
+            a.emit(cmp_reg, 3, 7); a.emit(b_cond, "pl_an", "eq")
+            a.emit(lsls_imm, 1, 3, 1); a.emit(ldrh_reg, 2, 5, 1); a.emit(cmp_imm, 2, 0); a.emit(b_cond, "pl_an", "eq")   # an empty slot stays dark
+            a.emit(strh_reg, 6, 5, 1)
+            a.label("pl_an")
+            a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, 32); a.emit(b_cond, "pl_al", "lo")
+            a.emit(b, "pl_x")
+            a.label("pl_one")
+        a.emit(ldrb_w, 6, 4, PQ_OFF + 1); a.emit(cmp_imm, 6, 32); bc("pl_x", "hs"); a.emit(lsls_imm, 6, 6, 1)
+        blink(RED, DARK); a.emit(strh_reg, 0, 5, 6)
     a.label("pl_x"); a.emit(mov_reg, 0, 5); a.emit(pop_list, [4, 5, 6, 7], pc=True)
     return a.assemble()
 

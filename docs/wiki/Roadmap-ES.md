@@ -2,7 +2,7 @@
 
 *[English version](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) · [Inicio](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home#en-español) · [Preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) · [Cambios](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Actualizada el 2026-11-13. Versiones actuales: **RC4.11 / RC4.11S** (arreglos) y la **Beta 5.56** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
+Actualizada el 2026-11-17. Versiones actuales: **RC4.11 / RC4.11S** (arreglos) y la **Beta 5.56** (funciones nuevas; las betas que amplían RC4 se numeran 5.x).
 
 El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantidad**: que lo que ya existe suene mejor, sea más fácil de usar, sea sólido y esté bien documentado. Las funciones nuevas grandes esperan hasta entonces.
 
@@ -33,9 +33,13 @@ El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantid
 - **Las mismas reglas en todas partes:** con Shift, lo disponible en amarillo y la opción elegida en otro color; Clear + knob = valor por defecto (lavanda) o borrar la automatización (rojo); Duplicate + A + B = intercambiar o copiar; todo modo propio con un indicador visible. Revisar cada vista con estas reglas.
 - **Ordenar las vistas más cargadas,** primero la vista Preset de MIDI 1 / 2, donde la mayoría de los pads 25-32 son interruptores sueltos (ver las ideas de abajo).
 - **Enseñar los valores ocultos,** como el número exacto de un knob, el modo elegido o si hay cambios sin guardar (ver las ideas de abajo).
+- **Colores de los samples:** los samples en sus propios colores, como los patches de Synth 1 / 2 por categoría.
+- **Alternativas al solo:** otras formas de dejar pistas solas en el Mixer, además del solo y el solo flip del pad 16.
 
 ### 3. Arreglar y mantener
 - **Pruebas en el aparato** de todo lo marcado «sin probar» en los cambios, y pasar lo probado de la beta a la siguiente RC.
+- **Arreglo de la captura y la reproducción del sample:** la captura de sample de Master FX (pad 32) y su reproducción (pad 7).
+- **Arreglo de la salida de las páginas:** al salir de una página o vista se vuelve a donde corresponde.
 - **Todo arreglo va a la RC y a la beta,** y cada RC mantiene su gemela más segura «S».
 - **La estabilidad primero:** ninguna función nueva puede volver inestable el tempo ni dar chasquidos.
 - **Issues y preguntas frecuentes:** responder a los informes y añadir a las [preguntas frecuentes](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ-ES) lo que se repita.

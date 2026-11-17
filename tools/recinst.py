@@ -43,6 +43,7 @@ INV = V.INV
 SIG = 0x314E4952                          # (use_sig) "RIN1"
 SIGOK = False
 FOLD = False                              # (SC49.5) the snapshot's lane loops as loops
+Z0 = False                                # (SC57.8 / Beta 5.63, use_code0) code 0 never differs
 
 
 def use_sig():
@@ -53,6 +54,15 @@ def use_sig():
 def use_fold():
     global FOLD
     FOLD = True
+
+
+def use_code0():
+    """SC57.8 / Beta 5.63 (bug hunt 2026-11-14, JR-2): a slot freed by p4dest.use_dup (code 0 in the row) was compared as code 0 (the flags byte
+    against t_def[0]) and counted as differing: the snapshot kept the freed lane and wrote c_vtou(0, flags) into its step, which vcf21's c_vapply
+    then played into the flags byte.  Now code 0 never differs: a freed lane is a free lane for the snapshot (the SC44.9 «Reasignar carriles»
+    policy otherwise unchanged)."""
+    global Z0
+    Z0 = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -136,7 +146,9 @@ def arm_code(base, L, prev, nd):
 
     # ---- c_ridiff(r0 = track, r1 = code) -> r0 = 1 when the value is not the default; clobbers r1-r3
     a.label("c_ridiff")
-    E(push_list, [4], lr=True); E(mov_reg, 4, 1)
+    E(push_list, [4], lr=True)
+    if Z0: E(cmp_imm, 1, 0); E(b_cond, "df_0", "eq")                               # (use_code0) a freed slot never differs
+    E(mov_reg, 4, 1)
     E(bl, L["c_vvaddr"]); E(movs_imm, 1, 0); E(raw, ldrsb_reg(0, 0, 1))
     imm32(2, L["t_def"]); E(raw, ldrsb_reg(1, 2, 4))
     E(cmp_reg, 0, 1); E(b_cond, "df_0", "eq"); E(movs_imm, 0, 1); E(pop_list, [4], pc=True)

@@ -98,7 +98,7 @@ Ver [Matriz de modulación y destinos de los macros](https://ghillermo.github.io
 ## El proyecto
 
 **24. ¿Cómo informo de un fallo?**
-Abre un [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) con la versión (por ejemplo RC4 o RC4S), lo que hiciste paso a paso, lo que esperabas y lo que pasó. Si puedes, adjunta el proyecto o el pack, o una grabación corta. **Si el panel se quedó colgado mientras la música seguía** (Beta 5.51 y posteriores; desde la 5.56 también si el aparato se reinicia solo por un fallo): a los 15 s el aparato se reinicia solo y Save parpadea en violeta; abre la [app de la tarjeta](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), pulsa **Caja negra…**, luego **Guardar…**, y adjunta el fichero `.json`.
+Abre un [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) con la versión (por ejemplo RC4 o RC4S), lo que hiciste paso a paso, lo que esperabas y lo que pasó. Si puedes, adjunta el proyecto o el pack, o una grabación corta. **Si el panel se quedó colgado mientras la música seguía** (Beta 5.51 y posteriores; desde la 5.56 también si el aparato se reinicia solo por un fallo): a los 15 s el aparato se reinicia solo y Save parpadea en violeta; abre la [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip) (vista **Hacks · Circuit Tracks**), pulsa **Caja negra…**, luego **Guardar…**, y adjunta el fichero `.json`.
 
 **25. ¿Cómo propongo una función?**
 En [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) o con un issue. Mira antes la [hoja de ruta](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES): las propuestas sobre control, usabilidad y cómo se guardan los datos son especialmente bienvenidas.

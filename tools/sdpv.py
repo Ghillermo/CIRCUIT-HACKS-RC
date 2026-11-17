@@ -88,6 +88,17 @@ def use_v4():
     V4 = True
 
 
+TRIMBS = False                                 # SC57.5 (use_trimbs)
+
+
+def use_trimbs():
+    """SC57.5 (flash for the extra lanes' reload and the pattern reverse): with V2 a synth's empty pair is 0 and c_pvbase2 returns at bs_s; the
+    macro's position read after it (the getter, clamped to 127: bs_x, 22 B) is reached from nowhere: not emitted."""
+    global TRIMBS
+    assert V2
+    TRIMBS = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -185,9 +196,10 @@ def arm_code(base, L, prev):
     else: E(cmp_imm, 0, 2); E(b_cond, "bs_s", "hs"); E(movs_imm, 0, 64); E(raw, RET)
     a.label("bs_s")
     if V2: E(movs_imm, 0, 0); E(raw, RET)                                             # (V2) a synth's empty pair: 0
-    E(raw, h(0xB500)); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174); E(subs_imm8, 0, 2); E(bl, V.GETTER)
-    E(cmp_imm, 0, 127); E(b_cond, "bs_x", "ls"); E(movs_imm, 0, 127)
-    a.label("bs_x"); E(raw, h(0xBD00))
+    if not (TRIMBS and V2):                                                            # (TRIMBS) the macro's position: reached from nowhere with V2
+        E(raw, h(0xB500)); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174); E(subs_imm8, 0, 2); E(bl, V.GETTER)
+        E(cmp_imm, 0, 127); E(b_cond, "bs_x", "ls"); E(movs_imm, 0, 127)
+        a.label("bs_x"); E(raw, h(0xBD00))
 
     # ---- c_pvlane2(r0 = track, r1 = step) -> r0 = the page-2 lane bytes of that step, 0 without a destination; clobbers r1-r3
     a.label("c_pvlane2")

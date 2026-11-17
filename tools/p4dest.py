@@ -18,7 +18,7 @@ import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
+from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
                    mov_reg, movs_imm, movt, movw, orrs_reg, pop_list, push_list, raw, strb_imm, strb_reg, strh_reg, subs_imm8, subs_reg)
 import vcf21 as V  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -32,6 +32,25 @@ DIV = 4                               # knob events per destination
 POFS, PLEN = 88, 12                   # in the padding: after modmx's matrix (64..87)
 NS = False                            # SC48.3 (use_ns): the non-sequenceable page too
 POFS2 = 130                           # (NS) its block in the padding: after vmode's (126..129)
+
+
+DUP = False                           # SC57.3 (use_dup)
+
+
+def use_dup():
+    """SC57.3 (the user, 2026-11-13: «knobs on dedicated views get now assigned by pressing duplicate+knob (duplicate+knob on the dedicated view frees
+    it up)»; «Page 4 first», «go to the next 8 slots (shift+pad1, non-assignable view) when all 16 are taken, accept no more», the Shift + knob
+    scroller removed): Duplicate held + a knob of the own synth (mode on, no CC editor, no step-drummer view):
+      * on a page that is not one of the two dedicated views: the knob's code (c_vkc: the page, Shift, the knob; one of the matrix's destinations)
+        goes to the first free slot (code 0) of the assigned-knob view (page 4 / pad 1), then of the non-sequenceable one (Shift + pad 1); already on
+        one of them, or all 16 taken: nothing;
+      * on a dedicated view: that slot is freed (code 0: the knob does nothing, its LED dark, its lane unused);
+      * once per knob while Duplicate is held (ST + 1 = the knob, 0xFF none: forgotten on the next event without Duplicate);
+      * Duplicate held on a dedicated view: the knob LEDs = the destinations' page colours (free = dark).
+    A patch keeps a free slot (code 0) on load.  No Clear + Shift + knob default, no Shift + knob scroll; p4ovl is not installed."""
+    global DUP
+    assert NS
+    DUP = True
 
 
 def use_ns():
@@ -90,44 +109,94 @@ def arm_code(base, L, prev, nd):
     E(movs_imm, 2, 0)
     a.label("ix_f"); E(mov_reg, 0, 2); E(raw, h(0x4770))
 
+    if DUP:
+        # ---- c_p4dup() -> r0 = 2 when Duplicate is held (the controller's held buttons, bit 1), else 0; clobbers r1-r3
+        a.label("c_p4dup")
+        E(push_list, [], lr=True)
+        imm32(0, MP.MGR); E(ldr_imm, 0, 0, 0x20); E(ldr_imm, 0, 0, 0xC); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+        E(movs_imm, 1, 2); E(ands_reg, 0, 1); E(pop_list, [], pc=True)
+        # ---- c_p4has(r0 = a row, r1 = a code) -> r0 = its index, 8 when not there; clobbers r2, r3
+        a.label("c_p4has")
+        E(movs_imm, 2, 0)
+        a.label("hs_l"); E(ldrb_reg, 3, 0, 2); E(cmp_reg, 3, 1); E(b_cond, "hs_x", "eq"); E(adds_imm8, 2, 1); E(cmp_imm, 2, 8); E(b_cond, "hs_l", "lo")
+        a.label("hs_x"); E(mov_reg, 0, 2); E(raw, h(0x4770))
+        # ---- c_p4knob (slot 4 of the macro handlers: obj, knob, delta): Duplicate held = the knob to / off the dedicated views, else the previous slot
+        a.label("c_p4knob")
+        E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+        E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kn_prev", "hi"); E(mov_reg, 6, 0)
+        imm32(7, ST)
+        E(bl, "c_p4dup"); E(cmp_imm, 0, 0); E(b_cond, "kn_d", "ne")
+        E(movs_imm, 0, 0xFF); E(strb_imm, 0, 7, 1); E(b, "kn_prev")                    # not held: the latch forgotten
+        a.label("kn_d")
+        E(mov_reg, 0, 6); E(bl, L["c_von"]); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
+        E(mov_reg, 0, 6); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("kn_prev", "ne")
+        E(mov_reg, 0, 6); E(bl, L["c_sdview"]); E(cmp_imm, 0, 0); bc("kn_prev", "ne")
+        E(ldr_sp, 5, 4); E(movs_imm, 0, 7); E(ands_reg, 5, 0)                          # r5 = knob 0..7
+        E(lsls_imm, 1, 6, 4); E(orrs_reg, 1, 5); E(ldrb_imm, 2, 7, 1); E(cmp_reg, 2, 1); bc("kn_x", "eq")
+        E(strb_imm, 1, 7, 1)                                                           # once per knob while held
+        E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); E(b_cond, "kn_n", "eq")
+        E(mov_reg, 0, 6); E(bl, "c_p4row"); E(movs_imm, 1, 0); E(strb_reg, 1, 0, 5); E(b, "kn_x")   # a dedicated view: the slot freed
+        a.label("kn_n")                                                                # another page: the knob's code
+        E(mov_reg, 0, 6); E(bl, L["c_vpage"]); E(lsls_imm, 4, 0, 4); E(adds_reg, 4, 4, 5)
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "kn_s", "eq"); E(adds_imm8, 4, 8)
+        a.label("kn_s"); E(mov_reg, 0, 6); E(mov_reg, 1, 4); E(bl, L["c_vkc"]); E(mov_reg, 4, 0)     # r4 = the code
+        E(cmp_imm, 4, 0); bc("kn_x", "eq")
+        E(bl, "c_p4idx"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(cmp_reg, 0, 4); bc("kn_x", "ne")
+        E(mov_reg, 0, 6); E(bl, L["c_vrow"]); E(mov_reg, 5, 0)                          # r5 = page 4's row
+        E(mov_reg, 0, 6); E(bl, L["c_vrow2"]); E(mov_reg, 7, 0)                         # r7 = the non-sequenceable row
+        for r in (5, 7):
+            E(mov_reg, 0, r); E(mov_reg, 1, 4); E(bl, "c_p4has"); E(cmp_imm, 0, 8); bc("kn_x", "ne")        # already there
+        for r in (5, 7):
+            E(mov_reg, 0, r); E(movs_imm, 1, 0); E(bl, "c_p4has"); E(cmp_imm, 0, 8); E(b_cond, f"kn_p{r}", "ne")
+        E(b, "kn_x")                                                                   # all 16 taken
+        for r in (5, 7):
+            a.label(f"kn_p{r}"); E(strb_reg, 4, r, 0); E(b, "kn_x")
+        a.label("kn_x"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
+        a.label("kn_prev"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
+
     # ---- c_p4knob (slot 4 of the macro handlers: obj, knob, delta): Shift on page 4 = the knob's destination, else the previous slot
-    a.label("c_p4knob")
-    E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
-    E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kn_prev", "hi"); E(mov_reg, 6, 0)
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
-    E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
-    E(ldr_sp, 5, 4); E(movs_imm, 0, 7); E(ands_reg, 5, 0)                          # r5 = knob 0..7
-    E(mov_reg, 0, 6); E(bl, "c_p4row" if NS else L["c_vrow"]); E(adds_reg, 4, 0, 5)  # r4 = the knob's code in the row
-    E(bl, L["c_mxclrh"]); E(cmp_imm, 0, 0); E(b_cond, "kn_ac", "eq")             # Clear held (the controller's: with Shift the handler never sees it)
-    if NS:
-        E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 2); imm32(1, base); E(b_cond, "kn_dl", "ne"); imm32(1, base + PLEN_LT)
-        a.label("kn_dl")
-    else: imm32(1, base)
-    E(ldrb_reg, 0, 1, 5); E(strb_imm, 0, 4, 0); E(b, "kn_x")                        # Clear: the default
-    a.label("kn_ac")
-    imm32(7, ST); E(lsls_imm, 1, 6, 4); E(orrs_reg, 1, 5); E(ldrb_imm, 2, 7, 1); E(cmp_reg, 2, 1); E(b_cond, "kn_sm", "eq")
-    E(strb_imm, 1, 7, 1); E(movs_imm, 2, 0); E(strb_imm, 2, 7, 0)
-    a.label("kn_sm")
-    E(movs_imm, 2, 0); E(raw, ldrsb_reg(2, 7, 2)); E(ldr_sp, 3, 8); E(adds_reg, 2, 2, 3)
-    E(movs_imm, 3, DIV); E(raw, sdiv(0, 2, 3)); E(raw, muls_(3, 0)); E(subs_reg, 2, 2, 3); E(strb_imm, 2, 7, 0)
-    E(cmp_imm, 0, 0); E(b_cond, "kn_x", "eq"); E(mov_reg, 5, 0)                    # r5 = steps
-    E(ldrb_imm, 0, 4, 0); E(bl, "c_p4idx"); E(adds_reg, 0, 0, 5)
-    E(cmp_imm, 0, 0); E(b_cond, "kn_q1", "ge"); E(movs_imm, 0, 0)
-    a.label("kn_q1"); E(cmp_imm, 0, nd - 1); E(b_cond, "kn_q2", "le"); E(movs_imm, 0, nd - 1)
-    a.label("kn_q2"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(strb_imm, 0, 4, 0)
-    a.label("kn_x"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
-    a.label("kn_prev"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
+    def scroll_knob():
+        a.label("c_p4knob")
+        E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+        E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kn_prev", "hi"); E(mov_reg, 6, 0)
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
+        E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); bc("kn_prev", "eq")
+        E(ldr_sp, 5, 4); E(movs_imm, 0, 7); E(ands_reg, 5, 0)                          # r5 = knob 0..7
+        E(mov_reg, 0, 6); E(bl, "c_p4row" if NS else L["c_vrow"]); E(adds_reg, 4, 0, 5)  # r4 = the knob's code in the row
+        E(bl, L["c_mxclrh"]); E(cmp_imm, 0, 0); E(b_cond, "kn_ac", "eq")             # Clear held (the controller's: with Shift the handler never sees it)
+        if NS:
+            E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 2); imm32(1, base); E(b_cond, "kn_dl", "ne"); imm32(1, base + PLEN_LT)
+            a.label("kn_dl")
+        else: imm32(1, base)
+        E(ldrb_reg, 0, 1, 5); E(strb_imm, 0, 4, 0); E(b, "kn_x")                        # Clear: the default
+        a.label("kn_ac")
+        imm32(7, ST); E(lsls_imm, 1, 6, 4); E(orrs_reg, 1, 5); E(ldrb_imm, 2, 7, 1); E(cmp_reg, 2, 1); E(b_cond, "kn_sm", "eq")
+        E(strb_imm, 1, 7, 1); E(movs_imm, 2, 0); E(strb_imm, 2, 7, 0)
+        a.label("kn_sm")
+        E(movs_imm, 2, 0); E(raw, ldrsb_reg(2, 7, 2)); E(ldr_sp, 3, 8); E(adds_reg, 2, 2, 3)
+        E(movs_imm, 3, DIV); E(raw, sdiv(0, 2, 3)); E(raw, muls_(3, 0)); E(subs_reg, 2, 2, 3); E(strb_imm, 2, 7, 0)
+        E(cmp_imm, 0, 0); E(b_cond, "kn_x", "eq"); E(mov_reg, 5, 0)                    # r5 = steps
+        E(ldrb_imm, 0, 4, 0); E(bl, "c_p4idx"); E(adds_reg, 0, 0, 5)
+        E(cmp_imm, 0, 0); E(b_cond, "kn_q1", "ge"); E(movs_imm, 0, 0)
+        a.label("kn_q1"); E(cmp_imm, 0, nd - 1); E(b_cond, "kn_q2", "le"); E(movs_imm, 0, nd - 1)
+        a.label("kn_q2"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(strb_imm, 0, 4, 0)
+        a.label("kn_x"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
+        a.label("kn_prev"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
+    if not DUP: scroll_knob()
 
     # ---- c_p4kleds (slot 7 of the macro handlers: obj) -> r0 = the knob LED buffer: Shift on page 4 = the destinations' page colours
     a.label("c_p4kleds")
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(bl, prev["kleds"]); E(mov_reg, 5, 0)
     E(mov_reg, 0, 4); E(bl, L["c_vtrack"]); E(cmp_imm, 0, 1); bc("kl_x", "hi"); E(mov_reg, 6, 0)
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("kl_x", "eq")
+    E(bl, "c_p4dup" if DUP else L["c_shift"]); E(cmp_imm, 0, 0); bc("kl_x", "eq")      # (DUP) Duplicate held, else Shift
     E(mov_reg, 0, 6); E(bl, "c_p4pg"); E(cmp_imm, 0, 0); bc("kl_x", "eq")
     E(mov_reg, 0, 6); E(bl, "c_p4row" if NS else L["c_vrow"]); E(mov_reg, 4, 0); E(movs_imm, 6, 0)
     a.label("kl_l")
-    E(ldrb_reg, 0, 4, 6); E(bl, "c_p4idx"); imm32(1, L["t_dcol"]); E(ldrb_reg, 1, 1, 0)
+    E(ldrb_reg, 0, 4, 6)
+    if DUP: E(movs_imm, 1, 0); E(cmp_imm, 0, 0); E(b_cond, "kl_w", "eq")             # (DUP) a free slot: dark
+    E(bl, "c_p4idx"); imm32(1, L["t_dcol"]); E(ldrb_reg, 1, 1, 0)
+    if DUP: a.label("kl_w")
     E(movs_imm, 0, 129); E(lsls_imm, 0, 0, 8); E(orrs_reg, 0, 1); E(lsls_imm, 1, 6, 1); E(strh_reg, 0, 5, 1)
     E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "kl_l", "lo")
     a.label("kl_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
@@ -198,6 +267,7 @@ def arm_code(base, L, prev, nd):
             a.label("ap_l" + sfx)
             E(ldrb_reg, 0, 6, 7); E(push_list, [0]); E(bl, "c_p4idx"); imm32(1, L["t_dcode"]); E(ldrb_reg, 0, 1, 0); E(pop_list, [1])
             E(cmp_reg, 0, 1); E(b_cond, "ap_ok" + sfx, "eq")
+            if DUP: E(cmp_imm, 1, 0); E(b_cond, "ap_ok" + sfx, "eq")                    # (DUP) a free slot stays free
             imm32(1, deflt); E(ldrb_reg, 1, 1, 7)                                       # not one of the destinations: the default
             a.label("ap_ok" + sfx); E(strb_reg, 1, 5, 7)
             E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ap_l" + sfx, "lo")
@@ -226,7 +296,8 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
-    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vrow") + (("c_vrow2",) if NS else ())}
+    L = {k: lab("vcf20", k) for k in ("c_vtrack", "c_von", "c_edact", "c_sdview", "c_vpage", "c_vrow") + (("c_vrow2",) if NS else ())
+         + (("c_vkc",) if DUP else ())}
     L["c_shift"] = lab("sc15", "c_shift")
     for k in ("c_mpr", "c_mpload", "c_mpsave"): L[k] = lab("mpatch", k)
     for k in ("t_dcode", "t_dcol", "c_mxgath", "c_mxappl", "c_mxclrh"): L[k] = lab("modmx", k)

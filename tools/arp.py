@@ -73,6 +73,10 @@ VIEW_IFC0, VIEW_SZ = 0x200413F0, 0x2F4                        # the note-on inte
 RATEFLIP = False                                              # SC43.7 (use_rateflip)
 PRESSORD = False                                              # SC45.3 (use_pressord)
 TRIMINS = False                                               # SC49.3 (use_trimins)
+TRIMZR = False                                                # SC57.5 (use_trimzr)
+TIMED = False                                                 # RC4.12 (use_timed)
+TM_DUE, TM_NOTE, TM_VEL, TM_TK, TM_FL = 22, 24, 25, 26, 27    # (TIMED) in a state's extension (D_EXT + ..): a note armed between two micro steps
+MAIN_SVC_CALL, SVC = 0x0801D5D8, 0x08021392                   # (TIMED) the main loop's call of the DSP service (clkdiag): about every ms
 
 
 def use_trimins():
@@ -81,6 +85,128 @@ def use_trimins():
     global TRIMINS
     assert PRESSORD
     TRIMINS = True
+
+
+def use_timed():
+    """RC4.12 (a fix; the user, 2026-11-14: «cuando la velocidad del arpegiador es x4 la velocidad del patrón base en pattern settings, el
+    arpegiador toca en tresillos / swing»): running, an arpeggio step can only sound on a micro step (6 a step of the pattern; at 24 PPQN a
+    micro step of a 1/16 pattern is one tick), so a step that is not a whole number of micro steps (x4 on 1/16 = 1.5; 1/16 on 1/8T = 4.5) came
+    out late every other time: 2, 1, 2, 1 micro steps.  Now, after a micro step's accumulator is added, when the next note falls before the
+    next micro step it is picked at once (order, octave, mutate, gate as always) and armed in its state (TM_*: the due time in ms, note,
+    velocity, ticks): d sixths of a tick ahead = d x 2500 / (6 x BPM) ms (the project's BPM, p0 of the tempo store).  The main loop plays it
+    at its time: its call of the DSP service (0x0801D5D8, about every ms, the sequencer's own task, the semaphore not taken) runs c_armain first;
+    the next micro step of that track plays it anyway if it is still there; stopping the transport drops it.  c_arnote stores instead of
+    playing while TM_DEFER (a word after the states' RAM) names the state being armed."""
+    global TIMED
+    assert RATE and RAMST
+    TIMED = True
+
+
+TMFIX = False                                                 # RC4.13 / SC57.7 (use_tmfix)
+POST_REL, POST_OLD = 0x0801D5FE, bytes.fromhex("38460068")     # (TMFIX) the main loop just after the DSP service's lock is given back: mov r0, r7; ldr r0, [r0]
+
+
+def use_tmfix():
+    """RC4.13 / SC57.7 (a fix; the user, 2026-11-14, Beta 5.61: «if I press play it plays for a fraction of a second and hangs», «its the arpeggiator
+    fix»): the main loop takes the DSP service's lock (0x08021064 at 0x0801D5D4) before its call of the service (0x0801D5D8) and gives it back
+    after it (0x0801D5DC..0x0801D5FC), so use_timed's c_armain, in place of that call, played its armed notes with the lock held, and the note's
+    sound path (0x0803BD58 / 0x0803BD94, from the note interface) takes it again: it waits for ever (5 takes a note in emulation; the old test
+    skipped the note-on and the interface).  Now the call is the stock's again and c_armain runs right after the lock is given back, in place of
+    the 4 bytes at 0x0801D5FE (reached from both branches around the service; it ends with them: r0 = [r7]).  Same task, same rate."""
+    global TMFIX
+    assert TIMED
+    TMFIX = True
+
+
+TMEXT = False                                                 # RC4.14 / Beta 5.63 (use_tmext)
+
+
+def use_tmext():
+    """RC4.14 / Beta 5.63 (a fix, the 2026-11-14 bug hunt, ARP-1): use_timed's c_artm timed an armed note at d x 2500 / (6 x BPM) ms with the
+    project's BPM (p0 of the tempo store), but slaved to an external MIDI clock the ticks follow that clock (the 4486 never stores the measured
+    tempo in p0): a faster clock brought the 2-1-2-1 micro steps back, a slower one fired the notes early.  Now c_artm's tempo read goes through
+    cibpm's c_cibpm (the measured BPM when slaved, else p0, newest copy): its `bl PARAM_GET; ldrb r1, [r0]` becomes `bl c_cibpm; mov r1, r0`
+    (no byte more).  c_cibpm is installed after arp, so the 4 + 2 bytes are rewritten when cibpm's install() runs (it is wrapped here); the
+    `< 30 -> 120` guard stays (no clock yet: 120 until the next micro step's c_arfl).  The stopped input arpeggio (lt_b) keeps p0."""
+    global TMEXT
+    TMEXT = True                                              # (TIMED and BPM0 checked in arm_code: the beta's chain sets them later)
+    import cibpm
+    if getattr(cibpm.install, "_arp_tmext", False):
+        return
+    orig = cibpm.install
+
+    def install(img, report, base_addr):
+        out = orig(img, report, base_addr)
+        tmext_patch(img, report, out[0]["c_cibpm"])
+        return out
+    install._arp_tmext = True
+    cibpm.install = install
+
+
+def tmext_patch(img, report, c_cibpm):
+    """(TMEXT) c_artm's `bl PARAM_GET; ldrb r1, [r0, #0]` (label tm_bpm) -> `bl c_cibpm; mov r1, r0`"""
+    import ct_fw
+    BASE = ct_fw.APP_BASE
+    site = int(report["arp"]["labels"]["tm_bpm"], 16)
+    old = bl(site, PARAM_GET) + ldrb_imm(1, 0, 0)
+    assert bytes(img[site - BASE:site - BASE + 6]) == old, hex(site)
+    img[site - BASE:site - BASE + 6] = bl(site, c_cibpm) + mov_reg(1, 0)
+    report["arp"]["tmext"] = dict(site=hex(site), c_cibpm=hex(c_cibpm))
+
+
+def _stub_code(base, cb_e):
+    a = Asm(base)
+    E = a.emit
+    import cibpm
+    # ---- c_artmr(r0 = the tempo store, r1 = 0: PARAM_GET's arguments) -> r0 = the BPM: slaved, cibpm's measured path (cb_e wants r2 = the clock);
+    #      else the committed p0 as the stock reads it (a pure read: c_cibpm's c_cip0 goes through PARAM_WPTR, which marks p0 dirty on every call)
+    a.label("c_artmr")
+    E(movw, 2, cibpm.CLOCK & 0xFFFF); E(movt, 2, cibpm.CLOCK >> 16)
+    E(raw, h(0xF892) + h(3 << 12 | cibpm.O_FLAGS)); E(lsls_imm, 3, 3, 30)         # ldrb.w r3, [clock + 0x54]; bit 1 = slave
+    E(b_cond, "ar_p", "pl"); E(b_w, cb_e)
+    a.label("ar_p")
+    E(push_list, [], lr=True); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(pop_list, [], pc=True)
+    return a.assemble()
+
+
+def _stub_install(img, report, base_addr):
+    """(hole.add) the stub appended at the end; -> labels, code, prev"""
+    cb_e = int(report["cibpm"]["labels"]["cb_e"], 16)
+    code, labels = _stub_code(base_addr, cb_e)
+    img += code
+    return labels, code, dict(cb_e=cb_e)
+
+
+class TMSTUB:
+    """(use_tmext) the tempo read of c_artm as a module for hole.add (it writes nothing: the hole is fine)"""
+    install = staticmethod(_stub_install)
+
+
+def tmext_stub(img, report):
+    """RC4.14 / Beta 5.63 (ARP-1, after the review): c_artm's tempo site -> c_artmr (TMSTUB in the hole) instead of c_cibpm: when not slaved a
+    pure PARAM_GET of p0 (c_cibpm's c_cip0 reads the write copy through PARAM_WPTR, which marks the tempo dirty on every armed note: a later
+    commit of the store would flip p0 too, and a tempo change committed between its read and its write could come back stale); slaved, the
+    measured BPM as before.  After every head of cibpm (its install ran in the chain's extra)."""
+    import ct_fw
+    import hole
+    BASE = ct_fw.APP_BASE
+    assert TMEXT and "tmext" in report["arp"], "tmext_stub: use_tmext first, and cibpm installed"
+    t = report["arp"]["tmext"]
+    site, c_cibpm = int(t["site"], 16), int(t["c_cibpm"], 16)
+    assert bytes(img[site - BASE:site - BASE + 6]) == bl(site, c_cibpm) + mov_reg(1, 0), hex(site)
+    hole.add(img, report, "arpstub", TMSTUB)
+    stub = int(report["arpstub"]["labels"]["c_artmr"], 16)
+    img[site - BASE:site - BASE + 4] = bl(site, stub)
+    t["stub"] = hex(stub)
+
+
+def use_trimzr():
+    """SC57.5 (flash for the extra lanes' reload and the pattern reverse): with RAMST (use_ramst) c_arzero clears the states in RAM and the
+    tail's blocks and leaves by "b zr_x"; the clearing of the states in the record's tail that follows (zr_a / zr_l / zr_e, 42 B) is reached
+    from nowhere: not emitted."""
+    global TRIMZR
+    assert RAMST
+    TRIMZR = True
 MUTARP = False                                                # SC45.3 (use_mutarp)
 MUTLIVE = False                                               # SC45.4 (use_mutlive)
 BPM0 = False                                                  # SC47.2 / RC2.10 (use_bpm0)
@@ -585,6 +711,12 @@ def arm_code(base, L, prev):
 
     # ---- c_arnote(r0 = player, r1 = note, r2 = velocity, r3 = ticks): the stock's note-on (a live same note freed first)
     a.label("c_arnote")
+    if TIMED:                                                                          # (TIMED) a note being armed: kept in its state for later
+        tm_def = RAMST + (EXT_HI - O_SEQ) + 4
+        imm32(12, tm_def); E(raw, ldr_w_(12, 12, 0)); E(raw, h(0xF1BC) + h(0x0F00)); E(b_cond, "c_arnote_r", "eq")   # cmp.w r12, #0
+        E(raw, strb_w_(1, 12, D_EXT + TM_NOTE)); E(raw, strb_w_(2, 12, D_EXT + TM_VEL)); E(raw, strb_w_(3, 12, D_EXT + TM_TK))
+        E(raw, ldrb_w_(0, 12, D_EXT + TM_FL)); E(movs_imm, 1, 1); E(raw, h(0x4308)); E(raw, strb_w_(0, 12, D_EXT + TM_FL)); E(raw, h(0x4770))   # orrs r0, r1; bx lr
+        a.label("c_arnote_r")
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 8)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2); E(mov_reg, 7, 3)
     E(bl, BATCH_ON)
@@ -595,6 +727,54 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(mov_reg, 3, 7); E(bl, NOTE_ON)
     E(bl, BATCH_OFF)
     E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
+
+    if TIMED:
+        tm_def = RAMST + (EXT_HI - O_SEQ) + 4
+        # ---- c_artm(r0 = d sixths of a tick ahead, r1 = a state): its due time = now + d x 2500 / (6 x BPM) ms; the state being armed
+        a.label("c_artm")
+        E(push_list, [4, 5], lr=True); E(mov_reg, 4, 1); E(mov_reg, 5, 0)
+        E(cmp_imm, 5, 0); E(b_cond, "tm_p", "gt"); E(movs_imm, 5, 0)
+        a.label("tm_p")
+        imm32(0, TEMPO); E(movs_imm, 1, 0 if BPM0 else 1)
+        if TMEXT: assert BPM0; a.label("tm_bpm")                                                    # (TMEXT) these 6 B -> bl c_cibpm; mov r1, r0 (tmext_patch)
+        E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0); E(cmp_imm, 1, 30); E(b_cond, "tm_b", "hs"); E(movs_imm, 1, 120)
+        a.label("tm_b"); E(movs_imm, 2, 6); E(muls, 1, 2)
+        imm32(0, 2500); E(muls, 0, 5); E(raw, udiv(0, 0, 1))
+        imm32(2, HAL_TICK); E(ldr_imm, 2, 2, 0); E(adds_reg, 0, 0, 2)
+        E(raw, strb_w_(0, 4, D_EXT + TM_DUE)); E(lsrs_imm, 0, 0, 8); E(raw, strb_w_(0, 4, D_EXT + TM_DUE + 1))
+        E(raw, ldrb_w_(0, 4, D_EXT + TM_FL)); E(movs_imm, 1, 2); E(raw, h(0x4308)); E(raw, strb_w_(0, 4, D_EXT + TM_FL))   # orrs r0, r1
+        imm32(0, tm_def); E(raw, str_w_(4, 0, 0))
+        E(pop_list, [4, 5], pc=True)
+        # ---- c_artmx(r0 = a state): its arming done (the flag and TM_DEFER cleared); clobbers r1
+        a.label("c_artmx")
+        E(raw, ldrb_w_(1, 0, D_EXT + TM_FL)); E(push_list, [2]); E(movs_imm, 2, 2); E(raw, h(0x4391)); E(pop_list, [2])   # bics r1, r2
+        E(raw, strb_w_(1, 0, D_EXT + TM_FL)); imm32(0, tm_def); E(movs_imm, 1, 0); E(raw, str_w_(1, 0, 0)); E(raw, h(0x4770))
+        # ---- c_arfl(r0 = a state, r1 = its player): an armed note played now (if any); clobbers r0-r3
+        a.label("c_arfl")
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0)
+        E(raw, ldrb_w_(0, 4, D_EXT + TM_FL)); E(lsls_imm, 2, 0, 31); E(b_cond, "fl_x", "pl")
+        E(movs_imm, 2, 1); E(raw, h(0x4390)); E(raw, strb_w_(0, 4, D_EXT + TM_FL))                                       # bics r0, r2
+        E(mov_reg, 0, 1); E(raw, ldrb_w_(1, 4, D_EXT + TM_NOTE)); E(raw, ldrb_w_(2, 4, D_EXT + TM_VEL)); E(raw, ldrb_w_(3, 4, D_EXT + TM_TK))
+        E(bl, "c_arnote_r")
+        a.label("fl_x"); E(pop_list, [4], pc=True)
+        # ---- c_armain (in place of the main loop's bl to the DSP service): the armed notes due, then the service
+        a.label("c_armain")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        imm32(0, TRANSPORT); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 6, 0, 0)
+        E(movs_imm, 7, 0)
+        a.label("am_t"); E(movs_imm, 5, 0)
+        a.label("am_k")
+        E(mov_reg, 0, 7); E(mov_reg, 1, 5); E(bl, "c_arst"); E(cmp_imm, 0, 0); E(b_cond, "am_n", "eq"); E(mov_reg, 4, 0)
+        E(raw, ldrb_w_(0, 4, D_EXT + TM_FL)); E(lsls_imm, 0, 0, 31); E(b_cond, "am_n", "pl")
+        E(cmp_imm, 6, 0); E(b_cond, "am_d", "eq")
+        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(raw, ldrb_w_(1, 4, D_EXT + TM_DUE)); E(raw, ldrb_w_(2, 4, D_EXT + TM_DUE + 1))
+        E(lsls_imm, 2, 2, 8); E(raw, h(0x4311)); E(subs_reg, 0, 0, 1); E(lsls_imm, 0, 0, 16); E(b_cond, "am_n", "mi")       # orrs r1, r2; not due yet
+        E(mov_reg, 0, 7); E(bl, "c_arply"); E(mov_reg, 1, 0); E(mov_reg, 0, 4); E(bl, "c_arfl"); E(b, "am_n")
+        a.label("am_d"); E(raw, ldrb_w_(0, 4, D_EXT + TM_FL)); E(movs_imm, 1, 3); E(raw, h(0x4388)); E(raw, strb_w_(0, 4, D_EXT + TM_FL))   # stopped: dropped
+        a.label("am_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 2); E(b_cond, "am_k", "lo")
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 4); E(b_cond, "am_t", "lo")
+        if TMFIX: E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(raw, h(0x4638) + h(0x6800) + h(0x4770))   # mov r0, r7; ldr r0, [r0]; bx lr
+        else: E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, SVC)
 
     # ---- c_arifon / c_arifoff (r0 = player, r1 = note, r2 = velocity): note on / off through the player's note interface, by hand
     a.label("c_arifon")
@@ -728,12 +908,14 @@ def arm_code(base, L, prev):
     a.label("c_arplay")
     E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, 16)
     E(str_sp, 0, 0); E(str_sp, 1, 4); E(str_sp, 2, 8); E(str_sp, 3, 12)
+    if TIMED: imm32(0, RAMST + (EXT_HI - O_SEQ) + 4); E(movs_imm, 1, 0); E(raw, str_w_(1, 0, 0)); E(ldr_sp, 0, 0); E(ldr_sp, 1, 4)   # (power-up RAM)
     E(bl, "c_artrk"); E(mov_reg, 7, 0); E(cmp_imm, 0, 3); bcs("py_s", "hi")
     E(movs_imm, 1, 0); E(bl, "c_arst"); E(mov_reg, 6, 0); E(cmp_imm, 6, 0); bcs("py_s", "eq")
     E(ldr_sp, 1, 4); E(mov_reg, 0, 7); E(bl, "c_arcfg"); E(mov_reg, 5, 0)
     E(lsls_imm, 0, 5, 24); E(b_cond, "py_on", "mi")
     E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_FL); E(b, "py_s")                           # off: nothing of ours
     a.label("py_on")
+    if TIMED: E(mov_reg, 0, 6); E(ldr_sp, 1, 0); E(bl, "c_arfl")
     E(ldr_sp, 0, 0); E(ldr_sp, 1, 12); E(adds_reg, 4, 0, 1)                             # r4 + 0x13C = this micro step's mask
     E(ldrb_imm, 0, 6, S_FL); E(lsls_imm, 0, 0, 31); E(b_cond, "py_n", "pl")
     E(ldrb_imm, 1, 6, S_C); E(ldrb_imm, 2, 6, S_M); E(movs_imm, 3, 6); E(subs_reg, 3, 3, 2); E(cmp_reg, 1, 3); E(b_cond, "py_n", "hs")
@@ -801,6 +983,7 @@ def arm_code(base, L, prev):
         else: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 4, 0)            # r4 = 6 x the arpeggio step
         E(raw, ldrb_w_(0, 6, D_EXT + 6)); E(cmp_reg, 0, 4); bm("py_t", "lo")
         E(subs_reg, 0, 0, 4); E(raw, strb_w_(0, 6, D_EXT + 6))
+        a.label("py_f")
         # a note of the chord: its own gate, at most what is left of the chord
         E(mov_reg, 0, 6); E(movs_imm, 1, 7); E(raw, h(0x4029)); E(bl, "c_armo" if MODS else "c_arord")   # ands r1, r5
         E(adds_reg, 0, 0, 6); E(ldrb_imm, 1, 0, S_NOTES)
@@ -818,12 +1001,25 @@ def arm_code(base, L, prev):
             a.label("pg_5")
         E(pop_list, [1, 2]); E(add_sp_imm, 4); E(ldr_sp, 0, 0); E(bl, "c_arnote")
         a.label("py_t")
+        if TIMED: E(raw, ldrb_w_(0, 6, D_EXT + TM_FL)); E(lsls_imm, 0, 0, 30); bm("py_tdn", "mi")      # back from arming: its add was done
         E(ldr_sp, 0, 0); E(bl, "c_artps"); E(raw, ldrb_w_(1, 6, D_EXT + 6)); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 255); E(b_cond, "pt_k", "ls"); E(movs_imm, 1, 255)
         a.label("pt_k"); E(raw, strb_w_(1, 6, D_EXT + 6))
+        if TIMED:                                                                      # (TIMED) the next note before the next micro step: armed now
+            E(push_list, [0, 1])
+            if MODS: E(mov_reg, 0, 6); E(bl, "c_arG"); E(push_list, [0]); E(mov_reg, 0, 7); E(bl, "c_arRt"); E(pop_list, [1]); E(muls, 0, 1)
+            else: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1)
+            E(mov_reg, 4, 0); E(pop_list, [0, 1])
+            E(cmp_reg, 1, 4); bm("py_tc", "ls")
+            E(subs_reg, 0, 0, 1); E(adds_reg, 0, 0, 4)                                  # d = the step + the micro step - the accumulator (sixths)
+            E(push_list, [1]); E(mov_reg, 1, 6); E(bl, "c_artm"); E(pop_list, [1])
+            E(subs_reg, 1, 1, 4); E(raw, strb_w_(1, 6, D_EXT + 6)); E(b, "py_f")
+            a.label("py_tdn"); E(mov_reg, 0, 6); E(bl, "c_artmx")
+            a.label("py_tc")
         E(ldrb_imm, 0, 6, S_C); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, S_C); E(ldrb_imm, 1, 6, S_LEN); E(cmp_reg, 0, 1); E(b_cond, "py_l", "lo")
         E(movs_imm, 0, 0); E(strb_imm, 0, 6, S_FL)
         a.label("py_l")                                                                # the input's arpeggio on its accumulator
         E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arst"); E(cmp_imm, 0, 0); E(b_cond, "py_x", "eq"); E(mov_reg, 4, 0)
+        if TIMED: E(mov_reg, 0, 4); E(ldr_sp, 1, 0); E(bl, "c_arfl")
         E(ldrb_imm, 0, 4, S_FL); E(lsls_imm, 0, 0, 31); E(b_cond, "py_x", "pl")
         if MODS: E(mov_reg, 0, 4); E(bl, "c_arG"); E(push_list, [0]); E(mov_reg, 0, 7); E(bl, "c_arRt"); E(pop_list, [1]); E(muls, 0, 1); E(mov_reg, 5, 0)
         else: E(mov_reg, 0, 7); E(bl, "c_arRt"); E(movs_imm, 1, 6); E(muls, 0, 1); E(mov_reg, 5, 0)
@@ -833,6 +1029,13 @@ def arm_code(base, L, prev):
         a.label("pl_a")
         E(ldr_sp, 0, 0); E(bl, "c_artps"); E(raw, ldrb_w_(1, 4, D_EXT + 6)); E(adds_reg, 1, 1, 0); E(cmp_imm, 1, 255); E(b_cond, "pl_k", "ls"); E(movs_imm, 1, 255)
         a.label("pl_k"); E(raw, strb_w_(1, 4, D_EXT + 6))
+        if TIMED:                                                                      # (TIMED) r5 = the arpeggio step (sixths): the next note armed now
+            E(cmp_reg, 1, 5); E(b_cond, "py_x", "ls")
+            E(subs_reg, 0, 0, 1); E(adds_reg, 0, 0, 5)
+            E(push_list, [1]); E(mov_reg, 1, 4); E(bl, "c_artm"); E(pop_list, [1])
+            E(subs_reg, 1, 1, 5); E(raw, strb_w_(1, 4, D_EXT + 6))
+            E(mov_reg, 0, 7); E(movs_imm, 1, 1); E(bl, "c_arlstep")
+            E(mov_reg, 0, 4); E(bl, "c_artmx")
     a.label("py_x"); E(add_sp_imm, 16); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_arlon (the live note-on 0x0804B07A: view, note, velocity, pad)
@@ -1008,13 +1211,14 @@ def arm_code(base, L, prev):
         E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq"); imm32(1, O_BLK); imm32(3, O_END); E(movs_imm, 2, 0)
         a.label("zr_t"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_t", "lo")
         E(b, "zr_x")
-    E(mov_reg, 4, 0); E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq")
-    imm32(1, O_SEQ); E(cmp_imm, 4, 0); E(b_cond, "zr_a", "eq"); imm32(1, O_BLK)
-    a.label("zr_a"); imm32(3, O_END); E(movs_imm, 2, 0)
-    a.label("zr_l"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_l", "lo")
-    if RATE:
-        imm32(1, EXT_LO); imm32(3, EXT_HI)
-        a.label("zr_e"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_e", "lo")
+    if not (TRIMZR and RAMST):                                                         # (TRIMZR) the states in the tail: reached from nowhere
+        E(mov_reg, 4, 0); E(bl, "c_artail"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq")   # with RAMST
+        imm32(1, O_SEQ); E(cmp_imm, 4, 0); E(b_cond, "zr_a", "eq"); imm32(1, O_BLK)
+        a.label("zr_a"); imm32(3, O_END); E(movs_imm, 2, 0)
+        a.label("zr_l"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_l", "lo")
+        if RATE:
+            imm32(1, EXT_LO); imm32(3, EXT_HI)
+            a.label("zr_e"); E(strb_reg, 2, 0, 1); E(adds_imm8, 1, 1); E(cmp_reg, 1, 3); E(b_cond, "zr_e", "lo")
     a.label("zr_x"); E(pop_list, [4], pc=True)
 
     # ---- c_arload / c_arnew (the ends of the stock's apply and new project, in front of the others)
@@ -1058,4 +1262,8 @@ def install(img, report, base_addr):
         img[c - BASE:c - BASE + 4] = bl(c, labels["c_arledtask"])
     img[P19.LOAD_END - BASE:P19.LOAD_END - BASE + 4] = b_w(P19.LOAD_END, labels["c_arload"])
     img[P19.NEW_TAIL - BASE:P19.NEW_TAIL - BASE + 4] = b_w(P19.NEW_TAIL, labels["c_arnew"])
+    if TIMED and TMFIX:                                                                # (TMFIX) after the service's lock is given back
+        put(POST_REL, bl(POST_REL, labels["c_armain"]), POST_OLD)
+    elif TIMED:                                                                        # (TIMED) the main loop's call of the DSP service
+        put(MAIN_SVC_CALL, bl(MAIN_SVC_CALL, labels["c_armain"]), bl(MAIN_SVC_CALL, SVC))
     return labels, code, prev

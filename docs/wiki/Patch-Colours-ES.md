@@ -28,4 +28,4 @@ En la **vista Preset de Synth 1 / 2** cada patch Nova se enciende en el color de
 
 - **En el aparato:** guarda el patch en la vista Preset de Synth 1 / 2 (**Clear + pad**, luego **Clear + el mismo pad** para confirmar); mientras pregunta, **K1** elige la categoría.
 - **En Novation Components:** la categoría de cada patch del pack.
-- **En la app de la tarjeta** ([descarga](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip)): la pestaña **Sintes Nova** enseña el color de cada patch y, arriba, esta tabla como clave de colores.
+- **En la app** ([descarga](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip), vista Hacks): la pestaña **Sintes Nova** enseña el color de cada patch y, arriba, esta tabla como clave de colores.

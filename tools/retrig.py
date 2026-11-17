@@ -27,6 +27,15 @@ PAD_RT = 28                                                       # pad 29 (inde
 SESSION_OBJ, TAIL, O_RT, TAG = 0x2003D71C, 0x27024, 159, 0xA0
 RT0 = V.TAIL + V.O_RT                                             # the RT block of MIDI 1 (MIDI 2 = + 8)
 COL_ON, COL_OFF = 0x17, 0x2D                                      # with Shift: green = retrigger on, yellow = off
+TRIMOFF = False                                                   # SC57.5 (use_trimoff)
+
+
+def use_trimoff():
+    """SC57.5 (flash for the extra lanes' reload and the pattern reverse): with poly.use_v4 (SC47.5) poly's install writes a b.w to its
+    c_vmrtoff over the first 4 bytes of c_rtoff (the voice mode answers); the rest of c_rtoff (28 B) is reached from nowhere: c_rtoff is
+    emitted as a 4-byte stub (movs r0, #0; bx lr = the retrigger on) that poly overwrites."""
+    global TRIMOFF
+    TRIMOFF = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -47,11 +56,16 @@ def arm_code(base, L, prev):
 
     # ---- c_rtoff(r0 = 0 / 1) -> r0 = 1 when that track's retrigger is off; clobbers r1, r2
     a.label("c_rtoff")
-    E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, "c_rtb"); E(cmp_imm, 0, 0); E(b_cond, "ro_x", "eq")
-    E(ldrb_imm, 1, 0, 0); E(lsrs_imm, 2, 1, 4); E(cmp_imm, 2, TAG >> 4); E(b_cond, "ro_0", "ne")
-    E(raw, h(0x40E1)); E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(pop_list, [4], pc=True)       # lsrs r1, r4
-    a.label("ro_0"); E(movs_imm, 0, 0)
-    a.label("ro_x"); E(pop_list, [4], pc=True)
+    if TRIMOFF:                                                                             # (TRIMOFF) 4 bytes for poly's b.w c_vmrtoff
+        import poly
+        assert poly.V4, "retrig.use_trimoff needs poly.use_v4 (its b.w over c_rtoff)"
+        E(movs_imm, 0, 0); E(raw, RET)
+    else:
+        E(push_list, [4], lr=True); E(mov_reg, 4, 0); E(bl, "c_rtb"); E(cmp_imm, 0, 0); E(b_cond, "ro_x", "eq")
+        E(ldrb_imm, 1, 0, 0); E(lsrs_imm, 2, 1, 4); E(cmp_imm, 2, TAG >> 4); E(b_cond, "ro_0", "ne")
+        E(raw, h(0x40E1)); E(movs_imm, 0, 1); E(ands_reg, 0, 1); E(pop_list, [4], pc=True)       # lsrs r1, r4
+        a.label("ro_0"); E(movs_imm, 0, 0)
+        a.label("ro_x"); E(pop_list, [4], pc=True)
 
     # ---- c_rtnon (the transmitter's note-on: obj, track, note, velocity): the chain, then no GATE / TRIG for a legato note
     a.label("c_rtnon")

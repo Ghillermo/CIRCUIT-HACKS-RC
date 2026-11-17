@@ -39,13 +39,15 @@ def arm_code(base, L, prev):
     a.label("c_otdst")
     E(push_list, [4, 5], lr=True)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("od_n", "hi"); E(mov_reg, 4, 0)
-    E(bl, L["c_mxovl"]); E(cmp_imm, 0, 0); bc("od_p4", "eq")                              # the matrix's source knob
+    E(bl, L["c_mxovl"]); E(cmp_imm, 0, 0); bc("od_p4" if "c_poon" in L else "od_n", "eq")   # the matrix's source knob
     E(bl, L["c_mxst"]); E(ldrb_imm, 5, 0, MX.G_OVK); E(movs_imm, 1, 7); E(ands_reg, 5, 1)
     E(mov_reg, 0, 4); E(bl, L["c_mxblk"]); E(lsls_imm, 1, 5, 1); E(ldrh_reg, 0, 0, 1); E(cmp_imm, 0, 0); bc("od_n", "eq")
-    E(subs_imm8, 0, 1); E(lsrs_imm, 0, 0, 4); E(b, "od_m")
-    a.label("od_p4")                                                                     # Shift + a knob of page 4 / the non-sequenceable page
-    E(bl, L["c_poon"]); E(cmp_imm, 0, 0xFF); bc("od_n", "eq"); E(mov_reg, 5, 0)
-    E(mov_reg, 0, 4); E(bl, L["c_p4row"]); E(ldrb_reg, 0, 0, 5); E(bl, L["c_p4idx"])
+    E(subs_imm8, 0, 1); E(lsrs_imm, 0, 0, 4)
+    if "c_poon" in L:                                                                    # (SC57.3, p4dest.use_dup: no p4ovl)
+        E(b, "od_m")
+        a.label("od_p4")                                                                 # Shift + a knob of page 4 / the non-sequenceable page
+        E(bl, L["c_poon"]); E(cmp_imm, 0, 0xFF); bc("od_n", "eq"); E(mov_reg, 5, 0)
+        E(mov_reg, 0, 4); E(bl, L["c_p4row"]); E(ldrb_reg, 0, 0, 5); E(bl, L["c_p4idx"])
     a.label("od_m"); imm32(1, L["t_dmap"]); E(ldrb_reg, 0, 1, 0); E(pop_list, [4, 5], pc=True)
     a.label("od_n"); E(movs_imm, 0, 0xFF); E(pop_list, [4, 5], pc=True)
 
@@ -82,7 +84,8 @@ def install(img, report, base_addr):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
-    L = dict(c_mpon=lab("mpatch", "c_mpon"), c_poon=lab("p4ovl", "c_poon"), c_p4row=lab("p4dest", "c_p4row"), c_p4idx=lab("p4dest", "c_p4idx"))
+    L = dict(c_mpon=lab("mpatch", "c_mpon"))
+    if "p4ovl" in report: L.update(c_poon=lab("p4ovl", "c_poon"), c_p4row=lab("p4dest", "c_p4row"), c_p4idx=lab("p4dest", "c_p4idx"))
     for k in ("c_mxovl", "c_mxst", "c_mxblk", "t_dmap", "t_rows", "t_pdim", "t_pbri"): L[k] = lab("modmx", k)
     TP = MP.TMPL_VT
     prev = dict(pad=u(TP) & ~1, leds=u(TP + 28) & ~1)

@@ -21,6 +21,14 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 section.feat a { color:var(--accent); text-underline-offset:2px; }
+.anims { margin:18px 0 4px; } .anims p.anim-h { margin:0 0 6px; color:var(--muted); }
+figure.anim { margin:10px 0 4px; } figure.anim img { display:block; width:100%; max-width:656px; height:auto; border-radius:14px; }
+details.anim-steps { max-width:656px; margin:0 0 16px; font-size:.95em; } details.anim-steps summary { cursor:pointer; color:var(--muted); }
+section.sub { border-top:2px solid var(--line); margin:30px 0 0; padding-top:14px; } section.sub h4 { margin:0 0 10px; font-size:1.15em; }
+section.sub h5 { font-size:1em; margin:18px 0 6px; } section.sub .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+nav.vindex { background:rgba(255,106,19,.06); border:1px solid var(--line); border-radius:10px; padding:10px 16px; margin:14px 0; }
+nav.vindex p { margin:4px 0; } nav.vindex ul { margin:4px 0; padding-left:20px; } nav.vindex a, ul.gloss a, .gl a { color:var(--accent); }
+ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { color:var(--muted); font-size:.92em; } ul.gloss .gsum { color:var(--muted); font-size:.95em; }
 .feat h4 { margin-bottom:6px; } figure svg { background:var(--card); border:1px solid var(--line); }</style></head><body>
 <header class="cover"><h1>Pistas MIDI y modos de voz</h1><p>CIRCUIT-HACKS · RC4.08</p><p><a style="color:#fff" href="voices.html">English</a> · <a style="color:#fff" href="guia.html">Guía por vistas</a></p><div class="bar"></div></header><main>
 <nav class="toc"><h2>Contenido</h2><ol>
@@ -37,7 +45,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 </ol></nav>
 <section class="feat" id="s1"><h3>Resumen</h3>
 <p>MIDI 1 y MIDI 2 son dos sintes completos dentro del Circuit Tracks: cada pista sigue mandando MIDI y además suena con un motor propio, de hasta 4 voces (6 en FM). El <strong>modo de voz</strong> decide cómo se reparten las notas entre esas voces: ocho modos en el pad 32 de la vista Preset.</p>
-<p>Este documento describe la versión candidata <strong>RC4.08</strong>; la beta tiene su propio documento.</p>
+<p>Este documento describe la versión candidata <strong>RC4.11</strong>; la beta tiene su propio documento.</p>
 <p>El modo de voz no tiene CC ni NRPN: se elige en el aparato y se guarda con el patch y con el proyecto.</p>
 </section>
 <section class="feat" id="s2"><h3>Diagrama de bloques</h3>
@@ -2819,7 +2827,7 @@ section.feat a { color:var(--accent); text-underline-offset:2px; }
 <tr><td>Note ampliada, los 32 pads</td><td>Pasos 1-32</td></tr>
 </tbody></table>
 <p>Mientras apunta, la pista no suena. Cada nota, del secuenciador, de los pads o del arpegiador, hace saltar la otra pista. Se guarda con el proyecto.</p>
-<p>El pad 26 parpadea en el color de la pista destino. Apuntar apaga el motor y encender un motor deja de apuntar: solo una de las dos funciones a la vez. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. Con el transporte parado, un pad hace sonar ese paso de la pista destino mientras lo mantienes, sin saltar (en los drums, con su sample elegido).</p>
+<p>El pad 26 parpadea en el color de la pista destino. Apuntar apaga el motor y encender un motor deja de apuntar: solo una de las dos funciones a la vez. Al apuntar, la pista pasa a los pasos 1-16 y Octave solo se mueve entre 1-16 y 17-32: el Octave que ya no puede moverse se apaga, y en la Note ampliada los dos. Con el transporte parado, un pad hace sonar ese paso de la pista destino mientras lo mantienes, sin saltar (en los drums, con el sample flip del paso o, si no tiene, con su sample elegido).</p>
 <p>Si el destino y la pista MIDI tienen la misma longitud, un mismo salto solo se nota la primera vez: en las vueltas siguientes el destino ya está en ese paso. Para que se oiga en cada vuelta hacen falta dos saltos en el patrón: uno que lo mueva y otro que lo devuelva.</p>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista de flip (pad 26, blanco) con step flip hacia Drum 1: fila 3, pad 17 patch flip (PGM seq) y pad 18 step flip en el color del destino; fila 2, las pistas (Drum 1 brillante, MIDI 1 apagada).">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>

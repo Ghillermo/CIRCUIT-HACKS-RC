@@ -11,7 +11,7 @@ sync, ring y mezcla; un **VA-drum** para sonidos percusivos; un motor **granular
 filtro de varios tipos, envolventes, un LFO con siete formas (a tempo si quieres), una **matriz de modulación**, **polifonía** con ocho modos de voz y
 ocho carriles de automatización. Los **drums** ganan envolventes, ring mod, LFO, modos de filtro, inicio y final del sample, ataque, bitcrush y tipos
 de distorsión. **Master FX** añade efectos de directo a toda la mezcla, y las vistas **FX** y **Sidechain** dan acceso a la reverb, el delay, el
-sidechain y el compresor master.
+sidechain y el compresor master. Los mapas de todas las vistas están en la página [Vistas](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Views-ES).
 
 ## Vista Preset de MIDI 1 / 2
 
@@ -22,34 +22,46 @@ sidechain y el compresor master.
 - **Patches del sinte propio** *(desde RC2)* — 64 sonidos por pack para esos motores, a un toque.
 - **Matriz de modulación** *(desde RC2.02)* — ocho fuentes (velocity, nota, azar, LFO 2, envolvente 2, golpe de un drum, posición del patrón, azar por pasos) que mueven cualquier parámetro del motor.
 - **Patch flip** — cada nota manda un cambio de programa: el aparato externo cambia de sonido paso a paso.
-- **Secuenciador de saltos** *(solo Beta 5.56)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
+- **Secuenciador de saltos** *(solo Beta 5.64)* — las notas de la pista hacen saltar el patrón de otra pista al paso que indican.
 - **Editor de CC** — cambia qué CC manda cada knob de la plantilla sin Components.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
 
-<img src="img/panel-preset-es.svg" width="640" alt="Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.">
+<img src="img/view-midi-preset-1-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Preset de MIDI 1">
 
-*Vista Preset con el oscilador: los pads 9-24 son patches (violeta = vacío); el pad 3 y el 7 se apagan si no aplican.*
+*Vista Preset de MIDI 1 con el motor oscilador, en las RC: pads 1-5 = las páginas de knobs del motor (1 VCA-VCF, 2 OSC 1, 3 OSC 2, 4 knobs secuenciables — Shift + 4 no secuenciables —, 5 modulación; mantenido ½ s = solo mientras lo mantienes), 6 = la matriz de modulación; 9-24 = patches del sinte propio (melocotón tenue = guardado, brillante = el último usado, violeta = vacío; Octave = 8 páginas; un toque carga, Clear + pad dos veces guarda); 26 = patch flip; 27 = el motor (un toque abre la fila de motores); 28 = uno / dos osciladores; 29 = orden de la cadena; 30 = step-drummer; 32 = modo de voz. El pad 31 se enciende con el VA-drum (velocity → sus envolventes).*
 
-<img src="img/panel-motores-es.svg" width="640" alt="Fila de motores abierta (toque al pad 27): pads 17-24 los motores; pads 9-16 las pistas del secuenciador de saltos.">
+<img src="img/view-midi-preset-2-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Preset de MIDI 1 (solo Beta 5.56)">
 
-*Fila de motores abierta (toque al pad 27): pads 17-24 los motores; pads 9-16 las pistas del secuenciador de saltos.*
+*Solo Beta 5.56, la misma vista: el pad 1 = knobs secuenciables (Shift + 1 = no secuenciables) y el pad 4 = filtro / VCA cambian de sitio; los patches en el color de su motor (vacío = blanco tenue; Duplicate + un hueco vacío guarda ahí); el pad 3 se enciende con dos osciladores; el pad 26 abre la vista de flip; con «sin voz» el pad 31 = el secuenciador de efectos; el orden de fábrica es filtro → VCA → FX (pad 29).*
 
-<img src="img/panel-voz-es.svg" width="640" alt="Modos de voz abiertos (toque al pad 32): poly brillante, el modo de fábrica. K1 glide, K2 desafinación.">
+<img src="img/view-midi-preset-3-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Fila de motores">
 
-*Modos de voz abiertos (toque al pad 32): poly brillante, el modo de fábrica. K1 glide, K2 desafinación.*
+*La fila de motores en las RC (desde RC4; un toque al pad 27): pads 17-24 = apagado, entrada de línea, oscilador, VA-drum, granular, muestra, secuenciador de efectos y FM, el actual brillante; un toque elige uno, el pad 27 otra vez cierra la fila (mientras, los pads 9-24 no cargan patches). Shift + pad 27 pasa al motor siguiente.*
 
-<img src="img/panel-wt-es.svg" width="640" alt="Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.">
+<img src="img/view-midi-preset-4-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Fila de motores (solo Beta 5.56)">
 
-*Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.*
+*Solo Beta 5.56, la fila de motores: sin voz, solo VCA / VCF / FX (la entrada de línea), oscilador, VA-drum, wavetable (arena), muestra, granular y FM; el secuenciador de efectos es el pad 31 cuando se elige «sin voz» (azul tenue; un toque lo enciende).*
 
-<img src="img/panel-wtnova-es.svg" width="640" alt="Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.">
+<img src="img/view-midi-preset-5-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Modos de voz">
 
-*Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.*
+*Modos de voz (desde RC4; un toque al pad 32 con el motor encendido): pads 17-24 = retrigger, legato, glide, uni retrig, uni legato, uni glide, uni always-glide y poly (los que se llaman igual, del mismo color; el actual brillante); K1 = el tiempo del glide (verde azulado), K2 = la desafinación del unísono (azul). Se guardan con el patch y con el proyecto.*
 
-<img src="img/panel-wtsmp-es.svg" width="640" alt="Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.">
+<img src="img/view-midi-preset-6-es.svg" width="640" alt="Vista Preset de MIDI 1 / 2: Vista de flip (solo Beta 5.56)">
 
-*Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.*
+*Solo Beta 5.56: la vista de flip (pad 26, blanco mientras está abierta), MIDI 1 apuntando a Drum 1: fila 3 = el modo, pad 17 patch flip (PGM seq) o pad 18 step flip (en el color del destino; el encendido brillante, un toque lo apaga); fila 2 = las ocho pistas en sus colores, el destino brillante, la propia apagada. Mientras apunta, cada nota de la pista hace saltar a Drum 1 al paso de la nota, y el motor está apagado (pad 27 gris; pads 1-8 = las plantillas de stock).*
+
+<img src="img/panel-wt-es.svg" width="640" alt="Solo Beta 5.56: Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.">
+
+*Solo Beta 5.56: Wavetable (pad 21 de la fila de motores): el pad 27 en arena; los pads 7 y 8, las dos listas.*
+
+<img src="img/panel-wtnova-es.svg" width="640" alt="Solo Beta 5.56: Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.">
+
+*Solo Beta 5.56: Pad 7 mantenido: las 16 wavetables de stock (pads 9-24, la cargada brillante). Un toque = la tabla entera; Shift + toque = solo el cuadro que señala K3 de OSC 1.*
+
+<img src="img/panel-wtsmp-es.svg" width="640" alt="Solo Beta 5.56: Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.">
+
+*Solo Beta 5.56: Pad 8 mantenido: los samples del pack (pads 9-32; Octave ▼ / ▲ = página). Un toque pone un ciclo de ese sample en el cuadro que señala K3 de OSC 1.*
 
 <img src="img/fig-ruta-es.svg" width="640" alt="Cada nota pasa por el modo de voz antes de llegar al motor">
 
@@ -78,7 +90,7 @@ sidechain y el compresor master.
 | Knob | Solo | Con Shift |
 |---|---|---|
 | K1-K4 | Ratio de los operadores 1-4: 0,5 … 16 (verde = entero, azul claro = y medio, verde azulado = inarmónico: 0,71, 1,41, 4,24). Cada ratio ocupa 5-6 clics: el primero es exacto y cada uno de los siguientes **desafina** +2,5 cents (hasta unos +12; LED a media luz) | Centro = ataque 0. **A la derecha:** el ataque del operador (0 … unos 3 s; azul claro). **A la izquierda:** el operador es **percusivo** con su propio decay, más corto cuanto más a la izquierda (3 ms … 8 s; rojo) |
-| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.56)*: 16; el color de su familia) |
+| K5 | Nivel del operador 1 (azul) | Algoritmo (16, 8 clics cada uno, *(solo Beta 5.64)*: 16; el color de su familia) |
 | K6 | Nivel del operador 2 | Feedback (magenta) |
 | K7 | Nivel del operador 3 | Ruido (blanco) |
 | K8 | Nivel del operador 4 | Release (ámbar) |
@@ -88,7 +100,7 @@ sidechain y el compresor master.
 - **Al girar un ratio** (K1-K4) los pads 9-32 enseñan los 24 ratios durante 1,5 s (el actual brillante, en blanco si está desafinado); al girar el algoritmo (Shift + K5), los pads 9-24 enseñan los algoritmos. Mientras se ven, esos pads no cargan patches.
 - **Es una variante del oscilador:** la nota, TUNE / FINE, la envolvente de pitch y el vibrato de la página 2 siguen valiendo; detrás, el filtro, el efecto y la matriz como con el oscilador. Una nota a la vez (la última manda); con el retrigger apagado (Shift + pad 29) una nota ligada no vuelve a disparar los ataques.
 - **El volumen lo dan las envolventes de los operadores**: el VCA del motor se queda abierto (la velocity sigue dando el volumen) y la ADSR de la página 1 mueve el filtro, el tono y el brillo.
-- **El brillo:** SHAPE (K2 de la página OSC 1; *(solo Beta 5.56)* K4), Env → forma (K4; *(solo Beta 5.56)* Shift + K4) y LFO → forma (K6; *(solo Beta 5.56)* Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
+- **El brillo:** SHAPE (K2 de la página OSC 1; *(solo Beta 5.64)* K4), Env → forma (K4; *(solo Beta 5.64)* Shift + K4) y LFO → forma (K6; *(solo Beta 5.64)* Shift + K7) cambian cuánto modulan los moduladores (× 0,27 … × 3,7; SHAPE 50 = sin cambio), y también el feedback. Así la ADSR del motor, su LFO, la matriz, los carriles de la página 4 y el step-drummer mueven el timbre del FM.
 - **La velocity** da también el brillo (cuánto, según el algoritmo) y cuánto cae el bombo. **Las notas agudas** modulan menos y caen antes (según el algoritmo, como en un DX7). En notas y ratios muy altos el motor limita la modulación para que no haya aliasing (salvo en los percusivos, donde forma parte del sonido).
 - **El nivel** de un portador es su volumen; el de un modulador, cuánto modula.
 - **Envolventes A/R con sustain fijo:** con la nota pulsada, un operador **sostenido** se queda arriba después de su ataque; uno **percusivo** (lo dice el algoritmo, o su Shift + knob a la izquierda) cae aunque la nota siga. Al soltar, todos caen con el release (uno percusivo por su knob, con lo más corto de su decay y el release). **El release es uno para todos y más largo cuanto más fuerte la nota**; el algoritmo lo acorta o alarga en cada operador.
@@ -117,19 +129,95 @@ sidechain y el compresor master.
 | 15 | cuerdas: dos pilas (2 → 1, 4 → 3) desafinadas entre sí | cuerdas (verde) | cuerdas (ataque lento) |
 | 16 | ensemble: 4 → 1, 2 y 3, tres portadores desafinados | | ensemble |
 
-*(solo Beta 5.56)* Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
+*(solo Beta 5.64)* Este FM de 4 operadores se sustituye por el **FM de 8 operadores** (capítulo siguiente); sus patches se cargan en él con el mismo sonido.
 
-<img src="img/panel-fm8-es.svg" width="640" alt="FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.">
+<img src="img/view-midi-fm-1-es.svg" width="640" alt="FM de 4 operadores: FM 4 op">
 
-*FM de 8 operadores, su página (pad 7): pads 9-16 los operadores (portadores verdes, moduladores azul claro), pad 3 la envolvente de pitch; K1 ratio, K2 fino, K3 nivel, K4 velocity, K5-K8 rates; con Shift algoritmo, feedback, escalados y niveles.*
+*FM de 4 operadores (desde RC4, en las RC; pad 24 de la fila de motores, violeta; pad 7 = su página): K1-K4 = los ratios de los operadores 1-4 (verde entero, azul claro y medio, verde azulado inarmónico; los clics tras cada ratio exacto lo desafinan), K5-K8 = sus niveles (el volumen de un portador, cuánto modula un modulador). Pad 7 mantenido = los 16 algoritmos, pad 8 mantenido = 16 sonidos de partida; Clear + pad 7 = una voz tocable del algoritmo.*
 
-<img src="img/panel-algos8-es.svg" width="640" alt="Pad 7 mantenido: los 56 algoritmos en tres páginas (Octave ▼ / ▲), 24 por página; el elegido brillante.">
+<img src="img/view-midi-fm-2-es.svg" width="640" alt="FM de 4 operadores: FM 4 op + Shift">
 
-*Pad 7 mantenido: los 56 algoritmos en tres páginas (Octave ▼ / ▲), 24 por página; el elegido brillante.*
+*FM de 4 operadores con Shift: K1-K4 = la envolvente de cada operador: centro = ataque 0, derecha = su ataque (azul claro), izquierda = percusivo con su propio decay (rojo); K5 = el algoritmo (16, en el color de su familia), K6 = feedback (magenta), K7 = ruido (blanco), K8 = release (ámbar; más largo cuanto más fuerte la nota).*
 
-<img src="img/panel-inst8-es.svg" width="640" alt="Pad 8 mantenido: los 24 instrumentos, en el color de su tipo (teclas, bajos, leads, pads, pulsados, percusión, campanas).">
+<img src="img/view-midi-fm-3-es.svg" width="640" alt="FM de 4 operadores: Algoritmos">
 
-*Pad 8 mantenido: los 24 instrumentos, en el color de su tipo (teclas, bajos, leads, pads, pulsados, percusión, campanas).*
+*Pad 7 mantenido: los 16 algoritmos en los pads 9-24, en el color de su familia (clásicos blanco, percusivos rojo, campanas verde azulado, cuerdas verde), el actual brillante; pulsa uno = elegido, y suena la tónica mientras lo mantienes (Shift + pad: sin sonar). Al soltar el pad 7 vuelven los patches.*
+
+<img src="img/view-midi-fm-4-es.svg" width="640" alt="FM de 4 operadores: Sonidos partida">
+
+*Pad 8 mantenido (desde RC4): 16 instrumentos de partida en el color de su familia — teclados blanco, pulsados violeta, bajo ámbar, campana verde azulado, cuerdas y pad verde, vientos azul claro, percusión naranja; pulsa uno = se carga entero (algoritmo, ratios, niveles, envolventes) y suena la tónica; el que coincide con la pista, brillante.*
+
+## FM de 8 operadores
+
+*Cómo se llega:* *(solo Beta 5.64)* MIDI 1 / 2: vista Preset, un toque al **pad 27** y el **pad 24** de la fila de motores (violeta); cierra la fila (pad 27) y el **pad 7** abre su página.
+
+Sustituye al FM de 4 operadores: **hasta 8 operadores** con **envolventes como las del DX7** (4 rates y 4 niveles) en cada uno. **56 algoritmos**: los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores (dos pilas de 4, cuatro parejas, una pila de 8, siete moduladores sobre un portador, ocho portadores, tres pilas 3-3-2, dos parejas y una pila de 4, el algoritmo 1 del DX7 más una pareja). El motor calcula solo los operadores que usa el algoritmo: con 4, unas 10 voces; con 6 (los del DX7), unas 6-7; con 8, unas 5.
+
+**Pads de la página FM** (con la fila de motores cerrada):
+
+| Pad | Qué hace |
+|---|---|
+| 9-16 | Elige el **operador 1-8**: los que usa el algoritmo encendidos (portadores verdes, moduladores azul claro; el elegido brillante), los demás apagados |
+| 3 | La **envolvente de pitch** (violeta, el color del FM; brillante mientras la editas), como un noveno operador. Desde cualquier página de knobs abre la página FM con ella elegida |
+| 17-24 | **La fila de motores**: sin voz, solo VCA / VCF / FX, oscilador, VA-drum, wavetable (arena), muestra, granular y FM (brillante); un toque cambia de motor (no cargan patches) |
+| 7 | *(solo Beta 5.64)* Un toque: el **mapa del algoritmo** (abajo); mantenido ½ s: el mapa mientras lo mantienes |
+| Shift + 7 mantenido | (Brillante solo mientras lo mantienes; *(solo Beta 5.64)* antes, el pad 7 mantenido.) **Los 56 algoritmos** en los pads 9-32, en tres páginas: **Octave ▼ / ▲** mientras lo mantienes (encendido = hay otra página). Página 1: los 16 de 4 operadores (verde azulado) y los 8 de 8 (ámbar); página 2: los del DX7 1-24 (blanco); página 3: los del DX7 25-32. El actual brillante; pulsa uno: elegido y suena |
+| 8 mantenido | *(solo Beta 5.64)* Beta 5.58: **sin instrumentos** (el pad 8 abre la página FM, la de los operadores); los mismos sonidos son patches para la tarjeta: los **Parches demo** de la app. Antes: **24 instrumentos** en los pads 9-32, en el color de su tipo: teclados naranja (E.Piano, Bright EP, Clav, Organ, Marimba, Vibes), bajos azul (FM Bass, Synth Bass, Deep Bass), leads y metales rojo (Brass, Sync Lead, Flute), pads y cuerdas verde (Strings, Warm Pad, Choir, Glass Pad), punteados amarillo (Harp, Koto, Nylon), percusión blanco (Kick, Snare, Hi-Hat), campanas y efectos violeta (Tubular Bell, Space Sweep); el cargado brillante. Pulsa uno: se carga y suena. *(solo Beta 5.64)* **Segunda página: Octave ▼ con el pad 8 mantenido** (Octave ▲ vuelve; el Octave que lleva a la otra página se enciende): pianos naranja (Grand Piano, Mellow Piano, Honky-Tonk, Tine Piano, Toy Piano), cuerdas verde (Slow Strings, Ensemble, Cello, Violin, String Swell; Pizzicato amarillo), **vientos verde azulado** (Clarinet, Oboe, Bassoon, Alto Sax, French Horn, Trumpet, Pan Flute, Recorder, Harmonica) y sonidos largos (Cathedral, Bowed Glass, Evolving Pad, Long Bell). Los de la página 1 tienen el release más largo (pianos eléctricos, cuerdas, pads, coro, flauta, metales, arpa, nylon, campana, bajos). *(solo Beta 5.64)* **Al cargar uno, la página 4 (knobs secuenciables) y Shift + pad 4 pasan a los knobs que convienen a su familia** (teclados: Filtro, Resonancia, Env > filtro, Efecto, LFO > tono, Velocidad LFO, Tono, Ganancia; pads y vientos: el LFO y el filtro; percusión: Tono y Decay primero…); los valores no cambian. |
+
+Con la página FM en pantalla, los pads 9-24 no cargan patches: cárgalos desde la página de otro knob. Con el FM, el **pad 28** (dos osciladores) se apaga y no hace nada (el ajuste se queda para cuando el FM se apaga), y el **pad 3** deja la página OSC 2 y es la envolvente de pitch. Las listas del pad 7 / 8 se ven también con la fila de motores abierta o un modo flip encendido.
+
+**El mapa del algoritmo** *(solo Beta 5.64)*: en la página FM, **un toque al pad 7** fija el mapa (otro toque lo quita; el pad 7 brillante mientras se ve) y **mantenerlo ½ s** lo enseña solo mientras lo mantienes; desde otra página, un toque abre la página FM. El mapa usa los pads 9-32:
+
+- **Cada fila se lee de izquierda a derecha: la onda de la izquierda modula a la de su derecha**, y la última de la derecha es una **portadora** (la que se oye). **Un hueco oscuro = no interactúan**. Un operador que modula a varios aparece en cada cadena (copias). Las cadenas largas van primero.
+- **El color dice la relación armónica del ratio**: **verde** = entero (armónico: 1, 2, 3…), **verde azulado** = x,5 (media octava de los enteros: 0,5, 1,5…), **naranja** = cualquier otro (inarmónico, de campana), **rojo** = frecuencia fija; el operador con **feedback**, **violeta**. **Brillante** = nivel de salida de la mitad o más (el feedback, de la mitad o más); **tenue** = menos.
+- **Un toque a un operador lo elige** (los knobs lo editan, como los pads 9-16): **todas sus copias laten**.
+- **Shift + operador** = callado mientras ves el mapa (apagado; para oír qué aporta). No se guarda: al cerrar el mapa vuelve a sonar.
+- **Mantén un operador**: late, a los que modula se ven en **blanco**, los que le modulan normales y el resto tenue. **Mantén uno y toca otro** (cualquier copia) = **el primero modula al segundo, o deja de hacerlo**: un **algoritmo propio** del patch (el mapa se redibuja al soltar). Un operador que no modula a ninguno pasa a ser portadora; un enlace que cerraría un bucle no se hace. El algoritmo propio se guarda con el patch y con el proyecto; **Shift + K1** (o la lista) vuelve a uno de los 56 (el propio se pierde).
+
+**Knobs con un operador elegido:**
+
+| Knob | Solo | Con Shift |
+|---|---|---|
+| K1 | **Ratio**: 0,5, 1 … 31, después fijo 1 / 10 / 100 / 1000 Hz (rojo); 3 clics por paso | **Algoritmo** (56, de todo el motor; 16 clics por paso). Al girarlo los pads enseñan los algoritmos 1,5 s (los 16 antiguos en los pads 9-24, los 32 del DX7 en los 32 pads, los 8 de 8 operadores en los pads 1-8) |
+| K2 | **Fino** (0-99) | **Feedback** (0-127, de todo el motor) |
+| K3 | **Nivel de salida** (0-99) | **Rate scaling** (0-7: las notas agudas más rápidas) |
+| K4 | **Sensibilidad a la velocity** (0-7, 4 clics) | **Level scaling** (centro = ninguno; derecha = las notas agudas más bajas, izquierda = las graves) |
+| K5-K8 | **Rates R1-R4** de su envolvente (0-99) | **Niveles L1-L4** (0-99) |
+
+**Knobs con la envolvente de pitch (pad 3):** K1 transposición (0-48, 24 = ninguna), K3 ruido (0-127), K4 el operador del ruido (1-8, 16 clics), K5-K8 R1-R4; con Shift K1 / K2 como arriba y K5-K8 L1-L4 (50 = sin desplazamiento).
+
+- **La envolvente** sube por R1 a L1, R2 a L2, R3 a L3 y se queda en L3 mientras la nota sigue; al soltar va por R4 a L4. Como en el DX7: rate 99 = inmediato.
+- **Clear + knob** = el valor inicial; **Clear + pad 7** = una voz tocable del algoritmo elegido; **Clear + MIDI 1 / 2** = todo el motor a los valores iniciales.
+- **Los patches de la Beta 5.19 o anterior** (FM de 4 operadores) se cargan convertidos: mismos algoritmos, ratios, niveles y envolventes, el mismo sonido.
+- **Se guarda con los patches del sinte propio**: el FM de cada patch va en una ranura extra del mismo banco de la tarjeta (`Patches/NN_PATCHBANK.cpb`), después de los 8 patches de stock; el banco crece hasta 8 KB. Intercambiar patches (Duplicate + A + B) o copiarlos de otro pack lleva el FM con ellos.
+- **Se guarda con el proyecto**: el FM de MIDI 1 / 2 va en los ajustes de los patrones de Synth 1 / 2 (sin cambiar nada de ellos); al cargar un proyecto vuelve su sonido.
+- **Patches de ejemplo**: [81 patches del sinte propio listos](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches) (33 sonidos clásicos y los 48 instrumentos FM), cada uno con los destinos de la página 4 y de Shift + pad 4 elegidos para su sonido; súbelos con la app de la tarjeta (**Parches custom → Subir .ctm**) y cárgalos aquí.
+- **Components**: leer el pack y mandar un patch no tocan el FM. **«Send patches» / «Send pack»** cambian los patches de stock como siempre y **el aparato devuelve los patches propios y el FM** a cada banco (antes se perdían); si Components borra un banco que tiene patches propios, queda con los 8 patches de stock vacíos. No en el pack interno. Una copia guardada por Components (su zip) no lleva los patches propios: la copia de la app de la tarjeta (Snapshot) sí.
+- Polifonía, unísono y glide como el FM de 4 operadores (capítulo «Voces»). No tiene CC / NRPN.
+
+<img src="img/view-midi-fm8-1-es.svg" width="640" alt="FM de 8 operadores: FM 8 op (solo Beta 5.56)">
+
+*Solo Beta 5.56: la página del FM de 8 operadores (pad 7 con la fila de motores cerrada): pads 9-16 = los operadores 1-8 (portadores verdes, moduladores azul claro, el elegido brillante; aquí la pila de cuatro), pad 3 = la envolvente de pitch, pads 17-24 = la fila de motores; K1 ratio, K2 fino, K3 nivel de salida, K4 sensibilidad a la velocity, K5-K8 los rates R1-R4 de la envolvente. Pad 7 = el mapa del algoritmo, Shift + pad 7 mantenido = los 56 algoritmos, pad 8 mantenido = los instrumentos.*
+
+<img src="img/view-midi-fm8-2-es.svg" width="640" alt="FM de 8 operadores: FM 8 op + Shift (solo Beta 5.56)">
+
+*Solo Beta 5.56, la página FM con Shift: K1 = el algoritmo (56, de todo el motor; los pads los enseñan 1,5 s), K2 = feedback, K3 = rate scaling (las notas agudas más rápidas), K4 = level scaling (centro = ninguno), K5-K8 = los niveles L1-L4 de la envolvente. La envolvente sube por R1 a L1, R2 a L2, R3 a L3, se queda en L3 mientras la nota sigue y al soltar va por R4 a L4.*
+
+<img src="img/view-midi-fm8-3-es.svg" width="640" alt="FM de 8 operadores: Envolvente pitch (solo Beta 5.56)">
+
+*Solo Beta 5.56, la envolvente de pitch (pad 3, violeta, brillante mientras la editas — como un noveno operador): K1 transposición (24 = ninguna), K3 ruido, K4 el operador del ruido, K5-K8 rates R1-R4; con Shift K1 / K2 = algoritmo / feedback y K5-K8 = niveles L1-L4 (50 = sin desplazamiento).*
+
+<img src="img/view-midi-fm8-4-es.svg" width="640" alt="FM de 8 operadores: Mapa algoritmo (solo Beta 5.56)">
+
+*Solo Beta 5.56: el mapa del algoritmo (un toque al pad 7), aquí del instrumento Tubular Bell (el algoritmo 5 del DX7): cada fila se lee de izquierda a derecha — una onda modula a la de su derecha y la última de la derecha es una portadora, la que se oye; un hueco oscuro = no interactúan. Color = el ratio (verde entero, verde azulado x,5, naranja otro, rojo fijo), violeta = el operador con feedback; tenue = nivel por debajo de la mitad. Un toque elige un operador, Shift + operador lo calla, uno mantenido + un toque a otro = enlazarlos o desenlazarlos (un algoritmo propio).*
+
+<img src="img/view-midi-fm8-5-es.svg" width="640" alt="FM de 8 operadores: Instrumentos 1 (solo Beta 5.56)">
+
+*Solo Beta 5.56, pad 8 mantenido: 24 instrumentos en el color de su tipo (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta), el cargado brillante; pulsa uno = se carga y suena. Al cargar uno, la página 4 y Shift + pad 4 pasan a los knobs que convienen a su familia.*
+
+<img src="img/view-midi-fm8-6-es.svg" width="640" alt="FM de 8 operadores: Instrumentos 2 (solo Beta 5.56)">
+
+*Solo Beta 5.56, pad 8 mantenido + Octave ▼ = la segunda página: pianos naranja, cuerdas verde (Pizzicato amarillo), vientos verde azulado y cuatro sonidos largos; Octave ▲ vuelve.*
 
 ## Modo muestra y selector de samples
 
@@ -140,9 +228,9 @@ sidechain y el compresor master.
 
 → [Todo el detalle en la guía](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-muestra)
 
-<img src="img/panel-muestra-es.svg" width="640" alt="Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).">
+<img src="img/view-midi-muestra-es.svg" width="640" alt="Modo muestra y selector de samples">
 
-*Note ampliada en modo muestra: pads 1-16 los pasos (brillante = con nota), pads 17-32 los samples (el elegido, verde azulado).*
+*Selector de samples (desde RC2; MIDI 1 / 2 con el motor muestra, Note dos veces): pads 17-32 = 16 de los 64 samples del pack (Octave = la página; verde azulado = el sample de la pista, un toque lo elige y suena; desde RC4 Shift + sample = sin sonar, Shift + el elegido = elegir el segundo, sample estéreo); pads 1-16 = los pasos: verde azulado = una nota, melocotón = una nota con sample flip, violeta = un flip sin nota (desde RC4), blanco = el que suena. Mantén un paso + toca un sample = su flip; Clear + paso = quitarlo; 1-16 / 17-32 = la otra mitad.*
 
 ## Matriz de modulación
 

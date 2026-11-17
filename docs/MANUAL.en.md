@@ -1,396 +1,93 @@
-# Feature list — CIRCUIT-HACKS (RC4)
+# Glossary of features — CIRCUIT-HACKS (RC4)
 
-Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. Every feature in one line, by topic. **The user manual is the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html)); the CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Illustrated version of this list: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
+Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. Anything not described here works as on the original device. **The features now live in the manual by views, the [guide by views](GUIA.en.md)** (in colour: [guide.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guide.html)): each one is a section of the chapter of the view where it is used. This is the **glossary**: every feature under the groups of the former feature list, each linked to its section. The CCs / NRPNs, in the [MIDI reference](MIDI.en.md). Versión en español: [`docs/MANUAL.md`](MANUAL.md).
 
 **Conventions:** pads 1-32 from top left to bottom right (row 1 = 1-8 … row 4 = 25-32); knobs K1-K4 top, K5-K8 bottom; “Shift + X” = hold Shift.
 
-## Index
-
-**A. Shortcuts and usability**
-
-- [A1 Shortcut map](#a1-atajos)
-- [A2 Master FX on the Mixer button](#a2-master-fx-acceso)
-- [A3 Keys of the FX view](#a3-vista-fx)
-- [A4 Clear + knob = default value](#a4-clear-knob)
-- [A5 Switch off latched effects (Master FX pad 8)](#a5-pad8)
-- [A6 Synth source view](#a6-fuente-sinte)
-- [A7 Chromatic and scale view of the drums](#a7-cromatica)
-- [A8 Pack management on the device](#a8-pack)
-- [A9 Replace a drum with the capture](#a9-sustituir)
-- [A10 CC editor of the MIDI macros](#a10-editor-cc)
-- [A11 Mixer: Shift + knob = level to 100 / 0](#a11-mixer-shift)
-- [A12 Cue mode, mutes on the bar and quantize (since RC2)](#a12-mixer-cue)
-- [A13 LFO synced to the tempo (since RC4)](#a13-lfo-sync)
-- [A14 Split keyboard Synth 1 + Synth 2](#a14-teclado-partido)
-- [A15 Synth patch colours](#a15-colores-patch)
-- [A16 Patches of the own synth (MIDI 1 / 2)](#a16-patches-midi)
-- [A17 Saving the synth’s patch into the pack](#a17-guardar-patch)
-- [A18 Macro knob destinations](#a18-destinos-macro)
-- [A19 Copying projects to another slot or another pack](#a19-copiar-proyectos)
-- [A20 Own-synth patches to another pack](#a20-patches-entre-packs)
-- [A21 Shift = a flash on every note (Beta 5.56 only)](#a21-luces-disparo)
-- [A22 Shift + Preset = the project's sound (Beta 5.56 only)](#a22-proyecto-init)
-
-**B. Exposed controls**
-
-- [B1 Drum knobs as printed on the panel](#b1-knobs-drums)
-- [B2 Reverb and delay parameters](#b2-rev-delay)
-- [B3 Side-chain and master compressor on the knobs](#b3-sidechain-comp)
-- [B4 Recording the internal MIDI routes](#b4-grabar-interno)
-- [B5 MIDI for everything new](#b5-midi-io)
-- [B6 Automation of the MIDI engine](#b6-automatizacion)
-- [B7 Setup and device MIDI](#b7-setup)
-- [B8 Patch flip on MIDI 1 / 2](#b8-patch-flip)
-
-**C. New control modes**
-
-- [C1 Patch morph (Beta 5.56 only)](#c1-morph)
-- [C2 Engine of the MIDI tracks (pad 27)](#c2-motor-midi)
-- [C3 Step-drummer](#c3-step-drummer)
-- [C4 FX sequencer](#c4-fx-seq)
-- [C5 Song pointer (Master FX)](#c5-song-pointer)
-- [C6 Captured sample](#c6-sample)
-- [C7 Glitch (pad 6) and its assignment](#c7-glitch-pad)
-- [C8 Assignable bottom row (Master FX / FX)](#c8-fila-inferior)
-- [C9 Random-mutate per step](#c9-random-mutate)
-- [C10 Step frequency and dynamics](#c10-frecuencia-dinamicas)
-- [C11 Pattern chains and scenes](#c11-cadenas)
-- [C12 Pattern mutate (Beta 5.56 only)](#c12-mutate-patrones)
-- [C13 Nudge and play orders](#c13-nudge-ordenes)
-- [C14 Arpeggiator (since RC2)](#c14-arpegiador)
-- [C15 Drums micro-step rollers (since RC2)](#c15-rollers)
-- [C16 Custom scale (since RC2)](#c16-escala-propia)
-- [C17 Chord screen (since RC4)](#c17-acordes)
-- [C18 Stereo drum pairs (since RC4)](#c18-pareja-estereo)
-- [C19 The drums' extra lane (Beta 5.56 only)](#c19-carril-extra)
-- [C20 Sample mode of the MIDI tracks (since RC2)](#c20-modo-muestra)
-- [C21 Mod matrix of the own synth (since RC2.02)](#c21-matriz-mod)
-- [C22 Jump sequencer of MIDI 1 / 2 (Beta 5.56 only)](#c22-saltos)
-- [C23 4-operator FM (since RC4)](#c23-fm4)
-- [C24 8-operator FM (Beta 5.56 only)](#c24-fm8)
-- [C25 Wavetable (Beta 5.56 only)](#c25-wavetable)
-- [C26 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](#c26-master-fx-beta)
-
-**D. DSP**
-
-- [D1 Master FX effects](#d1-efectos-grid)
-- [D2 VCA-VCF of the MIDI tracks](#d2-vca-vcf)
-- [D3 Oscillators and paraphony](#d3-osciladores)
-- [D4 VA-drum engine](#d4-va-drum)
-- [D5 Granular synth](#d5-granular)
-- [D6 Glitch engine](#d6-glitch-dsp)
-- [D7 Drum DSP](#d7-drums-dsp)
-- [D8 Audio inputs and returns](#d8-entradas)
-
-**E. Miscellaneous**
-
-- [E1 What is saved and where](#e1-guardado)
-- [E2 The internal memory pack: read only](#e2-pack-interno)
-- [E3 Installing and going back](#e3-instalar)
-- [E4 Development and diagnostic tools](#e4-herramientas)
-- [E5 MIDI tables](#e5-tablas-midi)
-
-## A. Shortcuts and usability
-
-<a id="a1-atajos"></a>
-### A1. Shortcut map
-- Every shortcut of the mod on a drawing of the device: double presses, Shift + button, Clear + knob and the special pads of each view.
-
-<a id="a2-master-fx-acceso"></a>
-### A2. Master FX on the Mixer button
-- From the Mixer, **Mixer again** opens Master FX; any other view button leaves it.
-
-<a id="a3-vista-fx"></a>
-### A3. Keys of the FX view
-- **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters.
-- **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (since RC4; before, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (since RC4).
-
-<a id="a4-clear-knob"></a>
-### A4. Clear + knob = default value
-- Hold **Clear** and turn a knob right: it goes back to its default. On the drums (blue LED), turned left it deletes the automation of the stock knobs (red LED), as on the original. Also on the MIDI track engine and in **Master FX**.
-
-<a id="a5-pad8"></a>
-### A5. Switch off latched effects (Master FX pad 8)
-- **Pad 8** switches off everything latched with Shift (effects and song pointer) and bypasses the FX; touching a latched effect releases it.
-
-<a id="a6-fuente-sinte"></a>
-### A6. Synth source view
-- With Synth 1 / 2 on screen, **press its button again**: pads 25-29 pick the source (noise, inputs, inverted inputs), pad 30 = step-drummer.
-
-<a id="a7-cromatica"></a>
-### A7. Chromatic and scale view of the drums
-- **Shift + Preset** with a drum: the pads play the sample in the scale; K1 = pitch offset, Shift + K1 = cents; Note view: pads 25-28 = drums 4-1.
-
-<a id="a8-pack"></a>
-### A8. Pack management on the device
-- **Save** also writes the samples replaced by captures to the card.
-- **Duplicate + pad A + pad B** (Drum Preset) swaps two samples; between packs it **copies** samples and synth patches; **Clear**, the pack, **Clear** (packs view) deletes a pack.
-
-<a id="a9-sustituir"></a>
-### A9. Replace a drum with the capture
-- Drum Preset view: **Clear + pad twice** = that sample becomes the capture (until you save or reload).
-
-<a id="a10-editor-cc"></a>
-### A10. CC editor of the MIDI macros
-- MIDI 1 / 2 Preset view, **pad 25**: move a knob and change its CC / NRPN on the device; pad 26 = save.
-
-<a id="a11-mixer-shift"></a>
-### A11. Mixer: Shift + knob = level to 100 / 0
-- Mixer view: **Shift + a knob turned right** sets that track’s level to **100**; **turned left**, to **0**.
-
-<a id="a12-mixer-cue"></a>
-### A12. Cue mode, mutes on the bar and quantize (since RC2)
-- **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track.
-
-<a id="a13-lfo-sync"></a>
-### A13. LFO synced to the tempo (since RC4)
-- **Since RC4.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat.
-
-<a id="a14-teclado-partido"></a>
-### A14. Split keyboard Synth 1 + Synth 2
-- **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play Synth 1 and the two bottom rows Synth 2.
-
-<a id="a15-colores-patch"></a>
-### A15. Synth patch colours
-- **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.56 only:** each patch in the colour of its **Components category**.
-
-<a id="a16-patches-midi"></a>
-### A16. Patches of the own synth (MIDI 1 / 2)
-- **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = 4 pages (64 slots per pack).
-
-<a id="a17-guardar-patch"></a>
-### A17. Saving the synth’s patch into the pack
-- **Since RC2.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot.
-
-<a id="a18-destinos-macro"></a>
-### A18. Macro knob destinations
-- **Since RC2.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number.
-
-<a id="a19-copiar-proyectos"></a>
-### A19. Copying projects to another slot or another pack
-- **Since RC2.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one.
-
-<a id="a20-patches-entre-packs"></a>
-### A20. Own-synth patches to another pack
-- **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name).
-
-<a id="a21-luces-disparo"></a>
-### A21. Shift = a flash on every note (Beta 5.56 only)
-- With Shift held, each track's button flashes white on every note it plays.
-
-<a id="a22-proyecto-init"></a>
-### A22. Shift + Preset = the project's sound (Beta 5.56 only)
-- Shift + Preset brings the track's sound back to the one saved in the project.
-
-## B. Exposed controls
-
-<a id="b1-knobs-drums"></a>
-### B1. Drum knobs as printed on the panel
-- Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.56), tilt), LFO, start point, bitcrush and distortion.
-
-<a id="b2-rev-delay"></a>
-### B2. Reverb and delay parameters
-- FX view, **Shift + knob**: reverb (type, decay, damping) and delay (time, sync, feedback, width, ratio, slew); saved with the project.
-
-<a id="b3-sidechain-comp"></a>
-### B3. Side-chain and master compressor on the knobs
-- **Since RC2.** In the Sidechain view (**Shift + FX**): **K1-K4** = attack, hold, decay and depth of the side-chain of the chosen track; **K7 / K8** = attack and release of the master compressor.
-
-<a id="b4-grabar-interno"></a>
-### B4. Recording the internal MIDI routes
-- **Since RC2.** In the Setup view, **Record** decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: **yellow = yes**, dark = no (the default).
-
-<a id="b5-midi-io"></a>
-### B5. MIDI for everything new
-- The new values go out and come in over MIDI: CC / NRPN of the MIDI track engine, NRPN of the drums (MSB 5-8) and of Master FX (MSB 9, channel 16).
-
-<a id="b6-automatizacion"></a>
-### B6. Automation of the MIDI engine
-- With Record + Play, the 8 values of page 4 of the MIDI engine are recorded into the macro lanes of the pattern.
-
-<a id="b7-setup"></a>
-### B7. Setup and device MIDI
-- Channel 16 Rx / Tx (pad 16), shared channels, **internal loopback** without a cable and **reverb / delay returns through strips 3 / 4** (pads 22 / 23, cream / peach like the reverb and delay of the FX view).
-- **since RC2:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to).
-- **since RC2:** own **Program Change** channels: pads 29 / 30 show and pick the listen / output channel (16 by default); what is received is forwarded on the output one.
-- **since RC2:** **metronome with count-in**: Shift + Clear walks no metronome, metronome, count-in only and both; the count-in is one bar before recording.
-- **since RC4:** **General MIDI mode of the drums**: in Setup, K4 turns it on; K5-K8 = the GM note of Drum 1-4 (35-81), sent on the drums' channel instead of 60 / 62 / 64 / 65.
-
-<a id="b8-patch-flip"></a>
-### B8. Patch flip on MIDI 1 / 2
-- Pad 26 of the MIDI Preset view: every note is sent as a Program Change (exclusive with the track engine).
-
-## C. New control modes
-
-<a id="c1-morph"></a>
-### C1. Patch morph (Beta 5.56 only)
-- **Beta 5.56 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two to four patches** for 0.4 s and a knob moves from one to the next, with LFOs, an envelope and a slow morph.
-
-<a id="c2-motor-midi"></a>
-### C2. Engine of the MIDI tracks (pad 27)
-- **Since RC2.08:** an external keyboard on the channel of MIDI 1 / 2 (USB or DIN) plays its own synth; its notes are not sent again to the MIDI out.
-- Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off → **line** → **oscillator** → **VA-drum** → **granular** → **sample** (since RC2) → **FX sequencer**.
-- Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **since RC2:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14).
-
-<a id="c3-step-drummer"></a>
-### C3. Step-drummer
-- Sequencing by **pairs of steps** on top of the pattern: pads 1-16 steps, 17-24 destination / macro, the 8 knobs = the 8 pairs (pitch or velocity).
-- MIDI: Preset view, pad 30. Synths: source view, pad 30. While recording, the steps you play are recorded in real time.
-
-<a id="c4-fx-seq"></a>
-### C4. FX sequencer
-- **Blue** state of pad 27: the step-drummer of the track picks, for each pair of steps, **a slot of the Master FX bottom row** (0 = none); it plays on the steps with a note.
-- The knob moves slowly (**one slot every ~48 steps of the turn**) and lights in the **colour of the chosen effect**. **A slot with no effect assigned does nothing:** assign the effects to the Master FX bottom row first (see “Assignable bottom row”). **since RC2:** at the end of the travel there is the **random** value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31).
-
-<a id="c5-song-pointer"></a>
-### C5. Song pointer (Master FX)
-- Pads 9-24 = steps 1-16: one held step = retrigger; two steps = momentary phrase; Shift + two = latched phrase.
-- **Phrase mode:** Shift + step = start (end 16); a touch = the end; Shift + another step = new start; Shift + the start or the white pad 9 = exit.
-
-<a id="c6-sample"></a>
-### C6. Captured sample
-- **Pad 32** (red) records the output; **pad 7** (yellow) plays it: K1 pitch, K2 mode (one-shot / gate / loop by colour), K3 start, K4 end.
-- The sample can be assigned to the bottom row (pad 7 + a bottom pad) and can replace a drum (A8).
-
-<a id="c7-glitch-pad"></a>
-### C7. Glitch (pad 6) and its assignment
-- **Hold pad 6** (Master FX or FX view): the output breaks up and lags like a tape. K1 speed, K2 repeat, K3 delay, K4 chaos (lower half) or overload (upper half).
-- **Pad 6 held + a bottom-row pad** = that slot is a Glitch too, with its copy of K1-K4.
-
-<a id="c8-fila-inferior"></a>
-### C8. Assignable bottom row (Master FX / FX)
-- Hold an effect of the top rows (or pad 7, or pad 31) and touch a bottom pad: that slot stores the effect with a copy of its parameters. Saved with the project.
-
-<a id="c9-random-mutate"></a>
-### C9. Random-mutate per step
-- **Since RC2.** In the probability view, in mode 2 (**pad 25** of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play.
-
-<a id="c10-frecuencia-dinamicas"></a>
-### C10. Step frequency and dynamics
-- **Since RC2.** In the probability view of the note tracks: **row 4 = every how many plays of the pattern the step sounds** (1-8). With **pad 25 of Pattern Settings**: row 3 = random **dynamics** (velocity, position and length), row 4 = random-mutate.
-
-<a id="c11-cadenas"></a>
-### C11. Pattern chains and scenes
-- **Since RC2.** Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. **Shift + Octave ▲ / ▼** in the Patterns view switches the **chain mode** of the whole project on / off; every scene remembers the mode it was saved in.
-
-<a id="c12-mutate-patrones"></a>
-### C12. Pattern mutate (Beta 5.56 only)
-- **Beta 5.56 only.** Ported from the Pattern Mutate in [mefisme's Rhythm Plus](https://github.com/mefisme/rhythm-plus) (MIT licence). In the Patterns view or the Mixer, **Shift + a tap on Duplicate** gives each selected track a short list of patterns from its chain, in another order, that loops in place of the chain. The patterns themselves don't change.
-
-<a id="c13-nudge-ordenes"></a>
-### C13. Nudge and play orders
-- **Since RC2.** In the Pattern Settings view: **pad 26 = Nudge** (moves the content of the selected steps), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included.
-
-<a id="c14-arpegiador"></a>
-### C14. Arpeggiator (since RC2)
-- **Since RC2.** In the Pattern Settings view of a note track: **Shift + pad 25** = the pattern's arpeggiator on / off, **Shift + pads 27-32** = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern's direction.
-
-<a id="c15-rollers"></a>
-### C15. Drums micro-step rollers (since RC2)
-- **Since RC2.** Rows 1-3 of the drums' Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project's tempo.
-
-<a id="c16-escala-propia"></a>
-### C16. Custom scale (since RC2)
-- **Since RC2.** **Shift + Scales** = an editor of a custom scale for the note tracks: up to 7 notes over the root and any **period** (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project.
-
-<a id="c17-acordes"></a>
-### C17. Chord screen (since RC4)
-- **Since RC4.** In the **expanded Note view** of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8** opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held.
-
-<a id="c18-pareja-estereo"></a>
-### C18. Stereo drum pairs (since RC4)
-- **Since RC4.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project.
-
-<a id="c19-carril-extra"></a>
-### C19. The drums' extra lane (Beta 5.56 only)
-- **Beta 5.56 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch.
-
-<a id="c20-modo-muestra"></a>
-### C20. Sample mode of the MIDI tracks (since RC2)
-- **Since RC2.** A new state of pad 27 (teal, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end.
-- The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record.
-
-<a id="c21-matriz-mod"></a>
-### C21. Mod matrix of the own synth (since RC2.02)
-- **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random).
-- Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination.
-
-<a id="c22-saltos"></a>
-### C22. Jump sequencer of MIDI 1 / 2 (Beta 5.56 only)
-- The notes of a MIDI track make another track's pattern jump to the step they indicate.
-
-<a id="c23-fm4"></a>
-### C23. 4-operator FM (since RC4)
-- **Since RC4.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**.
-- **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity).
-
-<a id="c24-fm8"></a>
-### C24. 8-operator FM (Beta 5.56 only)
-- **Beta 5.56 only.** It replaces the 4-operator FM on **pad 24** of the engine row: **up to 8 operators**, each with a **DX7-style envelope** (4 rates, 4 levels), and **56 algorithms** (the 4-operator FM's 16, the DX7's 32 and 8 with eight operators). 4-operator FM patches load converted, with the same sound.
-- FM page = **pad 7** (with the engine row closed): **pads 9-16** = operator 1-8 (the ones the algorithm uses lit: carriers green, modulators light blue), **pad 3** = the pitch envelope (violet). **K1** ratio (0.5 … 31 or fixed in Hz), **K2** fine, **K3** level, **K4** velocity, **K5-K8** rates R1-R4; with Shift **K1** algorithm, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** levels L1-L4.
-
-<a id="c25-wavetable"></a>
-### C25. Wavetable (Beta 5.56 only)
-- **Beta 5.56 only.** **Pad 21** of the engine row (sand) = the oscillator reading a **wavetable**: both oscillators, the FM / ring / sync between them, the filter, the VCA, polyphony and the voice modes stay as they are.
-- **One table per patch, up to 9 frames**, for both oscillators; each its own **position**: **K3** of the OSC 1 / OSC 2 page (WAVE; in Beta 5.24-5.26, K7), K7 = LFO → position, Shift + K3 = envelope → position. **SHAPE** (K2) and envelope / LFO → shape (K4 / K6) = **warp**, a bend of the phase.
-
-<a id="c26-master-fx-beta"></a>
-### C26. Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session
-- **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**.
-
-## D. DSP
-
-<a id="d1-efectos-grid"></a>
-### D1. Master FX effects
-- Gater, Auto-Filter LP / HP, Digitise, Phaser and Glitch on the master output, with 4 parameters each.
-
-<a id="d2-vca-vcf"></a>
-### D2. VCA-VCF of the MIDI tracks
-- DJ / LP / HP 12 and 24 dB / band pass / notch filters, effects (saturation, folding, wavefold, ring, comb, chorus), VCA with ADSR and LFO.
-
-<a id="d3-osciladores"></a>
-### D3. Oscillators and paraphony
-- Continuous morph sine → triangle → saw → square, wavefold / slope / width, second oscillator with FM, ring, soft sync and bitwise modes; two paraphonic notes.
-
-<a id="d4-va-drum"></a>
-### D4. VA-drum engine
-- Oscillator made for percussion: one-shot VCA, dedicated decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise and random values instead of the LFO.
-
-<a id="d5-granular"></a>
-### D5. Granular synth
-- Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window.
-- K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, since RC2), LFO → size, source.
-
-<a id="d6-glitch-dsp"></a>
-### D6. Glitch engine
-- A tape head over a stereo circular buffer of the master (2.7 s): variable speed, repeats with fades, chaos.
-
-<a id="d7-drums-dsp"></a>
-### D7. Drum DSP
-- Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.56) / tilt filters, bitcrush, start point, distortions and sidechain between drums.
-
-<a id="d8-entradas"></a>
-### D8. Audio inputs and returns
-- Line input (normal or inverted) as a synth source; reverb / delay returns through strips 3 / 4 with feedback.
-
-## E. Miscellaneous
-
-<a id="e1-guardado"></a>
-### E1. What is saved and where
-- Pattern, project, pack and device settings: what goes where, how to make sure it is saved and what is lost at power-off, in the «Data» chapter of the guide by views.
-
-<a id="e2-pack-interno"></a>
-### E2. The internal memory pack: read only
-- Nothing of the mod writes or deletes in the pack of the Circuit’s internal memory (the first one of the Packs view). You can read it and copy from it to a pack of the card, not the other way round.
-
-<a id="e3-instalar"></a>
-### E3. Installing and going back
-- `rc_uploader.html` patches Novation's official firmware in the browser and sends it over Web MIDI; it only accepts the official firmware 1.2.1. Recovery: Scales + Preset + Note at power-on.
-
-<a id="e4-herramientas"></a>
-### E4. Development and diagnostic tools
-- Reproducible builders, ARM / DSP emulators with tests through the real routes, `verify_builds.py`, remote diagnostics over USB (`ctremote.py`).
-
-<a id="e5-tablas-midi"></a>
-### E5. MIDI tables
-- MIDI engine: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 4:x; drums NRPN 5-8:1-12; Master FX NRPN 9:0-19 (channel 16).
+## Glossary
+
+Every feature of the mod under the groups of the former feature list (A-E). Each title leads to its section; next to it, its view chapter.
+
+### A. Shortcuts and usability
+
+- <a id="a1-atajos"></a><a id="atajos"></a>**[A1 Shortcut map](GUIA.en.md#f-atajos)** — Every shortcut of the mod on a drawing of the device: double presses, Shift + button, Clear + knob and the special pads of each view. *View:* [0.2 Buttons that work in every view](GUIA.en.md#botones)
+- <a id="a2-master-fx-acceso"></a><a id="master-fx-acceso"></a>**[A2 Master FX on the Mixer button](GUIA.en.md#f-master-fx-acceso)** — From the Mixer, **Mixer again** opens Master FX; any other view button leaves it. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="a3-vista-fx"></a><a id="vista-fx"></a>**[A3 Keys of the FX view](GUIA.en.md#f-vista-fx)** — **Octave ▲ / ▼** = delay / reverb sends; **Shift + knob** = reverb and delay parameters. **Duplicate** = reset (sends to 0, master filter centred, Master FX off); **Shift + Octave ▲ / ▼** = master filter resonance ±16 (since RC4; before, **1-16 / 17-32**); **Shift + pad 25** = master filter off / on (since RC4). *View:* [7.1 FX view](GUIA.en.md#vista-fx)
+- <a id="a4-clear-knob"></a><a id="clear-knob"></a>**[A4 Clear + knob = default value](GUIA.en.md#f-clear-knob)** — Hold **Clear** and turn a knob right: it goes back to its default. The LED turns **lavender** (the original's blue). On the drums, turned left it deletes the automation of the stock knobs (red LED), as on the original. Also on the MIDI track engine and in **Master FX**. *View:* [0.2 Buttons that work in every view](GUIA.en.md#botones)
+- <a id="a5-pad8"></a><a id="pad8"></a>**[A5 Switch off latched effects (Master FX pad 8)](GUIA.en.md#f-pad8)** — **Pad 8** switches off everything latched with Shift (effects and song pointer) and bypasses the FX; touching a latched effect releases it. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="a6-fuente-sinte"></a><a id="fuente-sinte"></a>**[A6 Synth source view](GUIA.en.md#f-fuente-sinte)** — With Synth 1 / 2 on screen, **press its button again**: pads 25-29 pick the source (noise, inputs, inverted inputs), pad 30 = step-drummer. *View:* [2.3 Synth source view](GUIA.en.md#synth-fuente)
+- <a id="a7-cromatica"></a><a id="cromatica"></a>**[A7 Chromatic and scale view of the drums](GUIA.en.md#f-cromatica)** — **Shift + Preset** with a drum: the pads play the sample in the scale; K1 = pitch offset, Shift + K1 = cents; Note view: pads 25-28 = drums 4-1. *View:* [5.3 Chromatic and scale view of the drums](GUIA.en.md#drum-cromatica)
+- <a id="a8-pack"></a><a id="pack"></a>**[A8 Pack management on the device](GUIA.en.md#f-pack)** — **Save** also writes the samples replaced by captures to the card. **Duplicate + pad A + pad B** (Drum Preset) swaps two samples; between packs it **copies** samples and synth patches; **Clear**, the pack, **Clear** (packs view) deletes a pack. *View:* [5.2 Drum Preset view](GUIA.en.md#drum-preset)
+- <a id="a9-sustituir"></a><a id="sustituir"></a>**[A9 Replace a drum with the capture](GUIA.en.md#f-sustituir)** — Drum Preset view: **Clear + pad twice** = that sample becomes the capture (until you save or reload). *View:* [5.2 Drum Preset view](GUIA.en.md#drum-preset)
+- <a id="a10-editor-cc"></a><a id="editor-cc"></a>**[A10 CC editor of the MIDI macros](GUIA.en.md#f-editor-cc)** — MIDI 1 / 2 Preset view, **pad 25**: move a knob and change its CC / NRPN on the device; pad 26 = save. *View:* [3.7 CC editor of the MIDI macros (pad 25)](GUIA.en.md#midi-cc)
+- <a id="a11-mixer-shift"></a><a id="mixer-shift"></a>**[A11 Mixer: Shift + knob = level to 100 / 0](GUIA.en.md#f-mixer-shift)** — Mixer view: **Shift + a knob turned right** sets that track’s level to **100**; **turned left**, to **0**. *View:* [9.2 Mixer view and scenes](GUIA.en.md#mixer)
+- <a id="a12-mixer-cue"></a><a id="mixer-cue"></a>**[A12 Cue mode, mutes on the bar and quantize (since RC2)](GUIA.en.md#f-mixer-cue)** — **Since RC2.** Mixer, pan page: **Shift + knob** = cue mode (the right output listens to the tracks you choose). **Shift + pads 1-8** of the Mixer = mute / unmute on the next bar. **Shift + Play** = quantize the pattern of the selected track. *View:* [9.2 Mixer view and scenes](GUIA.en.md#mixer)
+- <a id="a13-lfo-sync"></a><a id="lfo-sync"></a>**[A13 LFO synced to the tempo (since RC4)](GUIA.en.md#f-lfo-sync)** — **Since RC4.** The LFO rate knobs are bipolar: right = a free LFO, left = synced to the tempo with the cycle on the bar's first beat. *View:* [0.2 Buttons that work in every view](GUIA.en.md#botones)
+- <a id="a14-teclado-partido"></a><a id="teclado-partido"></a>**[A14 Split keyboard Synth 1 + Synth 2](GUIA.en.md#f-teclado-partido)** — **Since RC2.** Hold **Synth 1** and press **Synth 2** (or the other way round): the two top rows play the synth you held first and the two bottom rows the other one; **since RC2.02**, any pair of Synth 1, Synth 2, MIDI 1 and MIDI 2. *View:* [2.1 Synth 1 / 2 track view (Note, Velocity, Gate)](GUIA.en.md#synth-nota)
+- <a id="a15-colores-patch"></a><a id="colores-patch"></a>**[A15 Synth patch colours](GUIA.en.md#f-colores-patch)** — **From RC2 to RC4.08** every patch of the Synth 1 / 2 Preset view was drawn by its voice mode. **Since RC4.10** the colours are the original's: those card reads sometimes loaded the initial patch. **Beta 5.65 only:** each patch in the colour of its **Components category**. *View:* [2.4 Synth 1 / 2 Preset view](GUIA.en.md#synth-preset)
+- <a id="a16-patches-midi"></a><a id="patches-midi"></a>**[A16 Patches of the own synth (MIDI 1 / 2)](GUIA.en.md#f-patches-midi)** — **Since RC2.** In the Preset view of MIDI 1 / 2, rows 2 and 3 are 16 patch slots of the track engine: touch = load (the root note sounds), **Clear + pad** twice = save, **Duplicate + A + B** = exchange; **Octave ▼ / ▲** = the pages (**since RC4**: 8 pages, 128 slots per pack; before, 4 pages, 64 slots). *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+- <a id="a17-guardar-patch"></a><a id="guardar-patch"></a>**[A17 Saving the synth’s patch into the pack](GUIA.en.md#f-guardar-patch)** — **Since RC2.** In the Preset view of Synth 1 / 2: **Clear + pad** asks (it blinks white) and **Clear + the same pad again** saves the patch as it sounds into that slot. *View:* [2.4 Synth 1 / 2 Preset view](GUIA.en.md#synth-preset)
+- <a id="a18-destinos-macro"></a><a id="destinos-macro"></a>**[A18 Macro knob destinations](GUIA.en.md#f-destinos-macro)** — **Since RC2.** In the synth source view (A6), **pad 32** opens the editor: a knob picks its macro, **Octave ▼ / ▲** steps the field and the pads draw the number. *View:* [2.3 Synth source view](GUIA.en.md#synth-fuente)
+- <a id="a19-copiar-proyectos"></a><a id="copiar-proyectos"></a>**[A19 Copying projects to another slot or another pack](GUIA.en.md#f-copiar-proyectos)** — **Since RC2.** In the Projects view: **Duplicate + pad A** picks the project (it blinks yellow) and **Duplicate + pad B** copies it into that slot, of the same pack or of another one. *View:* [10.1 Projects view](GUIA.en.md#projects)
+- <a id="a20-patches-entre-packs"></a><a id="patches-entre-packs"></a>**[A20 Own-synth patches to another pack](GUIA.en.md#f-patches-entre-packs)** — **Since RC2.** In the Preset view of MIDI 1 / 2: **Duplicate + slot A**, load another pack and **Duplicate + slot B** copies the patch (engine, parameters and name). *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+- <a id="a21-luces-disparo"></a><a id="luces-disparo"></a>**[A21 Shift = a flash on every note (Beta 5.65 only)](GUIA.en.md#f-luces-disparo)** — With Shift held, each track's button flashes white on every note it plays. *View:* [0.2 Buttons that work in every view](GUIA.en.md#botones)
+- <a id="a22-proyecto-init"></a><a id="proyecto-init"></a>**[A22 Shift + Preset = the project's sound (Beta 5.65 only)](GUIA.en.md#f-proyecto-init)** — Shift + Preset brings the track's sound back to the one saved in the project. *View:* [0.2 Buttons that work in every view](GUIA.en.md#botones)
+
+### B. Exposed controls
+
+- <a id="b1-knobs-drums"></a><a id="knobs-drums"></a>**[B1 Drum knobs as printed on the panel](GUIA.en.md#f-knobs-drums)** — Every knob does what its label says, with a second layer on Shift: ring mod, envelopes, filters (DJ, BP, notch, comb (not in Beta 5.65), tilt), LFO, start point, bitcrush and distortion. *View:* [5.1 Drum track view (knobs)](GUIA.en.md#drum-pista)
+- <a id="b2-rev-delay"></a><a id="rev-delay"></a>**[B2 Reverb and delay parameters](GUIA.en.md#f-rev-delay)** — FX view, **Shift + knob**: reverb (type, decay, damping) and delay (time, sync, feedback, width, ratio, slew); saved with the project. *View:* [7.1 FX view](GUIA.en.md#vista-fx)
+- <a id="b3-sidechain-comp"></a><a id="sidechain-comp"></a>**[B3 Side-chain and master compressor on the knobs](GUIA.en.md#f-sidechain-comp)** — **Since RC2.** In the Sidechain view (**Shift + FX**): **K1-K4** = attack, hold, decay and depth of the side-chain of the chosen track; **K7 / K8** = attack and release of the master compressor. *View:* [8.1 Sidechain view](GUIA.en.md#sidechain)
+- <a id="b4-grabar-interno"></a><a id="grabar-interno"></a>**[B4 Recording the internal MIDI routes](GUIA.en.md#f-grabar-interno)** — **Since RC2.** In the Setup view, **Record** decides whether what a MIDI track sends to an internal synth over a shared channel is also recorded into that synth: **yellow = yes**, dark = no (the default). *View:* [1.1 Setup view](GUIA.en.md#setup)
+- <a id="b5-midi-io"></a><a id="midi-io"></a>**[B5 MIDI for everything new](GUIA.en.md#f-midi-io)** — The new values go out and come in over MIDI: CC / NRPN of the MIDI track engine, NRPN of the drums (MSB 5-8) and of Master FX (MSB 9, channel 16). *View:* [11.4 MIDI: own behaviours, new CCs and NRPNs](GUIA.en.md#midi)
+- <a id="b6-automatizacion"></a><a id="automatizacion"></a>**[B6 Automation of the MIDI engine](GUIA.en.md#f-automatizacion)** — With Record + Play, the 8 values of page 4 of the MIDI engine are recorded into the macro lanes of the pattern. *View:* [3.3 Knob pages of the MIDI 1 / 2 engine](GUIA.en.md#midi-knobs)
+- <a id="b7-setup"></a><a id="setup"></a>**[B7 Setup and device MIDI](GUIA.en.md#f-setup)** — Channel 16 Rx / Tx (pad 16), shared channels, **internal loopback** without a cable and **reverb / delay returns through strips 3 / 4** (pads 22 / 23, cream / peach like the reverb and delay of the FX view). **since RC2:** MIDI Thru with four modes (Duplicate in Advanced Setup): Thru, Out 2, **Merge** (DIN In + the device’s MIDI) and **Filter** (DIN In without the channels the device listens to). **since RC2:** own **Program Change** channels: pads 29 / 30 show and pick the listen / output channel (16 by default); what is received is forwarded on the output one. **since RC2:** **metronome with count-in**: Shift + Clear walks no metronome, metronome, count-in only and both; the count-in is one bar before recording. **since RC4:** **General MIDI mode of the drums**: in Setup, K4 turns it on; K5-K8 = the GM note of Drum 1-4 (35-81), sent on the drums' channel instead of 60 / 62 / 64 / 65. *View:* [1.1 Setup view](GUIA.en.md#setup)
+- <a id="b8-patch-flip"></a><a id="patch-flip"></a>**[B8 Patch flip on MIDI 1 / 2](GUIA.en.md#f-patch-flip)** — Pad 26 of the MIDI Preset view: every note is sent as a Program Change (exclusive with the track engine). *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+
+### C. New control modes
+
+- <a id="c1-morph"></a><a id="morph"></a>**[C1 Patch morph (Beta 5.65 only)](GUIA.en.md#f-morph)** — **Beta 5.65 only.** In the Preset view of Synth 1 / 2 or MIDI 1 / 2 (own synth, with its 8-operator FM): **hold two to four patches** for 0.4 s and a knob moves from one to the next, with LFOs, an envelope and a slow morph. *View:* [2.4 Synth 1 / 2 Preset view](GUIA.en.md#synth-preset)
+- <a id="c2-motor-midi"></a><a id="motor-midi"></a>**[C2 Engine of the MIDI tracks (pad 27)](GUIA.en.md#f-motor-midi)** — **Since RC2.08:** an external keyboard on the channel of MIDI 1 / 2 (USB or DIN) plays its own synth; its notes are not sent again to the MIDI out. Pad 27 of the MIDI 1 / 2 Preset view picks the engine: off, **line**, **oscillator**, **VA-drum**, **granular**, **sample** (since RC2), **FX sequencer** and, **since RC4**, **FM**. **Since RC4** a tap opens them as a row on pads 17-24 (tap one to pick it; before, each tap stepped to the next) and Shift + pad 27 steps to the next. Pads 1-5 pick the knob page; 28 = two oscillators, 29 = chain order, 30 = step-drummer, 31 = velocity (VA-drum). **since RC2:** Clear + a page pad = the values of that page back to their initial values; rows 2-3 hold patches (A14). *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+- <a id="c3-step-drummer"></a><a id="step-drummer"></a>**[C3 Step-drummer](GUIA.en.md#f-step-drummer)** — Sequencing by **pairs of steps** on top of the pattern: pads 1-16 steps, 17-24 destination / macro, the 8 knobs = the 8 pairs (pitch or velocity). MIDI: Preset view, pad 30. Synths: source view, pad 30. While recording, the steps you play are recorded in real time. *View:* [3.8 Step-drummer view](GUIA.en.md#step-drummer)
+- <a id="c4-fx-seq"></a><a id="fx-seq"></a>**[C4 FX sequencer](GUIA.en.md#f-fx-seq)** — **Blue** state of pad 27: the step-drummer of the track picks, for each pair of steps, **a slot of the Master FX bottom row** (0 = none); it plays on the steps with a note. The knob moves slowly (**one slot every ~48 steps of the turn**) and lights in the **colour of the chosen effect**. **A slot with no effect assigned** plays, **since RC4**, the effect at the top of its column (pad 26 = Master FX pad 1 … pad 30 = pad 5), with its knobs; before, it did nothing: assign the effects to the Master FX bottom row (see “Assignable bottom row”). **since RC2:** at the end of the travel there is the **random** value (white LED): on every step with a note one of the list plays at random (the slots with an effect assigned and the mechanical gesture of pad 31). *View:* [3.8 Step-drummer view](GUIA.en.md#step-drummer)
+- <a id="c5-song-pointer"></a><a id="song-pointer"></a>**[C5 Song pointer (Master FX)](GUIA.en.md#f-song-pointer)** — Pads 9-24 = steps 1-16: one held step = retrigger; two steps = momentary phrase. **Phrase mode** (a latched phrase): Shift + step = start (end 16); a touch = the end; Shift + another step = new start; Shift + the start or the white pad 9 = exit. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="c6-sample"></a><a id="sample"></a>**[C6 Captured sample](GUIA.en.md#f-sample)** — **Pad 32** (red) records the output; **pad 7** (yellow) plays it: K1 pitch, K2 mode (one-shot / gate / loop by colour), K3 start, K4 end. The sample can be assigned to the bottom row (pad 7 + a bottom pad) and can replace a drum (A8). *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="c7-glitch-pad"></a><a id="glitch-pad"></a>**[C7 Glitch (pad 6) and its assignment](GUIA.en.md#f-glitch-pad)** — **Hold pad 6** of Master FX: the output breaks up and lags like a tape. K1 speed, K2 repeat, K3 delay, K4 chaos (lower half) or overload (upper half). **Pad 6 held + a bottom-row pad** = that slot is a Glitch too, with its copy of K1-K4. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="c8-fila-inferior"></a><a id="fila-inferior"></a>**[C8 Assignable bottom row (Master FX / FX)](GUIA.en.md#f-fila-inferior)** — Hold an effect of the top rows (or pad 7, or pad 31) and touch a bottom pad: that slot stores the effect with a copy of its parameters. Saved with the project. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="c9-random-mutate"></a><a id="random-mutate"></a>**[C9 Random-mutate per step](GUIA.en.md#f-random-mutate)** — **Since RC2.** In the probability view, in mode 2 (**pad 25** of Pattern Settings), row 4 gives each step a chance of its notes jumping an octave or moving to another note of the scale when they play. *View:* [4.3 Probability view (note tracks and drums)](GUIA.en.md#probabilidad)
+- <a id="c10-frecuencia-dinamicas"></a><a id="frecuencia-dinamicas"></a>**[C10 Step frequency and dynamics](GUIA.en.md#f-frecuencia-dinamicas)** — **Since RC2.** In the probability view of the note tracks: **row 4 = every how many plays of the pattern the step sounds** (1-8). With **pad 25 of Pattern Settings**: row 3 = random **dynamics** (velocity, position and length), row 4 = random-mutate. *View:* [4.3 Probability view (note tracks and drums)](GUIA.en.md#probabilidad)
+- <a id="c11-cadenas"></a><a id="cadenas"></a>**[C11 Pattern chains and scenes](GUIA.en.md#f-cadenas)** — **Since RC2.** Every pattern can carry a rule “play n times, then jump to B; the next time, to C”. **Shift + Octave ▲ / ▼** in the Patterns view switches the **chain mode** of the whole project on / off; every scene remembers the mode it was saved in. *View:* [9.1 Patterns view and pattern chains](GUIA.en.md#patterns)
+- <a id="c12-mutate-patrones"></a><a id="mutate-patrones"></a>**[C12 Pattern mutate (Beta 5.65 only)](GUIA.en.md#f-mutate-patrones)** — **Beta 5.65 only.** Ported from the Pattern Mutate in [mefisme's Rhythm Plus](https://github.com/mefisme/rhythm-plus) (MIT licence). In the Patterns view or the Mixer, **Shift + a tap on Duplicate** gives each selected track a short list of patterns from its chain, in another order, that loops in place of the chain. The patterns themselves don't change. *View:* [9.1 Patterns view and pattern chains](GUIA.en.md#patterns)
+- <a id="c13-nudge-ordenes"></a><a id="nudge-ordenes"></a>**[C13 Nudge and play orders](GUIA.en.md#f-nudge-ordenes)** — **Since RC2.** In the Pattern Settings view: **pad 26 = Nudge** (moves the content of the selected steps), **pad 27 = fractal order**, **pad 28 = deconstructed order**. On every track, drums included. *View:* [4.1 Pattern Settings view](GUIA.en.md#pattern-settings)
+- <a id="c14-arpegiador"></a><a id="arpegiador"></a>**[C14 Arpeggiator (since RC2)](GUIA.en.md#f-arpegiador)** — **Since RC2.** In the Pattern Settings view of a note track: **Shift + pad 25** = the pattern's arpeggiator on / off, **Shift + pads 27-32** = its order (fractal, deconstructed, up, down, ping-pong, random), independent of the pattern's direction. *View:* [4.1 Pattern Settings view](GUIA.en.md#pattern-settings)
+- <a id="c15-rollers"></a><a id="rollers"></a>**[C15 Drums micro-step rollers (since RC2)](GUIA.en.md#f-rollers)** — **Since RC2.** Rows 1-3 of the drums' Note view: holding a roller plays its drum on every step at that micro step (two columns per drum, micro steps 1-3 and 4-6), live; with the transport stopped, at the project's tempo. *View:* [5.3 Chromatic and scale view of the drums](GUIA.en.md#drum-cromatica)
+- <a id="c16-escala-propia"></a><a id="escala-propia"></a>**[C16 Custom scale (since RC2)](GUIA.en.md#f-escala-propia)** — **Since RC2.** **Shift + Scales** = an editor of a custom scale for the note tracks: up to 7 notes over the root and any **period** (up to 24 semitones) that is the root of the next iteration; every row of pads is one iteration (two with 4 notes or fewer). Saved with the project. *View:* [2.2 Scales view and custom scale](GUIA.en.md#escalas)
+- <a id="c17-acordes"></a><a id="acordes"></a>**[C17 Chord screen (since RC4)](GUIA.en.md#f-acordes)** — **Since RC4.** In the **expanded Note view** of Synth 1 / 2 and MIDI 1 / 2, **Shift + pad 8** opens the chord screen: row 1 the type, row 2 the inversion and the modifiers, rows 3-4 the roots; each root plays its chord while it is held. *View:* [2.1 Synth 1 / 2 track view (Note, Velocity, Gate)](GUIA.en.md#synth-nota)
+- <a id="c18-pareja-estereo"></a><a id="pareja-estereo"></a>**[C18 Stereo drum pairs (since RC4)](GUIA.en.md#f-pareja-estereo)** — **Since RC4.** **Hold Drum 1 and press Drum 2** (or Drum 3 + Drum 4): Drum 1 / 3 sounds on the left and Drum 2 / 4 on the right with the next sample, both driven by Drum 1 / 3's controls and pattern; Drum 2 / 4's knobs = stereo width (K2), detune (K1) and deviations. Saved with the project. *View:* [5.1 Drum track view (knobs)](GUIA.en.md#drum-pista)
+- <a id="c19-carril-extra"></a><a id="carril-extra"></a>**[C19 The drums' extra lane (Beta 5.65 only)](GUIA.en.md#f-carril-extra)** — **Beta 5.65 only.** Each drum has **one more automation lane**, kept in the spare bits of each step of its pattern (it travels with Duplicate, Nudge and Shift + Play). From the factory it carries the **chromatic pitch** (the chromatic view's pads record there; the pitch lane stays K1's); **Record held + a knob** assigns another parameter and **Record held + a chromatic pad** brings back the chromatic pitch. *View:* [5.1 Drum track view (knobs)](GUIA.en.md#drum-pista)
+- <a id="c20-modo-muestra"></a><a id="modo-muestra"></a>**[C20 Sample mode of the MIDI tracks (since RC2)](GUIA.en.md#f-modo-muestra)** — **Since RC2.** A new state of pad 27 (teal, after the granular): the MIDI track plays **a pack sample one-shot**, at the note's pitch (**C3 = note 60 = as recorded**), through the engine's filter, effect and LFO; the VCA stays open and the sample plays to its end. The **expanded Note view** (Note twice) is the picker: rows 3-4 = 16 samples × 4 pages (Octave ▼ / ▲: all 64 of the pack), rows 1-2 = the steps; **a held step + a sample** = that step's sample flip, also live with Record. *View:* [3.9 Sample mode and sample picker](GUIA.en.md#midi-muestra)
+- <a id="c21-matriz-mod"></a><a id="matriz-mod"></a>**[C21 Mod matrix of the own synth (since RC2.02)](GUIA.en.md#f-matriz-mod)** — **Since RC2.02.** With the MIDI 1 / 2 engine on, **pad 6** of its Preset view is a new knob page: **K1-K8 = eight sources** (velocity, note, random per note, LFO 2, envelope 2, a drum hit, the pattern position, stepped random). Each knob's **position** is the **destination** (every parameter of the knob pages, 33, one stretch each, in its page's colour) and, inside the stretch, the **amount**. Slow knobs: two clicks a step, 16 steps a destination. *View:* [3.4 Mod matrix](GUIA.en.md#midi-matriz)
+- <a id="c22-saltos"></a><a id="saltos"></a>**[C22 Jump sequencer of MIDI 1 / 2 (Beta 5.65 only)](GUIA.en.md#f-saltos)** — The notes of a MIDI track make another track's pattern jump to the step they indicate. *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+- <a id="c23-fm4"></a><a id="fm4"></a>**[C23 4-operator FM (since RC4)](GUIA.en.md#f-fm4)** — **Since RC4.** A variant of the oscillator of the MIDI 1 / 2 own synth: **pad 24** of the engine row (a tap on pad 27), violet; its knobs on **pad 7**. **K1-K4** = the ratio of operators 1-4 (with a **fine detune** on each ratio's clicks), **K5-K8** = their level; **Shift + K1-K4** = to the right its attack, to the left the operator **percussive** with its own decay; **Shift + K5** = the **algorithm** (16; also by **holding pad 7**: pads 9-24 are the algorithms, a press picks one and plays it), **Shift + K6** feedback, **Shift + K7** noise, **Shift + K8** release (longer with more velocity). *View:* [3.5 4-operator FM](GUIA.en.md#midi-fm)
+- <a id="c24-fm8"></a><a id="fm8"></a>**[C24 8-operator FM (Beta 5.65 only)](GUIA.en.md#f-fm8)** — **Beta 5.65 only.** It replaces the 4-operator FM on **pad 24** of the engine row: **up to 8 operators**, each with a **DX7-style envelope** (4 rates, 4 levels), and **56 algorithms** (the 4-operator FM's 16, the DX7's 32 and 8 with eight operators). 4-operator FM patches load converted, with the same sound. FM page = **pad 7** (with the engine row closed): **pads 9-16** = operator 1-8 (the ones the algorithm uses lit: carriers green, modulators light blue), **pad 3** = the pitch envelope (violet). **K1** ratio (0.5 … 31 or fixed in Hz), **K2** fine, **K3** level, **K4** velocity, **K5-K8** rates R1-R4; with Shift **K1** algorithm, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** levels L1-L4. *View:* [3.6 8-operator FM](GUIA.en.md#midi-fm8)
+- <a id="c25-wavetable"></a><a id="wavetable"></a>**[C25 Wavetable (Beta 5.65 only)](GUIA.en.md#f-wavetable)** — **Beta 5.65 only.** **Pad 21** of the engine row (sand) = the oscillator reading a **wavetable**: both oscillators, the FM / ring / sync between them, the filter, the VCA, polyphony and the voice modes stay as they are. **One table per patch, up to 9 frames**, for both oscillators; each its own **position**: **K3** of the OSC 1 / OSC 2 page (WAVE; in Beta 5.24-5.26, K7), K7 = LFO → position, Shift + K3 = envelope → position. **SHAPE** (K2) and envelope / LFO → shape (K4 / K6) = **warp**, a bend of the phase. *View:* [3.1 MIDI 1 / 2 Preset view](GUIA.en.md#midi-preset)
+- <a id="c26-master-fx-beta"></a><a id="master-fx-beta"></a>**[C26 Master FX since RC2: mechanical gesture, Glitch, Digitise and saving per session](GUIA.en.md#f-master-fx-beta)** — **Since RC2.** Pad 6 of Master FX is the **Glitch** and pad 31 a **mechanical gesture** (tape stop, scratch…); Digitise gains **K3 = momentary send to the delay** and **K4 = envelope**; the Master FX knobs and slots **are saved with every project**. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+
+### D. DSP
+
+- <a id="d1-efectos-master-fx"></a><a id="efectos-master-fx"></a>**[D1 Master FX effects](GUIA.en.md#f-efectos-master-fx)** — Gater, Auto-Filter LP / HP, Digitise, Phaser and Glitch on the master output, with 4 parameters each. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="d2-vca-vcf"></a><a id="vca-vcf"></a>**[D2 VCA-VCF of the MIDI tracks](GUIA.en.md#f-vca-vcf)** — DJ / LP / HP 12 and 24 dB / band pass / notch filters, effects (saturation, folding, wavefold, ring, comb, chorus), VCA with ADSR and LFO. *View:* [3.3 Knob pages of the MIDI 1 / 2 engine](GUIA.en.md#midi-knobs)
+- <a id="d3-osciladores"></a><a id="osciladores"></a>**[D3 Oscillators and paraphony](GUIA.en.md#f-osciladores)** — Continuous morph sine → triangle → saw → square, wavefold / slope / width, second oscillator with FM, ring, soft sync and bitwise modes; two paraphonic notes. *View:* [3.3 Knob pages of the MIDI 1 / 2 engine](GUIA.en.md#midi-knobs)
+- <a id="d4-va-drum"></a><a id="va-drum"></a>**[D4 VA-drum engine](GUIA.en.md#f-va-drum)** — Oscillator made for percussion: one-shot VCA, dedicated decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise and random values instead of the LFO. *View:* [3.3 Knob pages of the MIDI 1 / 2 engine](GUIA.en.md#midi-knobs)
+- <a id="d5-granular"></a><a id="granular"></a>**[D5 Granular synth](GUIA.en.md#f-granular)** — Up to **16 grains per track** from any sample of the pack or the capture, with interpolation and window. K1 pitch, K2 position, K3 scan / freeze, K4 size, K5 density, K6 zone, K7 LFO → position, K8 envelope → position; Shift: fine, sprays, reverse, window, slicer (or stretch, since RC2), LFO → size, source. *View:* [3.3 Knob pages of the MIDI 1 / 2 engine](GUIA.en.md#midi-knobs)
+- <a id="d6-glitch-dsp"></a><a id="glitch-dsp"></a>**[D6 Glitch engine](GUIA.en.md#f-glitch-dsp)** — A tape head over a stereo circular buffer of the master (2.7 s): variable speed, repeats with fades, chaos. *View:* [6.1 Master FX](GUIA.en.md#master-fx)
+- <a id="d7-drums-dsp"></a><a id="drums-dsp"></a>**[D7 Drum DSP](GUIA.en.md#f-drums-dsp)** — Ring mod, pitch and filter envelopes, LFO, DJ / band pass / notch / comb (not in Beta 5.65) / tilt filters, bitcrush, start point, distortions and sidechain between drums. *View:* [5.1 Drum track view (knobs)](GUIA.en.md#drum-pista)
+- <a id="d8-entradas"></a><a id="entradas"></a>**[D8 Audio inputs and returns](GUIA.en.md#f-entradas)** — Line input (normal or inverted) as a synth source; reverb / delay returns through strips 3 / 4 with feedback. *View:* [2.3 Synth source view](GUIA.en.md#synth-fuente)
+
+### E. Miscellaneous
+
+- <a id="e1-guardado"></a><a id="guardado"></a>**[E1 What is saved and where](GUIA.en.md#f-guardado)** — Pattern, project, pack and device settings: what goes where, how to make sure it is saved and what is lost at power-off, in the «Data» chapter of the guide by views. *View:* [11.2 What comes back after a restart and where it is saved](GUIA.en.md#guardado)
+- <a id="e2-pack-interno"></a><a id="pack-interno"></a>**[E2 The internal memory pack: read only](GUIA.en.md#f-pack-interno)** — Nothing of the mod writes or deletes in the pack of the Circuit’s internal memory (the first one of the Packs view). You can read it and copy from it to a pack of the card, not the other way round. *View:* [10.2 Packs view](GUIA.en.md#packs)
+- <a id="e3-instalar"></a><a id="instalar"></a>**[E3 Installing and going back](GUIA.en.md#f-instalar)** — `rc_uploader.html` patches Novation's official firmware in the browser and sends it over Web MIDI; it only accepts the official firmware 1.2.1. Recovery: Scales + Preset + Note at power-on. *View:* [A.1 Installing and going back](GUIA.en.md#instalar)
+- <a id="e4-herramientas"></a><a id="herramientas"></a>**[E4 Development and diagnostic tools](GUIA.en.md#f-herramientas)** — Reproducible builders, ARM / DSP emulators with tests through the real routes, `verify_builds.py`, remote diagnostics over USB (`ctremote.py`). *View:* [A.1 Installing and going back](GUIA.en.md#instalar)
+- <a id="e5-tablas-midi"></a><a id="tablas-midi"></a>**[E5 MIDI tables](GUIA.en.md#f-tablas-midi)** — MIDI engine: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 0:76 and 4:x; drums NRPN 5-8:1-14; Master FX NRPN 9:0-19 (channel 16). *View:* [11.4 MIDI: own behaviours, new CCs and NRPNs](GUIA.en.md#midi)

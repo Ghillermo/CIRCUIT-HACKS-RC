@@ -75,12 +75,12 @@ def page(lang, cats, rgb, trk):
         L += ["## Setting a patch's category", "",
               "- **On the device:** save the patch in the Synth 1 / 2 Preset view (**Clear + pad**, then **Clear + the same pad** to confirm); while it asks, **K1** picks the category.",
               "- **In Novation Components:** the category of each patch of the pack.",
-              f"- **In the SD app** ([download]({PAGES}sd_app.zip)): the **Nova synths** tab shows each patch's colour and, on top, this chart as a colour key.", ""]
+              f"- **In the card and device app** ([online]({PAGES}app.html) or [`hr_app.zip`]({PAGES}hr_app.zip)): the **Nova synths** tab shows each patch's colour and, on top, this chart as a colour key.", ""]
     else:
         L += ["## Elegir la categoría de un patch", "",
               "- **En el aparato:** guarda el patch en la vista Preset de Synth 1 / 2 (**Clear + pad**, luego **Clear + el mismo pad** para confirmar); mientras pregunta, **K1** elige la categoría.",
               "- **En Novation Components:** la categoría de cada patch del pack.",
-              f"- **En la app de la tarjeta** ([descarga]({PAGES}sd_app.zip)): la pestaña **Sintes Nova** enseña el color de cada patch y, arriba, esta tabla como clave de colores.", ""]
+              f"- **En la app de la tarjeta y del aparato** ([en línea]({PAGES}app.html) o [`hr_app.zip`]({PAGES}hr_app.zip)): la pestaña **Sintes Nova** enseña el color de cada patch y, arriba, esta tabla como clave de colores.", ""]
     return "\n".join(L)
 
 

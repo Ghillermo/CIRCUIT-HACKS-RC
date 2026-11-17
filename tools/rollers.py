@@ -24,7 +24,7 @@ import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
+from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bl, bx_lr, cmp_imm, cmp_reg, h, ldr_imm, ldr_sp, ldrb_imm, ldrb_reg, lsls_imm, lsrs_imm,  # noqa: E402
                    mov_reg, movs_imm, movt, movw, muls, pop_list, push_list, raw, str_imm, str_sp, strb_imm, strb_reg, strh_imm, sub_sp_imm, add_sp_imm, subs_imm8, subs_reg)
 from build_sc14 import udiv  # noqa: E402
 import drumnote as DN  # noqa: E402
@@ -112,6 +112,21 @@ def use_noteoff():
     NOTEOFF = True
 
 
+VTGUARD = False                                            # SC57.9 / Beta 5.64 / RC4.15 (use_vtguard)
+
+
+def use_vtguard():
+    """SC57.9 / Beta 5.64 / RC4.15 (a fix; the black box record of 2026-11-15, Beta 5.63, «pattern chain is broken»): the stopped sequencer
+    tick's store commit (0x080353C0) of Drum 4's step store reached a listener entry whose vtable word had been overwritten with 0x0805AD60 =
+    the address of slot 7 of the drum Note view class (0x0805AD44 + 0x1C), so the commit called c_rlleds (the content of that slot) with the
+    listener sub-object as `this`; drumnote.c_nvl then took [[this + 4]] (a store header, 0x1f020520) as the LED buffer and read 0x1f02055e:
+    BusFault.  The stock's slot 7 there (the LED getter 0x08047592) was harmless with any object.  Now c_rlleds (and c_nvl, drumnote.use_vtguard)
+    return at once, with nothing written, when [this] is not the class's vtable 0x0805AD44: the check runs before the push (no extra stack on
+    the LED task's path) and costs 16 B.  The writer of that word is not found (see docs/NOTAS.md, «Beta 5.63: BusFault»)."""
+    global VTGUARD
+    VTGUARD = True
+
+
 DRUM_COL = (0x45, 0x2D, 0x49, 0x4D)                        # drums 1-4 (the bottom row's colours); + 1 = the dim one of the same family
 
 
@@ -169,6 +184,9 @@ def arm_code(base, prev):
 
     # ---- c_rlleds (the drums' Note view slot 7: view) -> its LED buffer, rows 1-3 = the rollers (dim, bright while held)
     a.label("c_rlleds")
+    if VTGUARD:                                                                                        # (use_vtguard) not a drum Note view: nothing, r0 back
+        E(ldr_imm, 1, 0, 0); imm32(2, NV_VT); E(cmp_reg, 1, 2); E(b_cond, "rl_go", "eq"); E(bx_lr)
+        a.label("rl_go")
     E(push_list, [4, 5, 6, 7], lr=True)
     E(bl, prev["leds"]); E(mov_reg, 5, 0)
     if V2:                                                                                             # the stamp

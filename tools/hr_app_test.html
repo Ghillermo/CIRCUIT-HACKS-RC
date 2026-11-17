@@ -54,6 +54,7 @@ async function main() {
   for (const n of ["hrT", "hrR", "hrF"]) { try { await op.removeEntry(n, {recursive: true}); } catch (_) { /* first run */ } }
   const mk = async (root, path) => { let d = await op.getDirectoryHandle(root, {create: true}); for (const p of path) d = await d.getDirectoryHandle(p, {create: true}); return d; };
   const tS = await mk("hrT", ["Tracks", "04_TT", "Sessions"]), tP = await mk("hrT", ["Tracks", "04_TT", "PCM"]);
+  await mk("hrT", ["Tracks", "05_TU", "Sessions"]); await mk("hrT", ["Tracks", "05_TU", "Patches"]);        // (2026-11-15) a second pack: the copies into several packs
   const ts = new Uint8Array(SDT.SESS_SIZE); ts.set([0x55, 0x53, 0x45, 0x52]); ts.set(tpat, SDT.MIDI0); ts.set(db, SDT.DRUM0 + SDT.DPAT * 0);
   await SDT.writeFile(tS, "00_ProjT.ncs", ts); await SDT.writeFile(tP, "00_Sine.wav", wav(4800, 440));
   const tPa = await mk("hrT", ["Tracks", "04_TT", "Patches"]), fmPatch = SDT.dx7Patch({name: "TESTFM", params: Uint8Array.from({length: 216}, (_, i) => (i * 7) % 100)});
@@ -128,6 +129,15 @@ async function main() {
   pT.sel = new Set([2]); pR.sel = new Set([5]); const ro2 = A.copyAct(pT); await sleep(150);
   const dl = W.document.getElementById("dlg"), dtxt = dl.open ? dl.textContent : ""; if (dl.open) dl.querySelector("button").click(); await ro2;
   check(/lectura|read-only/i.test(dtxt) && eq((await SDT.Custom.get({pack: pT.card.pack(4)}, 20)).subarray(0, SDT.PADN), d0.subarray(0, SDT.PADN)), "the demo patches are read-only (a copy into them is refused)");
+  // (2026-11-15) the starter sounds into one or several packs at once; a copy to several packs
+  const nm = async (pk, n) => { const t = await SDT.Custom.get({pack: pT.card.pack(pk)}, n); return t ? SDT.ctmName(t) || "" : ""; };
+  await A.loadDemosAct(pT, {set: "fm", packs: [5], start: 0}); await sleep(100);
+  const L5 = (await SDT.Custom.list({pack: pT.card.pack(5)})).filter(x => !x.empty && !x.bad).length;
+  check(L5 === 48 && /E\.?Piano/i.test(await nm(5, 0)) && /Long Bell/i.test(await nm(5, 47)), `«Sonidos de partida»: the 48 FM starters into pack 05, slots 0-47 (${L5}; «${await nm(5, 0)}» … «${await nm(5, 47)}»)`);
+  await A.loadDemosAct(pT, {set: "classic", packs: [4, 5], start: 20}); await sleep(100);
+  check(/Ladder/i.test(await nm(4, 20)) && /Noise Sweep/i.test(await nm(4, 52)) && /Ladder/i.test(await nm(5, 20)) && /E\.?Piano/i.test(await nm(5, 0)), `the 33 classics into packs 04 and 05 at once, from slot 20 (04·20 «${await nm(4, 20)}», 04·52 «${await nm(4, 52)}», 05·20 «${await nm(5, 20)}»; 05·0 kept)`);
+  pR.sel = new Set([1, 2]); await A.multiCopyAct(pR, {packs: [4, 5], start: 60}); await sleep(100);
+  check(/Acid/i.test(await nm(4, 60)) && /Reese/i.test(await nm(4, 61)) && /Acid/i.test(await nm(5, 60)) && /Reese/i.test(await nm(5, 61)), `«A varios packs…»: demos 2-3 into slots 60-61 of packs 04 and 05 («${await nm(4, 60)}», «${await nm(5, 61)}»)`);
   await A.renderAll(); pT.sel = new Set([3]); await A.editAct(pT);
   const EW = W.HRFRAMES.editor && W.HRFRAMES.editor.contentWindow, PE = EW && EW.PE, sb = EW && EW.document.getElementById("saveback");
   check(PE && A.state.view === "editor" && PE.val[27] === -7 && EW.document.getElementById("name").value === "TESTVA" && sb && !sb.hidden, `«Editar» on Hacks custom 3: the editor view with its values (OSC 2 ratio ${PE && PE.val[27]}) and «${sb && sb.textContent}»`);
@@ -138,6 +148,39 @@ async function main() {
   A.state.view = "both"; await A.renderAll(); pR.sel = new Set([4]); await A.editAct(pR);
   check(sb.hidden && PE.val[1] !== 33, "«Editar» on a demo patch: no «Guardar en …» (read-only), its own values");
   A.state.view = "both"; try { W.localStorage.setItem("hrapp.view", "both"); } catch (_) { /* none */ } await A.renderAll();
+  // (2026-11-13) the Projects and Packs tabs: a new pack, a duplicate, an empty project, projects copied between cards
+  {
+    const dlg = W.document.getElementById("dlg");
+    const answer = async (pr, fill) => { await sleep(150); fill(dlg); dlg.querySelector('[data-i="0"]').click(); await pr; await sleep(150); };
+    const hT = await op.getDirectoryHandle("hrT");
+    await A.openPane(pT, hT); A.state.tab = "packs"; await A.renderAll();
+    check(pT.items.length === SDT.NPACKS && !pT.items[4].empty && pT.items[4].name === "TT" && pT.el.querySelector('[data-act="newpack"]') && pT.el.querySelector('[data-act="duppack"]'), `the Packs tab: ${pT.items.filter(x => !x.empty).map(x => x.slot + " " + x.name)}, «Pack nuevo» / «Duplicar»`);
+    pT.sel = new Set([4]);
+    await answer(A.newPackAct(pT, false), d => { d.querySelector("[data-np]").value = "Fresh"; const s = d.querySelector("[data-ns]"); s.value = "4"; d.querySelector("[data-nn]").value = "6"; });
+    const fp = pT.card.pack(6), fs = fp && await SDT.subdir(fp.dir, "Sessions"), fpat = fp && await SDT.subdir(fp.dir, "Patches");
+    const nSess = fs ? (await SDT.entries(fs)).length : -1, bank = fpat && await SDT.readHandle(await fpat.getFileHandle("00_PATCHBANK.cpb"));
+    check(fp && fp.folder === "06_Fresh" && nSess === 0 && bank && eq(bank, await SDT.readHandle(await (await SDT.subdir(pT.card.pack(4).dir, "Patches")).getFileHandle("00_PATCHBANK.cpb"))),
+          `«Pack nuevo» with TT's sounds: ${fp && fp.folder}, its patch bank, no projects (${nSess})`);
+    pT.sel = new Set([4]);
+    await answer(A.newPackAct(pT, true), d => { d.querySelector("[data-np]").value = "TT Copy"; d.querySelector("[data-nn]").value = "7"; });
+    const dp = pT.card.pack(7), ds = dp && await SDT.subdir(dp.dir, "Sessions");
+    check(dp && dp.folder === "07_TT Copy" && ds && (await SDT.entries(ds)).map(e => e[0]).join() === "00_ProjT.ncs", `«Duplicar»: ${dp && dp.folder} with its project`);
+    A.state.tab = "projects"; pT.packSlot = 4; pT.sel.clear(); await A.renderAll();
+    check(pT.items[0] && !pT.items[0].empty && pT.el.querySelector('[data-act="newproj"]'), "the Projects tab lists the pack's projects, «Proyecto vacío»");
+    await answer(A.emptyProjAct(pT), d => { d.querySelector("[data-ep]").value = "Blank"; d.querySelector("[data-et]").value = "1"; });
+    const bl = await SDT.Projects.get({pack: pT.card.pack(4)}, 1), m1 = bl && SDT.patParse(bl.bytes.subarray(SDT.MIDI0, SDT.MIDI0 + SDT.PAT));
+    const src = await SDT.Projects.get({pack: pT.card.pack(4)}, 0), m0 = SDT.patParse(src.bytes.subarray(SDT.MIDI0, SDT.MIDI0 + SDT.PAT));
+    const on = m => m.steps.reduce((a, s) => a + s.units.filter(u => u.on).length, 0);
+    check(bl && bl.name === "Blank" && on(m0) > 0 && on(m1) === 0 && bl.bytes[SDT.DRUM0 + 2] === 0 && src.bytes[SDT.DRUM0 + 2] === 100, `«Proyecto vacío» in slot 1: ${bl && bl.name}, no notes (the source has ${on(m0)}), no drum hits`);
+    await A.openPane(pR, hT); A.state.tab = "projects"; pR.packSlot = 6; pT.packSlot = 4; await A.renderAll();
+    pT.sel = new Set([0, 1]); pR.sel = new Set([3]); await A.copyAct(pT); await sleep(200);
+    const L6 = await SDT.Projects.list({pack: pT.card.pack(6)});
+    check(!L6[3].empty && !L6[4].empty && L6[3].name === src.name && L6[4].name === "Blank", `projects copied to another pack: ${L6.filter(x => !x.empty).map(x => x.slot + " " + x.name)}`);
+    A.state.tab = "packs"; await A.renderAll(); pT.sel = new Set([4]); pR.sel = new Set([4]);
+    const ref = A.copyAct(pT); await sleep(150); const rtxt = dlg.open ? dlg.textContent : ""; if (dlg.open) dlg.querySelector("button").click(); await ref;
+    check(/libre|free/.test(rtxt), "a pack does not go onto a pack");
+    A.state.tab = "samples"; await A.renderAll();
+  }
   check(!W.document.body.classList.contains("appmode") && W.HRFRAMES.hacks.hidden && W.HRFRAMES.remix.hidden && W.HRFRAMES.editor.hidden && W.document.getElementById("pane0").offsetHeight > 0, "back to «Entre los dos»: the panes, the frames kept hidden");
   window.RESULT = {pass, fail, lines};
   const end = document.createElement("b"); end.textContent = `\n${pass} pass, ${fail} fail`; end.className = fail ? "bad" : "ok"; out.append(end);

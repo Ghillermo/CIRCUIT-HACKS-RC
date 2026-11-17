@@ -98,7 +98,7 @@ See [Mod matrix and macro destinations](https://ghillermo.github.io/CIRCUIT-HACK
 ## The project
 
 **24. How do I report a bug?**
-Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC4 or RC4S), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording. **If the panel froze while the music kept playing** (Beta 5.51 and later; since 5.56 also when the device restarts by itself after a fault): after 15 s the device restarts by itself and Save blinks violet; open the [SD app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip), press **Black box…**, then **Save…**, and attach the `.json` file.
+Open an [issue](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/issues) with the version (for example RC4 or RC4S), what you did step by step, what you expected and what happened. If you can, attach the project or the pack, or a short recording. **If the panel froze while the music kept playing** (Beta 5.51 and later; since 5.56 also when the device restarts by itself after a fault): after 15 s the device restarts by itself and Save blinks violet; open the [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip) (the **Hacks · Circuit Tracks** view), press **Black box…**, then **Save…**, and attach the `.json` file.
 
 **25. How do I suggest a feature?**
 Use [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions) or an issue. Check the [Roadmap](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap) first: suggestions on control, usability and on how the data is saved are especially welcome.

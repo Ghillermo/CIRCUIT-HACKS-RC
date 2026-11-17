@@ -98,7 +98,7 @@ def main(img, man):
         """every keyboard pad of the screen -> the step it sends (the transport running)"""
         e.transport(1); got = {}
         for q in range(32):
-            e.uc.mem_write(J.RAM + 4, bytes(8)); e.call(PRESS, MGR, q, 100, maxins=8_000_000); e.call(RELEASE, MGR, q, maxins=8_000_000)
+            e.uc.mem_write(J.RAM + 4, bytes(8)); e.uc.mem_write(J.RAM + 20, bytes(12)); e.call(PRESS, MGR, q, 100, maxins=8_000_000)   # + 20..31: jumprnd's counts (every press here is in the same tick); e.call(RELEASE, MGR, q, maxins=8_000_000)
             v = bytes(e.uc.mem_read(J.RAM + 4, 8))[m]
             if v: got[q] = v - 1
         e.transport(0); e.uc.mem_write(J.RAM + 4, bytes(8))
@@ -248,6 +248,18 @@ def main(img, man):
         e.uc.mem_write(vbase + 10, bytes(1)); dh.clear()
         e.call(PRESS, MGR, 26, 100, maxins=8_000_000); e.call(RELEASE, MGR, 26, maxins=8_000_000)
         check(dh == [], f"and an empty step is silent ({dh})")
+        if "jsaflip" in R:                                                             # SC57.2: a drum step's sample flip is heard
+            dsm = int(R["drumarp"]["labels"]["c_dasmp"], 16)
+            e.uc.hook_add(UC_HOOK_CODE, lambda uc, a, s_, d: dh.append(("smp", uc.reg_read(UC_ARM_REG_R0), uc.reg_read(UC_ARM_REG_R1))), begin=dsm, end=dsm)
+            sel = e.r8(e.ptr(e.r32(DP + 0x5C), 0))
+            e.uc.mem_write(vbase + 10, bytes([77])); e.uc.mem_write(vbase + 0x40 + 10, bytes([5 if sel != 5 else 6])); fl = e.r8(vbase + 0x40 + 10); dh.clear()
+            e.call(PRESS, MGR, 26, 100, maxins=8_000_000); d1 = list(dh); e.call(RELEASE, MGR, 26, maxins=8_000_000)
+            check(d1 == [("smp", 0, fl), ("on", dnote, 77)] and dh[2:] == [("smp", 0, sel), ("off", dnote, 0)],
+                  f"stopped: a drum step with a sample flip sounds that sample, the selected one back on release ({dh}, selected {sel})")
+            e.uc.mem_write(vbase + 0x40 + 10, bytes([0xFF])); dh.clear()
+            e.call(PRESS, MGR, 26, 100, maxins=8_000_000); e.call(RELEASE, MGR, 26, maxins=8_000_000)
+            check(dh == [("on", dnote, 77), ("off", dnote, 0)], f"and without a flip, the selected sample as before ({dh})")
+            e.uc.mem_write(vbase + 10, bytes(1))
     # the octave of a pointing track: 64 / 65 only
     if "jumpoct" in R:
         VIEW = 0x200412E0 + 0x2F4 * 2

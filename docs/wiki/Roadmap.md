@@ -2,7 +2,7 @@
 
 *[Versión en español](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Roadmap-ES) · [Home](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/Home) · [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ) · [Changelog](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md#changelog) · [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions)*
 
-Updated 2026-11-13. Current versions: **RC4.11 / RC4.11S** (fixes) and **Beta 5.56** (new features; the betas that extend RC4 are numbered 5.x).
+Updated 2026-11-17. Current versions: **RC4.11 / RC4.11S** (fixes) and **Beta 5.56** (new features; the betas that extend RC4 are numbered 5.x).
 
 The mod has grown fast. The next stage is about **quality rather than quantity**: making what exists sound better, easier to use, solid and well documented. Bigger new features wait until then.
 
@@ -33,9 +33,13 @@ The mod has grown fast. The next stage is about **quality rather than quantity**
 - **One set of rules everywhere:** with Shift, what is available lights yellow and the chosen option shows in another colour; Clear + knob = default (lavender) or delete automation (red); Duplicate + A + B = swap or copy; every mode of its own has a visible indicator. Check every view against these rules.
 - **Tidy the busy views,** first the MIDI 1 / 2 Preset view, where most of pads 25-32 are separate switches (see the ideas below).
 - **Show hidden values,** such as a knob's exact number, the selected mode and whether there are unsaved changes (see the ideas below).
+- **Sample colours:** samples shown in their own colours, as the Synth 1 / 2 patches are by category.
+- **Alternatives to solo:** other ways to solo tracks in the Mixer besides pad 16's solo and solo flip.
 
 ### 3. Fix and maintain
 - **Device testing** of everything marked "not tested" in the changelog, then move the tested features from the Beta to the next RC.
+- **Sample capture and playback fix:** the Master FX sample capture (pad 32) and its playback (pad 7).
+- **Pages exit fix:** leaving a page or view goes back where it should.
 - **Every fix goes to both the RC and the Beta,** and every RC keeps its safer "S" twin.
 - **Stability first:** no new feature may make the timing unsteady or the audio click.
 - **Issues and FAQ:** answer reports, and add recurring questions to the [FAQ](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/wiki/FAQ).

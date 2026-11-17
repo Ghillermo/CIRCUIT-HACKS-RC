@@ -14,11 +14,14 @@ NAME = "SC56.3"
 B = S.B
 
 
+DROP_FMMAP = False                                       # (S564D4, a diagnostic) leave the FM algorithm map out
+
+
 def extra(img, report):
     import dspz
     import fmmap
     S.extra(img, report)
-    dspz.add(img, report, "fmmap", fmmap)
+    if not DROP_FMMAP: dspz.add(img, report, "fmmap", fmmap)
 
 
 if __name__ == "__main__":

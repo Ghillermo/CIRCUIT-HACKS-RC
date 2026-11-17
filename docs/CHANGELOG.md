@@ -7,6 +7,42 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7 — 2026-11-17
+
+**Alpha 7** (marca `ALPHA7`) = la Beta 5.65: todo lo de las Betas 5.57-5.65 (abajo), publicado junto a RC4.11 / RC4.11S y la Beta 5.56. **Versión experimental, sin probar en el aparato:** úsala solo con una copia de la SD. Si el aparato se cuelga o se reinicia solo, Save parpadea en violeta al volver a arrancar: sin apagarlo, guarda la caja negra con la app (vista Hacks → **Caja negra…**) y adjúntala a tu informe. → [Guía: Instalar y volver atrás](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#instalar)
+
+### Beta 5.64 — 2026-11-17 (publicada dentro de la Alpha 7)
+
+**Beta 5.64** (marca `B5.64`; = SC57.9) = la Beta 5.63 + lo siguiente, sin probar en el aparato.
+
+- **Mute en el secuenciador de efectos:** el knob de cada par de pasos tiene un valor más, pasado el «al azar»: **mute** (LED rojo). En esos pasos el master entero se queda en silencio mientras dura el paso, con un fundido de 2 ms al entrar y al salir; la captura de Master FX y el clic del metrónomo no se silencian. → [Guía: Vista del step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#step-drummer)
+
+### Beta 5.60 — 2026-11-13
+
+**Beta 5.60** (marca `B5.60`; = SC57.5) = la Beta 5.59 + lo siguiente, sin probar en el aparato.
+
+- **Volver al patrón guardado:** en cualquier vista de una pista (Preset, Note, Velocity, Gate, Micro Step, Pattern Settings, probabilidad, la vista cromática de los drums), **Clear + Duplicate** pregunta (Duplicate parpadea en blanco unos 5 s) y **Clear + Duplicate otra vez** devuelve el patrón que se ve a como está guardado en la tarjeta: los pasos, la automatización y los ajustes del patrón; en MIDI 1 / 2, también sus carriles extra. Save en rojo un momento = no se ha hecho (un proyecto nuevo sin guardar, un guardado pendiente, el fichero no está). En las demás vistas, Clear + Duplicate sigue terminando las listas del pattern mutate. → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones)
+
+### Beta 5.59 — 2026-11-13
+
+**Beta 5.59** (marca `B5.59`; = SC57.4) = la Beta 5.58 + lo siguiente, sin probar en el aparato.
+
+- **Cadenas de grupos de patrones (sustituyen a las reglas por patrón):** cada pista toca A × i → B × j → C × k y vuelve a A; A, B y C son tramos de patrones seguidos (por ejemplo 1-4, 3-5, 5-8) e i, j, k van de 1 a 16. En el modo cadena: Shift + pad de inicio + pad de final = el siguiente grupo; un pad de inicio y K1 = sus repeticiones; Clear + inicio de A = borra la cadena; Duplicate + inicio y una pista = la copia. Cada escena guarda la cadena de cada pista. Las reglas por patrón de proyectos anteriores no se usan. → [Guía: Vista Patterns y cadenas de patrones](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns)
+
+### Beta 5.58 — 2026-11-13
+
+**Beta 5.58** (marca `B5.58`; = SC57.3) = la Beta 5.57 + lo siguiente, sin probar en el aparato.
+
+- **Carriles extra del sinte propio de MIDI 1 / 2:** cada parámetro del motor que no está en los knobs secuenciables tiene su propio carril de automatización (hasta 25 por patrón, dos valores por paso: al principio y a la mitad). Se graban con Record + Play y valen Clear + knob, la foto de Record + paso, Nudge y los pasos que sueltan la automatización. Van en el fichero del proyecto, detrás de sus 160 780 bytes; los conservan el guardado en otro hueco, la copia de proyectos, Duplicate / Clear de patrones, la app de la tarjeta, cualquier copia de la carpeta y Components al volver a enviar el mismo proyecto. → [Guía: Páginas de knobs del motor](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Destinos con Duplicate + knob:** en otra página del motor, Duplicate + knob manda ese parámetro al primer hueco libre de los knobs secuenciables y después al de los no secuenciables; en esas páginas, Duplicate + knob deja el hueco libre. Shift + knob ya no elige el destino. → [Guía: Páginas de knobs del motor](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Sin los 48 instrumentos FM de fábrica:** el pad 8 mantenido ya no abre su lista (el pad 8 abre la página FM). Los mismos sonidos están como Parches demo en la app; deja sitio para los carriles extra. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
+### Beta 5.57 — 2026-11-13
+
+**Beta 5.57** (marca `B5.57`; = SC57.1 + `jumprnd`) = la Beta 5.56 + lo siguiente (y un arreglo, en «Arreglos»), sin probar en el aparato.
+
+- **Step flip con varias notas en un paso:** el salto va a uno de sus pasos al azar, todos con la misma probabilidad, y en cada vuelta se vuelve a elegir (antes ganaba siempre la última nota que enviaba el secuenciador). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
 ### Beta 5.56 — 2026-11-13
 
 **Beta 5.56** (marca `B5.56`; = SC57.1) = la Beta 5.55 + lo siguiente, probada en el aparato. Incluye las Betas 5.52-5.55, que no se publicaron.
@@ -678,6 +714,47 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Alpha 7 — 2026-11-17
+
+**Alpha 7** (marca `ALPHA7`) = la Beta 5.65 = la Beta 5.64 + este arreglo (y los de las Betas 5.57-5.64, abajo), sin probar en el aparato.
+
+- **Reinicio al pulsar Play / Record tras crear cadenas de patrones o escenas, o grabando drums** (las Betas 5.63 / 5.64; cazado en el aparato): el pintor de stock de la vista de probabilidad enciende tantos pads como el byte de probabilidad del paso elegido; con un valor que no puede ser (≥ 32) se salía de sus 16 pads y pisaba el objeto siguiente; el de la barra de velocity de un drum, igual con una velocity ≥ 129. Ahora los dos se saltan un valor que no pueden dibujar, y la primera vez la caja negra se congela con los gestos de antes (para encontrar quién deja ese valor). → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings)
+
+### Beta 5.64 — 2026-11-17 (publicada dentro de la Alpha 7)
+
+**Beta 5.64** (marca `B5.64`; = SC57.9) = la Beta 5.63 + estos arreglos, sin probar en el aparato.
+
+- **Reinicio al crear una cadena de grupos para una escena nueva** (la Beta 5.63; caja negra del 2026-11-15): con el transporte parado, la confirmación de un almacén de Drum 4 llamaba como «oyente» a la ranura 7 de la vista Note de drums (nuestro código de los rollers y de los cuadros duplicados) con un objeto que no era esa vista: una palabra de la barra de velocity de Drum 4 había cambiado un byte. Esa ranura ya no toca nada si el objeto no es la vista Note de drums (en el firmware original esa ranura era inofensiva con cualquier objeto). Quién cambia ese byte sigue sin encontrarse: el diagnóstico **S579D** congela la caja negra en el momento del cambio para verlo con la app. *(También en RC4.15.)* → [Guía: Vista Preset de drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-preset)
+- **Secuenciador de saltos:** un proyecto con basura en la cola del registro (y la firma por casualidad) podía escribir un byte fuera de su sitio al apuntar a otra pista; ahora el destino se comprueba (1-8). → [Guía: Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
+### RC4.15 / RC4.15S — sin publicar
+
+**RC4.15 / RC4.15S** (marcas `R415` / `R415S`) = RC4.14 / RC4.14S + el arreglo de la ranura 7 de la vista Note de drums (arriba, en la Beta 5.64) y el código inalcanzable de SC49 / SC49.3 que las RC no habían recibido (unos 2 KB de flash; nada cambia en el uso). → [Guía: Vista Preset de drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#drum-preset)
+
+### Beta 5.63 — 2026-11-17 (publicada dentro de la Alpha 7)
+
+**Beta 5.63** (marca `B5.63`; = SC57.8) = la Beta 5.62 + estos arreglos (y los de las Betas 5.61 / 5.62, sin publicar), sin probar en el aparato.
+
+- **Los carriles extra y las cadenas de grupos se guardaban en otro proyecto** (Betas 5.58-5.62): el hueco y el pack iban al revés, así que la cola del proyecto acababa en el proyecto *pack* del pack *hueco* (un fichero fantasma de unos 187 KB, o un proyecto de otro pack que crecía) y el aparato cambiaba de pack para las lecturas siguientes. Ahora van al proyecto guardado; en el pack interno no se escribe nada (y Save ya no se pone rojo). **Si guardaste proyectos con esas betas:** en el pack cuyo número es el hueco de tu proyecto, borra con la app, sin cargarlo, el proyecto cuyo número es tu pack. → [Guía: Qué guarda un patrón](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#datos-patron)
+- **Cuelgue al grabar knobs del VA-drum** (y otros parámetros de los carriles extra): dos copias de memoria del original sobre direcciones no alineadas. → [Guía: Páginas de knobs de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Carriles extra:** las ediciones con el transporte parado se perdían (el bloque en memoria era el del patrón que sonaba, no el editado); un guardado interrumpido podía dejar la cola a medias (ahora la cabecera se escribe la última); una copia fallida al DSP dejaba un bloque viejo (se reintenta). → [Guía: Páginas de knobs de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Clear + pad de escena no borraba sus cadenas de grupos** (desde la Beta 5.59): la escena borrada seguía trayéndolas. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **Un hueco secuenciable liberado (Duplicate + knob) apagaba el motor y mandaba un CC 0** al sonar su carril; la foto de Record + paso lo escribía. → [Guía: Páginas de knobs de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Step flip:** un salto pendiente al parar se disparaba al volver a dar Play; la nota de la escucha parada se quedaba colgada si Play empezaba antes de soltar el pad; con un drum como destino, un pad sobre un paso sin flip sonaba con el flip del anterior; con varias notas en un paso, una nota en un micropaso posterior podía saltar dos veces y las cuentas de una pista reiniciaban las de la otra; tras Play, el primer acorde a veces no saltaba. → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+- **Arpegiador con un reloj MIDI externo:** las notas armadas entre dos micropasos se temporizaban con el tempo del proyecto, no con el del reloj (un reloj más rápido traía el swing de vuelta; uno más lento, notas adelantadas). *(También en RC4.14.)* → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings)
+- **Captura fijada tras un reinicio que conserva la memoria** (instalar una versión, la caja negra): grababa en silencio. → [Guía: Vista Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx) *(También en RC4.14.)*
+- Los arreglos de las Betas 5.61 / 5.62, sin publicar: **el arpegio a tiempo entre dos micropasos** (x4 sobre la base sonaba a tresillos), **la captura fijada / armada sigue al cargar un proyecto** y **Play ya no cuelga el aparato con el arpegiador** (el fallo de la 5.61). → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings)
+
+### RC4.14 / RC4.14S — sin publicar
+
+**RC4.14 / RC4.14S** (marcas `R414` / `R414S`) = RC4.13 / RC4.13S + los dos arreglos marcados «también en RC4.14» en la Beta 5.63 (el arpegiador con un reloj externo → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#pattern-settings); la captura tras un reinicio → [Guía: Vista Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#master-fx)), y los de RC4.12 / RC4.13, sin publicar: el arpegio a tiempo entre dos micropasos, la captura que sigue al cargar un proyecto y el cuelgue de RC4.12 al dar Play con el arpegiador. → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#pattern-settings)
+
+### Beta 5.57 — 2026-11-13
+
+**Beta 5.57** (marca `B5.57`; = SC57.2) = la Beta 5.56 + este arreglo, sin probar en el aparato.
+
+- **Step flip con el transporte parado: con un drum como destino, todos los pads sonaban igual** (desde la Beta 5.5). La escucha tocaba siempre el sample elegido del drum; ahora toca el sample flip del paso (y, sin flip, el sample elegido, como antes). → [Guía: Vista Preset de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
 ### Beta 5.54 — 2026-11-12
 
 **Beta 5.54** (marca `B5.54`; = SC56.9) = la Beta 5.53 + este arreglo, sin probar en el aparato.
@@ -1029,6 +1106,42 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7 — 2026-11-17
+
+**Alpha 7** (marker `ALPHA7`) = Beta 5.65: everything from Betas 5.57-5.65 (below), released next to RC4.11 / RC4.11S and Beta 5.56. **Experimental, not tested on the device:** use it only with a backup of the SD card. If the device hangs or restarts by itself, Save blinks violet when it starts again: without switching it off, save the black box with the app (Hacks view → **Black box…**) and add it to your report. → [Guide: Install and go back](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#instalar)
+
+### Beta 5.64 — 2026-11-17 (released within Alpha 7)
+
+**Beta 5.64** (marker `B5.64`; = SC57.9) = Beta 5.63 + the following, untested on the device.
+
+- **Mute in the FX sequencer:** the knob of each pair of steps has one more value past «random»: **mute** (red LED). On those steps the whole master goes silent for the length of the step, with a 2 ms fade in and out; the Master FX capture and the metronome click are not muted. → [Guide: Step-drummer view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#step-drummer)
+
+### Beta 5.60 — 2026-11-13
+
+**Beta 5.60** (marker `B5.60`; = SC57.5) = Beta 5.59 + the following, untested on the device.
+
+- **Back to the saved pattern:** in any view of a track (Preset, Note, Velocity, Gate, Micro Step, Pattern Settings, Probability, the drums' chromatic view), **Clear + Duplicate** asks (Duplicate blinks white for about 5 s) and **Clear + Duplicate again** puts the pattern it shows back as it is saved on the card: the steps, the automation and the pattern settings; on MIDI 1 / 2, its extra lanes too. Save red for a moment = not done (a new project not saved, a save pending, the file missing). In the other views, Clear + Duplicate still ends the pattern mutate lists. → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones)
+
+### Beta 5.59 — 2026-11-13
+
+**Beta 5.59** (marker `B5.59`; = SC57.4) = Beta 5.58 + the following, untested on the device.
+
+- **Chains of pattern groups (they replace the per-pattern rules):** each track plays A × i → B × j → C × k and back to A; A, B and C are runs of consecutive patterns (for example 1-4, 3-5, 5-8) and i, j, k go from 1 to 16. In the chain mode: Shift + a start pad + an end pad = the next group; a start pad and K1 = its repeats; Clear + A's start = the chain gone; Duplicate + a start and a track = a copy. Each scene keeps each track's chain. Older projects' per-pattern rules are not used. → [Guide: Patterns view and pattern chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
+
+### Beta 5.58 — 2026-11-13
+
+**Beta 5.58** (marker `B5.58`; = SC57.3) = Beta 5.57 + the following, untested on the device.
+
+- **Extra lanes for MIDI 1 / 2's own synth:** every parameter of the engine that is not on the sequenceable knobs has an automation lane of its own (up to 25 a pattern, two values a step: at its start and halfway). They record with Record + Play, and Clear + knob, the Record + step snapshot, Nudge and the steps that release the automation work on them. They live in the project's file, after its 160 780 bytes; saving to another slot, the project copy, Duplicate / Clear of patterns, the SD card app, any copy of the folder and Components sending the same project back keep them. → [Guide: The engine's knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Destinations with Duplicate + knob:** on another page of the engine, Duplicate + knob sends that parameter to the first free slot of the sequenceable knobs, then of the non-sequenceable ones; on those pages, Duplicate + knob frees the slot. Shift + knob no longer picks the destination. → [Guide: The engine's knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **The 48 built-in FM instruments removed:** holding pad 8 no longer opens their list (pad 8 opens the FM page). The same sounds are Demo patches in the app; this makes room for the extra lanes. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+
+### Beta 5.57 — 2026-11-13
+
+**Beta 5.57** (marker `B5.57`; = SC57.1 + `jumprnd`) = Beta 5.56 + the following (and a fix, under «Fixes»), untested on the device.
+
+- **Step flip with several notes on a step:** the jump goes to one of their steps at random, each with the same chance, and every loop picks again (before, the last note the sequencer sent always won). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
 ### Beta 5.56 — 2026-11-13
 
@@ -1700,6 +1813,47 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Alpha 7 — 2026-11-17
+
+**Alpha 7** (marker `ALPHA7`) = Beta 5.65 = Beta 5.64 + this fix (and those of Betas 5.57-5.64, below), untested on the device.
+
+- **A restart on Play / Record after making pattern or scene chains, or while recording drums** (Betas 5.63 / 5.64; caught on the device): the stock painter of the probability view lights as many pads as the selected step's probability byte; with an impossible value (≥ 32) it ran past its 16 pads over the next object; a drum's velocity bar did the same with a velocity ≥ 129. Both now skip a value they cannot draw, and the first time the black box freezes with the gestures before it (to find who leaves that value). → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings)
+
+### Beta 5.64 — 2026-11-17 (released within Alpha 7)
+
+**Beta 5.64** (marker `B5.64`; = SC57.9) = Beta 5.63 + these fixes, untested on the device.
+
+- **Reset when making a pattern-group chain for a new scene** (Beta 5.63; the black box record of 2026-11-15): with the transport stopped, a store commit of Drum 4 called slot 7 of the drum Note view (our rollers / mirrored squares code) as a «listener», with an object that was not that view: a word of Drum 4's velocity bar had lost one byte. That slot now does nothing when the object is not the drum Note view (in the stock firmware the slot was harmless with any object). Who changes that byte is still unknown: the **S579D** diagnostic freezes the black box the moment it changes, to read it with the app. *(Also in RC4.15.)* → [Guide: Drum Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-preset)
+- **Jump sequencer:** a project with garbage in the record's tail (and the signature by chance) could write a byte out of place when pointing at another track; the target is checked now (1-8). → [Guide: MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+
+### RC4.15 / RC4.15S — unreleased
+
+**RC4.15 / RC4.15S** (markers `R415` / `R415S`) = RC4.14 / RC4.14S + the drum Note view slot-7 fix (above, under Beta 5.64) and the SC49 / SC49.3 unreachable-code trims the RCs never had (about 2 KB of flash; nothing changes in use). → [Guide: Drum Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#drum-preset)
+
+### Beta 5.63 — 2026-11-17 (released within Alpha 7)
+
+**Beta 5.63** (marker `B5.63`; = SC57.8) = Beta 5.62 + these fixes (and those of Betas 5.61 / 5.62, unreleased), untested on the device.
+
+- **The extra lanes and the pattern-group chains were saved into another project** (Betas 5.58-5.62): the slot and the pack were swapped, so the project's tail landed in project *pack* of pack *slot* (a phantom file of about 187 KB, or a project of another pack that grew) and the device switched packs for the reads that followed. Now they go to the project being saved; nothing is written in the internal pack (and Save no longer turns red). **If you saved projects with those betas:** in the pack whose number is your project's slot, delete with the app, without loading it, the project whose number is your pack. → [Guide: What a pattern saves](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#datos-patron)
+- **A hang when recording VA-drum knobs** (and other extra-lane parameters): two of the original's memory copies on unaligned addresses. → [Guide: MIDI 1 / 2 knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Extra lanes:** edits made with the transport stopped were lost (the block in memory was the playing pattern's, not the edited one's); an interrupted save could leave half a tail (the header is now written last); a failed copy to the DSP left a stale block (it is retried). → [Guide: MIDI 1 / 2 knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Clear + a scene pad did not clear its group chains** (since Beta 5.59): the cleared scene still brought them back. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **A freed sequenceable slot (Duplicate + knob) turned the engine off and sent a CC 0** when its lane played; the Record + step snapshot wrote into it. → [Guide: MIDI 1 / 2 knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Step flip:** a jump left pending at Stop fired on the next Play; the stopped pre-listen's note hung if Play started before the pad was let go; with a drum as the target, a pad on a step without a flip sounded with the previous one's flip; with several notes on a step, a note on a later micro step could jump twice and one track's counts restarted the other's; after Play, the first chord sometimes did not jump. → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
+- **Arpeggiator with an external MIDI clock:** the notes armed between two micro steps were timed with the project's tempo, not the clock's (a faster clock brought the swing back; a slower one, early notes). *(Also in RC4.14.)* → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings)
+- **A latched capture after a restart that keeps the memory** (installing a version, the black box): it recorded in silence. → [Guide: Master FX view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx) *(Also in RC4.14.)*
+- The fixes of Betas 5.61 / 5.62, unreleased: **the arpeggio on time between two micro steps** (x4 over the base sounded like triplets), **a latched / armed capture goes on through a project load** and **Play no longer hangs the device with the arpeggiator** (5.61's bug). → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings)
+
+### RC4.14 / RC4.14S — unreleased
+
+**RC4.14 / RC4.14S** (markers `R414` / `R414S`) = RC4.13 / RC4.13S + the two fixes marked «also in RC4.14» under Beta 5.63 (the arpeggiator with an external clock → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#pattern-settings); the capture after a restart → [Guide: Master FX view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#master-fx)), and those of RC4.12 / RC4.13, unreleased: the arpeggio on time between two micro steps, the capture that goes on through a project load and RC4.12's hang on Play with the arpeggiator. → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#pattern-settings)
+
+### Beta 5.57 — 2026-11-13
+
+**Beta 5.57** (marker `B5.57`; = SC57.2) = Beta 5.56 + this fix, untested on the device.
+
+- **Step flip with the transport stopped: with a drum as the target, every pad sounded the same** (since Beta 5.5). The pre-listen always played the drum's chosen sample; now it plays the step's sample flip (and, without a flip, the chosen sample, as before). → [Guide: MIDI 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
 ### Beta 5.54 — 2026-11-12
 

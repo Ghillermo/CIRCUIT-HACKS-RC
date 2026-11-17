@@ -32,7 +32,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm3, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bl, cmp_imm, cmp_reg, h, it, ldr_imm, ldrb_imm, ldrb_reg, ldrh_reg, lsls_imm,  # noqa: E402
-                   lsrs_imm, mov_reg, orrs_reg, movs_imm, movt, movw, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm, strh_reg, subs_imm3, subs_imm8, subs_reg)
+                   lsrs_imm, mov_reg, orrs_reg, movs_imm, movt, movw, pop_list, push_list, raw, str_imm, strb_imm, strb_reg, strh_imm, strh_reg, subs_imm3, subs_imm8, subs_reg,
+                   bics_reg, cbz, lsls_reg, tst_reg)
 import modmx as MX  # noqa: E402
 import packio as PK  # noqa: E402
 import mpatch as MP  # noqa: E402
@@ -54,6 +55,17 @@ TX_VT = 0x08059FC4
 PAL = 0x08056464
 ROW = 8                                                                             # pads 9-16
 NOTE0 = 59 - 12                                                                     # the first step's note at the transmitter (12 below the router's) with the root at C
+TGCHK = False                                                                       # SC57.9 / Beta 5.64 (use_tgchk)
+
+
+def use_tgchk():
+    """SC57.9 / Beta 5.64 (the 2026-11-15 review of the chain crash): c_jsnon checks that the pointing target read from the record's tail
+    (+ 364 + m, kept by the one-byte signature 0xA7) is 1..8 before `strb step + 1, [RAM + 3 + target]`: a project whose tail holds garbage (the
+    Shadow Child pack has it) with a chance 0xA7 could write that byte anywhere in MXR + 0x21F4..0x22F3 on a note-on.  4 B."""
+    global TGCHK
+    TGCHK = True
+
+
 CAVE = 0x0805CE36                                                                   # SC03's c_txf (16 B): nothing calls it since SC06's c_txf2
 MGR, S_CUR = 0x20040B10, 0x152
 PAD = MS.PAD
@@ -61,6 +73,29 @@ POP_LR = h(0xF85D) + h(0xEB04)                                                  
 RET = h(0x4770)
 V2 = False                                                                          # SC50.2 (use_v2)
 HAL_TICK = 0x2000081C
+SET_TICKS = 0x0802BFE0                                                              # the stock's «set the song position» (engine, position): Play's start calls it with 0
+STOPCLR = False                                                                     # SC57.8 / Beta 5.63 (use_stopclr)
+AUDREL = False                                                                      # SC57.8 / Beta 5.63 (use_audrel)
+O_AUD = 28                                                                          # (use_audrel) RAM + 28: the steps auditioned while stopped, bit = step
+
+
+def use_stopclr():
+    """SC57.8 / Beta 5.63 (the 2026-11-14 bug hunt, JR-4): a jump left pending at Stop (a slower target, its next step not reached yet) no longer
+    runs on the next Play's first step, whatever points by then: the companion (FIX, dspz.add in dspz's first gap; jumpseq's own code
+    keeps its size) puts a head on SET_TICKS (0x0802BFE0, the outermost: it goes on to whatever was there) that clears the pending jumps
+    (RAM + 4..11) when the position is 0 (Play's start, before its first note-ons); and c_jsadv's signature path (the power-up) clears + 20..31."""
+    global STOPCLR
+    STOPCLR = True
+
+
+def use_audrel():
+    """SC57.8 / Beta 5.63 (the 2026-11-14 bug hunt, JR-5): a pad pressed with the transport stopped (the step flip's pre-listen, jumpx.c_jsa) always
+    gets its release, also once Play has started: the note-off of a note target (it hung) and jsaflip's selected sample back on a drum.  The press
+    sets the step's bit in RAM + 28 (32 bits, one per step); a release with its bit set clears it and goes to the pre-listen's off whatever the
+    transport; without it, as before (stopped: the off; running: nothing, so a running release never cuts the sequencer's note).  Needs
+    jumprnd.use_v2() (v1's counts are at + 24..31)."""
+    global AUDREL
+    AUDREL = True
 
 
 def use_v2():
@@ -86,7 +121,9 @@ def arm_code(base, L, prev):
     # ---- c_jsnon (the transmitter's note-on: tx, track, note, velocity): a pointing track's note = the jump, no note
     a.label("c_jsnon")
     E(push_list, [0, 1, 2, 3, 4], lr=True)
-    E(subs_imm3, 0, 1, 2); E(cmp_imm, 0, 1); E(b_cond, "on_q", "hi"); E(bl, CAVE); E(cmp_imm, 0, 0); E(b_cond, "on_q", "eq"); E(mov_reg, 4, 0)
+    E(subs_imm3, 0, 1, 2); E(cmp_imm, 0, 1); E(b_cond, "on_q", "hi"); E(bl, CAVE); E(cmp_imm, 0, 0); E(b_cond, "on_q", "eq")
+    if TGCHK: E(cmp_imm, 0, 8); E(b_cond, "on_q", "hi")                              # (use_tgchk) the target + 1 is 1..8: a garbage tail writes nowhere
+    E(mov_reg, 4, 0)
     def step():                                                                      # r0 = the note -> the step
         imm32(3, MU.KB_CTX); E(ldr_imm, 1, 3, 0x10); E(ldrb_imm, 1, 1, 0); E(subs_imm8, 0, NOTE0); E(subs_reg, 0, 0, 1)
         E(movs_imm, 2, 1); E(ands_reg, 2, 0); E(lsls_imm, 2, 2, 3); E(lsrs_imm, 1, 0, 1); E(movs_imm, 3, 7); E(ands_reg, 1, 3); E(orrs_reg, 1, 2)
@@ -259,3 +296,92 @@ def install(img, report, base_addr):
     for at, k in ((PLAYER_VT, "c_jslst"), (TX_VT, "c_jsnon"), (TX_VT + 4, "c_jsnof"), (MP.TMPL_VT, "c_jspad"), (MP.TMPL_VT + 28, "c_jsled")):
         struct.pack_into("<I", img, at - BASE, labels[k] | 1)
     return labels, code, prev
+
+
+# ================================================================ SC57.8 / Beta 5.63: the companion (use_stopclr / use_audrel, and jumprnd.use_v2's count reset)
+# jumpseq's code is at the image's end and may not grow: these routines go with dspz.add into dspz's first gap (after jumprnd and after every
+# other head of SET_TICKS; fixes563.extra_beta) and are reached by replacing 4 bytes of jumpseq's code at each site:
+#   * c_jsnon's `bl c_jsrun` -> bl c_jsonq (use_audrel): stopped = the step's bit set, then on_st as before;
+#   * c_jsnof's `bl c_jsrun` -> bl c_jsofq (use_audrel): the bit set = cleared and flags eq (the off); else c_jsrun's flags, as before;
+#   * c_jsadv's signature path `movs r0, #0; str r0, [r5, #4]` -> bl c_jsini (use_stopclr / use_audrel): + 20, + 24, + 28 to 0 too;
+#   * SET_TICKS's first 4 bytes (the b.w to the head there, or the stock's push / mov) -> b.w c_jsst (use_stopclr, jumprnd.use_v2).
+
+def arm_fix(base, L, prev):
+    import jumprnd as JR
+    a = Asm(base)
+    E = a.emit
+    def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
+    if STOPCLR or JR.V2:
+        # ---- c_jsst (SET_TICKS: r0 = the engine, r1 = the position; r2 / r3 free): jumprnd's counts to 0; at position 0 (Play's start) the pending jumps
+        a.label("c_jsst")
+        imm32(2, RAM); E(movs_imm, 3, 0)
+        if JR.V2: E(str_imm, 3, 2, JR.O_CNT)                                         # + 24..27: the counts of MIDI 1 / 2 (+ 26 / 27 unused)
+        if STOPCLR:
+            E(cbz, "st_z", 1, True)                                                  # cbnz r1
+            E(str_imm, 3, 2, 4); E(str_imm, 3, 2, 8)
+            a.label("st_z")
+        if "displaced" in prev: E(raw, prev["displaced"]); E(b_w, SET_TICKS + 4)
+        else: E(b_w, prev["set_ticks"])
+    if STOPCLR or AUDREL:
+        # ---- c_jsini (c_jsadv's signature path, r5 = RAM): r0 = 0 and + 4, + 20, + 24, + 28 to 0 (the caller then writes + 8)
+        a.label("c_jsini")
+        E(movs_imm, 0, 0); E(str_imm, 0, 5, 4); E(str_imm, 0, 5, 20); E(str_imm, 0, 5, 24); E(str_imm, 0, 5, 28); E(raw, RET)
+    if AUDREL:
+        # ---- c_jsbit(r0 = the note) -> r0 = the step, r1 = its bit, r2 = RAM, r3 = the auditioned steps
+        a.label("c_jsbit")
+        E(raw, h(0xB500)); E(bl, L["c_jsstp"]); E(movs_imm, 1, 1); E(lsls_reg, 1, 0)
+        imm32(2, RAM); E(ldr_imm, 3, 2, O_AUD); E(raw, h(0xBD00))
+        # ---- c_jsonq (c_jsnon's bl c_jsrun; the caller's note at [sp + 8] = our [sp + 12]) -> flags ne = running; stopped: the step's bit set, flags eq
+        a.label("c_jsonq")
+        E(raw, h(0xB500)); E(bl, L["c_jsrun"]); E(b_cond, "oq_x", "ne")
+        E(raw, h(0x9803)); E(bl, "c_jsbit"); E(orrs_reg, 3, 1); E(str_imm, 3, 2, O_AUD); E(cmp_reg, 0, 0)   # ldr r0, [sp, #12]: the note
+        a.label("oq_x"); E(raw, h(0xBD00))
+        # ---- c_jsofq (c_jsnof's bl c_jsrun) -> flags eq = the off (an auditioned step: its bit cleared; else stopped), ne = nothing
+        a.label("c_jsofq")
+        E(raw, h(0xB500)); E(raw, h(0x9803)); E(bl, "c_jsbit"); E(tst_reg, 3, 1); E(b_cond, "of_n", "eq")
+        E(bics_reg, 3, 1); E(str_imm, 3, 2, O_AUD); E(cmp_reg, 0, 0); E(raw, h(0xBD00))
+        a.label("of_n"); E(bl, L["c_jsrun"]); E(raw, h(0xBD00))
+    return a.assemble()
+
+
+def fix_install(img, report, base_addr):
+    """dspz.add(img, report, "jsfix", jumpseq.FIX): after jumprnd, and after every other head of SET_TICKS (it goes on to what is there)."""
+    import ct_fw
+    import jumprnd as JR
+    from thumb import bl as bl_enc, b_w as bw_enc
+    BASE = ct_fw.APP_BASE
+    assert V2 and (STOPCLR or AUDREL or JR.V2), "jumpseq.FIX: nothing to install"
+    assert not AUDREL or "jumprnd" not in report or JR.V2, "use_audrel needs jumprnd.use_v2 (v1's counts are at RAM + 24..31)"
+    lab = lambda k: int(report["jumpseq"]["labels"][k], 16)
+    L = dict(c_jsrun=lab("c_jsrun"), c_jsstp=lab("c_jsstp"))
+    prev = {}
+    if STOPCLR or JR.V2:
+        cur = bytes(img[SET_TICKS - BASE:SET_TICKS - BASE + 4])
+        if cur == h(0xB570) + h(0x4604): prev["displaced"] = cur                    # the stock's push {r4-r6, lr}; mov r4, r0
+        else: prev["set_ticks"] = MP.bw_target(img, SET_TICKS, BASE)
+    code, labels = arm_fix(base_addr, L, prev)
+    img += code
+    while len(img) % 4:
+        img += bytes([0xFF])
+    def find_once(lo, hi, pat):
+        hits = [at for at in range(lo, hi - 3, 2) if pat(at) == bytes(img[at - BASE:at - BASE + 4])]
+        assert len(hits) == 1, f"jumpseq.FIX: {len(hits)} sites in {lo:#x}..{hi:#x}"
+        return hits[0]
+    sites = {}
+    if STOPCLR or JR.V2:
+        img[SET_TICKS - BASE:SET_TICKS - BASE + 4] = bw_enc(SET_TICKS, labels["c_jsst"]); sites["set_ticks_site"] = SET_TICKS
+    if STOPCLR or AUDREL:
+        at = find_once(lab("c_jsadv"), lab("ad_k"), lambda at: h(0x2000) + h(0x6068))           # movs r0, #0; str r0, [r5, #4]
+        img[at - BASE:at - BASE + 4] = bl_enc(at, labels["c_jsini"]); sites["jsadv_site"] = at
+    if AUDREL:
+        for k, lo, hi in (("c_jsonq", "c_jsnon", "on_x"), ("c_jsofq", "c_jsnof", "of_q")):
+            at = find_once(lab(lo), lab(hi), lambda at: bl_enc(at, L["c_jsrun"]))
+            img[at - BASE:at - BASE + 4] = bl_enc(at, labels[k]); sites[lo + "_site"] = at
+    out = dict(sites)
+    if "set_ticks" in prev: out["set_ticks"] = prev["set_ticks"]
+    return labels, code, out
+
+
+class FIX:
+    """the companion as a module for dspz.add"""
+    install = staticmethod(fix_install)

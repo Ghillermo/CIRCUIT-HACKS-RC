@@ -8,7 +8,7 @@ BETA = "RC2"
 B = f"*(since {BETA})*"
 
 UI = dict(lang="en", title="Circuit Tracks mod guide, in plain words", cover="A guide in plain words, illustrated", toc="Contents",
-          other='<p class="lang"><a href="sencilla.html">Español</a> · <a href="plain.pdf">PDF</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Feature list</a></p>',
+          other='<p class="lang"><a href="sencilla.html">Español</a> · <a href="plain.pdf">PDF</a> · <a href="guide.html">Guide by views</a> · <a href="en.html">Glossary of features</a></p>',
           footer="CIRCUIT-HACKS — firmware mod for the Novation Circuit Tracks (1.2.1, build 4486). Not affiliated with Novation.",
           html="plain.html", md="docs/PLAIN.en.md", pdf="plain.pdf")
 
@@ -160,8 +160,7 @@ Live effects on the whole output. **Hold** a pad to hear its effect; **Shift + p
 ### Song pointer (pads 9-24)
 - **Hold one step:** it repeats while you hold it.
 - **Hold two steps:** the pattern loops between them while you hold.
-- **Shift + two steps:** that loop stays (latched); pad 9 turns white and touching it removes the loop.
-- **Phrase mode:** Shift + a step = a phrase from that step to step 16; touching another step moves the end; Shift + another step moves the start; Shift + the start step (or the white pad 9) leaves.
+- **Phrase mode (a loop that stays):** Shift + a step = a phrase from that step to step 16, and pad 9 turns white; touching another step moves the end, so the loop stays between the two; Shift + another step moves the start; Shift + the start step (or the white pad 9) leaves.
 - The playing step shows white; the pointer starts off when a project loads.
 
 ### The capture (pads 32 and 7)

@@ -46,11 +46,15 @@ def data():
     return dict(params=params, byCc=by_cc, byNrpn=by_nrpn, examples=ex)
 
 
-def main():
+def page():
     src = SRC.read_text(encoding="utf-8")
     assert src.count("/*DATA*/null") == 1
+    return src.replace("/*DATA*/null", json.dumps(data(), separators=(",", ":")))
+
+
+def main():
     d = data()
-    OUT.write_text(src.replace("/*DATA*/null", json.dumps(d, separators=(",", ":"))), encoding="utf-8", newline="\n")
+    OUT.write_text(page(), encoding="utf-8", newline="\n")
     print(f"{OUT.relative_to(ROOT)}: {len(d['params'])} parameters, {len(d['examples'])} example patches, {OUT.stat().st_size} B")
 
 

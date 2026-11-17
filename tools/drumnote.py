@@ -12,12 +12,22 @@ import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import (Asm, b, b_cond, b_w, bl, cmp_imm, ldrh_imm, adds_imm8, movs_imm, subs_reg, pop_list, push_list, strh_imm)  # noqa: E402
+from thumb import (Asm, b, b_cond, b_w, bl, bx_lr, cmp_imm, cmp_reg, ldr_imm, ldrh_imm, adds_imm8, movs_imm, movt, movw, subs_reg, pop_list, push_list, strh_imm)  # noqa: E402
 
 VT = 0x0805AD44
 SLOT0, SLOT1, SLOT7 = VT, VT + 4, VT + 0x1C
 STOCK_PRESS, STOCK_REL, STOCK_LEDS = 0x0804ED50, 0x0804ED68, 0x08047592
 MIRROR = False                                                                    # SC23.4: the left squares mirror the right ones (pad 25 = drum 4 ... pad 28 = drum 1)
+VTGUARD = False                                                                   # SC57.9 / Beta 5.64 / RC4.15 (use_vtguard)
+
+
+def use_vtguard():
+    """SC57.9 / Beta 5.64 / RC4.15 (a fix, with rollers.use_vtguard; the black box record of 2026-11-15): c_nvl returns at once, with nothing
+    written, when [this] is not the class's vtable 0x0805AD44 -- the record's store commit reached c_nvl (through rollers.c_rlleds, slot 7 of
+    this class) with a listener sub-object whose vtable word had been overwritten with the slot's address, and [[this + 4]] was no LED buffer
+    (a BusFault at `ldrh r1, [r0, #0x3e]`).  The check runs before the push (no extra stack on the LED task's path); 16 B."""
+    global VTGUARD
+    VTGUARD = True
 
 
 def arm_code(base):
@@ -30,6 +40,9 @@ def arm_code(base):
         else: a.emit(adds_imm8, 1, 4)                                             # the pads 24..27 act as 28..31
         a.label(name + "_s"); a.emit(b_w, stock)
     a.label("c_nvl")                                                              # (view) -> the LED buffer
+    if VTGUARD:                                                                   # (use_vtguard) not a drum Note view: nothing, r0 back
+        a.emit(ldr_imm, 1, 0, 0); a.emit(movw, 2, VT & 0xFFFF); a.emit(movt, 2, VT >> 16); a.emit(cmp_reg, 1, 2); a.emit(b_cond, "nv_go", "eq"); a.emit(bx_lr)
+        a.label("nv_go")
     a.emit(push_list, [4], lr=True)
     a.emit(bl, STOCK_LEDS)
     for k in range(4):

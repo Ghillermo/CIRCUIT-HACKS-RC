@@ -4,6 +4,10 @@
     python tools/make_manual.py            (writes docs/MANUAL.md, docs/manual/index.html, the English docs/MANUAL.en.md, docs/manual/en.html
                                             and the feature list blocks of README.md: Spanish, and English when its markers are there)
 The English text is in tools/manual_en.py (same section ids and figures).
+(2026-11-15, the user: «merge both manuals. Now, all the features belong in Manual per views, with their pictures … An hyper linked glossary lists
+features with the old sections»): the features are now shown inside the guide by views (make_guide.write calls feature_html / feature_md, the
+chapter of each one in tools/feature_views.py); index.html / en.html, MANUAL*.md and CARACTERISTICAS.md / FEATURES.md are the glossary
+(make_guide.glossary_html / glossary_md), keeping the old anchors (a1-atajos) and the section ids (morph).  This file stays the features' only source.
 Every section: (id, group, title, summary bullets, figures, detail in a small markdown: ###, | tables |, - lists, 1. lists, **bold**, `code`).
 """
 from __future__ import annotations
@@ -124,7 +128,7 @@ def cat_fig():
     pads = {1: (trk[0], cats[0][0], False, "#ffffff")}
     for c in range(1, 15): pads[c + 1] = (rgb[c], cats[c][0], False, ink(rgb[c]))
     pads[16] = ("white", "", True)
-    return fig("Solo Beta 5.56: la vista Preset de Synth 1 con un patch de cada categoría de Components; pad 1 = Ninguna (el color de la pista), pad 16 = hueco vacío (blanco tenue).",
+    return fig("Solo Beta 5.65: la vista Preset de Synth 1 con un patch de cada categoría de Components; pad 1 = Ninguna (el color de la pista), pad 16 = hueco vacío (blanco tenue).",
                pads=pads, buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1")
 
 
@@ -135,7 +139,7 @@ sec("atajos", "A", "Mapa de atajos",
     """
 | N.º | Atajo | Función |
 |---|---|---|
-| 1 | **Mixer**, **Mixer** | Master FX (A2); **solo Beta 5.56:** mantenido ½ s, solo hasta que lo sueltas |
+| 1 | **Mixer**, **Mixer** | Master FX (A2); **solo Beta 5.65:** mantenido ½ s, solo hasta que lo sueltas |
 | 2 | **Synth 1 / 2** con su vista en pantalla, otra vez | Vista de la fuente del sinte y su step-drummer (A6) |
 | 3 | **Shift + Preset** con un drum | Vista cromática / de escala (A7) |
 | 4 | **Clear + knob** | Valor por defecto del knob, también en Master FX; en drums, a la izquierda borra la automatización (A4) |
@@ -150,11 +154,11 @@ sec("atajos", "A", "Mapa de atajos",
 | 13 | **Save** | Guarda también las capturas usadas como samples (A8) |
 | 14 | **Scales + Preset + Note** al encender | Modo de recuperación del bootloader (E2) |
 | 15 | Mixer: **Shift + knob** | Nivel de la pista a 100 (derecha) / 0 (izquierda) (A11) |
-| 16 | Master FX: **Shift + pad 7** | Sample en bucle enganchado hasta volver a pulsar el 7 (C5). **Solo Beta 5.56:** sigue sonando al cargar otro proyecto o pack; Play empieza el proyecto nuevo cuando el bucle da la vuelta, y el bucle sigue sonando |
+| 16 | Master FX: **Shift + pad 7** | Sample en bucle enganchado hasta volver a pulsar el 7 (C5). **Solo Beta 5.65:** sigue sonando al cargar otro proyecto o pack; Play empieza el proyecto nuevo cuando el bucle da la vuelta, y el bucle sigue sonando |
 | 17 | Preset de MIDI 1 / 2: **Clear + pad de página (1-5)** | Los valores de esa página de knobs a los iniciales (C1, **desde RC2**) |
 | 18 | Advanced Setup: **Duplicate** | MIDI Thru: Thru → Out 2 → Merge → Filter (B7, **desde RC2**) |
 | 19 | **Synth 1 + Synth 2** a la vez | Teclado partido: arriba Synth 1, abajo Synth 2 (A12, **desde RC2**); **desde RC2.02**: cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2, arriba la pista que mantuviste primero |
-| 20 | Pattern Settings: **pad 25**, un paso, **fila 4** | Random-mutate del paso: octava / escala al azar (C8, **desde RC2**; **solo Beta 5.56:** filas 3-4 rediseñadas, con un factor en Octave) |
+| 20 | Pattern Settings: **pad 25**, un paso, **fila 4** | Random-mutate del paso: octava / escala al azar (C8, **desde RC2**; **solo Beta 5.65:** filas 3-4 rediseñadas, con un factor en Octave) |
 | 21 | Preset de MIDI 1 / 2: **pads 9-24**, **Clear + pad** dos veces, **Duplicate + A + B**, **Octave ▼ / ▲** | Patches del sinte propio: cargar, guardar, intercambiar, página (A14, **desde RC2**) |
 | 22 | MIDI 1 / 2: **Clear + el botón de la pista** | El motor de la pista a sus valores iniciales (A14, **desde RC2**) |
 | 23 | Preset de Synth 1 / 2: **Clear + pad** dos veces | Guarda el patch del sinte en ese hueco del pack (A15, **desde RC2**) |
@@ -164,40 +168,40 @@ sec("atajos", "A", "Mapa de atajos",
 | 27 | Sidechain (**Shift + FX**): **K1-K4**, **K7 / K8** | Sidechain de la pista elegida; ataque / release del compresor master (**desde RC2**) |
 | 28 | Setup: **Record** | Grabar en el sinte lo que le manda la pista MIDI: amarillo = sí (**desde RC2**) |
 | 29 | **Pattern Settings** dos veces, **fila 4** | Frecuencia del paso: suena cada n vueltas del patrón (**desde RC2**) |
-| 30 | Pattern Settings: **pad 25** | Dinámicas (fila 3) y random-mutate (fila 4); **Clear + pad 25** los borra del patrón (**desde RC2**; **solo Beta 5.56:** además los micropasos del paso) |
+| 30 | Pattern Settings: **pad 25** | Dinámicas (fila 3) y random-mutate (fila 4); **Clear + pad 25** los borra del patrón (**desde RC2**; **solo Beta 5.65:** además los micropasos del paso) |
 | 31 | Pattern Settings: **pads 26 / 27 / 28** | Nudge, orden fractal, orden deconstruido (**desde RC2**; **desde RC4.05**: Nudge = el contenido del tramo un paso atrás, Shift + pad 26 adelante, sin mover el primer y el último paso; **desde RC4**: Shift + pads 1-16 con el arpegiador encendido = sus modificadores) |
 | 32 | Patterns: **Shift + Octave ▲ / ▼** | Modo cadena de patrones activado / desactivado (**desde RC2**) |
 | 33 | Mixer: **Shift + pads 9-16** | Repeticiones de la escena actual (**desde RC2**) |
 | 34 | Setup: **pad 29 / pad 30**, luego un pad de canal | Canal de escucha / salida de los Program Change del proyecto (B7, **desde RC2**) |
 | 35 | **Shift + Clear** | Metrónomo / cuenta atrás en cuatro estados; con la cuenta atrás, Record + Play = un compás antes de grabar (**desde RC2**) |
 | 36 | Pattern Settings: **Shift + pad 25**, **Shift + pads 27-32** | Arpegiador del patrón encendido / apagado y su orden; acordes de la secuencia y notas mantenidas juntas, una por paso (**desde RC2**) |
-| 37 | **Shift + Scales** | Editor de la escala propia: hasta 7 notas y un periodo; una iteración por fila (**desde RC2**; **desde RC4**: también Scales dos veces; Velocity dos veces = velocity fija (en los drums, solo Beta 5.56: la vista de automatización); Shift + Synth / MIDI = pulsarlos dos veces; MIDI 1 / 2 otra vez con su vista Note en pantalla = su Preset; una página de knobs de MIDI 1 / 2 mantenida ½ s = solo mientras se mantiene) |
+| 37 | **Shift + Scales** | Editor de la escala propia: hasta 7 notas y un periodo; una iteración por fila (**desde RC2**; **desde RC4**: también Scales dos veces; Velocity dos veces = velocity fija (en los drums, solo Beta 5.65: la vista de automatización); Shift + Synth / MIDI = pulsarlos dos veces; MIDI 1 / 2 otra vez con su vista Note en pantalla = su Preset; una página de knobs de MIDI 1 / 2 mantenida ½ s = solo mientras se mantiene) |
 | 38 | Step-drummer: **pad 32**; página velocity: **pads 17-24** | Toggle pitch-vel (transponer en la escala / velocity) y destino propio de la página 2 (**desde RC2**) |
 | 39 | **Shift + Play** | Cuantizar el patrón que suena en la pista elegida (**desde RC2**) |
 | 40 | MIDI 1 / 2 en modo muestra: **Note dos veces**; **paso mantenido + sample** | Selector de los 64 samples del pack (Octave ▼ / ▲) y sample flip por paso, también en vivo con Record (**desde RC2**) |
 | 41 | Preset de MIDI 1 / 2: **pad 6**; **K1-K8**, **Shift + K4 / K5 / K6 / K8**, **Clear + pad 6** | Matriz de modulación del sinte propio: cada knob una fuente, su posición = destino y cantidad (C16, **desde RC2.02**) |
 | 42 | Setup: **K4**, **K5-K8**, **Shift** | Modo General MIDI de los drums: encendido / apagado y la nota GM de Drum 1-4 (35-81; se oye y se ve su número; Shift confirma) (**desde RC4**) |
-| 43 | Editor de la escala propia: **Shift + pad 8** / **Shift + pad 24** | Disposición isomórfica **Jankó** del teclado de las pistas de notas: la fila de encima medio tono más grave (pad 8) o la anterior, cada fila medio tono más aguda (pad 24); Octave = medio tono, mantenido = una octava (**desde RC4**). **Solo Beta 5.56:** solo pad 8; la pareja de arriba repite la de abajo y, con una tecla mantenida en la Note ampliada, Octave mueve solo la otra pareja |
+| 43 | Editor de la escala propia: **Shift + pad 8** / **Shift + pad 24** | Disposición isomórfica **Jankó** del teclado de las pistas de notas: la fila de encima medio tono más grave (pad 8) o la anterior, cada fila medio tono más aguda (pad 24); Octave = medio tono, mantenido = una octava (**desde RC4**). **Solo Beta 5.65:** solo pad 8; la pareja de arriba repite la de abajo y, con una tecla mantenida en la Note ampliada, Octave mueve solo la otra pareja |
 | 44 | Note ampliada: **Shift + pad 8** | **Pantalla de acordes**: tipo, inversión y modificadores; las fundamentales tocan el acorde; un cambio de tipo o de modificador cambia al momento el acorde que suena (y el arpegio); Shift + fundamental = latch del acorde entero (**desde RC4**) |
 | 45 | Advanced Setup: **pad 23** | Fusión USB: lo que entra por el DIN In sale también por USB (**desde RC4**) |
 | 45 | Advanced Setup: **pad 22** | Guardado diferido: guardar el proyecto mientras suena espera a que pares; de fábrica, apagado (**desde RC4.05**) |
-| 46 | Vista Note: **Shift + tecla** | Latch: la nota sigue sonando hasta la siguiente pulsación de esa nota; con el arpegiador, latch del arpegio; con Shift, las notas fijadas en verde azulado; Shift + paso = las notas fijadas se escriben en ese paso (**desde RC4**; **solo Beta 5.56:** los pasos ya no se ven amarillos con Shift; el paso en que se escribe, verde azulado mientras se mantiene) |
+| 46 | Vista Note: **Shift + tecla** | Latch: la nota sigue sonando hasta la siguiente pulsación de esa nota; con el arpegiador, latch del arpegio; con Shift, las notas fijadas en verde azulado; Shift + paso = las notas fijadas se escriben en ese paso (**desde RC4**; **solo Beta 5.65:** los pasos ya no se ven amarillos con Shift; el paso en que se escribe, verde azulado mientras se mantiene) |
 | 48 | Preset de MIDI 1 / 2: **pad 32** | Modo de voz del sinte propio: retrigger, legato, **glide**, **uni retrig / uni legato / uni glide / uni always-glide**, poly (**desde RC4**) |
 | 47 | Setup: **Note** | Teclado externo al arpegiador: las notas que llegan por MIDI se arpegian como los pads (apagado de fábrica) (**desde RC4**) |
-| 49 | Advanced Setup: **K1** | Curva de velocity de los pads: −8 … +8, el centro = el original; más sensible a la derecha, más dura a la izquierda (**desde RC4**). **Solo Beta 5.56:** la curva desaparece; K1 / K2 de la vista Setup = velocity → amplitud / filtro para los patches sin velocity (Synth 1 / 2 y el sinte propio) |
+| 49 | Advanced Setup: **K1** | Curva de velocity de los pads: −8 … +8, el centro = el original; más sensible a la derecha, más dura a la izquierda (**desde RC4**). **Solo Beta 5.65:** la curva desaparece; K1 / K2 de la vista Setup = velocity → amplitud / filtro para los patches sin velocity (Synth 1 / 2 y el sinte propio) |
 | 51 | MIDI 1 / 2 con el step-drummer: **Note** | Note → Note ampliada → step-drummer (**desde RC4**) |
 | 52 | Modo cue: elegir un patch de sinte / **Shift + sample** de drum | La escucha previa solo en el cue (derecha); un golpe en vivo vuelve a la mezcla (**desde RC4**) |
 | 53 | Modo cue + metrónomo (**Shift + Clear**) | El clic del metrónomo y de la cuenta atrás solo en el cue (derecha); la mezcla sin clic (**desde RC4**) |
 | 50 | Página FM: **pad 8** mantenido | 16 sonidos de partida (piano, pluck, cuerdas, vientos, percusión…) en los pads 9-24 (**desde RC4**) |
-| 54 | Preset de MIDI 1 / 2: **Duplicate + hueco vacío** | Guarda ahí el patch del sinte propio al momento (**solo Beta 5.56**) |
-| 55 | Preset de MIDI 1 / 2: **pads 1 / 4** | Pad 1 = knobs secuenciables (Shift + pad 1 = no secuenciables), pad 4 = Filtro / VCA (**solo Beta 5.56**) |
-| 56 | Advanced Setup: **K3** | Ganancia de las entradas externas: 0 … +24 dB, el número en los pads (**solo Beta 5.56**) |
-| 57 | Note ampliada con Jankó: teclas en las **filas 2 y 4** + **Octave** | Solo se mueven las filas 1 y 3 (medio tono; mantenido, una octava) (**solo Beta 5.56**) |
-| 58 | Knobs bipolares | Izquierda en un tono más claro del mismo color, centro tenue; K5 FM pasado el máximo en violeta (**solo Beta 5.56**) |
-| 59 | OSC 1 con un oscilador: **K5 / K6 / K8** | K5 = nivel del sub-oscilador, K6 = nivel del ruido, Shift = envolvente → ellos; K8 = LFO → sub, Shift + K8 = LFO → ruido (**solo Beta 5.56**) |
-| 60 | Preset de MIDI 1 / 2: **pad 26** | Vista de flip: fila 3 = patch flip (PGM seq, pad 17) o step flip (pad 18); fila 2 = el destino del step flip (**solo Beta 5.56**) |
-| 61 | Patterns / Mixer: **Shift + Duplicate** | Mutate de patrones: cada pista elegida toca una lista de patrones de su cadena en otro orden; mantenido en Patterns = sus ajustes; Clear + Duplicate lo termina (**solo Beta 5.56**) |
-| 62 | Setup: **Preset** | Retener knob: un knob girándose sigue con su vista, pista, página y Shift hasta 1 s quieto; su luz se queda como estaba (**solo Beta 5.56**) |
+| 54 | Preset de MIDI 1 / 2: **Duplicate + hueco vacío** | Guarda ahí el patch del sinte propio al momento (**solo Beta 5.65**) |
+| 55 | Preset de MIDI 1 / 2: **pads 1 / 4** | Pad 1 = knobs secuenciables (Shift + pad 1 = no secuenciables), pad 4 = Filtro / VCA (**solo Beta 5.65**) |
+| 56 | Advanced Setup: **K3** | Ganancia de las entradas externas: 0 … +24 dB, el número en los pads (**solo Beta 5.65**) |
+| 57 | Note ampliada con Jankó: teclas en las **filas 2 y 4** + **Octave** | Solo se mueven las filas 1 y 3 (medio tono; mantenido, una octava) (**solo Beta 5.65**) |
+| 58 | Knobs bipolares | Izquierda en un tono más claro del mismo color, centro tenue; K5 FM pasado el máximo en violeta (**solo Beta 5.65**) |
+| 59 | OSC 1 con un oscilador: **K5 / K6 / K8** | K5 = nivel del sub-oscilador, K6 = nivel del ruido, Shift = envolvente → ellos; K8 = LFO → sub, Shift + K8 = LFO → ruido (**solo Beta 5.65**) |
+| 60 | Preset de MIDI 1 / 2: **pad 26** | Vista de flip: fila 3 = patch flip (PGM seq, pad 17) o step flip (pad 18); fila 2 = el destino del step flip (**solo Beta 5.65**) |
+| 61 | Patterns / Mixer: **Shift + Duplicate** | Mutate de patrones: cada pista elegida toca una lista de patrones de su cadena en otro orden; mantenido en Patterns = sus ajustes; Clear + Duplicate lo termina (**solo Beta 5.65**) |
+| 62 | Setup: **Preset** | Retener knob: un knob girándose sigue con su vista, pista, página y Shift hasta 1 s quieto; su luz se queda como estaba (**solo Beta 5.65**) |
 """, [fig("Mapa de atajos: los números remiten a la tabla.", pads={7: ("yellow", "Sample"), 8: ("white", "Apagar"), 27: ("magenta", "Motor"), 31: ("teal", "Gesto"), 32: ("red", "Grabar")},
           knobs={k_: "Clear+" for k_ in range(1, 9)},
           buttons={"Mixer": "white", "Synth 1": "white", "Preset": "white", "Clear": "red", "Oct ▲": "peach", "Oct ▼": "cream", "Duplicate": "white", "1-16 / 17-32": "green",
@@ -229,7 +233,7 @@ sec("vista-fx", "A", "Teclas de la vista FX",
 | **Octave ▼** | Los knobs controlan los **envíos de reverb** (color del pad 17) |
 | **Shift + knob** | **Parámetros del efecto**. Reverb: tipo, decay, damping. Delay: time, sync, feedback, width, ratio, slew. Se guardan con el proyecto |
 | **Duplicate** | Reset: envíos a 0, filtro master al centro (sin tocar la resonancia), Master FX apagado |
-| **Shift + Octave ▲ / ▼** | **Desde RC4.** Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). **Solo Beta 5.56:** el brillo de los Octave enseña el valor, como las octavas del original |
+| **Shift + Octave ▲ / ▼** | **Desde RC4.** Resonancia del filtro master +16 / −16; se para en 127 / 0 (con Shift, Octave en amarillo). **Solo Beta 5.65:** el brillo de los Octave enseña el valor, como las octavas del original |
 | **Shift + pad 25** | **Desde RC4.** Filtro master apagado (suena al centro aunque se mueva el knob) / encendido (en la posición actual del knob). Apagado: LED del knob del filtro en rojo; con Shift, pad 25 amarillo / rojo |
 | **1-16 / 17-32** | Desde RC4 hace lo de siempre (antes subía la resonancia del filtro master, con el LED verde) |
 
@@ -240,7 +244,7 @@ sec("vista-fx", "A", "Teclas de la vista FX",
           knobs={k: "envío" for k in range(1, 9)}, buttons={"FX": "white", "Oct ▲": "peach", "Oct ▼": "cream", "Duplicate": "white", "1-16 / 17-32": "green"}, view="FX")])
 
 sec("clear-knob", "A", "Clear + knob = valor por defecto",
-    ["Mantén **Clear** y gira un knob a la derecha: vuelve a su valor por defecto. En drums (LED azul), a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en **Master FX**."],
+    ["Mantén **Clear** y gira un knob a la derecha: vuelve a su valor por defecto. El LED se pone **lavanda** (el azul del original). En drums, a la izquierda borra la automatización de los knobs de stock (LED rojo), como en el original. También en el motor de las pistas MIDI y en **Master FX**."],
     """
 | Dónde | Clear + knob a la derecha | Clear + knob a la izquierda |
 |---|---|---|
@@ -370,7 +374,7 @@ sec("mixer-cue", "A", "Modo cue, mutes al compás y cuantizar (desde RC2)",
     ["**Desde RC2.** Mixer, página de panorama: **Shift + knob** = modo cue (la salida derecha escucha las pistas que elijas). **Shift + pads 1-8** del Mixer = silenciar / activar al compás siguiente. **Shift + Play** = cuantizar el patrón de la pista elegida."],
     """
 - **Modo cue:** en la página de panorama (Octave ▼), Shift + knob a la derecha lo enciende y a la izquierda lo apaga (Octave ▼ rosa). Con el modo, los knobs de panorama son el envío de cada pista al cue: la salida izquierda lleva la mezcla en mono y la derecha solo las pistas en cue. Se guarda en el aparato; los paneos vuelven al apagarlo.
-- **Solo y solo flip (solo Beta 5.56):** pad 16 del Mixer mantenido + pads 1-8 = solo de esas pistas (pad 16 blanco); un toque al pad 16 vuelve a los mutes de antes. Sin solo, un toque al pad 16 = flip (naranja): mientras mantienes pistas suenan solo ellas y al soltarlas el Mixer vuelve a como estaba.
+- **Solo y solo flip (solo Beta 5.65):** pad 16 del Mixer mantenido + pads 1-8 = solo de esas pistas (pad 16 blanco); un toque al pad 16 vuelve a los mutes de antes. Sin solo, un toque al pad 16 = flip (naranja): mientras mantienes pistas suenan solo ellas y al soltarlas el Mixer vuelve a como estaba.
 - **Mutes al compás:** Shift + pad de pista (fila 1 del Mixer) = esa pista se silencia o se activa al empezar el compás siguiente; el pad parpadea mientras espera, otra vez lo cancela; parado, al momento.
 - **Cuantizar:** Shift + Play mueve las notas y golpes grabados fuera de la rejilla al paso más cercano (micropasos 1-2 → su paso, 3-5 → el siguiente), en el patrón que suena de la pista elegida. Sustituye al Shift + Play del original.
 - Detalle en la guía por vistas (Mixer y botones de todas las vistas).
@@ -387,7 +391,7 @@ sec("lfo-sync", "A", "LFO a tempo (desde RC4)",
 """)
 
 sec("teclado-partido", "A", "Teclado partido Synth 1 + Synth 2",
-    ["**Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan Synth 1 y las dos de abajo Synth 2."],
+    ["**Desde RC2.** Mantén **Synth 1** y pulsa **Synth 2** (o al revés): las dos filas de arriba tocan el sinte que mantuviste primero y las dos de abajo el otro; **desde RC2.02**, cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2."],
     """
 - Cada mitad es el teclado de su sinte: su escala, su octava y su velocity (las mismas teclas que la mitad de abajo de su vista Note), con sus colores.
 - Los knobs y Octave son los del primer sinte que pulsaste.
@@ -399,10 +403,10 @@ sec("teclado-partido", "A", "Teclado partido Synth 1 + Synth 2",
           buttons={"Synth 1": "white", "Synth 2": "white"}, view="Synth 1 + Synth 2")])
 
 sec("colores-patch", "A", "Colores de los patches de sinte",
-    ["**De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.56:** cada patch en el color de su **categoría de Components**."],
+    ["**De RC2 a RC4.08** cada patch de la vista Preset de Synth 1 / 2 se veía según su modo de voz. **Desde RC4.10** los colores son los del original: esas lecturas de la tarjeta a veces cargaban el patch inicial. **Solo Beta 5.65:** cada patch en el color de su **categoría de Components**."],
     """
 - **Desde RC4.10:** los patches en el color de la pista y el elegido en blanco, como en el original.
-- **Solo Beta 5.56:** el color de la categoría del patch (Arp verde azulado, Bass azul acero, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rojo, String melocotón, User arena, Voc lavanda); None = el color de la pista; **hueco vacío = blanco tenue**; el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. Al guardar (Clear + pad), **K1** elige la categoría.
+- **Solo Beta 5.65:** el color de la categoría del patch (Arp verde azulado, Bass azul acero, Bell azul claro, Classic ámbar, Drum naranja, Keyboard lima claro, Lead amarillo, Movement violeta, Pad azul, Poly verde, SFX rojo, String melocotón, User arena, Voc lavanda); None = el color de la pista; **hueco vacío = blanco tenue**; el elegido en blanco. La tarjeta se lee al entrar en la vista, al cambiar de página o de pack y tras guardar o copiar, nunca al tocar un patch. Al guardar (Clear + pad), **K1** elige la categoría.
 - De RC2 a RC4.08: mono = azul oscuro; mono con glide (Mono AG) = lavanda; poly = el color de la pista.
 - En Advanced Setup los pads 22 / 23 ya no se encienden (allí nunca hacían nada).
 """, [fig("Vista Preset de Synth 1 de RC2 a RC4.08: mono azul oscuro, glide lavanda, poly el color de la pista.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 2: ("blue", "mono", True), 5: ("blue", "mono", True),
@@ -410,8 +414,8 @@ sec("colores-patch", "A", "Colores de los patches de sinte",
           buttons={"Synth 1": "white", "Preset": "white"}, view="Preset de Synth 1"),
       cat_fig()])
 
-sec("morph", "C", "Morph de patches (solo Beta 5.56)",
-    ["**Solo Beta 5.56.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén de dos a cuatro patches** 0,4 s y un knob pasa de uno a otro, con LFO, envolvente y un morph lento."],
+sec("morph", "C", "Morph de patches (solo Beta 5.65)",
+    ["**Solo Beta 5.65.** En la vista Preset de Synth 1 / 2 o de MIDI 1 / 2 (sinte propio, con su FM de 8 operadores): **mantén de dos a cuatro patches** 0,4 s y un knob pasa de uno a otro, con LFO, envolvente y un morph lento."],
     """
 - **K1** = la posición en la cadena (hasta 4 patches, en el orden de los pads; en color: rojo, amarillo, verde, azul); **K2** LFO cuadrado; **K3** velocidad de los LFO; **K4** LFO de pasos al azar; **K5 / K6** morph lento: destino (en color) y duración (al momento … 32 compases); **K7 / K8** envolvente (cantidad / tiempo; K8 suaviza también los LFO).
 - **Morph lento:** K5 quieto medio segundo = el sonido va de K1 a K5 en el tiempo de K6; al llegar, K1 = K5.
@@ -423,7 +427,7 @@ sec("morph", "C", "Morph de patches (solo Beta 5.56)",
 """)
 
 sec("patches-midi", "A", "Patches del sinte propio (MIDI 1 / 2)",
-    ["**Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = 4 páginas (64 huecos por pack)."],
+    ["**Desde RC2.** En la vista Preset de MIDI 1 / 2 las filas 2 y 3 son 16 huecos de patch del motor de la pista: tocar = cargar (suena la tónica), **Clear + pad** dos veces = guardar, **Duplicate + A + B** = intercambiar; **Octave ▼ / ▲** = las páginas (**desde RC4**: 8 páginas, 128 huecos por pack; antes, 4 páginas, 64 huecos)."],
     """
 - Un patch guarda el motor de la pista entero: el motor elegido (línea, oscilador, VA-drum, granular, secuenciador de efectos), dos osciladores, el orden de la cadena, todos los valores de todas las páginas y el ajuste del step-drummer (activado y destino). Los pasos del step-drummer y del secuenciador de efectos son del patrón: van con el proyecto.
 - Los 64 huecos (**desde RC4**: 128, 8 páginas) son del pack y los comparten MIDI 1 y MIDI 2: un patch guardado desde una pista se puede cargar en la otra.
@@ -452,7 +456,7 @@ sec("guardar-patch", "A", "Guardar el patch del sinte en el pack",
 - El patch guardado conserva el nombre del que estaba cargado. Los patches de sinte se gestionan con Components; `tools/patchtool.py slist / sname` los lista y les cambia el nombre en la tarjeta.
 - El patch del sinte propio que comparta ese hueco (A14) no se toca.
 - Duplicate + A + B sigue copiando / intercambiando patches (A8).
-- **Solo Beta 5.56:** mientras pregunta, **K1** elige la categoría que se guarda (los demás knobs apagados); el hueco parpadea en su color.
+- **Solo Beta 5.65:** mientras pregunta, **K1** elige la categoría que se guarda (los demás knobs apagados); el hueco parpadea en su color.
 - En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.
 """, [fig("Vista Preset de Synth 1: Clear + pad pregunta (parpadea), Clear + el mismo pad guarda.", pads={**{n: ("magenta", "", True) for n in range(1, 33)}, 6: ("white", "¿guardar?")},
           buttons={"Synth 1": "white", "Preset": "white", "Clear": "white"}, view="Preset de Synth 1")])
@@ -505,23 +509,23 @@ sec("patches-entre-packs", "A", "Patches del sinte propio a otro pack",
 - En la versión más segura (RC2S) no escribe en la SD: el LED de Save se pone rojo.
 """)
 
-sec("luces-disparo", "A", "Shift = destello de cada nota (solo Beta 5.56)",
+sec("luces-disparo", "A", "Shift = destello de cada nota (solo Beta 5.65)",
     ["Con Shift mantenido, el botón de cada pista destella en blanco con cada nota que toca."],
     """
-- **Solo Beta 5.56.** Con **Shift** mantenido, en cualquier vista, los ocho **botones de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en **blanco** durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI (con Shift el original los deja apagados).
+- **Solo Beta 5.65.** Con **Shift** mantenido, en cualquier vista, los ocho **botones de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en **blanco** durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI (con Shift el original los deja apagados).
 - Una nota ligada a la siguiente es una sola nota: un destello.
 """)
 
-sec("proyecto-init", "A", "Shift + Preset = el sonido del proyecto (solo Beta 5.56)",
+sec("proyecto-init", "A", "Shift + Preset = el sonido del proyecto (solo Beta 5.65)",
     ["Shift + Preset devuelve el sonido de la pista al guardado en el proyecto."],
     """
-- **Solo Beta 5.56.** En las vistas de Synth 1 / 2, **Shift + Preset** = el patch entero del sinte vuelve a como está guardado en el proyecto (o como se cargó: lo que se ha girado después se pierde).
+- **Solo Beta 5.65.** En las vistas de Synth 1 / 2, **Shift + Preset** = el patch entero del sinte vuelve a como está guardado en el proyecto (o como se cargó: lo que se ha girado después se pierde).
 - En las de MIDI 1 / 2 con el sinte propio encendido: el sinte propio vuelve al guardado con el proyecto; un proyecto sin él, a sus valores por defecto (como Clear + MIDI 1 / 2).
 - Con Shift, Preset se ilumina en amarillo donde funciona (con el original, Shift + Preset no hacía nada).
 """)
 
 sec("knobs-drums", "B", "Knobs de los drums según el panel",
-    ["Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.56), tilt), LFO, start point, bitcrush y distorsión."],
+    ["Cada knob hace lo que dice su etiqueta, con una segunda capa en Shift: ring mod, envolventes, filtros (DJ, BP, notch, comb (no en la Beta 5.65), tilt), LFO, start point, bitcrush y distorsión."],
     """
 | Knob | Solo | Con Shift |
 |---|---|---|
@@ -529,12 +533,12 @@ sec("knobs-drums", "B", "Knobs de los drums según el panel",
 | K2 Osc mod | Frecuencia del ring mod | Cantidad del ring mod |
 | K3 Amp envelope | Izquierda: decay; pasado el máximo, **ataque** (centro neutro) | Izquierda: **inicio** del sample; derecha: **corte** (centro = entero) |
 | K4 Filter envelope | Envolvente → corte | Forma de la envolvente |
-| K5 Filter frequency | Filtro / EQ (por defecto, el EQ tilt de stock) | **Modo de filtro**: EQ tilt de stock (por defecto), paso banda, notch, comb (no en la Beta 5.56: ahí suena el EQ tilt), DJ |
+| K5 Filter frequency | Filtro / EQ (por defecto, el EQ tilt de stock) | **Modo de filtro**: EQ tilt de stock (por defecto), paso banda, notch, comb (no en la Beta 5.65: ahí suena el EQ tilt), DJ |
 | K6 Resonance | Resonancia | — |
 | K7 Modulation | Cantidad del LFO (derecha trémolo; izquierda vibrato; desde RC4: izquierda = scan del inicio) | Velocidad del LFO |
 | K8 FX | Distorsión; a la izquierda de 0, **bitcrush** | **Tipo de distorsión**: stock, suave, dura, plegada |
 
-- **Shift + K5, el color del LED = el modo de filtro:** verde = EQ tilt de stock, amarillo = paso banda, magenta = notch, verde azulado = comb, blanco = DJ. **Solo Beta 5.56:** el comb ya no está; Shift + K5 se lo salta.
+- **Shift + K5, el color del LED = el modo de filtro:** verde = EQ tilt de stock, amarillo = paso banda, magenta = notch, verde azulado = comb, blanco = DJ. **Solo Beta 5.65:** el comb ya no está; Shift + K5 se lo salta.
 - El brillo del LED enseña el valor; Clear + knob restablece las dos capas.
 - Todo se guarda con el proyecto y tiene NRPN (E4).
 """, [fig("Knobs de un drum.", knobs={1: "Pitch", 2: "Ring", 3: "Decay", 4: "Env→F", 5: "Filtro", 6: "Reso", 7: "LFO", 8: "Dist"}, buttons={"Drum 1": "white"}, view="Drum")])
@@ -569,7 +573,7 @@ sec("midi-io", "B", "MIDI para todo lo nuevo",
     ["Los valores nuevos salen y entran por MIDI: CC / NRPN del motor de las pistas MIDI, NRPN de los drums (MSB 5-8) y de Master FX (MSB 9, canal 16)."],
     """
 - Motor de las pistas MIDI: CC de stock donde la función coincide y NRPN 4:código para el resto, por el canal de la pista.
-- Drums: NRPN MSB 5-8 = Drum 1-4, LSB 1-12, por el canal de drums.
+- Drums: NRPN MSB 5-8 = Drum 1-4, LSB 1-14, por el canal de drums.
 - Master FX: NRPN MSB 9, LSB = 4 × conjunto + knob, canal 16.
 - Respetan los filtros CC Tx / Rx del Setup. Tablas completas en E4.
 """)
@@ -580,14 +584,16 @@ sec("automatizacion", "B", "Automatización del motor MIDI",
 - Página 4 del motor, **knobs secuenciables** (pad 4 de la fila de páginas): TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Cantidad de efecto.
 - Grabando, mover esos knobs graba su movimiento; al reproducir, el patrón los mueve.
 - Con el step-drummer activado, el carril de TUNE lo usa la fila de pitch.
-- **Desde RC4 — soltar la automatización:** vista Velocity, Shift + pad de paso (Synth 1 / 2 y MIDI 1 / 2) = en ese paso no suena ningún carril y lo que la automatización había movido vuelve a los valores del proyecto (*desde RC4.01*; antes, a la posición de su knob): Synth 1 / 2, los macros del patch guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto o, sin él, sus valores por defecto; se guarda con el patrón.
-- **Solo Beta 5.56 — ver y oír la automatización de un paso:** en esa vista, con Shift, solo los pasos con automatización se ven en amarillo (los demás conservan su color; los marcados, en rojo); Shift + un paso amarillo pone sus valores en los knobs y en el sonido hasta soltar Shift (no lo marca).
-- **Solo Beta 5.56 — knobs en amarillo y borrar la automatización de un paso:** con Shift + un paso amarillo, los knobs que mueve se encienden en amarillo (brillo = su valor); Clear + paso en la vista Velocity (con o sin Shift) borra la automatización de los knobs de ese paso y deja sus notas.
+- **Desde RC4 — soltar la automatización:** vista Velocity, Shift + pad de paso (Synth 1 / 2 y MIDI 1 / 2) = en ese paso no suena ningún carril y lo que la automatización había movido vuelve a los valores del proyecto (*desde RC4.02*; antes, a la posición de su knob): Synth 1 / 2, los macros del patch guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto o, sin él, sus valores por defecto; se guarda con el patrón.
+- **Solo Beta 5.65 — ver y oír la automatización de un paso:** en esa vista, con Shift, solo los pasos con automatización se ven en amarillo (los demás conservan su color; los marcados, en rojo); Shift + un paso amarillo pone sus valores en los knobs y en el sonido hasta soltar Shift (no lo marca).
+- **Solo Beta 5.65 — knobs en amarillo y borrar la automatización de un paso:** con Shift + un paso amarillo, los knobs que mueve se encienden en amarillo (brillo = su valor); Clear + paso en la vista Velocity (con o sin Shift) borra la automatización de los knobs de ese paso y deja sus notas.
 - **Desde RC4 — destinos:** Shift + knob de la página 4 = el destino de ese carril (los 33 parámetros, orden y colores de la matriz, 4 clics cada uno); Clear mantenido antes de Shift = el de fábrica; mientras se elige, los pads 9-24 enseñan dónde está el destino (como la matriz); se guardan con los patches del sinte propio.
 - **Desde RC4 — knobs no secuenciables:** **Shift + pad 4** abre una página de 8 knobs con destino asignable (Shift + knob, igual que los secuenciables; pad 4 rosa mientras está abierta) que **no se graban**; de fábrica Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA; los destinos se guardan con los patches propios.
+- **Solo Beta 5.65 — destinos con Duplicate:** **Duplicate + un knob de otra página** del motor manda su parámetro al primer hueco libre de los knobs secuenciables, después al de los no secuenciables (con los 16 ocupados, nada); **Duplicate + un knob** de esas páginas deja su hueco libre. Shift + knob ya no elige el destino.
+- **Solo Beta 5.65 — carriles extra:** cada parámetro del motor que no está en los knobs secuenciables tiene su propio carril de automatización (hasta 25 por patrón, dos valores por paso: al principio y a la mitad). Se graban con Record + Play; valen Clear + knob, la foto de Record + paso, Nudge y los pasos que sueltan la automatización. Van en el fichero del proyecto, detrás de sus 160 780 bytes: los conservan el guardado en otro hueco, la copia de proyectos, Duplicate / Clear de patrones, la app de la tarjeta, cualquier copia de la carpeta y Components al volver a enviar el mismo proyecto (no una copia de seguridad de Components).
 - **Desde RC4 — foto en un paso:** Record mantenido + pad de paso (vista de pista) = los parámetros que no están en su valor inicial, escritos en los carriles de ese paso; los que no tienen carril toman uno cuyo parámetro está en el inicial (borrado antes); Record queda como estaba.
-- **Solo Beta 5.56 — sweep entre dos pasos:** en esa vista, con Shift, **mantén un paso amarillo y pulsa otro paso amarillo** (en cualquier orden): cada carril con valor en los dos queda en línea recta entre ellos, en los pasos de en medio. Los extremos no cambian; un carril con valor en uno solo no se toca.
-- **Solo Beta 5.56 — la foto también en Synth 1 / 2 y los drums:** Record mantenido + pad de paso en la vista de pista de Synth 1 / 2 = sus macros que no están donde los guarda el patch cargado, cada uno en su carril; en la de un drum = pitch, decay, distorsión y EQ que no están en su valor por defecto (los knobs nuevos del mod no tienen carril). Mixer y FX no se tocan.
+- **Solo Beta 5.65 — sweep entre dos pasos:** en esa vista, con Shift, **mantén un paso amarillo y pulsa otro paso amarillo** (en cualquier orden): cada carril con valor en los dos queda en línea recta entre ellos, en los pasos de en medio. Los extremos no cambian; un carril con valor en uno solo no se toca.
+- **Solo Beta 5.65 — la foto también en Synth 1 / 2 y los drums:** Record mantenido + pad de paso en la vista de pista de Synth 1 / 2 = sus macros que no están donde los guarda el patch cargado, cada uno en su carril; en la de un drum = pitch, decay, distorsión y EQ que no están en su valor por defecto (los knobs nuevos del mod no tienen carril). Mixer y FX no se tocan.
 """)
 
 sec("setup", "B", "Setup y MIDI del aparato",
@@ -628,7 +634,7 @@ sec("setup", "B", "Setup y MIDI del aparato",
 - Con la cuenta atrás, **Record armado y Play desde parado**: suena un compás de cuenta atrás (4 clics, el sonido del metrónomo de stock, al tempo del proyecto) con Record parpadeando en rojo; después arranca la grabación. **Play** durante la cuenta la cancela.
 - Sin Record armado, Play arranca al momento, como siempre.
 - El metrónomo es el ajuste de stock; la cuenta atrás se guarda con el proyecto.
-- **Volumen del clic:** el de stock, pulsando **Tempo/Swing** y girando **K5**. A 0 (**solo Beta 5.56**), Clear destella en naranja en cada clic.
+- **Volumen del clic:** el de stock, pulsando **Tempo/Swing** y girando **K5**. A 0 (**solo Beta 5.65**), Clear destella en naranja en cada clic.
 - Como esclavo de un reloj MIDI, la cuenta atrás va al tempo del reloj (**desde RC4.07**), sin alinearse con su compás.
 
 ### MIDI Thru: Merge y Filter (desde RC2)
@@ -685,7 +691,7 @@ sec("patch-flip", "B", "Patch flip en MIDI 1 / 2",
 
 # ===== C. Nuevos modos de control
 sec("motor-midi", "C", "Motor de las pistas MIDI (pad 27)",
-    ["**Desde RC2.08:** un teclado externo por el canal de MIDI 1 / 2 (USB o DIN) toca su sinte propio; sus notas no se reenvían a la salida MIDI.", "El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado → **línea** → **oscilador** → **VA-drum** → **granular** → **muestra** (desde RC2) → **secuenciador de efectos**.",
+    ["**Desde RC2.08:** un teclado externo por el canal de MIDI 1 / 2 (USB o DIN) toca su sinte propio; sus notas no se reenvían a la salida MIDI.", "El pad 27 de la vista Preset de MIDI 1 / 2 elige el motor: apagado, **línea**, **oscilador**, **VA-drum**, **granular**, **muestra** (desde RC2), **secuenciador de efectos** y, **desde RC4**, **FM**. **Desde RC4** un toque los abre como una fila en los pads 17-24 (toca uno para elegirlo; antes, cada toque pasaba al siguiente) y Shift + pad 27 pasa al siguiente.",
      "Los pads 1-5 eligen la página de knobs; 28 = dos osciladores, 29 = orden de la cadena, 30 = step-drummer, 31 = velocity (VA-drum). **Desde RC2:** Clear + un pad de página = los valores de esa página a los iniciales; las filas 2-3 guardan patches (A14)."],
     """
 Cada pista MIDI tiene un «sinte» propio: la **entrada de audio** de la pista (línea 1 para MIDI 1, línea 2 para MIDI 2) o un **motor interno** pasa por VCA, efecto y filtro, con envolvente y LFO, antes de la tira 3 / 4 del mixer. Lo disparan las notas de la pista. La pista sigue mandando su MIDI.
@@ -747,9 +753,9 @@ Los knobs de tipo: color = tipo, brillo = posición dentro del tipo.
 | K7 | WAVE (morph seno → triángulo → sierra → cuadrada) | — |
 | K8 | LFO → morph | Envolvente → morph |
 
-**Solo Beta 5.56** (oscilador, VA-drum y wavetable): K1 TUNE / Shift env → tono, K2 FINE / Shift LFO → tono, K3 WAVE (en la wavetable, la posición) / Shift env → morph, K4 SHAPE (warp) / Shift env → forma, **K5 LFO → FM / Shift env → FM**, **K6 LFO → ring / Shift env → ring**, K7 LFO → morph / Shift LFO → forma, **K8 LFO → mix / Shift env → mix**. Página 3: K1 ratio, K2 detune, K3 WAVE 2, K4 SHAPE 2, **K5 FM con centro** (derecha OSC 2 → OSC 1, izquierda OSC 1 → OSC 2, los extremos 50 / 50), K6 RING, **K7 sync clásico + bitwise**, K8 MIX.
+**Solo Beta 5.65** (oscilador, VA-drum y wavetable): K1 TUNE / Shift env → tono, K2 FINE / Shift LFO → tono, K3 WAVE (en la wavetable, la posición) / Shift env → morph, K4 SHAPE (warp) / Shift env → forma, **K5 LFO → FM / Shift env → FM**, **K6 LFO → ring / Shift env → ring**, K7 LFO → morph / Shift LFO → forma, **K8 LFO → mix / Shift env → mix**. Página 3: K1 ratio, K2 detune, K3 WAVE 2, K4 SHAPE 2, **K5 FM con centro** (derecha OSC 2 → OSC 1, izquierda OSC 1 → OSC 2, los extremos 50 / 50), K6 RING, **K7 sync clásico + bitwise**, K8 MIX.
 
-Página 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (**desde RC2**: los ocho sin Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING; **solo Beta 5.56**, salvo con el granular: K1 ratio de OSC 2 (¼, ½, 1, 2 … 31), K2 detune ±50 cents, K3 SHAPE 2, K4 MIX, K5 FM, K6-K8 igual). Página 4 (knobs secuenciables): los 8 valores secuenciables (B6). Página 5: ADSR arriba, LFO abajo (**desde RC2**: Shift + K8 = forma del LFO, seis formas; **desde RC2.02**: siete, con el sample & hold suavizado, y el triángulo cuando el proyecto no guarda ninguna).
+Página 3 (OSC 2): K1 TUNE 2 / FINE 2, K2 SHAPE 2 / FM, Shift + K3 RING, K7 WAVE 2 (**desde RC2**: los ocho sin Shift, K1 TUNE 2, K2 SHAPE 2, K3 MIX, K4 FM, K5 FINE 2, K6 BITSYNC, K7 WAVE 2, K8 RING; **solo Beta 5.65**, salvo con el granular: K1 ratio de OSC 2 (¼, ½, 1, 2 … 31), K2 detune ±50 cents, K3 SHAPE 2, K4 MIX, K5 FM, K6-K8 igual). Página 4 (knobs secuenciables): los 8 valores secuenciables (B6). Página 5: ADSR arriba, LFO abajo (**desde RC2**: Shift + K8 = forma del LFO, seis formas; **desde RC2.02**: siete, con el sample & hold suavizado, y el triángulo cuando el proyecto no guarda ninguna).
 
 - **Desde RC4:** el sinte propio de MIDI 1 / 2 entero (motor, valores, matriz, destinos de los knobs, FM) se guarda **con el proyecto** y vuelve al cargarlo (en los bytes libres de los patrones 1-5 de MIDI 1 / 2; un proyecto de antes no lo lleva y el sonido se queda).
 - Los valores del motor se guardan en el aparato (no con el proyecto); los del OSC 2, los knobs con Shift del granular y del oscilador y los pads 28 / 29 también desde Beta 1.28 (antes volvían a los iniciales al encender).
@@ -798,7 +804,7 @@ sec("step-drummer", "C", "Step-drummer",
 
 sec("fx-seq", "C", "Secuenciador de efectos",
     ["Estado **azul** del pad 27: el step-drummer de la pista elige, en cada par de pasos, **un hueco de la fila inferior de Master FX** (0 = nada); suena en los pasos con nota.",
-     "El knob avanza despacio (**un hueco cada ~48 pasos de giro**) y se ilumina con el **color del efecto** elegido. **Un hueco sin efecto asignado no hace nada:** asigna antes los efectos a la fila inferior de Master FX (ver «Fila inferior asignable»). **Desde RC2:** al final del recorrido está el valor **random** (LED blanco): en cada paso con nota suena uno de la lista al azar (los huecos con efecto asignado y el gesto mecánico del pad 31)."],
+     "El knob avanza despacio (**un hueco cada ~48 pasos de giro**) y se ilumina con el **color del efecto** elegido. **Un hueco sin efecto asignado** toca, **desde RC4**, el efecto de arriba de su columna (pad 26 = pad 1 de Master FX … pad 30 = pad 5), con sus knobs; antes no hacía nada: asigna los efectos a la fila inferior de Master FX (ver «Fila inferior asignable»). **Desde RC2:** al final del recorrido está el valor **random** (LED blanco): en cada paso con nota suena uno de la lista al azar (los huecos con efecto asignado y el gesto mecánico del pad 31)."],
     """
 1. En MIDI 1 / 2, pasa el **pad 27** a **azul**. Se activa el step-drummer de la pista.
 2. Abre la vista con el **pad 30**. Pon notas en los pasos con **Shift + pad**.
@@ -813,6 +819,8 @@ sec("fx-seq", "C", "Secuenciador de efectos",
 | 4 | pad 29 |
 | 5 | pad 30 |
 | 6 | pad 31 (el gesto mecánico; en RC0.9, el Glitch) |
+| 7 | **al azar** (**desde RC2**): uno de los huecos con efecto en cada paso |
+| 8 | **mute** (**solo Beta 5.65**): el master entero en silencio mientras dura el paso (fundido de 2 ms); LED rojo |
 
 4. Con el secuenciador en marcha, en cada paso con nota se enciende lo que tenga ese hueco: un efecto (con su copia de parámetros) o el Glitch. El LED del knob toma el color de ese efecto; apagado = nada.
 
@@ -824,13 +832,12 @@ sec("fx-seq", "C", "Secuenciador de efectos",
           knobs={1: "Gater", 2: "nada", 3: "Phaser", 4: "Glitch", 5: "nada", 6: "Digitise", 7: "nada", 8: "Glitch"}, buttons={"MIDI 1": "orange", "Play": "green"}, view="Secuenciador FX")])
 
 sec("song-pointer", "C", "Song pointer (Master FX)",
-    ["Pads 9-24 = pasos 1-16: un paso mantenido = retrigger; dos pasos = frase momentánea; Shift + dos = frase fijada.",
-     "**Modo frase:** Shift + paso = inicio (fin 16); un toque = el fin; Shift + otro paso = nuevo inicio; Shift + el inicio o el pad 9 blanco = salir."],
+    ["Pads 9-24 = pasos 1-16: un paso mantenido = retrigger; dos pasos = frase momentánea.",
+     "**Modo frase** (una frase fijada): Shift + paso = inicio (fin 16); un toque = el fin; Shift + otro paso = nuevo inicio; Shift + el inicio o el pad 9 blanco = salir."],
     """
 - **Un paso mantenido:** retrigger, el paso se repite mientras lo mantienes.
 - **Dos pasos mantenidos:** el patrón hace bucle entre ellos mientras los mantienes.
-- **Shift + dos pasos:** frase fijada; el pad 9 se ve blanco y tocarlo la quita.
-- **Modo frase (SC34.2):** Shift + un paso entra en el modo con ese paso como inicio y el 16 como fin. En el modo, tocar un paso cambia el fin (sin retrigger); Shift + otro paso cambia el inicio; Shift + el inicio o el pad 9 blanco sale.
+- **Modo frase** (una frase fijada): Shift + un paso entra en el modo con ese paso como inicio y el 16 como fin; el pad 9 se ve blanco. En el modo, tocar un paso cambia el fin, así que la frase hace bucle entre los dos (sin retrigger); Shift + otro paso cambia el inicio; Shift + el inicio o el pad 9 blanco sale.
 - El cabezal se ve en blanco mientras el secuenciador corre. Al cargar un proyecto empieza apagado.
 """, [fig("Song pointer: frase entre los pasos 3 y 10.", pads={**{n: ("grey", str(n - 8), True) for n in range(9, 25)}, 11: ("yellow", "inicio"), 18: ("yellow", "fin"), 9: ("white", "salir")},
           view="Song pointer")])
@@ -849,7 +856,7 @@ sec("sample", "C", "Sample capturado",
 ### Tocar (pad 7)
 - Pulsa el **pad 7**: suena y sus knobs pasan a K1-K4: **K1** pitch (±24 semitonos), **K2** modo (amarillo one-shot, verde gate, azul loop), **K3** start, **K4** end (end < start = al revés).
 - **Shift + pad 7:** bucle **enganchado**, en cualquier modo, hasta que vuelvas a pulsar el 7 (o el pad 8); igual con Shift + un hueco del sample (desde RC0.4; en RC0-RC0.3 sonaba solo mientras se mantenía).
-- **Solo Beta 5.56 — el bucle sigue al cambiar de proyecto o de pack:** con el bucle enganchado sonando, cargar otro proyecto u otro pack no lo para. Play parpadea en verde y el proyecto nuevo empieza cuando el bucle da la vuelta, a tiempo con él; el bucle sigue sonando con sus knobs y el sample capturado no se borra. Play otra vez = empezar ya.
+- **Solo Beta 5.65 — el bucle sigue al cambiar de proyecto o de pack:** con el bucle enganchado sonando, cargar otro proyecto u otro pack no lo para. Play parpadea en verde y el proyecto nuevo empieza cuando el bucle da la vuelta, a tiempo con él; el bucle sigue sonando con sus knobs y el sample capturado no se borra. Play otra vez = empezar ya.
 - El modo **loop** (K2 azul) es otra cosa: suena solo mientras mantienes el pad y para al soltarlo.
 
 ### Asignar
@@ -857,7 +864,7 @@ Mantén el pad 7 y toca un pad de la fila inferior: ese hueco toca el sample con
 """, [fig("Sample capturado.", pads={7: ("yellow", "Tocar"), 32: ("red", "Grabar"), 27: ("yellow", "sample", True)}, knobs={1: "Pitch", 2: "Modo", 3: "Start", 4: "End"}, view="Master FX")])
 
 sec("glitch-pad", "C", "Glitch (pad 6) y su asignación",
-    ["**Mantén el pad 6** (Master FX o vista FX): la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).",
+    ["**Mantén el pad 6** de Master FX: la salida se rompe y se retrasa como una cinta. K1 velocidad, K2 repetición, K3 retraso, K4 caos (mitad de abajo) o sobrecarga (mitad de arriba).",
      "**Pad 6 mantenido + un pad de la fila inferior** = ese hueco también es un Glitch, con su copia de K1-K4."],
     """
 - **Mantener el pad 6:** la salida master se sustituye por una cabeza de cinta que lee el audio reciente (D6). Al soltar vuelve el audio normal.
@@ -906,7 +913,7 @@ sec("random-mutate", "C", "Random-mutate por paso",
 - **Sin Record** la nota cambiada suena esa vez y el paso no cambia. **Con Record** la nota cambiada se escribe en el paso (la secuencia va derivando).
 - Las notas ligadas (tie) no se cambian.
 - El valor se guarda en el paso, con el patrón y el proyecto. Los drums tienen el suyo (ver «Frecuencia y dinámicas por paso»).
-- **Solo Beta 5.56 — filas 3-4 rediseñadas (también en los drums):** pad 17 apagado; pads 18-20 otra nota de la escala (probabilidad ×1, ×2, ×4); pads 21 / 22 octava arriba, probabilidad baja / alta (×1, ×2); pads 23 / 24 octava arriba o abajo, baja / alta (×1, ×2); pad 25 sin dinámicas; pad 26 dynamics lo (ghost: velocity −32 a 0); pad 27 dynamics hi + longitud (accent staccato: velocity 0 a +64 y la nota más corta en proporción, hasta la mitad); pad 28 longitud (el gate de la mitad al doble); pad 32 micropasos sí / no (−2 a +2, dentro del paso). **Octave ▼ / ▲ en esa vista = factor de la pista** (×0, ×1, ×2, ×4 u ×8, de fábrica ×1; se guarda con el proyecto), que multiplica todas las probabilidades: a ×1, nota y octava 6 % por cada ×1 del pad; dinámicas y micropasos 25 %. En un drum: el sample en lugar de la nota (±1 dentro de su fila, ±8 a otra fila), pad 25 sin dinámicas, pad 26 dynamics lo (velocity −32 a 0 y un roller al azar: en el micropaso 4, o en los 3 y 6), pad 27 dynamics hi (velocity 0 a +64, sin roller), pad 28 apagado, y el pad 32 vale para todo el drum y adelanta o atrasa el paso entero.
+- **Solo Beta 5.65 — filas 3-4 rediseñadas (también en los drums):** pad 17 apagado; pads 18-20 otra nota de la escala (probabilidad ×1, ×2, ×4); pads 21 / 22 octava arriba, probabilidad baja / alta (×1, ×2); pads 23 / 24 octava arriba o abajo, baja / alta (×1, ×2); pad 25 sin dinámicas; pad 26 dynamics lo (ghost: velocity −32 a 0); pad 27 dynamics hi + longitud (accent staccato: velocity 0 a +64 y la nota más corta en proporción, hasta la mitad); pad 28 longitud (el gate de la mitad al doble); pad 32 micropasos sí / no (−2 a +2, dentro del paso). **Octave ▼ / ▲ en esa vista = factor de la pista** (×0, ×1, ×2, ×4 u ×8, de fábrica ×1; se guarda con el proyecto), que multiplica todas las probabilidades: a ×1, nota y octava 6 % por cada ×1 del pad; dinámicas y micropasos 25 %. En un drum: el sample en lugar de la nota (±1 dentro de su fila, ±8 a otra fila), pad 25 sin dinámicas, pad 26 dynamics lo (velocity −32 a 0 y un roller al azar: en el micropaso 4, o en los 3 y 6), pad 27 dynamics hi (velocity 0 a +64, sin roller), pad 28 apagado, y el pad 32 vale para todo el drum y adelanta o atrasa el paso entero.
 """, [fig("Vista de probabilidad: fila 3 = probabilidad del paso (original), fila 4 = random-mutate.",
           pads={1: ("red", "paso"), **{16 + k: ("blue" if k < 5 else "green", "") for k in range(1, 9)},
                 25: ("peach", "off"), 26: ("peach", "oct\n6", True), 27: ("peach", "esc\n6", True), 28: ("peach", "oct 6\nesc 6", True), 29: ("peach", "esc\n12", True),
@@ -952,10 +959,12 @@ sec("cadenas", "C", "Cadenas de patrones y escenas",
 - Una escena termina cuando termina su cadena más larga (al volver de C, o de B si no hay C).
 - **Repeticiones de escena:** en el Mixer, **Shift + pads 9-16** fijan 1-8 repeticiones de la escena actual (con Shift la fila se ve en amarillo y la elegida en verde). **Desde RC4:** sonando, con Shift, la repetición que suena se ve en blanco (pad 9 = la primera vez; en la última, el pad verde parpadea blanco / verde). Durante las repeticiones los mutes son los que hayas dejado y las cadenas siguen por donde iban.
 - Las reglas se guardan con el patrón (viajan al duplicarlo); el modo y lo de las escenas, con el proyecto.
+- **Solo Beta 5.65 — cadenas de grupos de patrones:** en lugar de las reglas por patrón, cada pista toca A × i → B × j → C × k (tramos de patrones seguidos, repeticiones 1-16). En el modo cadena: Shift + pad de inicio + pad de final = el siguiente grupo (amarillo, verde, rojo en el inicio); un pad de inicio = K1 fija sus repeticiones (9-16: los ocho LEDs y los n − 8 primeros en azul); Clear + amarillo = borra la cadena; Duplicate + inicio y otra pista = la copia. Cada escena guarda la cadena de cada pista (sin cadena = la de stock). En el fichero del proyecto, detrás de los carriles extra.
+- **Solo Beta 5.65 — volver al patrón guardado:** en cualquier vista de una pista (Preset, Note, Velocity, Gate, Micro Step, Pattern Settings, probabilidad, la cromática de los drums), **Clear + Duplicate** pregunta (Duplicate parpadea en blanco unos 5 s) y **Clear + Duplicate otra vez** devuelve el patrón que se ve a como está guardado en la tarjeta: pasos, automatización y ajustes del patrón (en MIDI 1 / 2, también sus carriles extra). Save en rojo = no se ha hecho (proyecto nuevo sin guardar, guardado pendiente, sin fichero). En las demás vistas, Clear + Duplicate sigue terminando el pattern mutate.
 """)
 
-sec("mutate-patrones", "C", "Mutate de patrones (solo Beta 5.56)",
-    ["**Solo Beta 5.56.** Portado del Pattern Mutate de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus) (licencia MIT). En la vista Patterns o en el Mixer, **Shift + un toque a Duplicate** da a cada pista elegida una lista corta de patrones de su cadena, en otro orden, que suena en bucle en lugar de la cadena. Los patrones no cambian."],
+sec("mutate-patrones", "C", "Mutate de patrones (solo Beta 5.65)",
+    ["**Solo Beta 5.65.** Portado del Pattern Mutate de [Rhythm Plus de mefisme](https://github.com/mefisme/rhythm-plus) (licencia MIT). En la vista Patterns o en el Mixer, **Shift + un toque a Duplicate** da a cada pista elegida una lista corta de patrones de su cadena, en otro orden, que suena en bucle en lugar de la cadena. Los patrones no cambian."],
     """
 - **La lista** sale de la semilla, la pista, los ajustes y la cadena de la pista: un ajuste nuevo se oye al momento y volver a su valor devuelve la misma lista; cambiar la cadena sonando rehace la lista con la misma semilla. **Otro toque = otra semilla.**
 - **Ajustes:** **Shift + Duplicate mantenido** en la vista Patterns abre la página (melocotón; el valor elegido brillante, los demás tenues): columna 1 **Length** 1-4 y columna 2 Length 5-8; columna 3 **tipo de longitud** (como la cadena / exacta / al azar entre 1 y Length); columnas 4 y 5 **Amount** en ocho pasos (cuántos huecos de la cadena cambian: columna 4 de arriba abajo todo, 7/8, 6/8, 5/8; columna 5 la mitad, 3/8, 2/8, 1/8); columna 6 **Repeats** (sí / no: dos vecinos nunca iguales); columna 7 **Keep slot 1** (no / sí: el primero, el de la cadena). Los **botones de pista** brillantes = las elegidas; con listas sonando, encender una le da su lista y apagarla la devuelve a su cadena. **Duplicate** (u otro botón de vista) cierra la página.
@@ -1003,7 +1012,7 @@ sec("escala-propia", "C", "Escala propia (desde RC2)",
     """
 - Teclado del editor: dos octavas en piano desde la tónica (filas 4 / 3 la primera octava, blancas / negras; filas 2 / 1 la segunda). La tecla más alta pulsada es el periodo (azul), las demás las notas (verdes).
 - Vale para tocar, iluminar las notas de la secuencia, cuantizar y el random-mutate. Una escala de stock la apaga; el editor la enciende otra vez.
-- **Desde RC4 — Jankó:** en el editor, **Shift + pad 8** enciende la disposición isomórfica Jankó: cada columna sube un tono; las filas van por parejas como en el teclado cromático de stock: la de abajo empieza en la tónica y la de encima es medio tono más grave (C D E F♯… / B C♯ D♯ F…); en la Note ampliada la pareja de arriba es una octava más aguda. **Shift + pad 24** = la disposición anterior (cada fila medio tono más aguda que la de abajo). Cada tipo de acorde tiene la misma forma en cualquier tono; los pads de la tónica, en el color de la tónica. Las 12 notas están en la escala (se iluminan todas, el random-mutate elige cualquiera de su octava). Octave: un toque = medio tono, mantenido = una octava; Shift + Octave sigue transponiendo el patrón. Se guarda con el proyecto. **Solo Beta 5.56:** una sola disposición (Shift + pad 8): en la Note ampliada la pareja de arriba repite la de abajo; con una tecla mantenida, Octave mueve solo la pareja a la que no pertenece la tecla; el pad 24 no hace nada.
+- **Desde RC4 — Jankó:** en el editor, **Shift + pad 8** enciende la disposición isomórfica Jankó: cada columna sube un tono; las filas van por parejas como en el teclado cromático de stock: la de abajo empieza en la tónica y la de encima es medio tono más grave (C D E F♯… / B C♯ D♯ F…); en la Note ampliada la pareja de arriba es una octava más aguda. **Shift + pad 24** = la disposición anterior (cada fila medio tono más aguda que la de abajo). Cada tipo de acorde tiene la misma forma en cualquier tono; los pads de la tónica, en el color de la tónica. Las 12 notas están en la escala (se iluminan todas, el random-mutate elige cualquiera de su octava). Octave: un toque = medio tono, mantenido = una octava; Shift + Octave sigue transponiendo el patrón. Se guarda con el proyecto. **Solo Beta 5.65:** una sola disposición (Shift + pad 8): en la Note ampliada la pareja de arriba repite la de abajo; con una tecla mantenida, Octave mueve solo la pareja a la que no pertenece la tecla; el pad 24 no hace nada.
 """)
 
 sec("acordes", "C", "Pantalla de acordes (desde RC4)",
@@ -1023,8 +1032,8 @@ sec("pareja-estereo", "C", "Parejas estéreo de drums (desde RC4)",
 - La tabla de knobs está en la guía por vistas («Vista de pista de un drum»).
 """)
 
-sec("carril-extra", "C", "Carril extra de los drums (solo Beta 5.56)",
-    ["**Solo Beta 5.56.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático."],
+sec("carril-extra", "C", "Carril extra de los drums (solo Beta 5.65)",
+    ["**Solo Beta 5.65.** Cada drum tiene **un carril de automatización más**, guardado en los bits libres de cada paso de su patrón (viaja con Duplicate, Nudge y Shift + Play). De fábrica lleva el **pitch cromático** (los pads de la vista cromática graban ahí; el carril de pitch queda para K1); **Record mantenido + un knob** le asigna otro parámetro y **Record mantenido + un pad cromático** lo devuelve al pitch cromático."],
     """
 - Knobs asignables: K2, K4, K6, K7 y Shift + K1, K2, K4, K7 (los knobs nuevos del mod sin carril propio). Mientras mantienes Record, el knob asignado se ve blanco (el pitch cromático: Preset parpadea).
 - Grabando, girar el knob asignado escribe el paso que suena (un valor por paso); Clear + ese knob a la izquierda borra el carril; Record mantenido + paso (la foto) incluye su valor.
@@ -1063,11 +1072,12 @@ sec("matriz-mod", "C", "Matriz de modulación del sinte propio (desde RC2.02)",
 - **Se guarda con los patches del sinte propio** (A14); no con el proyecto ni al apagar el aparato. Sin CC / NRPN. Unas 100-250 actualizaciones por segundo, repartidas entre lo que se mueve en la pista.
 """)
 
-sec("saltos", "C", "Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.56)",
+sec("saltos", "C", "Secuenciador de saltos de MIDI 1 / 2 (solo Beta 5.65)",
     ["Las notas de una pista MIDI hacen saltar el patrón de otra pista al paso que indican."],
     """
-- **Solo Beta 5.56.** Vista Preset de MIDI 1 / 2: el **pad 26** abre la vista de flip; en la fila 3, **pad 17 = patch flip (PGM seq)** y **pad 18 = step flip** (uno u otro; tocar el encendido lo apaga); con step flip, la **fila 2** son las ocho pistas y un toque elige el destino (sin elegir, el último usado). Con la vista cerrada, en step flip el pad 26 parpadea en el color del destino.
+- **Solo Beta 5.65.** Vista Preset de MIDI 1 / 2: el **pad 26** abre la vista de flip; en la fila 3, **pad 17 = patch flip (PGM seq)** y **pad 18 = step flip** (uno u otro; tocar el encendido lo apaga); con step flip, la **fila 2** son las ocho pistas y un toque elige el destino (sin elegir, el último usado). Con la vista cerrada, en step flip el pad 26 parpadea en el color del destino.
 - Mientras apunta, la pista no suena: cada nota, del secuenciador, de los pads o del arpegiador, hace saltar la otra pista en ese mismo paso. Apuntar apaga el motor y encender un motor deja de apuntar.
+- Varias notas en un paso: el salto va a uno de sus pasos al azar, todos con la misma probabilidad.
 - Vista Note: pads 17-32 = pasos 1-16, Octave ▲ = 17-32; Note ampliada: los 32 pads = pasos 1-32. La escala no cambia nada.
 - Con el transporte parado, un pad hace sonar ese paso de la otra pista, sin saltar.
 - Se guarda con el proyecto.
@@ -1081,28 +1091,28 @@ sec("fm4", "C", "FM de 4 operadores (desde RC4)",
 - **16 algoritmos:** 8 clásicos (pila, ramas, dos pilas, órgano…), 4 percusivos (bombo y caja con caída de pitch, metal / hi-hat inarmónico, tom / zap), 2 campanas (ratios inarmónicos) y 2 cuerdas (portadores desafinados). El LED de Shift + K5 en el color de la familia. **Clear + pad 7** = una voz tocable del algoritmo elegido (piano eléctrico, bajo, metales, órgano, bombo, caja, hi-hat, campana…).
 - **Brillo:** SHAPE, Env → forma y LFO → forma de la página OSC 1 (y con ellos la ADSR, el LFO, la matriz y los carriles) cambian cuánto modulan los moduladores; la velocity y la altura de la nota también (según el algoritmo, como en un DX7).
 - **Sonido:** feedback como el del DX7 (una sierra limpia), operadores casi senoidales, envolventes sin escalones, sin aliasing en notas y ratios altos, las fases a cero en cada golpe de los percusivos y las campanas, legato con el retrigger apagado.
-- **Polifonía (desde RC4):** con el modo de voz poly (pad 32 de la vista Preset de la pista), hasta 6 notas, cada una con sus cuatro operadores, sus envolventes y su ruido; una nota soltada suena entera con su release. Cada voz baja según cuántas suenan (una o dos notas, igual; cuatro, a 0,71; seis, a 0,58): los acordes no recortan. **6 voces FM entre las dos pistas**: una pista sola tiene 6; con MIDI 1 y MIDI 2 en FM poly, 3 cada una (**solo Beta 5.56:** 6 cada una, 12 en total, calculadas en el otro núcleo del DSP, que no quitan tiempo al resto; si ese núcleo no llega, el límite apaga una voz FM; el FM suena 1,3 ms más tarde que el resto). Si el DSP se va a quedar sin tiempo (muchas voces con releases largos), se apaga la voz soltándose más baja (o la nota mantenida más antigua) antes de que se oiga un traqueteo, y cada 2 s se prueba con una más; Synth 1 y Synth 2 no pierden voces por ello.
+- **Polifonía (desde RC4):** con el modo de voz poly (pad 32 de la vista Preset de la pista), hasta 6 notas, cada una con sus cuatro operadores, sus envolventes y su ruido; una nota soltada suena entera con su release. Cada voz baja según cuántas suenan (una o dos notas, igual; cuatro, a 0,71; seis, a 0,58): los acordes no recortan. **6 voces FM entre las dos pistas**: una pista sola tiene 6; con MIDI 1 y MIDI 2 en FM poly, 3 cada una (**solo Beta 5.65:** 6 cada una, 12 en total, calculadas en el otro núcleo del DSP, que no quitan tiempo al resto; si ese núcleo no llega, el límite apaga una voz FM; el FM suena 1,3 ms más tarde que el resto). Si el DSP se va a quedar sin tiempo (muchas voces con releases largos), se apaga la voz soltándose más baja (o la nota mantenida más antigua) antes de que se oiga un traqueteo, y cada 2 s se prueba con una más; Synth 1 y Synth 2 no pierden voces por ello.
 - **Sonidos de partida (desde RC4):** con el FM encendido, **mantén el pad 8**: los pads 9-24 son 16 instrumentos (piano, piano eléctrico, órgano, pluck, arpa, marimba, bajo, campana, cuerdas, pad, flauta, clarinete, metales, bombo, caja, hi-hat) en el color de su familia; pulsar uno carga todo el FM de ese sonido y suena la tónica. Un toque al pad 8 abre la página FM; el pad 7 mantenido sigue siendo los algoritmos.
 - **Ruido** blanco con la envolvente de un operador, en cualquier algoritmo. La nota, TUNE / FINE, la envolvente de pitch y el vibrato del oscilador, el filtro, el efecto y la matriz siguen valiendo.
-- **Clear + knob** = su valor en la voz del algoritmo; **Clear + MIDI 1 / 2** = todo a los valores iniciales. Se guarda con los patches del sinte propio (A14). Sin CC / NRPN. **Solo Beta 5.56:** sustituido por el FM de 8 operadores (C, siguiente).
+- **Clear + knob** = su valor en la voz del algoritmo; **Clear + MIDI 1 / 2** = todo a los valores iniciales. Se guarda con los patches del sinte propio (A14). Sin CC / NRPN. **Solo Beta 5.65:** sustituido por el FM de 8 operadores (C, siguiente).
 """)
 
-sec("fm8", "C", "FM de 8 operadores (solo Beta 5.56)",
-    ["**Solo Beta 5.56.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.",
+sec("fm8", "C", "FM de 8 operadores (solo Beta 5.65)",
+    ["**Solo Beta 5.65.** Sustituye al FM de 4 operadores en el **pad 24** de la fila de motores: **hasta 8 operadores**, cada uno con una **envolvente como la del DX7** (4 rates, 4 niveles), y **56 algoritmos** (los 16 del FM de 4 operadores, los 32 del DX7 y 8 de 8 operadores). Los patches del FM de 4 operadores se cargan convertidos, con el mismo sonido.",
      "Página FM = **pad 7** (con la fila de motores cerrada): **pads 9-16** = el operador 1-8 (los que usa el algoritmo encendidos: portadores verdes, moduladores azul claro), **pad 3** = la envolvente de pitch (violeta). **K1** ratio (0,5 … 31 o fijo en Hz), **K2** fino, **K3** nivel, **K4** velocity, **K5-K8** rates R1-R4; con Shift **K1** algoritmo, **K2** feedback, **K3** rate scaling, **K4** level scaling, **K5-K8** niveles L1-L4."],
     """
 - **Solo los operadores del algoritmo** gastan tiempo del DSP: con 4, unas 10 voces; con 6 (los del DX7), unas 6-7; con 8, unas 5. Polifonía, unísono y glide como antes.
 - **Envolvente de pitch** (pad 3): R1-R4 / L1-L4 (L = 50 sin desplazamiento), transposición, ruido y el operador que lo lleva.
 - **Se guarda** con los patches del sinte propio (en una ranura extra del mismo banco de la tarjeta, después de sus 8 patches: el banco crece hasta 8 KB) y con el proyecto (en los ajustes de los patrones de Synth 1 / 2). Intercambiar o copiar patches entre packs lleva el FM.
 - **Components:** «Send patches» y «Send pack» ya no borran los patches propios ni el FM: el aparato los devuelve a cada banco (no en el pack interno). Leer el pack y mandar un patch no los tocan.
-- **Solo Beta 5.56: mapa del algoritmo.** Un toque al **pad 7** en la página FM lo fija (mantenido ½ s: mientras lo mantienes): en los pads 9-32 cada fila es una cadena que se lee de izquierda (moduladora) a derecha (portadora), un hueco = no interactúan; el color dice la relación armónica del ratio (verde entero, verde azulado x,5, naranja inarmónico, rojo fijo; violeta el feedback), el brillo el nivel. Un toque elige el operador (todas sus copias laten), **Shift + operador** lo calla mientras se ve el mapa, **mantener uno y tocar otro** enlaza o desenlaza los dos: un **algoritmo propio** guardado con el patch y el proyecto.
-- **Shift + pad 7 mantenido** (antes, el pad 7 mantenido) = los 56 algoritmos en los pads 9-32, en tres páginas con Octave ▼ / ▲; **pad 8 mantenido** = 24 instrumentos (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta); **solo Beta 5.56:** Octave ▼ / ▲ con el pad 8 mantenido = una segunda página de 24 (pianos, cuerdas, vientos en verde azulado, sonidos largos) y releases más largos en la primera. En la página FM los pads 17-24 son la fila de motores y el pad 28 (dos osciladores) no hace nada.
-- **Solo Beta 5.56:** al cargar un instrumento de la lista del pad 8, la página 4 (knobs secuenciables) y Shift + pad 4 (no secuenciables) pasan a los destinos de su familia (teclados, bajos, leads, pads, punteados, percusión, campanas, vientos): por ejemplo, en los teclados Filtro, Resonancia, Env > filtro, Efecto, LFO > tono, Velocidad LFO, Tono y Ganancia. Los valores no cambian; Clear mantenido + Shift + knob sigue devolviendo el de fábrica.
-- Sin CC / NRPN. **Voces del DX7:** la app de la tarjeta (`sd_app.html`, **Parches custom** → **Importar DX7…**) convierte un `.syx` de 32 voces o de una en parches custom con este FM.
+- **Solo Beta 5.65: mapa del algoritmo.** Un toque al **pad 7** en la página FM lo fija (mantenido ½ s: mientras lo mantienes): en los pads 9-32 cada fila es una cadena que se lee de izquierda (moduladora) a derecha (portadora), un hueco = no interactúan; el color dice la relación armónica del ratio (verde entero, verde azulado x,5, naranja inarmónico, rojo fijo; violeta el feedback), el brillo el nivel. Un toque elige el operador (todas sus copias laten), **Shift + operador** lo calla mientras se ve el mapa, **mantener uno y tocar otro** enlaza o desenlaza los dos: un **algoritmo propio** guardado con el patch y el proyecto.
+- **Shift + pad 7 mantenido** (antes, el pad 7 mantenido) = los 56 algoritmos en los pads 9-32, en tres páginas con Octave ▼ / ▲; **pad 8 mantenido** = 24 instrumentos (**solo Beta 5.65:** sin instrumentos; el pad 8 abre la página FM; los sonidos están como Parches demo de la app) (teclados naranja, bajos azul, leads y metales rojo, pads y cuerdas verde, punteados amarillo, percusión blanco, campanas y efectos violeta); **solo Beta 5.65:** Octave ▼ / ▲ con el pad 8 mantenido = una segunda página de 24 (pianos, cuerdas, vientos en verde azulado, sonidos largos) y releases más largos en la primera. En la página FM los pads 17-24 son la fila de motores y el pad 28 (dos osciladores) no hace nada.
+- **Solo Beta 5.65:** al cargar un instrumento de la lista del pad 8, la página 4 (knobs secuenciables) y Shift + pad 4 (no secuenciables) pasan a los destinos de su familia (teclados, bajos, leads, pads, punteados, percusión, campanas, vientos): por ejemplo, en los teclados Filtro, Resonancia, Env > filtro, Efecto, LFO > tono, Velocidad LFO, Tono y Ganancia. Los valores no cambian; Clear mantenido + Shift + knob sigue devolviendo el de fábrica.
+- Sin CC / NRPN. **Voces del DX7:** la app (`hr_app.html`, vista Hacks, **Parches custom** → **Importar DX7…**) convierte un `.syx` de 32 voces o de una en parches custom con este FM.
 """)
 
-sec("wavetable", "C", "Wavetable (solo Beta 5.56)",
-    ["**Solo Beta 5.56.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.",
+sec("wavetable", "C", "Wavetable (solo Beta 5.65)",
+    ["**Solo Beta 5.65.** El **pad 21** de la fila de motores (arena) = el oscilador leyendo una **wavetable**: los dos osciladores, el FM / ring / sync entre ellos, el filtro, el VCA, la polifonía y los modos de voz siguen igual.",
      "**Una tabla por patch, de hasta 9 cuadros**, para los dos osciladores; cada uno con su **posición**: **K3** de la página OSC 1 / OSC 2 (WAVE; en la Beta 5.24-5.26, K7), K7 = LFO → posición, Shift + K3 = envolvente → posición. **SHAPE** (K4) y envolvente / LFO → shape (Shift + K4 / Shift + K7) = **warp**, una doblez de la fase."],
     """
 - **Tablas Nova:** con la wavetable sonando, **pad 7 mantenido** = las 16 wavetables del sinte de stock (las ondas 14-29: sine table, analogue pulse, analogue sync, digital vocal…) en los pads 9-24, en arena (brillante la que está cargada); un toque llena la tabla con sus 9 cuadros; **Shift** + una tabla cambia solo el cuadro que señala la posición (K3; por el mismo cuadro de esa tabla). También con la fila de motores abierta. La primera vez la tabla viene llena con la 7.ª (digital saw-square).
@@ -1124,7 +1134,7 @@ sec("master-fx-beta", "C", "Master FX desde RC2: gesto mecánico, Glitch, Digiti
 - **Por sesión:** los 20 knobs de la fila superior, la asignación de los huecos de la fila inferior y el ataque / release del compresor master se guardan al guardar el proyecto y vuelven al cargarlo. Un proyecto que no los tiene (antiguo o nuevo) deja el aparato como esté. Los efectos fijados no se guardan.
 """)
 
-sec("efectos-grid", "D", "Efectos de Master FX",
+sec("efectos-master-fx", "D", "Efectos de Master FX",
     ["Gater, Auto-Filter LP / HP, Digitise, Phaser y Glitch sobre la salida master, con 4 parámetros cada uno."],
     """
 | Pad | Efecto | K1-K4 |
@@ -1151,8 +1161,8 @@ sec("vca-vcf", "D", "VCA-VCF de las pistas MIDI",
 sec("osciladores", "D", "Osciladores y parafonía",
     ["Morph continuo seno → triángulo → sierra → cuadrada, wavefold / pendiente / ancho, segundo oscilador con FM, ring, sync suave y modos bit a bit; dos notas parafónicas."],
     """
-- **OSC 1:** WAVE es un morph continuo (0 seno, 42 triángulo, 84 sierra, 126 cuadrada); SHAPE (centro = la forma pura): en el seno y el triángulo, a la derecha del centro los pliega (wavefold, hasta ×8; a la izquierda nada); en la sierra curva la rampa (izquierda: sube rápido y se aplana; derecha: empieza plana y sube al final; **desde RC4:** de sierra normal a la izquierda del todo a **supersaw** de 7 sierras a la derecha del todo, y en el triángulo, a la izquierda del centro, **rampas exponenciales**); **desde RC4: menos aliasing** (la sierra, las sierras de la supersaw y la cuadrada / el pulso con PolyBLEP: en las notas agudas, unos 40 dB menos de tonos ajenos a la nota; **arreglo de RC4.08 y la Beta 5.28:** el pulso con un ancho distinto del 50 % tenía sin corregir el flanco de subida; el wavefold limita su amplificación en las notas agudas: ×6,7 en la nota 72, ×3,9 en la 84, ×2,4 en la 96; **solo Beta 5.56:** BLEP de 4 muestras, unos −87 dB por debajo de 8 kHz; con un oscilador, **sub-oscilador y ruido** en K5 / K6 (Shift = envolvente) y LFO → sub / ruido en K8 / Shift + K8); en la cuadrada cambia el ancho del pulso (centro 50 %, hacia los extremos un pulso estrecho, del 3 % al 97 %). Con WAVE entre dos formas actúa sobre las dos. Envolvente y LFO mueven tono, forma y morph.
-- **OSC 2 (pad 28):** su propio TUNE / FINE / WAVE / SHAPE; MIX, FM (OSC 2 → fase de OSC 1), RING y BITSYNC (sync suave cada N ciclos, xor, or, nor, and, nand; **solo Beta 5.56:** sync clásico (OSC 2 vuelve a empezar en cada ciclo de OSC 1; dentro de la zona, OSC 2 sube hasta unos 32 semitonos), el bitwise con un paso bajo suave, FM con centro: derecha OSC 2 → OSC 1, izquierda OSC 1 → OSC 2, los extremos 50 / 50, y el antialias de OSC 1 con el FM).
+- **OSC 1:** WAVE es un morph continuo (0 seno, 42 triángulo, 84 sierra, 126 cuadrada); SHAPE (centro = la forma pura): en el seno y el triángulo, a la derecha del centro los pliega (wavefold, hasta ×8; a la izquierda nada); en la sierra curva la rampa (izquierda: sube rápido y se aplana; derecha: empieza plana y sube al final; **desde RC4:** de sierra normal a la izquierda del todo a **supersaw** de 7 sierras a la derecha del todo, y en el triángulo, a la izquierda del centro, **rampas exponenciales**); **desde RC4: menos aliasing** (la sierra, las sierras de la supersaw y la cuadrada / el pulso con PolyBLEP: en las notas agudas, unos 40 dB menos de tonos ajenos a la nota; **arreglo de RC4.08 y la Beta 5.28:** el pulso con un ancho distinto del 50 % tenía sin corregir el flanco de subida; el wavefold limita su amplificación en las notas agudas: ×6,7 en la nota 72, ×3,9 en la 84, ×2,4 en la 96; **solo Beta 5.65:** BLEP de 4 muestras, unos −87 dB por debajo de 8 kHz; con un oscilador, **sub-oscilador y ruido** en K5 / K6 (Shift = envolvente) y LFO → sub / ruido en K8 / Shift + K8); en la cuadrada cambia el ancho del pulso (centro 50 %, hacia los extremos un pulso estrecho, del 3 % al 97 %). Con WAVE entre dos formas actúa sobre las dos. Envolvente y LFO mueven tono, forma y morph.
+- **OSC 2 (pad 28):** su propio TUNE / FINE / WAVE / SHAPE; MIX, FM (OSC 2 → fase de OSC 1), RING y BITSYNC (sync suave cada N ciclos, xor, or, nor, and, nand; **solo Beta 5.65:** sync clásico (OSC 2 vuelve a empezar en cada ciclo de OSC 1; dentro de la zona, OSC 2 sube hasta unos 32 semitonos), el bitwise con un paso bajo suave, FM con centro: derecha OSC 2 → OSC 1, izquierda OSC 1 → OSC 2, los extremos 50 / 50, y el antialias de OSC 1 con el FM).
 - **Parafonía:** una nota = unísono; dos = una por oscilador (**desde RC2**: con un oscilador la última nota manda; al soltarla vuelve la anterior).
 """)
 
@@ -1207,9 +1217,9 @@ sec("glitch-dsp", "D", "Motor del Glitch",
 """)
 
 sec("drums-dsp", "D", "DSP de los drums",
-    ["Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.56) / tilt, bitcrush, start point, distorsiones y sidechain entre drums."],
+    ["Ring mod, envolventes de tono y filtro, LFO, filtros DJ / paso banda / notch / comb (no en la Beta 5.65) / tilt, bitcrush, start point, distorsiones y sidechain entre drums."],
     """
-- Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación (no en la Beta 5.56) y el EQ tilt de stock.
+- Filtro de estado variable por drum (DJ, paso banda, notch), comb con realimentación (no en la Beta 5.65) y el EQ tilt de stock.
 - Ring mod con oscilador propio, LFO trémolo / vibrato, distorsión suave / dura / plegada, bitcrush.
 - **Sidechain entre drums:** Shift + FX y Octave ▼: páginas de ducking por drum (filas 3-4) y qué drum dispara (fila 1, pads 5-8). **Desde RC2:** los pads 1-4 de la fila 1 = Synth 1, Synth 2, MIDI 1, MIDI 2 como disparo (cada nota de su patrón).
 """)
@@ -1251,8 +1261,8 @@ sec("instalar", "E", "Instalar y volver atrás",
 2. Elige el `.syx` de `firmware/<versión>/`: el uploader comprueba su SHA-256.
 3. Envía. El bootloader de Novation no se modifica.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si el aparato no arranca: mantén **Scales + Preset + Note** al encender (modo de recuperación del bootloader).
-- **App de la tarjeta y del aparato** ([`sd_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sd_app.zip)): packs, sintes, samples, parches custom, patrones y presets de CC, con la microSD o por USB; vista previa de las ocho pistas, exportar al ordenador, y snapshot y restauración del aparato. Uso: guía, apéndice.
-- **App Hacks + Remix** ([`hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)): samples, patrones (del Tracks al Rhythm, la nota más grave de cada paso) y parches FM de 8 operadores entre tarjetas del Circuit Tracks y del Circuit Rhythm, carpetas y snapshots.
+- **App de la tarjeta y del aparato** ([en el navegador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) o [`hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip), vista **Hacks · Circuit Tracks**): packs, sintes, samples, parches custom, patrones y presets de CC, con la microSD o por USB; vista previa de las ocho pistas, exportar al ordenador, y snapshot y restauración del aparato. Uso: guía, apéndice.
+- **App Hacks + Remix** ([en el navegador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) o [`hr_app.zip`](https://ghillermo.github.io/CIRCUIT-HACKS-RC/hr_app.zip)): samples, patrones (del Tracks al Rhythm, la nota más grave de cada paso) y parches FM de 8 operadores entre tarjetas del Circuit Tracks y del Circuit Rhythm, carpetas y snapshots.
 - En la rama RC los `.syx` no se publican: se generan con `tools/patch_official.py` a partir del firmware oficial.
 - **RC4** (versión candidata 4, marca `RC4`) = SC48.6 = RC2.11 + todo lo marcado **desde RC4** en este manual: lo de las betas 3.1-3.43 (resonancia del filtro master en Shift + Octave y filtro apagado con Shift + pad 25, granular en estéreo, LFO a tempo, destinos de la página 4 y foto con Record, motores en el pad 27, supersaw, FM de 4 operadores, el sinte propio guardado con el proyecto, modo General MIDI de los drums, Jankó, pantalla de acordes, fusión USB, polifonía y modos de voz con su limitador, modo muestra en estéreo, PolyBLEP, parejas estéreo de drums, curva de velocity, metrónomo en el cue, 128 patches propios, knobs no secuenciables, modificadores del arpegio, latch…) y sus arreglos (Synth 1 / 2 ya no callan con un acorde poly del sinte propio). Gran parte está sin probar en el aparato: úsala con una copia de la SD.
 - **RC2.11** (ficheros y marca `R211`) = RC2.10 + un arreglo: el **editor de CC** de las pistas MIDI ya no deja knobs muertos al descartar un cambio; al guardar sale a la vista Preset.
@@ -1280,7 +1290,7 @@ sec("herramientas", "E", "Herramientas de desarrollo y diagnóstico",
 """)
 
 sec("tablas-midi", "E", "Tablas MIDI",
-    ["Motor MIDI: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 4:x; drums NRPN 5-8:1-12; Master FX NRPN 9:0-19 (canal 16)."],
+    ["Motor MIDI: CC 74/71/79/73/75/70/72/91/59/26/27/20/21/37/39/30/31/52/54 + NRPN 0:76 y 4:x; drums NRPN 5-8:1-14; Master FX NRPN 9:0-19 (canal 16)."],
     """
 ### Motor de las pistas MIDI — canal de la pista
 
@@ -1309,25 +1319,26 @@ LSB = 4 × conjunto + knob: Gater 0-3, Auto-Filter 4-7, Digitise 8-11, Phaser 12
 
 # ---------------------------------------------------------------------------------------------------- languages
 UI_ES = dict(
-    md_title="Lista de características — CIRCUIT-HACKS ({v})",
+    md_title="Glosario de funciones — CIRCUIT-HACKS ({v})",
     md_intro="Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Lo que no aparece aquí funciona como en el aparato original. "
-             "Cada función en una línea, por temas. **El manual de uso es la [guía por vistas](GUIA.md)** (en color: [guia.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)); los CC / NRPN, en la [referencia MIDI](MIDI.md). Versión ilustrada de esta lista: [https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html). English version: [`docs/MANUAL.en.md`](MANUAL.en.md).",
+             "**Las funciones viven ahora en el manual por vistas, la [guía por vistas](GUIA.md)** (en color: [guia.html](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html)): cada una es un apartado del capítulo de la vista donde se usa. Este es el **glosario**: todas las funciones con los grupos de la antigua lista de características, cada una enlazada con su apartado. Los CC / NRPN, en la [referencia MIDI](MIDI.md). English version: [`docs/MANUAL.en.md`](MANUAL.en.md).",
     conventions="**Convenciones:** pads 1-32 de arriba-izquierda a abajo-derecha (fila 1 = 1-8 … fila 4 = 25-32); knobs K1-K4 arriba, K5-K8 abajo; «Shift + X» = mantener Shift.",
     index="Índice",
-    html_title="Lista de características — CIRCUIT-HACKS",
-    cover="Lista de características del mod para Circuit Tracks",
+    html_title="Glosario de funciones — CIRCUIT-HACKS",
+    cover="Glosario de funciones del mod para Circuit Tracks",
     cover_fw="Firmware oficial 1.2.1 (build 4486) + {v}",
     html_conv="<strong>Convenciones.</strong> Pads 1-32 de arriba-izquierda a abajo-derecha (fila 1 = 1-8 … fila 4 = 25-32). Knobs K1-K4 arriba y K5-K8 abajo. «Shift + X» = mantener Shift mientras se usa X. "
               "Los colores de los diagramas son aproximados; un pad tenue se dibuja translúcido. Lo que no aparece aquí funciona como en el aparato original (consulta el manual oficial de Novation).",
-    toc="Índice de funciones",
-    other='<p class="lang"><a href="en.html">English version</a> · <a href="guia.html"><strong>Guía por vistas (manual de uso)</strong></a> · <a href="midi.html">Referencia MIDI</a></p>',
+    toc="Glosario",
+    other='<p class="lang"><a href="en.html">English version</a> · <a href="guia.html"><strong>Guía por vistas (el manual)</strong></a> · <a href="midi.html">Referencia MIDI</a></p>',
+    moved="**Las funciones viven ahora en el manual por vistas.** Cada una es un apartado del capítulo de la [guía por vistas](guia.html) donde se usa, con sus dibujos y sus animaciones. Esta página es el glosario: la lista de funciones con los grupos de la antigua lista de características; cada título lleva a su apartado de la guía y nombra su capítulo.",
     footer="CIRCUIT-HACKS {v} · Este mod no está afiliado a Novation. Circuit Tracks es una marca de Focusrite Audio Engineering Ltd.",
     features="Características ({v})",
-    features_manual="Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · esta lista: [ilustrada en color](https://ghillermo.github.io/CIRCUIT-HACKS-RC/index.html) · [resumida](docs/MANUAL.md) · **guía en palabras sencillas, ilustrada** ([web](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sencilla.html), [PDF](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sencilla.pdf); primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [su guía original](https://files.catbox.moe/xgogqy.pdf)). Novedades y arreglos de cada versión: [`docs/CHANGELOG.md`](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md). Lo marcado **desde RC2** es nuevo en RC2 / RC2S (no está en RC0.9).",
+    features_manual="**Las funciones viven ahora en el manual por vistas**: cada una es un apartado del capítulo de la vista donde se usa. Esta lista es el **glosario**, con los grupos de la antigua lista de características; cada título lleva a su apartado. Manual de uso: [guía por vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · este glosario: [en color](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/index.html) · [en texto](docs/MANUAL.md) · **guía en palabras sencillas, ilustrada** ([web](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sencilla.html), [PDF](https://ghillermo.github.io/CIRCUIT-HACKS-RC/sencilla.pdf); primer borrador de [reddit.com/u/luxurysoft1337](https://www.reddit.com/user/luxurysoft1337/), [su guía original](https://files.catbox.moe/xgogqy.pdf)). Novedades y arreglos de cada versión: [`docs/CHANGELOG.md`](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/blob/main/docs/CHANGELOG.md). Lo marcado **desde RC2** es nuevo en RC2 / RC2S (no está en RC0.9).",
 )
 LANGS = {"es": dict(md="docs/MANUAL.md", html="index.html", lang="es"), "en": dict(md="docs/MANUAL.en.md", html="en.html", lang="en")}
 PAGES = "https://ghillermo.github.io/CIRCUIT-HACKS-RC/"                                   # GitHub Pages of the public repository (branch gh-pages)
-PAGES_URL = {"es": PAGES + "index.html", "en": PAGES + "en.html"}
+PAGES_URL = {"es": PAGES + "guia.html", "en": PAGES + "guide.html"}   # (2026-11-15) the README's colour-manual links: the manual by views (index.html / en.html = the glossary)
 CUR = dict(S=S, GROUPS=GROUPS, UI=UI_ES, lang="es")
 
 
@@ -1366,36 +1377,37 @@ def md_inline(t):
     return t
 
 
-def feature_list_md(link_base):
-    lines = []
-    for g, gname in CUR["GROUPS"]:
-        lines.append(f"### {g}. {gname}")
-        for code, s_ in numbered():
-            if s_["group"] != g: continue
-            lines.append(f'- **[{code} {s_["title"]}]({PAGES_URL[CUR["lang"]]}#{anchor(code, s_)})** — ' + " ".join(s_["summary"]))
-        lines.append("")
-    return "\n".join(lines)
+def beta_only(sid):
+    """(docset) a feature of the beta only: its title (or the start of its summary) carries the beta's mark; judged on the Spanish source"""
+    import docset
+    s_ = next(x for x in S if x["id"] == sid)
+    return docset.titled(s_["title"]) or docset.titled(" ".join(s_["summary"])[:60])
+
+
+def set_version():
+    """(2026-11-15) the version a page of docset's sets names: the rc set its release candidate (make_guide.RCNOW), the beta set the beta
+    (make_guide.YBETA); outside the sets (the markdown) VERSION"""
+    if SET in ("rc", "beta"):
+        import docset
+        return docset.rc_name() if SET == "rc" else docset.beta_display()
+    return VERSION
+
+
+def visible(sid):
+    """the feature is in the set being written (the RC's set leaves out the beta's own features)"""
+    return not (SET == "rc" and beta_only(sid))
 
 
 def write_md():
+    """(2026-11-15: the manual by views) docs/MANUAL.md / MANUAL.en.md = the glossary: every feature under the old groups, linking to its
+    section in the guide (docs/GUIA.md); the old anchors (a1-atajos) and the section ids stay"""
+    import make_guide as G
+    lang = CUR["lang"]
     U = CUR["UI"]
-    out = [f"# {U['md_title'].format(v=VERSION)}", "", U["md_intro"], "", U["conventions"], "", f"## {U['index']}", ""]
-    for g, gname in CUR["GROUPS"]:
-        out.append(f"**{g}. {gname}**")
-        out.append("")
-        for code, s_ in numbered():
-            if s_["group"] == g: out.append(f'- [{code} {s_["title"]}](#{anchor(code, s_)})')
-        out.append("")
-    for g, gname in CUR["GROUPS"]:
-        out.append(f"## {g}. {gname}")
-        out.append("")
-        for code, s_ in numbered():
-            if s_["group"] != g: continue
-            out.append(f'<a id="{anchor(code, s_)}"></a>')
-            out.append(f'### {code}. {s_["title"]}')
-            for b_ in s_["summary"]: out.append(f"- {b_}")
-            out.append("")
-    (ROOT / LANGS[CUR["lang"]]["md"]).write_text("\n".join(out), encoding="utf-8", newline="")
+    out = [f"# {U['md_title'].format(v=VERSION)}", "", U["md_intro"], "", U["conventions"], ""]
+    out += G.glossary_md(lang, lambda sid: G.GUIDE_MD[lang], old_anchor=True)
+    use(lang)
+    (ROOT / LANGS[lang]["md"]).write_text("\n".join(out), encoding="utf-8", newline="")
 
 
 def inline(t):
@@ -1419,6 +1431,8 @@ def md2html(text):
         l = lines[i]
         if l.startswith("### "):
             out.append(f"<h4>{inline(l[4:])}</h4>"); i += 1
+        elif l.startswith("#### "):                                    # (2026-11-15) a subheading of one (the guide's arpeggio modifiers)
+            out.append(f"<h5>{inline(l[5:])}</h5>"); i += 1
         elif l.startswith("|"):
             rows = []
             while i < len(lines) and lines[i].startswith("|"):
@@ -1464,38 +1478,69 @@ th { background:rgba(255,106,19,.10); } code { background:rgba(127,127,127,.15);
 footer { color:var(--muted); text-align:center; font-size:13px; padding:24px; }
 p.lang { text-align:right; margin:0 0 8px; } p.lang a { color:var(--accent); font-weight:bold; }
 section.feat a { color:var(--accent); text-underline-offset:2px; }
+.anims { margin:18px 0 4px; } .anims p.anim-h { margin:0 0 6px; color:var(--muted); }
+figure.anim { margin:10px 0 4px; } figure.anim img { display:block; width:100%; max-width:656px; height:auto; border-radius:14px; }
+details.anim-steps { max-width:656px; margin:0 0 16px; font-size:.95em; } details.anim-steps summary { cursor:pointer; color:var(--muted); }
+section.sub { border-top:2px solid var(--line); margin:30px 0 0; padding-top:14px; } section.sub h4 { margin:0 0 10px; font-size:1.15em; }
+section.sub h5 { font-size:1em; margin:18px 0 6px; } section.sub .code { color:var(--accent); font-weight:bold; margin-right:6px; }
+nav.vindex { background:rgba(255,106,19,.06); border:1px solid var(--line); border-radius:10px; padding:10px 16px; margin:14px 0; }
+nav.vindex p { margin:4px 0; } nav.vindex ul { margin:4px 0; padding-left:20px; } nav.vindex a, ul.gloss a, .gl a { color:var(--accent); }
+ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { color:var(--muted); font-size:.92em; } ul.gloss .gsum { color:var(--muted); font-size:.95em; }
 """
 
 
-def write_html():
-    U, L_ = CUR["UI"], LANGS[CUR["lang"]]
+def feature_html(code, s_, skip=(), anims=""):
+    """(make_guide, 2026-11-15: the manual by views) one feature as a section of its view's chapter: id «f-<sid>» (view ids and section ids
+    overlap), the summary, its figures (but those the view already shows: skip = their indexes), the detail (its ### one level down) and
+    its animations (anims: anim_sets.html_list, each process once per chapter)"""
     import docset
-    shown = [(c, s_) for c, s_ in numbered() if not (SET == "rc" and (docset.titled(s_["title"]) or docset.titled(" ".join(s_["summary"])[:60])))]
-    numbered_ = lambda: shown
+    parts = [f'<section class="sub" id="f-{s_["id"]}"><h4><span class="code">{code}</span>{html.escape(s_["title"])}</h4>']
+    summ = [docset.rc(b_) if SET == "rc" else b_ for b_ in s_["summary"]]
+    parts.append('<div class="summary">' + "".join(f"<p>{inline(b_)}</p>" for b_ in summ if b_.strip()) + "</div>")
+    for i, f in enumerate(s_["figs"]):
+        if i in skip: continue
+        if SET == "rc" and docset.titled(f["caption"]): continue          # (2026-11-13) a beta-only figure: not in the RC's set
+        parts.append(f"<figure>{svg(f)}<figcaption>{html.escape(f['caption'])}</figcaption></figure>")
+    parts.append(re.sub(r"<(/?)h4>", r"<\1h5>", md2html(s_["detail"])))
+    if anims: parts.append(anims)
+    parts.append("</section>")
+    return "\n".join(parts)
+
+
+def feature_md(code, s_, lang, anims=()):
+    """(make_guide) one feature as a section of its view's chapter in docs/GUIA.md: its figures and animations as the wiki's images
+    (docs/wiki/img, written by make_wiki), the detail's ### two levels down"""
+    import make_anim as A
+    import anim_sets
+    alt = lambda t: t.replace("[", "(").replace("]", ")").replace("\n", " ")
+    out = [f'<a id="f-{s_["id"]}"></a>', "", f'#### {code} {s_["title"]}', ""]
+    out += [f"- {b_}" for b_ in s_["summary"]] + [""]
+    for i, f in enumerate(s_["figs"]):
+        out += [f'![{alt(f["caption"])}](wiki/img/feat-{s_["id"]}-{i + 1}-{lang}.svg)', "", f'*{f["caption"]}*', ""]
+    out += [re.sub(r"(?m)^### ", "##### ", s_["detail"]), ""]
+    for p in anims:
+        t = anim_sets._title(p, lang)
+        out += [f'![{alt(t)}](wiki/img/{A.file_name(p["id"], lang)})', "", f'*{anim_sets.HEAD[lang]}: {t}*', ""]
+    return out
+
+
+def write_html():
+    """(2026-11-15, the user: «merge both manuals … An hyper linked glossary lists features with the old sections») index.html / en.html = the
+    glossary: every feature of the set under the old groups A-E, its old anchor (a1-atajos) and its section id (morph) kept, linking to its
+    section in the guide by views; the features themselves are in the guide (make_guide.write)"""
+    import make_guide as G
+    lang = CUR["lang"]
+    U, L_ = CUR["UI"], LANGS[lang]
     parts = [f'<!doctype html><html lang="{L_["lang"]}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{U["html_title"]}</title>',
              f"<style>{CSS}</style></head><body>",
-             f'<header class="cover"><h1>CIRCUIT-HACKS</h1><p>{U["cover"]}</p><p>{U["cover_fw"].format(v=VERSION)}</p><div class="bar"></div></header><main>',
-             U["other"], f'<p>{U["html_conv"]}</p>',
-             f'<nav class="toc"><h2>{U["toc"]}</h2>']
-    for g, gname in CUR["GROUPS"]:
-        parts.append(f"<h3>{g}. {html.escape(gname)}</h3><ol>")
-        for code, s_ in numbered_():
-            if s_["group"] == g: parts.append(f'<li><a href="#{anchor(code, s_)}">{code} {html.escape(s_["title"])}</a></li>')
-        parts.append("</ol>")
-    parts.append("</nav>")
-    for g, gname in CUR["GROUPS"]:
-        parts.append(f'<h2 class="group">{g}. {html.escape(gname)}</h2>')
-        for code, s_ in numbered_():
-            if s_["group"] != g: continue
-            parts.append(f'<section class="feat" id="{anchor(code, s_)}"><h3><span class="code">{code}</span>{html.escape(s_["title"])}</h3>')
-            summ = [docset.rc(b_) if SET == "rc" else b_ for b_ in s_["summary"]]
-            parts.append('<div class="summary">' + "".join(f"<p>{inline(b_)}</p>" for b_ in summ if b_.strip()) + "</div>")
-            for f in s_["figs"]:
-                if SET == "rc" and docset.titled(f["caption"]): continue          # (2026-11-13) a beta-only figure: not in the RC's set
-                parts.append(f"<figure>{svg(f)}<figcaption>{html.escape(f['caption'])}</figcaption></figure>")
-            parts.append(md2html(s_["detail"]))
-            parts.append("</section>")
-    parts.append(f"<footer>{U['footer'].format(v=VERSION)}</footer></main></body></html>")
+             f'<header class="cover"><h1>CIRCUIT-HACKS</h1><p>{U["cover"]}</p><p>{U["cover_fw"].format(v=set_version())}</p><div class="bar"></div></header><main>',
+             U["other"], f'<p>{inline(U["moved"])}</p>', f'<p>{U["html_conv"]}</p>']
+    parts.append(G.glossary_html(lang, G.GUIDE_HTML[lang], page=True))
+    use(lang)
+    if SET == "rc":                                                    # (2026-11-15) an old link to a beta's own feature (not in this glossary): the beta's glossary
+        parts.append(f'<script>(function(){{var h=location.hash;if(h&&!document.getElementById(decodeURIComponent(h.slice(1))))'
+                     f'location.replace("../beta/{L_["html"]}"+h)}})()</script>')
+    parts.append(f"<footer>{U['footer'].format(v=set_version())}</footer></main></body></html>")
     d = ROOT / OUT; d.mkdir(parents=True, exist_ok=True)
     (d / L_["html"]).write_text("\n".join(parts), encoding="utf-8", newline="")
 
@@ -1506,11 +1551,13 @@ BEGIN_EN, END_EN = "<!-- FEATURES-EN:BEGIN -->", "<!-- FEATURES-EN:END -->"
 
 FEATURE_DOCS = {"es": "docs/CARACTERISTICAS.md", "en": "docs/FEATURES.md"}     # (the user, 2026-10-24: the feature list out of the README, linked from it)
 FEATURE_PTR = {
-    "es": ("La **lista de características** está en [`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md) (ilustrada en color: [index.html]({pages}index.html)). "
-           "Manual de uso: [guía por vistas]({pages}guia.html) ([`docs/GUIA.md`](docs/GUIA.md)) · [referencia MIDI](docs/MIDI.md) · "
+    "es": ("Las funciones están en el **manual por vistas**, la [guía por vistas]({pages}guia.html) ([`docs/GUIA.md`](docs/GUIA.md)): cada una en el capítulo "
+           "de la vista donde se usa. El **glosario** (las funciones con los grupos de la antigua lista de características) está en "
+           "[`docs/CARACTERISTICAS.md`](docs/CARACTERISTICAS.md) (en color: [index.html]({pages}rc/index.html)). [Referencia MIDI](docs/MIDI.md) · "
            "[guía en palabras sencillas]({pages}sencilla.html). Novedades y arreglos de cada versión: [`docs/CHANGELOG.md`](docs/CHANGELOG.md)."),
-    "en": ("The **feature list** is in [`docs/FEATURES.md`](docs/FEATURES.md) (illustrated in colour: [en.html]({pages}en.html)). "
-           "User manual: [guide by views]({pages}guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)) · [MIDI reference](docs/MIDI.en.md) · "
+    "en": ("The features are in the **manual by views**, the [guide by views]({pages}guide.html) ([`docs/GUIA.en.md`](docs/GUIA.en.md)): each one in the chapter "
+           "of the view where it is used. The **glossary** (the features under the groups of the former feature list) is in "
+           "[`docs/FEATURES.md`](docs/FEATURES.md) (in colour: [en.html]({pages}rc/en.html)). [MIDI reference](docs/MIDI.en.md) · "
            "[guide in plain words]({pages}plain.html). New features and fixes of every version: [`docs/CHANGELOG.md`](docs/CHANGELOG.md#changelog)."),
 }
 
@@ -1527,7 +1574,10 @@ def write_readme():
     p = ROOT / "README.md"; s = p.read_text(encoding="utf-8")
     for lang, b, e in (("es", BEGIN, END), ("en", BEGIN_EN, END_EN)):
         use(lang); U = CUR["UI"]
-        doc = f"# {U['features'].format(v=VERSION)}\n\n{U['features_manual']}\n\n{feature_list_md(LANGS[lang]['md'])}"
+        import make_guide as G                                        # (2026-11-15) the glossary, linking to the guide on the Pages
+        gl = G.glossary_md(lang, lambda sid: PAGES + ("beta/" if beta_only(sid) else "rc/") + G.GUIDE_HTML[lang], old_anchor=False)
+        use(lang); U = CUR["UI"]
+        doc = f"# {U['md_title'].format(v=VERSION)}\n\n{U['features_manual']}\n\n" + "\n".join(gl)   # (2026-11-15) the glossary's own heading
         (ROOT / FEATURE_DOCS[lang]).write_text(in_docs(doc).rstrip("\n") + "\n", encoding="utf-8", newline="")
         block = f"{b}\n## {U['features'].format(v=VERSION)}\n\n{FEATURE_PTR[lang].format(pages=PAGES)}\n{e}"
         if b in s and e in s:

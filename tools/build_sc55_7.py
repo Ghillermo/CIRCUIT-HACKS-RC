@@ -11,11 +11,14 @@ NAME = "SC55.7"
 B = S.B
 
 
+FM8DEST = True                                     # SC57.3 (fm8ui.use_noinst): False = no instruments, no fm8dest
+
+
 def extra(img, report):
     import build_sc41_5 as B5
     import fm8dest
     S.extra(img, report)
-    B5.add(img, report, "fm8dest", fm8dest)
+    if FM8DEST: B5.add(img, report, "fm8dest", fm8dest)
 
 
 if __name__ == "__main__":

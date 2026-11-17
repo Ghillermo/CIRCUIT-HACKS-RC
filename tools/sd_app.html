@@ -253,15 +253,46 @@ async function packInfo(pack) {
   const count = async (sub, re) => { const d = await subdir(pack.dir, sub); return d ? (await entries(d)).filter(e => re.test(e[0])).length : 0; };
   return pack._info = {sessions: await count("Sessions", /\.ncs$/i), banks: await count("Patches", /_PATCHBANK\.cpb$/i), samples: await count("PCM", /\.wav$/i)};
 }
-async function copyPack(pack, card, slot, ctx = {}) {
+async function copyPack(pack, card, slot, ctx = {}) {        // ctx.name: another name for the copy (Duplicate)
   if (card.packs.some(p => p.slot === slot)) throw new Error("slot-used");
-  const folder = folderName(slot, pack.name), dst = await card.tracks.getDirectoryHandle(folder, {create: true});
+  const folder = folderName(slot, ctx.name ? checkName("packs", ctx.name) : pack.name), dst = await card.tracks.getDirectoryHandle(folder, {create: true});
   try {
     const all = await treeInfo(pack.dir); let done = 0;
     await copyTree(pack.dir, dst, n => { done++; if (ctx.progress) ctx.progress(n, done, all.files); });
     if (dst.finish) await dst.finish();
     if (!await sameTree(pack.dir, dst)) throw new Error("verify");
   } catch (e) { await card.tracks.removeEntry(folder, {recursive: true}); throw e; }
+  await card.scan();
+  return card.pack(slot);
+}
+/* (2026-11-13) a new pack in a free number: meta/00_META.ncm (2 bytes, 00 NN: the source pack's, or 00 07 as the factory pack's; what NN means is not
+   known) and the Sessions / Patches / PCM folders; with a source pack, its patch banks and samples copied file for file and no projects (an empty
+   project slot starts as the device's new project).  Over USB the meta file's write is what makes the pack. */
+async function newPack(card, slot, name, src, ctx = {}) {
+  name = checkName("packs", name);
+  if (slot < 0 || slot >= NPACKS) throw new Error("order-range");
+  if (card.pack(slot)) throw new Error("slot-used");
+  const folder = folderName(slot, name), dst = await card.tracks.getDirectoryHandle(folder, {create: true});
+  try {
+    let meta = Uint8Array.from([0, 7]);
+    const sm = src ? await subdir(src.dir, "meta") : null;
+    if (sm) for (const [n, h] of await entries(sm)) if (h.kind === "file" && /^\d\d_META\.ncm$/i.test(n)) { const b = await readHandle(h); if (b.length) meta = b; }
+    await writeFile(await subdir(dst, "meta", true), "00_META.ncm", meta);
+    for (const sub of ["Sessions", "Patches", "PCM"]) await subdir(dst, sub, true);
+    if (src) {
+      const parts = []; let total = 0, done = 0;
+      for (const sub of ["Patches", "PCM"]) {
+        const s = await subdir(src.dir, sub); if (!s) continue;
+        const files = (await entries(s)).filter(([n, h]) => h.kind === "file" && /^\d\d_/.test(n));
+        parts.push([sub, files]); total += files.length;
+      }
+      for (const [sub, files] of parts) {
+        const d = await subdir(dst, sub, true);
+        for (const [n, h] of files) { await writeFile(d, n, await readHandle(h)); if (ctx.progress) ctx.progress(n, ++done, total); }
+      }
+    }
+    if (dst.finish) await dst.finish();
+  } catch (e) { try { await card.tracks.removeEntry(folder, {recursive: true}); } catch (_) { /* nothing made */ } throw e; }
   await card.scan();
   return card.pack(slot);
 }
@@ -669,13 +700,23 @@ async function sessionsOf(pack) {
   }
   return pack._sessions = m;
 }
+/* Beta 5.58's extra automation lanes of MIDI 1 / 2 (tools/xlanes.py): a 16-byte header after the session's 0x2740C bytes ("XLN1", version 1, the bitmap of
+   the 16 blocks, the sum of MIDI 1 / 2's patterns as 32-bit words, the data's length) and the blocks.  The device drops the lanes when the sum does not
+   match the patterns: an edit here refreshes it. */
+function xlTail(b) { return b.length >= SESS_SIZE + 16 && latin(b, SESS_SIZE, 4) === "XLN1"; }
+function xlSum(b) {
+  if (!xlTail(b)) return;
+  const v = new DataView(b.buffer, b.byteOffset); let s = 0;
+  for (let i = MIDI0; i < MIDI0 + 16 * PAT; i += 4) s = (s + v.getUint32(i, true)) >>> 0;
+  v.setUint32(SESS_SIZE + 8, s, true);
+}
 async function openSession(pack, s) {
   let o = pack._open.get(s);
   if (o) return o;
   const e = (await sessionsOf(pack)).get(s);
   if (!e) throw new Error("no-session");
   const bytes = await readHandle(e.handle);
-  if (bytes.length !== SESS_SIZE || latin(bytes, 0, 4) !== "USER") throw new Error("bad-session");
+  if (bytes.length < SESS_SIZE || latin(bytes, 0, 4) !== "USER") throw new Error("bad-session");     // (Beta 5.58: the extra lanes after it)
   o = {file: e.file, bytes, orig: bytes.slice(), dirty: false};
   pack._open.set(s, o);
   return o;
@@ -687,7 +728,7 @@ async function openSession(pack, s) {
    a new order needs no rewrite. */
 const PROJ_NAME = 31 - 3 - 4;                               // the device's 31 characters, with NN_ and .ncs
 function projectProblem(b) {                                // -> null, or why these bytes are not a project (proj-*)
-  if (b.length !== SESS_SIZE) return "proj-size";
+  if (b.length < SESS_SIZE) return "proj-size";
   if (!/^[A-Z]{4}$/.test(latin(b, 0, 4))) return "proj-head";
   return null;
 }
@@ -734,6 +775,26 @@ const Projects = {
     projDrop(pack, n);
   },
 };
+
+/* (2026-11-13) an empty project from one of the pack's: its sounds stay (the synth patches, the drums' samples and knobs, the mixer, the FX, the own
+   synth kept in the patterns' settings + 8..39), no notes: every pattern's steps, lanes and stock settings cleared (patEmpty), a drum pattern's
+   per-step bytes (settings + 8..39, drumpat) and a note pattern's old chain rules (settings + 4..6) zero, the 16 scenes and the chains (0x40..0x2E3)
+   zero (as in every unused scene of the 173 sessions of the card copy), the pattern chains and mutate lists of the tail (CTC1 + 0..63, patmut + 367..375)
+   zero, the extra lanes after the file (Beta 5.58) dropped; the name inside (0x10, 32 characters, spaces after it). */
+function projectEmpty(src, name) {
+  const b = src.slice(0, SESS_SIZE), T0 = 0x27024;
+  for (let n = 0; n < NPATS; n++) {
+    const o = patOff(n), e = patEmpty(b.subarray(o, o + patSize(n)));
+    if (n >= 32) e.fill(0, DSETT + 8, DSETT + 40); else e.fill(0, SETT + 4, SETT + 7);
+    b.set(e, o);
+  }
+  b.fill(0, 0x40, SYNTH0);
+  if (latin(b, T0, 4) === "CTC1") b.fill(0, T0, T0 + 64);
+  if (b[T0 + 367] === 0xB7) b.fill(0, T0 + 367, T0 + 376);
+  const s = String(name).replace(/[^ -~]/g, "_").slice(0, 32);
+  for (let i = 0; i < 32; i++) b[0x10 + i] = i < s.length ? s.charCodeAt(i) : 32;
+  return b;
+}
 
 // n = 8 track + pattern: tracks 0 / 1 Synth 1 / 2, 2 / 3 MIDI 1 / 2, 4..7 the drums (a drum pattern: + 0 velocity, + 32 probability, + 64 sample flip, + 96 micro mask, 8 lanes)
 const patOff = n => n < 16 ? SYNTH0 + PAT * n : n < 32 ? MIDI0 + PAT * (n - 16) : DRUM0 + DPAT * (n - 32);
@@ -855,11 +916,13 @@ const Patterns = {
   async clear(pl, n) {
     const s = await openSession(pl.pack, pl.sess), o = patOff(n);
     s.bytes.set(patEmpty(s.bytes.subarray(o, o + patSize(n))), o); s.dirty = true;
+    if (n >= 16 && n < 32 && xlTail(s.bytes)) { const v = new DataView(s.bytes.buffer, s.bytes.byteOffset); v.setUint16(SESS_SIZE + 6, v.getUint16(SESS_SIZE + 6, true) & ~(1 << (n - 16)), true); }
   },
   async flush(pl, ctx = {}) {
     const s = await openSession(pl.pack, pl.sess);
     if (!s.dirty) return;
     if (ctx.backup) await ctx.backup.file([pl.pack.folder, "Sessions"], s.file, s.orig);
+    xlSum(s.bytes);
     await writeFile(await subdir(pl.pack.dir, "Sessions"), s.file, s.bytes);
     s.orig = s.bytes.slice(); s.dirty = false;
     pl.pack._sessions = null;
@@ -931,7 +994,7 @@ async function usageOf(pack, ctx = {}) {                    // -> {nova, drums, 
   for (const e of m.values()) {
     if (ctx.progress) ctx.progress(e.file, ++i, m.size);
     const o = pack._open.get(e.slot), b = o ? o.orig : await readHandle(e.handle);
-    if (b.length !== SESS_SIZE || latin(b, 0, 4) !== "USER") continue;
+    if (b.length < SESS_SIZE || latin(b, 0, 4) !== "USER") continue;
     const label = e.label || latin(b, 0x10, 32);
     for (const u of sessionUses(b)) {
       const r = {sess: e.slot, label, track: u.track, flip: !!u.flip, copy: u.copy};
@@ -1538,8 +1601,8 @@ async function transfer(K, src, from, dst, to, opt = {}, ctx = {}) {
 }
 
 return {REC, PSZ, PADN, SLOTS, NSAMPLES, NSESS, NPACKS, SESS_SIZE, MIDI0, DRUM0, DPAT, DSETT, NPATS, TRACK_NAME, copyTree, patMidi, patSize, PAT, NSTEPS, STEP, UNITS, SETT, LANE0, NLANES, MICRO, WORDS_MAX, TPL, NTPL, FM_DEF,
-  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
-  Projects, projectProblem, projectName, projSlot,
+  entries, subdir, readHandle, writeFile, treeInfo, Backup, Card, Pack, folderName, packInfo, copyPack, newPack, movePack, deletePack, renamePack, renameFile, checkName, NAME_RULE, reorder, reorderPack, remapSession, ORDER_KIND, audit, Nova, Custom, Drums, Patterns, CC, SNAP_FILE, snapshot, restorePlan, restoreApply,
+  Projects, projectProblem, projectName, projSlot, projectEmpty,
   Device, DevRoot, BB_SIZE, bbParse, enc7, dec7, crc32, ccEncode, ccDecode, ccName, ccSetName, jumpTarget, sessionsOf, openSession, samplesOf, banksOf, wavInfo, sampleWords, ctmState, ctmName, ctmNew, ctmSum, ctmCode, ctmSetCode, ctmSetName, fmGet, fmSet, vmGet, vmSet,
   RECN, extOf, fm8Rec, fm8Get, dx7Parse, dx7ToFm8, dx7Patch, projFm, projOwn, setProjOwn, projectSounds, setProjectSounds,
   patParse, patBuild, patEmpty, patMerge, patSummary, patOff, projSynth, sessionUses, usageOf, ccDefault, ccParse, ccBuild, transfer, same, latin, pad2, NOVA_CATS, novaColour, customColour, ENGINE_RGB};

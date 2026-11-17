@@ -26,11 +26,24 @@ VN_T, VN_CR, VN_HISS, VN_LPK, VN_HPK, VN_ST = 0x3A68, 0x3A69, 0x3A6A, 0x3A6B, 0x
 NOISE, NOISE_STEP = 0xF7F, 4                           # stock noise table (regenerated every block, P:$19FD)
 FX_END = 0x3A80
 B_GATE, B_AF, B_DIG, B_PH, B_VN, B_HP = 0, 1, 2, 3, 4, 5
+B_MUTE = 7                                             # (use_fsqmute) FX_ON bit 7: the master output silent (the FX sequencer's mute step)
+MG, MUTE_STEP = 0x3A7F, 0x015555                       # (use_fsqmute) the output gain 0..$7FFFFF (cleared at init: a 2 ms fade-in), its step a frame (2 ms edges at 48 kHz)
 
 _cache = {}
 
 
 NOVINYL = False                               # SC49.4 (use_novinyl)
+FSQMUTE = False                               # SC57.9 / Beta 5.64 (use_fsqmute)
+
+
+def use_fsqmute():
+    """SC57.9 / Beta 5.64 (the user, 2026-11-15: «add one option to the fx sequencer: mute», «mute whole master per step»): FX_ON bit 7 (B_MUTE, set by
+    the ARM while an FX-sequencer step holds the eighth value, build_sc17.use_fsqmute) = the whole master output silent: at the end of the chain
+    (fx_out, after the effects: the capture in front of them is not muted, the metronome's click added later by the stock is heard) `mut` moves the
+    gain X:MG towards 0 (bit set) or $7FFFFF (clear) by MUTE_STEP a frame, so each edge is a 2 ms fade, and multiplies L / R by it; at unity with
+    the bit clear it does nothing (the master bit-exact as before).  35 words."""
+    global FSQMUTE
+    FSQMUTE = True
 
 
 def use_novinyl():
@@ -75,6 +88,7 @@ def code(base, ret_r1=BUF):
     if not NOVINYL: a.emit(D.jsr, "vin")
     a.emit(D.jsr, "pha"); a.emit(D.jsr, "afl"); a.emit(D.jsr, "gat")
     L("fx_out")
+    if FSQMUTE: a.emit(D.jsr, "mut")                                          # (use_fsqmute) the mute's ramp, last of the chain
     a.emit(T("move #>$%x,r1" % ret_r1)); a.emit(D.RTS)
 
     # ---------------- Digitise: sample & hold every N frames, quantise to MASK
@@ -214,6 +228,24 @@ def code(base, ret_r1=BUF):
     L("gt_e"); a.emit(T("move a,x:(r0)+"))
     st("y0", G_CUR)
     a.emit(D.RTS)
+
+    if FSQMUTE:
+        # ---------------- the mute: g = X:MG moves to the target (FX_ON bit 7: 0, else unity) by MUTE_STEP a frame; L / R x g.  At unity with the bit
+        # clear: nothing (bit-exact).  Going down `tmi` stops at 0; going up the accumulator passes $7FFFFF and the stores limit it (y0 and MG).  35 words.
+        L("mut")
+        ld(MG, "a"); ld(FX_ON, "x0"); a.emit(T("move #>$7fffff,y1")); a.emit(T("move #>$%x,x1" % MUTE_STEP))
+        a.emit(JCLR(B_MUTE, "x0"), "mu_c"); a.emit(T("move #>$0,y1")); a.emit(T("move #>$%x,x1" % ((-MUTE_STEP) & 0xFFFFFF)))
+        L("mu_c")
+        a.emit(T("cmp y1,a")); a.emit(J("ne"), "mu_go"); a.emit(JCLR(B_MUTE, "x0"), "rts_")
+        L("mu_go")
+        a.emit(T("move #>$%x,r0" % BUF))
+        a.emit(D.do_x, 0x3A, "mu_e")
+        a.emit(T("add x1,a")); a.emit(T("tmi y1,a")); a.emit(T("move a,y0"))
+        a.emit(T("move x:(r0),x0")); a.emit(T("mpy y0,x0,b")); a.emit(T("move b,x:(r0)+"))
+        a.emit(T("move x:(r0),x0")); a.emit(T("mpy y0,x0,b"))
+        L("mu_e"); a.emit(T("move b,x:(r0)+"))
+        st("a", MG)
+        a.emit(D.RTS)
     return a.assemble()
 
 

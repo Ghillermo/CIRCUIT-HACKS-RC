@@ -13,11 +13,14 @@ NAME = "SC56.7"
 B = S.B
 
 
+DROP_KNOBHOLD = False                                    # (S564D5, a diagnostic) leave knob hold out
+
+
 def extra(img, report):
     import dspz
     import knobhold
     S.extra(img, report)
-    dspz.add(img, report, "knobhold", knobhold)
+    if not DROP_KNOBHOLD: dspz.add(img, report, "knobhold", knobhold)
 
 
 if __name__ == "__main__":

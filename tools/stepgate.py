@@ -96,6 +96,20 @@ def use_v4():
     V4 = True
 
 
+TRIM = False                                                                            # SC57.5 (use_trim)
+
+
+def use_trim():
+    """SC57.5 (flash for the next build): with use_v3 (SC42.7, no long press of pad 31) two pieces of the older pad 31 are never run: in
+    c_sgmpad the pad 31 press of before (on: the press time kept for the long press; off: on with the last length and the selector open, mp_l /
+    mp_on, 62 B), which V3's own pad 31 branch always ends before with b mp_c; and in c_sgmrel everything after its first b.w to the stock's slot 1
+    (the long press decided when pad 31 is let go, mr_l / mr_s, 94 B).  Nothing branches into either, no literal points there and no label inside
+    is used elsewhere.  Not emitted any more; without V3 nothing changes."""
+    global TRIM
+    assert V3
+    TRIM = True
+
+
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
@@ -193,14 +207,15 @@ def arm_code(base, prev):
         E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6)
         E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq"); E(mov_reg, 0, 4); E(bl, "c_sgtog")
         E(b, "mp_c")
-    E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(lsls_imm, 2, 0, 24); E(b_cond, "mp_on", "mi")
-    E(movs_imm, 2, 0x1F); E(raw, h(0x4010)); E(cmp_imm, 0, 0); E(b_cond, "mp_l", "ne"); E(movs_imm, 0, 1)   # ands r0, r2: off -> on, the last length
-    a.label("mp_l"); E(movs_imm, 2, 0x80); E(raw, h(0x4310)); E(strb_imm, 0, 1, 2)                       # orrs r0, r2
-    E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6)                                           # the selector open
-    E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq"); E(mov_reg, 0, 4); E(bl, "c_sgtog")   # pad 32 off
-    E(b, "mp_c")
-    a.label("mp_on")                                                                                    # on: decided when let go (short = selector, long = off)
-    imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(str_imm, 0, 6, 8); E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 12); E(b, "mp_c")
+    if not (TRIM and V3):                                                                               # (V3: never reached, use_trim)
+        E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(lsls_imm, 2, 0, 24); E(b_cond, "mp_on", "mi")
+        E(movs_imm, 2, 0x1F); E(raw, h(0x4010)); E(cmp_imm, 0, 0); E(b_cond, "mp_l", "ne"); E(movs_imm, 0, 1)   # ands r0, r2: off -> on, the last length
+        a.label("mp_l"); E(movs_imm, 2, 0x80); E(raw, h(0x4310)); E(strb_imm, 0, 1, 2)                       # orrs r0, r2
+        E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6)                                           # the selector open
+        E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq"); E(mov_reg, 0, 4); E(bl, "c_sgtog")   # pad 32 off
+        E(b, "mp_c")
+        a.label("mp_on")                                                                                    # on: decided when let go (short = selector, long = off)
+        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(str_imm, 0, 6, 8); E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 12); E(b, "mp_c")
     a.label("mp_t"); E(cmp_imm, 5, PAD_TOG); E(b_cond, "mp_s", "ne")
     E(mov_reg, 0, 4); E(bl, "c_sgtog"); E(mov_reg, 0, 4); E(bl, "c_sgon"); E(cmp_imm, 0, 0); E(b_cond, "mp_c", "eq")
     E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(movs_imm, 2, 0x7F); E(raw, h(0x4010)); E(strb_imm, 0, 1, 2)   # the fixed length off
@@ -212,18 +227,19 @@ def arm_code(base, prev):
     # ---- c_sgmrel (the Micro Step view's slot 1: view, pad): pad 31 let go after a press while on: short = the selector, long = off
     a.label("c_sgmrel")
     if V3: E(b_w, MS_REL)                                                                              # (no long press)
-    E(push_list, [0, 1, 4, 5, 6], lr=True)
-    E(cmp_imm, 1, PAD_FIX); E(b_cond, "mr_s", "ne")
-    E(bl, "c_sgmtrk"); E(mov_reg, 4, 0); E(cmp_imm, 0, 3); E(b_cond, "mr_s", "hi")
-    if V2: E(ldr_sp, 0, 0); E(bl, "c_sgmode"); E(cmp_imm, 0, 0); E(b_cond, "mr_s", "eq")
-    E(bl, "c_sgfb"); E(cmp_imm, 0, 0); E(b_cond, "mr_s", "eq"); E(mov_reg, 6, 0)
-    E(ldrb_imm, 0, 6, 12); E(subs_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "mr_s", "ne")
-    E(movs_imm, 0, 0); E(strb_imm, 0, 6, 12)
-    imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(ldr_imm, 1, 6, 8); E(subs_reg, 0, 0, 1); imm32(1, LONG_MS); E(cmp_reg, 0, 1); E(b_cond, "mr_l", "hs")
-    E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6); E(b, "mr_s")
-    a.label("mr_l"); E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(movs_imm, 2, 0x7F); E(raw, h(0x4010)); E(strb_imm, 0, 1, 2)
-    E(movs_imm, 0, 0); E(strb_imm, 0, 6, 6)
-    a.label("mr_s"); E(pop_list, [0, 1, 4, 5, 6]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, MS_REL)
+    if not (TRIM and V3):                                                                               # (V3: never reached, use_trim)
+        E(push_list, [0, 1, 4, 5, 6], lr=True)
+        E(cmp_imm, 1, PAD_FIX); E(b_cond, "mr_s", "ne")
+        E(bl, "c_sgmtrk"); E(mov_reg, 4, 0); E(cmp_imm, 0, 3); E(b_cond, "mr_s", "hi")
+        if V2: E(ldr_sp, 0, 0); E(bl, "c_sgmode"); E(cmp_imm, 0, 0); E(b_cond, "mr_s", "eq")
+        E(bl, "c_sgfb"); E(cmp_imm, 0, 0); E(b_cond, "mr_s", "eq"); E(mov_reg, 6, 0)
+        E(ldrb_imm, 0, 6, 12); E(subs_imm8, 0, 1); E(cmp_reg, 0, 4); E(b_cond, "mr_s", "ne")
+        E(movs_imm, 0, 0); E(strb_imm, 0, 6, 12)
+        imm32(0, HAL_TICK); E(ldr_imm, 0, 0, 0); E(ldr_imm, 1, 6, 8); E(subs_reg, 0, 0, 1); imm32(1, LONG_MS); E(cmp_reg, 0, 1); E(b_cond, "mr_l", "hs")
+        E(mov_reg, 0, 4); E(adds_imm8, 0, 1); E(strb_imm, 0, 6, 6); E(b, "mr_s")
+        a.label("mr_l"); E(adds_reg, 1, 6, 4); E(ldrb_imm, 0, 1, 2); E(movs_imm, 2, 0x7F); E(raw, h(0x4010)); E(strb_imm, 0, 1, 2)
+        E(movs_imm, 0, 0); E(strb_imm, 0, 6, 6)
+        a.label("mr_s"); E(pop_list, [0, 1, 4, 5, 6]); E(raw, h(0xF85D) + h(0xEB04)); E(b_w, MS_REL)
 
     # ---- c_sgmled (the Micro Step view's slot 7: view) -> r0 = its LED buffer (16: pads 17-32): the selector, or pads 31 / 32
     a.label("c_sgmled")

@@ -23,8 +23,9 @@ Every track has 8 patterns per project. What is in a pattern travels with it (Du
 | **FX sequencer values** | MIDI 1 / 2 | [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#step-drummer) |
 | **Sample-mode sample flips** (in the track's level lane) *(since RC2)* | MIDI 1 / 2 | [Sample picker](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-muestra) |
 | **Drum chromatic steps** (in the drum's pitch lane) *(since RC2)* | drums | [Chromatic view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-cromatica) with Record |
-| *(Beta 5.56 only)* **The drums' extra lane** (the chromatic pitch or the assigned knob; in each step's spare bits; code 126 = the automation view's **mark**) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) with Record; the automation view |
-| *(Beta 5.56 only)* **The drums' states and ramps** (state locks: in the same bits, the state's number or «ramp»; the states, in the project) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) with Record; the automation view |
+| *(Beta 5.64 only)* **The drums' extra lane** (the chromatic pitch or the assigned knob; in each step's spare bits; code 126 = the automation view's **mark**) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) with Record; the automation view |
+| *(Beta 5.64 only)* **The own synth's extra lanes** (up to 25 a pattern, two values a step; in the project's file, after its 160 780 bytes) | MIDI 1 / 2 | Record and turn a knob that is not a sequenceable one; the Record + step snapshot |
+| *(Beta 5.64 only)* **The drums' states and ramps** (state locks: in the same bits, the state's number or «ramp»; the states, in the project) | drums | [Drum track view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) with Record; the automation view |
 | Hits of the **rollers** and of the **drum arpeggio** | drums | With Record, as normal hits |
 | *(since RC4)* The **copy of the own synth** of MIDI 1 / 2 (in the settings of patterns 1-5, without changing what they play) | MIDI 1 / 2 | On its own, when the project is saved |
 
@@ -40,6 +41,7 @@ Every track has 8 patterns per project. What is in a pattern travels with it (Du
 6. **A Synth 1 / 2 patch** as it sounds (knobs, edited macro destinations, MIDI received) goes with the project; to have it in the pack and use it in other projects, **save it** in the [Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset) (Clear + pad twice) *(since RC2)*.
 7. **Before switching off:** stop the sequencer and wait **2 s** without touching the MIDI 1 / 2 engine (its settings are written to the card only with the transport stopped, so as not to break up the audio), and switch off with the **power button**.
 8. **Without a card (the internal memory's pack)** and with the **S** versions, the mod writes nothing of its own: patches, samples and copies are not saved (the Save LED turns red). Projects are, as on the original.
+9. *(Beta 5.64 only)* **Back to the saved pattern:** Clear + Duplicate twice in a view of the track puts the pattern it shows back as the card has it (as of the last Save); see [buttons](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones).
 9. *(since RC4.05)* **Saving while it plays:** by default the project saves at once, as on the original, though the clock can stumble for a moment. With the **delayed save** ([Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup), pad 22) on, Save twice with the sequencer running leaves the save **pending** (Save blinks yellow) and writes it **when you stop**; if you ask the project for something else first (loading one, saving into another slot) or turn pad 22 off, it is saved right then. If you change pack before stopping, that save is dropped. With a save pending, stop the transport before switching off.
 
 ## What comes back after a restart and where it is saved
@@ -55,23 +57,24 @@ Five places: the **pattern**, the **project** (both when the project is saved), 
 | **Master FX**: the 20 knobs, the effects assigned to the slots, compressor attack / release | [Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx), [Side-chain](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#sidechain) |
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns), [Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer) |
-| *(Beta 5.56 only)* **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns) |
+| *(Beta 5.64 only)* **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns) |
+| *(Beta 5.64 only)* **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; *(since RC4)* with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings), [Micro Step](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#micropasos) |
 | **Custom scale** and *(since RC4)* **Jankó** | [Scales](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#escalas) |
 | MIDI 1 / 2 own synth: **gate retrigger**, **LFO shape**, the step-drummer's pitch-vel toggle and page 2 destination | [Knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs), [Step-drummer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#step-drummer) |
 | *(since RC4)* **Stereo drum pairs**: on, distance, width and deviations | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) |
-| *(Beta 5.56 only)* **The random-mutate factor** of each track and each drum's **micro steps** (mode 2) | [Probability view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#probabilidad) |
-| *(Beta 5.56 only)* **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset) |
-| *(Beta 5.56 only)* **What each drum's extra lane carries** (lane or state locks) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) |
-| *(Beta 5.56 only)* **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) |
-| *(since RC4)* **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and *(since RC4)* non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was); *(Beta 5.56 only)* the 8-operator FM, in the settings of Synth 1 / 2's patterns | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset), [8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8) |
+| *(Beta 5.64 only)* **The random-mutate factor** of each track and each drum's **micro steps** (mode 2) | [Probability view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#probabilidad) |
+| *(Beta 5.64 only)* **Jump sequencer** of MIDI 1 / 2: which track each one points at | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset) |
+| *(Beta 5.64 only)* **What each drum's extra lane carries** (lane or state locks) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) |
+| *(Beta 5.64 only)* **The drums' states** (up to 80, with their 14 values; saved with the project and its scenes) | [Drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-pista) |
+| *(since RC4)* **The whole own synth** of MIDI 1 / 2: engine, values, matrix, destinations of the sequenceable and *(since RC4)* non-sequenceable knobs, FM, voice mode, stereo (loading a project that carries it, the project's wins; an older one leaves the sound as it was); *(Beta 5.64 only)* the 8-operator FM, in the settings of Synth 1 / 2's patterns | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset), [8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8) |
 
 ### The pack (written to the card when you do the gesture)
 | What | Where it is used |
 |---|---|
 | **Saved Synth 1 / 2 patches** *(since RC2)* (Clear + pad twice); swaps and copies between packs | [Synth Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset) |
-| **Own-synth patches** of MIDI 1 / 2 (64 per pack, *(since RC4)* 128; shared by both tracks: engine, values, step-drummer, *(since RC2.02)* matrix, *(since RC4)* FM, destinations of the sequenceable and *(since RC4)* non-sequenceable knobs, voice mode; *(Beta 5.56 only)* the one-oscillator mode's sub-oscillator and noise; the 8-operator FM in an extra slot of the same bank, after its 8 patches; Components' «Send patches» no longer erases them) | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset), [8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8) |
+| **Own-synth patches** of MIDI 1 / 2 (64 per pack, *(since RC4)* 128; shared by both tracks: engine, values, step-drummer, *(since RC2.02)* matrix, *(since RC4)* FM, destinations of the sequenceable and *(since RC4)* non-sequenceable knobs, voice mode; *(Beta 5.64 only)* the one-oscillator mode's sub-oscillator and noise; the 8-operator FM in an extra slot of the same bank, after its 8 patches; Components' «Send patches» no longer erases them) | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset), [8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8) |
 | **Samples**: swaps, copies between packs and the **capture** replacing a drum (this one when the project is saved, if it fits) | [Drum Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-preset) |
 | **Projects copied** to another slot or pack; **deleted packs** | [Projects](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#projects), [Packs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#packs) |
 
@@ -81,9 +84,9 @@ Five places: the **pattern**, the **project** (both when the project is saved), 
 | As on the original: channels, CC / note / Program Change filters, clock, master compressor on, brightness, Save Lock | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup) |
 | **MIDI 1 / 2 engine**: the engine chosen, all its values, oscillators and order (pads 28 / 29), step-drummer on and its destination, FX sequencer, patch flip | [MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset) |
 | **MIDI Thru jack mode** (Thru, Out 2, Merge, Filter), the project's **Program Change channels**, **cue mode** | [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup), [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup), [Mixer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer) |
-| *(since RC4)* The drums' **General MIDI mode** and its notes; **USB merge**; **external keyboard to the arpeggiator**; the pads' **velocity curve**; *(Beta 5.56 only)* **velocity → amplitude / filter** (Setup K1 / K2), **input gain** (Advanced Setup K3) | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup) |
+| *(since RC4)* The drums' **General MIDI mode** and its notes; **USB merge**; **external keyboard to the arpeggiator**; the pads' **velocity curve**; *(Beta 5.64 only)* **velocity → amplitude / filter** (Setup K1 / K2), **input gain** (Advanced Setup K3) | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup), [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup) |
 | *(since RC4.05)* **Delayed save** | [Advanced Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#advanced-setup) |
-| *(Beta 5.56 only)* **Knob hold** | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup) |
+| *(Beta 5.64 only)* **Knob hold** | [Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup) |
 
 ## What is lost at a restart
 
@@ -96,15 +99,17 @@ Whatever is in none of the tables above lives only in memory and is gone at powe
 | **Click** on / off and **View Lock** (as on the original) | Off |
 | **Latched effects**, **song pointer** and latched sample of Master FX | Off; the song pointer at 0 |
 | **Record in the Setup view** (record the internal routings) | Off |
-| *(Beta 5.56 only)* **Knob hold** (Setup's Preset) | Off |
+| *(Beta 5.64 only)* **Knob hold** (Setup's Preset) | Off |
 | In the Side-chain view, the **triggers of a drum** by another drum or by a pattern (pads of the drum pages) | Those of the drum's preset |
 | Pending **mutes on the next bar** (Mixer, Shift + pad) | — |
 | **Latched notes and chords** (Shift + key, Shift + root), the **chord screen** (type and modifiers) and the half-step of **Octave with Jankó** *(since RC4)* | No latch; the defaults; Octave at 0 |
-| **Split keyboard** and open views (step-drummer, macro editor, picker, *(Beta 5.56 only)* the flip view); *(Beta 5.56 only)* the step flip's **last target** | Closed; the target, Synth 1 |
+| **Split keyboard** and open views (step-drummer, macro editor, picker, *(Beta 5.64 only)* the flip view); *(Beta 5.64 only)* the step flip's **last target** | Closed; the target, Synth 1 |
 | A **sample or patch waiting** to be copied into another pack (Duplicate + A) | Nothing waiting |
 | The Master FX **capture** unused, or used in a drum without saving the project | Empty; the drum with its pack sample |
 | The own synth's **mod matrix** not saved in a patch *(since RC2.02)* (*(since RC4)*: also saved with the project) | Off |
 | The pass counters of **frequency** and of the **fractal** order (they restart when stopped) | From the first pass |
 
 - **Installing another version** restarts the device: what was not saved is lost; the project, the pack and the settings stay.
+- *(Beta 5.64 only)* **The own synth's extra lanes:** they live in the project's file; a Components backup does not carry them (sending the same project back to its slot keeps them).
+- *(Beta 5.64 only)* **Chains of groups:** also in the project's file; Components does not carry them (sent back, the tracks go back to their stock chains).
 - **Going back to the official firmware:** projects and packs saved with the mod open on the original; the mod's own data sits in parts of the files the original does not use, and the original does not read it.

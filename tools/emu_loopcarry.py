@@ -90,7 +90,9 @@ def run(img, man):
     out = {}
     x = EL(img, man); x.uc.mem_write(x.blk + B.S_JF, b"\0\0"); x.w32(x.blk + B.S_SMT, 0); x.setsp()
     rs, rx = int(man["report"]["persist19"]["labels"]["c_rs"], 16), int(man["report"]["persist19"]["labels"]["rs_x"], 16)
-    site = [a for a in range(rs, rx, 2) if bytes(x.uc.mem_read(a, 4)) == bl_enc(a, x.LC["c_lcclr"])]
+    ck = man["report"].get("capkeep")                                  # (SC57.6 / Beta 5.61: capkeep's c_ckeep wraps the call)
+    tgt = int(ck["labels"]["c_ckeep"], 16) if ck and int(ck["prev"]["orig"], 16) == x.LC["c_lcclr"] else x.LC["c_lcclr"]
+    site = [a for a in range(rs, rx, 2) if bytes(x.uc.mem_read(a, 4)) == bl_enc(a, tgt)]
     out["site"] = len(site)
     if "lt_fw" in x.LC:
         return run_keep(x, out)

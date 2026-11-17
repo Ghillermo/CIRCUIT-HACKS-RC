@@ -161,6 +161,20 @@ def tables():
     return t + (v2_tables() if V2 else [])
 
 
+NOINST = False                                                         # SC57.3 (use_noinst)
+
+
+def use_noinst():
+    """SC57.3 (the user, 2026-11-13: «can we drop the FM patches from the flash to make room? (rely on the sd card patches instead)», «the 48
+    instruments»; «pad 8 is now the operator view»): no built-in instruments.  Pad 8 held on the FM page no longer opens the list of 48 (pad 8 =
+    the FM page, the operators, as a tap); out go the packed table (2 348 B), the instruments' colours, c_fminst, the list's pads and LEDs, its
+    Octave pages, and fm8dest (not installed by the builder).  c_fiun stays (tabpack unpacks the FM's tables with it); the ITCM 0x100-0x18A3 is
+    free.  The same 48 sounds are patch files (docs/patches, the apps' demo patches)."""
+    global NOINST
+    assert INST2
+    NOINST = True
+
+
 NOSTRT = False                                                         # (use_nostrt)
 
 
@@ -175,7 +189,7 @@ def v2_tables():
     import fm8inst as FI
     ecode = bytes(0 if not f & 1 else {1: 1, 3: 2, 7: 3, 15: 3, 11: 4, 9: 5, 5: 6, 13: 6}[f] for f in range(16))
     scol = bytes(c_ for pair in list(MS.COLS) + [FE.COL_FM] + ([(0x6D, 0x69)] if WTCOL else []) for c_ in pair)      # (WTCOL) 8 = the wavetable: sand
-    out = [("inst", FI.lz(FI.table()) if INST2 else FI.table()), ("icol", FI.colours()), ("ecode", ecode), ("scol", scol)]
+    out = ([] if NOINST else [("inst", FI.lz(FI.table()) if INST2 else FI.table()), ("icol", FI.colours())]) + [("ecode", ecode), ("scol", scol)]
     if ROWOP:                                                                             # the engine row's 8 pads on the FM page: dim, FM bright
         out.append(("rowc", bytes([MS.COLS[m][1] if m != 0xFF else 0 for m in MS.ROWMODE] + [FE.COL_FM[0]])))
     return out
@@ -468,7 +482,8 @@ def ui(c, T, L, prev):
     E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("pd_prev", "ne")
     E(mov_reg, 0, 4); E(movs_imm, 1, PAGE); E(bl, L["c_vsetpage"])
-    E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 2); E(strb_w, 1, 0, B_P7); E(b, "pd_x")
+    if NOINST: E(b, "pd_x")                                                               # (NOINST) pad 8 = the FM page only
+    else: E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 2); E(strb_w, 1, 0, B_P7); E(b, "pd_x")
     lab("pd_n8")
     E(cmp_imm, 5, PADNO); bc("pd_n7", "ne")
     E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
@@ -485,8 +500,9 @@ def ui(c, T, L, prev):
     if V2: bc("pd_ov", "eq")
     else: E(b_cond, "pd_ov", "eq")
     E(cmp_imm, 5, 31 if V2 else 23); bc("pd_row", "hi")
-    E(cmp_imm, 0, 2); E(b_cond, "pd_alg", "ne")                                           # pad 8 + pad: the starter (V2: the instrument)
-    if V2:
+    if not NOINST: E(cmp_imm, 0, 2); E(b_cond, "pd_alg", "ne")                            # pad 8 + pad: the starter (V2: the instrument)
+    if NOINST: pass                                                                       # (NOINST) only pad 7's list: the algorithms
+    elif V2:
         E(mov_reg, 0, 5); E(subs_imm8, 0, 8)
         if INST2:                                                                         # (INST2) + 24 x pad 8's page
             E(ldrb_w, 1, 6, B_IPG); E(cmp_imm, 1, 1); E(b_cond, "pd_ip", "ne"); E(adds_imm8, 0, 24)
@@ -494,8 +510,8 @@ def ui(c, T, L, prev):
         E(mov_reg, 7, 0); E(mov_reg, 1, 6); E(bl, "c_fminst")
     else:
         E(mov_reg, 0, 5); E(subs_imm8, 0, 8); E(mov_reg, 7, 0); E(lsls_imm, 0, 0, 4); tb(1, "strt"); E(adds_reg, 0, 0, 1); E(mov_reg, 1, 6); E(bl, "c_fm8conv")
-    E(strb_w, 7, 6, B_STR); E(movs_imm, 0, 1); E(strb_w, 0, 6, B_DIRTY); E(b, "pd_au")
-    lab("pd_alg")                                                                         # pad 7 + pad: the algorithm (V2: of the page)
+    if not NOINST: E(strb_w, 7, 6, B_STR); E(movs_imm, 0, 1); E(strb_w, 0, 6, B_DIRTY); E(b, "pd_au")
+    lab("pd_alg")                                                                        # pad 7 + pad: the algorithm (V2: of the page)
     if V2:
         E(ldrb_w, 0, 6, B_APG); E(mov_reg, 1, 5); E(subs_imm8, 1, 8); E(bl, "c_fmapal"); E(cmp_imm, 0, 0xFF); bc("pd_x", "eq")
     else:
@@ -576,7 +592,9 @@ def ui(c, T, L, prev):
     E(ldrb_w, 0, 4, B_P7); E(movs_imm, 1, 0x02); E(cmp_imm, 0, 2); E(b_cond, "le_8", "ne"); E(movs_imm, 1, 0x01)
     lab("le_8"); E(strh_imm, 1, 5, 2 * (PADNO + 1))
     E(mov_reg, 0, 6); E(bl, "c_fmpg"); E(cmp_imm, 0, 0); bc("le_x", "eq")
-    E(ldrb_w, 0, 4, B_P7); E(cmp_imm, 0, 2); bc("le_st", "eq"); E(cmp_imm, 0, 1); bc("le_al", "eq")
+    E(ldrb_w, 0, 4, B_P7)
+    if not NOINST: E(cmp_imm, 0, 2); bc("le_st", "eq")
+    E(cmp_imm, 0, 1); bc("le_al", "eq")
     E(mov_reg, 0, 4); E(bl, "c_fmovk"); E(cmp_imm, 0, 5); E(b_cond, "le_op", "ne")
     lab("le_ov"); E(ldrb_w, 0, 4, F.GLB + F.G_ALG); E(cmp_imm, 0, 16); bc("le_al", "lo")
     if F.ALG8:                                                                            # 49-56 on pads 1-8: dim white, the current bright
@@ -625,21 +643,22 @@ def ui(c, T, L, prev):
     lab("le_ab"); tb(2, "famc"); E(ldrb_reg, 1, 2, 1)
     E(mov_reg, 0, 6); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
     E(adds_imm8, 6, 1); E(cmp_imm, 6, 16); E(b_cond, "le_ap", "lo"); E(b, "le_x")
-    lab("le_st")                                                                          # the starters on pads 9-24: the family's colour, bright = the one loaded
-    E(ldrb_w, 7, 4, B_STR); E(movs_imm, 6, 0)                                             # (V2: the 24 instruments on pads 9-32)
-    if INST2:                                                                             # (INST2) r6 = 24 x the page .. + 23
-        E(ldrb_w, 0, 4, B_IPG); E(cmp_imm, 0, 1); E(b_cond, "le_s0", "ne"); E(movs_imm, 6, 24)
-        lab("le_s0")
-    lab("le_sl"); E(lsls_imm, 1, 6, 1); E(cmp_reg, 6, 7); E(b_cond, "le_sk", "eq"); E(adds_imm8, 1, 1)
-    lab("le_sk"); tb(2, "icol" if V2 else "stc"); E(ldrb_reg, 1, 2, 1)
-    E(mov_reg, 0, 6)
-    if INST2:
-        E(cmp_imm, 0, 24); E(b_cond, "le_sp", "lo"); E(subs_imm8, 0, 24)
-        lab("le_sp")
-    E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
-    E(adds_imm8, 6, 1)
-    if INST2: E(cmp_imm, 6, 24); E(b_cond, "le_sz", "eq"); E(cmp_imm, 6, 48); E(b_cond, "le_sz", "eq"); E(b, "le_sl"); lab("le_sz")   # (one page: 24 pads)
-    else: E(cmp_imm, 6, 24 if V2 else 16); E(b_cond, "le_sl", "lo")
+    if not NOINST:                                                                        # (NOINST: no instruments' list)
+        lab("le_st")                                                                      # the starters on pads 9-24: the family's colour, bright = the one loaded
+        E(ldrb_w, 7, 4, B_STR); E(movs_imm, 6, 0)                                         # (V2: the 24 instruments on pads 9-32)
+        if INST2:                                                                         # (INST2) r6 = 24 x the page .. + 23
+            E(ldrb_w, 0, 4, B_IPG); E(cmp_imm, 0, 1); E(b_cond, "le_s0", "ne"); E(movs_imm, 6, 24)
+            lab("le_s0")
+        lab("le_sl"); E(lsls_imm, 1, 6, 1); E(cmp_reg, 6, 7); E(b_cond, "le_sk", "eq"); E(adds_imm8, 1, 1)
+        lab("le_sk"); tb(2, "icol" if V2 else "stc"); E(ldrb_reg, 1, 2, 1)
+        E(mov_reg, 0, 6)
+        if INST2:
+            E(cmp_imm, 0, 24); E(b_cond, "le_sp", "lo"); E(subs_imm8, 0, 24)
+            lab("le_sp")
+        E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 1, 5, 0)
+        E(adds_imm8, 6, 1)
+        if INST2: E(cmp_imm, 6, 24); E(b_cond, "le_sz", "eq"); E(cmp_imm, 6, 48); E(b_cond, "le_sz", "eq"); E(b, "le_sl"); lab("le_sz")   # (one page: 24 pads)
+        else: E(cmp_imm, 6, 24 if V2 else 16); E(b_cond, "le_sl", "lo")
     lab("le_x"); E(mov_reg, 0, 5); E(pop_list, [4, 5, 6, 7], pc=True)
     if V2:
         # ---- c_f8vok(r0 = track) -> r0 = 1 when its engine is a voice the voice modes fit (oscillator, FM, VA-drum, sample); clobbers r1-r3
@@ -657,40 +676,42 @@ def ui(c, T, L, prev):
         lab("ap_r"); E(raw, RET)
         # ---- c_fminst(r0 = 0..23, r1 = block): fm8inst's instrument unpacked into the 216 parameters (fm8inst.inst_full, byte for byte)
         import fm8inst as FI
-        lab("c_fminst")
-        E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 5, 1)
-        if INST2:                                                                         # (INST2) the table unpacked into the ITCM the first time
-            import zlib
-            stamp = zlib.crc32(FI.lz(FI.table())) & 0xFFFFFFFF
-            E(mov_reg, 4, 0)
-            E(movs_imm, 1, IT_SIG >> 2); E(lsls_imm, 1, 1, 2); E(ldr_imm, 2, 1, 0); imm32(3, stamp); E(cmp_reg, 2, 3); E(b_cond, "fi_u", "eq")
-            tb(0, "inst"); E(movs_imm, 1, IT_TAB >> 2); E(lsls_imm, 1, 1, 2); imm32(2, IT_TAB + len(FI.table())); E(bl, "c_fiun")
-            E(movs_imm, 1, IT_SIG >> 2); E(lsls_imm, 1, 1, 2); imm32(3, stamp); E(str_imm, 3, 1, 0)
-            lab("fi_u"); E(mov_reg, 0, 4)
-            E(movs_imm, 2, FI.ISZ); E(muls, 0, 2); E(movs_imm, 4, IT_TAB >> 2); E(lsls_imm, 4, 4, 2); E(adds_reg, 4, 4, 0)
-        else:
-            E(movs_imm, 2, FI.ISZ); E(muls, 0, 2); tb(4, "inst"); E(adds_reg, 4, 4, 0)
-        E(movs_imm, 0, 0); E(movs_imm, 2, 0)
-        lab("fi_z"); E(strb_reg, 0, 5, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, F.PLEN); E(b_cond, "fi_z", "lo")
-        E(movs_imm, 6, 0)
-        lab("fi_o")
-        E(movs_imm, 0, F.OPB); E(muls, 0, 6); E(adds_reg, 7, 5, 0)
-        E(movs_imm, 0, FI.OPB_C); E(muls, 0, 6); E(adds_reg, 1, 4, 0)
-        E(movs_imm, 2, 0)
-        lab("fi_e"); E(ldrb_reg, 3, 1, 2); E(strb_reg, 3, 7, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, 8); E(b_cond, "fi_e", "lo")
-        for src, dst in ((8, F.O_OL), (9, F.O_CRS), (10, F.O_FINE), (11, F.O_DET), (13, F.O_RD)):
-            E(ldrb_imm, 3, 1, src); E(strb_imm, 3, 7, dst)
-        E(ldrb_imm, 3, 1, 12); E(movs_imm, 0, 7); E(ands_reg, 0, 3); E(strb_imm, 0, 7, F.O_KVS)
-        E(lsrs_imm, 2, 3, 3); E(movs_imm, 0, 7); E(ands_reg, 0, 2); E(strb_imm, 0, 7, F.O_RS)
-        E(lsrs_imm, 2, 3, 6); E(strb_imm, 2, 7, F.O_MODE)
-        E(movs_imm, 3, 39); E(strb_imm, 3, 7, F.O_BP)
-        E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "fi_o", "lo")
-        E(mov_reg, 1, 4); E(adds_imm8, 1, 8 * FI.OPB_C); E(mov_reg, 7, 5); E(adds_imm8, 7, F.PEG); E(movs_imm, 2, 0)
-        lab("fi_p"); E(ldrb_reg, 3, 1, 2); E(strb_reg, 3, 7, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, 8); E(b_cond, "fi_p", "lo")
-        E(adds_imm8, 1, 8); E(mov_reg, 7, 5); E(adds_imm8, 7, F.GLB)
-        for i, g in enumerate((F.G_ALG, F.G_FB, F.G_SYNC, F.G_TRN, F.G_NZ, F.G_NZOP)):
-            E(ldrb_imm, 3, 1, i); E(strb_imm, 3, 7, g)
-        E(pop_list, [4, 5, 6, 7], pc=True)
+        def fminst():
+            lab("c_fminst")
+            E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 5, 1)
+            if INST2:                                                                     # (INST2) the table unpacked into the ITCM the first time
+                import zlib
+                stamp = zlib.crc32(FI.lz(FI.table())) & 0xFFFFFFFF
+                E(mov_reg, 4, 0)
+                E(movs_imm, 1, IT_SIG >> 2); E(lsls_imm, 1, 1, 2); E(ldr_imm, 2, 1, 0); imm32(3, stamp); E(cmp_reg, 2, 3); E(b_cond, "fi_u", "eq")
+                tb(0, "inst"); E(movs_imm, 1, IT_TAB >> 2); E(lsls_imm, 1, 1, 2); imm32(2, IT_TAB + len(FI.table())); E(bl, "c_fiun")
+                E(movs_imm, 1, IT_SIG >> 2); E(lsls_imm, 1, 1, 2); imm32(3, stamp); E(str_imm, 3, 1, 0)
+                lab("fi_u"); E(mov_reg, 0, 4)
+                E(movs_imm, 2, FI.ISZ); E(muls, 0, 2); E(movs_imm, 4, IT_TAB >> 2); E(lsls_imm, 4, 4, 2); E(adds_reg, 4, 4, 0)
+            else:
+                E(movs_imm, 2, FI.ISZ); E(muls, 0, 2); tb(4, "inst"); E(adds_reg, 4, 4, 0)
+            E(movs_imm, 0, 0); E(movs_imm, 2, 0)
+            lab("fi_z"); E(strb_reg, 0, 5, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, F.PLEN); E(b_cond, "fi_z", "lo")
+            E(movs_imm, 6, 0)
+            lab("fi_o")
+            E(movs_imm, 0, F.OPB); E(muls, 0, 6); E(adds_reg, 7, 5, 0)
+            E(movs_imm, 0, FI.OPB_C); E(muls, 0, 6); E(adds_reg, 1, 4, 0)
+            E(movs_imm, 2, 0)
+            lab("fi_e"); E(ldrb_reg, 3, 1, 2); E(strb_reg, 3, 7, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, 8); E(b_cond, "fi_e", "lo")
+            for src, dst in ((8, F.O_OL), (9, F.O_CRS), (10, F.O_FINE), (11, F.O_DET), (13, F.O_RD)):
+                E(ldrb_imm, 3, 1, src); E(strb_imm, 3, 7, dst)
+            E(ldrb_imm, 3, 1, 12); E(movs_imm, 0, 7); E(ands_reg, 0, 3); E(strb_imm, 0, 7, F.O_KVS)
+            E(lsrs_imm, 2, 3, 3); E(movs_imm, 0, 7); E(ands_reg, 0, 2); E(strb_imm, 0, 7, F.O_RS)
+            E(lsrs_imm, 2, 3, 6); E(strb_imm, 2, 7, F.O_MODE)
+            E(movs_imm, 3, 39); E(strb_imm, 3, 7, F.O_BP)
+            E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "fi_o", "lo")
+            E(mov_reg, 1, 4); E(adds_imm8, 1, 8 * FI.OPB_C); E(mov_reg, 7, 5); E(adds_imm8, 7, F.PEG); E(movs_imm, 2, 0)
+            lab("fi_p"); E(ldrb_reg, 3, 1, 2); E(strb_reg, 3, 7, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, 8); E(b_cond, "fi_p", "lo")
+            E(adds_imm8, 1, 8); E(mov_reg, 7, 5); E(adds_imm8, 7, F.GLB)
+            for i, g in enumerate((F.G_ALG, F.G_FB, F.G_SYNC, F.G_TRN, F.G_NZ, F.G_NZOP)):
+                E(ldrb_imm, 3, 1, i); E(strb_imm, 3, 7, g)
+            E(pop_list, [4, 5, 6, 7], pc=True)
+        if not NOINST: fminst()                                                           # (NOINST: no instruments)
         if INST2:
             # ---- c_fiun(r0 = the packed table, r1 = the output, r2 = its end): fm8inst.unlz
             lab("c_fiun")
@@ -712,7 +733,7 @@ def ui(c, T, L, prev):
         E(cmp_imm, 1, 19); bc("bt_p", "lo"); E(cmp_imm, 1, 20); bc("bt_p", "hi")
         E(push_list, [0, 1, 4, 5, 6], lr=True); E(mov_reg, 5, 1); E(movs_imm, 4, 0)
         lab("bt_t"); E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(ldrb_w, 1, 0, B_P7); E(cmp_imm, 1, 1); E(b_cond, "bt_g", "eq")
-        if INST2: E(cmp_imm, 1, 2); E(b_cond, "bt_i", "eq")
+        if INST2 and not NOINST: E(cmp_imm, 1, 2); E(b_cond, "bt_i", "eq")
         E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "bt_t", "lo")
         E(raw, popw([0, 1, 4, 5, 6], lr=True)); E(b, "bt_p")
         lab("bt_g"); E(ldrb_w, 1, 0, B_APG); E(cmp_imm, 1, 2); E(b_cond, "bt_k", "ls"); E(movs_imm, 1, 0)
@@ -720,7 +741,7 @@ def ui(c, T, L, prev):
         lab("bt_dn"); E(cmp_imm, 1, 2); E(b_cond, "bt_e", "hs"); E(adds_imm8, 1, 1)
         lab("bt_s"); E(strb_w, 1, 0, B_APG)
         lab("bt_e"); E(pop_list, [0, 1, 4, 5, 6], pc=True)
-        if INST2:                                                                         # (INST2) pad 8 held: Octave down = page 2, up = page 1
+        if INST2 and not NOINST:                                                          # (INST2) pad 8 held: Octave down = page 2, up = page 1
             lab("bt_i"); E(movs_imm, 1, 1); E(cmp_imm, 5, 20); E(b_cond, "bt_is", "ne"); E(movs_imm, 1, 0)
             lab("bt_is"); E(strb_w, 1, 0, B_IPG); E(pop_list, [0, 1, 4, 5, 6], pc=True)
         lab("bt_p"); E(b_w, prev["btn8"])
@@ -728,7 +749,7 @@ def ui(c, T, L, prev):
         lab("c_fmoct")
         E(push_list, [4, 5, 6], lr=True); E(mov_reg, 5, 0); E(movs_imm, 4, 0)
         lab("oc_t"); E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(ldrb_w, 1, 0, B_P7); E(cmp_imm, 1, 1); E(b_cond, "oc_g", "eq")
-        if INST2: E(cmp_imm, 1, 2); E(b_cond, "oc_i", "eq")
+        if INST2 and not NOINST: E(cmp_imm, 1, 2); E(b_cond, "oc_i", "eq")
         E(adds_imm8, 4, 1); E(cmp_imm, 4, 2); E(b_cond, "oc_t", "lo"); E(pop_list, [4, 5, 6], pc=True)
         lab("oc_g"); E(ldrb_w, 1, 0, B_APG); E(cmp_imm, 1, 2); E(b_cond, "oc_k", "ls"); E(movs_imm, 1, 0)
         lab("oc_k"); E(movs_imm, 2, 0); E(cmp_imm, 1, 0); E(b_cond, "oc_u", "eq"); E(movs_imm, 2, 0x01)
@@ -736,7 +757,7 @@ def ui(c, T, L, prev):
         E(movs_imm, 2, 0); E(cmp_imm, 1, 2); E(b_cond, "oc_d", "hs"); E(movs_imm, 2, 0x01)
         lab("oc_d"); E(movs_imm, 0, 2 * OCT_DN); E(strh_reg, 2, 5, 0)
         E(pop_list, [4, 5, 6], pc=True)
-        if INST2:                                                                         # (INST2) pad 8 held: Octave up lit on page 2, down on page 1
+        if INST2 and not NOINST:                                                          # (INST2) pad 8 held: Octave up lit on page 2, down on page 1
             lab("oc_i"); E(ldrb_w, 1, 0, B_IPG); E(movs_imm, 2, 0x01); E(movs_imm, 3, 0); E(cmp_imm, 1, 1); E(b_cond, "oc_ip", "eq"); E(movs_imm, 2, 0); E(movs_imm, 3, 0x01)
             lab("oc_ip"); E(movs_imm, 0, 2 * OCT_UP); E(strh_reg, 2, 5, 0); E(movs_imm, 0, 2 * OCT_DN); E(strh_reg, 3, 5, 0)
             E(pop_list, [4, 5, 6], pc=True)
@@ -801,7 +822,9 @@ def ui(c, T, L, prev):
             lab("hl_v"); E(mov_reg, 0, 6)
         E(bl, "c_fmpg"); E(cmp_imm, 0, 0); bc("le_x", "eq")
         E(mov_reg, 0, 6); E(bl, "c_fmblk"); E(mov_reg, 4, 0)
-        E(ldrb_w, 0, 4, B_P7); E(cmp_imm, 0, 2); bc("le_st", "eq"); E(cmp_imm, 0, 1); bc("le_al", "eq")
+        E(ldrb_w, 0, 4, B_P7)
+        if not NOINST: E(cmp_imm, 0, 2); bc("le_st", "eq")
+        E(cmp_imm, 0, 1); bc("le_al", "eq")
         E(mov_reg, 0, 4); E(bl, "c_fmovk"); E(cmp_imm, 0, 5); bc("le_x", "ne"); E(b, "le_ov")
 
     # ---- c_fmsum(r0 = 21 bytes) -> r0 = 0x5A + the first 20, & 0xFF; clobbers r1-r3

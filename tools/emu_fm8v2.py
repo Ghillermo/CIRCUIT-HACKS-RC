@@ -66,14 +66,20 @@ def main(img, man):
     check(par(A.B_ON) == 1 and f[23] & 0xFF == FE.COL_FM[0], f"pad 24: FM on, bright ({f[23]:#x})")
 
     # ---- pad 8 held with the row open: the 24 instruments
-    press(FE.PADNO + 1); f = X.frame(e)
-    ic = FI.colours()
-    st = par(A.B_STR)
-    exp = [ic[2 * j + (j != st)] for j in range(24)]
-    check(lo(f, 8, 32) == exp, f"pad 8 held (the row open): the 24 instruments in their family's dim colour ({[hex(x) for x in lo(f, 8, 32)]})")
-    press(9); release(9); f = X.frame(e)
-    check(bytes(e.uc.mem_read(blk, F.PLEN)) == FI.inst_full(1) and f[9] & 0xFF == ic[2], f"pad 10: {FI.INST[1]['name']} unpacked, its pad bright ({f[9]:#x})")
-    release(FE.PADNO + 1)
+    if "c_fminst" in fl:
+        press(FE.PADNO + 1); f = X.frame(e)
+        ic = FI.colours()
+        st = par(A.B_STR)
+        exp = [ic[2 * j + (j != st)] for j in range(24)]
+        check(lo(f, 8, 32) == exp, f"pad 8 held (the row open): the 24 instruments in their family's dim colour ({[hex(x) for x in lo(f, 8, 32)]})")
+        press(9); release(9); f = X.frame(e)
+        check(bytes(e.uc.mem_read(blk, F.PLEN)) == FI.inst_full(1) and f[9] & 0xFF == ic[2], f"pad 10: {FI.INST[1]['name']} unpacked, its pad bright ({f[9]:#x})")
+        release(FE.PADNO + 1)
+    else:                                                                                # SC57.3 (fm8ui.use_noinst): no instruments
+        b0 = bytes(e.uc.mem_read(blk, F.PLEN))
+        press(FE.PADNO + 1); f = X.frame(e); p7 = par(A.B_P7)
+        press(9); release(9); f2 = X.frame(e); release(FE.PADNO + 1)
+        check(p7 == 0 and bytes(e.uc.mem_read(blk, F.PLEN))[:F.PLEN] == b0, f"no instruments: pad 8 held opens no list (B_P7 {p7}), pad 10 loads nothing")
 
     # ---- pad 7 held: the pages
     press(FE.PADNO); f = X.frame(e)
@@ -96,7 +102,7 @@ def main(img, man):
     e.pad(26); e.pad(FE.PADNO); f = X.frame(e)
     peg3 = "le_p3" in fl
     a0 = 16 if peg3 else 17
-    rowop = "c_fminst" in fl and any(k == "le_r3" for k in fl) and bool(R["fm8"]["labels"].get("t_rowc"))
+    rowop = any(k == "le_r3" for k in fl) and bool(R["fm8"]["labels"].get("t_rowc"))
     if rowop:                                                                            # SC52 (use_rowop): the engine row on 17-24, pad 7 dim
         import fm8ui as U
         exp = [MS.COLS[m][1] if m != 0xFF else 0 for m in MS.ROWMODE] + [FE.COL_FM[0]]

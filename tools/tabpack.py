@@ -26,6 +26,10 @@ ON = False
 MAGIC = b"TBPK"
 RAM = (0x20048620, 0x20049000)                 # the curve tables
 ITCM = (0x18A4, 0x2000)                        # the LZ group
+ITCM2 = (0x1048, 0x18A4)                       # (use_fm2) more FM curves: the ITCM after scrules' block (scrules.END = 0x1048), before the LZ group
+CURVES_FM2 = ("exp", "inc", "bexp")            # (use_fm2) SC57.8 / Beta 5.63
+EW_FM2 = {"exp": 2, "inc": 4, "bexp": 2}
+FM2 = False
 CURVES_MFX = ("PHPER", "SMPI", "GK", "PHTAB")
 CURVES_FM = ("fix",)
 LZ_FM = ("algs", "def8", "dxdef", "det", "rof", "kvsa", "ksa", "susm", "algf", "opdef", "fam", "kd", "icol")
@@ -40,8 +44,24 @@ def use():
     ST.update(items={}, ram=RAM[0], lz=ITCM[0], order=[])
 
 
+def use_fm2():
+    """SC57.8 / Beta 5.63 (room for the bug hunt's fixes: the flash was full): the FM's exp (256 halfwords), inc (128 words) and bexp (64 halfwords)
+    tables too, as second differences of one / two bytes (exp and bexp: 1, inc: 2; slope and Master FX's AFTAB do not fit two bytes and stay),
+    rebuilt in the ITCM 0x1048.. with the rest at power-up: 536 B of flash freed in dspz's first gap (fm8's data lives there).  The ARM reads
+    them (fm8arm: ldrh / ldr): the ITCM is the CPU's."""
+    global FM2
+    import scrules
+    assert scrules.END <= ITCM2[0], hex(scrules.END)
+    FM2 = True
+
+
 def wants(name):
-    return ON and name in CURVES_MFX + CURVES_FM + LZ_FM
+    return ON and (name in CURVES_MFX + CURVES_FM + LZ_FM or FM2 and name in CURVES_FM2)
+
+
+def ew_of(name):
+    """(fm8arm.data) the element width of a curve, None = a member of the LZ group"""
+    return 4 if name in CURVES_FM else EW_FM2.get(name) if FM2 else None
 
 
 def want(name, data, ew=None):
@@ -51,7 +71,10 @@ def want(name, data, ew=None):
         assert it["data"] == bytes(data), name
         return it["at"]
     data = bytes(data)
-    if ew:
+    if ew and FM2 and name in CURVES_FM2:                                   # (use_fm2) the second curve area, in the ITCM
+        assert len(data) % ew == 0
+        at = ST.setdefault("itcm2", ITCM2[0]); ST["itcm2"] += (len(data) + 3) & ~3; assert ST["itcm2"] <= ITCM2[1], name
+    elif ew:
         assert len(data) % ew == 0
         at = ST["ram"]; ST["ram"] += (len(data) + 3) & ~3; assert ST["ram"] <= RAM[1], name
     else:

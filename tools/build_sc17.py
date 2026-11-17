@@ -96,6 +96,17 @@ def use_trimsp():
     global TRIMSP
     TRIMSP = True
 
+TRIMSP2 = False                       # SC57.5 (use_trimsp2)
+
+
+def use_trimsp2():
+    """SC57.5 (flash for xlanes.use_reload / patrev): two runs nothing reaches.  With SP2, c_sp_press always leaves through sp2_press (its last
+    instruction is an unconditional b spp_out), so the pre-SC32 press code after it (Shift latch / momentary start and end, 118 B) is never run;
+    with CLR_COPY, c_clrled copies pad 25 and branches to cl_out, so the latch test after it (40 B) is never run.  Neither is emitted."""
+    global TRIMSP2
+    TRIMSP2 = True
+
+
 def use_full_leds():
     """SC17.4: the LED task (0x08034196, map 0x08059438) reads 42 entries from the active view:
     0-31 pads, 32/33 two buttons, 34-41 the 8 knob LEDs.  A 32-entry buffer showed garbage on the knobs."""
@@ -438,6 +449,15 @@ def use_ledbuf():
 
 
 FSQDEF = False                        # SC48 (use_fsqdef)
+FSQMUTE = False                       # SC57.9 / Beta 5.64 (use_fsqmute)
+
+
+def use_fsqmute():
+    """SC57.9 / Beta 5.64 (the user, 2026-11-15: «mute whole master per step»): the FX sequencer's eighth value (vcf21.use_fsqmute: c_fsqbits' bit 7)
+    = FX_ON bit 7 (masterfx_dsp.B_MUTE, use_fsqmute): c_fxtick reads the sequencer's bits once more after the effects' bits and puts that bit into
+    the FX_ON it sends (S_FXON keeps it: sent on change only).  + 10 B."""
+    global FSQMUTE
+    FSQMUTE = True
 
 
 def use_fsqdef():
@@ -1059,6 +1079,9 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         a.emit(movs_imm, 0, FXBITS[i]); a.emit(orrs_reg, 5, 0)
         a.emit(movs_imm, 0, 1 << SETMAP[i]); a.emit(orrs_reg, 6, 0)
         a.label(f"ft_n{i}")
+    if FSQMUTE:                                                                # (use_fsqmute) the sequencer's mute step: FX_ON bit 7
+        assert G.B_MUTE == 7
+        a.emit(bl, "c_fxsq"); a.emit(movs_imm, 1, 1 << G.B_MUTE); a.emit(ands_reg, 0, 1); a.emit(orrs_reg, 5, 0)
     # newly active sets: t0 = now
     a.emit(ldrb_imm, 7, 4, S_PREV); a.emit(strb_imm, 6, 4, S_PREV)
     a.emit(bics_reg, 7, 6) if False else None
@@ -2008,13 +2031,14 @@ def slots_code(a, L, setmap_addr, pal_codes, bc, zjmp):
         a.emit(push_list, [4], lr=True)
         a.emit(mov_reg, 4, 0)
         if CLR_COPY: a.emit(raw, ldrh_w(0, 4, 48)); a.emit(strh_imm, 0, 4, 14); a.emit(b, "cl_out")      # = pad 25, the FX bypass pad copied from the FX view
-        a.emit(bl, "c_gfst"); zjmp(0, "cl_out")
-        a.emit(ldrb_imm, 1, 0, S_LATCH)
-        a.emit(subs_imm8, 0, GFX_OFF); a.emit(ldrb_imm, 2, 0, s14.S_LATCH); a.emit(orrs_reg, 1, 2)
-        if CLEAR_SP:                                                            # lit too while a song pointer range is set
-            a.emit(ldrb_imm, 2, 0, 21); a.emit(orrs_reg, 1, 2); a.emit(ldrb_imm, 2, 0, 23); a.emit(orrs_reg, 1, 2)
-        a.emit(movw, 0, CLR_DIM); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "cl_s", "eq"); a.emit(movw, 0, CLR_ON)
-        a.label("cl_s"); a.emit(strh_imm, 0, 4, 14)
+        if not (TRIMSP2 and CLR_COPY):                                          # with CLR_COPY the copy branches to cl_out: the rest is never run
+            a.emit(bl, "c_gfst"); zjmp(0, "cl_out")
+            a.emit(ldrb_imm, 1, 0, S_LATCH)
+            a.emit(subs_imm8, 0, GFX_OFF); a.emit(ldrb_imm, 2, 0, s14.S_LATCH); a.emit(orrs_reg, 1, 2)
+            if CLEAR_SP:                                                            # lit too while a song pointer range is set
+                a.emit(ldrb_imm, 2, 0, 21); a.emit(orrs_reg, 1, 2); a.emit(ldrb_imm, 2, 0, 23); a.emit(orrs_reg, 1, 2)
+            a.emit(movw, 0, CLR_DIM); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "cl_s", "eq"); a.emit(movw, 0, CLR_ON)
+            a.label("cl_s"); a.emit(strh_imm, 0, 4, 14)
         a.label("cl_out"); a.emit(pop_list, [4], pc=True)
 
 
@@ -2171,30 +2195,31 @@ def songptr_code(a, L, pal_codes, bc, zjmp):
             a.emit(strb_w, 5, 4, GFX_OFF + S_JT)
         a.emit(b, "spp_out")
         a.label("spp_nj")
-    a.emit(bl, c_shift); a.emit(mov_reg, 6, 0)
-    a.emit(ldrb_w, 0, 4, O_LS)
-    a.emit(cmp_imm, 6, 0); a.emit(b_cond, "spp_ns", "eq")
-    a.emit(cmp_reg, 0, 5); a.emit(b_cond, "spp_set", "ne")
-    a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_LS); a.emit(strb_w, 1, 4, O_LE); a.emit(b, "spp_clr")      # same step: off
-    a.label("spp_set")
-    a.emit(strb_w, 5, 4, O_LS)                                                # new start (moves it)
-    a.emit(ldrb_w, 1, 4, O_LE); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "spp_clr", "eq")
-    a.emit(cmp_reg, 1, 5); a.emit(b_cond, "spp_clr", "hs"); a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_LE)  # end before start: default
-    a.label("spp_clr")
-    a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_H1); a.emit(strb_w, 1, 4, O_H2); a.emit(b, "spp_out")
-    a.label("spp_ns")
-    a.emit(cmp_imm, 0, 0); a.emit(b_cond, "spp_mom", "eq")
-    if SP_NORM:                                                                # latched start: a tap above = end; a tap below = the new start, the old start becomes the end
-        a.emit(cmp_reg, 5, 0); a.emit(b_cond, "spp_te", "hs")
-        a.emit(strb_w, 0, 4, O_LE); a.emit(strb_w, 5, 4, O_LS); a.emit(b, "spp_out")
-        a.label("spp_te"); a.emit(strb_w, 5, 4, O_LE); a.emit(b, "spp_out")
-    else:
-        a.emit(cmp_reg, 5, 0); a.emit(b_cond, "spp_out", "lo"); a.emit(strb_w, 5, 4, O_LE); a.emit(b, "spp_out")   # latched start: tap = end
-    a.label("spp_mom")
-    a.emit(ldrb_w, 1, 4, O_H1); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "spp_m2", "ne"); a.emit(strb_w, 5, 4, O_H1); a.emit(b, "spp_out")
-    a.label("spp_m2")
-    a.emit(cmp_reg, 1, 5); a.emit(b_cond, "spp_out", "eq")
-    a.emit(ldrb_w, 2, 4, O_H2); a.emit(cmp_imm, 2, 0); a.emit(b_cond, "spp_out", "ne"); a.emit(strb_w, 5, 4, O_H2)
+    if not (TRIMSP2 and SP2):                                                  # with SP2, sp2_press always ends with b spp_out: the rest is never run
+        a.emit(bl, c_shift); a.emit(mov_reg, 6, 0)
+        a.emit(ldrb_w, 0, 4, O_LS)
+        a.emit(cmp_imm, 6, 0); a.emit(b_cond, "spp_ns", "eq")
+        a.emit(cmp_reg, 0, 5); a.emit(b_cond, "spp_set", "ne")
+        a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_LS); a.emit(strb_w, 1, 4, O_LE); a.emit(b, "spp_clr")      # same step: off
+        a.label("spp_set")
+        a.emit(strb_w, 5, 4, O_LS)                                                # new start (moves it)
+        a.emit(ldrb_w, 1, 4, O_LE); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "spp_clr", "eq")
+        a.emit(cmp_reg, 1, 5); a.emit(b_cond, "spp_clr", "hs"); a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_LE)  # end before start: default
+        a.label("spp_clr")
+        a.emit(movs_imm, 1, 0); a.emit(strb_w, 1, 4, O_H1); a.emit(strb_w, 1, 4, O_H2); a.emit(b, "spp_out")
+        a.label("spp_ns")
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "spp_mom", "eq")
+        if SP_NORM:                                                                # latched start: a tap above = end; a tap below = the new start, the old start becomes the end
+            a.emit(cmp_reg, 5, 0); a.emit(b_cond, "spp_te", "hs")
+            a.emit(strb_w, 0, 4, O_LE); a.emit(strb_w, 5, 4, O_LS); a.emit(b, "spp_out")
+            a.label("spp_te"); a.emit(strb_w, 5, 4, O_LE); a.emit(b, "spp_out")
+        else:
+            a.emit(cmp_reg, 5, 0); a.emit(b_cond, "spp_out", "lo"); a.emit(strb_w, 5, 4, O_LE); a.emit(b, "spp_out")   # latched start: tap = end
+        a.label("spp_mom")
+        a.emit(ldrb_w, 1, 4, O_H1); a.emit(cmp_imm, 1, 0); a.emit(b_cond, "spp_m2", "ne"); a.emit(strb_w, 5, 4, O_H1); a.emit(b, "spp_out")
+        a.label("spp_m2")
+        a.emit(cmp_reg, 1, 5); a.emit(b_cond, "spp_out", "eq")
+        a.emit(ldrb_w, 2, 4, O_H2); a.emit(cmp_imm, 2, 0); a.emit(b_cond, "spp_out", "ne"); a.emit(strb_w, 5, 4, O_H2)
     a.label("spp_out"); a.emit(pop_list, [4, 5, 6], pc=True)
 
     # ---- c_sp_rel (r0 = pad 8-23): release of a momentary pad

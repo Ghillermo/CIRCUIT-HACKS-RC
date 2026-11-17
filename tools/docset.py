@@ -10,6 +10,8 @@ title carries the beta mark is left out.  The mark is the guide's / manual's «s
   * further in: the sentence holding it goes (in a table, the sentence of that cell; an emptied cell becomes «—»); a parenthesis that starts
     with it goes whole.
 
+In each set guia.html / guide.html is the manual (every feature in its view's chapter, make_guide.write) and index.html / en.html the glossary.
+
     python tools/docset.py              (both sets, both languages; then the chooser and the redirects)
 """
 from __future__ import annotations
@@ -27,6 +29,12 @@ def beta_name():
     return G.YBETA                                      # «Beta 5.33»
 
 
+def beta_display():
+    """the name the beta set shows (make_guide.YNAME: «Alpha 7» since 2026-11-17; the marks in the sources stay «solo Beta 5.x»)"""
+    import make_guide as G
+    return getattr(G, "YNAME", G.YBETA)
+
+
 def mark_re():
     """the beta's own mark, of any beta on top of RC4 (5.x: the hand-written «solo Beta 5.12» too)"""
     n = r"5\.\d+"
@@ -35,7 +43,7 @@ def mark_re():
 
 def beta(text):
     """(the beta set) the marks of older 5.x betas named as the current beta"""
-    b = beta_name()
+    b = beta_display()
     text = re.sub(r"(?i)\b(solo\s+)Beta 5\.\d+\b", lambda m: m.group(1) + b, text)
     return re.sub(r"(?i)\bBeta 5\.\d+(\s+only)\b", lambda m: b + m.group(1), text)
 
@@ -122,24 +130,27 @@ def chooser():
     """docs/manual/index.html: the two sets; the old page names redirect to rc/"""
     import make_manual as Mm
     d = ROOT / "docs/manual"
-    rcn, bn = rc_name(), beta_name()
+    rcn, bn = rc_name(), beta_display()
     page = f'''<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CIRCUIT-HACKS</title>
 <style>{Mm.CSS} .sets {{ display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px; }} .sets div {{ border:1px solid var(--line); border-radius:10px; padding:12px 16px; background:var(--card); }}</style></head><body>
 <header class="cover"><h1>CIRCUIT-HACKS</h1><p>Manuales · Manuals</p><div class="bar"></div></header><main>
 <div class="sets">
 <div><h2>{rcn}</h2><p>La versión candidata: solo lo que ya está en ella. · The release candidate: only what it has.</p><ul>
-<li><a href="rc/guia.html">Guía por vistas</a> · <a href="rc/guide.html">Guide by views</a></li>
-<li><a href="rc/index.html">Lista de características</a> · <a href="rc/en.html">Feature list</a></li>
+<li><a href="rc/guia.html"><strong>Guía por vistas (el manual)</strong></a> · <a href="rc/guide.html"><strong>Guide by views (the manual)</strong></a></li>
+<li><a href="rc/index.html">Glosario de funciones</a> · <a href="rc/en.html">Glossary of features</a></li>
 <li><a href="rc/voces.html">Pistas MIDI y modos de voz</a> · <a href="rc/voices.html">MIDI tracks and voice modes</a></li>
 <li><a href="rc/midi.html">Referencia MIDI</a> · <a href="rc/midi-en.html">MIDI reference</a></li></ul></div>
 <div><h2>{bn}</h2><p>La beta: todo, con lo que aún no está en la RC marcado. · The beta: everything, with what is not in the RC yet marked.</p><ul>
-<li><a href="beta/guia.html">Guía por vistas</a> · <a href="beta/guide.html">Guide by views</a></li>
-<li><a href="beta/index.html">Lista de características</a> · <a href="beta/en.html">Feature list</a></li>
+<li><a href="beta/guia.html"><strong>Guía por vistas (el manual)</strong></a> · <a href="beta/guide.html"><strong>Guide by views (the manual)</strong></a></li>
+<li><a href="beta/index.html">Glosario de funciones</a> · <a href="beta/en.html">Glossary of features</a></li>
 <li><a href="beta/voces.html">Pistas MIDI y modos de voz</a> · <a href="beta/voices.html">MIDI tracks and voice modes</a></li>
 <li><a href="beta/midi.html">Referencia MIDI</a> · <a href="beta/midi-en.html">MIDI reference</a></li></ul></div>
 </div>
+<div class="sets"><div><h2>Herramientas · Tools</h2><ul><li><a href="app.html">La app en el navegador</a> · <a href="app.html">The app in the browser</a> (Chrome / Edge): la tarjeta y el aparato, Hacks y Remix, el editor de patches y los instaladores · card and device, Hacks and Remix, the patch editor and the installers (<a href="hr_app.zip"><code>hr_app.zip</code></a> para usarla sin conexión · to use it offline)</li><li><a href="rc_uploader.zip">Instalador</a> · <a href="rc_uploader.zip">Installer</a> (<code>rc_uploader.zip</code>) · <a href="rc_uploader_old.zip">versiones anteriores</a> · <a href="rc_uploader_old.zip">older versions</a></li></ul></div></div>
 <p><a href="sencilla.html">Guía en palabras sencillas</a> · <a href="plain.html">Guide in plain words</a></p>
-</main></body></html>'''
+</main><script>if (location.hash) location.replace("rc/index.html" + location.hash)</script></body></html>'''
+    # (2026-11-15) index.html was the Spanish feature list: an old link with an anchor (index.html#a1-atajos) goes on to the glossary, which keeps
+    # the old anchors (and sends a beta's own feature on to beta/index.html)
     (d / "index.html").write_text(page, encoding="utf-8", newline="")
     for n in ("en.html", "guia.html", "guide.html", "midi.html", "midi-en.html", "voces.html", "voices.html"):
         (d / n).write_text(f'<!doctype html><html><head><meta charset="utf-8"><title>CIRCUIT-HACKS</title>'
@@ -148,7 +159,8 @@ def chooser():
 
 
 def rc_name():
-    return "RC4.08"                                    # the release candidate the rc set describes
+    import make_guide as G
+    return G.RCNOW                                     # the release candidate the rc set describes (make_guide.RCNOW, updated with each release)
 
 
 def build():
@@ -156,13 +168,20 @@ def build():
     import make_guide as G
     import midi_ref
     import make_voces as MV
+    import anim_sets
     for st in SETS:
         Mm.SET, Mm.OUT = st, f"docs/manual/{st}"
         (ROOT / Mm.OUT).mkdir(parents=True, exist_ok=True)
+        anim_sets.write_set(ROOT / Mm.OUT / "anim", st)                  # (2026-11-14) the step-by-step animations of the set (make_anim)
         for lang in Mm.LANGS: Mm.use(lang); Mm.write_html()
         for lang in ("es", "en"): G.write(lang, md=False)
         for lang in ("es", "en"): midi_ref.write(lang, Mm.VERSION, Mm, md=False)
         for lang in ("es", "en"): MV.page(lang)
+        if st == "beta" and beta_display() != beta_name():              # (2026-11-17) the beta set names the beta by its display name everywhere
+            for f in (ROOT / Mm.OUT).rglob("*"):                         # (titles and links too, which beta() does not see)
+                if f.suffix in (".html", ".svg"):
+                    t = f.read_text(encoding="utf-8")
+                    if beta_name() in t: f.write_text(t.replace(beta_name(), beta_display()), encoding="utf-8", newline="")
     Mm.SET, Mm.OUT = None, "docs/manual"
     chooser()
 

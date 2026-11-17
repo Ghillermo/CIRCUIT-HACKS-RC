@@ -2,6 +2,11 @@
 adapted patterns (root note for Track patterns into mono Rhythm sequences) and samples into eachother or saved folders and snapshots»).
 
     python tools/make_hr_app.py [path/to/rm_sd_app.html]      -> tools/hr_app.html
+    python tools/make_hr_app.py --check                        is tools/hr_app.html up to date with every source? (exit 1 if not)
+
+(2026-11-13, the user: «Remix app y Hacks app están deprecados. Asegúrate de que todas sus funciones están disponibles en HR app. A partir de ahora,
+el trabajo (características, fixes...) de SD app se destinan a hr») tools/hr_app.html is the one app: its «Hacks» view is tools/sd_app.html whole and
+its «Remix» view the published Remix app whole, so every function of the two is there; --check says when a source changed and the page did not.
 
 One page, both data layers inlined as they are in their own apps: the Tracks core of tools/sd_app.html as SDT, the Rhythm core of the RYTHM
 repository's tools/rm_sd_app.html (default ../RYTHM/tools/rm_sd_app.html) as SDR; the page's own part is tools/hr_ui.js.  Rebuild after either
@@ -22,7 +27,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-RM = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE.parent.parent / "RYTHM" / "tools" / "rm_sd_app.html"
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+CHECK = "--check" in sys.argv[1:]                  # (2026-11-13) only compare: is tools/hr_app.html what its sources make now? (nothing written)
+RM = Path(ARGS[0]) if ARGS else HERE.parent.parent / "RYTHM" / "tools" / "rm_sd_app.html"
 RM_APP = RM.parent / "rm_app.html"
 RM_PUB = RM.parent.parent / "build" / "public" / "rm_app.html"     # (2026-11-13) the published Remix app: only the Circuit Remix versions in its installer
 
@@ -51,8 +58,9 @@ def main():
     a_hinst = js_string((HERE / "rc_uploader.html").read_text(encoding="utf-8"))   # (2026-11-13) the Firmware view: the Hacks installer
     import json
     import make_patch_editor as PE                     # (2026-11-10) the patch editor view and the demo patches (docs/patches)
-    PE.main()
-    a_editor = js_string(PE.OUT.read_text(encoding="utf-8"))
+    if not CHECK:
+        PE.main()
+    a_editor = js_string(PE.page())
     demos = json.dumps(PE.data()["examples"], separators=(",", ":"))
     page = f"""<!doctype html>
 <html lang="es">
@@ -102,9 +110,19 @@ def main():
     for x, y in (("Gr" + "id FX", "Master FX"), ("GR" + "ID FX", "MASTER FX"), ("gr" + "id fx", "master fx")):   # Remix's installer list names it)
         page = page.replace(x, y)
     assert not re.search("gr" + r"id[ _.-]?fx", page, re.I)
+    if CHECK:
+        old = (HERE / "hr_app.html").read_text(encoding="utf-8")
+        if old == page:
+            print("hr_app.html: up to date (Hacks app, Remix app, installer, patch editor, demo patches, hr_ui.js)")
+            return 0
+        parts = {"tools/sd_app.html (the Hacks view and SDT)": a_hacks, "the Remix app (" + str(RM_PUB if RM_PUB.exists() else RM_APP) + ")": a_remix,
+                 "tools/rc_uploader.html": a_hinst, "the patch editor": a_editor, "docs/patches": demos, "tools/hr_ui.js": ui, "the Rhythm core": r_js}
+        stale = [k for k, v in parts.items() if v not in old]
+        print("hr_app.html: OUT OF DATE, rebuild with python tools/make_hr_app.py; changed: " + (", ".join(stale) or "the page around them"))
+        return 1
     (HERE / "hr_app.html").write_text(page, encoding="utf-8", newline="")
     print("hr_app.html", len(page))
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

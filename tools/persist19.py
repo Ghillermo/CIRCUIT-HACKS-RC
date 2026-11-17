@@ -187,6 +187,18 @@ def use_leftcol():
 
 
 KNOB_LEVELS = False                   # SC19.6: the new drum knobs (K1 / K3 / K5 / K7) show their value as LED brightness, like the stock K2 / K4 / K6 / K8 (see knob_levels_code)
+TRIMKL = False                        # SC57.5 (use_trimkl)
+
+
+def use_trimkl():
+    """SC57.5 (flash for the next build; found by tools/fullwalk.py in Beta 5.59): c_mhleds19's SC19.6 loop over KNOB_CODES (the brightness of
+    K1 / K3 / K5 / K7 at the stock knob positions, 96 B) is unreachable with REMAP (SC19.8 on): the REMAP block writes every knob position itself
+    and ends with an unconditional branch to ml_clr / ml_x, and the loop's labels (ml_s0 .. ml_s6) are used only inside it.  With REMAP the loop
+    is no longer emitted; without REMAP nothing changes."""
+    global TRIMKL
+    TRIMKL = True
+
+
 LED_CONV_HOOK = 0x080342B0            # inside the stock LED colour converter 0x0803423C (knob LEDs 60..68): ldrh r7, [r6] ; movs r4, #0xff
 LED_CONV_BYTES = bytes.fromhex("3788ff24")
 GFX_OFF = 40
@@ -1093,7 +1105,7 @@ def knob_levels_code(a, L):
             a.emit(adds_imm8, 7, 2); a.emit(lsls_imm, 7, 7, 8); a.emit(orrs_reg, 7, 4); a.emit(strh_imm, 7, 5, 14)
             a.label("k8_skip")
         a.emit(b, "ml_clr" if CLEAR else "ml_x")
-    for k, plain, shift in KNOB_CODES:
+    for k, plain, shift in (() if TRIMKL and REMAP else KNOB_CODES):                 # (SC57.5, use_trimkl) dead behind REMAP's branch
         a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, plain)
         a.emit(cmp_imm, 7, 0); a.emit(b_cond, f"ml_s{k}", "eq"); a.emit(movs_imm, 1, shift)
         a.label(f"ml_s{k}")

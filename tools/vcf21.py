@@ -725,6 +725,18 @@ def use_p4dest(ram):
     thumb.NOPOOL["c_sdmark"] = 8                       # (its head and the bx lr after it: sdpv copies / checks them)
 
 
+FREESLOT = False                                   # SC57.8 / Beta 5.63 (see use_freeslot)
+
+
+def use_freeslot():
+    """SC57.8 / Beta 5.63 (bug hunt 2026-11-14, JR-1): p4dest.use_dup frees a slot of page 4 by writing code 0 into the track's row and leaves
+    that lane's automation in the patterns; c_vapply then played it as code 0: c_vstore wrote the lane value into c_vvaddr(track, 0) (for MIDI 1
+    the tail's shared flags byte: both MIDI tracks' engine / source / page bits; for MIDI 2 TAIL + 26) and c_vcc_emit sent CC 0 (Bank Select MSB)
+    with it.  Now a lane whose code is 0 plays nothing and sends nothing (the stock macro sender, autorel's preview and its reverts)."""
+    global FREESLOT
+    FREESLOT = True                                    # (only with P4DEST: the row of codes; the builders call use_p4dest later)
+
+
 def use_lfosync():
     """SC44.8 (vcf21_dsp.use_lfosync, lfosync.py): LRATE (code 11) bipolar -64..63 (its LED dim at the centre, brighter to both sides): right = the
     free LFO (TLFO[2 v]), left = synced to the tempo.  The default 40 becomes 20 (the same free speed, TLFO[40]).  Call it after the whole chain of
@@ -821,7 +833,21 @@ def use_fxseqrand():
     global FSQRAND, FSQ_MAX
     assert FXSEQ3 and ENGINE == 0x20038EC0
     FSQRAND = True
-    FSQ_MAX = 7 * FSQ_U
+    FSQ_MAX = 8 * FSQ_U - 1 if FSQMUTE else 7 * FSQ_U      # (use_fsqmute, set before or after: the eighth value)
+
+
+FSQMUTE = False                                   # SC57.9 / Beta 5.64 (see use_fsqmute)
+COL_MUTE = 0x53                                   # the mute value's LED: red
+
+
+def use_fsqmute():
+    """SC57.9 / Beta 5.64 (the user, 2026-11-15: «add one option to the fx sequencer: mute», «mute whole master per step»): an eighth value of the
+    selector knob = **mute**: the master output silent while the step lasts (a 2 ms fade at each edge; masterfx_dsp / build_sc17 use_fsqmute).
+    The pair's position goes up to 127 (8 x FSQ_U - 1: the lane byte stays 0..127), so the eighth zone is the top half-zone (120..127);
+    c_fsqbits turns it into bit 7 as it does the others (the random seed only for value 7); its LED red (COL_MUTE)."""
+    global FSQMUTE, FSQ_MAX
+    FSQMUTE = True                                # (the chain's use_fxseqrand may come later: it keeps this range; the code asserts FSQRAND)
+    FSQ_MAX = 8 * FSQ_U - 1
 
 
 def use_sdknobfix():
@@ -917,6 +943,32 @@ def use_octleds():
     global OCTLED
     assert CCED
     OCTLED = True
+
+
+TRIMPAD = False
+
+
+def use_trimpad():
+    """SC57.4 (flash for the pattern groups; tools/fullwalk.py found them unreached): the pad handlers that later options route around are not
+    emitted any more: vp_tog / vp_osc / vp_page / vp_view (the DUALUI pad layout sends those pads to vp_route / vp_tri / vp_dual), vp_rst (with
+    RESETVIEW nothing branches there), the end of the view-button handler after EDV2's branch, and the granular / oscillator tail of vp_tri
+    after the sample's branch (with SAMPLER every path there ends in tr_sv).  Nothing changes in the use."""
+    global TRIMPAD
+    TRIMPAD = True
+
+
+TRIMSD = False                                    # SC57.5 (use_trimsd)
+
+
+def use_trimsd():
+    """SC57.5 (flash for patrev; tools/fullwalk.py found them unreached): the step-drummer routines that sdpv took over are not emitted any more:
+    the body of c_sdfx (sdpv writes b.w c_pvfx over its first 4 bytes: both calls from c_vsend, through modmx's c_mxfx, land in c_pvfx), the body
+    of c_sdbase (sdpv v2 writes b.w c_pvbase over its first 4 bytes and with v3 c_pvbase no longer goes back to c_sdbase + 4) and c_sdoff (only
+    c_sdfx's body and sdpv without v3 called it: with v3 sdpv uses its own c_pvoff1).  The heads stay (sdpv checks their bytes and patches them);
+    the label c_sdoff stays too (sdpv looks it up), at c_sdfx's head.  Needs SD2 and sdpv v2 + v3 (checked when the code is emitted).  Nothing
+    changes in the use."""
+    global TRIMSD
+    TRIMSD = True
 
 
 def use_pads2():
@@ -1260,15 +1312,16 @@ def cced_routines(a, L, t_ed, tail, bc):
         a.emit(pop_list, [4, 5, 6], pc=True)
         a.label("vb_view")
         if EDV2: a.emit(b, "vb_other")                                            # every view button discards (the own track's too); saving = the Save pad / the save step
-        a.emit(mov_reg, 6, 5); a.emit(subs_imm8, 6, ID_MIDI1); a.emit(cmp_imm, 6, 1); a.emit(b_cond, "vb_other", "hi")
-        a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 3, 1); a.emit(cmp_reg, 3, 6); a.emit(b_cond, "vb_other", "ne")
-        a.emit(ldrb_w, 3, 4, S_CUR); a.emit(lsls_imm, 1, 5, 3); a.emit(adds_reg, 1, 1, 5); a.emit(cmp_reg, 3, 1); a.emit(b_cond, "vb_other", "ne")
-        a.emit(ldrb_w, 3, 2, O_ED); a.emit(movs_imm, 1, 0x40); a.emit(tst_reg, 3, 1); a.emit(b_cond, "vb_sv", "ne")
-        a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(tst_reg, 3, 1); a.emit(b_cond, "vb_other", "eq")
-        a.label("vb_sv")
-        a.emit(bl, "c_edflush")
-        tail(2); a.emit(movs_imm, 3, 0x80); a.emit(strb_w, 3, 2, O_ED)
-        a.emit(pop_list, [4, 5, 6], pc=True)
+        if not (TRIMPAD and EDV2):
+            a.emit(mov_reg, 6, 5); a.emit(subs_imm8, 6, ID_MIDI1); a.emit(cmp_imm, 6, 1); a.emit(b_cond, "vb_other", "hi")
+            a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 3, 1); a.emit(cmp_reg, 3, 6); a.emit(b_cond, "vb_other", "ne")
+            a.emit(ldrb_w, 3, 4, S_CUR); a.emit(lsls_imm, 1, 5, 3); a.emit(adds_reg, 1, 1, 5); a.emit(cmp_reg, 3, 1); a.emit(b_cond, "vb_other", "ne")
+            a.emit(ldrb_w, 3, 2, O_ED); a.emit(movs_imm, 1, 0x40); a.emit(tst_reg, 3, 1); a.emit(b_cond, "vb_sv", "ne")
+            a.emit(ldrb_w, 3, 2, O_ED + 1); a.emit(movs_imm, 1, 2); a.emit(tst_reg, 3, 1); a.emit(b_cond, "vb_other", "eq")
+            a.label("vb_sv")
+            a.emit(bl, "c_edflush")
+            tail(2); a.emit(movs_imm, 3, 0x80); a.emit(strb_w, 3, 2, O_ED)
+            a.emit(pop_list, [4, 5, 6], pc=True)
         a.label("vb_other")
         a.emit(bl, "c_edoff")
         a.label("vb_pass")
@@ -2160,6 +2213,9 @@ def sd_routines(a, L, tail, bc, t_sd):
     from thumb import add_sp_imm
     E = a.emit
     RET = h(0x4770)
+    if TRIMSD:                                                                    # (use_trimsd) only with sdpv's heads over c_sdfx / c_sdbase
+        import sdpv
+        assert SD2 and sdpv.V2 and sdpv.V3, "use_trimsd needs SD2 and sdpv v2 + v3"
 
     def clamp(r, lo, hi, tmp, tag):                                              # r = max(lo, min(hi, r)) (signed); lo may be negative
         E(cmp_imm, r, hi); E(b_cond, tag + "h", "le"); E(movs_imm, r, hi)
@@ -2298,18 +2354,21 @@ def sd_routines(a, L, tail, bc, t_sd):
         E(push_list, [4], lr=True); E(bl, "c_sdnib"); E(lsrs_imm, 0, 0, 1); E(movs_imm, 1, 192); E(muls, 0, 1); E(pop_list, [4], pc=True)
 
         a.label("c_sdbase")                                                           # r0 = track -> r0 = what a pair with no pitch value shows / starts from: the centre for a MIDI track, the present position of the macro for a synth
-        if FXSEQ:                                                                     # (the FX sequencer: 0 = no effect)
+        if TRIMSD:                                                                    # (use_trimsd) the head only: sdpv writes b.w c_pvbase over it
+            E(cmp_imm, 0, 2); E(raw, h(0xD2FF))                                           # cmp r0, #2; bhs (the bytes sdpv checks)
+        elif FXSEQ:                                                                     # (the FX sequencer: 0 = no effect)
             E(cmp_imm, 0, 2); E(b_cond, "ba_s", "hs")
             E(push_list, [4], lr=True); E(bl, "c_fsq"); E(movs_imm, 1, 64); E(cmp_imm, 0, 0); E(b_cond, "ba_f", "eq"); E(movs_imm, 1, 0)
             a.label("ba_f"); E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
         else:
             E(cmp_imm, 0, 2); E(b_cond, "ba_s", "hs"); E(movs_imm, 0, 64); E(raw, RET)
-        a.label("ba_s")
-        E(push_list, [4], lr=True)
-        E(mov_reg, 4, 0); E(bl, "c_sdnib"); E(lsrs_imm, 1, 0, 1); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174)
-        E(mov_reg, 0, 4); E(subs_imm8, 0, 2); E(bl, GETTER)
-        E(cmp_imm, 0, 127); E(b_cond, "ba_x", "ls"); E(movs_imm, 0, 127)
-        a.label("ba_x"); E(pop_list, [4], pc=True)
+        if not TRIMSD:
+            a.label("ba_s")
+            E(push_list, [4], lr=True)
+            E(mov_reg, 4, 0); E(bl, "c_sdnib"); E(lsrs_imm, 1, 0, 1); E(movs_imm, 2, 17); E(muls, 1, 2); E(adds_imm8, 1, 174)
+            E(mov_reg, 0, 4); E(subs_imm8, 0, 2); E(bl, GETTER)
+            E(cmp_imm, 0, 127); E(b_cond, "ba_x", "ls"); E(movs_imm, 0, 127)
+            a.label("ba_x"); E(pop_list, [4], pc=True)
 
         # ---- c_sdio(r0 = track, r1 = 1 note on / 0 note off, r2 = velocity): the note of the audition: a note of the MIDI track (through the note wrappers), or an internal note on the channel of the synth
         a.label("c_sdio")
@@ -2368,49 +2427,52 @@ def sd_routines(a, L, tail, bc, t_sd):
     E(pop_list, [4], pc=True)
 
     a.label("c_sdoff")                                                            # r0 = track -> r0 = the offset of the pitch row at that step (-64..63; no value in the lane = 0)
-    E(push_list, [4, 5], lr=True)
-    E(mov_reg, 4, 0); E(bl, "c_sdpos"); E(mov_reg, 5, 0)
-    E(mov_reg, 0, 4); E(bl, "c_sdpat"); E(mov_reg, 1, 5); E(bl, "c_sdlna"); E(ldrb_imm, 0, 0, 0)
-    E(cmp_imm, 0, 127); E(b_cond, "do_v", "ls"); E(movs_imm, 0, 64)
-    a.label("do_v"); E(subs_imm8, 0, 64)
-    E(pop_list, [4, 5], pc=True)
+    if not TRIMSD:                                                                # (use_trimsd) no body: the label stays at c_sdfx's head (sdpv looks it up)
+        E(push_list, [4, 5], lr=True)
+        E(mov_reg, 4, 0); E(bl, "c_sdpos"); E(mov_reg, 5, 0)
+        E(mov_reg, 0, 4); E(bl, "c_sdpat"); E(mov_reg, 1, 5); E(bl, "c_sdlna"); E(ldrb_imm, 0, 0, 0)
+        E(cmp_imm, 0, 127); E(b_cond, "do_v", "ls"); E(movs_imm, 0, 64)
+        a.label("do_v"); E(subs_imm8, 0, 64)
+        E(pop_list, [4, 5], pc=True)
 
     # ---- c_sdfx(r0 = track, r1 = the stored value of a code, r2 = code - 1) -> r1 = the value that goes to the DSP: with the step-drummer enabled the destination of the pitch row gets the offset of the step;
     #      r2 and r4-r7 are kept; clobbers r0, r3
     a.label("c_sdfx")
     E(push_list, [2, 4, 5, 6, 7], lr=True)
-    E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2); E(adds_imm8, 6, 1)
-    E(mov_reg, 0, 4); E(bl, "c_sden"); E(cmp_imm, 0, 0); bc("fx_x", "eq")
-    E(mov_reg, 0, 4); E(bl, "c_sdnib"); E(lsrs_imm, 7, 0, 1)                          # r7 = the destination 0..7
-    E(cmp_imm, 7, 1); bc("fx_s", "hi")
-    E(cmp_imm, 6, 27); E(b_cond, "fx_p2", "hs")
-    E(cmp_imm, 7, 0); bc("fx_x", "ne")                                                # destination 1 leaves the first oscillator alone
-    E(cmp_imm, 6, 17); E(b_cond, "fx_p1", "eq"); E(cmp_imm, 6, 18); bc("fx_x", "ne")
-    a.label("fx_p1"); E(movs_imm, 7, 17); E(b, "fx_p")
-    a.label("fx_p2"); E(cmp_imm, 6, 28); bc("fx_x", "hi"); E(movs_imm, 7, 27)
-    a.label("fx_p")                                                                   # r7 = the TUNE code of the oscillator: total = 128 TUNE + FINE + 24 offset (1 / 128 semitone)
-    E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(bl, "c_vvaddr"); E(raw, ldrsb_w(0, 0, 0)); E(lsls_imm, 5, 0, 7)
-    E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(adds_imm8, 1, 1); E(bl, "c_vvaddr"); E(raw, ldrsb_w(0, 0, 0)); E(adds_reg, 5, 5, 0)
-    E(mov_reg, 0, 4); E(bl, "c_sdoff"); E(movs_imm, 1, 24); E(muls, 0, 1); E(adds_reg, 5, 5, 0)
-    E(mov_reg, 0, 5); E(adds_imm8, 0, 64); E(raw, asrs_imm(0, 0, 7))                   # r0 = the semitones
-    clamp(0, -64, 63, 1, "fx_t")
-    E(cmp_reg, 6, 7); E(b_cond, "fx_f", "ne"); E(mov_reg, 5, 0); E(b, "fx_x")
-    a.label("fx_f"); E(lsls_imm, 1, 0, 7); E(subs_reg, 5, 5, 1)
-    clamp(5, -64, 63, 1, "fx_g")
-    E(b, "fx_x")
-    a.label("fx_s")                                                                   # a single destination: value + offset, in the range of the code
-    E(movw, 3, t_sd & 0xFFFF); E(movt, 3, t_sd >> 16); E(ldrb_reg, 0, 3, 7); E(cmp_reg, 0, 6); bc("fx_x", "ne")
-    E(mov_reg, 0, 4); E(bl, "c_sdoff"); E(adds_reg, 5, 5, 0)
-    E(cmp_imm, 6, 3); E(b_cond, "fx_u", "ne")
-    clamp(5, -64, 63, 1, "fx_b")
-    E(b, "fx_x")
-    a.label("fx_u")
-    E(cmp_imm, 6, 20); E(b_cond, "fx_w", "ne")
-    clamp(5, 0, 100, 1, "fx_c")
-    E(b, "fx_x")
-    a.label("fx_w")
-    clamp(5, 0, 127, 1, "fx_d")
-    a.label("fx_x"); E(mov_reg, 1, 5); E(pop_list, [2, 4, 5, 6, 7], pc=True)
+    if TRIMSD: E(mov_reg, 4, 0)                                                   # (use_trimsd) the head only (the bytes sdpv checks): sdpv writes b.w c_pvfx over it
+    else:
+        E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2); E(adds_imm8, 6, 1)
+        E(mov_reg, 0, 4); E(bl, "c_sden"); E(cmp_imm, 0, 0); bc("fx_x", "eq")
+        E(mov_reg, 0, 4); E(bl, "c_sdnib"); E(lsrs_imm, 7, 0, 1)                          # r7 = the destination 0..7
+        E(cmp_imm, 7, 1); bc("fx_s", "hi")
+        E(cmp_imm, 6, 27); E(b_cond, "fx_p2", "hs")
+        E(cmp_imm, 7, 0); bc("fx_x", "ne")                                                # destination 1 leaves the first oscillator alone
+        E(cmp_imm, 6, 17); E(b_cond, "fx_p1", "eq"); E(cmp_imm, 6, 18); bc("fx_x", "ne")
+        a.label("fx_p1"); E(movs_imm, 7, 17); E(b, "fx_p")
+        a.label("fx_p2"); E(cmp_imm, 6, 28); bc("fx_x", "hi"); E(movs_imm, 7, 27)
+        a.label("fx_p")                                                                   # r7 = the TUNE code of the oscillator: total = 128 TUNE + FINE + 24 offset (1 / 128 semitone)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(bl, "c_vvaddr"); E(raw, ldrsb_w(0, 0, 0)); E(lsls_imm, 5, 0, 7)
+        E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(adds_imm8, 1, 1); E(bl, "c_vvaddr"); E(raw, ldrsb_w(0, 0, 0)); E(adds_reg, 5, 5, 0)
+        E(mov_reg, 0, 4); E(bl, "c_sdoff"); E(movs_imm, 1, 24); E(muls, 0, 1); E(adds_reg, 5, 5, 0)
+        E(mov_reg, 0, 5); E(adds_imm8, 0, 64); E(raw, asrs_imm(0, 0, 7))                   # r0 = the semitones
+        clamp(0, -64, 63, 1, "fx_t")
+        E(cmp_reg, 6, 7); E(b_cond, "fx_f", "ne"); E(mov_reg, 5, 0); E(b, "fx_x")
+        a.label("fx_f"); E(lsls_imm, 1, 0, 7); E(subs_reg, 5, 5, 1)
+        clamp(5, -64, 63, 1, "fx_g")
+        E(b, "fx_x")
+        a.label("fx_s")                                                                   # a single destination: value + offset, in the range of the code
+        E(movw, 3, t_sd & 0xFFFF); E(movt, 3, t_sd >> 16); E(ldrb_reg, 0, 3, 7); E(cmp_reg, 0, 6); bc("fx_x", "ne")
+        E(mov_reg, 0, 4); E(bl, "c_sdoff"); E(adds_reg, 5, 5, 0)
+        E(cmp_imm, 6, 3); E(b_cond, "fx_u", "ne")
+        clamp(5, -64, 63, 1, "fx_b")
+        E(b, "fx_x")
+        a.label("fx_u")
+        E(cmp_imm, 6, 20); E(b_cond, "fx_w", "ne")
+        clamp(5, 0, 100, 1, "fx_c")
+        E(b, "fx_x")
+        a.label("fx_w")
+        clamp(5, 0, 127, 1, "fx_d")
+        a.label("fx_x"); E(mov_reg, 1, 5); E(pop_list, [2, 4, 5, 6, 7], pc=True)
 
     a.label("c_sdcur")                                                            # r0 = track, r1 = a volatile code 27..34: the sweep sends it next; clobbers r0-r3
     tail(2); E(lsls_imm, 3, 0, 3); E(adds_reg, 2, 2, 3); E(ldrb_w, 0, 2, O_RT + RT_CNT); E(movs_imm, 3, 0x70); E(bics_reg, 0, 3)
@@ -2827,6 +2889,7 @@ def sd_routines(a, L, tail, bc, t_sd):
             E(cmp_imm, 7, 0); E(b_cond, "kl_s", "eq")
             E(subs_imm8, 7, 1)
             if FSQRAND: E(movs_imm, 0, 0x01); E(cmp_imm, 7, 6); E(b_cond, "kl_rw", "eq")                       # random: white
+            if FSQMUTE: assert FSQRAND; E(movs_imm, 0, COL_MUTE); E(cmp_imm, 7, 7); E(b_cond, "kl_rw", "eq")   # (use_fsqmute) mute: red
             E(mov_reg, 0, 7); E(bl, L["c_slotcol"])
             if FSQRAND: a.label("kl_rw")
             E(movs_imm, 7, 127); E(b, "kl_w")
@@ -3004,6 +3067,7 @@ def ccio_routines(a, tail, bc, movmask, t_cc, t_ln, stk_emit, stk_mid):
     E(mov_reg, 4, 0); E(mov_reg, 5, 2)
     if P4DEST: E(push_list, [1]); E(mov_reg, 0, 4); E(bl, "c_vrow"); E(pop_list, [1]); E(ldrb_reg, 6, 0, 1)   # (SC44.9) r6 = the code of the track's lane
     else: E(movw, 3, t_ln & 0xFFFF); E(movt, 3, t_ln >> 16); E(ldrb_reg, 6, 3, 1)  # r6 = the code of the lane
+    if P4DEST and FREESLOT: E(cmp_imm, 6, 0); E(b_cond, "ap_x", "eq")            # (use_freeslot) a freed slot (code 0): nothing set, nothing sent
     E(mov_reg, 0, 6); E(mov_reg, 1, 5); E(bl, "c_vfromu"); E(mov_reg, 7, 0)       # r7 = the stored value
     E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(mov_reg, 2, 7); E(bl, "c_vstore"); E(cmp_imm, 0, 0); E(b_cond, "ap_x", "eq")
     E(mov_reg, 0, 4); E(mov_reg, 1, 6); E(mov_reg, 2, 7); E(bl, "c_vcc_emit")
@@ -3528,7 +3592,7 @@ def arm_code(base, L):
         a.emit(cmp_imm, 5, PAD_PAGE); (bc("vp_dual" if DUALUI else "vp_view" if PADS2 else "vp_page", "eq") if CCED else a.emit(b_cond, "vp_page", "eq"))
     a.label("vp_fwd")
     a.emit(b_w, L["c_tpad"])
-    if RESETALL:
+    if RESETALL and not (TRIMPAD and RESETVIEW):
         a.label("vp_rst")
         a.emit(raw, pushw([6, 7], lr=True))
         a.emit(mov_reg, 4, 0); a.emit(ldrb_imm, 6, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 6, 1)
@@ -3582,21 +3646,22 @@ def arm_code(base, L):
     a.label("vpf_x")
     a.emit(mov_reg, 0, 4)                                                         # c_tpad wants the view in r0
     a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, L["c_tpad"])
-    a.label("vp_tog")
-    a.emit(raw, pushw([6, 7], lr=True))
-    a.emit(mov_reg, 4, 0); a.emit(ldrb_imm, 6, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 6, 1)
-    a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(movs_imm, 1, 1); a.emit(eors_reg, 1, 0); a.emit(mov_reg, 7, 1)
-    a.emit(mov_reg, 0, 6); a.emit(bl, "c_vset")
-    a.emit(cmp_imm, 7, 0); bc("vpt_s", "eq")
-    a.emit(bl, L["c_settings"]); a.emit(cmp_imm, 0, 0); bc("vpt_s", "eq")          # on: the patch flip of this track goes off
-    a.emit(movs_imm, 1, 2); a.emit(bl, PARAM_PTR); a.emit(ldr_imm, 1, 0, 0)
-    a.emit(movs_imm, 3, 1); a.emit(lsls_imm, 3, 3, 26); a.emit(lsls_reg, 3, 6); a.emit(bics_reg, 1, 3); a.emit(str_imm, 1, 0, 0)
-    a.emit(bl, L["c_settings"]); a.emit(bl, COMMIT)
-    a.label("vpt_s")
-    a.emit(movw, 0, SETOBJ & 0xFFFF); a.emit(movt, 0, SETOBJ >> 16); a.emit(bl, SAVE_FN)
-    a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, T_PAD_RET)
+    if not (TRIMPAD and CCED and DUALUI):
+        a.label("vp_tog")
+        a.emit(raw, pushw([6, 7], lr=True))
+        a.emit(mov_reg, 4, 0); a.emit(ldrb_imm, 6, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 6, 1)
+        a.emit(mov_reg, 0, 6); a.emit(bl, "c_von"); a.emit(movs_imm, 1, 1); a.emit(eors_reg, 1, 0); a.emit(mov_reg, 7, 1)
+        a.emit(mov_reg, 0, 6); a.emit(bl, "c_vset")
+        a.emit(cmp_imm, 7, 0); bc("vpt_s", "eq")
+        a.emit(bl, L["c_settings"]); a.emit(cmp_imm, 0, 0); bc("vpt_s", "eq")          # on: the patch flip of this track goes off
+        a.emit(movs_imm, 1, 2); a.emit(bl, PARAM_PTR); a.emit(ldr_imm, 1, 0, 0)
+        a.emit(movs_imm, 3, 1); a.emit(lsls_imm, 3, 3, 26); a.emit(lsls_reg, 3, 6); a.emit(bics_reg, 1, 3); a.emit(str_imm, 1, 0, 0)
+        a.emit(bl, L["c_settings"]); a.emit(bl, COMMIT)
+        a.label("vpt_s")
+        a.emit(movw, 0, SETOBJ & 0xFFFF); a.emit(movt, 0, SETOBJ >> 16); a.emit(bl, SAVE_FN)
+        a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, T_PAD_RET)
 
-    if PADS2:
+    if PADS2 and not (TRIMPAD and CCED and DUALUI):
         a.label("vp_view")                                                        # pad 28 (oscillator view, page B) / pad 29 (VCA / VCF view, page A): select it and switch the mode on; the lit one switches the mode off
         a.emit(raw, pushw([5, 6, 7], lr=True))
         a.emit(mov_reg, 4, 0); a.emit(ldrb_imm, 6, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 6, 1)
@@ -3632,7 +3697,7 @@ def arm_code(base, L):
         a.emit(bl, "c_eddiscard" if CCED2 else "c_edflush"); a.emit(mov_reg, 0, 4); a.emit(mov_reg, 1, 6); a.emit(bl, "c_edon")
         a.label("vcc_x")
         a.emit(raw, popw([6, 7], lr=True)); a.emit(b_w, T_PAD_RET)
-    if OSC:
+    if OSC and not (TRIMPAD and CCED and DUALUI):
         a.label("vp_osc")                                                         # pad 27: the oscillator source on / off (off -> on also switches the mode on)
         a.emit(raw, pushw([6, 7], lr=True))
         a.emit(mov_reg, 4, 0); a.emit(ldrb_imm, 6, 4, 0x10); a.emit(movs_imm, 1, 1); a.emit(ands_reg, 6, 1)
@@ -3711,21 +3776,23 @@ def arm_code(base, L):
             a.label("tr_gr")
             if SAMPLER:                                                           # granular -> the sample: only the oscillator source off
                 a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc"); a.emit(b, "tr_sv")
-            a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")
-            if FXSEQ:                                                             # granular -> the FX sequencer: oscillator off, VA-drum bit, the step-drummer enabled
-                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput")
-                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc")
-                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vset")
-                a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdnib"); a.emit(movs_imm, 1, 1); a.emit(orrs_reg, 1, 0); a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdsetnib")
-                a.emit(b, "tr_sv")
+            if not (TRIMPAD and SAMPLER):
+                a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")
+                if FXSEQ:                                                             # granular -> the FX sequencer: oscillator off, VA-drum bit, the step-drummer enabled
+                    a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput")
+                    a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc")
+                    a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vset")
+                    a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdnib"); a.emit(movs_imm, 1, 1); a.emit(orrs_reg, 1, 0); a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdsetnib")
+                    a.emit(b, "tr_sv")
         elif VADRUM:                                                              # oscillator -> VA-drum -> off
             a.emit(mov_reg, 0, 6); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "tr_vd", "ne")
             a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput"); a.emit(b, "tr_sv")
             a.label("tr_vd")
             a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")
             a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")             # (and its pad 31)
-        a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc")                                       # oscillator -> off
-        a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vset")
+        if not (TRIMPAD and GRAN and SAMPLER):
+            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc")                                       # oscillator -> off
+            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vset")
         a.label("tr_pg")
         a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetpage")                                      # the page starts at VCA / VCF
         a.label("tr_sv")

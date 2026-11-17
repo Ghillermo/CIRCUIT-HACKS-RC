@@ -62,6 +62,15 @@ RAM_LO, RAM_HI = 0x20000000, 0x20050000
 #   * a restart (the main loop's first tick after one): RCC_CSR kept (and its flags cleared, RMVF); a watchdog restart (IWDGRSTF / WWDGRSTF) with
 #     nothing frozen = the breadcrumbs of before frozen as they were.
 V2 = False
+MEMRD = False                                            # (S564D4, use_memrd) the read command with an address = any memory
+
+
+def use_memrd():
+    """S564D4 (a diagnostic, 2026-11-15: «a more extensive diagnostic», live reads while the device runs): command 01 with a non-zero address in
+    request bytes 8..12 (5 x 7 bits, high first) reads the 64 bytes at that address + 64 x the chunk number instead of the record (tools/bbread.py
+    --mem).  The CPU reads it: RAM and peripherals only (a fault otherwise)."""
+    global MEMRD
+    MEMRD = True
 ST_FAULT, ST_STALL, ST_WARM = 16, 32, 64
 STALL2_MS = 1500
 RCC_CSR, CSR_RMVF, CSR_WD = 0x40023874, 1 << 24, (1 << 29) | (1 << 30)
@@ -294,6 +303,12 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     E(bl, "c_bbst"); E(ldrb_imm, 1, 4, 6); E(movs_imm, 2, 0); E(cmp_imm, 1, SIZE // CHUNK); E(b_cond, "sx_r0", "hs"); E(movs_imm, 2, 1)
     a.label("sx_r0"); E(strb_imm, 2, 4, 7)
     E(lsls_imm, 1, 1, 6); E(adds_reg, 1, 1, 0)                                          # r1 = BB + 64 c
+    if MEMRD:                                                                            # (use_memrd) an address in bytes 8..12: that memory
+        E(ldrb_imm, 3, 4, 8)
+        for k in range(9, 13): E(lsls_imm, 3, 3, 7); E(ldrb_imm, 5, 4, k); E(orrs_reg, 3, 5)
+        E(cmp_imm, 3, 0); E(b_cond, "sx_ma", "eq")
+        E(ldrb_imm, 1, 4, 6); E(lsls_imm, 1, 1, 6); E(adds_reg, 1, 1, 3); E(movs_imm, 2, 1); E(strb_imm, 2, 4, 7)
+        a.label("sx_ma")
     E(mov_reg, 0, 4); E(adds_imm8, 0, 8); E(movs_imm, 3, 0)
     a.label("sx_rl")
     E(movs_imm, 5, 0); E(cmp_imm, 2, 0); E(b_cond, "sx_rz", "eq"); E(raw, h(0x5CCD))      # ldrb r5, [r1, r3]

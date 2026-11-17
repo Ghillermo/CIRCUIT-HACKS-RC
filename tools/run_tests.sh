@@ -1090,3 +1090,34 @@ run python3 tools/emu_gentab_dsp.py firmware/b5.31/circuittracks-4486-B5.31.bin 
 run python3 tools/emu_fm8.py firmware/b5.31/circuittracks-4486-B5.31.bin firmware/b5.31/manifest.json
 run python3 tools/emu_flipview.py firmware/b5.32/circuittracks-4486-B5.32.bin firmware/b5.32/manifest.json
 run python3 tools/emu_inst2.py firmware/b5.33/circuittracks-4486-B5.33.bin firmware/b5.33/manifest.json
+
+# SC57.9 / Beta 5.64 (2026-11-15): the FX sequencer's mute step (vs 5.63) and the 5.63 chain-crash fix
+run python3 tools/emu_fsqmute.py firmware/b5.64/circuittracks-4486-B5.64.bin firmware/b5.64/manifest.json firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_fsqmute_dsp.py stock/circuittracks-firmware-4486-STOCK.bin
+run python3 tools/emu_vtguard.py firmware/b5.64/circuittracks-4486-B5.64.bin firmware/b5.64/manifest.json
+run python3 tools/emu_vtguard.py firmware/r415/circuittracks-4486-R415.bin firmware/r415/manifest.json
+run python3 tools/emu_vtguard.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json --expect-fault
+# SC57.8 / Beta 5.63, RC4.14 / RC4.14S (2026-11-14): the bug hunt's fixes (tools/fixes563.py); emu_xlanes / emu_pgroups follow the device's save convention (they fail on 5.58-5.62 by design)
+run python3 tools/emu_xlfix.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_xlanes.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_scsave.py firmware/b5.63
+run python3 tools/emu_scnclear.py firmware/b5.63
+run python3 tools/emu_pgroups.py firmware/b5.63
+run python3 tools/emu_scnchain.py firmware/b5.63
+run python3 tools/emu_p4free.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_jumpfix.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_arptime.py --ext firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_arptime.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json firmware/b5.60/circuittracks-4486-B5.60.bin firmware/b5.60/manifest.json
+run python3 tools/emu_capkeep.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json firmware/b5.60/circuittracks-4486-B5.60.bin firmware/b5.60/manifest.json
+run python3 tools/emu_patrev.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_tabpack.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json firmware/b5.62/circuittracks-4486-B5.62.bin firmware/b5.62/manifest.json
+run python3 tools/emu_examples.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_fm8poly.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_fm8store.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_dx7imp.py firmware/b5.63/circuittracks-4486-B5.63.bin firmware/b5.63/manifest.json
+run python3 tools/emu_arptime.py --ext firmware/r414/circuittracks-4486-R414.bin firmware/r414/manifest.json
+run python3 tools/emu_arptime.py firmware/r414/circuittracks-4486-R414.bin firmware/r414/manifest.json firmware/r411/circuittracks-4486-R411.bin firmware/r411/manifest.json
+run python3 tools/emu_capkeep.py firmware/r414/circuittracks-4486-R414.bin firmware/r414/manifest.json firmware/r411/circuittracks-4486-R411.bin firmware/r411/manifest.json
+run python3 tools/emu_arptime.py --ext firmware/r414s/circuittracks-4486-R414S.bin firmware/r414s/manifest.json
+run python3 tools/emu_arptime.py firmware/r414s/circuittracks-4486-R414S.bin firmware/r414s/manifest.json firmware/r411s/circuittracks-4486-R411S.bin firmware/r411s/manifest.json
+run python3 tools/emu_capkeep.py firmware/r414s/circuittracks-4486-R414S.bin firmware/r414s/manifest.json firmware/r411s/circuittracks-4486-R411S.bin firmware/r411s/manifest.json

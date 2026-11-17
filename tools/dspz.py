@@ -235,12 +235,23 @@ def install(img, report):
     return labels
 
 
+GAP_OF = {}
+
+
+def use_move(name, gap):
+    """put a module added later with add() in another of the gaps (0 / 1).  (A first try, 2026-11-14, also made two «dead» stock functions
+    into gaps: they are not dead: the storage task passes 0x08022E09 as a callback with addw r1, pc, #imm (0x08022BB2 ...) and 0x0804D2CA
+    computes the stub 0x0804D549 the same way; fullwalk did not follow pc-relative address computations then.  Never reuse stock code.)"""
+    GAP_OF[name] = gap
+
+
 def add(img, report, name, mod, gap=0):
     """After install(): put an ARM module in the freed flash, in the first gap (19 853 B), as hole.add does for the old blocks.  mod.install(img,
     report, base) appends its code at the end as for build_sc41_5.add; that tail moves into the gap and the image is cut back.  The gap is above
     MOD_START (0x0805CDDC): rodisk's guard and lazysave see code here as the mod's."""
     import build_shared_channels as sc
     d = report["dspz"]
+    gap = GAP_OF.get(name, gap)                                                 # (use_move)
     lo, hi = d["gaps"][gap]
     nk = "next" if gap == 0 else f"next{gap}"                                    # (gap 1: the second gap, SC52.2's ovltop)
     at = (int(d.setdefault(nk, lo), 16) + 3) & ~3

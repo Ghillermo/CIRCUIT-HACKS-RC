@@ -17,12 +17,23 @@ BASE = 0x08010000
 
 
 def prev_tables(img, man):
-    """the tables as the previous build keeps them in its flash: {name: bytes}"""
+    """the tables as the previous build keeps them: {name: bytes}; in its flash (label to label), or, those it already keeps packed
+    (SC57.8: a label below the flash), from its own stream decoded here"""
     out = {}
     fl = man["report"]["fm8"]["labels"]
-    ts = sorted((int(v, 16), k[2:]) for k, v in fl.items() if k.startswith("t_"))
+    ts = sorted((int(v, 16), k[2:]) for k, v in fl.items() if k.startswith("t_") and int(v, 16) >= BASE)
     for i, (a, k) in enumerate(ts[:-1]):
         out[k] = bytes(img[a - BASE:ts[i + 1][0] - BASE])
+    i = bytes(img).find(TP.MAGIC)
+    if i >= 0:
+        got = {}
+        TP.decode(bytes(img[i + 8:]), lambda a, b_: got.__setitem__(a, bytes(b_)))
+        pk = sorted((int(v, 16), k[2:]) for k, v in fl.items() if k.startswith("t_") and int(v, 16) < BASE)
+        for j, (a, k) in enumerate(pk):
+            end = pk[j + 1][0] if j + 1 < len(pk) else None
+            for lo, b_ in got.items():
+                if lo <= a < lo + len(b_):
+                    out[k] = b_[a - lo:(end - lo) if end is not None and end <= lo + len(b_) else len(b_)]
     return out
 
 
@@ -36,7 +47,7 @@ def main(img, man, prev, pman):
     info = r["tabpack_info"]
     e = S.E(img)
     uc = e.uc
-    for lo, hi in (TP.RAM, TP.ITCM): uc.mem_write(lo, b"\xA5" * (hi - lo))
+    for lo, hi in (TP.RAM, TP.ITCM, TP.ITCM2): uc.mem_write(lo, b"\xA5" * (hi - lo))
     seen = []
     def dsp(uc_, a, s, d):
         seen.append(tuple(uc_.reg_read(x) for x in (UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3)))

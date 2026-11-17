@@ -13,7 +13,8 @@ NAME = "SC45.9"
 
 def extra(img, report):
     B.extra(img, report)
-    hole.add(img, report, "p4ovl", p4ovl)
+    import p4dest
+    if not p4dest.DUP: hole.add(img, report, "p4ovl", p4ovl)                       # (SC57.3, p4dest.use_dup: no Shift + knob overlay)
     hole.check(img, report)
 
 

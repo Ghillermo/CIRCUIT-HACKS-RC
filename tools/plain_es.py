@@ -8,7 +8,7 @@ BETA = "RC2"
 B = f"*(desde {BETA})*"
 
 UI = dict(lang="es", title="Guía del mod del Circuit Tracks, en palabras sencillas", cover="Una guía en palabras sencillas, ilustrada", toc="Índice",
-          other='<p class="lang"><a href="plain.html">English</a> · <a href="sencilla.pdf">PDF</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Lista de características</a></p>',
+          other='<p class="lang"><a href="plain.html">English</a> · <a href="sencilla.pdf">PDF</a> · <a href="guia.html">Guía por vistas</a> · <a href="index.html">Glosario de funciones</a></p>',
           footer="CIRCUIT-HACKS — mod del firmware del Novation Circuit Tracks (1.2.1, build 4486). Sin relación con Novation.",
           html="sencilla.html", md="docs/SENCILLA.md", pdf="sencilla.pdf")
 
@@ -160,8 +160,7 @@ Efectos en directo sobre toda la salida. **Mantén** un pad para oír su efecto;
 ### Song pointer (pads 9-24)
 - **Mantener un paso:** se repite mientras lo mantienes.
 - **Mantener dos pasos:** el patrón hace un bucle entre ellos mientras los mantienes.
-- **Shift + dos pasos:** ese bucle se queda (fijado); el pad 9 se pone blanco y tocarlo quita el bucle.
-- **Modo frase:** Shift + un paso = una frase desde ese paso hasta el 16; tocar otro paso mueve el final; Shift + otro paso mueve el inicio; Shift + el paso de inicio (o el pad 9 blanco) sale.
+- **Modo frase (un bucle que se queda):** Shift + un paso = una frase desde ese paso hasta el 16, y el pad 9 se pone blanco; tocar otro paso mueve el final, así que el bucle se queda entre los dos; Shift + otro paso mueve el inicio; Shift + el paso de inicio (o el pad 9 blanco) sale.
 - El paso que suena se ve blanco; el puntero empieza apagado al cargar un proyecto.
 
 ### La captura (pads 32 y 7)
