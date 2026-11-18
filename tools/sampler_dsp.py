@@ -73,6 +73,31 @@ def use_prefilter():
     FILT = True
 
 
+NOPLAYREC = False                                    # RC4.16 (use_noplayrec)
+OVERDUB = False                                      # Alpha 7.04 (use_overdub)
+LP = SMB + 0x1B                                      # (OVERDUB) the length the playback uses: LEN while not recording, the take's before it while recording
+OD_K = 0x59999A                                      # (OVERDUB) 0.7: the share of the playing sample printed into the new take
+
+
+def use_noplayrec():
+    """RC4.16 (the user, 2026-11-18: «Fix sample capture and playback» → «A for the RC»): a new recording stopped the playback only at its start;
+    while recording, pad 7 (or a latched loop, a Master FX slot, the FX sequencer) started it again on the take being written (its start / end
+    moving with the growing length).  Now the play commands (1, 2) are dropped while STATE bit 0 (recording); stop (3) still works."""
+    global NOPLAYREC
+    NOPLAYREC = True
+
+
+def use_overdub():
+    """Alpha 7.04 (the user, 2026-11-18: «Overdub in all cases (even if the sample is mangled)» → «1 with decay»): a recording no longer stops the
+    playback; while it records, the playback keeps the old take's length (LP) and plays as it is set (pitch, reverse, loop region, gate), and the take
+    gets the live mix + 0.7 x the sample as it sounded: after the play loop, each frame's capture word c (the mix before the sample, written by the
+    record loop) becomes c + K (m - c), m = the mix with the sample in.  One buffer: the playback may read what the recording has just written (a
+    loop goes round through its own echoes, each pass x 0.7).  Needs FILT (the capture before the master filter); pad 7 while recording plays the
+    old take (no NOPLAYREC)."""
+    global OVERDUB
+    OVERDUB = True
+
+
 SAMPLE_TAB = 0x1D8D
 TAIL = None                                          # SC36: a callable (a, e) emitting code at the end of smp_post, before M4 / M5 / R2 come back
 TAIL_TABLE = None                                    #   and (a) emitting its data after the code (granular_dsp.core0_tail / core0_table)
@@ -119,15 +144,18 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     e("rep #%d" % (0x18 if v34 else NSTATE), "move a,x:(r0)+")
     if CLIP: e("move a,x:>$%x" % CLIPW, "move a,x:>$%x" % IMPW)
     if CLIP2: e("move a,x:>$%x" % PCLIPW)
+    if OVERDUB: e("move a,x:>$%x" % LP)                                                       # (OVERDUB) beyond the cleared words
     e("move a,y:>$%x" % zero, "move x0,x:>$%x" % MAGIC_AT)
     L("sm_ok")
     e("move m4,x:>$%x" % SAVM4, "move #>$ffffff,m4")
     if v34: e("move m5,x:>$%x" % SAVM5, "move #>$ffffff,m5")
     # ---- 1. record
+    if OVERDUB: assert FILT and not NOPLAYREC; a.emit(T("move #0,r4"))                    # (OVERDUB) r4 = 0: nothing recorded in this block
     e("move x:>$%x,x1" % STATE, "move x:>$%x,y1" % PREV, "move x1,x:>$%x" % PREV)
     a.emit(JCLR(0, "x1"), "sm_nr")
     a.emit(JSET(0, "y1"), "sm_rc")
-    e("clr a", "move a,x:>$%x" % WP, "move a,x:>$%x" % LEN, "move a,x:>$%x" % PLAY)             # a new recording
+    e("clr a", "move a,x:>$%x" % WP, "move a,x:>$%x" % LEN)                                    # a new recording
+    if not OVERDUB: e("move a,x:>$%x" % PLAY)                                               #   stops the playback (OVERDUB: it goes on)
     L("sm_rc")
     e("move x:>$%x,a" % WP, "move #>$%x,x0" % base_y, "add x0,a", "move a1,r4")
     e("move x:>$%x,a" % WP, "move x:>$%x,x0" % FRAMES, "add x0,a", "move #>$%x,x0" % maxlen, "cmp x0,a"); a.emit(J("gt"), "sm_nr")   # full
@@ -149,6 +177,7 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     e("move #>3,x0", "cmp x0,a"); a.emit(J("ne"), "sm_go")
     e("move b,x:>$%x" % PLAY); a.emit(J("al"), "sm_nc")
     L("sm_go")
+    if NOPLAYREC: e("move x:>$%x,x1" % STATE); a.emit(JSET(0, "x1"), "sm_nc")                 # (NOPLAYREC) recording: no playback
     e("move x:>$%x,b" % LEN, "move #>2,x0", "cmp x0,b"); a.emit(J("lt"), "sm_nc")                 # nothing recorded
     e("move a1,x:>$%x" % PLAY)
     a.emit(D.jsr, "sm_se")
@@ -202,6 +231,15 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     L("sm_stop")
     e("clr a", "move a,x:>$%x" % PLAY)
     L("sm_x")
+    if OVERDUB:                                                                              # recorded in this block: c + K (m - c) on its frames
+        e("move r4,a", "tst a"); a.emit(J("eq"), "od_x")
+        e("move x:>$%x,n4" % FRAMES); a.emit(D.NOP); e("move (r4)-n4")
+        e("move #>$%x,r0" % PF_L, "move #>$%x,r1" % PF_R, "move #>$%x,y0" % OD_K); a.emit(D.NOP)
+        a.emit(D.do_x, FRAMES, "od_e")
+        e("move x:(r0)+,a", "move x:(r1)+,x0", "add x0,a", "asl #3,a,a")                  # m = (L + R) / 2 x 16, the sample in
+        e("move y:(r4),x0", "sub x0,a", "move a,y1", "mpy y1,y0,a", "add x0,a")            # c + K (m - c)
+        L("od_e"); e("move a,y:(r4)+")
+        L("od_x")
     if v34:                                                                                  # the copy of a replacement goes on: CHUNK words per block
         e("move x:>$%x,a" % CPLEN, "tst a"); a.emit(J("eq"), "sm_ncp")
         e("move #>%d,x0" % CHUNK, "move a1,x1", "cmp x0,a"); a.emit(J("le"), "sm_c1")
@@ -260,7 +298,13 @@ def code(base, base_y=None, maxlen=MAXLEN, zero=ZERO, v34=None, slot0=None, stab
     if TAIL_TABLE: TAIL_TABLE(a)
     # ---- sm_se: a = BASE + LEN * SF, b = BASE + LEN * EF (integer parts in a1 / b1); uses x0, y0
     L("sm_se")
-    e("move x:>$%x,x0" % LEN, "move x:>$%x,y0" % SF, "mpy y0,x0,a", "move #>$%x,y0" % base_y, "add y0,a")
+    if OVERDUB:                                                                              # recording: the old take's length; else LP follows LEN
+        e("move x:>$%x,x1" % STATE); a.emit(JSET(0, "x1"), "se_r")
+        e("move x:>$%x,x0" % LEN, "move x0,x:>$%x" % LP)
+        L("se_r"); e("move x:>$%x,x0" % LP)
+    else:
+        e("move x:>$%x,x0" % LEN)
+    e("move x:>$%x,y0" % SF, "mpy y0,x0,a", "move #>$%x,y0" % base_y, "add y0,a")
     e("move x:>$%x,y0" % EF, "mpy y0,x0,b", "move #>$%x,y0" % base_y, "add y0,b")
     a.emit(D.RTS)
     return a.assemble()

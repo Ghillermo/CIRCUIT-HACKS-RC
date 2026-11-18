@@ -142,6 +142,7 @@ VIEWS = {
 
 - The patch needs some noise level (CC 56) for the source to be heard. The source is saved with the project.
 - If Setup routes the reverb / delay returns through strips 3 / 4, that signal is what reaches the synth.
+- {YB} No external source: pads 25-29 are dark and do nothing; pads 30 and 32 stay.
 
 ### Pad 32: editor of the macro knob destinations {B}
 Every macro knob has 4 slots; every slot, a destination, a span of the travel (start and end) and a depth.

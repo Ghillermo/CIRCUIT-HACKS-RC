@@ -245,6 +245,16 @@ def use_move(name, gap):
     GAP_OF[name] = gap
 
 
+SPILL = False                                       # Alpha 7.03 (use_spill)
+
+
+def use_spill():
+    """Alpha 7.03 (the synths' line input dropped: the core-0 program, and so its packed block's gap, got shorter while the image's end gained the
+    same room): a module that does not fit its gap goes to the image's end instead (a trial install on a copy tells its size first)."""
+    global SPILL
+    SPILL = True
+
+
 def add(img, report, name, mod, gap=0):
     """After install(): put an ARM module in the freed flash, in the first gap (19 853 B), as hole.add does for the old blocks.  mod.install(img,
     report, base) appends its code at the end as for build_sc41_5.add; that tail moves into the gap and the image is cut back.  The gap is above
@@ -255,6 +265,20 @@ def add(img, report, name, mod, gap=0):
     lo, hi = d["gaps"][gap]
     nk = "next" if gap == 0 else f"next{gap}"                                    # (gap 1: the second gap, SC52.2's ovltop)
     at = (int(d.setdefault(nk, lo), 16) + 3) & ~3
+    if SPILL:                                                                   # (use_spill) a trial on a copy: does it fit?
+        import copy
+        t_img, t_rep = bytearray(img), copy.deepcopy(report)
+        t0 = len(t_img); mod.install(t_img, t_rep, at)
+        if at + len(t_img) - t0 > int(hi, 16):
+            end_at = (BASE + len(img) + 3) & ~3
+            img += bytes([0xFF]) * (end_at - BASE - len(img))
+            n0 = len(img)
+            labels, code, prev = mod.install(img, report, end_at)
+            assert bytes(img[n0:n0 + len(code)]) == bytes(code) and len(img) <= 0x70000, f"{name}: {len(img) - 0x70000} B over the flash (gap {gap}: {int(hi, 16) - at} B free)"
+            d.setdefault("spilled", {})[name] = [hex(end_at), hex(BASE + len(img))]
+            report[name] = dict(arm_start=hex(end_at), labels={k: hex(v) for k, v in labels.items()}, prev={k: hex(v) for k, v in prev.items()},
+                                listing=sc.disasm(bytes(code), end_at), dspz_gap=False)
+            return labels
     n0 = len(img)
     labels, code, prev = mod.install(img, report, at)
     blob = bytes(img[n0:])

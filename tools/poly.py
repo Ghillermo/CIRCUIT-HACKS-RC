@@ -61,6 +61,18 @@ O_VMAX, O_FMC, O_VPRV = 56, 57, 58    # (V3) a track block's bytes: the voices a
 INCS = [round((1 << 24) * 440 * 2 ** ((n - 69) / 12) / 48000) for n in range(128)]     # (V3) a note's increment (2^24 = a cycle a sample)
 
 
+QUARTER = False                                                                         # Alpha 7.05 (use_quarter)
+
+
+def use_quarter():
+    """Alpha 7.05 (the user, 2026-11-18: «do it all»; S704D on the device: with 6 FM voices fm8 took 27 % of the CPU and the stock's polled SPI
+    writes to the DSP 8.6 %, SPI2 already at its fastest divider): with 4 or more FM voices allowed on a track, each voice's operators and
+    envelopes are sent every fourth tick (4 ms) instead of every second; a new voice still at once (c_pyfm1's own rule).  Fix found with it: the
+    track's change flag (B_DIRTY, an algorithm / parameter change) was cleared after every tick while a voice reads it only on its own tick, so
+    the voices on the other phase missed the change (also with the 2 ms rate); now it is kept 2 ticks (4 with 4+ voices)."""
+    global QUARTER
+    QUARTER = True
+
 def use_v3():
     """SC47.4 (the user, 2026-10-26: «add polyphony to the remaing voices», «FM: 4 voces en total»; vcf21_dsp.use_poly3, fmeng.use_poly): FM in poly
     too.  4 FM voices in all: a track in FM poly has 4, or 2 when the other one is in FM poly too (the voices above the allowance off; an
@@ -765,10 +777,23 @@ def arm_code(base, L, prev, head_on, head_off):
         E(cmp_reg, 6, 8); bc("fv_d", "hs")
         E(bl, "c_pyslot"); E(mov_reg, 7, 0)                                             # r7 = the slot
         vptr(1, 6)                                                                      # r1 = the voice's RAM
-        E(mov_reg, 0, 11); E(adds_reg, 0, 0, 6); E(movs_imm, 3, 1); E(ands_reg, 3, 0)   # r3 = 1: not its tick
+        E(mov_reg, 0, 11); E(adds_reg, 0, 0, 6)
+        if QUARTER:                                                                     # (use_quarter) 4+ voices: every fourth tick
+            E(mov_reg, 3, 8); E(cmp_imm, 3, 4); E(movs_imm, 3, 1); E(b_cond, "fv_q", "lo"); E(movs_imm, 3, 3)
+            a.label("fv_q")
+        else:
+            E(movs_imm, 3, 1)
+        E(ands_reg, 3, 0)                                                               # r3 != 0: not its tick
         E(mov_reg, 0, 7); E(mov_reg, 2, 6); E(bl, "c_pyfm1")
         E(adds_imm8, 6, 1); E(b, "fv_l")
-        a.label("fv_d"); E(movs_imm, 0, 0); E(mov_reg, 1, 9); E(strb_w, 0, 1, FE.B_DIRTY)
+        if QUARTER:                                                                     # the track's change seen by every voice's tick: kept 2 / 4 ticks
+            a.label("fv_d"); E(mov_reg, 1, 9); E(ldrb_w, 0, 1, FE.B_DIRTY); E(cmp_imm, 0, 0); E(b_cond, "fv_dx", "eq")
+            E(adds_imm8, 0, 1); E(mov_reg, 3, 8); E(cmp_imm, 3, 4); E(movs_imm, 3, 3); E(b_cond, "fv_dl", "lo"); E(movs_imm, 3, 5)
+            a.label("fv_dl"); E(cmp_reg, 0, 3); E(b_cond, "fv_ds", "lo"); E(movs_imm, 0, 0)
+            a.label("fv_ds"); E(strb_w, 0, 1, FE.B_DIRTY)
+            a.label("fv_dx")
+        else:
+            a.label("fv_d"); E(movs_imm, 0, 0); E(mov_reg, 1, 9); E(strb_w, 0, 1, FE.B_DIRTY)
         a.label("fv_x"); E(raw, popw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(raw, RET)
 
         # ---- c_pyfm1(r0 = slot, r1 = the voice's RAM, r2 = voice, r3 = 1: not its tick, r4 = track, r9 = the track's FM block, r10 = now)

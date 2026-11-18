@@ -97,8 +97,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - *(desde RC2.02)* = nuevo en RC2.02 (no está en RC2.01).
 - *(desde RC4)* = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.11 y en la Alpha 7.01; en RC4.02 y antes no).
-- *(solo Beta 5.65)* = solo en la **Alpha 7.01** (no está en RC4.11).
+- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.16 y en la Alpha 7.04; en RC4.02 y antes no).
+- *(solo Beta 5.65)* = solo en la **Alpha 7.04** (no está en RC4.16).
 - **Las funciones están en el capítulo de la vista donde se usan** (antes, en la lista de características): cada capítulo empieza con el índice de sus funciones, sigue con la vista y termina con cada función en su apartado, con sus dibujos y sus animaciones. El **glosario**, al final, las lista todas con los grupos de la antigua lista (A-E).
 
 <a id="botones"></a>
@@ -621,6 +621,7 @@ Para tocar un módulo o un plugin de batería General MIDI con los drums del apa
 
 - El patch debe tener nivel de ruido (CC 56) para oír la fuente. La fuente se guarda con el proyecto.
 - Si en Setup los retornos de reverb / delay van por las tiras 3 / 4, esa señal es la que entra al sinte.
+- *(solo Beta 5.65)* Sin fuente externa: los pads 25-29 están apagados y no hacen nada; los pads 30 y 32 siguen.
 
 #### Pad 32: editor de los destinos de los macro knobs *(desde RC2)*
 Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido (inicio y fin) y una profundidad.
@@ -660,6 +661,7 @@ La vista del step-drummer es la misma que la de las pistas MIDI ([vista del step
 
 - El parche debe tener nivel de ruido (CC 56) para que la fuente se oiga.
 - Si en Setup el retorno de reverb / delay va a la tira 3 / 4, esa es la señal que recibe el sinte.
+- **Solo Beta 5.65:** sin fuente externa en Synth 1 / 2: los pads 25-29 están apagados y no hacen nada (el ruido del patch suena como siempre); el pad 30 (step-drummer) y el pad 32 (destinos de los macros) siguen.
 - La fuente se guarda con el proyecto.
 
 <a id="f-destinos-macro"></a>
@@ -2396,6 +2398,7 @@ Master FX es una vista de actuación con efectos sobre la salida master, un song
 - **Pulsación corta:** graba hasta la siguiente pulsación.
 - **Efectos de Master FX (desde RC0.5):** el sample que suena pasa por los efectos de Master FX; la captura graba la salida sin ellos (en RC0-RC0.4 era al revés: la captura llevaba los efectos y el sample sonaba sin ellos).
 - **Filtro master (desde RC2.01):** la captura y el sample que suena van antes del filtro master: el filtro actúa sobre el sample al sonar y la captura graba la mezcla sin el filtro (hasta RC2, al revés: la captura llevaba el filtro y el sample sonaba sin él).
+- **Grabar con el sample sonando (desde RC4.16):** mientras el pad 32 graba, nada arranca el sample (pad 7, bucle enganchado, un hueco de Master FX o el secuenciador de efectos); antes podía sonar la toma a medio escribir. **Solo Beta 5.65:** **overdub**: grabar ya no para el sample del pad 7, que sigue sonando como esté (pitch, reverso, zona de bucle, gate) con la longitud de la toma anterior; la toma nueva = lo que suena + el sample a 0,7. Un solo búfer: un bucle que suena encima de lo que se graba repite sus ecos, cada vuelta a 0,7.
 - **Shift + pad 32:** armado: con el transporte en marcha graba el compás siguiente; parado, empieza al pulsar **Play**, desde el primer pulso, y graba ese compás (desde RC0.4; antes empezaba un compás tarde).
 
 ##### Tocar (pad 7)

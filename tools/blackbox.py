@@ -75,6 +75,26 @@ def use_showall():
     SHOWALL = True
 
 
+MEMRDW = False                                           # (S703D, use_memrdw)
+SAMP = False                                             # (S703D, use_samp)
+SAMP_RAM = 0x2004F600                                    # = icache.SAMP: + 0 samples, + 4 ring index, + 8 16 x (TCB or 0x100 | exception, count), + 0x100 64 PCs
+
+
+def use_memrdw():
+    """S703D (diagnostic): with use_memrd, request byte 13 = n (1..16): n whole words read with ldr from the address (the rest of the 64 B zero)
+    instead of 64 byte reads: peripheral registers without touching their data registers (an SPI / SAI / UART data read pops a FIFO)."""
+    global MEMRDW
+    MEMRDW = True
+
+
+def use_samp():
+    """S703D (diagnostic): at every SysTick (1 ms) the running task (pxCurrentTCB; an interrupted handler = 0x100 | its exception number) counted in
+    16 slots and the interrupted PC put in a ring of 64, at SAMP_RAM (zeroed at power-up by icache.use_dwt): the share of each task and the hot
+    code.  Sampled on the tick: a task that runs and blocks between two ticks is under-counted."""
+    global SAMP
+    SAMP = True
+
+
 def use_memrd():
     """S564D4 (a diagnostic, 2026-11-15: «a more extensive diagnostic», live reads while the device runs): command 01 with a non-zero address in
     request bytes 8..12 (5 x 7 bits, high first) reads the 64 bytes at that address + 64 x the chunk number instead of the record (tools/bbread.py
@@ -323,6 +343,14 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
         for k in range(9, 13): E(lsls_imm, 3, 3, 7); E(ldrb_imm, 5, 4, k); E(orrs_reg, 3, 5)
         E(cmp_imm, 3, 0); E(b_cond, "sx_ma", "eq")
         E(ldrb_imm, 1, 4, 6); E(lsls_imm, 1, 1, 6); E(adds_reg, 1, 1, 3); E(movs_imm, 2, 1); E(strb_imm, 2, 4, 7)
+        if MEMRDW:                                                                       # (use_memrdw) byte 13 = n words: ldr, into the buffer's 2nd half
+            E(ldrb_imm, 5, 4, 13); E(cmp_imm, 5, 0); E(b_cond, "sx_ma", "eq"); E(lsls_imm, 5, 5, 2)
+            E(mov_reg, 0, 4); E(adds_imm8, 0, 72); E(movs_imm, 3, 0)
+            a.label("sw_l"); E(cmp_imm, 3, 64); E(b_cond, "sw_d", "hs"); E(cmp_reg, 3, 5); E(b_cond, "sw_z", "hs")
+            E(raw, h(0x58CA)); E(b, "sw_s")                                              # ldr r2, [r1, r3]
+            a.label("sw_z"); E(movs_imm, 2, 0)
+            a.label("sw_s"); E(raw, h(0x50C2)); E(adds_imm8, 3, 4); E(b, "sw_l")         # str r2, [r0, r3]
+            a.label("sw_d"); E(mov_reg, 1, 0); E(movs_imm, 2, 1)
         a.label("sx_ma")
     E(mov_reg, 0, 4); E(adds_imm8, 0, 8); E(movs_imm, 3, 0)
     a.label("sx_rl")
@@ -413,6 +441,19 @@ def v2_code(a, E, bc, imm32, now, prev):
     # ---- c_bbsysc(r1 = EXC_RETURN, r2 = the frame): the main loop's heartbeat (O.NOW, written by c_bbtick every ms)
     a.label("c_bbsysc")
     E(raw, h(0xB500)); E(mov_reg, 6, 2)
+    if SAMP:                                                                              # (use_samp) the running task / handler and the PC
+        imm32(3, CUR_TCB); E(ldr_imm, 0, 3, 0)
+        E(lsls_imm, 5, 1, 28); E(b_cond, "sm_t", "mi")                                    # EXC_RETURN bit 3: thread mode
+        E(ldr_imm, 0, 6, 28); E(lsls_imm, 0, 0, 23); E(lsrs_imm, 0, 0, 23); E(adds_imm8, 0, 0xFF); E(adds_imm8, 0, 1)   # 0x100 | IPSR
+        a.label("sm_t"); imm32(3, SAMP_RAM)
+        E(ldr_imm, 5, 3, 0); E(adds_imm8, 5, 1); E(str_imm, 5, 3, 0); E(movs_imm, 7, 8)
+        a.label("sm_l"); E(raw, h(0x59DD)); E(cmp_reg, 5, 0); E(b_cond, "sm_h", "eq"); E(cmp_imm, 5, 0); E(b_cond, "sm_n", "eq")   # ldr r5, [r3, r7]
+        E(adds_imm8, 7, 8); E(cmp_imm, 7, 0x88); E(b_cond, "sm_l", "lo"); E(b, "sm_p")
+        a.label("sm_n"); E(raw, h(0x51D8))                                                # str r0, [r3, r7]
+        a.label("sm_h"); E(adds_imm8, 7, 4); E(raw, h(0x59DD)); E(adds_imm8, 5, 1); E(raw, h(0x51DD))   # the count + 1
+        a.label("sm_p"); E(ldr_imm, 5, 6, 24); E(ldr_imm, 7, 3, 4); E(movs_imm, 0, 63); E(ands_reg, 0, 7); E(lsls_imm, 0, 0, 2)
+        E(adds_reg, 0, 0, 3); E(movs_imm, 1, 1); E(lsls_imm, 1, 1, 8); E(adds_reg, 0, 0, 1); E(str_imm, 5, 0, 0)
+        E(adds_imm8, 7, 1); E(str_imm, 7, 3, 4)
     imm32(4, BB); E(ldr_imm, 0, 4, 0); imm32(1, SIG); E(cmp_reg, 0, 1); E(b_cond, "sy_x", "ne")
     now(5); E(ldrb_imm, 7, 4, O.ST); E(lsls_imm, 0, 7, 31); E(b_cond, "sy_f", "mi")
     E(ldr_imm, 0, 4, O.NOW); E(cmp_imm, 0, 0); E(b_cond, "sy_x", "eq"); E(cmp_reg, 0, 5); E(b_cond, "sy_x", "hi")   # a heartbeat of this boot

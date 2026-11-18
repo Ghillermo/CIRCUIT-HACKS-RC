@@ -44,7 +44,7 @@ import struct
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from thumb import ldrh_reg  # noqa: E402
+from thumb import ldrh_reg, ldrh_imm  # noqa: E402
 from thumb import (Asm, add_sp_imm, adds_imm3, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bics_reg, bl, cmp_imm, cmp_reg, eors_reg, ldr_imm,  # noqa: E402
                    ldr_sp, ldrb_imm, ldrb_reg, ldrb_w, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, muls, nop, orrs_reg,
                    pop_list, push_list, raw, h, str_imm, str_sp, strb_imm, strb_reg, strh_reg, sub_sp_imm, subs_imm3, subs_imm8, subs_reg, tst_reg)
@@ -91,6 +91,26 @@ G_PEND, G_DUP, G_ACC = S_RET, S_RET + 1, S_RET + 2            # the running part
 COL_PEND, COL_BLUE = 0x01, 0x09
 PV_KNOB = PV_VT + 16                                          # the Patterns view's slot 4 (knobs): a stub in the stock
 TRIMCC = False                                                # SC57.5 (use_trimcc)
+
+
+LRRAM = False                                                 # Alpha 7.04 / RC4.16 (use_lrram)
+PCL = 0x2004F5A0                                              # (LRRAM) + 0 the LR, + 4 the frame (free: S514D 0x2004F4B0-0x2004F7FF, after fmmap's 0x2004F598)
+CCMAP = False                                                 # Alpha 7.04 (use_ccmap)
+
+
+def use_lrram():
+    """Alpha 7.04 / RC4.16 (the 2026-11-15 review): c_pcledtask pushed 36 B before calling the rest of the LED task's chain (the SC56.7 rule:
+    nothing of ours on that stack while the chain below runs: issue #22 was 16 B over); now the LR and the frame go to RAM (PCL), the registers
+    are pushed after the call."""
+    global LRRAM
+    LRRAM = True
+
+
+def use_ccmap():
+    """Alpha 7.04 (the 2026-11-15 review): c_pcchained (GROUPS) read a scene's chain mask in scrules' ITCM block without its bit in the map
+    (H_MAP, + 4): a mask left from an earlier project could show a scene as chained; now the map bit must be set too."""
+    global CCMAP
+    CCMAP = True
 
 
 def use_v2():
@@ -713,8 +733,14 @@ def arm_code(base, L, prev):
     if V2:
         # ---- c_pcledtask (the LED task calls: ctrl, frame): the chain; the chain edit on the screen: the rules over the stock's picture
         a.label("c_pcledtask")
-        E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
-        E(mov_reg, 5, 1); E(bl, prev["ledtask"])
+        if LRRAM:                                                                          # (use_lrram) the chain first, nothing on the stack
+            imm32(2, PCL); E(raw, h(0xF8C2) + h(0xE000)); E(str_imm, 1, 2, 4)              # str.w lr, [r2]; the frame
+            E(bl, prev["ledtask"])
+            imm32(2, PCL); E(raw, h(0xF8D2) + h(0xE000))                                    # ldr.w lr, [r2]
+            E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True)); E(ldr_imm, 5, 2, 4)
+        else:
+            E(raw, pushw([4, 5, 6, 7, 8, 9, 10, 11], lr=True))
+            E(mov_reg, 5, 1); E(bl, prev["ledtask"])
         E(bl, "c_pcst"); E(cmp_imm, 0, 0); bc("lt_x", "eq"); E(mov_reg, 6, 0); E(adds_imm8, 6, SCR)
         if V3:                                                                             # stopped, another scene: the mode it was saved in
             imm32(0, ENG + 0x2C); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 4, 0, 0); E(adds_imm8, 4, 1)
@@ -837,7 +863,10 @@ def arm_code(base, L, prev):
         if GROUPS:
             E(push_list, [4, 5], lr=True); E(mov_reg, 5, 1); E(bl, "c_pcsflag"); E(mov_reg, 4, 0)
             imm32(2, G_RB); E(ldr_imm, 1, 2, 0); imm32(3, G_SIG); E(movs_imm, 0, 0); E(cmp_reg, 1, 3); E(b_cond, "gc_x", "ne")
-            E(cmp_imm, 5, 16); E(b_cond, "gc_x", "hs"); E(adds_imm8, 2, G_SCM); E(ldrb_reg, 0, 2, 5); E(ands_reg, 0, 4)
+            E(cmp_imm, 5, 16); E(b_cond, "gc_x", "hs")
+            if CCMAP:                                                                       # (use_ccmap) the scene's bit in scrules' map (+ 4)
+                E(ldrh_imm, 1, 2, 4); E(lsrs_reg, 1, 5); E(lsls_imm, 1, 1, 31); E(b_cond, "gc_x", "eq")
+            E(adds_imm8, 2, G_SCM); E(ldrb_reg, 0, 2, 5); E(ands_reg, 0, 4)
             a.label("gc_x"); E(pop_list, [4, 5], pc=True)
         if not (TRIMCC and GROUPS):                                                         # (TRIMCC) the old body: reached from nowhere with GROUPS
             E(push_list, [3, 4, 5, 6, 7], lr=True)

@@ -66,6 +66,17 @@ def use_tgchk():
     TGCHK = True
 
 
+SIG2 = False                                                                        # Alpha 7.04 (use_sig2)
+
+
+def use_sig2():
+    """Alpha 7.04 (the pending fixes of the 2026-11-15 review: «one-byte signatures»): our bytes in the record count only with the signature 0xA7
+    AND both targets + 1 in 0..8 AND tail + 363 = 0 (zero in every clean session; the format is the same, old projects still load); setting a
+    target writes 363 = 0 too.  A garbage tail that matched 0xA7 by chance (1 in 256) no longer turns MIDI 1 / 2 into pointing tracks."""
+    global SIG2
+    SIG2 = True
+
+
 CAVE = 0x0805CE36                                                                   # SC03's c_txf (16 B): nothing calls it since SC06's c_txf2
 MGR, S_CUR = 0x20040B10, 0x152
 PAD = MS.PAD
@@ -116,7 +127,13 @@ def arm_code(base, L, prev):
 
     # ---- c_jsad() -> r1 = our bytes in the record, flags eq = they hold our signature; clobbers r2, r3
     a.label("c_jsad")
-    imm32(1, SESSION_OBJ); E(ldr_imm, 1, 1, 0x14); imm32(2, TAIL + O_JS); E(adds_reg, 1, 1, 2); E(ldrb_imm, 2, 1, 2); E(cmp_imm, 2, SIG); E(raw, RET)
+    imm32(1, SESSION_OBJ); E(ldr_imm, 1, 1, 0x14); imm32(2, TAIL + O_JS); E(adds_reg, 1, 1, 2); E(ldrb_imm, 2, 1, 2); E(cmp_imm, 2, SIG)
+    if SIG2:                                                                          # (use_sig2) the targets 0..8, byte 363 = 0 (ne leaves Z clear)
+        E(b_cond, "ad_x", "ne")
+        E(ldrb_imm, 2, 1, 0); E(cmp_imm, 2, 8); E(b_cond, "ad_x", "hi"); E(ldrb_imm, 2, 1, 1); E(cmp_imm, 2, 8); E(b_cond, "ad_x", "hi")
+        E(subs_imm3, 2, 1, 1); E(ldrb_imm, 2, 2, 0); E(cmp_imm, 2, 0)
+        a.label("ad_x")
+    E(raw, RET)
 
     # ---- c_jsnon (the transmitter's note-on: tx, track, note, velocity): a pointing track's note = the jump, no note
     a.label("c_jsnon")
@@ -224,7 +241,9 @@ def arm_code(base, L, prev):
     E(subs_imm8, 5, ROW); E(adds_imm3, 0, 4, 2); E(cmp_reg, 0, 5); E(b_cond, "jp_x", "eq")   # its own track
     E(adds_imm8, 5, 1); E(mov_reg, 0, 4); E(bl, CAVE); E(cmp_reg, 0, 5); E(b_cond, "jp_w", "ne"); E(movs_imm, 5, 0)
     a.label("jp_w")
-    E(bl, "c_jsad"); E(b_cond, "jp_k", "eq"); E(movs_imm, 0, 0); E(strh_imm, 0, 1, 0); E(movs_imm, 0, SIG); E(strb_imm, 0, 1, 2)
+    E(bl, "c_jsad"); E(b_cond, "jp_k", "eq"); E(movs_imm, 0, 0); E(strh_imm, 0, 1, 0)
+    if SIG2: E(subs_imm3, 3, 1, 1); E(strb_imm, 0, 3, 0)                              # (use_sig2) 363 = 0
+    E(movs_imm, 0, SIG); E(strb_imm, 0, 1, 2)
     a.label("jp_k"); E(strb_reg, 5, 1, 4)
     if V2:
         E(cmp_imm, 5, 0); E(b_cond, "jp_x", "eq"); E(movs_imm, 1, 16); E(raw, h(0x9101))   # str r1, [sp, #4]: the engine off, the row's pad 17

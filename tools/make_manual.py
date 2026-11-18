@@ -283,6 +283,7 @@ sec("fuente-sinte", "A", "Vista de la fuente del sinte",
 
 - El parche debe tener nivel de ruido (CC 56) para que la fuente se oiga.
 - Si en Setup el retorno de reverb / delay va a la tira 3 / 4, esa es la señal que recibe el sinte.
+- **Solo Beta 5.65:** sin fuente externa en Synth 1 / 2: los pads 25-29 están apagados y no hacen nada (el ruido del patch suena como siempre); el pad 30 (step-drummer) y el pad 32 (destinos de los macros) siguen.
 - La fuente se guarda con el proyecto.
 """, [fig("Vista de la fuente del sinte (Synth 1 / 2 pulsado dos veces).", pads={25: ("magenta", "Ruido"), 26: ("magenta", "In 1", True), 27: ("magenta", "In 2", True), 28: ("magenta", "In 1\ninv", True),
                                                                                   29: ("magenta", "In 2\ninv", True), 30: ("purple", "Step\ndrum", True)}, buttons={"Synth 1": "white"}, view="Fuente del sinte")])
@@ -851,6 +852,7 @@ sec("sample", "C", "Sample capturado",
 - **Pulsación corta:** graba hasta la siguiente pulsación.
 - **Efectos de Master FX (desde RC0.5):** el sample que suena pasa por los efectos de Master FX; la captura graba la salida sin ellos (en RC0-RC0.4 era al revés: la captura llevaba los efectos y el sample sonaba sin ellos).
 - **Filtro master (desde RC2.01):** la captura y el sample que suena van antes del filtro master: el filtro actúa sobre el sample al sonar y la captura graba la mezcla sin el filtro (hasta RC2, al revés: la captura llevaba el filtro y el sample sonaba sin él).
+- **Grabar con el sample sonando (desde RC4.16):** mientras el pad 32 graba, nada arranca el sample (pad 7, bucle enganchado, un hueco de Master FX o el secuenciador de efectos); antes podía sonar la toma a medio escribir. **Solo Beta 5.65:** **overdub**: grabar ya no para el sample del pad 7, que sigue sonando como esté (pitch, reverso, zona de bucle, gate) con la longitud de la toma anterior; la toma nueva = lo que suena + el sample a 0,7. Un solo búfer: un bucle que suena encima de lo que se graba repite sus ecos, cada vuelta a 0,7.
 - **Shift + pad 32:** armado: con el transporte en marcha graba el compás siguiente; parado, empieza al pulsar **Play**, desde el primer pulso, y graba ese compás (desde RC0.4; antes empezaba un compás tarde).
 
 ### Tocar (pad 7)

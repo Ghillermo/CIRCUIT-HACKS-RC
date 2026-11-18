@@ -93,8 +93,9 @@ def main(img, man):
               f"its envelopes down: freed after {n} ms; 64 still sounding")
         # a DX7 algorithm: N 6 in the sounding voice's slot
         e.uc.mem_write(blk + F.GLB + F.G_ALG, bytes([16 + 4])); e.uc.mem_write(blk + A.B_DIRTY, b"\x01")
-        tick(4)
-        check(dsp.get(FV(b) + VD.F8_N) == 6, f"DX7 algorithm 5: N 6 in 64's slot ({dsp.get(FV(b) + VD.F8_N)})")
+        nt = 0                                                     # (poly.use_quarter: a voice is sent every fourth tick with 4+ voices)
+        while dsp.get(FV(b) + VD.F8_N) != 6 and nt < 12: tick(1); nt += 1
+        check(dsp.get(FV(b) + VD.F8_N) == 6, f"DX7 algorithm 5: N 6 in 64's slot ({dsp.get(FV(b) + VD.F8_N)}, after {nt} ticks)")
         off(64); tick(200)
         # six voices of a 6-operator DX7 algorithm: the DSP writes a tick (SPI: each one waits for the DSP)
         for k in range(6): e.uc.mem_write(blk + F.OPB * k + F.O_R, bytes((80, 40, 30, 50))); e.uc.mem_write(blk + F.OPB * k + F.O_L, bytes((99, 80, 60, 0)))

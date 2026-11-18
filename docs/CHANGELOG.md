@@ -7,6 +7,13 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.04 — 2026-11-18
+
+**Alpha 7.04** (marca `A7.04`) = la Alpha 7.01 + las Alphas 7.02 / 7.03 (sin publicar) + esto. Probada en el aparato como el diagnóstico S704D (overdub, Clear + escena). Sustituye a la Alpha 7.01 en el instalador.
+
+- **Overdub del sample capturado:** grabar con el pad 32 ya no para el sample del pad 7: sigue sonando como esté (pitch, reverso, zona de bucle, gate) y la toma nueva lleva lo que suena + el sample a 0,7. Un bucle que suena sobre lo que se graba repite sus ecos, cada vuelta a 0,7. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx)
+- **Sin fuente externa en Synth 1 / 2:** los pads 25-29 de la vista de la fuente (ruido, entradas, entradas invertidas) desaparecen con su código, para dejar sitio; el ruido del patch suena como siempre. Los pads 30 (step-drummer) y 32 (destinos de los macros) siguen. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+
 ### Alpha 7.01 — 2026-11-17
 
 **Alpha 7.01** (marca `A7.01`) = la Alpha 7 + este aviso, sin probar en el aparato. Sustituye a la Alpha 7 en el instalador (que pasa al instalador antiguo).
@@ -720,6 +727,24 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Alpha 7.04 — 2026-11-18
+
+**Alpha 7.04** (marca `A7.04`) = la Alpha 7.01 + estos arreglos (y los de las Alphas 7.02 / 7.03, sin publicar).
+
+- **El tempo se arrastraba con 6 voces del FM de 8 operadores:** el firmware original corre con la caché de instrucciones del procesador apagada; ahora se enciende al arrancar (probado en el aparato: el arrastre desaparece). → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+- **Los datos de cada patrón siguen al patrón que suena, también con cadenas y pattern mutate:** la frecuencia de los drums («1 de N») cuenta las pasadas de cada patrón (antes volvía a 0 en cada cambio); los carriles extra de MIDI 1 / 2 de un patrón que empieza suenan un micropaso tarde y no medio paso. → [Guía: Vista de probabilidad](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#probabilidad)
+- **Grabar con el sample sonando:** podía sonar la toma a medio escribir (ahora: overdub, arriba). → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx)
+- **Clear + pad de escena** borra también el modo de cadena y las repeticiones de esa escena y sus listas de pattern mutate. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- Cadenas de patrones: nada propio en la pila de la tarea de LEDs mientras corre la cadena (la regla del arreglo de la issue #22); una escena se ve encadenada solo si su cadena está guardada; el secuenciador de saltos comprueba más su firma (basura en proyectos viejos). → [Guía: Vista Patterns y cadenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#patterns)
+
+### RC4.16 / RC4.16S — 2026-11-18
+
+**RC4.16 / RC4.16S** (marcas `R416` / `R416S`) = RC4.15 / RC4.15S + estos arreglos; reúne las RC4.12-4.15, sin publicar (abajo). Sin probar en el aparato (el mismo código, en el diagnóstico S704D: bien).
+
+- **Grabar la captura con el sample sonando:** mientras el pad 32 graba, nada arranca el sample (pad 7, bucle enganchado, un hueco de Master FX, el secuenciador de efectos); antes podía sonar la toma a medio escribir. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#master-fx)
+- **Clear + pad de escena** borra también el modo de cadena y las repeticiones de esa escena. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#mixer)
+- Cadenas de patrones: nada propio en la pila de la tarea de LEDs mientras corre la cadena. → [Guía: Vista Patterns y cadenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#patterns)
+
 ### Alpha 7 — 2026-11-17
 
 **Alpha 7** (marca `ALPHA7`) = la Beta 5.65 = la Beta 5.64 + este arreglo (y los de las Betas 5.57-5.64, abajo), sin probar en el aparato.
@@ -733,7 +758,7 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 - **Reinicio al crear una cadena de grupos para una escena nueva** (la Beta 5.63; caja negra del 2026-11-15): con el transporte parado, la confirmación de un almacén de Drum 4 llamaba como «oyente» a la ranura 7 de la vista Note de drums (nuestro código de los rollers y de los cuadros duplicados) con un objeto que no era esa vista: una palabra de la barra de velocity de Drum 4 había cambiado un byte. Esa ranura ya no toca nada si el objeto no es la vista Note de drums (en el firmware original esa ranura era inofensiva con cualquier objeto). Quién cambia ese byte sigue sin encontrarse: el diagnóstico **S579D** congela la caja negra en el momento del cambio para verlo con la app. *(También en RC4.15.)* → [Guía: Vista Preset de drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#drum-preset)
 - **Secuenciador de saltos:** un proyecto con basura en la cola del registro (y la firma por casualidad) podía escribir un byte fuera de su sitio al apuntar a otra pista; ahora el destino se comprueba (1-8). → [Guía: Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
 
-### RC4.15 / RC4.15S — sin publicar
+### RC4.15 / RC4.15S — 2026-11-18 (publicada dentro de RC4.16)
 
 **RC4.15 / RC4.15S** (marcas `R415` / `R415S`) = RC4.14 / RC4.14S + el arreglo de la ranura 7 de la vista Note de drums (arriba, en la Beta 5.64) y el código inalcanzable de SC49 / SC49.3 que las RC no habían recibido (unos 2 KB de flash; nada cambia en el uso). → [Guía: Vista Preset de drums](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#drum-preset)
 
@@ -751,7 +776,7 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 - **Captura fijada tras un reinicio que conserva la memoria** (instalar una versión, la caja negra): grababa en silencio. → [Guía: Vista Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx) *(También en RC4.14.)*
 - Los arreglos de las Betas 5.61 / 5.62, sin publicar: **el arpegio a tiempo entre dos micropasos** (x4 sobre la base sonaba a tresillos), **la captura fijada / armada sigue al cargar un proyecto** y **Play ya no cuelga el aparato con el arpegiador** (el fallo de la 5.61). → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#pattern-settings)
 
-### RC4.14 / RC4.14S — sin publicar
+### RC4.14 / RC4.14S — 2026-11-18 (publicada dentro de RC4.16)
 
 **RC4.14 / RC4.14S** (marcas `R414` / `R414S`) = RC4.13 / RC4.13S + los dos arreglos marcados «también en RC4.14» en la Beta 5.63 (el arpegiador con un reloj externo → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#pattern-settings); la captura tras un reinicio → [Guía: Vista Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#master-fx)), y los de RC4.12 / RC4.13, sin publicar: el arpegio a tiempo entre dos micropasos, la captura que sigue al cargar un proyecto y el cuelgue de RC4.12 al dar Play con el arpegiador. → [Guía: Vista Pattern Settings](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#pattern-settings)
 
@@ -1112,6 +1137,13 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.04 — 2026-11-18
+
+**Alpha 7.04** (marker `A7.04`) = Alpha 7.01 + Alphas 7.02 / 7.03 (unreleased) + this. Tested on the device as the S704D diagnostic (overdub, Clear + scene). It replaces Alpha 7.01 in the installer.
+
+- **Overdub on the captured sample:** recording on pad 32 no longer stops the sample on pad 7: it keeps playing as it is set (pitch, reverse, loop region, gate) and the new take holds what sounds + the sample at 0.7. A loop playing over what is being recorded repeats its echoes, each pass at 0.7. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
+- **No external source on Synth 1 / 2:** pads 25-29 of the source view (noise, inputs, inverted inputs) are gone with their code, to make room; the patch's noise sounds as always. Pads 30 (step-drummer) and 32 (macro destinations) stay. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
 
 ### Alpha 7.01 — 2026-11-17
 
@@ -1826,6 +1858,24 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 <a id="fixes"></a>
 ## Fixes
 
+### Alpha 7.04 — 2026-11-18
+
+**Alpha 7.04** (marker `A7.04`) = Alpha 7.01 + these fixes (and those of Alphas 7.02 / 7.03, unreleased).
+
+- **Tempo dragging with 6 voices of the 8-operator FM:** the stock firmware runs with the processor's instruction cache off; it is now switched on at power-up (tested on the device: the drag is gone). → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
+- **Each pattern's data follows the pattern that plays, also with chains and pattern mutate:** the drums' frequency («1 in N») counts each pattern's passes (it went back to 0 at every change); MIDI 1 / 2's extra lanes of a pattern that starts play one micro step late instead of half a step. → [Guide: Probability view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#probabilidad)
+- **Recording while the sample plays:** the half-written take could play (now: overdub, above). → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
+- **Clear + scene pad** also clears that scene's chain mode and repeats and its pattern-mutate lists. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- Pattern chains: nothing of ours on the LED task's stack while the chain runs (the rule of the issue #22 fix); a scene shows as chained only when its chain is saved; the jump sequencer checks its signature more (garbage in old projects). → [Guide: Patterns view and chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#patterns)
+
+### RC4.16 / RC4.16S — 2026-11-18
+
+**RC4.16 / RC4.16S** (markers `R416` / `R416S`) = RC4.15 / RC4.15S + these fixes; it gathers RC4.12-4.15, unreleased (below). Untested on the device (the same code, in the S704D diagnostic: fine).
+
+- **Recording the capture while the sample plays:** while pad 32 records, nothing starts the sample (pad 7, a latched loop, a Master FX slot, the FX sequencer); the half-written take could play before. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#master-fx)
+- **Clear + scene pad** also clears that scene's chain mode and repeats. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#mixer)
+- Pattern chains: nothing of ours on the LED task's stack while the chain runs. → [Guide: Patterns view and chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#patterns)
+
 ### Alpha 7 — 2026-11-17
 
 **Alpha 7** (marker `ALPHA7`) = Beta 5.65 = Beta 5.64 + this fix (and those of Betas 5.57-5.64, below), untested on the device.
@@ -1839,7 +1889,7 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 - **Reset when making a pattern-group chain for a new scene** (Beta 5.63; the black box record of 2026-11-15): with the transport stopped, a store commit of Drum 4 called slot 7 of the drum Note view (our rollers / mirrored squares code) as a «listener», with an object that was not that view: a word of Drum 4's velocity bar had lost one byte. That slot now does nothing when the object is not the drum Note view (in the stock firmware the slot was harmless with any object). Who changes that byte is still unknown: the **S579D** diagnostic freezes the black box the moment it changes, to read it with the app. *(Also in RC4.15.)* → [Guide: Drum Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#drum-preset)
 - **Jump sequencer:** a project with garbage in the record's tail (and the signature by chance) could write a byte out of place when pointing at another track; the target is checked now (1-8). → [Guide: MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
-### RC4.15 / RC4.15S — unreleased
+### RC4.15 / RC4.15S — 2026-11-18 (released within RC4.16)
 
 **RC4.15 / RC4.15S** (markers `R415` / `R415S`) = RC4.14 / RC4.14S + the drum Note view slot-7 fix (above, under Beta 5.64) and the SC49 / SC49.3 unreachable-code trims the RCs never had (about 2 KB of flash; nothing changes in use). → [Guide: Drum Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#drum-preset)
 
@@ -1857,7 +1907,7 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 - **A latched capture after a restart that keeps the memory** (installing a version, the black box): it recorded in silence. → [Guide: Master FX view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx) *(Also in RC4.14.)*
 - The fixes of Betas 5.61 / 5.62, unreleased: **the arpeggio on time between two micro steps** (x4 over the base sounded like triplets), **a latched / armed capture goes on through a project load** and **Play no longer hangs the device with the arpeggiator** (5.61's bug). → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#pattern-settings)
 
-### RC4.14 / RC4.14S — unreleased
+### RC4.14 / RC4.14S — 2026-11-18 (released within RC4.16)
 
 **RC4.14 / RC4.14S** (markers `R414` / `R414S`) = RC4.13 / RC4.13S + the two fixes marked «also in RC4.14» under Beta 5.63 (the arpeggiator with an external clock → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#pattern-settings); the capture after a restart → [Guide: Master FX view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#master-fx)), and those of RC4.12 / RC4.13, unreleased: the arpeggio on time between two micro steps, the capture that goes on through a project load and RC4.12's hang on Play with the arpeggiator. → [Guide: Pattern Settings view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#pattern-settings)
 

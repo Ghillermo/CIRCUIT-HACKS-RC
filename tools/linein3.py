@@ -44,10 +44,23 @@ RET_OLD = 0x9F
 T, J = G.T, G.J
 
 
+NOSRC = False                         # Alpha 7.03 (use_nosrc)
+
+
+def use_nosrc():
+    """Alpha 7.03 (the user, 2026-11-18: «erase 25,26,27,28 and 29, and their corresponding code», «drop external input to nova»): no l3_hook (the line input / its inverted copies / the FX returns as the synths' noise); P:$9C3 stays the stock's.
+    fx_cap stays: with the Setup's FX returns on strips 3 / 4 it feeds the MIDI tracks' VCA-VCF feedback (vcf21_dsp)."""
+    global NOSRC
+    NOSRC = True
+
+
 def code(base):
     a = D.Asm(base)
     def ld(addr, reg): a.emit(T("move x:>$%x,%s" % (addr, reg)))
     def st(reg, addr): a.emit(T("move %s,x:>$%x" % (reg, addr)))
+    if NOSRC:
+        assert SETUP_RET and not METER
+        return code_cap(a, ld)
     a.label("l3_hook")
     ld(SYNTH, "a"); a.emit(T("tst a")); a.emit(J("ne"), "l3_s1")
     for s in (0, 1):
@@ -112,12 +125,15 @@ def code(base):
         a.emit(T("move #1,n2")); a.emit(J("al"), HOOK_RET)
     a.label("l3_stock")
     a.emit(T("move (r2)+n2")); a.emit(T("move #4,n2")); a.emit(J("al"), HOOK_RET)
+    return code_cap(a, ld)
 
+
+def code_cap(a, ld):
     a.label("fx_cap")                                   # called from P:$D21; a, b, x0, r0, r1 free (SC10 returns reloads r6/r7)
     if not METER:
         if SETUP_RET:
             ld(SETUP_FLAGS, "a"); a.emit(T("tst a")); a.emit(J("ne"), "fc_do")     # an FX return is wired to a strip: the synths may be reading it
-        if FX_MODES:
+        if FX_MODES and not NOSRC:                      # (NOSRC: no synth reads the captures: only the Setup's flags)
             ld(MODE_S[0], "a"); ld(MODE_S[1], "b")      # capture only while a synth uses mode 5 / 6 (else ~8 instructions)
             a.emit(T("cmp #5,a")); a.emit(J("ge"), "fc_do")
             a.emit(T("cmp #5,b")); a.emit(J("lt"), "fc_skip")
@@ -158,8 +174,11 @@ def install(s15, s16):
 
 def patch_hook(img, report, patch_p):
     dl = {k: int(v, 16) for k, v in report["sc16"]["dsp_labels"].items()}
-    old = int(report["sc15"]["dsp_labels"]["li_hook"], 16)
-    patch_p(img, HOOK_AT, [0x0AF080, old], [0x0AF080, dl["l3_hook"]])
+    if NOSRC:
+        patch_p(img, HOOK_AT, [0x204A00, 0x3A0400], [0x204A00, 0x3A0400])         # (NOSRC) the stock's two moves, checked
+    else:
+        old = int(report["sc15"]["dsp_labels"]["li_hook"], 16)
+        patch_p(img, HOOK_AT, [0x0AF080, old], [0x0AF080, dl["l3_hook"]])
     patch_p(img, RET_AT, [0x0BF080, RET_OLD], [0x0BF080, dl["fx_cap"]])
 
 
@@ -180,7 +199,7 @@ def main(name, build, s15, argv, extra=None):
     img[sc.MARK_OFF:sc.MARK_OFF + 6] = marker
     patch_hook(img, report, L2.patch_p)
     report["D"]["marker"] = name
-    report["linein3"] = dict(hook=report["sc16"]["dsp_labels"]["l3_hook"], fx_cap=report["sc16"]["dsp_labels"]["fx_cap"],
+    report["linein3"] = dict(hook=report["sc16"]["dsp_labels"].get("l3_hook"), **({"nosrc": True} if NOSRC else {}), fx_cap=report["sc16"]["dsp_labels"]["fx_cap"],
                              ybuf=[hex(x) for x in YBUF], fxbuf=[hex(x) for x in FXBUF], modes=N_MODES, fx_gain_shift=FX_GAIN_SHIFT,
                              **({"meter": [hex(x) for x in METER_Y]} if METER else {}), **({"setup_ret": hex(SETUP_FLAGS)} if SETUP_RET else {}), **({"synth_ret": False} if not SYNTH_RET else {}), **({"fx_modes": False} if not FX_MODES else {}))
     if extra: extra(img, report)

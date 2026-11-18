@@ -89,6 +89,17 @@ INV = {"eq": "ne", "ne": "eq", "cc": "cs", "cs": "cc", "lo": "hs", "hs": "lo", "
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
+NOSRC = False                         # Alpha 7.03 (use_nosrc)
+
+
+def use_nosrc():
+    """Alpha 7.03 (the user, 2026-11-18: «erase 25,26,27,28 and 29, and their corresponding code», «drop external input to nova»): the source
+    view's pads 25-29 (noise / inputs) do nothing and stay dark; their code (the mode store, its LEDs) not emitted.  The view, pad 30
+    (step-drummer) and pad 32 (macro editor, heads above this one) stay."""
+    global NOSRC
+    NOSRC = True
+
+
 def arm_code(base, L, K):
     """L: addresses of c_gst / c_synth; K: constants from build_sc15 (S_MODE, S_PAINT, PAD0, N_MODES, COLORS, SP_PRESS, SP_LEDS, SP_REPAINT)."""
     a = Asm(base)
@@ -252,10 +263,11 @@ def arm_code(base, L, K):
     a.emit(mov_reg, 7, 0)                                                      # r7 = SC14 state
     a.emit(ldrb_imm, 1, 7, S_PAINT); a.emit(movs_imm, 2, F_SRC); a.emit(tst_reg, 1, 2); bc("xp_stock", "eq")
     a.emit(mov_reg, 0, 4); a.emit(bl, L["c_synth"]); a.emit(cmp_imm, 0, 1); bc("xp_out", "hi")   # r0 = synth shown
-    a.emit(mov_reg, 6, 0)
-    a.emit(mov_reg, 1, 5); a.emit(subs_imm8, 1, PAD0); a.emit(cmp_imm, 1, NM - 1); bc("xp_out", "hi")
-    a.emit(adds_reg, 0, 7, 6); a.emit(strb_imm, 1, 0, S_MODE)
-    a.emit(movs_imm, 0, 0x20); a.emit(movs_imm, 1, 48); a.emit(bl, MARK_DIRTY)  # resend the Audio In group (H9)
+    if not NOSRC:
+        a.emit(mov_reg, 6, 0)
+        a.emit(mov_reg, 1, 5); a.emit(subs_imm8, 1, PAD0); a.emit(cmp_imm, 1, NM - 1); bc("xp_out", "hi")
+        a.emit(adds_reg, 0, 7, 6); a.emit(strb_imm, 1, 0, S_MODE)
+        a.emit(movs_imm, 0, 0x20); a.emit(movs_imm, 1, 48); a.emit(bl, MARK_DIRTY)  # resend the Audio In group (H9)
     a.label("xp_out")
     a.emit(pop_list, [4, 5, 6, 7], pc=True)                                    # every other press is swallowed
     a.label("xp_stock")
@@ -296,16 +308,17 @@ def arm_code(base, L, K):
         a.label("xl_z2")
         a.emit(strh_reg, 1, 5, 0); a.emit(adds_imm8, 0, 2); a.emit(cmp_imm, 0, 64); bc("xl_z2", "lo")
         a.label("xl_zd")
-    a.emit(adds_reg, 3, 6, 7); a.emit(ldrb_imm, 3, 3, S_MODE)                  # r3 = mode of the synth shown
-    a.emit(cmp_imm, 7, 0); bc("xl_s2", "ne")
-    a.emit(movs_imm, 0, K["COLORS"][0][0]); a.emit(movs_imm, 1, K["COLORS"][0][1]); a.emit(b, "xl_paint")
-    a.label("xl_s2"); a.emit(movs_imm, 0, K["COLORS"][1][0]); a.emit(movs_imm, 1, K["COLORS"][1][1])
-    a.label("xl_paint")
-    for i in range(NM):
-        a.emit(cmp_imm, 3, i); bc(f"xl_d{i}", "ne")
-        a.emit(strh_imm, 0, 5, 2 * (PAD0 + i)); a.emit(b, f"xl_n{i}")
-        a.label(f"xl_d{i}"); a.emit(strh_imm, 1, 5, 2 * (PAD0 + i))
-        a.label(f"xl_n{i}")
+    if not NOSRC:
+        a.emit(adds_reg, 3, 6, 7); a.emit(ldrb_imm, 3, 3, S_MODE)              # r3 = mode of the synth shown
+        a.emit(cmp_imm, 7, 0); bc("xl_s2", "ne")
+        a.emit(movs_imm, 0, K["COLORS"][0][0]); a.emit(movs_imm, 1, K["COLORS"][0][1]); a.emit(b, "xl_paint")
+        a.label("xl_s2"); a.emit(movs_imm, 0, K["COLORS"][1][0]); a.emit(movs_imm, 1, K["COLORS"][1][1])
+        a.label("xl_paint")
+        for i in range(NM):
+            a.emit(cmp_imm, 3, i); bc(f"xl_d{i}", "ne")
+            a.emit(strh_imm, 0, 5, 2 * (PAD0 + i)); a.emit(b, f"xl_n{i}")
+            a.label(f"xl_d{i}"); a.emit(strh_imm, 1, 5, 2 * (PAD0 + i))
+            a.label(f"xl_n{i}")
     a.emit(b, "xl_out")
     a.label("xl_off")                                                          # closed: repaint the stock view once
     a.emit(tst_reg, 3, 2); bc("xl_out", "eq")

@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, ands_reg, b, b_cond, b_w, bics_reg, bl, cmp_imm, cmp_reg, eors_reg, h, ldr_imm, ldr_sp, ldrb_imm,  # noqa: E402
-                   ldrb_reg, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm,
+                   ldrb_reg, ldrh_imm, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, muls, orrs_reg, pop_list, push_list, raw, str_imm,
                    str_sp, strb_imm, strb_reg, strh_imm, strh_reg, subs_imm8, subs_reg, tst_reg, sub_sp_imm, add_sp_imm)
 from build_sc14 import udiv  # noqa: E402
 import mutate39 as MU  # noqa: E402
@@ -90,6 +90,18 @@ def use_roll():
 
 ROLL2 = False                                                # SC50.7 (use_roll2)
 DYN4 = False                                                 # SC50.9 (use_dyn4)
+PATPASS = False                                              # Alpha 7.02 (use_patpass)
+CNT = 0x2004FB40                                             # (PATPASS) 4 drums x 8 patterns x u16: the passes of each pattern
+
+
+def use_patpass():
+    """Alpha 7.02 (the user, 2026-11-17: «Make pattern related data, like lanex, follows the current pattern at play, even with pattern chain and
+    pattern mutate»): the drums' frequency («1 in N») counts the passes of each pattern, as the note tracks' (stepmod.use_passcount): before, one
+    count a drum, set to 0 whenever its pattern changed, so with a chain A -> B -> A (or a pattern-mutate list) A's count began again at every visit
+    and «1 in 2» on A played every time.  RAM CNT (64 B, below 0x2004FC00, free in every release build: only diagnostics use 0x2004FAF0..0x2004FB0F),
+    0 while the transport is stopped (the LED task, with the drums' other passes)."""
+    global PATPASS
+    PATPASS = True
 
 
 def use_dyn4():
@@ -246,11 +258,18 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, 6); E(muls, 1, 6); E(adds_reg, 0, 0, 1); E(movw, 1, O_PLAY); E(adds_reg, 7, 0, 1)    # r7 = its play state
     # a pass begins: the first step's micro step 0 (a new pattern from 0)
     E(ldr_sp, 2, 8); E(movs_imm, 1, 0x81); E(ldrb_reg, 0, 5, 1); E(cmp_reg, 0, 2); E(b_cond, "pl_pd", "ne"); E(ldr_sp, 0, 12); E(cmp_imm, 0, 0); E(b_cond, "pl_pd", "ne")
-    E(ldr_sp, 0, 4); E(adds_imm8, 0, 1); E(ldrb_imm, 1, 7, 2); E(cmp_reg, 0, 1); E(b_cond, "pl_c", "eq")
-    E(strb_imm, 0, 7, 2); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 0); E(strb_imm, 0, 7, 1)
-    a.label("pl_c")
-    E(ldrb_imm, 0, 7, 0); E(ldrb_imm, 1, 7, 1); E(lsls_imm, 1, 1, 8); E(orrs_reg, 0, 1); E(adds_imm8, 0, 1); E(movw, 1, 840); E(cmp_reg, 0, 1); E(b_cond, "pl_w", "lo"); E(movs_imm, 0, 0)
-    a.label("pl_w"); E(strb_imm, 0, 7, 0); E(lsrs_imm, 0, 0, 8); E(strb_imm, 0, 7, 1)
+    if PATPASS:                                                                         # (Alpha 7.02) the pattern's own count: CNT[8 drum + pattern] + 1
+        E(ldr_sp, 0, 4); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(lsls_imm, 1, 6, 3); E(adds_reg, 0, 0, 1); E(lsls_imm, 0, 0, 1)
+        imm32(1, CNT); E(adds_reg, 1, 1, 0)
+        E(ldrh_imm, 0, 1, 0); E(adds_imm8, 0, 1); E(movw, 2, 840); E(cmp_reg, 0, 2); E(b_cond, "pl_w", "lo"); E(movs_imm, 0, 0)
+        a.label("pl_w"); E(strh_imm, 0, 1, 0)
+    else:
+        E(ldr_sp, 0, 4); E(adds_imm8, 0, 1); E(ldrb_imm, 1, 7, 2); E(cmp_reg, 0, 1); E(b_cond, "pl_c", "eq")
+        E(strb_imm, 0, 7, 2); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 0); E(strb_imm, 0, 7, 1)
+        a.label("pl_c")
+        E(ldrb_imm, 0, 7, 0); E(ldrb_imm, 1, 7, 1); E(lsls_imm, 1, 1, 8); E(orrs_reg, 0, 1); E(adds_imm8, 0, 1); E(movw, 1, 840); E(cmp_reg, 0, 1); E(b_cond, "pl_w", "lo"); E(movs_imm, 0, 0)
+        a.label("pl_w")
+    E(strb_imm, 0, 7, 0); E(lsrs_imm, 0, 0, 8); E(strb_imm, 0, 7, 1)
     # a hit kept for a later micro step
     a.label("pl_pd")
     if ROLL2:                                                                           # micro step 0: the slot cleared, the step's move chosen; else a roller's bit played
@@ -538,6 +557,8 @@ def arm_code(base, L, prev):
     E(bl, "c_dqtail"); E(cmp_imm, 0, 0); E(b_cond, "lt_x", "eq"); E(movw, 1, O_PLAY); E(adds_reg, 0, 0, 1)
     E(movs_imm, 1, 0); E(movs_imm, 2, 0)
     a.label("lt_z"); E(strb_reg, 1, 0, 2); E(adds_imm8, 2, 1); E(cmp_imm, 2, 24); E(b_cond, "lt_z", "lo")
+    if PATPASS:                                                                         # (Alpha 7.02) every pattern's count too: bl patpass.c_dqcz
+        a.label("lt_cz"); E(raw, h(0xBF00) * 2)                                         # (r1 = 0; the call written by patpass.install: no room here)
     a.label("lt_x"); E(pop_list, [3, 4], pc=True)
     return a.assemble()
 

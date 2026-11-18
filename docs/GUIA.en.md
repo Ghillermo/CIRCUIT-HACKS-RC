@@ -97,8 +97,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 - *(since RC2)* = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - *(since RC2.02)* = new in RC2.02 (not in RC2.01).
 - *(since RC4)* = new in **RC4** (not in RC2.11 or earlier).
-- *(since RC4.05)* = a fix of **RC4.05** (in RC4.11 and Alpha 7.01 too; not in RC4.02 or earlier).
-- *(Beta 5.65 only)* = only in **Alpha 7.01** (not in RC4.11).
+- *(since RC4.05)* = a fix of **RC4.05** (in RC4.16 and Alpha 7.04 too; not in RC4.02 or earlier).
+- *(Beta 5.65 only)* = only in **Alpha 7.04** (not in RC4.16).
 - **The features are in the chapter of the view where they are used** (before, in the feature list): every chapter starts with the index of its features, goes on with the view and ends with each feature in its own section, with its drawings and animations. The **glossary**, at the end, lists them all under the groups of the former list (A-E).
 
 <a id="botones"></a>
@@ -621,6 +621,7 @@ To play a General MIDI drum module or plugin with the device's drums. In the Set
 
 - The patch needs some noise level (CC 56) for the source to be heard. The source is saved with the project.
 - If Setup routes the reverb / delay returns through strips 3 / 4, that signal is what reaches the synth.
+- *(Beta 5.65 only)* No external source: pads 25-29 are dark and do nothing; pads 30 and 32 stay.
 
 #### Pad 32: editor of the macro knob destinations *(since RC2)*
 Every macro knob has 4 slots; every slot, a destination, a span of the travel (start and end) and a depth.
@@ -660,6 +661,7 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 
 - The patch needs some noise level (CC 56) for the source to be heard.
 - If Setup routes the reverb / delay return to strip 3 / 4, that is the signal the synth receives.
+- **Beta 5.65 only:** no external source on Synth 1 / 2: pads 25-29 are dark and do nothing (the patch's noise sounds as always); pad 30 (step-drummer) and pad 32 (macro destinations) stay.
 - The source is saved with the project.
 
 <a id="f-destinos-macro"></a>
@@ -2395,6 +2397,7 @@ Master FX is a performance view with effects on the master output, a song pointe
 - **Short press:** records until the next press.
 - **Master FX effects (from RC0.5):** the sample that plays goes through the Master FX effects; the capture records the output without them (in RC0-RC0.4 it was the other way round: the capture held the effects and the sample played without them).
 - **Master filter (since RC2.01):** the capture and the sample that plays sit before the master filter: the filter acts on the sample as it plays and the capture records the mix without the filter (up to RC2 the other way round: the capture held the filter and the sample played without it).
+- **Recording while the sample plays (since RC4.16):** while pad 32 records, nothing starts the sample (pad 7, a latched loop, a Master FX slot or the FX sequencer); it could play the half-written take before. **Beta 5.65 only:** **overdub**: recording no longer stops the sample on pad 7, which keeps playing as it is set (pitch, reverse, loop region, gate) with the old take's length; the new take = what sounds + the sample at 0.7. One buffer: a loop playing over what is being recorded repeats its echoes, each pass at 0.7.
 - **Shift + pad 32:** armed: with the transport running it records the next bar; stopped, it starts when you press **Play**, from the first beat, and records that bar (from RC0.4; it used to start a bar late).
 
 ##### Playing (pad 7)

@@ -85,6 +85,7 @@ GRAD = bytes([0x53, 0x45, 0x7F, 0x51, 0x6D, 0x2D, 0x6F, 0x70, 0x71, 0x72, 0x17, 
 SLOW_FUNCS = ("c_mzslow", "c_mzslw", "c_mzgc")
 TEMPO = 0x20011404
 TRIMP = False                            # SC56 (use_trimpanel): c_mzpanel left out (NOCUR never calls it)
+TRIMNC = False                           # Alpha 7.03 (use_trimnc): the initial patch's place code left out (NOCUR never runs it)
 ENDLAST = False                          # SC56: the image's end only when nothing else fits (dspz v2's first gap is bigger than the end)
 SVC = False                              # SC55.4 (use_svc)
 NV = END                                 # (use_svc) + 0 a write pending, + 1 t, + 2 f, + 3 / 4 the links' cache indices, + 5 inside the
@@ -197,6 +198,14 @@ def use_trimpanel():
     global TRIMP, ENDLAST
     assert NOCUR
     TRIMP = ENDLAST = True
+
+
+def use_trimnc():
+    """Alpha 7.03 (room, the user, 2026-11-18: «lets make room»): with use_nocur the initial patch's place is never used: c_mzchain's ORD path
+    after the NOCUR return, c_mzbtn's Octave swap after its NOCUR branch and c_mzpos (whose callers were those two and c_mzpanel) left out
+    (fullwalk on Alpha 7.02: 120 B unreached).  Nothing changes in use."""
+    global TRIMNC
+    TRIMNC = True                        # (checked with NOCUR / TRIMP in place(): the chain sets those later)
 
 
 def use_clr2():
@@ -412,6 +421,7 @@ def c_mzchain(c):                        # (r0 = the patch pads held, r4 = t, r6
         else: E(ldrb_imm, 0, 6, O_CV); E(movs_imm, 1, 0x11); E(ands_reg, 0, 1); E(strb_imm, 0, 6, O_CV)
         c.imm32(0, 0x00030201); E(str_imm, 0, 6, O_ORD)
         E(ldrb_imm, 0, 6, O_N); E(pop_list, [4], pc=True)
+        if TRIMNC: return
     E(ldrb_imm, 0, 6, O_CV); E(movs_imm, 1, 0x11); E(ands_reg, 0, 1); E(strb_imm, 0, 6, O_CV)
     E(push_list, [2]); c.call("c_mzpos"); E(mov_reg, 3, 0); E(pop_list, [2])              # r3 = p, clamped to n - 1
     E(subs_imm8, 2, 1); E(cmp_reg, 3, 2); E(b_cond, "ch_pc", "ls"); E(mov_reg, 3, 2)
@@ -552,11 +562,12 @@ def c_mzbtn(c):                          # the controller's button press, the he
     c.lab("bt_oc")                                                                          # Octave in the morph view: the initial patch's place
     c.call("c_mzmv"); E(cmp_imm, 0, 0); c.bc("bt_p", "eq")
     if NOCUR: E(b, "bt_y")                                                                  # (NOCUR) no initial patch in the chain: nothing
-    c.call("c_mzpos"); E(mov_reg, 1, 0)                                                    # r1 = p, r2 = n - 1
-    E(cmp_imm, 5, ID_UP); E(b_cond, "bt_dn", "ne"); E(cmp_reg, 1, 2); c.bc("bt_y", "hs"); E(adds_imm3, 3, 1, 1); E(b, "bt_sw")
-    c.lab("bt_dn"); E(cmp_imm, 1, 0); c.bc("bt_y", "eq"); E(mov_reg, 3, 1); E(subs_imm8, 3, 1)
-    c.lab("bt_sw"); E(adds_reg, 1, 6, 1); E(adds_reg, 3, 6, 3); E(ldrb_imm, 0, 1, O_ORD); E(ldrb_imm, 2, 3, O_ORD)
-    E(strb_imm, 2, 1, O_ORD); E(strb_imm, 0, 3, O_ORD); E(b, "bt_y")
+    if not TRIMNC:
+        c.call("c_mzpos"); E(mov_reg, 1, 0)                                                # r1 = p, r2 = n - 1
+        E(cmp_imm, 5, ID_UP); E(b_cond, "bt_dn", "ne"); E(cmp_reg, 1, 2); c.bc("bt_y", "hs"); E(adds_imm3, 3, 1, 1); E(b, "bt_sw")
+        c.lab("bt_dn"); E(cmp_imm, 1, 0); c.bc("bt_y", "eq"); E(mov_reg, 3, 1); E(subs_imm8, 3, 1)
+        c.lab("bt_sw"); E(adds_reg, 1, 6, 1); E(adds_reg, 3, 6, 3); E(ldrb_imm, 0, 1, O_ORD); E(ldrb_imm, 2, 3, O_ORD)
+        E(strb_imm, 2, 1, O_ORD); E(strb_imm, 0, 3, O_ORD); E(b, "bt_y")
     c.lab("bt_trk")                                                                         # the morphed track's button: from its morph view the stock,
     if CLR2:                                                                                # (CLR2) Clear + the track in the morph view: the knobs to 0
         c.call("c_mzmv"); E(cmp_imm, 0, 0); E(b_cond, "bt_tk0", "eq")
@@ -1150,7 +1161,8 @@ def place(img, report):
     end = BASE + len(img)
     areas.append(["end", (end + 3) & ~3, BASE + 0x70000])
     disc = fm_disc()
-    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel") and (SLOW or n not in SLOW_FUNCS) and (NEWSTOP or n not in NEWSTOP_FUNCS)]
+    assert not TRIMNC or (NOCUR and TRIMP)
+    names = [n for n in FUNCS if (SVC or n not in SVC_FUNCS) and not (TRIMP and n == "c_mzpanel") and not (TRIMNC and n == "c_mzpos") and (SLOW or n not in SLOW_FUNCS) and (NEWSTOP or n not in NEWSTOP_FUNCS)]
     dummy = {n: 0x08300000 + 64 * i for i, n in enumerate(names)}
     dummy["t_disc"] = 0x08380000
     size = {n: len(assemble(0x08020000, [n], dummy, prev, L, SP)[0]) for n in names}

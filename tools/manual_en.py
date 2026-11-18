@@ -181,6 +181,7 @@ sec("fuente-sinte", "Synth source view",
 
 - The patch needs some noise level (CC 56) for the source to be heard.
 - If Setup routes the reverb / delay return to strip 3 / 4, that is the signal the synth receives.
+- **Beta 5.65 only:** no external source on Synth 1 / 2: pads 25-29 are dark and do nothing (the patch's noise sounds as always); pad 30 (step-drummer) and pad 32 (macro destinations) stay.
 - The source is saved with the project.
 """, ["Synth source view (Synth 1 / 2 pressed twice)."])
 
@@ -728,6 +729,7 @@ sec("sample", "Captured sample",
 - **Short press:** records until the next press.
 - **Master FX effects (from RC0.5):** the sample that plays goes through the Master FX effects; the capture records the output without them (in RC0-RC0.4 it was the other way round: the capture held the effects and the sample played without them).
 - **Master filter (since RC2.01):** the capture and the sample that plays sit before the master filter: the filter acts on the sample as it plays and the capture records the mix without the filter (up to RC2 the other way round: the capture held the filter and the sample played without it).
+- **Recording while the sample plays (since RC4.16):** while pad 32 records, nothing starts the sample (pad 7, a latched loop, a Master FX slot or the FX sequencer); it could play the half-written take before. **Beta 5.65 only:** **overdub**: recording no longer stops the sample on pad 7, which keeps playing as it is set (pitch, reverse, loop region, gate) with the old take's length; the new take = what sounds + the sample at 0.7. One buffer: a loop playing over what is being recorded repeats its echoes, each pass at 0.7.
 - **Shift + pad 32:** armed: with the transport running it records the next bar; stopped, it starts when you press **Play**, from the first beat, and records that bar (from RC0.4; it used to start a bar late).
 
 ### Playing (pad 7)

@@ -78,6 +78,16 @@ def popw(regs, lr=False):
 TRIM15 = False                        # SC49.3 (use_trim)
 
 
+NOSRC = False                         # Alpha 7.03 (use_nosrc)
+
+
+def use_nosrc():
+    """Alpha 7.03 (the user, 2026-11-18: «erase 25,26,27,28 and 29, and their corresponding code», «drop external input to nova»): no line input as the synths' noise: c_h9b (the modes to X:$3A01 / $3A02) and the DSP li_hook not emitted, P:$9C3 and
+    the Audio In group's handler left as before SC15 (li_init stays: it clears SC10's FX-return flags)."""
+    global NOSRC
+    NOSRC = True
+
+
 def use_trim():
     """SC49.3 (flash for the drums' extra lane, phase 2): srcview (SC19.1) puts its own c_xpad / c_xleds on the synth Preset view's slots 0 / 7
     and goes on to the stock's; c_spad / c_sleds are called from nowhere (checked on SC49.2's image): not emitted, the slots left to srcview."""
@@ -152,6 +162,7 @@ def arm_code(base, c_gst, c_h9):
         a.emit(mov_reg, 0, 5)
         a.emit(pop_list, [4, 5, 6, 7], pc=True)
 
+    if NOSRC: return a.assemble()
     # ---- c_h9b: Audio In group -> X:$3A01 / X:$3A02 = modes, then SC10's c_h9 (r0 preserved)
     a.label("c_h9b")
     a.emit(push_list, [0, 4, 5], lr=True)
@@ -185,6 +196,7 @@ def dsp_code(base):
     a.emit(D.st_abs, 'x', 'a', MODE_S2)
     a.emit(D.move_imm_r, 0, 0x2028)
     a.emit(D.RTS)
+    if NOSRC: return a.assemble()
     a.label("li_hook")                                   # from P:$9C3 (jmp); a, b free here
     a.emit(D.ld_abs, 'x', 'a', SYNTH)                    # synth of this voice: 0 / 1
     a.emit(D.ld_abs, 'x', 'b', MODE_S1)
@@ -222,7 +234,7 @@ def patch_dsp(img: bytearray):
     assert all(x == 0 for x in P[base:base + len(words)])
     P[base:base + len(words)] = words
     P[0x10B:0x10D] = D.jsr(labels["li_init"])
-    P[HOOK_AT:HOOK_AT + 2] = [0x0AF080, labels["li_hook"]]
+    if not NOSRC: P[HOOK_AT:HOOK_AT + 2] = [0x0AF080, labels["li_hook"]]
     for p in range(s10.DSP0_WORDS):
         img[s10.p_off(p):s10.p_off(p) + 3] = P[p].to_bytes(3, 'big')
     return words, labels, base
@@ -240,7 +252,7 @@ def build(stock: bytes, listing: Path):
     assert [struct.unpack_from("<I", img, SP_VT + 4 * i - BASE)[0] for i in (0, 7)] == [SP_PRESS | 1, SP_LEDS | 1]
     ext = (len(img) + BASE + 3) & ~3
     code, labels = arm_code(ext, c_gst, c_h9)
-    img[H9_HOOK - BASE:H9_HOOK - BASE + 4] = b_w(H9_HOOK, labels["c_h9b"])
+    if not NOSRC: img[H9_HOOK - BASE:H9_HOOK - BASE + 4] = b_w(H9_HOOK, labels["c_h9b"])
     if not TRIM15:
         struct.pack_into("<I", img, SP_VT - BASE, labels["c_spad"] | 1)
         struct.pack_into("<I", img, SP_VT + 0x1C - BASE, labels["c_sleds"] | 1)

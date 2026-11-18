@@ -278,7 +278,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 - Una guitarra, una voz o un loop de batería en la entrada de audio 1. Un patch de Synth 1 con algo de nivel de ruido (CC 56) y envolvente de filtro.
 
 **En esta vista**
-- Las entradas de audio como fuente de ruido del sinte (pads 25-29).
+- Las entradas de audio como fuente de ruido del sinte (pads 25-29). [Beta] En la Alpha 7.04 desaparecen: los pads 25-29 están apagados y no hacen nada.
 - El editor de los destinos de los macros (pad 32).
 - El step-drummer del sinte (pad 30).
 
@@ -891,6 +891,8 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 - El song pointer: retriggers y bucles del patrón.
 - La captura: graba hasta 3,5 s de lo que suena, tócalo, ponlo en un hueco o úsalo como drum.
 - Huecos asignables en la fila de abajo.
+
+- [Beta → Alpha 7.04] Grabar con el pad 32 mientras suena el pad 7 = overdub: el sample sigue sonando y entra en la toma nueva a 0,7 (un bucle repite sus ecos, cada vuelta a 0,7). RC4.16: nada arranca el sample mientras graba.
 
 **Guion**
 

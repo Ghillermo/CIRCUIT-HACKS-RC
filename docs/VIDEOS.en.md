@@ -278,7 +278,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 - A guitar, voice or drum loop into audio input 1. A Synth 1 patch with some noise level (CC 56) and a filter envelope.
 
 **In this view**
-- The audio inputs as the synth's noise source (pads 25-29).
+- The audio inputs as the synth's noise source (pads 25-29). [Beta] Gone in Alpha 7.04: pads 25-29 are dark and do nothing.
 - The macro destination editor (pad 32).
 - The synth's step-drummer (pad 30).
 
@@ -891,6 +891,8 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 - The song pointer: retriggers and loops of the pattern.
 - The capture: record up to 3.5 s of what plays, play it, slot it, or use it as a drum.
 - Assignable slots on the bottom row.
+
+- [Beta, unreleased → Alpha 7.04] Recording on pad 32 while pad 7 plays = overdub: the sample keeps playing and goes into the new take at 0.7 (a loop repeats its echoes, each pass at 0.7). RC4.16: nothing starts the sample while recording.
 
 **Script**
 

@@ -41,6 +41,14 @@ import fxdiag as FD  # noqa: E402
 
 SESSION_OBJ, TAIL, O_BLK, SIG0, SIG1 = 0x2003D71C, 0x27024, 357, 0x58, 0x31        # "X1"
 DP0, DP_SZ, PAT_SZ = 0x20040810, 0x90, 0x6A8
+PATMASK = False
+
+
+def use_patmask():
+    """Alpha 7.02: c_xlbase takes the playing pattern & 7 (as drumarp's c_dapat and vcf21's c_sdpat do): the engine's value is always 0..7, but a
+    wrong one would read and write the next drum's patterns (each drum's pattern 7 is followed by the next drum's pattern 0)."""
+    global PATMASK
+    PATMASK = True
 ENG, TRANSPORT = 0x20038EC0, 0x20011034
 PARAM_GET, PARAM_WPTR = 0x0803542C, 0x080354FA
 MH_VT = 0x0805AADC
@@ -124,6 +132,7 @@ def arm_code(base, L, prev, part, ext=None):
     E(adds_imm8, 0, 4); E(lsls_imm, 0, 0, 2); imm32(1, ENG + 0x30); E(adds_reg, 0, 0, 1); E(ldr_imm, 5, 0, 0)
     E(mov_reg, 0, 5); E(movs_imm, 1, 1); E(bl, PARAM_GET); E(ldrb_imm, 0, 0, 0); E(push_list, [0])
     E(mov_reg, 0, 5); E(movs_imm, 1, 0); E(bl, PARAM_GET); E(ldrb_imm, 1, 0, 0)
+    if PATMASK: E(movs_imm, 2, 7); E(ands_reg, 1, 2)                                     # (Alpha 7.02) never past the drum's 8 patterns
     E(movw, 0, PAT_SZ); E(muls, 1, 0)
     imm32(0, DP0); E(movs_imm, 2, DP_SZ); E(muls, 2, 4); E(adds_reg, 0, 0, 2); E(ldr_imm, 0, 0, 0x48); E(adds_reg, 0, 0, 1)
     E(pop_list, [1]); E(pop_list, [4, 5], pc=True)

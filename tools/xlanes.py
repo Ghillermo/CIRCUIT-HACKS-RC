@@ -139,6 +139,21 @@ def use_editcache():
     EDITCACHE = True
 
 
+LATE = False
+LATE_RAM = 0x2004FB80                          # (use_late) + m: MIDI m's block has just been cached
+
+
+def use_late():
+    """Alpha 7.02 (the user, 2026-11-17: «Make pattern related data, like lanex, follows the current pattern at play, even with pattern chain and
+    pattern mutate» -> «Apply late»): when the pattern that plays changes (a chain, a pattern-mutate list, the stock's chain), its block is read
+    from the DSP by the LED task (tens of ms) and the step values it holds were skipped until the next half step (micro step 0 / 3).  Now the end
+    of a fill (c_xlfill) marks the track (LATE_RAM + m, 2 B below 0x2004FC00, free in every release build) and c_xlpl plays the current half step
+    on the next micro step (micro 1 / 2: the first half, 4 / 5: the second): about one micro step late, not half a step.  A micro step 0 / 3
+    clears the mark (garbage at power-up: one replay at most)."""
+    global LATE
+    LATE = True                                # (needs use_fillfix: fi_ok)
+
+
 ATOMIC = False
 MAXCODE = 34                                   # the highest stored code of the own synth (modmx.ranges: codes 0..34)
 
@@ -523,8 +538,15 @@ def arm_code(base, L, prev):
     E(bl, "c_xlst"); E(mov_reg, 7, 0)
     E(raw, h(0x9801)); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(lsls_imm, 5, 4, 3); E(adds_reg, 5, 5, 0)   # ldr r0, [sp, #4]: r5 = the block
     meta(1, 7); E(adds_reg, 1, 1, 4); E(adds_imm8, 5, 1); E(strb_imm, 5, 1, 4); E(subs_imm8, 5, 1)          # wanted = block + 1
-    E(raw, h(0x9803)); E(movs_imm, 6, 0); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq")                       # ldr r0, [sp, #12]: micro 0 / 3
-    E(movs_imm, 6, 1); E(cmp_imm, 0, 3); bc("pl_x", "ne")
+    if LATE:                                                                            # (Alpha 7.02) micro 0 / 3, or another one when a fill has just ended
+        E(raw, h(0x9803)); E(movs_imm, 6, 1); E(cmp_imm, 0, 3); E(b_cond, "pl_c", "eq")       # ldr r0, [sp, #12]
+        E(movs_imm, 6, 0); E(cmp_imm, 0, 0); E(b_cond, "pl_c", "eq")
+        imm32(1, LATE_RAM); E(ldrb_reg, 2, 1, 4); E(cmp_imm, 2, 0); bc("pl_x", "eq")       # micro 1, 2: the first half; 4, 5: the second
+        E(cmp_imm, 0, 3); E(b_cond, "pl_c", "ls"); E(movs_imm, 6, 1)
+        a.label("pl_c"); imm32(1, LATE_RAM); E(movs_imm, 2, 0); E(strb_reg, 2, 1, 4)
+    else:
+        E(raw, h(0x9803)); E(movs_imm, 6, 0); E(cmp_imm, 0, 0); E(b_cond, "pl_h", "eq")                       # ldr r0, [sp, #12]: micro 0 / 3
+        E(movs_imm, 6, 1); E(cmp_imm, 0, 3); bc("pl_x", "ne")
     a.label("pl_h")
     E(ldrh_imm, 0, 7, O_MAP); E(raw, h(0x40E8)); E(lsls_imm, 0, 0, 31); bc("pl_x", "pl")                  # lsrs r0, r5: no data in the block
     meta(1, 7); E(adds_reg, 1, 1, 4); E(ldrb_imm, 0, 1, 0); E(subs_imm8, 0, 1); E(cmp_reg, 0, 5); bc("pl_x", "ne")   # not cached yet
@@ -722,6 +744,8 @@ def arm_code(base, L, prev):
     if FILLFIX:
         a.label("fi_f"); E(add_sp_imm, 16); E(b, "fi_x")                                # a failed copy: still not cached, the next frame
         a.label("fi_ok"); E(pop_list, [0, 6]); E(strb_imm, 0, 6, 0)                     # cached = the block filled
+        assert not LATE or FILLFIX
+        if LATE: E(movw, 1, (LATE_RAM - XLR - O_CM) & 0xFFFF); E(adds_reg, 1, 1, 6); E(strb_imm, 0, 1, 0)   # (Alpha 7.02) LATE_RAM + m = played late
     a.label("fi_x"); E(pop_list, [5, 6, 7], pc=True)
 
     # ================================================================ Components (its file protocol, a session of a pack 1..31)
