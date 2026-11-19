@@ -175,6 +175,17 @@ def use_noinst():
     NOINST = True
 
 
+P8ALG = False                                                          # Alpha 7.09 (use_p8alg)
+
+
+def use_p8alg():
+    """Alpha 7.09 (the user, 2026-11-19: «what does pad 8 do now? can we move shift+7 to 8?» -> «shift 7 no longer»): on the FM page, pad 8
+    held = the 56 algorithms' list while it is held (Octave pages as before; pad 8 bright meanwhile); a tap still opens the FM page.  Shift +
+    pad 7 does nothing (fmmap hands it here: swallowed).  Pad 7 is no longer lit by the list."""
+    global P8ALG
+    P8ALG = True                                                          # (with NOINST: checked when the code is made)
+
+
 NOSTRT = False                                                         # (use_nostrt)
 
 
@@ -482,15 +493,19 @@ def ui(c, T, L, prev):
     E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("pd_prev", "ne")
     E(mov_reg, 0, 4); E(movs_imm, 1, PAGE); E(bl, L["c_vsetpage"])
-    if NOINST: E(b, "pd_x")                                                               # (NOINST) pad 8 = the FM page only
+    assert NOINST or not P8ALG
+    if P8ALG: E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 1); E(strb_w, 1, 0, B_P7); E(b, "pd_x")     # (P8ALG) pad 8 held = the algorithms
+    elif NOINST: E(b, "pd_x")                                                             # (NOINST) pad 8 = the FM page only
     else: E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 2); E(strb_w, 1, 0, B_P7); E(b, "pd_x")
     lab("pd_n8")
     E(cmp_imm, 5, PADNO); bc("pd_n7", "ne")
+    if P8ALG: E(bl, L["c_shift"]); E(cmp_imm, 0, 0); bc("pd_x", "ne")                     # (P8ALG) Shift + pad 7: nothing
     E(mov_reg, 0, 4); E(bl, "c_fmact"); E(cmp_imm, 0, 0); bc("pd_prev", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_edact"]); E(cmp_imm, 0, 0); bc("pd_prev", "ne")
     E(bl, L["c_mxclrh"]); E(cmp_imm, 0, 0); E(b_cond, "pd_pg", "eq")
     E(mov_reg, 0, 4); E(movs_imm, 1, 0); E(bl, "c_fmdefs"); E(b, "pd_x")                  # Clear + pad 7: the algorithm's voicing
     lab("pd_pg"); E(mov_reg, 0, 4); E(movs_imm, 1, PAGE); E(bl, L["c_vsetpage"])
+    if P8ALG: E(b, "pd_x")                                                                # (P8ALG) pad 7: the page only (the list is pad 8's)
     E(mov_reg, 0, 4); E(bl, "c_fmblk"); E(movs_imm, 1, 1); E(strb_w, 1, 0, B_P7); E(b, "pd_x")
     lab("pd_n7")
     E(cmp_imm, 5, 8); bc("pd_row", "lo"); E(cmp_imm, 5, 31); bc("pd_row", "hi")
@@ -581,7 +596,7 @@ def ui(c, T, L, prev):
     if NODUAL: E(movs_imm, 1, FE.COL_FM[1] if PEG3 else 0); E(strh_imm, 1, 5, 2 * 2)        # pad 3 (the OSC 2 page): dark with FM on (PEG3: the pitch envelope, dim)
     E(movs_imm, 1, FE.COL_FM[0]); E(strh_imm, 1, 5, 2 * 26)
     if ROWOP:                                                                             # (ROWOP) pad 7 bright only while held (its list shown)
-        E(mov_reg, 0, 6); E(bl, "c_fmblk"); E(ldrb_w, 0, 0, B_P7); E(movs_imm, 1, FE.COL_FM[1]); E(cmp_imm, 0, 1); E(b_cond, "le_p", "ne"); E(movs_imm, 1, FE.COL_FM[0])
+        E(mov_reg, 0, 6); E(bl, "c_fmblk"); E(ldrb_w, 0, 0, B_P7); E(movs_imm, 1, FE.COL_FM[1]); E(cmp_imm, 0, 3 if P8ALG else 1); E(b_cond, "le_p", "ne"); E(movs_imm, 1, FE.COL_FM[0])
     else:
         E(mov_reg, 0, 6); E(bl, L["c_vpage"]); E(movs_imm, 1, FE.COL_FM[1]); E(cmp_imm, 0, PAGE); E(b_cond, "le_p", "ne"); E(movs_imm, 1, FE.COL_FM[0])
     lab("le_p"); E(strh_imm, 1, 5, 2 * PADNO)
@@ -589,7 +604,7 @@ def ui(c, T, L, prev):
     c.now(0); E(raw, h(0xF8D4) + h(1 << 12 | B_LEDT)); E(raw, h(0xF8C4) + h(0 << 12 | B_LEDT)); E(subs_reg, 0, 0, 1)
     E(cmp_imm, 0, FE.STALE_MS); E(b_cond, "le_f", "ls"); E(movs_imm, 0, 0); E(strb_w, 0, 4, B_P7)
     lab("le_f")
-    E(ldrb_w, 0, 4, B_P7); E(movs_imm, 1, 0x02); E(cmp_imm, 0, 2); E(b_cond, "le_8", "ne"); E(movs_imm, 1, 0x01)
+    E(ldrb_w, 0, 4, B_P7); E(movs_imm, 1, 0x02); E(cmp_imm, 0, 1 if P8ALG else 2); E(b_cond, "le_8", "ne"); E(movs_imm, 1, 0x01)
     lab("le_8"); E(strh_imm, 1, 5, 2 * (PADNO + 1))
     E(mov_reg, 0, 6); E(bl, "c_fmpg"); E(cmp_imm, 0, 0); bc("le_x", "eq")
     E(ldrb_w, 0, 4, B_P7)

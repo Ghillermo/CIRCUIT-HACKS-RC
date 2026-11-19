@@ -1606,9 +1606,9 @@ proc("fm-algoritmos", "midi-fm", ["fm4"], "Pick an FM algorithm from the pads", 
       "sonido).",
       pads=mpre(engine="fm", page=0, extra=merge(algos(13), FMPAGE)), buttons=BM, press=[7, 21], knobs=FMK, view=FMV),
     F("Let go of pad 7: the patches come back. Clear + pad 7 = a playable voice of the chosen algorithm. Beta 5.56 only: the 8-operator FM, its "
-      "56 algorithms on Shift + pad 7 held.",
+      "56 algorithms on Shift + pad 7 held (Alpha 7.09: pad 8 held).",
       "Suelta el pad 7: vuelven los patches. Clear + pad 7 = una voz tocable del algoritmo elegido. Solo Beta 5.56: el FM de 8 operadores, sus "
-      "56 algoritmos con Shift + pad 7 mantenido.",
+      "56 algoritmos con Shift + pad 7 mantenido (Alpha 7.09: pad 8 mantenido).",
       pads=mpre(engine="fm", page=0, extra=merge(slots(), FMPAGE)), buttons=BM, knobs=FMK, view=FMV),
 ])
 

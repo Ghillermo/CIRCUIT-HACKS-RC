@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.09 — 2026-11-19
+
+**Alpha 7.09** (marca `A7.09`) = la Alpha 7.08b + esto, sin probar en el aparato (solo la instalación). Sustituye a la 7.08b en el instalador.
+
+- **La lista de algoritmos del FM en el pad 8:** en la página FM del sinte propio de MIDI 1 / 2, **mantén el pad 8**: los 56 algoritmos en los pads 9-32 mientras lo mantienes (Octave ▼ / ▲ = sus páginas; pulsa uno = elegido y suena). Un toque sigue abriendo la página FM. **Shift + pad 7 ya no hace nada** (antes, la lista). → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+
 ### Alpha 7.08 — 2026-11-19
 
 **Alpha 7.08** (marca `A7.08`) = la Alpha 7.04 + las Alphas 7.05-7.07 (sin publicar) + esto, sin probar en el aparato (solo la instalación). Sustituye a la Alpha 7.04 en el instalador; el prototipo A7PROT sigue al lado (sus cambios del Mixer no están en la 7.08). El instalador avisa al elegir una alfa: si Save parpadea en violeta, no apagues el aparato, guarda la caja negra con la app y mándanosla.
@@ -1153,6 +1159,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.09 — 2026-11-19
+
+**Alpha 7.09** (marker `A7.09`) = Alpha 7.08b + this, untested on the device (install only). It replaces 7.08b in the installer.
+
+- **The FM algorithm list on pad 8:** on the FM page of the MIDI 1 / 2 own synth, **hold pad 8**: the 56 algorithms on pads 9-32 while held (Octave ▼ / ▲ = its pages; press one = picked, and it sounds). A tap still opens the FM page. **Shift + pad 7 no longer does anything** (before, the list). → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 
 ### Alpha 7.08 — 2026-11-19
 

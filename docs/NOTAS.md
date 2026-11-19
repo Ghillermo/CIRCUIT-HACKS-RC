@@ -143,6 +143,10 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 
 ## Parches
 
+### Alpha 7.09 (2026-11-19): la lista de algoritmos del FM en el pad 8 — sin probar, sin publicar
+
+= Alpha 7.08b + `fm8ui.use_p8alg()`: en la página FM, el pad 8 mantenido pone `B_P7` = 1 (la lista de algoritmos, la que abría Shift + pad 7; la suelta ya la quitaba para los dos pads) y su LED brillante; Shift + pad 7 (que `fmmap` pasa a `fm8ui`) se traga; el pad 7 solo abre la página. El LED del pad 7 ya no sigue a la lista (con `ROWOP` comparaba `B_P7` = 1). Prueba `emu_fmmap.py`.
+
 ### Alpha 7.08b (2026-11-19): los pasos del sample en amarillo — publicada
 
 = Alpha 7.08 + `fxstep.use_smpcol()` (el usuario, en el aparato: «Los pasos con sampler no se pintan de amarillo»): `c_fqled` copiaba el LED del primer pad del paso del búfer, pero el del pad 7 lo escribe el código del sample después en el mismo fotograma (en emulación, `0x00`); ahora un paso cuyo primer pad es el sample = `SMP_ON` (`0x2D`). Marca `A7.08b`: una reconstrucción como «A7.08» no se instalaría sobre la 7.08 publicada. Prueba `emu_fxstep.py`.

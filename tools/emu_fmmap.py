@@ -150,9 +150,21 @@ def main(img, man):
     check(lo(f, 8, 32) == w, "pad 7 held: the map")
     release(FE.PADNO); f = X.frame(e)
     check(e.r8(M.FMAP + M.T0 + M.O_MODE) == 0 and lo(f, 8, 32) != w, "let go after 0.7 s: no map")
-    e.shift(True); press(FE.PADNO); e.shift(False); f = X.frame(e)
-    check(par(A.B_P7) == 1, f"Shift + pad 7: the algorithm list ({par(A.B_P7)})")
-    release(FE.PADNO)
+    mk = man.get("marker", "")
+    if mk.startswith("A7.") and mk >= "A7.09":                         # (fm8ui.use_p8alg) the list on pad 8 held; Shift + pad 7 nothing
+        e.shift(True); press(FE.PADNO); e.shift(False); f = X.frame(e); release(FE.PADNO)
+        check(par(A.B_P7) == 0 and e.r8(M.FMAP + M.T0 + M.O_MODE) == 0, f"Shift + pad 7: nothing ({par(A.B_P7)})")
+        f0 = X.frame(e); press(FE.PADNO + 1); f = X.frame(e)
+        check(par(A.B_P7) == 1 and f[FE.PADNO + 1] & 0xFF == 0x01 and lo(f, 8, 32) != lo(f0, 8, 32),
+              f"pad 8 held: the algorithm list, pad 8 bright ({par(A.B_P7)}, {f[FE.PADNO + 1]:#x})")
+        a0 = par(F.GLB + F.G_ALG); tap(8 + 5); a1 = par(F.GLB + F.G_ALG)
+        check(a1 != a0, f"pad 8 held + pad 14: an algorithm picked ({a0} -> {a1})")
+        release(FE.PADNO + 1); f = X.frame(e)
+        check(par(A.B_P7) == 0 and f[FE.PADNO + 1] & 0xFF == 0x02, f"pad 8 let go: the list off ({par(A.B_P7)}, {f[FE.PADNO + 1]:#x})")
+    else:
+        e.shift(True); press(FE.PADNO); e.shift(False); f = X.frame(e)
+        check(par(A.B_P7) == 1, f"Shift + pad 7: the algorithm list ({par(A.B_P7)})")
+        release(FE.PADNO)
     print(f"{man['marker']} FMMAP RESULT:", "ALL PASS" if fails == 0 else f"{fails} FAILURES")
     return fails
 

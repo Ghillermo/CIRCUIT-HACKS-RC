@@ -560,7 +560,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 
 *Capítulo 2: algoritmos y el mapa*
 
-6. **La lista.** *Muestra:* Shift + pad 7 mantenido: tres páginas con Octave. *Di:* «Shift más el pad 7 mantenido enseña los 56 algoritmos en tres páginas: los de cuatro operadores, ocho nuevos de ocho operadores y los 32 del DX7.»
+6. **La lista.** *Muestra:* Shift + pad 7 mantenido (desde la Alpha 7.09, el pad 8 mantenido): tres páginas con Octave. *Di:* «Shift más el pad 7 mantenido enseña los 56 algoritmos en tres páginas: los de cuatro operadores, ocho nuevos de ocho operadores y los 32 del DX7.»
 7. **El mapa.** *Muestra:* un toque al pad 7: el mapa en los pads 9-32. *Di:* «Un toque al pad 7 enseña el mapa del algoritmo. Cada fila se lee de izquierda a derecha: el operador de la izquierda modula al de su derecha, y el último es un portador. Un hueco oscuro quiere decir que no hay conexión.»
 8. **Los colores del mapa.** *Di:* «El color dice el ratio: verde, un número entero; verde azulado, uno acabado en coma cinco; naranja, uno inarmónico; rojo, una frecuencia fija; y el feedback, en violeta. Brillante quiere decir un nivel de salida alto.»
 9. **Callar y enlazar.** *Muestra:* Shift + un operador (se oscurece); mantén uno y toca otro. *Di:* «Shift más un operador lo calla mientras miras el mapa: así oyes lo que aporta. Mantén un operador y toca otro: el primero pasa a modular al segundo, o deja de hacerlo. Ese es tu propio algoritmo, y se guarda con el patch.»

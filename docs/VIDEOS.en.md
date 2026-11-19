@@ -560,7 +560,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 
 *Chapter 2: algorithms and the map*
 
-6. **The list.** *Show:* Shift + pad 7 held: three pages with Octave. *Say:* "Shift plus pad 7 held shows all 56 algorithms on three pages: the 4-operator ones, eight new 8-operator ones, and the DX7's 32."
+6. **The list.** *Show:* Shift + pad 7 held (since Alpha 7.09, pad 8 held): three pages with Octave. *Say:* "Shift plus pad 7 held shows all 56 algorithms on three pages: the 4-operator ones, eight new 8-operator ones, and the DX7's 32."
 7. **The map.** *Show:* tap pad 7: the map on pads 9-32. *Say:* "A tap on pad 7 shows the algorithm map. Each row reads left to right: the operator on the left modulates the one on its right, and the last one is a carrier. A dark gap means no connection."
 8. **Colours on the map.** *Say:* "The colour tells the ratio: green a whole number, teal a half, orange inharmonic, red a fixed frequency; feedback is violet. Bright means a high output level."
 9. **Mute and link.** *Show:* Shift + an operator (dark); hold one and tap another. *Say:* "Shift plus an operator mutes it while you look: you hear what it adds. Hold one operator and tap another: the first now modulates the second, or stops. That's your own algorithm, saved with the patch."
