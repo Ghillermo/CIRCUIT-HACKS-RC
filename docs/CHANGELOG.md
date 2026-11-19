@@ -7,6 +7,13 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.08 — 2026-11-19
+
+**Alpha 7.08** (marca `A7.08`) = la Alpha 7.04 + las Alphas 7.05-7.07 (sin publicar) + esto, sin probar en el aparato (solo la instalación). Sustituye a la Alpha 7.04 en el instalador; el prototipo A7PROT sigue al lado (sus cambios del Mixer no están en la 7.08). El instalador avisa al elegir una alfa: si Save parpadea en violeta, no apagues el aparato, guarda la caja negra con la app y mándanosla.
+
+- **Secuenciador de pasos en Master FX:** **mantén un pad de efecto y toca un paso** (pads 9-24): ese efecto suena en ese paso en cada vuelta; valen los efectos de arriba (pads 1-6), el sample (pad 7) y los huecos de abajo (pads 26-31), y se suman. **Clear + un paso vacío** = ese paso en silencio (el master entero; rojo); **Clear + un paso con algo** = vacío. **Duplicate + un paso** = aleatorio (violeta): en cada vuelta suena uno de sus efectos al azar. Se guarda con el proyecto. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx)
+- **El secuenciador de efectos de MIDI 1 / 2 ya no está** (lo sustituye el de arriba): la fila de motores pasa de muestra a apagado. → [Guía: Vista Preset de MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-preset)
+
 ### Alpha 7.04 — 2026-11-18
 
 **Alpha 7.04** (marca `A7.04`) = la Alpha 7.01 + las Alphas 7.02 / 7.03 (sin publicar) + esto. Probada en el aparato como el diagnóstico S704D (overdub, Clear + escena). Sustituye a la Alpha 7.01 en el instalador.
@@ -727,6 +734,14 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### Alpha 7.08 — 2026-11-19
+
+**Alpha 7.08** (marca `A7.08`) = la Alpha 7.04 + estos arreglos (los de las Alphas 7.05 / 7.06, sin publicar) y 1,2 KB más de flash libre (Alpha 7.07, sin cambios de uso).
+
+- **Menos trabajo del DSP con 4 voces o más del FM de 8 operadores:** cada voz se envía al DSP cada 4 ms (antes, cada ms): un 30 % menos de trabajo del FM. → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
+- **Carriles extra de MIDI 1 / 2:** lo que hacen en segundo plano (guardar, cargar, rellenar, volver al patrón guardado) usa su propia ventana de la memoria del DSP; antes podía cruzarse con la del bucle principal y leer o escribir datos de la otra. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Shift + Synth 1 / 2 / MIDI 1 / 2 con su página ya en pantalla** vuelve a su vista Note (antes la página se quedaba). → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones)
+
 ### Alpha 7.04 — 2026-11-18
 
 **Alpha 7.04** (marca `A7.04`) = la Alpha 7.01 + estos arreglos (y los de las Alphas 7.02 / 7.03, sin publicar).
@@ -1137,6 +1152,13 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.08 — 2026-11-19
+
+**Alpha 7.08** (marker `A7.08`) = Alpha 7.04 + Alphas 7.05-7.07 (unreleased) + this, untested on the device (install only). It replaces Alpha 7.04 in the installer; the A7PROT prototype stays next to it (its Mixer changes are not in 7.08). The installer shows a notice when an alpha is picked: if Save blinks violet, do not switch the device off, save the black box with the app and send it to us.
+
+- **Step sequencer on Master FX:** **hold an effect pad and touch a step** (pads 9-24): that effect plays on that step every cycle; the top effects (pads 1-6), the sample (pad 7) and the bottom slots (pads 26-31) all count and add up. **Clear + an empty step** = that step silent (the whole master; red); **Clear + a step with something** = empty. **Duplicate + a step** = random (violet): each cycle one of its effects plays, picked at random. Saved with the project. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
+- **The MIDI 1 / 2 FX sequencer is gone** (the one above replaces it): the engine row goes from sample to off. → [Guide: MIDI Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-preset)
 
 ### Alpha 7.04 — 2026-11-18
 
@@ -1857,6 +1879,14 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### Alpha 7.08 — 2026-11-19
+
+**Alpha 7.08** (marker `A7.08`) = Alpha 7.04 + these fixes (those of Alphas 7.05 / 7.06, unreleased) and 1.2 KB more free flash (Alpha 7.07, no change in use).
+
+- **Less DSP work with 4 or more voices of the 8-operator FM:** each voice goes to the DSP every 4 ms (before, every ms): 30 % less FM work. → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
+- **MIDI 1 / 2 extra lanes:** their background work (save, load, fill, back to the saved pattern) uses its own window of the DSP memory; before, it could cross the main loop's and read or write the other's data. → [Guide: MIDI 1 / 2 engine knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Shift + Synth 1 / 2 / MIDI 1 / 2 with its page already on screen** goes back to its Note view (before, the page stayed). → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones)
 
 ### Alpha 7.04 — 2026-11-18
 
