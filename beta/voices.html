@@ -45,7 +45,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 </ol></nav>
 <section class="feat" id="s1"><h3>Summary</h3>
 <p>MIDI 1 and MIDI 2 are two complete synths inside the Circuit Tracks: each track keeps sending MIDI and also sounds through its own engine, with up to 4 voices (6 in FM). The <strong>voice mode</strong> decides how notes are shared out among those voices: eight modes on pad 32 of the Preset view.</p>
-<p>This document describes <strong>Beta 5.33</strong>, not tested on the device. Nearly all of it is already in RC4 and RC4.08; what is only in the beta is marked <em>(Alpha 7.08 only)</em>.</p>
+<p>This document describes <strong>Beta 5.33</strong>, not tested on the device. Nearly all of it is already in RC4 and RC4.08; what is only in the beta is marked <em>(Alpha 7.09 only)</em>.</p>
 <p>The voice mode has no CC or NRPN: it is chosen on the device and saved with the patch and the project.</p>
 </section>
 <section class="feat" id="s2"><h3>Block diagram</h3>
@@ -73,19 +73,19 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 </tbody></table>
 <h4>Pads of the Preset view</h4>
 <table><thead><tr><th>Pad</th><th>Function</th></tr></thead><tbody>
-<tr><td>1-5</td><td>Knob page: 1 VCA-VCF, 2 OSC 1 (or granular), 3 OSC 2, 4 sequenceable knobs, 5 modulation. Shift + pad 4 = non-sequenceable knobs. <em>(Alpha 7.08 only)</em> Pads 1 and 4 swap places: <strong>pad 1 = sequenceable knobs</strong> (Shift + pad 1 = non-sequenceable), <strong>pad 4 = VCA-VCF</strong>. A tap leaves the page on; holding ½ s shows it only while held.</td></tr>
+<tr><td>1-5</td><td>Knob page: 1 VCA-VCF, 2 OSC 1 (or granular), 3 OSC 2, 4 sequenceable knobs, 5 modulation. Shift + pad 4 = non-sequenceable knobs. <em>(Alpha 7.09 only)</em> Pads 1 and 4 swap places: <strong>pad 1 = sequenceable knobs</strong> (Shift + pad 1 = non-sequenceable), <strong>pad 4 = VCA-VCF</strong>. A tap leaves the page on; holding ½ s shows it only while held.</td></tr>
 <tr><td>6</td><td>Modulation matrix.</td></tr>
-<tr><td>7</td><td>FM page. Holding it shows the 56 algorithms on pads 9-32 in three pages (Octave ▼ / ▲). With wavetable <em>(Alpha 7.08 only)</em>: holding it shows the stock&#x27;s 16 wavetables on pads 9-24; a tap fills the table with their 9 frames; Shift + a table = only the frame the position (K3) points at. The tonic sounds while held.</td></tr>
-<tr><td>8</td><td>With FM: a tap opens the FM page; holding it shows 24 instruments on pads 9-32 <em>(Alpha 7.08 only: Octave ▼ / ▲ = page 2 / 1; page 2, pianos, strings, winds and long sounds)</em>. With wavetable <em>(Alpha 7.08 only)</em>: holding it shows the pack&#x27;s samples on pads 9-32 (Octave = page); a tap puts a cycle of the sample in the frame the position (K3) points at (OSC 1&#x27;s position). The tonic sounds while held.</td></tr>
-<tr><td>9-24</td><td>Own-synth patches: 16 slots per page, 8 pages with Octave; each in its engine&#x27;s colour, empty = dim white <em>(Alpha 7.08 only)</em>.</td></tr>
+<tr><td>7</td><td>FM page. Holding it shows the 56 algorithms on pads 9-32 in three pages (Octave ▼ / ▲). With wavetable <em>(Alpha 7.09 only)</em>: holding it shows the stock&#x27;s 16 wavetables on pads 9-24; a tap fills the table with their 9 frames; Shift + a table = only the frame the position (K3) points at. The tonic sounds while held.</td></tr>
+<tr><td>8</td><td>With FM: a tap opens the FM page; holding it shows 24 instruments on pads 9-32 <em>(Alpha 7.09 only: Octave ▼ / ▲ = page 2 / 1; page 2, pianos, strings, winds and long sounds)</em>. With wavetable <em>(Alpha 7.09 only)</em>: holding it shows the pack&#x27;s samples on pads 9-32 (Octave = page); a tap puts a cycle of the sample in the frame the position (K3) points at (OSC 1&#x27;s position). The tonic sounds while held.</td></tr>
+<tr><td>9-24</td><td>Own-synth patches: 16 slots per page, 8 pages with Octave; each in its engine&#x27;s colour, empty = dim white <em>(Alpha 7.09 only)</em>.</td></tr>
 <tr><td>25</td><td>CC editor. Off and without effect with the engine on.</td></tr>
-<tr><td>26</td><td>Patch flip: each note goes out as a Program Change. Excludes the engine. <em>(Alpha 7.08 only)</em> Opens and closes the <strong>flip view</strong> (white while open): row 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (one or the other; tapping the one on turns it off); with step flip, row 2 = the target.</td></tr>
+<tr><td>26</td><td>Patch flip: each note goes out as a Program Change. Excludes the engine. <em>(Alpha 7.09 only)</em> Opens and closes the <strong>flip view</strong> (white while open): row 3, pad 17 = patch flip (PGM seq), pad 18 = step flip (one or the other; tapping the one on turns it off); with step flip, row 2 = the target.</td></tr>
 <tr><td>27</td><td>Opens the engine row. Shift + pad 27 steps to the next engine.</td></tr>
-<tr><td>28</td><td>One or two oscillators (oscillator and VA-drum). With FM, dark and without effect <em>(Alpha 7.08 only)</em>.</td></tr>
-<tr><td>29</td><td>Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter <em>(Alpha 7.08 only)</em>. Shift + pad 29 steps through the eight voice modes.</td></tr>
+<tr><td>28</td><td>One or two oscillators (oscillator and VA-drum). With FM, dark and without effect <em>(Alpha 7.09 only)</em>.</td></tr>
+<tr><td>29</td><td>Order of the chain: by default filter, VCA, effect; on, VCA, effect, filter <em>(Alpha 7.09 only)</em>. Shift + pad 29 steps through the eight voice modes.</td></tr>
 <tr><td>30</td><td>Opens the step-drummer. Shift + pad 30 turns it off.</td></tr>
-<tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes. With no voice: the <strong>FX sequencer</strong> (dim blue; on, bright) <em>(Alpha 7.08 only)</em>.</td></tr>
-<tr><td>32</td><td>Opens the voice mode menu, in the colour of the current mode. Only with oscillator, FM, VA-drum or sample <em>(Alpha 7.08 only)</em>.</td></tr>
+<tr><td>31</td><td>VA-drum only: velocity scales the pitch and filter envelopes. With no voice: the <strong>FX sequencer</strong> (dim blue; on, bright) <em>(Alpha 7.09 only)</em>.</td></tr>
+<tr><td>32</td><td>Opens the voice mode menu, in the colour of the current mode. Only with oscillator, FM, VA-drum or sample <em>(Alpha 7.09 only)</em>.</td></tr>
 </tbody></table>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Preset view with the oscillator: pads 9-24 are patches (violet = empty); pads 3 and 7 go dark when they do not apply.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -267,10 +267,10 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <h4>Menus on the pads</h4>
 <p>A menu takes over pads 9-24 while it is open; those pads stop loading patches.</p>
 <table><thead><tr><th>Menu</th><th>Open</th><th>Content</th><th>Close</th></tr></thead><tbody>
-<tr><td>Engine row</td><td>Tap pad 27</td><td>Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. <em>Alpha 7.08 only:</em> no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand: the oscillator with a table of up to 9 frames; K7 of OSC 1 / OSC 2 = the position, SHAPE = warp), sample, granular, FM; the FX sequencer moves to pad 31.</td><td>Pad 27 again. Choosing does not close it.</td></tr>
+<tr><td>Engine row</td><td>Tap pad 27</td><td>Pads 17-24: off, line, oscillator, VA-drum, granular, sample, FX sequencer, FM. <em>Alpha 7.09 only:</em> no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (sand: the oscillator with a table of up to 9 frames; K7 of OSC 1 / OSC 2 = the position, SHAPE = warp), sample, granular, FM; the FX sequencer moves to pad 31.</td><td>Pad 27 again. Choosing does not close it.</td></tr>
 <tr><td>Voice modes</td><td>Tap pad 32</td><td>Pads 17-24: the eight modes. K1 = glide, K2 = unison detune</td><td>Pad 32 again, or leave the view</td></tr>
 <tr><td>FM algorithms</td><td>Hold pad 7</td><td>Pads 9-32: the 56 algorithms in three pages (Octave ▼ / ▲); teal 4 operators, white the DX7&#x27;s, amber 8</td><td>Release pad 7</td></tr>
-<tr><td>Instruments</td><td>Hold pad 8 with FM</td><td>Pads 9-32: 24 instruments (keys orange, basses blue, leads and brass red, pads and strings green, plucks yellow, percussion white, bells and fx violet). <em>Alpha 7.08 only:</em> Octave ▼ = page 2 (pianos orange, strings green, winds teal, long sounds), Octave ▲ = page 1</td><td>Release pad 8</td></tr>
+<tr><td>Instruments</td><td>Hold pad 8 with FM</td><td>Pads 9-32: 24 instruments (keys orange, basses blue, leads and brass red, pads and strings green, plucks yellow, percussion white, bells and fx violet). <em>Alpha 7.09 only:</em> Octave ▼ = page 2 (pianos orange, strings green, winds teal, long sounds), Octave ▲ = page 1</td><td>Release pad 8</td></tr>
 <tr><td>Matrix destination</td><td>Turn a source on page 6</td><td>The destination&#x27;s page pad and its knobs on pads 9-24</td><td>By itself, 1.5 s later</td></tr>
 <tr><td>FM ratios</td><td>Turn K1-K4 on the FM page</td><td>Pads 9-32: the 24 ratios</td><td>By itself, 1.5 s later</td></tr>
 </tbody></table>
@@ -617,9 +617,9 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>Clear + the track&#x27;s button</td><td>Engine values back to their initial ones, and latched notes let go. The chosen engine stays.</td></tr>
 <tr><td>Clear + pad 1-5</td><td>That page back to its initial values.</td></tr>
 <tr><td>Clear + knob</td><td>To the right, default value (lavender). To the left, erases its automation (red).</td></tr>
-<tr><td>Shift + Preset</td><td>The own synth saved with the project comes back. <em>(Alpha 7.08 only)</em></td></tr>
+<tr><td>Shift + Preset</td><td>The own synth saved with the project comes back. <em>(Alpha 7.09 only)</em></td></tr>
 <tr><td>Clear + patch pad, twice</td><td>Saves the patch in that slot.</td></tr>
-<tr><td>Duplicate + empty slot</td><td>Saves the patch there at once. <em>(Alpha 7.08 only)</em></td></tr>
+<tr><td>Duplicate + empty slot</td><td>Saves the patch there at once. <em>(Alpha 7.09 only)</em></td></tr>
 <tr><td>Duplicate + A + B</td><td>Swaps two patches. With another pack loaded in between, copies.</td></tr>
 <tr><td>Shift + patch pad</td><td>Loads the patch without the root note sounding.</td></tr>
 </tbody></table>
@@ -634,7 +634,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>21</td><td>Magenta</td><td>Granular</td><td>Up to 16 grains of a pack sample or the capture</td><td>1</td></tr>
 <tr><td>22</td><td>Teal</td><td>Sample</td><td>A pack sample at the note&#x27;s pitch, one-shot</td><td>4</td></tr>
 <tr><td>23</td><td>Blue</td><td>FX sequencer</td><td>Makes no sound: it triggers Master FX slots</td><td>—</td></tr>
-<tr><td>24</td><td>Violet</td><td>FM</td><td>4 operators and 16 algorithms; a variant of the oscillator (Alpha 7.08 only: 8 operators and 48 algorithms)</td><td>6, or 3 + 3 (Alpha 7.08 only: 6 a track, on the DSP&#x27;s other core)</td></tr>
+<tr><td>24</td><td>Violet</td><td>FM</td><td>4 operators and 16 algorithms; a variant of the oscillator (Alpha 7.09 only: 8 operators and 48 algorithms)</td><td>6, or 3 + 3 (Alpha 7.09 only: 6 a track, on the DSP&#x27;s other core)</td></tr>
 </tbody></table>
 <h4>Oscillator</h4>
 <p>WAVE (K7 of page 2) is a continuous position between shapes: 0 sine, 42 triangle, 84 saw, 126 square. SHAPE (K2) acts differently on each shape; between two shapes it acts on both.</p>
@@ -829,7 +829,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 </svg><figcaption>Expanded Note in sample mode: pads 1-16 the steps (bright = with a note), pads 17-32 the samples (the chosen one teal).</figcaption></figure>
 <p>C3 (note 60) is the sample as it was recorded; an octave up, twice as fast. The VCA stays open and the sample plays to its end. Samples are chosen in the expanded Note view, with a different sample per step (sample flip).</p>
 <p>K7 of page 2 is the stereo width: each note plays the chosen sample on the left and a second one on the right. Shift + the chosen sample switches to picking the second. The note lasts as long as the longer one.</p>
-<h4>Wavetable (Alpha 7.08 only)</h4>
+<h4>Wavetable (Alpha 7.09 only)</h4>
 <p>The oscillator reading a <strong>table of up to 9 frames</strong> (one per patch, for both oscillators). <strong>K3 of OSC 1 / OSC 2</strong> = the position in the table (in Beta 5.24-5.26, K7); OSC 1&#x27;s K7 = LFO → position, Shift + K3 = envelope → position; SHAPE (K4) = warp. Pick it on the engine row, <strong>pad 21</strong> (sand).</p>
 <p><strong>Making your own table:</strong></p>
 <ol>
@@ -838,9 +838,9 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <li>3. <strong>Pad 7 held + Shift + a Nova table</strong> = only that frame, taken from the same frame of that table; without Shift, the whole table.</li>
 <li>4. Repeat at other K3 positions. Every tap sounds the tonic while you hold the pad.</li>
 <li>5. It is saved with the own-synth patch and with the project.</li>
-<li>6. <em>(Alpha 7.08 only)</em> <strong>Clear + pad 7</strong> = the frame K3 points at goes back to its table&#x27;s (the Nova table it had or the starting one).</li>
+<li>6. <em>(Alpha 7.09 only)</em> <strong>Clear + pad 7</strong> = the frame K3 points at goes back to its table&#x27;s (the Nova table it had or the starting one).</li>
 </ol>
-<p>Wavetable patches show <strong>sand</strong> in the list. With the <strong>warp</strong> away from the centre, the band-limited version is chosen for the fastest part of the bent wave: almost no aliasing up high, a little duller at the ends <em>(Alpha 7.08 only)</em>.</p>
+<p>Wavetable patches show <strong>sand</strong> in the list. With the <strong>warp</strong> away from the centre, the band-limited version is chosen for the fastest part of the bent wave: almost no aliasing up high, a little duller at the ends <em>(Alpha 7.09 only)</em>.</p>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wavetable (pad 21 of the engine row): pad 27 in sand; pads 7 and 8, the two lists.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
 <circle cx="146" cy="96" r="21" fill="#26282c" stroke="#1a47ff" stroke-width="2"/>
@@ -1901,7 +1901,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <text x="522" y="452" font-size="8" fill="#7d838a">32</text>
 </svg><figcaption>Pad 8 held: the 16 starter sounds, by family.</figcaption></figure>
 <p>The starter sounds (pad 8 held): piano, electric piano, organ, pluck, harp, marimba, bass, bell, strings, pad, flute, clarinet, brass, kick, snare and hi-hat.</p>
-<h4>8-operator FM (Alpha 7.08 only)</h4>
+<h4>8-operator FM (Alpha 7.09 only)</h4>
 <p>It replaces the 4-operator FM on the same pad 24. Up to 8 operators, each with a DX7-style envelope (4 rates and 4 levels), and 56 algorithms: the 16 above, the DX7&#x27;s 32 and 8 with eight operators. 4-operator patches load converted, with the same sound.</p>
 <table><thead><tr><th>Element</th><th>What it is</th></tr></thead><tbody>
 <tr><td>FM page</td><td>Pad 7, with the engine row closed</td></tr>
@@ -2522,7 +2522,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <p>The mode, the glide time and the detune are saved with the own patch and with the project. A patch without them leaves the current values.</p>
 </section>
 <section class="feat" id="s6"><h3>Knob pages</h3>
-<p>With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type&#x27;s colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type <em>(Alpha 7.08 only)</em>: the LFO shape, the FM algorithm and the granular&#x27;s note mode go to 16. Bipolar knobs <em>(Alpha 7.08 only)</em>: dim at the centre, their colour to the right and a lighter shade of the same colour to the left; OSC 2&#x27;s K5 (FM) past the maximum, violet.</p>
+<p>With the engine on, pads 1-7 choose what the 8 knobs do, and Shift gives a second layer. Type knobs show the type&#x27;s colour, with the brightness of the position inside the type. A type knob takes at least 16 clicks a type <em>(Alpha 7.09 only)</em>: the LFO shape, the FM algorithm and the granular&#x27;s note mode go to 16. Bipolar knobs <em>(Alpha 7.09 only)</em>: dim at the centre, their colour to the right and a lighter shade of the same colour to the left; OSC 2&#x27;s K5 (FM) past the maximum, violet.</p>
 <h4>Page 1: VCA-VCF</h4>
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>Attack</td><td>Sustain</td></tr>
@@ -2546,7 +2546,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>K7</td><td>WAVE (morph); on sample, stereo width</td><td>—</td></tr>
 <tr><td>K8</td><td>LFO → morph</td><td>Envelope → morph</td></tr>
 </tbody></table>
-<p><em>Alpha 7.08 only</em> (oscillator, VA-drum, wavetable):</p>
+<p><em>Alpha 7.09 only</em> (oscillator, VA-drum, wavetable):</p>
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K1</td><td>TUNE</td><td>Envelope → pitch</td></tr>
 <tr><td>K2</td><td>FINE</td><td>LFO → pitch</td></tr>
@@ -2557,7 +2557,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>K7</td><td>LFO → morph</td><td>LFO → shape</td></tr>
 <tr><td>K8</td><td>LFO → mix</td><td>Envelope → mix</td></tr>
 </tbody></table>
-<p><em>Alpha 7.08 only</em>, with <strong>one oscillator</strong> (two oscillators off) K5, K6 and K8 have their own functions, with their own values:</p>
+<p><em>Alpha 7.09 only</em>, with <strong>one oscillator</strong> (two oscillators off) K5, K6 and K8 have their own functions, with their own values:</p>
 <table><thead><tr><th>Knob</th><th>Alone</th><th>With Shift</th></tr></thead><tbody>
 <tr><td>K5</td><td>Sub-oscillator level (a square one octave below)</td><td>Envelope → sub</td></tr>
 <tr><td>K6</td><td>Noise level</td><td>Envelope → noise</td></tr>
@@ -2620,7 +2620,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <section class="feat" id="s7"><h3>Modulation</h3>
 <p>The engine has its own ADSR and LFO, and the matrix adds eight sources that move any of 33 parameters. The matrix is added when sending: the parameter&#x27;s saved value does not change.</p>
 <h4>LFO</h4>
-<p>K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks <em>(Alpha 7.08 only; before, 4)</em>.</p>
+<p>K7 of page 1 is bipolar: right free, left synced. Shift + K8 of page 5 chooses the shape, with the LED in its colour: one step every 16 clicks <em>(Alpha 7.09 only; before, 4)</em>.</p>
 <table><thead><tr><th>Shape</th><th>Colour</th></tr></thead><tbody>
 <tr><td>Triangle, the initial one</td><td>Green</td></tr>
 <tr><td>Reverse saw</td><td>Blue</td></tr>
@@ -2641,7 +2641,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>K7</td><td>Position in the pattern, from first step to last</td><td>—</td></tr>
 <tr><td>K8</td><td>Stepped random: a new value every N steps</td><td>N = 1, 2, 4, 8 or 16</td></tr>
 </tbody></table>
-<p>With K1 (velocity) at 0, the global velocity controls of the Setup view (K1 velocity → amplitude, K2 velocity → filter) take over: soft notes quieter and darker. <em>(Alpha 7.08 only)</em></p>
+<p>With K1 (velocity) at 0, the global velocity controls of the Setup view (K1 velocity → amplitude, K2 velocity → filter) take over: soft notes quieter and darker. <em>(Alpha 7.09 only)</em></p>
 <p>The knob&#x27;s position is both the destination and the amount:</p>
 <ul>
 <li>Fully left, off.</li>
@@ -2662,14 +2662,14 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <h4>Automation</h4>
 <p>The 8 sequenceable knobs record with Record + Play into 8 lanes of the pattern. There are several per-step gestures:</p>
 <table><thead><tr><th>Gesture</th><th>View</th><th>Effect</th></tr></thead><tbody>
-<tr><td>Record held + step</td><td>Note</td><td>Snapshot: writes on that step the parameters that are not at their initial value. <em>(Alpha 7.08 only)</em> The step shows yellow while held</td></tr>
+<tr><td>Record held + step</td><td>Note</td><td>Snapshot: writes on that step the parameters that are not at their initial value. <em>(Alpha 7.09 only)</em> The step shows yellow while held</td></tr>
 <tr><td>Shift + step</td><td>Velocity</td><td>Marks the step: no lane sounds there and what was automated goes back to the synth saved with the project</td></tr>
-<tr><td>Shift + yellow step</td><td>Velocity</td><td><em>(Alpha 7.08 only)</em> Hear its values until Shift is released, with the knobs it moves in yellow</td></tr>
-<tr><td>Clear + step</td><td>Velocity</td><td><em>(Alpha 7.08 only)</em> Erases the knobs&#x27; automation on that step; the notes stay</td></tr>
-<tr><td>Yellow step held + another yellow step</td><td>Velocity, with Shift</td><td><em>(Alpha 7.08 only)</em> Sweep: every lane with a value at both steps becomes a straight line between them</td></tr>
+<tr><td>Shift + yellow step</td><td>Velocity</td><td><em>(Alpha 7.09 only)</em> Hear its values until Shift is released, with the knobs it moves in yellow</td></tr>
+<tr><td>Clear + step</td><td>Velocity</td><td><em>(Alpha 7.09 only)</em> Erases the knobs&#x27; automation on that step; the notes stay</td></tr>
+<tr><td>Yellow step held + another yellow step</td><td>Velocity, with Shift</td><td><em>(Alpha 7.09 only)</em> Sweep: every lane with a value at both steps becomes a straight line between them</td></tr>
 </tbody></table>
 <p>In the snapshot, a parameter with no lane takes one whose parameter is at its initial value, and that lane is erased first. If they do not fit, the first ones in the matrix&#x27;s order stay.</p>
-<p><em>(Alpha 7.08 only)</em> <strong>Extra lanes:</strong> every parameter of the engine that is not on the sequenceable knobs has a lane of its own (up to 25 a pattern), with <strong>two values a step</strong> (at its start and halfway). Recording, Clear + knob, the snapshot, Nudge and the steps marked with Shift work on them too; in the snapshot, a parameter that is not on the sequenceable knobs goes into its extra lane and the destinations stay. They are saved in the project&#x27;s file, after the original&#x27;s data. The destinations of the sequenceable and non-sequenceable knobs are picked with <strong>Duplicate + knob</strong>: on another page of the engine it adds, on their own page it removes.</p>
+<p><em>(Alpha 7.09 only)</em> <strong>Extra lanes:</strong> every parameter of the engine that is not on the sequenceable knobs has a lane of its own (up to 25 a pattern), with <strong>two values a step</strong> (at its start and halfway). Recording, Clear + knob, the snapshot, Nudge and the steps marked with Shift work on them too; in the snapshot, a parameter that is not on the sequenceable knobs goes into its extra lane and the destinations stay. They are saved in the project&#x27;s file, after the original&#x27;s data. The destinations of the sequenceable and non-sequenceable knobs are picked with <strong>Duplicate + knob</strong>: on another page of the engine it adds, on their own page it removes.</p>
 <h4>Step-drummer</h4>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Step-drummer: pads 1-16 the steps by pairs, pads 17-24 the destinations, K1-K8 the pairs.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -2860,20 +2860,20 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>Pad 32</td><td>Pitch-vel toggle: the pitch page transposes by degrees and the velocity page changes the velocity</td></tr>
 </tbody></table>
 <p>The toggle moves one degree of the scale every 8 knob steps, from −8 to +8 degrees. With the step-drummer on, TUNE and Release stop playing and recording as automation, because it uses their lanes.</p>
-<h4>Patch morph (Alpha 7.08 only)</h4>
+<h4>Patch morph (Alpha 7.09 only)</h4>
 <p>In the MIDI 1 / 2 Preset view with the engine on, <strong>hold two or more slots</strong> for 0.4 s: the morph view opens over the Preset view (<strong>Preset</strong> switches between the morph and the slots). <strong>K1</strong> moves from one patch to the next; K2 / K3 triangle LFO, K4 / K5 random-step LFO, K6 random per step, K7 / K8 envelope; pads 1 / 8 the envelope (held while held), pad 32 leaves. The engine&#x27;s codes and the 8-operator FM blend; type ones (engine, wave, algorithm) take the nearest patch&#x27;s. Nothing is saved.</p>
 <h4>FX sequencer</h4>
 <p>With this engine, each step-drummer knob chooses a slot of the bottom row of Master FX: none, pads 26-31 or random. A slot with no effect plays the effect at the top of its column.</p>
 <h4>Jump sequencer</h4>
-<p>The track&#x27;s notes make another track&#x27;s pattern jump to the step they indicate, on the note&#x27;s own step. <em>(Alpha 7.08 only)</em></p>
+<p>The track&#x27;s notes make another track&#x27;s pattern jump to the step they indicate, on the note&#x27;s own step. <em>(Alpha 7.09 only)</em></p>
 <table><thead><tr><th>Control</th><th>Function</th></tr></thead><tbody>
-<tr><td>Pad 26, flip view <em>(Alpha 7.08 only)</em></td><td>Row 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (no target picked: the last one used; Synth 1 from the factory); tapping the one on turns it off</td></tr>
+<tr><td>Pad 26, flip view <em>(Alpha 7.09 only)</em></td><td>Row 3: pad 17 = patch flip (PGM seq), pad 18 = step flip (no target picked: the last one used; Synth 1 from the factory); tapping the one on turns it off</td></tr>
 <tr><td>Row 2 of the flip view, with step flip</td><td>The eight tracks: a tap = the target (the track&#x27;s own dark). With the view closed, pad 26 blinks in its colour</td></tr>
 <tr><td>Note view, pads 17-32</td><td>Steps 1-16; Octave ▲, steps 17-32. The scale changes nothing</td></tr>
 <tr><td>Expanded Note, the 32 pads</td><td>Steps 1-32</td></tr>
 </tbody></table>
 <p>While it points, the track does not sound. Each note, from the sequencer, the pads or the arpeggiator, makes the other track jump. Saved with the project.</p>
-<p><em>(Alpha 7.08 only)</em> With several notes on a step, the jump goes to one of their steps at random, each with the same chance; every loop picks again.</p>
+<p><em>(Alpha 7.09 only)</em> With several notes on a step, the jump goes to one of their steps at random, each with the same chance; every loop picks again.</p>
 <p>Pad 26 blinks in the target track&#x27;s colour. Pointing turns the engine off and turning an engine on stops pointing: only one of the two at a time. When it starts pointing the track goes to steps 1-16, and Octave only moves between 1-16 and 17-32: the Octave that cannot move any further goes dark, both in the expanded Note view. With the transport stopped, a pad sounds that step of the target track while you hold it, with no jump (on the drums, with the step&#x27;s sample flip or, without one, the chosen sample).</p>
 <p>If the target and the MIDI track have the same length, one jump is only noticeable the first time: on the next passes the target is already on that step. To hear it on every pass the pattern needs two jumps: one to move it and one to bring it back.</p>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flip view (pad 26, white) with step flip to Drum 1: row 3, pad 17 patch flip (PGM seq) and pad 18 step flip in the target&#x27;s colour; row 2, the tracks (Drum 1 bright, MIDI 1 dark).">
@@ -3398,14 +3398,14 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <table><thead><tr><th>Function</th><th>Where</th><th>What it does</th></tr></thead><tbody>
 <tr><td>Probability</td><td>Probability view, row 3</td><td>The step sounds sometimes</td></tr>
 <tr><td>Frequency</td><td>Mode 1, row 4</td><td>The step sounds on the last of every n turns, 1 to 8</td></tr>
-<tr><td>Dynamics</td><td>Mode 2, pads 25-28</td><td>Accents, accents and length, or random length. <em>(Alpha 7.08 only)</em></td></tr>
-<tr><td>Random-mutate</td><td>Mode 2, pads 17-24</td><td>Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). <em>(Alpha 7.08 only)</em></td></tr>
+<tr><td>Dynamics</td><td>Mode 2, pads 25-28</td><td>Accents, accents and length, or random length. <em>(Alpha 7.09 only)</em></td></tr>
+<tr><td>Random-mutate</td><td>Mode 2, pads 17-24</td><td>Pads 18-20 another note of the scale (×1, ×2, ×4), 21 / 22 an octave up (low / high), 23 / 24 up or down (low / high). <em>(Alpha 7.09 only)</em></td></tr>
 <tr><td>Gate by press</td><td>Micro Step, pad 32</td><td>What you hold while entering a note is its length</td></tr>
 <tr><td>Fixed length</td><td>Micro Step, pad 31</td><td>All notes entered by hand with the same gate, 1 to 16 steps</td></tr>
-<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Moves the content of the range one step back; Shift, forward. The first and last steps do not move. <em>(Alpha 7.08 only)</em></td></tr>
+<tr><td>Nudge</td><td>Pattern Settings, pad 26</td><td>Moves the content of the range one step back; Shift, forward. The first and last steps do not move. <em>(Alpha 7.09 only)</em></td></tr>
 <tr><td>Fractal and deconstructed</td><td>Pattern Settings, pads 27 and 28</td><td>Another order through the pattern</td></tr>
-<tr><td>Micro steps</td><td>Mode 2, pad 32</td><td>The note moves up to 2 micro steps earlier or later, inside its step. <em>(Alpha 7.08 only)</em></td></tr>
-<tr><td>Track factor</td><td>Octave, with mode 2 open</td><td>×0 to ×8, multiplies all the track&#x27;s chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. <em>(Alpha 7.08 only)</em></td></tr>
+<tr><td>Micro steps</td><td>Mode 2, pad 32</td><td>The note moves up to 2 micro steps earlier or later, inside its step. <em>(Alpha 7.09 only)</em></td></tr>
+<tr><td>Track factor</td><td>Octave, with mode 2 open</td><td>×0 to ×8, multiplies all the track&#x27;s chances; ×1 by default. At ×8 pad 24 changes every note: the draw is still half and half. <em>(Alpha 7.09 only)</em></td></tr>
 </tbody></table>
 <figure><svg viewBox="0 0 656 490" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Random-mutate (mode 2) with a step chosen: pad 22, the dynamics (pad 26) and the micro steps (pad 32) on.">
 <rect x="0" y="0" width="656" height="490" rx="18" fill="#17181b"/>
@@ -3753,7 +3753,7 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>Chord screen</td><td>Shift + pad 8 in expanded Note</td><td>Type, inversion and modifiers; rows 3-4 play the chord, up to 6 notes</td></tr>
 <tr><td>Split keyboard</td><td>Hold one track and press another</td><td>Two tracks on the pads. Holding a track button gives its knobs</td></tr>
 <tr><td>Chord bank</td><td>Setup&#x27;s Record in yellow</td><td>Nothing is recorded on a muted track: it sounds and is recorded on the synth of the shared channel</td></tr>
-<tr><td>Note flash</td><td>Shift held, in any view</td><td><em>(Alpha 7.08 only)</em> Each track&#x27;s button flashes white for 100 ms on every note</td></tr>
+<tr><td>Note flash</td><td>Shift held, in any view</td><td><em>(Alpha 7.09 only)</em> Each track&#x27;s button flashes white for 100 ms on every note</td></tr>
 </tbody></table>
 <p>Each note of the chord goes through the voice mode: in poly it sounds up to the engine&#x27;s maximum of voices.</p>
 </section>
@@ -3782,8 +3782,8 @@ ul.gloss { padding-left:20px; } ul.gloss li { margin:6px 0; } ul.gloss .where { 
 <tr><td>LFO shape</td><td>—</td><td>Yes</td><td>Yes</td><td>—</td></tr>
 <tr><td>Sample mode stereo: distance to the second sample</td><td>—</td><td>Yes</td><td>Yes</td><td>—</td></tr>
 <tr><td>Patch flip</td><td>—</td><td>—</td><td>—</td><td>Yes</td></tr>
-<tr><td>Random-mutate factor, per track <em>(Alpha 7.08 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
-<tr><td>Track the jump sequencer points at <em>(Alpha 7.08 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
+<tr><td>Random-mutate factor, per track <em>(Alpha 7.09 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
+<tr><td>Track the jump sequencer points at <em>(Alpha 7.09 only)</em></td><td>—</td><td>Yes</td><td>—</td><td>—</td></tr>
 </tbody></table>
 <h4>What is lost at power-off</h4>
 <ul>
