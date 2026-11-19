@@ -1,6 +1,6 @@
 """tools/rc_uploader.html: a web page that takes the OFFICIAL Circuit Tracks firmware from the user, patches it in the browser and sends it (no Novation code inside).
 
-    python tools/make_rc_uploader.py [VERSION ...]          (default: A7.08 A7PROT B5.56 R416 R416S (2026-11-19: Alpha 7.08 with the alpha notice); until Alpha 7.08: A7PROT A7.04 B5.56 R416 R416S (2026-11-19: + the A7PROT prototype); until A7PROT: A7.04 B5.56 R416 R416S (2026-11-18: the last alpha, the published beta, the last RC); until Alpha 7.04: A7.01 B5.56 R411 R411S B5.51 B5.48 B5.41; until Alpha 7.01: ALPHA7 B5.56 R411 R411S B5.51 B5.48 B5.41; until 2026-11-17: B5.56 R411 R411S B5.51 B5.48 B5.41; until 2026-11-13 (Beta 5.56): B5.51 R411 R411S B5.48 B5.41; until 2026-11-12 (Beta 5.51): B5.48 R411 R411S B5.41; until 2026-11-11 (Beta 5.48): B5.41 R411 R411S; until 2026-11-09 (RC4.11): B5.40 R410 R410S B5.38; until 2026-11-08 (Beta 5.40): B5.38 R410 R410S; until 2026-11-08 (RC4.10): B5.33 R408 R408S B5.32 B5.29 B5.28 (the user, 2026-11-07: «pon antes la última beta, rc debajo»); until 2026-11-07 (Beta 5.33): R408 R408S B5.32 B5.29 B5.28; until 2026-11-07 (Beta 5.32): R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
+    python tools/make_rc_uploader.py [VERSION ...]          (default: A7.08b A7PROT B5.56 R416 R416S (2026-11-19: 7.08b = the sample steps yellow); until 7.08b: A7.08 A7PROT B5.56 R416 R416S (2026-11-19: Alpha 7.08 with the alpha notice); until Alpha 7.08: A7PROT A7.04 B5.56 R416 R416S (2026-11-19: + the A7PROT prototype); until A7PROT: A7.04 B5.56 R416 R416S (2026-11-18: the last alpha, the published beta, the last RC); until Alpha 7.04: A7.01 B5.56 R411 R411S B5.51 B5.48 B5.41; until Alpha 7.01: ALPHA7 B5.56 R411 R411S B5.51 B5.48 B5.41; until 2026-11-17: B5.56 R411 R411S B5.51 B5.48 B5.41; until 2026-11-13 (Beta 5.56): B5.51 R411 R411S B5.48 B5.41; until 2026-11-12 (Beta 5.51): B5.48 R411 R411S B5.41; until 2026-11-11 (Beta 5.48): B5.41 R411 R411S; until 2026-11-09 (RC4.11): B5.40 R410 R410S B5.38; until 2026-11-08 (Beta 5.40): B5.38 R410 R410S; until 2026-11-08 (RC4.10): B5.33 R408 R408S B5.32 B5.29 B5.28 (the user, 2026-11-07: «pon antes la última beta, rc debajo»); until 2026-11-07 (Beta 5.33): R408 R408S B5.32 B5.29 B5.28; until 2026-11-07 (Beta 5.32): R408 R408S B5.29 B5.28; until 2026-11-06 (Beta 5.29): R408 R408S B5.28; until 2026-11-06: R407 R407S B5.25 B5.16 B5.12 B5.11 B5.10 B5.9; until 2026-11-03: R407 R407S B5.11 B5.10 B5.9 R405 R405S B5.6 B5.4 R402 R402S B5.0 RC4 RC4S R211 R211S B3.41 B3.41S R210 R210S B3.37 B3.37S B3.36 B3.36S B3.35 R209 R209S R208 R208S R206 R206S R205 R205S R204 R204S R202 R202S R201 R201S RC2 RC2S RC0.9 RC0.9S; needs firmware/<dir>/*.bin and stock/*.bin of a full checkout)
 Each version becomes a patch against the official image: COPY (offset, length) from the user's official image, or ADD (our bytes).  The matching is greedy
 on 8-byte keys, so an ADD run never holds 8 or more consecutive bytes that also occur in the official image: the page carries only our own work.  The page:
   1. reads the official .syx (Components: https://components.novationmusic.com/api/v2/firmwares/168/file) or its .bin, checks its SHA-256;
@@ -366,6 +366,7 @@ DESC["ALPHA7"] = ("Alpha 7 — experimental: carriles y cadenas", "Alpha 7 — e
 DESC["A7.01"] = ("Alpha 7.01 — experimental, aviso de la caja negra", "Alpha 7.01 — experimental, black box notice")
 DESC["A7.04"] = ("Alpha 7.04 — caché, overdub, arreglos", "Alpha 7.04 — cache, overdub, fixes")
 DESC["A7.08"] = ("Alpha 7.08 — secuenciador de pasos en Master FX", "Alpha 7.08 — Master FX step sequencer")
+DESC["A7.08b"] = ("Alpha 7.08b — pasos en Master FX, sample amarillo", "Alpha 7.08b — Master FX step seq, sample yellow")
 DESC["A7PROT"] = ("A7PROT — prototipo: solo y mute flip del Mixer", "A7PROT — prototype: Mixer solo group, mute flip")
 DESC["R416"] = ("RC4.16 — versión candidata actual", "RC4.16 — current release candidate")
 DESC["R416S"] = ("RC4.16S — sin escrituras propias en la SD", "RC4.16S — no own writes to the SD card")
@@ -921,7 +922,7 @@ setLang(LANG); updateSend();
 </html>
 """
 
-OLD = ["A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
+OLD = ["A7.08", "A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
        "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"]
 
 
@@ -931,4 +932,4 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--old"]:
         main(OLD, "tools/rc_uploader_old.html")
     else:
-        main(sys.argv[1:] or ["A7.08", "A7PROT", "B5.56", "R416", "R416S"])
+        main(sys.argv[1:] or ["A7.08b", "A7PROT", "B5.56", "R416", "R416S"])

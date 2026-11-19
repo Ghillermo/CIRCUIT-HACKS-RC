@@ -40,7 +40,7 @@ Proyecto desarrollado usando Claude (Anthropic).
 > - No se han reportado fallos, pero estas versiones están en prueba y podría haber problemas que dañen proyectos o samples guardados.
 > - Si prefieres no arriesgar la tarjeta, usa la **versión más segura, [RC4.16S](firmware/r416s/PRUEBA.md)**: es RC4.16 sin ninguna función que cree, modifique o borre ficheros en la SD por su cuenta.
 > - **[B5.56](firmware/b5.56/PRUEBA.md)** es una versión beta: RC4.11 + funciones nuevas aún sin probar en el aparato. Úsala solo con una copia de la SD.
-> - **[A7.08](firmware/a7.08/PRUEBA.md)** (Alpha 7.08) es una versión experimental: la Beta 5.56 + todo lo de las Betas 5.57-5.65 (carriles de automatización extra del sinte propio, cadenas de grupos de patrones por escena, arreglos de cuelgues) + la caché de instrucciones del procesador encendida (el tempo ya no se arrastra con 6 voces de FM), overdub del sample capturado, sin fuente externa en Synth 1 / 2, menos trabajo del DSP con 4 voces FM o más, Shift + botón de pista = su página y **un secuenciador de pasos en Master FX** (mantén un pad de efecto y toca un paso; Clear + paso = silencio, Duplicate + paso = aleatorio; sustituye al secuenciador de efectos de MIDI 1 / 2); sin probar en el aparato (solo la instalación). Úsala solo con una copia de la SD. **Es posible que contenga errores. Si Save parpadea en violeta, no apagues el aparato:** conéctalo por USB, abre la [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) (vista Hacks → **Caja negra…**), pulsa **Guardar…** y mándanos el registro (adjúntalo a tu informe). Tu ayuda es necesaria para mejorar.
+> - **[A7.08b](firmware/a7.08b/PRUEBA.md)** (Alpha 7.08b) es una versión experimental: la Beta 5.56 + todo lo de las Betas 5.57-5.65 (carriles de automatización extra del sinte propio, cadenas de grupos de patrones por escena, arreglos de cuelgues) + la caché de instrucciones del procesador encendida (el tempo ya no se arrastra con 6 voces de FM), overdub del sample capturado, sin fuente externa en Synth 1 / 2, menos trabajo del DSP con 4 voces FM o más, Shift + botón de pista = su página y **un secuenciador de pasos en Master FX** (mantén un pad de efecto y toca un paso; Clear + paso = silencio, Duplicate + paso = aleatorio; sustituye al secuenciador de efectos de MIDI 1 / 2); sin probar en el aparato (solo la instalación). Úsala solo con una copia de la SD. **Es posible que contenga errores. Si Save parpadea en violeta, no apagues el aparato:** conéctalo por USB, abre la [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) (vista Hacks → **Caja negra…**), pulsa **Guardar…** y mándanos el registro (adjúntalo a tu informe). Tu ayuda es necesaria para mejorar.
 > - **[A7PROT](firmware/a7prot/PRUEBA.md)** (prototipo) = la Alpha 7.04 + menos trabajo del DSP con 4 voces FM o más, Shift + botón de pista = su página, más sitio en la flash + **otro solo en el Mixer**: el pad 16 hace el solo de siempre y, tocado solo, el **mute flip** (cada pista que mantienes cambia de mute mientras la mantienes: una silenciada suena, una que suena calla; las demás no cambian); **el pad 15 tocado = un grupo de solo** (la primera pista suena sola, las siguientes entran o salen del grupo; otra vez el pad 15 = los mutes de antes), **el pad 15 mantenido + pistas = el solo flip** (solo suenan las que mantienes, hasta soltar el pad 15). Sin probar en el aparato salvo la instalación. Úsala solo con una copia de la SD.
 > - El bootloader de Novation no se toca: **Scales + Preset + Note** al encender permite volver al firmware oficial.
 
@@ -64,7 +64,7 @@ Este repositorio contiene **solo el trabajo propio del proyecto**:
 
 1. **Descarga el firmware oficial** Circuit Tracks 1.2.1 (build 4486) de Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). Es el enlace de descarga de Novation Components; la lista completa está en `https://components.novationmusic.com/api/v2/firmwares`, producto `circuit-tracks`.
 2. **[Descarga el instalador](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), descomprímelo y abre `rc_uploader.html` en Chrome o Edge (es el mismo [`tools/rc_uploader.html`](tools/rc_uploader.html) del repositorio).
-3. **Elige el `.syx` oficial y la versión**: RC4.16, la versión más segura RC4.16S (o las anteriores), la beta B5.56, la alfa A7.08, el prototipo A7PROT, u «Oficial» para volver atrás. Las versiones anteriores (la RC anterior y su versión S, RC4.05, RC4.02, RC4, las RC2 y las betas hasta la 5.33) están en el **[instalador antiguo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), que se usa igual.
+3. **Elige el `.syx` oficial y la versión**: RC4.16, la versión más segura RC4.16S (o las anteriores), la beta B5.56, la alfa A7.08b, el prototipo A7PROT, u «Oficial» para volver atrás. Las versiones anteriores (la RC anterior y su versión S, RC4.05, RC4.02, RC4, las RC2 y las betas hasta la 5.33) están en el **[instalador antiguo](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), que se usa igual.
    - La página parchea el firmware en el navegador.
    - Comprueba que el resultado es idéntico al publicado (SHA-256).
 4. **Conecta el Circuit Tracks y pulsa Enviar.** Confirma con **Play** en el aparato.
@@ -96,7 +96,7 @@ Arriba se elige la vista:
 
 1. Consigue el firmware oficial **Circuit Tracks 1.2.1 (build 4486)** desde Novation Components, en `.syx`.
 2. `python -m pip install -r tools/requirements.txt`
-3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R416`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R416S`. La beta: `--version B5.56`; la alfa: `--version A7.08`.
+3. `python tools/patch_official.py RUTA/AL/OFICIAL.syx --version R416`. Para la versión más segura, sin escrituras propias en la SD, usa `--version R416S`. La beta: `--version B5.56`; la alfa: `--version A7.08b`.
 4. Envía `firmware/r416/circuittracks-4486-R416.syx` con `tools/ct_uploader.html` (Chrome / Edge).
 
 La herramienta comprueba que el firmware oficial es el correcto y que el resultado es idéntico, bit a bit, al publicado (SHA-256 de `firmware/<versión>/manifest.json`). Para seguir desarrollando: [`docs/LOCAL.md`](docs/LOCAL.md).
@@ -104,7 +104,7 @@ La herramienta comprueba que el firmware oficial es el correcto y que el resulta
 Circuit Tracks, Components y Novation son marcas de Focusrite Audio Engineering Ltd. Este proyecto no está afiliado a ellos.
 
 - [`LEEME.md`](LEEME.md) — base de trabajo, formato de actualización y reglas de seguridad.
-- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC4.16**; **más segura: RC4.16S** (sin escrituras propias en la SD); **beta: B5.56** (funciones nuevas sin probar); **alfa: A7.08** (experimental). Las anteriores quedan como reserva (ver el historial).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — mapa técnico, modelo de seguridad del bootloader y estado de cada parche. **Última versión: RC4.16**; **más segura: RC4.16S** (sin escrituras propias en la SD); **beta: B5.56** (funciones nuevas sin probar); **alfa: A7.08b** (experimental). Las anteriores quedan como reserva (ver el historial).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md) — límites de recursos (flash, RAM, almacenamiento, programa / datos / CPU de los dos núcleos del DSP, memoria externa): lo libre en el original, lo usado y cómo se ha optimizado.
 - `firmware/<parche>/` — `manifest.json` y `PRUEBA.md` (plan de prueba en el aparato); el `.syx` se genera con `tools/patch_official.py`.
 - `tools/` — `ct_fw.py`, builders, emuladores (Unicorn/Capstone) y `ct_uploader.html` (Web MIDI).
@@ -121,7 +121,7 @@ python tools/patch_official.py RUTA/AL/FIRMWARE_OFICIAL.syx --version R416
 ```
 - El firmware oficial es el **Circuit Tracks 1.2.1 (build 4486)** de Novation Components, en `.syx` o `.bin`; la herramienta comprueba su SHA-256.
 - Construye la versión en `firmware/<versión>/` y comprueba que el `.syx` es idéntico al publicado.
-- `--version R416S` = la versión más segura; `--version B5.56` = la beta; `--version A7.08` = la alfa; `--list` enseña todas; `--all` las construye todas.
+- `--version R416S` = la versión más segura; `--version B5.56` = la beta; `--version A7.08b` = la alfa; `--list` enseña todas; `--all` las construye todas.
 - Envía el `.syx` con `tools/ct_uploader.html` (Chrome / Edge). **Haz antes una copia de la SD.**
 
 **Desarrollo y pruebas** (emuladores del ARM y del DSP; los volcados y el emulador del DSP se descargan aparte):
@@ -165,7 +165,7 @@ Legal Notice: Code sourced by Novation is propietary. Don't install it on a devi
 > - No failures have been reported, but these versions are being tested and there could be problems that damage saved projects or samples.
 > - If you would rather not risk the card, use the **safer build, [RC4.16S](firmware/r416s/PRUEBA.md)**: RC4.16 without any feature that creates, changes or deletes files on the SD card on its own.
 > - **[B5.56](firmware/b5.56/PRUEBA.md)** is a beta: RC4.11 + new features not yet tested on the device. Use it only with a backup of the SD card.
-> - **[A7.08](firmware/a7.08/PRUEBA.md)** (Alpha 7.08) is experimental: Beta 5.56 + everything from Betas 5.57-5.65 (extra automation lanes for the own synth, pattern-group chains per scene, hang fixes) + the processor's instruction cache on (no more tempo drag with 6 FM voices), overdub on the captured sample, no external source on Synth 1 / 2, less DSP work with 4 FM voices or more, Shift + track button = its page and **a step sequencer on Master FX** (hold an effect pad and touch a step; Clear + step = silence, Duplicate + step = random; it replaces the MIDI 1 / 2 FX sequencer); untested on the device (install only). Use it only with a backup of the SD card. **It may contain bugs. If Save blinks violet, do not switch the device off:** connect it by USB, open the [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) (Hacks view → **Black box…**), press **Save…** and send us the record (add it to your report). Your help is needed to make it better.
+> - **[A7.08b](firmware/a7.08b/PRUEBA.md)** (Alpha 7.08b) is experimental: Beta 5.56 + everything from Betas 5.57-5.65 (extra automation lanes for the own synth, pattern-group chains per scene, hang fixes) + the processor's instruction cache on (no more tempo drag with 6 FM voices), overdub on the captured sample, no external source on Synth 1 / 2, less DSP work with 4 FM voices or more, Shift + track button = its page and **a step sequencer on Master FX** (hold an effect pad and touch a step; Clear + step = silence, Duplicate + step = random; it replaces the MIDI 1 / 2 FX sequencer); untested on the device (install only). Use it only with a backup of the SD card. **It may contain bugs. If Save blinks violet, do not switch the device off:** connect it by USB, open the [app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html) (Hacks view → **Black box…**), press **Save…** and send us the record (add it to your report). Your help is needed to make it better.
 > - **[A7PROT](firmware/a7prot/PRUEBA.md)** (prototype) = Alpha 7.04 + less DSP work with 4 FM voices or more, Shift + track button = its page, more room in the flash + **another solo in the Mixer**: pad 16 does the usual solo and, tapped alone, the **mute flip** (every track you hold flips its mute while held: a muted one plays, a playing one goes quiet; the rest stay); **pad 15 tapped = a solo group** (the first track plays alone, the next ones join or leave the group; pad 15 again = the mutes from before), **pad 15 held + tracks = the solo flip** (only the held ones play, until you let go of pad 15). Untested on the device beyond the install. Use it only with a backup of the SD card.
 > - Novation’s bootloader is never touched: **Scales + Preset + Note** at power-on lets you go back to the official firmware.
 
@@ -187,7 +187,7 @@ It does **not** include Novation code or binaries (neither the official firmware
 
 1. **Download the official firmware** Circuit Tracks 1.2.1 (build 4486) from Novation: [circuittracks-firmware-4486.syx](https://components.novationmusic.com/api/v2/firmwares/168/file). It is the Novation Components download link; the full list is at `https://components.novationmusic.com/api/v2/firmwares`, product `circuit-tracks`.
 2. **[Download the installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader.zip)** (`rc_uploader.zip`), unzip it and open `rc_uploader.html` in Chrome or Edge (it is the repository's [`tools/rc_uploader.html`](tools/rc_uploader.html)).
-3. **Pick the official `.syx` and the version**: RC4.16, the safer RC4.16S (or the earlier ones), the beta B5.56, the alpha A7.08, the A7PROT prototype, or “Official” to go back. The earlier versions (the previous RC and its S build, RC4.05, RC4.02, RC4, the RC2s and the betas up to 5.33) are in the **[old installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), used the same way.
+3. **Pick the official `.syx` and the version**: RC4.16, the safer RC4.16S (or the earlier ones), the beta B5.56, the alpha A7.08b, the A7PROT prototype, or “Official” to go back. The earlier versions (the previous RC and its S build, RC4.05, RC4.02, RC4, the RC2s and the betas up to 5.33) are in the **[old installer](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc_uploader_old.zip)** (`rc_uploader_old.zip`), used the same way.
    - The page patches the firmware in the browser.
    - It checks that the result is identical to the published one (SHA-256).
 4. **Connect the Circuit Tracks and press Send.** Confirm with **Play** on the device.
@@ -224,7 +224,7 @@ python tools/patch_official.py PATH/TO/OFFICIAL_FIRMWARE.syx --version R416
 ```
 - The official firmware is the **Circuit Tracks 1.2.1 (build 4486)** from Novation Components, as `.syx` or `.bin`; the tool checks its SHA-256.
 - It builds the version into `firmware/<version>/` and checks that the `.syx` is identical to the published one.
-- `--version R416S` = the safer build; `--version B5.56` = the beta; `--version A7.08` = the alpha; `--list` shows them all; `--all` builds them all.
+- `--version R416S` = the safer build; `--version B5.56` = the beta; `--version A7.08b` = the alpha; `--list` shows them all; `--all` builds them all.
 - Send the `.syx` with `tools/ct_uploader.html` (Chrome / Edge). **Back up the SD card first.**
 
 **Development and tests** (ARM and DSP emulators; the dumps and the DSP emulator are downloaded separately):
@@ -240,7 +240,7 @@ Windows without WSL, the workflow of a new patch and details: [`docs/LOCAL.en.md
 📖 [Illustrated colour manual](https://ghillermo.github.io/CIRCUIT-HACKS-RC/en.html)
 
 - [`LEEME.md`](LEEME.md) — update format and bootloader safety (Spanish and English).
-- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC4.16**; **safer: RC4.16S**; **beta: B5.56** (new features not yet tested); **alpha: A7.08** (experimental).
+- [`docs/NOTAS.md`](docs/NOTAS.md) — technical map, bootloader safety model and status of every patch (Spanish). **Latest version: RC4.16**; **safer: RC4.16S**; **beta: B5.56** (new features not yet tested); **alpha: A7.08b** (experimental).
 - [`docs/RECURSOS.md`](docs/RECURSOS.md#resources) — resource limits (flash, RAM, storage, program / data / CPU of both DSP cores, external memory): what the original left free, what is used and how it was optimised.
 - `firmware/<version>/` — `manifest.json` and `PRUEBA.md` (test plan on the device, Spanish).
 - `tools/` — `ct_fw.py`, builders, emulators (Unicorn / Capstone), `ct_uploader.html` and `rc_uploader.html` (Web MIDI).

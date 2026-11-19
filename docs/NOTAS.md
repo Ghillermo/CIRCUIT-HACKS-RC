@@ -143,6 +143,10 @@ Analizado el 2026-10-03. Firmware de referencia: **1.2.1 build 4486** (la últim
 
 ## Parches
 
+### Alpha 7.08b (2026-11-19): los pasos del sample en amarillo — publicada
+
+= Alpha 7.08 + `fxstep.use_smpcol()` (el usuario, en el aparato: «Los pasos con sampler no se pintan de amarillo»): `c_fqled` copiaba el LED del primer pad del paso del búfer, pero el del pad 7 lo escribe el código del sample después en el mismo fotograma (en emulación, `0x00`); ahora un paso cuyo primer pad es el sample = `SMP_ON` (`0x2D`). Marca `A7.08b`: una reconstrucción como «A7.08» no se instalaría sobre la 7.08 publicada. Prueba `emu_fxstep.py`.
+
 ### Alpha 7.08 (2026-11-19): secuenciador de pasos en Master FX — sin probar, sin publicar
 
 = Alpha 7.07 + `tools/fxstep.py` (el usuario, 2026-11-19: «FX sequencer change. The current FX sequencer is discarded. Instead, we make a new step sequencer on the Master FX view» → «All, including sample», «Add», «With the project»). El prototipo A7PROT queda aparte (no está aquí).

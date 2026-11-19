@@ -738,6 +738,7 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 
 **Alpha 7.08** (marca `A7.08`) = la Alpha 7.04 + estos arreglos (los de las Alphas 7.05 / 7.06, sin publicar) y 1,2 KB más de flash libre (Alpha 7.07, sin cambios de uso).
 
+- **Alpha 7.08b: los pasos con el sample (pad 7) del secuenciador de pasos se ven en amarillo** (en la 7.08 salían apagados). La marca es `A7.08b` para que se instale encima de la 7.08. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#master-fx)
 - **Menos trabajo del DSP con 4 voces o más del FM de 8 operadores:** cada voz se envía al DSP cada 4 ms (antes, cada ms): un 30 % menos de trabajo del FM. → [Guía: FM de 8 operadores](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-fm8)
 - **Carriles extra de MIDI 1 / 2:** lo que hacen en segundo plano (guardar, cargar, rellenar, volver al patrón guardado) usa su propia ventana de la memoria del DSP; antes podía cruzarse con la del bucle principal y leer o escribir datos de la otra. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
 - **Shift + Synth 1 / 2 / MIDI 1 / 2 con su página ya en pantalla** vuelve a su vista Note (antes la página se quedaba). → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones)
@@ -1884,6 +1885,7 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 **Alpha 7.08** (marker `A7.08`) = Alpha 7.04 + these fixes (those of Alphas 7.05 / 7.06, unreleased) and 1.2 KB more free flash (Alpha 7.07, no change in use).
 
+- **Alpha 7.08b: the step sequencer's steps with the sample (pad 7) light yellow** (in 7.08 they stayed dark). The marker is `A7.08b` so that it installs over 7.08. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#master-fx)
 - **Less DSP work with 4 or more voices of the 8-operator FM:** each voice goes to the DSP every 4 ms (before, every ms): 30 % less FM work. → [Guide: 8-operator FM](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-fm8)
 - **MIDI 1 / 2 extra lanes:** their background work (save, load, fill, back to the saved pattern) uses its own window of the DSP memory; before, it could cross the main loop's and read or write the other's data. → [Guide: MIDI 1 / 2 engine knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
 - **Shift + Synth 1 / 2 / MIDI 1 / 2 with its page already on screen** goes back to its Note view (before, the page stayed). → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones)

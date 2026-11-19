@@ -64,6 +64,9 @@ def main(img, man):
     check(h1 == 12 and h2 == 0 and mask(11) == 0, f"a step pad alone: the song pointer's held step ({h1}, then {h2})")
     # ---- LEDs
     f = e.frame()
+    if man.get("marker") != "A7.08":                                   # (use_smpcol) the sample's step in its yellow
+        check(f[8 + 0] & 0xFF == S.SMP_ON, f"LEDs: step 1 (the sample) yellow ({f[8]:#x})")
+    else: print(f"info: step 1 (the sample) = {f[8]:#x} (7.08: pad 7's LED is drawn later)")
     check(f[8 + 13] & 0xFF == F.COL_RAND, f"LEDs: random step 14 violet ({f[21]:#x})")
     check(f[8 + 2] == f[0] and f[8 + 9] & 0xFF == F.COL_MUTE and f[8 + 4] == f[25], f"LEDs: step 3 = pad 1's ({f[10]:#x} / {f[0]:#x}), step 10 red ({f[17]:#x}), step 5 = pad 26's ({f[12]:#x})")
     # ---- playing

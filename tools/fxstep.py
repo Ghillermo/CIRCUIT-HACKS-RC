@@ -54,6 +54,15 @@ COL_RAND = 0x49                                    # violet
 RND_A, RND_C = 1664525, 1013904223
 SMP_START = 0x10                                   # S_JF: the pending command 1 = start
 MODESEL_CMP = bytes.fromhex("1e2d")                # modesel's `cmp r5, #30` (PAD_FXS) in c_mspad
+SMPCOL = False                                     # Alpha 7.08b (use_smpcol)
+
+
+def use_smpcol():
+    """Alpha 7.08b (the user, 2026-11-19, on the device: «Los pasos con sampler no se pintan de amarillo»): a step whose first pad is the
+    sample (pad 7) took pad 7's LED from the buffer, which the sampler's LED code writes later in the frame: dark.  Now it is the sample's
+    yellow (build_sc17.SMP_ON)."""
+    global SMPCOL
+    SMPCOL = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -200,7 +209,10 @@ def arm_code(base, L, prev):
     E(movs_imm, 3, TOPMASK); E(tst_reg, 1, 3); E(b_cond, "ld_t", "ne")
     E(lsrs_imm, 1, 1, 8); E(movs_imm, 2, BOT0)
     a.label("ld_t"); E(lsrs_imm, 3, 1, 1); E(b_cond, "ld_f", "cs"); E(mov_reg, 1, 3); E(adds_imm8, 2, 1); E(b, "ld_t")
-    a.label("ld_f"); E(lsls_imm, 2, 2, 1); E(raw, ldrh_reg(0, 4, 2))      # its own LED
+    a.label("ld_f")
+    if SMPCOL:                                                            # the sample (pad 7): its LED is drawn after this one: its yellow
+        E(movs_imm, 0, S.SMP_ON); E(cmp_imm, 2, 6); E(b_cond, "ld_w", "eq")
+    E(lsls_imm, 2, 2, 1); E(raw, ldrh_reg(0, 4, 2))                      # its own LED
     a.label("ld_w"); E(lsls_imm, 2, 7, 1); E(adds_imm8, 2, 16); E(raw, strh_reg(0, 4, 2))
     a.label("ld_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 16); E(b_cond, "ld_l", "lo")
     E(pop_list, [4, 5, 6, 7], pc=True)

@@ -526,6 +526,7 @@ BUILDS = [
     ("a7.07", "build_a7_07.py", []),
     ("a7prot", "build_a7prot.py", []),
     ("a7.08", "build_a7_08.py", []),
+    ("a7.08b", "build_a7_08b.py", []),
     ("r417", "build_r417.py", []),
     ("r417s", "build_r417s.py", []),
     ("r408", "build_r408.py", []),
