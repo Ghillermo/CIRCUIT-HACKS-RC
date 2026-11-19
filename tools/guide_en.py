@@ -48,7 +48,7 @@ VIEWS = {
 | **Shift + Play** | all | {B} **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
 | **Shift + Scales** | all | Custom scale editor {B} (2.2). {XB}: also **Scales twice**. |
 | **Velocity twice** {XB} | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
-| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. {YB} With that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
+| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. Since RC4.17, with that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
 | **Mixer twice** | all | Master FX (6.1). {YB} In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
 

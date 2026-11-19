@@ -740,6 +740,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.17 / RC4.17S — 2026-11-19
+
+**RC4.17 / RC4.17S** (marcas `R417` / `R417S`) = RC4.16 / RC4.16S + este arreglo (en las alfas desde la 7.06, probado en el aparato).
+
+- **Salir de la página de una pista:** con la página de Synth 1 / 2 (la vista de la fuente) o de MIDI 1 / 2 (su vista Preset) en pantalla, **Shift + el mismo botón** vuelve a su vista Note; antes volvía a abrir la página. Shift + otro botón de pista sigue abriendo la página de esa pista. → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#botones)
+
 ### Alpha 7.08 — 2026-11-19
 
 **Alpha 7.08** (marca `A7.08`) = la Alpha 7.04 + estos arreglos (los de las Alphas 7.05 / 7.06, sin publicar) y 1,2 KB más de flash libre (Alpha 7.07, sin cambios de uso).
@@ -1892,6 +1898,12 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.17 / RC4.17S — 2026-11-19
+
+**RC4.17 / RC4.17S** (markers `R417` / `R417S`) = RC4.16 / RC4.16S + this fix (in the alphas since 7.06, tested on the device).
+
+- **Leaving a track's page:** with the page of Synth 1 / 2 (the source view) or of MIDI 1 / 2 (its Preset view) on screen, **Shift + the same button** goes back to its Note view; before, it opened the page again. Shift + another track button still opens that track's page. → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#botones)
 
 ### Alpha 7.08 — 2026-11-19
 
