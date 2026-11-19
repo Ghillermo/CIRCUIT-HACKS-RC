@@ -837,6 +837,18 @@ def use_fxseqrand():
 
 
 FSQMUTE = False                                   # SC57.9 / Beta 5.64 (see use_fsqmute)
+NOFSQ = False                                     # Alpha 7.08 (see use_nofsq)
+
+
+def use_nofsq():
+    """Alpha 7.08 (the user, 2026-11-19: the FX sequencer discarded for fxstep's step sequencer on the Master FX view; «Yes» to its cleanup): the
+    old sequencer's code left out: c_fsq / c_fsqbits (the hook stays build_sc17's stub until fxstep's b.w), the selector knob and its LEDs, the
+    empty pair's base, and the engine cycle skips it (the sample -> off).  A project that still holds the old state: the voice off as before."""
+    global NOFSQ
+    NOFSQ = True
+    import build_sc17, modesel
+    build_sc17.NOFSQ = True; modesel.NOFSQ = True
+
 COL_MUTE = 0x53                                   # the mute value's LED: red
 
 
@@ -2046,7 +2058,7 @@ def gran_routines(a, tail, bc, t_gr, t_st=None):
         a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdbit"); a.emit(pop_list, [4], pc=True)
         a.label("ge_0"); a.emit(movs_imm, 0, 0); a.emit(pop_list, [4], pc=True)
 
-    if FXSEQ:
+    if FXSEQ and not NOFSQ:
         a.label("c_fsq")                                                          # r0 = track -> r0 = 1 in the FX sequencer state (mode on, oscillator source off, VA-drum bit); clobbers r1-r3
         a.emit(push_list, [4], lr=True)
         a.emit(mov_reg, 4, 0); a.emit(bl, "c_von"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "fq_0", "eq")
@@ -2356,7 +2368,7 @@ def sd_routines(a, L, tail, bc, t_sd):
         a.label("c_sdbase")                                                           # r0 = track -> r0 = what a pair with no pitch value shows / starts from: the centre for a MIDI track, the present position of the macro for a synth
         if TRIMSD:                                                                    # (use_trimsd) the head only: sdpv writes b.w c_pvbase over it
             E(cmp_imm, 0, 2); E(raw, h(0xD2FF))                                           # cmp r0, #2; bhs (the bytes sdpv checks)
-        elif FXSEQ:                                                                     # (the FX sequencer: 0 = no effect)
+        elif FXSEQ and not NOFSQ:                                                       # (the FX sequencer: 0 = no effect)
             E(cmp_imm, 0, 2); E(b_cond, "ba_s", "hs")
             E(push_list, [4], lr=True); E(bl, "c_fsq"); E(movs_imm, 1, 64); E(cmp_imm, 0, 0); E(b_cond, "ba_f", "eq"); E(movs_imm, 1, 0)
             a.label("ba_f"); E(mov_reg, 0, 1); E(pop_list, [4], pc=True)
@@ -2584,7 +2596,7 @@ def sd_routines(a, L, tail, bc, t_sd):
     else:
         E(ldrb_imm, 0, 7, 0); E(cmp_imm, 0, 127); E(b_cond, "kn_a", "ls"); E(movs_imm, 0, 64)
     a.label("kn_a")
-    if FXSEQ3:                                                                    # the FX sequencer: the position 0..FSQ_MAX of the pair (an empty pair = 0) + delta
+    if FXSEQ3 and not NOFSQ:                                                      # the FX sequencer: the position 0..FSQ_MAX of the pair (an empty pair = 0) + delta
         if SDKFIX: E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_fsq"); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "kn_nf", "eq")
         else: E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kn_nf", "eq")
         E(ldrb_imm, 0, 7, 0); E(cmp_imm, 0, FSQ_MAX); E(b_cond, "kn_f0", "ls"); E(movs_imm, 0, 0)
@@ -2603,7 +2615,7 @@ def sd_routines(a, L, tail, bc, t_sd):
             E(pop_list, [0])
         E(adds_reg, 0, 0, 6); clamp(0, 0, FSQ_MAX, 1, "kn_fc"); E(b, "kn_st")
         a.label("kn_nf")
-    elif FXSEQ2:                                                                  # the FX sequencer: one value per turn, 0..6
+    elif FXSEQ2 and not NOFSQ:                                                    # the FX sequencer: one value per turn, 0..6
         E(push_list, [0]); E(mov_reg, 0, 4); E(bl, "c_fsq"); E(mov_reg, 1, 0); E(pop_list, [0]); E(cmp_imm, 1, 0); E(b_cond, "kn_nf", "eq")
         E(cmp_imm, 6, 0); E(b_cond, "kn_fs", "eq"); E(b_cond, "kn_fp", "gt"); E(subs_imm8, 0, 1); E(b, "kn_fs")
         a.label("kn_fp"); E(adds_imm8, 0, 1)
@@ -2883,7 +2895,7 @@ def sd_routines(a, L, tail, bc, t_sd):
         E(mov_reg, 0, 8); E(cmp_imm, 0, 0); E(b_cond, "kl_v", "ne")
         E(mov_reg, 0, 4); E(bl, "c_sdpat"); E(mov_reg, 1, 7); E(bl, "c_sdlna"); E(mov_reg, 7, 0)
         E(mov_reg, 0, 4); E(bl, "c_sdlofs"); E(adds_reg, 7, 7, 0); E(ldrb_imm, 7, 7, 0)
-        if FXSEQ3:                                                                # the FX sequencer: the colour of the slot of the nearest value, full brightness (0 / empty = dark)
+        if FXSEQ3 and not NOFSQ:                                                  # the FX sequencer: the colour of the slot of the nearest value, full brightness (0 / empty = dark)
             E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kl_nf", "eq")
             E(movs_imm, 0, 0); E(cmp_imm, 7, FSQ_MAX); E(b_cond, "kl_s", "hi"); E(adds_imm8, 7, FSQ_U // 2); E(lsrs_imm, 7, 7, FSQ_U.bit_length() - 1)
             E(cmp_imm, 7, 0); E(b_cond, "kl_s", "eq")
@@ -2896,7 +2908,7 @@ def sd_routines(a, L, tail, bc, t_sd):
             a.label("kl_nf")
         E(cmp_imm, 7, 127); E(b_cond, "kl_p", "ls"); E(mov_reg, 0, 4); E(bl, "c_sdbase"); E(mov_reg, 7, 0)
         a.label("kl_p")
-        if FXSEQ2 and not FXSEQ3:                                                                # the FX sequencer: the colour of the slot, full brightness (0 = dark)
+        if FXSEQ2 and not FXSEQ3 and not NOFSQ:                                                  # the FX sequencer: the colour of the slot, full brightness (0 = dark)
             E(mov_reg, 0, 4); E(bl, "c_fsq"); E(cmp_imm, 0, 0); E(b_cond, "kl_nf", "eq")
             E(movs_imm, 0, 0); E(cmp_imm, 7, 0); E(b_cond, "kl_s", "eq"); E(cmp_imm, 7, 6); E(b_cond, "kl_s", "hi")
             E(subs_imm8, 7, 1); E(mov_reg, 0, 7); E(bl, L["c_slotcol"]); E(movs_imm, 7, 127); E(b, "kl_w")
@@ -3752,10 +3764,13 @@ def arm_code(base, L):
         if SAMPLER:                                                               # the sample (the velocity bit, no oscillator) -> the FX sequencer
             a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); bc("tr_nsm", "eq")
             a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")
-            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput")
-            a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vset")
-            a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdnib"); a.emit(movs_imm, 1, 1); a.emit(orrs_reg, 1, 0); a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdsetnib")
-            a.emit(b_w, "tr_sv")
+            if NOFSQ:                                                             # (NOFSQ) the sample -> off
+                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vset"); a.emit(b, "tr_pg")
+            else:
+                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput")
+                a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vset")
+                a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdnib"); a.emit(movs_imm, 1, 1); a.emit(orrs_reg, 1, 0); a.emit(mov_reg, 0, 6); a.emit(bl, "c_sdsetnib")
+                a.emit(b_w, "tr_sv")
             a.label("tr_nsm")
         if FXSEQ:                                                                 # mode on, no oscillator: line in, or the FX sequencer (VA-drum bit) -> off
             a.emit(mov_reg, 0, 6); a.emit(bl, "c_vdbit"); a.emit(cmp_imm, 0, 0); bc("tr_ln", "eq")
@@ -3778,7 +3793,7 @@ def arm_code(base, L):
                 a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc"); a.emit(b, "tr_sv")
             if not (TRIMPAD and SAMPLER):
                 a.emit(mov_reg, 0, 6); a.emit(adds_imm8, 0, 2); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vdput")
-                if FXSEQ:                                                             # granular -> the FX sequencer: oscillator off, VA-drum bit, the step-drummer enabled
+                if FXSEQ and not NOFSQ:                                               # granular -> the FX sequencer: oscillator off, VA-drum bit, the step-drummer enabled
                     a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vdput")
                     a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_vsetosc")
                     a.emit(mov_reg, 0, 6); a.emit(movs_imm, 1, 1); a.emit(bl, "c_vset")
@@ -4251,7 +4266,7 @@ def install(img, report, base_addr, text):
         L["stk_mid"] = bytes(img[STK_MIDIIN - BASE:STK_MIDIIN - BASE + 4])
     code, labels = arm_code(base_addr, L)
     img += bytes([0xFF]) * (base_addr - BASE - len(img)) + code
-    if FXSEQ:                                                                     # build_sc17's c_fxsq (movs r0, #0; bx lr) -> b.w c_fsqbits
+    if FXSEQ and not NOFSQ:                                                       # build_sc17's c_fxsq (movs r0, #0; bx lr) -> b.w c_fsqbits
         fx = int(report["sc17"]["labels"]["c_fxsq"], 16)
         assert bytes(img[fx - BASE:fx - BASE + 4]) == bytes([0x00, 0x20, 0x70, 0x47]), bytes(img[fx - BASE:fx - BASE + 4]).hex()
         img[fx - BASE:fx - BASE + 4] = b_w(fx, labels["c_fsqbits"])

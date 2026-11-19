@@ -52,6 +52,7 @@ ROW2 = False                              # SC51.8 (use_row2)
 ROWMODE = (0, 1, 2, 3, 0xFF, 5, 4)        # (ROW2) pads 17-23: no voice, VCA / VCF / FX only, oscillator, VA-drum, wavetable (none yet), sample, granular
 PAD_FXS = 30                              # (ROW2) pad 31: the FX sequencer, with no voice
 COL_FXS = (0x09, 0x0F)
+NOFSQ = False                             # Alpha 7.08 (vcf21.use_nofsq): pad 31 is no longer the FX sequencer: its code left out
 
 
 def use_row2():
@@ -112,7 +113,7 @@ def arm_code(base, L, prev):
     E(mov_reg, 5, 1)
     E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("sp_prev", "hi"); E(mov_reg, 4, 0)            # r4 = the track
     imm32(6, RAM); E(ldrb_imm, 7, 6, 0)                                                      # r7 = the open track + 1
-    if ROW2:                                                                                  # pad 31 with no voice: the FX sequencer on / off
+    if ROW2 and not NOFSQ:                                                                    # pad 31 with no voice: the FX sequencer on / off
         E(cmp_imm, 5, PAD_FXS); E(b_cond, "sp_nf", "ne")
         E(bl, "c_msheld"); E(cmp_imm, 0, 0); bc("sp_prev", "ne")
         E(mov_reg, 0, 4); E(bl, "c_msmode"); E(movs_imm, 5, 6); E(cmp_imm, 0, 0); E(b_cond, "sp_go", "eq")
@@ -144,7 +145,7 @@ def arm_code(base, L, prev):
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(bl, prev["leds"]); E(mov_reg, 5, 0)
     E(mov_reg, 0, 4); E(bl, L["c_mpon"]); E(cmp_imm, 0, 1); bc("ml_x", "hi"); E(mov_reg, 4, 0)
-    if ROW2:                                                                                  # pad 31: dim blue with no voice, bright = the FX sequencer
+    if ROW2 and not NOFSQ:                                                                    # pad 31: dim blue with no voice, bright = the FX sequencer
         E(bl, "c_msmode"); E(movs_imm, 1, COL_FXS[1]); E(cmp_imm, 0, 0); E(b_cond, "ml_fw", "eq")
         E(movs_imm, 1, COL_FXS[0]); E(cmp_imm, 0, 6); E(b_cond, "ml_fn", "ne")
         a.label("ml_fw"); E(movs_imm, 0, 2 * PAD_FXS); E(strh_reg, 1, 5, 0)

@@ -319,7 +319,7 @@ def arm_code(base, L, prev):
     E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
     E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
     E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("kn_o", "eq")
-    E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kn_o", "ne")              # the FX sequencer: as it was
+    if not V.NOFSQ: E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kn_o", "ne")              # the FX sequencer: as it was
     E(mov_reg, 0, 4); E(bl, "c_pvget"); E(mov_reg, 7, 0)
     E(movs_imm, 1, F_D2); E(tst_reg, 0, 1); bc("kn_v", "eq")
     E(mov_reg, 0, 4); E(bl, L["c_sdconv"])
@@ -343,7 +343,7 @@ def arm_code(base, L, prev):
     E(cmp_imm, 1, 16); bc("pp_o", "lo")
     E(mov_reg, 4, 0); E(mov_reg, 5, 1)
     E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("pp_o", "eq")
-    E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("pp_o", "ne")
+    if not V.NOFSQ: E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("pp_o", "ne")
     E(mov_reg, 0, 4); E(bl, "c_pvmark2")                                              # the old destination goes plain
     E(mov_reg, 0, 4); E(bl, "c_pvget"); E(mov_reg, 6, 0)
     E(subs_imm8, 5, 16)
@@ -365,7 +365,7 @@ def arm_code(base, L, prev):
     E(bl, "c_pvkl_t")
     E(ldr_sp, 4, 0); E(ldr_sp, 5, 4)
     E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("kl_p1" if V3 else "kl_x", "eq")
-    E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
+    if not V.NOFSQ: E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
     E(mov_reg, 0, 4); E(bl, "c_pvon"); E(cmp_imm, 0, 0); bc("kl_x", "ne")
     E(movs_imm, 6, 0)
     a.label("kl_l")
@@ -386,7 +386,7 @@ def arm_code(base, L, prev):
         E(b, "kl_x")
         a.label("kl_p1")
         E(cmp_imm, 4, 2); bc("kl_x", "hs")
-        E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
+        if not V.NOFSQ: E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("kl_x", "ne")
         E(mov_reg, 0, 4); E(bl, L["c_sdbase"]); E(mov_reg, 7, 0)
         E(movs_imm, 6, 0)
         a.label("k1_l")
@@ -436,7 +436,7 @@ def arm_code(base, L, prev):
     E(bl, "c_pvblk"); E(cmp_imm, 0, 0); E(b_cond, "ls_f", "eq"); E(movs_imm, 1, 1); E(strb_imm, 1, 0, B_LED)
     a.label("ls_f")
     E(movs_imm, 0, V.F_SDPAGE); E(bl, L["c_sdflag"]); E(cmp_imm, 0, 0); bc("ls_x", "eq")
-    E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("ls_x", "ne")
+    if not V.NOFSQ: E(mov_reg, 0, 4); E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); bc("ls_x", "ne")
     E(mov_reg, 0, 4); E(bl, "c_pvd2"); E(mov_reg, 6, 0)
     E(movs_imm, 4, 0)
     a.label("ls_d")
@@ -547,7 +547,7 @@ def arm_code(base, L, prev):
         a.label("pb_m")
         if V3:                                                                        # (V3) MIDI: the FX sequencer 0, else the destination's point
             E(push_list, [4], lr=True); E(mov_reg, 4, 0)
-            E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); E(b_cond, "pb_z", "ne")
+            if not V.NOFSQ: E(bl, L["c_fsq"]); E(cmp_imm, 0, 0); E(b_cond, "pb_z", "ne")
             E(mov_reg, 0, 4); E(bl, L["c_sdnib"]); E(lsrs_imm, 0, 0, 1); E(movs_imm, 1, 7); E(ands_reg, 0, 1); E(bl, "c_pvbip"); E(pop_list, [4], pc=True)
             a.label("pb_z"); E(movs_imm, 0, 0); E(pop_list, [4], pc=True)
             # ---- c_pvoff1(r0 = a MIDI track) -> r0 = the offset of page 1 at the step that counts: value - the point (none = 0); clobbers r1-r3
@@ -569,7 +569,7 @@ def install(img, report, base_addr):
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     vl = report["vcf20"]["labels"]
     L = {k: int(vl[k], 16) for k in ("c_sdscr", "c_sdflag", "c_sden", "c_sdnib", "c_sdpat", "c_sdlna", "c_sdlofs", "c_sdhalf", "c_sdconv", "c_sdpos",
-                                       "c_sdoff", "c_vmark", "c_sdcur", "c_vvaddr", "c_von", "c_edact", "c_fsq", "c_sdbase", *HEADS)}
+                                       "c_sdoff", "c_vmark", "c_sdcur", "c_vvaddr", "c_von", "c_edact", "c_fsq", "c_sdbase", *HEADS) if k in vl or k != "c_fsq"}
     L.update(c_gfst=int(report["sc17"]["labels"]["c_gfst"], 16), c_csget=int(report["cscale"]["labels"]["c_csget"], 16),
              c_artrk=int(report["arp"]["labels"]["c_artrk"], 16))
     from fxdiag import bl_target

@@ -349,7 +349,10 @@ def main(img, man):
     e.btn(8); f = frames(1)
     check(st(M.O_SHOW) == 1 and f[31] == M.RED, "Preset again: the morph view")
     sh = e.r32(MGR + 0xC); e.set_p0(sh, 1); e.btn(2); e.set_p0(sh, 0); f = frames(1)
-    check(st(M.O_SHOW) == 1 and f[31] == M.RED and e.r8(MGR + 0x152) == 18, f"Shift + MIDI 1 in the morph view (dblpress: the track twice): the morph view ({e.r8(MGR + 0x152)}, {st(M.O_SHOW)})")
+    if "dbtoggle" in man["report"]:                                            # (Alpha 7.06: Shift + the track on its page = a plain press of it)
+        check(e.r8(MGR + 0x152) == 19, f"Shift + MIDI 1 in the morph view (dbtoggle: a plain press of the track): its Note view ({e.r8(MGR + 0x152)}, {st(M.O_SHOW)})")
+    else:
+        check(st(M.O_SHOW) == 1 and f[31] == M.RED and e.r8(MGR + 0x152) == 18, f"Shift + MIDI 1 in the morph view (dblpress: the track twice): the morph view ({e.r8(MGR + 0x152)}, {st(M.O_SHOW)})")
     e.btn(14)
     import os
     if os.environ.get("MZDBG"):

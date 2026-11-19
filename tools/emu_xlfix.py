@@ -56,6 +56,9 @@ def main(img, man):
         if cp["n2"] in cp["fail2"]: uc.reg_write(UC_ARM_REG_R0, 1); back(uc, a, s_, d)
     e.uc.hook_add(UC_HOOK_CODE, h_copy, begin=pk["c_copy"] & ~1, end=pk["c_copy"] & ~1)
     e.uc.hook_add(UC_HOOK_CODE, h_copy2, begin=pk["c_copy2"] & ~1, end=pk["c_copy2"] & ~1)
+    if "xlwin" in R:                                               # (Alpha 7.06: the LED task's c_copy calls go to xlwin's c_xcw2, which runs into c_copy2)
+        xw = int(R["xlwin"]["labels"]["c_xcw2"], 16) & ~1
+        e.uc.hook_add(UC_HOOK_CODE, h_copy, begin=xw, end=xw)
     def reset_cp(): cp.update(n=0, fail=set(), at=None, seen=None, n2=0, fail2=set(), via=False)
     st = lambda: bytes(e.uc.mem_read(XL.XLR, XL.ST_LEN))
     bmap = lambda: struct.unpack_from("<H", st(), XL.O_MAP)[0]

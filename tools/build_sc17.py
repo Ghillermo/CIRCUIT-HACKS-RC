@@ -435,6 +435,7 @@ def use_armplay():
 LEDBUF = False                            # SC41.1 (see use_ledbuf)
 LEDBUF_OFF = 0x27024 + 192                # the session record's tail + 192 (tools/patchain.py: 0..127 its parts, tools/fxsess.py: 128..154)
 FSQRAND = False                           # SC41.1 (see use_fxseqrand)
+NOFSQ = False                             # Alpha 7.08: the old FX sequencer gone (vcf21.use_nofsq): its random slot is never asked for
 
 
 def use_ledbuf():
@@ -1280,7 +1281,7 @@ def glitch_code(a, L, bc, zjmp):
         a.label("c_fsqfx")                                                     # r4 = the block -> r0 = effect bits (0-5) | the Glitch (bit 6) of the slots the FX sequencer wants
         a.emit(push_list, [5, 6, 7], lr=True)
         a.emit(bl, "c_fxsq"); a.emit(mov_reg, 5, 0)
-        if FSQRAND:                                                            # bit 6 = random: one of the slots that play something, by the seed in bits 8-15
+        if FSQRAND and not NOFSQ:                                              # bit 6 = random: one of the slots that play something, by the seed in bits 8-15
             a.emit(movs_imm, 0, 0x40); a.emit(tst_reg, 5, 0); bc("fr_x", "eq"); a.emit(bics_reg, 5, 0)
             a.emit(movs_imm, 6, 0); a.emit(movs_imm, 7, 0)
             a.label("fr_l")

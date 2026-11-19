@@ -284,7 +284,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 
 **Guion**
 
-1. **Abrirla.** *Muestra:* la vista de Synth 1; pulsa Synth 1 otra vez (o Shift + Synth 1 desde cualquier vista). *Di:* «Pulsa dos veces el botón de un sinte y estás en su vista de la fuente. Cualquier botón la cierra.»
+1. **Abrirla.** *Muestra:* la vista de Synth 1; pulsa Synth 1 otra vez (o Shift + Synth 1 desde cualquier vista). *Di:* «Pulsa dos veces el botón de un sinte y estás en su vista de la fuente. Cualquier botón la cierra.» [Alpha, sin publicar: Shift + Synth 1 otra vez también la cierra, a la vista Note.]
 2. **La entrada de audio como ruido.** *Muestra:* el pad 26; toca notas: la entrada, con gate y filtrada. *Di:* «Los pads 25 a 29 sustituyen el ruido del patch: el 25 es el propio ruido; el 26 y el 27, las dos entradas de audio; y el 28 y el 29, las mismas entradas invertidas. Ahora el filtro, las envolventes y los efectos del sinte moldean tu señal externa, al ritmo de las notas.»
 3. **La pega.** *Muestra:* el macro de nivel de ruido a cero: silencio; arriba: suena. *Di:* «Para que esto se oiga, el patch necesita algo de nivel de ruido. La elección se guarda con el proyecto. Si en Setup los retornos de reverb o de delay van por las tiras 3 y 4, eso es lo que le llega aquí al sinte.»
 4. **Destinos de los macros.** *Muestra:* el pad 32 (verde azulado); gira el macro K1 (LED blanco); Octave ▼ por los campos; los pads dibujando números. *Di:* «El pad 32 abre el editor de macros. Gira un knob para elegir su macro: el primer giro no cambia nada. Cada macro tiene cuatro ranuras, y cada ranura tiene un destino, un inicio, un fin y una profundidad. Octave te mueve entre los campos: ranura, inicio, fin, destino y profundidad. Los pads dibujan el número.»
@@ -908,6 +908,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 
 6. **Retrigger y bucles.** *Muestra:* mantén uno de los pads 9-24; mantén dos; Shift + dos (el pad 9 en blanco). *Di:* «Los pads 9 a 24 son los pasos 1 a 16 del patrón. Mantén uno: el patrón vuelve a empezar desde ese paso. Mantén dos: hace un bucle entre ellos hasta que los sueltes. Shift más dos: el bucle se queda; el pad 9 se pone blanco y, al tocarlo, se quita el bucle.»
 7. **Modo frase.** *Muestra:* Shift + paso 5; toca el paso 8; Shift + pad 9 para salir. *Di:* «Shift más un paso entra en el modo frase con ese inicio; a partir de ahí, cada toque marca el final, sin volver a empezar. Shift más el inicio, o el pad 9, sale.»
+8. **[Alpha, sin publicar] Secuenciador de pasos.** *Muestra:* con Play, mantén el pad 1 y toca el paso 3; mantén el pad 26 y toca el paso 9; Clear + paso 13 (rojo); Clear + paso 3. *Di:* «Mantén un efecto y toca un paso: ese efecto suena en ese paso en cada vuelta, y el paso se ve en su color. Los efectos se suman. Clear sobre un paso vacío lo deja en silencio; Clear sobre un paso con algo lo devuelve a la normalidad. Duplicate sobre un paso lo vuelve aleatorio: en cada vuelta suena uno de sus efectos al azar. Se guarda con el proyecto.»
 
 *Capítulo 3: la captura*
 

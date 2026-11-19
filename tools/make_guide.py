@@ -80,7 +80,7 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Shift + Play** | todas | {B} **Cuantiza** el patrón que suena en la pista elegida: las notas y los golpes grabados fuera de la rejilla van al paso más cercano (micropasos 1-2 → el inicio de su paso; 3-5 → el del siguiente; los del último paso, al primero). En los drums, un paso con varios golpes (un redoble) se queda. Con Shift el LED de Play se ve amarillo; verde después de cuantizar. Sustituye al Shift + Play del original (otra forma de arrancar). |
 | **Shift + Scales** | todas | Editor de la escala propia {B} (2.2). {XB}: también **Scales dos veces**. |
 | **Velocity dos veces** {XB} | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
-| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | todas | Lo mismo que pulsar el botón dos veces: Synth = la vista de la fuente (2.3), MIDI = su vista Preset. |
+| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | todas | Lo mismo que pulsar el botón dos veces: Synth = la vista de la fuente (2.3), MIDI = su vista Preset. {YB} Con esa vista ya en pantalla, **Shift + el mismo botón** vuelve a su vista Note (Shift + otro botón de pista abre la de esa pista). |
 | **Mixer dos veces** | todas | Master FX (6.1). {YB} En el Mixer, **Mixer mantenido** ½ s o más = Master FX solo hasta que lo sueltas; en Master FX, mantenido = el Mixer hasta que lo sueltas. |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
 
@@ -844,6 +844,7 @@ view("master-fx", "VI", "Master FX",
 ### Song pointer (pads 9-24)
 - **Un paso mantenido** = retrigger; **dos** = frase momentánea entre ellos.
 - **Modo frase** (una frase fijada; pad 9 blanco): Shift + paso = inicio (fin 16); un toque = el fin, así que la frase hace bucle entre los dos; Shift + otro = nuevo inicio; Shift + el inicio o el pad 9 = salir.
+- **Secuenciador de pasos** {YB} *(Alpha 7.08, sin probar)*: **mantén un pad de efecto y toca un paso** (pads 9-24): ese efecto suena en ese paso en cada vuelta. Valen los efectos de arriba (pads 1-6), el sample (pad 7) y los huecos de abajo (pads 26-31); varios pads mantenidos a la vez, o uno tras otro sobre el mismo paso, se suman. **Clear + un paso vacío** = ese paso en silencio (el master entero; LED rojo); **Clear + un paso con efectos o en silencio** = vuelve a la normalidad. **Duplicate + un paso** = aleatorio (violeta): en cada vuelta suena uno de sus efectos elegido al azar (un paso aleatorio vacío: uno de los seis efectos de arriba); Duplicate otra vez lo quita. Los pasos con efectos se ven en el color del primero; el que suena, en blanco. El sample se dispara al empezar su paso. Se guarda con el proyecto. **Sustituye al secuenciador de efectos de MIDI 1 / 2** (el pad 31 de la fila de motores ya no lo enciende).
 
 ### Sample capturado (pads 7 y 32)
 - **Pad 32:** mantener = graba mientras lo mantienes (hasta 3,46 s); toque corto = hasta el siguiente; **Shift + pad 32** = armado (graba el compás siguiente; parado, desde Play). La captura graba la salida sin los efectos de Master FX; el sample que suena sí pasa por ellos. **Desde RC2.01** la captura y el sample van antes del filtro master: el filtro le afecta al sonar y la captura no lo lleva.

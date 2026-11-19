@@ -284,7 +284,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 
 **Script**
 
-1. **Open it.** *Show:* Synth 1's view, press Synth 1 again (or Shift + Synth 1 from anywhere). *Say:* "Press a synth's button twice and you're in its source view. Any button closes it."
+1. **Open it.** *Show:* Synth 1's view, press Synth 1 again (or Shift + Synth 1 from anywhere). *Say:* "Press a synth's button twice and you're in its source view. Any button closes it." [Alpha, unpublished: Shift + Synth 1 again also closes it, to the Note view.]
 2. **Audio in as the noise.** *Show:* pad 26; play notes: the input gated and filtered. *Say:* "Pads 25 to 29 replace the patch's noise: 25 is the noise itself, 26 and 27 the two audio inputs, 28 and 29 the same inputs inverted. Now the synth's filter, envelopes and effects shape your outside signal, in time with the notes."
 3. **The catch.** *Show:* the noise level macro at zero: silence; up: sound. *Say:* "The patch needs some noise level for this to be heard. The choice is saved with the project. If Setup routes the reverb or delay returns through strips 3 and 4, that's what reaches the synth here."
 4. **Macro destinations.** *Show:* pad 32 (teal); turn macro K1 (white LED); Octave ▼ through the fields; the pads drawing numbers. *Say:* "Pad 32 opens the macro editor. Turn a knob to pick its macro: the first turn changes nothing. Each macro has four slots, and each slot has a destination, a start, an end and a depth. Octave moves between fields: slot, start, end, destination, depth. The pads draw the number."
@@ -908,6 +908,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 
 6. **Retrigger and loops.** *Show:* hold one of pads 9-24; hold two; Shift + two (pad 9 white). *Say:* "Pads 9 to 24 are the pattern's steps 1 to 16. Hold one: the pattern retriggers from that step. Hold two: it loops between them while you hold. Shift plus two: the loop stays; pad 9 turns white, and touching it removes the loop."
 7. **Phrase mode.** *Show:* Shift + step 5; tap step 8; Shift + pad 9 to leave. *Say:* "Shift plus one step enters phrase mode with that start; each touch then sets the end, without retriggering. Shift plus the start, or pad 9, leaves."
+8. **[Alpha, unpublished] Step sequencer.** *Show:* with Play, hold pad 1 and tap step 3; hold pad 26 and tap step 9; Clear + step 13 (red); Clear + step 3. *Say:* "Hold an effect and tap a step: that effect plays on that step every cycle, and the step shows its colour. Effects add up. Clear on an empty step silences it; Clear on a step with something brings it back to normal. Duplicate on a step makes it random: each cycle one of its effects plays at random. It is saved with the project."
 
 *Chapter 3: the capture*
 

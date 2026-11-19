@@ -48,7 +48,7 @@ VIEWS = {
 | **Shift + Play** | all | {B} **Quantizes** the pattern the selected track plays: notes and hits recorded off the grid go to the nearest step (micro steps 1-2 → the start of their step; 3-5 → the start of the next; the last step's, to the first). On the drums, a step with several hits (a roll) stays. While Shift is held the Play LED is yellow; green after quantizing. It replaces the original's Shift + Play (another way to start playback). |
 | **Shift + Scales** | all | Custom scale editor {B} (2.2). {XB}: also **Scales twice**. |
 | **Velocity twice** {XB} | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
-| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. |
+| **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. {YB} With that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
 | **Mixer twice** | all | Master FX (6.1). {YB} In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
 
@@ -751,6 +751,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 ### Song pointer (pads 9-24)
 - **One step held** = retrigger; **two** = momentary phrase between them.
 - **Phrase mode** (a latched phrase; pad 9 white): Shift + step = start (end 16); a touch = the end, so the phrase loops between the two; Shift + another = new start; Shift + the start or pad 9 = leave.
+- **Step sequencer** {YB} *(Alpha 7.08, untested)*: **hold an effect pad and touch a step** (pads 9-24): that effect plays on that step every cycle. The top effects (pads 1-6), the sample (pad 7) and the bottom slots (pads 26-31) all count; several pads held at once, or one after another on the same step, add up. **Clear + an empty step** = that step silent (the whole master; red LED); **Clear + a step with effects or silent** = back to normal. **Duplicate + a step** = random (violet): each cycle one of its effects plays, picked at random (an empty random step: one of the six top effects); Duplicate again removes it. Steps with effects show the first one's colour; the playing one, white. The sample starts at the beginning of its step. Saved with the project. **It replaces the MIDI 1 / 2 FX sequencer** (pad 31 of the engine row no longer switches it on).
 
 ### Captured sample (pads 7 and 32)
 - **Pad 32:** hold = records while held (up to 3.46 s); short tap = until the next; **Shift + pad 32** = armed (records the next bar; stopped, from Play). The capture records the output without Master FX's effects; the playing sample goes through them. **Since RC2.01** the capture and the sample sit before the master filter: the filter acts on the sample as it plays and the capture does not hold it.

@@ -434,8 +434,70 @@ def _barrier(fn, args, kw):
     return 0
 
 
+# OUTLINE (Alpha 7.07, with COMPACT): common call idioms folded into one bl to a shared helper (tools/outline.py makes the helpers and
+# points the calls at them at the end of the build).  A call `[movs r1, #k] bl T [ldrb r0, [r0]] [cmp r0, #0]` (no label inside, not in an IT
+# block, not in a KEEP / NOPOOL head) whose key (T, k, ldrb, cmp) OUTLINE(key) accepts becomes `bl PLACEHOLDER(key)`; the helper does the same
+# (with a prefix only: `movs r1, #k; b.w T`; with a suffix: push {lr} ... pop {pc}, 4 B more stack while T runs).  Off: byte for byte as before.
+OUTLINE = None      # None, or a function key -> bool
+OUT_REG = {}        # key -> index: the placeholder target OUT_BASE + 4 index (in the bootloader's range: never a real call target)
+OUT_BASE = 0x08000400
+OUT_USED = {}       # key -> sites folded (all assemblies, trials included)
+OUT_NAMES = None    # (outline.use) label name -> its latest assembled address
+OUT_KEEP = {}       # (outline.KEEP) labels whose next N bytes another module reads or patches by their bytes: not folded
+
+
+def out_target(key):
+    return OUT_BASE + 4 * OUT_REG.setdefault(key, len(OUT_REG))
+
+
+def _outline(items):
+    n = len(items)
+    in_it, it_left, prot, keep, u = [False] * n, 0, [False] * n, -1, 0
+    for i, (kind, p) in enumerate(items):
+        if kind == "label":
+            if p in KEEP: keep = max(keep, u + KEEP[p])
+            if p in NOPOOL: keep = max(keep, u + NOPOOL[p])
+            if p in OUT_KEEP: keep = max(keep, u + OUT_KEEP[p])
+            continue
+        fn, args, kw = p
+        prot[i] = u < keep
+        if it_left: in_it[i] = True; it_left -= 1
+        c = _it_count(fn, args, kw)
+        if c: it_left = c
+        u += _size(fn, args)
+    ins = lambda j, f, a: 0 <= j < n and items[j][0] == "ins" and items[j][1][0] is f and tuple(items[j][1][1]) == a and not items[j][1][2]
+    out, i = [], 0
+    while i < n:
+        kind, p = items[i]
+        if kind == "ins" and p[0] is bl and not p[2] and isinstance(p[1][0], int) and not in_it[i] and not prot[i]:
+            T = p[1][0]
+            pre = None
+            if out and out[-1][0] == "ins" and out[-1][1][0] is movs_imm and len(out[-1][1][1]) == 2 and out[-1][1][1][0] == 1                     and isinstance(out[-1][1][1][1], int) and not out[-1][1][2] and not in_it[i - 1] and not prot[i - 1]:
+                pre = out[-1][1][1][1]
+            j = i + 1
+            ld = ins(j, ldrb_imm, (0, 0, 0)) and not in_it[j] and not prot[j]
+            if ld: j += 1
+            cz = ins(j, cmp_imm, (0, 0)) and not in_it[j] and not prot[j]
+            if cz: j += 1
+            for key in ((T, pre, ld, cz), (T, None, ld, cz), (T, pre, ld, False), (T, None, ld, False), (T, pre, False, False)):
+                k_pre, k_ld, k_cz = key[1], key[2], key[3]
+                if (k_pre is None and not k_ld and not k_cz) or not OUTLINE(key): continue
+                if k_pre is not None: out.pop()
+                out.append(("ins", (bl, (out_target(key),), {})))
+                OUT_USED[key] = OUT_USED.get(key, 0) + 1
+                i += 1 + (1 if k_ld else 0) + (1 if k_cz else 0)
+                break
+            else:
+                out.append(items[i]); i += 1
+            continue
+        out.append(items[i]); i += 1
+    return out
+
+
 def _assemble_compact(asm, external):
-    items, n = asm.items, len(asm.items)
+    ours = asm.base >= 0x0805CE86 or 0x080101F0 <= asm.base < 0x08018110 + 1098       # our zones only (past the stock code and SC03's cave, which jumpseq reuses at a fixed address; the hole): not code patched inside a stock function
+    items = _outline(asm.items) if OUTLINE is not None and ours else asm.items
+    n = len(items)
     seq, it_left, i, u, keep, nopool = [], 0, 0, 0, -1, -1
     while i < n:
         kind, p = items[i]
@@ -562,5 +624,8 @@ def _assemble_compact(asm, external):
         STATS["before"] += sum(8 if e[0] == "lit" else e[4] if e[0] == "ins" else 0 for e in seq); STATS["after"] += len(out)
         global LAST
         LAST = (seq, addrs, pools, pair, lsz)
+        if OUT_NAMES is not None:
+            for nm in OUT_NAMES:
+                if nm in labels and not (external and nm in external): OUT_NAMES[nm] = labels[nm]
         return bytes(out), labels
     raise AssertionError("literal pools: no stable layout")
