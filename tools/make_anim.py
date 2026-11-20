@@ -666,9 +666,9 @@ proc("borrar-pack", "packs", ["pack", "pack-interno"], "Delete a pack", "Borrar 
       "Toca el pack que quieres borrar (pad 4): solo ese parpadea; no se carga.",
       pads=packs(1, {4: ("red", "", False)}), buttons={"Clear": "white"}, press=[4], blink=[4]),
     F("Clear again within 5 s: deleted; the slot can be used again after a restart. The internal memory's pack (the first one) is read-only "
-      "for the mod: it is never deleted (writes to the card).",
+      "for the mod: it is never deleted (writes to the card). Since RC4.19 the deleted pack's pad goes dark at once.",
       "Clear otra vez antes de 5 s: borrado; el hueco se reutiliza tras reiniciar. El pack de la memoria interna (el primero) es de solo "
-      "lectura para el mod: nunca se borra (escribe en la tarjeta).",
+      "lectura para el mod: nunca se borra (escribe en la tarjeta). Desde RC4.19 el pad del pack borrado se apaga al momento.",
       pads=packs(1), buttons={"Clear": "white"}, press=["Clear"]),
 ])
 

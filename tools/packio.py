@@ -141,6 +141,7 @@ import build_sc14 as s14  # noqa: E402
 
 MGR = 0x20040B10                                 # the controller; [MGR + 0x20] = the held-buttons object, its +0xC store: p0 bit 0 Clear, bit 1 Duplicate
 PARAM_GET = 0x0803542C
+PARAM_WPTR, PARAM_COMMIT = 0x080354FA, 0x080353C0          # (use_delled) a store's write pointer / its commit
 DSP_READ, DSP_WRITE = 0x08029344, 0x080292F8
 SEM_PTR, SEM_TAKE, SEM_GIVE = 0x2000030C, 0x08021064, 0x08029028
 SLEEP = 0x0801BE78
@@ -275,6 +276,26 @@ def use_pkled2():
     PKLED2 = True
 
 
+def use_pqexp():
+    """Alpha 7.12 / RC4.19 (the user, 2026-11-20: «When I press clear and don't delete anything, pads flash for a while. Then after a minute or so,
+    they flash again»): the delete question keeps its time as (ms >> 8) & 0xFF, so its age wraps every 65.5 s and a question never answered was
+    «fresh» again for 5 s each minute: the pads blinked again and Clear pressed then deleted the pack asked long before.  c_pkled (every LED frame,
+    whatever the view) now clears the magic once the question is older than PQ_LIFE."""
+    global PQEXP
+    assert PKLED2
+    PQEXP = True
+
+
+def use_delled():
+    """Alpha 7.11 / RC4.18 (the user, 2026-11-20: «When I delete a pack, I want that pack's led to turn off. Right now, it won't signal the
+    deletion until reboot»): the packs view colours pad k from the byte k of its store [view + 0x14] (0x0804412A: the pack's colour, 0xFF = an
+    empty slot -> 0x08050494 gives 0, dark), filled when the card is scanned at boot; a delete never touched it.  After a delete that worked
+    (DEL_FN returned 0), c_mbp writes 0xFF there (0x080354FA + commit 0x080353C0): the view's own listener (slot 9, 0x080440BA) redraws the pad."""
+    global DELLED
+    assert FIX2
+    DELLED = True
+
+
 def use_pkled3():
     """SC38.4: Clear steady white in the packs view from the start (see 15.)."""
     global PKLED3
@@ -355,6 +376,8 @@ CAT_PAL = {1: 0x4D, 2: 0x53, 3: 0x13, 4: 0x2B, 5: 0x45, 6: 0x29, 7: 0x2D, 8: 0x4
 CAT_NAMES = ("None", "Arp", "Bass", "Bell", "Classic", "Drum", "Keyboard", "Lead", "Movement", "Pad", "Poly", "SFX", "String", "User", "Voc")
 
 
+PQEXP = False                                    # Alpha 7.12 / RC4.19 (use_pqexp): a stale delete question cleared
+DELLED = False                                   # Alpha 7.11 / RC4.18 (use_delled): a deleted pack's pad goes dark at once
 PALFIX = False                                   # Beta 5.40 (use_palfix)
 
 
@@ -853,6 +876,11 @@ def arm_code(base, L, prev):
     a.emit(movs_imm, 0, 1); a.emit(raw, h(0x9000)); a.emit(movs_imm, 0, 0); a.emit(subs_imm8, 0, 1); a.emit(raw, h(0x9001))   # {1, -1,
     a.emit(raw, h(0x9502))                                                                       #  pack r5}
     a.emit(mov_reg, 0, 13); a.emit(movs_imm, 1, 0); a.emit(movs_imm, 2, 0); a.emit(bl, DEL_FN)
+    if DELLED:                                   # deleted: the pack's byte of [view + 0x14] = 0xFF (empty), committed (the view redraws the pad)
+        a.emit(cmp_imm, 0, 0); a.emit(b_cond, "mp_dl", "ne")
+        a.emit(ldr_imm, 0, 4, 0x14); a.emit(mov_reg, 1, 5); a.emit(bl, PARAM_WPTR); a.emit(movs_imm, 1, 0xFF); a.emit(strb_imm, 1, 0, 0)
+        a.emit(ldr_imm, 0, 4, 0x14); a.emit(bl, PARAM_COMMIT)
+        a.label("mp_dl")
     a.emit(movs_imm, 0, KIND_PCM); a.emit(raw, h(0x9000)); a.emit(movs_imm, 0, 0); a.emit(raw, h(0x9001)); a.emit(raw, h(0x9602))   # re-select the current pack
     a.emit(mov_reg, 0, 13); a.emit(bl, EXISTS)
     a.emit(add_sp_imm, 16)
@@ -873,6 +901,12 @@ def arm_code(base, L, prev):
         a.label("c_pkled")
         a.emit(push_list, [4, 5, 6, 7], lr=True)
         a.emit(mov_reg, 5, 1); a.emit(bl, L["c_vledtask"])
+        if PQEXP:                                # a stale question (older than PQ_LIFE) cleared, in any view: its 8-bit age would wrap
+            imm32(4, PV_OBJ); a.emit(ldrb_w, 0, 4, PQ_OFF); a.emit(cmp_imm, 0, PQ_MAGIC); a.emit(b_cond, "pqx_n", "ne")
+            imm32(0, HAL_TICK); a.emit(ldr_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 8); a.emit(ldrb_w, 1, 4, PQ_OFF + 2)
+            a.emit(subs_reg, 0, 0, 1); a.emit(lsls_imm, 0, 0, 24); a.emit(lsrs_imm, 0, 0, 24); a.emit(cmp_imm, 0, PQ_LIFE); a.emit(b_cond, "pqx_n", "ls")
+            a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, PQ_OFF)
+            a.label("pqx_n")
         pv_active("pkl_x")
         a.emit(movs_imm, 7, CLR_ON if PKLED3 else CLR_DIM); fresh("pkl_put")
         if PKLED3: a.label("pk3_l")

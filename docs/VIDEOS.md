@@ -1106,7 +1106,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 1. **Abrirla.** *Muestra:* Shift + Projects; Clear encendido en blanco. *Di:* «Shift más Projects abre los packs, como siempre.»
 2. **Borrar.** *Muestra:* Clear: parpadean los packs que se pueden borrar; toca uno: solo parpadea ese; Clear: borrado. *Di:* «Para borrar un pack: Clear, y durante cinco segundos parpadean los packs que puedes borrar. Toca uno: ahora solo parpadea ese, y no se carga. Clear otra vez antes de cinco segundos: borrado.»
 3. **El pack interno.** *Di:* «El primer pack, el de la memoria interna, es de solo lectura para el mod: no se puede borrar, y no se escribe en él nada del mod. Aun así, puedes copiar desde él a un pack de la tarjeta.»
-4. **Cierre.** *Di:* «El hueco de un pack borrado se puede volver a usar después de reiniciar.»
+4. **Cierre.** *Di:* «El hueco de un pack borrado se puede volver a usar después de reiniciar.» Desde RC4.19 su pad se apaga al momento.
 
 **A tener en cuenta**
 - El pack cargado no se puede borrar nunca.

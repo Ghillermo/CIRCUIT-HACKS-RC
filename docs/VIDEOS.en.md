@@ -1106,7 +1106,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 1. **Open.** *Show:* Shift + Projects; Clear lit white. *Say:* "Shift plus Projects opens the packs, as always."
 2. **Delete.** *Show:* Clear: deletable packs blink; touch one: only it blinks; Clear: gone. *Say:* "To delete a pack: Clear, and for five seconds the packs you can delete blink. Touch one: now only it blinks, and it is not loaded. Clear again within five seconds: deleted."
 3. **The internal pack.** *Say:* "The first pack, in the internal memory, is read-only for the mod: it can't be deleted, and nothing of the mod is written into it. You can still copy from it to a pack on the card."
-4. **Outro.** *Say:* "A deleted pack's slot can be used again after a restart."
+4. **Outro.** *Say:* "A deleted pack's slot can be used again after a restart." Since RC4.19 its pad goes dark at once.
 
 **Keep in mind**
 - The loaded pack can never be deleted.

@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.13 — 2026-11-20
+
+**Alpha 7.13** (marca `A7.13`) = la Alpha 7.09 + esto y los arreglos de RC4.19 (abajo); las Alphas 7.10-7.12 no se publicaron. Probada en el aparato: el borrado de packs (Alpha 7.11). Sustituye a la 7.09 en el instalador.
+
+- **Liberar un knob de la página 4 borra su automatización:** en la página 4 (knobs secuenciables) del sinte propio de MIDI 1 / 2, **Duplicate + un knob** deja libre su hueco y borra su carril en los 8 patrones de la pista (las asignaciones son de la pista entera); antes el carril guardaba sus valores y movía el destino siguiente que se diera a ese hueco. → [Guía: Páginas de knobs del motor de MIDI 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+
 ### Alpha 7.09 — 2026-11-19
 
 **Alpha 7.09** (marca `A7.09`) = la Alpha 7.08b + esto, sin probar en el aparato (solo la instalación). Sustituye a la 7.08b en el instalador.
@@ -740,6 +746,14 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.19 / RC4.19S — 2026-11-20
+
+**RC4.19 / RC4.19S** (marcas `R419` / `R419S`) = RC4.17 / RC4.17S + estos arreglos (también en la Alpha 7.13; RC4.18 no se publicó).
+
+- **La pregunta de borrado de packs se olvida a los 5 s:** Clear, un pack y sin confirmar: antes la pregunta volvía cada 65 s (los pads parpadeaban otra vez) y **Clear entonces borraba el pack preguntado mucho antes**. → [Guía: Vista de packs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#packs)
+- **Un pack borrado apaga su pad al momento** y el hueco admite Duplicate sin reiniciar (antes seguía encendido y ocupado hasta reiniciar; probado en el aparato). En la RC4.19S el mod no borra packs: no cambia nada. → [Guía: Vista de packs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#packs)
+- **Alpha 7.13:** copiar o borrar un pack ya no pone Save en violeta un momento (la caja negra lo tomaba por un bloqueo). → [Guía: Vista de packs](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#packs)
+
 ### RC4.17 / RC4.17S — 2026-11-19
 
 **RC4.17 / RC4.17S** (marcas `R417` / `R417S`) = RC4.16 / RC4.16S + este arreglo (en las alfas desde la 7.06, probado en el aparato).
@@ -1165,6 +1179,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.13 — 2026-11-20
+
+**Alpha 7.13** (marker `A7.13`) = Alpha 7.09 + this and RC4.19's fixes (below); Alphas 7.10-7.12 were not published. Tested on the device: deleting packs (Alpha 7.11). It replaces 7.09 in the installer.
+
+- **Freeing a page-4 knob clears its automation:** on the MIDI 1 / 2 own synth's page 4 (sequenceable knobs), **Duplicate + a knob** frees its slot and clears its lane in the track's 8 patterns (the assignments belong to the whole track); before, the lane kept its values and drove the next destination given to that slot. → [Guide: MIDI 1 / 2 engine knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
 
 ### Alpha 7.09 — 2026-11-19
 
@@ -1898,6 +1918,14 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.19 / RC4.19S — 2026-11-20
+
+**RC4.19 / RC4.19S** (markers `R419` / `R419S`) = RC4.17 / RC4.17S + these fixes (also in Alpha 7.13; RC4.18 was not published).
+
+- **The pack delete question is forgotten after 5 s:** Clear, a pack and no confirmation: before, the question came back every 65 s (the pads blinked again) and **Clear then deleted the pack asked long before**. → [Guide: Packs view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#packs)
+- **A deleted pack's pad goes dark at once** and the slot takes a Duplicate without a restart (before, it stayed lit and taken until a restart; tested on the device). In RC4.19S the mod does not delete packs: nothing changes. → [Guide: Packs view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#packs)
+- **Alpha 7.13:** copying or deleting a pack no longer turns Save violet for a moment (the black box took it for a lock-up). → [Guide: Packs view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#packs)
 
 ### RC4.17 / RC4.17S — 2026-11-19
 
