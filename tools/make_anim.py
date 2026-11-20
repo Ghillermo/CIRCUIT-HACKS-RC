@@ -271,7 +271,7 @@ def render(proc, lang):
         for ctl in f.get("press", ()): add("marks", finger_snip(ctl), i)
         for k, d in f.get("turn", {}).items(): add("marks", turn_snip(k, d), i)
         add("caption", caption_snip(i, n, f["caption"][lang]), i)
-    mark = MARK[lang]["beta"] if proc.get("beta") else (f'{MARK[lang]["since"]} {proc["since"]}' if proc.get("since") else "")
+    mark = proc.get("mark", MARK)[lang]["beta"] if proc.get("beta") else (f'{MARK[lang]["since"]} {proc["since"]}' if proc.get("since") else "")
     title = proc["title"][lang] + (f" · {mark}" if mark else "")
     classes = {}                                          # frozenset of frames -> class name
     def cls(fs):
@@ -1053,6 +1053,27 @@ proc("modo-cue", "mixer", ["mixer-cue"], "Prepare tracks in the cue", "Preparar 
       "Desde RC4 el clic del metrónomo y las escuchas previas (un patch elegido, Shift + un sample de drum) suenan solo en el cue. Shift + un "
       "knob a la izquierda: el modo, apagado (Octave ▼ blanco); vuelven los paneos. Se guarda en el aparato.",
       pads=mixer(), buttons={"Mixer": "white", "Oct ▼": "white"}, press=["Shift"], turn={1: -1}, knobs=PANK),
+])
+
+def gmp(linked=()):
+    """the global macro view: pads 1-8 the eight tracks, bright = linked to the picked knob"""
+    return {i + 1: (TC[t], "", (i + 1) not in linked) for i, t in enumerate(T8)}
+GMB = {"Mixer": "white", "Patterns": "white"}
+proc("macros-global", "mixer", [], "Move one knob on several tracks", "Mover un knob en varias pistas", beta=True, vlabel=MXV, frames=[
+    F("Hold Mixer and press Patterns: the global macro view (Mixer and Patterns white). Pads 1-8 = the eight tracks, dim = not linked.",
+      "Mantén Mixer y pulsa Patterns: la vista de macros global (Mixer y Patterns en blanco). Pads 1-8 = las ocho pistas, tenues = sin enlazar.",
+      pads=gmp(), buttons=GMB, press=["Mixer", "Patterns"]),
+    F("Turn K3: it becomes the picked knob (dim white: no tracks yet, it moves nothing).",
+      "Gira K3: pasa a ser el knob elegido (blanco tenue: aún sin pistas, no mueve nada).",
+      pads=gmp(), buttons=GMB, turn={3: 1}, kcol={3: ("white", True)}),
+    F("Tap pads 1 and 3: Synth 1 and MIDI 1 linked to K3 (bright). A tap again unlinks.",
+      "Toca los pads 1 y 3: Synth 1 y MIDI 1, enlazadas a K3 (brillantes). Otro toque las suelta.",
+      pads=gmp((1, 3)), buttons=GMB, press=[1, 3], kcol={3: "magenta"}),
+    F("Now K3 moves Synth 1's macro 3 and knob 3 of MIDI 1's page 4 together, as if you turned them in their views. Each knob has its own "
+      "tracks, saved with the project. Mixer or Patterns alone closes the view.",
+      "Ahora K3 mueve a la vez el macro 3 de Synth 1 y el knob 3 de la página 4 de MIDI 1, como si los giraras en sus vistas. Cada knob tiene "
+      "sus pistas, que se guardan con el proyecto. Mixer o Patterns solos cierran la vista.",
+      pads=gmp((1, 3)), buttons=GMB, turn={3: 1}, kcol={3: "magenta"}),
 ])
 
 # ===== Drums

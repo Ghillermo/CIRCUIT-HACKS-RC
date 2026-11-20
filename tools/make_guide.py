@@ -25,11 +25,11 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.14"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.16"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
-RCNOW = "RC4.20"                      # the newest published release candidate (update it with each release): the conventions and the rc set's title (docset.rc_name)
+RCNOW = "RC4.21"                      # the newest published release candidate (update it with each release): the conventions and the rc set's title (docset.rc_name)
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("11", "Datos: guardado, MIDI y modulación"), ("A", "Apéndice")]
 # the chapters the user listed (2026-10-15): setup, sintes de stock, pistas MIDI, pattern settings, drums, Master FX, FX, sidechain, scenes y patterns, projects y packs
@@ -82,6 +82,7 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Velocity dos veces** {XB} | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | todas | Lo mismo que pulsar el botón dos veces: Synth = la vista de la fuente (2.3), MIDI = su vista Preset. Desde RC4.17, con esa vista ya en pantalla, **Shift + el mismo botón** vuelve a su vista Note (Shift + otro botón de pista abre la de esa pista). |
 | **Mixer dos veces** | todas | Master FX (6.1). {YB} En el Mixer, **Mixer mantenido** ½ s o más = Master FX solo hasta que lo sueltas; en Master FX, mantenido = el Mixer hasta que lo sueltas. |
+| **Mixer + Patterns** {YB} | todas | La [vista de macros global](#mixer): cada knob mueve el mismo knob de las pistas que elijas (pads 1-8). |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
 
 - Los LEDs de los knobs enseñan con su **brillo** el valor de las funciones nuevas (más brillo = más valor; en los knobs bipolares, oscuro en el centro). {YB} En los knobs bipolares, **tenue en el centro**, a la derecha su color de siempre y **a la izquierda un tono más claro del mismo color**, cada vez más brillante hacia fuera (motor de MIDI 1 / 2, drums, Digitise K4, la velocidad a tempo de Auto-Filter / Phaser).
@@ -815,6 +816,19 @@ view("mixer", "VI", "Vista Mixer y escenas",
 - **Modo cue** {B}: la **salida izquierda** lleva la mezcla en mono como siempre y la **derecha** solo las pistas en cue, cada una a su envío. Una pista silenciada en cue suena solo por la derecha, en el paso en que va su patrón; su pad sigue tenue y su pad (o Shift + pad, al compás siguiente) la mete o la saca de la mezcla. Los paneos no se tocan y vuelven al apagar el modo; guardar el proyecto guarda los mutes de la mezcla. La reverb, el delay y Master FX son los de la mezcla: el cue también los oye.
 - **Escucha previa en el cue** {XB}: con el modo cue encendido, elegir un patch de Synth 1 / 2 en su vista Preset (toque normal o con Shift) y **Shift + sample** en la vista Preset de un drum (en el original, la selección silenciosa) se oyen **solo en el cue** (derecha): mientras mantienes el pad y 0,8 s después, esa pista va solo al cue (también su patrón, en ese momento). El toque normal de un drum sigue sonando en la mezcla, y cualquier golpe en vivo de ese drum (sus pads, MIDI, el patrón) lo devuelve a la mezcla antes de sonar.
 - **Metrónomo en el cue** {XB}: con el modo cue encendido, el clic del metrónomo (Shift + Clear) y el de la cuenta atrás suenan **solo en el cue** (salida derecha): la mezcla de la izquierda sale sin clic. Sin el modo cue, por las dos salidas, como siempre.
+
+### Vista de macros global {YB}
+**Mixer mantenido + Patterns** (o Patterns mantenido + Mixer) la abre y la cierra; mientras está abierta, Mixer y Patterns se ven en blanco y debajo queda la vista del primer botón. Cada **knob Kn mueve el knob n de todas las pistas enlazadas a él**, igual que si lo giraras en la vista de cada una: los macros de Synth 1 / 2, los knobs de los drums y, en MIDI 1 / 2, la **página 4** del sinte propio (pad 1, los knobs secuenciables).
+
+| Gesto | Qué hace |
+|---|---|
+| **Un knob** | Lo elige y mueve ese knob en sus pistas enlazadas (sin pistas no mueve nada; su LED, blanco tenue). |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 para el knob elegido: **brillante = enlazada**, tenue = no; un toque cambia. Los pads 9-32, apagados. |
+| **Mixer o Patterns solos**, o cualquier botón salvo Record, Play, Clear y Duplicate | Cierra la vista (y hace lo de siempre). |
+
+- Al empezar no hay ninguna pista enlazada; cada knob tiene las suyas y se guardan con el proyecto.
+- El LED de un knob enlazado lleva el color de su primera pista: más brillante el elegido.
+- El knob del filtro master sigue siendo el de siempre.
 """, [("mixer-shift", 0)])
 
 view("master-fx", "VI", "Master FX",
@@ -1002,6 +1016,7 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
+| {YB} **Vista de macros global**: qué pistas mueve cada knob | [Mixer](#mixer) |
 | {YB} **Cadenas de grupos**: la de cada pista y la de cada escena (en el fichero del proyecto, detrás de los carriles extra) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; {XB} con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -1309,6 +1324,7 @@ ABOUT = dict(
 - **Escenas con cadenas y repeticiones** {B} — una escena puede repetirse n veces y recordar el modo cadena.
 - **Entradas y salidas al compás** {B} — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
 - **Modo cue** {B} — la mezcla en mono por la izquierda y, por la derecha, las pistas que quieras escuchar antes de meterlas.
+- **Vista de macros global** {YB} — Mixer + Patterns: cada knob mueve el mismo knob de las pistas que elijas.
 """,
     **{"master-fx": f"""
 - **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico {B}: mientras mantienes o fijados.

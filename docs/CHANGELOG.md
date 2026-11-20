@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.16 — 2026-11-20
+
+**Alpha 7.16** (marca `A7.16`) = la Alpha 7.14 + esto y los arreglos de abajo (RC4.21 y la Alpha 7.15, que no se publicó). Sin probar en el aparato (solo la instalación). Sustituye a la 7.14 en el instalador.
+
+- **Vista de macros global:** **Mixer mantenido + Patterns** la abre y la cierra (los dos en blanco). Gira un knob y elige con los **pads 1-8** qué pistas mueve (brillante = enlazada): desde ahí, **ese knob mueve el mismo knob de todas ellas a la vez**, como si lo giraras en la vista de cada una (los macros de Synth 1 / 2, los knobs de los drums y, en MIDI 1 / 2, la página 4 del sinte propio). Cada knob tiene sus pistas, que se guardan con el proyecto; al empezar, ninguna. Mixer o Patterns solos la cierran. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+
 ### Alpha 7.13 — 2026-11-20
 
 **Alpha 7.13** (marca `A7.13`) = la Alpha 7.09 + esto y los arreglos de RC4.19 (abajo); las Alphas 7.10-7.12 no se publicaron. Probada en el aparato: el borrado de packs (Alpha 7.11). Sustituye a la 7.09 en el instalador.
@@ -746,6 +752,13 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.21 / RC4.21S — 2026-11-20
+
+**RC4.21 / RC4.21S** (marcas `R421` / `R421S`) = RC4.20 / RC4.20S + este arreglo (también en la **Alpha 7.16**). El arreglo está probado en el aparato con una build de diagnóstico: una hora de cadenas y cambios de escena sin fallo (antes fallaba a los 15-30 minutos).
+
+- **Un cuelgue con cadenas de patrones y escenas:** una pista que tocaba un patrón fuera de su cadena (por las reglas o los grupos de cadena, el mutate de patrones o un cambio de escena) pasaba a un patrón 9 que no existe; el aparato escribía entonces fuera de su sitio y, antes o después, se colgaba (es el cuelgue de las Betas 5.63 / 5.64 al crear una cadena para una escena nueva). Ahora, fuera de su cadena, la pista sigue por el primer patrón de la cadena. → [Guía: Vista Patterns y cadenas de patrones](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#patterns)
+- **Alpha 7.16 (de la Alpha 7.15): la caja negra** ya no puede colgar el aparato al vaciarla mientras suena, y esperar a la tarjeta (copiar o borrar packs desde el panel) ya no se apunta como un bloqueo. → [Guía: App de la tarjeta y del aparato](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#app-sd)
+
 ### RC4.20 / RC4.20S — 2026-11-20
 
 **RC4.20 / RC4.20S** (marcas `R420` / `R420S`) = RC4.19 / RC4.19S + este arreglo (también en la **Alpha 7.14** = la Alpha 7.13 + este arreglo). Probado en el aparato.
@@ -1185,6 +1198,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.16 — 2026-11-20
+
+**Alpha 7.16** (marker `A7.16`) = Alpha 7.14 + this and the fixes below (RC4.21 and the unreleased Alpha 7.15). Untested on the device (install only). It replaces 7.14 in the installer.
+
+- **Global macro view:** **Mixer held + Patterns** opens and closes it (both white). Turn a knob and pick with **pads 1-8** which tracks it moves (bright = linked): from then on **that knob moves the same knob on all of them at once**, as if you turned it in each track's view (Synth 1 / 2's macros, the drums' knobs and, on MIDI 1 / 2, the own synth's page 4). Each knob has its own tracks, saved with the project; at first, none. Mixer or Patterns alone closes it. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
 
 ### Alpha 7.13 — 2026-11-20
 
@@ -1924,6 +1943,13 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.21 / RC4.21S — 2026-11-20
+
+**RC4.21 / RC4.21S** (markers `R421` / `R421S`) = RC4.20 / RC4.20S + this fix (also in **Alpha 7.16**). The fix was tested on the device with a diagnostic build: an hour of chains and scene changes without a fault (before, it failed after 15-30 minutes).
+
+- **A hang with pattern chains and scenes:** a track playing a pattern outside its chain (through chain rules or groups, pattern mutate or a scene change) went on to a pattern 9 that does not exist; the device then wrote outside its place and, sooner or later, hung (the Betas 5.63 / 5.64 hang when making a chain for a new scene). Now, outside its chain, the track goes on with the chain's first pattern. → [Guide: Patterns view and pattern chains](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#patterns)
+- **Alpha 7.16 (from Alpha 7.15): the black box** can no longer hang the device when cleared while playing, and waiting for the card (copying or deleting packs from the panel) is no longer recorded as a lock-up. → [Guide: The card and device app](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#app-sd)
 
 ### RC4.20 / RC4.20S — 2026-11-20
 

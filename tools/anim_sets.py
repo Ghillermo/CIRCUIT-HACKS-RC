@@ -49,6 +49,8 @@ def procs(variant):
         for f in q["frames"]:
             for lang, t in f["caption"].items():
                 f["caption"][lang] = rc_text(t) if variant == "rc" else docset.beta(t)
+        if variant == "beta":                            # the beta set's own name in the title too («solo Alpha 7.16»), as in the captions
+            q["mark"] = {lang: dict(A.MARK[lang], beta=docset.beta(A.MARK[lang]["beta"])) for lang in A.MARK}
         out.append(q)
     _CACHE[variant] = out
     return out
@@ -75,7 +77,7 @@ def write_set(out_dir, variant):
 
 def _title(p, lang):
     import make_anim as A
-    m = A.MARK[lang]["beta"] if p.get("beta") else (f'{A.MARK[lang]["since"]} {p["since"]}' if p.get("since") else "")
+    m = p.get("mark", A.MARK)[lang]["beta"] if p.get("beta") else (f'{A.MARK[lang]["since"]} {p["since"]}' if p.get("since") else "")
     return p["title"][lang] + (f" · {m}" if m else "")
 
 

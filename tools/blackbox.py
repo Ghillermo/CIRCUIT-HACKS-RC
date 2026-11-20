@@ -103,6 +103,25 @@ def use_memrd():
     MEMRD = True
 ST_FAULT, ST_STALL, ST_WARM = 16, 32, 64
 STALL2_MS = 1500
+SAFECLEAR = False                                        # (Alpha 7.15, use_safeclear) the clear keeps the LED head's LR / frame
+
+
+def use_safeclear():
+    """Alpha 7.15 / S714D6 (a fix, 2026-11-20; found by the in-unit stress run): the clear command (SysEx 02, the app's Vaciar) zeroed the whole
+    record, the LED head's own LR / frame slots (O.LR / O.FR) too; when it landed while the LED task ran the chain below c_bbled, the head returned
+    through 0 (UsageFault INVSTATE, PC 0, LR 0, r12 = the record): the device restarted.  The clear now leaves those two words alone."""
+    global SAFECLEAR
+    SAFECLEAR = True
+
+
+KEEPSTALL = False                                        # (S714D3, use_keepstall) a stall that ends stays frozen, with its PC / LR samples
+
+
+def use_keepstall(ms=400):
+    """S714D3 (diagnostic, 2026-11-20): the stress run's pauses (Duplicate held + a second pad in a drum view, ~1 s) are shorter than the 1.5 s of a
+    stall and a stall that ends is dropped: here the threshold is ms and the record stays frozen, with the running task's PC / LR every 50 ms."""
+    global KEEPSTALL, STALL2_MS
+    KEEPSTALL, STALL2_MS = True, ms
 RCC_CSR, CSR_RMVF, CSR_WD = 0x40023874, 1 << 24, (1 << 29) | (1 << 30)
 SCB_CFSR = 0xE000ED28                                         # + 4 HFSR, + 12 MMFAR, + 16 BFAR
 FAULT_VECS = (3, 4, 5, 6)
@@ -228,7 +247,8 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     E(lsls_imm, 0, 6, 31); E(b_cond, "tk_live", "pl")
     if V2:                                                                              # a stall that ended (the main loop runs): dropped
         E(movs_imm, 0, ST_STALL | ST_RESET); E(ands_reg, 0, 6); E(cmp_imm, 0, ST_STALL); E(b_cond, "tk_ns", "ne")
-        E(movs_imm, 6, 0); E(strb_imm, 6, 4, O.ST); E(strb_imm, 6, 4, O.NS); E(b, "tk_live")
+        if not KEEPSTALL: E(movs_imm, 6, 0); E(strb_imm, 6, 4, O.ST); E(strb_imm, 6, 4, O.NS)
+        E(b, "tk_live")
         a.label("tk_ns")
     E(movs_imm, 0, (ST_MANUAL | ST_RESET | ST_FAULT | ST_STALL | ST_WARM) if V2 else (ST_MANUAL | ST_RESET)); E(raw, h(0x4230)); bc("tk_x", "ne")   # tst r0, r6
     E(ldrb_imm, 7, 4, O.NS); E(cmp_imm, 7, NSAMP); E(b_cond, "tk_rs", "hs")
@@ -325,7 +345,12 @@ def arm_code(base, prev, conts, sx_cont, router_ptr):
     # 02: clear (the signature kept)
     a.label("sx_clr")
     E(bl, "c_bbst"); E(movs_imm, 1, 0); E(movs_imm, 3, 4)
-    a.label("sx_cz"); E(raw, h(0x50C1)); E(adds_imm8, 3, 4); E(movw, 2, SIZE); E(cmp_reg, 3, 2); E(b_cond, "sx_cz", "lo")
+    if SAFECLEAR:                                # the LED head's live words (its LR / frame, O.LR / O.FR) kept
+        a.label("sx_cz"); E(raw, h(0x50C1)); E(adds_imm8, 3, 4); E(movw, 2, O.LR); E(cmp_reg, 3, 2); E(b_cond, "sx_cz", "lo")
+        E(movs_imm, 3, O.FR + 4)
+        a.label("sx_cy"); E(raw, h(0x50C1)); E(adds_imm8, 3, 4); E(movw, 2, SIZE); E(cmp_reg, 3, 2); E(b_cond, "sx_cy", "lo")
+    else:
+        a.label("sx_cz"); E(raw, h(0x50C1)); E(adds_imm8, 3, 4); E(movw, 2, SIZE); E(cmp_reg, 3, 2); E(b_cond, "sx_cz", "lo")
     E(movs_imm, 1, FMT); E(strb_imm, 1, 0, O.FMT); E(movs_imm, 1, 0); E(strb_imm, 1, 4, 7)
     a.label("sx_ok")
     E(ldrb_imm, 3, 4, 4); E(adds_imm8, 3, 0x40); E(strb_imm, 3, 4, 4); E(movs_imm, 3, 1); E(strb_imm, 3, 4, 6)

@@ -71,7 +71,11 @@ def main(a):
                vector_xtra=hex(u(O2.XTRA)), pc=hex(u(O2.RPC)), lr=hex(u(O2.RLR)), regs=[hex(u(O.PC + 8 + 4 * i)) for i in range(6)],
                cfsr=hex(u(O2.CFSR)), fault_address=hex(u(O2.FADR)), view=hex(u(O.VIEW)), freeze_ms=u(O.FT), raw=raw.hex())
     tag, val = struct.unpack_from("<2I", raw, O.STK1)
-    if st == 0x85 and tag in (1, 2):                                               # Beta 5.65 (paintguard): a painter skipped a bad value
+    import stepcatch as SCAT
+    sc = SCAT.decode(raw, BB) if st == 0x85 else None
+    if sc:                                                                         # S715D3 (stepcatch): a play position >= 32
+        out["stepcatch"] = sc
+    elif st == 0x85 and tag in (1, 2):                                               # Beta 5.65 (paintguard): a painter skipped a bad value
         out["paintguard"] = dict(what=("probability view" if tag == 1 else "drum velocity bar"), value=val)
     elif st == 0x85:                                                               # S564D3 (dmawatch): the DMA dump at O.STK1
         o = raw[O.STK1:O.STK1 + 8 + 256]

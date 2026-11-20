@@ -1038,6 +1038,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 - Mutes en el compás siguiente.
 - Escenas con modo cadena y repeticiones.
 - El modo cue: escucha pistas por la salida derecha antes de meterlas.
+- [Alpha] La vista de macros global: un knob mueve el mismo knob de varias pistas.
 
 **Guion**
 
@@ -1057,12 +1058,16 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 6. **Encenderlo.** *Muestra:* la página de panorama (Octave ▼); Shift + un knob (Octave en rosa). *Di:* «En la página de panorama, Shift más un knob enciende el modo cue: la salida izquierda lleva la mezcla en mono, y la derecha es tu cue.»
 7. **Envíos al cue.** *Muestra:* gira knobs de panorama a la derecha (rosa, más brillantes). *Di:* «Ahora los knobs de panorama son el envío de cada pista al cue. Una pista silenciada en el cue suena solo por la derecha, a tiempo: métela en la mezcla cuando esté lista.»
 8. **Escucha previa y clic.** *Muestra:* elige un patch de Synth 1: se oye solo por la derecha. *Di:* «Con el modo cue encendido, elegir un patch de sinte, o Shift más un sample de drum, se oye solo en el cue. El metrónomo también va solo al cue.»
-9. **Cierre.** *Di:* «Mixer otra vez: Master FX. En el siguiente: los proyectos.»
+*Capítulo 4: vista de macros global*
+
+9. **[Alpha] Un knob, varias pistas.** *Muestra:* mantén Mixer y pulsa Patterns (los dos en blanco); gira K3; toca los pads 1 y 3; gira K3: se mueven el macro 3 de Synth 1 y el knob 3 de la página 4 de MIDI 1. *Di:* «En la Alpha, Mixer más Patterns abre la vista de macros global. Gira un knob y elige con los pads 1 a 8 qué pistas mueve: desde ahí, ese knob mueve el mismo knob de todas ellas a la vez; en las pistas MIDI, el de la página 4 del sinte propio. Cada knob tiene sus pistas y se guardan con el proyecto. Mixer o Patterns solos la cierran.»
+10. **Cierre.** *Di:* «Mixer otra vez: Master FX. En el siguiente: los proyectos.»
 
 **A tener en cuenta**
 - El modo cue se guarda en el aparato; los envíos al cue, con el proyecto.
 - La reverb, el delay y Master FX son los de la mezcla: el cue también los oye.
 - Guardar otra vez una escena no cambia sus repeticiones.
+- [Alpha] En la vista de macros global no hay pistas enlazadas al empezar; el knob del filtro master sigue siendo el suyo.
 
 ---
 

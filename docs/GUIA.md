@@ -97,8 +97,8 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 - *(desde RC2)* = nuevo desde RC2 (no está en RC0.9 / RC0.9S). La versión más segura, RC4S (y las S anteriores), no escribe nada propio en la tarjeta: lo marcado «escribe en la tarjeta» no hace nada en ella (el LED de Save se pone rojo).
 - *(desde RC2.02)* = nuevo en RC2.02 (no está en RC2.01).
 - *(desde RC4)* = nuevo en **RC4** (no está en RC2.11 ni en las anteriores).
-- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.20 y en la Alpha 7.14; en RC4.02 y antes no).
-- *(solo Beta 5.65)* = solo en la **Alpha 7.14** (no está en RC4.20).
+- *(desde RC4.05)* = arreglo de **RC4.05** (también en RC4.21 y en la Alpha 7.16; en RC4.02 y antes no).
+- *(solo Beta 5.65)* = solo en la **Alpha 7.16** (no está en RC4.21).
 - **Las funciones están en el capítulo de la vista donde se usan** (antes, en la lista de características): cada capítulo empieza con el índice de sus funciones, sigue con la vista y termina con cada función en su apartado, con sus dibujos y sus animaciones. El **glosario**, al final, las lista todas con los grupos de la antigua lista (A-E).
 
 <a id="botones"></a>
@@ -137,6 +137,7 @@ Circuit Tracks con el firmware oficial 1.2.1 (build 4486) parcheado. Esta guía 
 | **Velocity dos veces** *(desde RC4)* | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** *(desde RC4)* | todas | Lo mismo que pulsar el botón dos veces: Synth = la vista de la fuente (2.3), MIDI = su vista Preset. Desde RC4.17, con esa vista ya en pantalla, **Shift + el mismo botón** vuelve a su vista Note (Shift + otro botón de pista abre la de esa pista). |
 | **Mixer dos veces** | todas | Master FX (6.1). *(solo Beta 5.65)* En el Mixer, **Mixer mantenido** ½ s o más = Master FX solo hasta que lo sueltas; en Master FX, mantenido = el Mixer hasta que lo sueltas. |
+| **Mixer + Patterns** *(solo Beta 5.65)* | todas | La [vista de macros global](#mixer): cada knob mueve el mismo knob de las pistas que elijas (pads 1-8). |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
 
 - Los LEDs de los knobs enseñan con su **brillo** el valor de las funciones nuevas (más brillo = más valor; en los knobs bipolares, oscuro en el centro). *(solo Beta 5.65)* En los knobs bipolares, **tenue en el centro**, a la derecha su color de siempre y **a la izquierda un tono más claro del mismo color**, cada vez más brillante hacia fuera (motor de MIDI 1 / 2, drums, Digitise K4, la velocidad a tempo de Auto-Filter / Phaser).
@@ -776,9 +777,9 @@ Cada uno de los 8 macro knobs de un patch tiene 4 ranuras, y cada ranura un dest
 - Un morph a la vez: mantener patches 0,4 s en otra pista abre su morph y para el anterior.
 - Los parámetros continuos se mezclan; los de tipo toman el del patch más cercano. No se guarda nada.
 
-![Hacer morph entre patches · solo Beta 5.56](wiki/img/anim-morph-es.svg)
+![Hacer morph entre patches · solo Alpha 7.16](wiki/img/anim-morph-es.svg)
 
-*Paso a paso: Hacer morph entre patches · solo Beta 5.56*
+*Paso a paso: Hacer morph entre patches · solo Alpha 7.16*
 
 <a id="f-guardar-patch"></a>
 
@@ -834,7 +835,7 @@ Cada uno de los 8 macro knobs de un patch tiene 4 ranuras, y cada ranura un dest
 | 9-24 | **Patches del sinte propio** *(desde RC2)*: ver abajo. |
 | 25 | **Editor de CC** de los macros MIDI ([editor de CC](#midi-cc)). |
 | 26 | **Patch flip**: cada nota de la pista sale como Program Change (por el canal de la pista; si ese canal es el de un sinte o los drums, también por dentro). Excluyente con el motor. |
-| 27 | **Motor** de la pista: apagado → ámbar (entrada de línea) → verde (oscilador) → naranja (VA-drum) → magenta (granular) → verde azulado (muestra *(desde RC2)*) → azul (secuenciador de efectos). *(desde RC4)* Con el motor apagado, el pad se ve gris (blanco tenue). *(solo Beta 5.65)* En la Alpha 7.14 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx). |
+| 27 | **Motor** de la pista: apagado → ámbar (entrada de línea) → verde (oscilador) → naranja (VA-drum) → magenta (granular) → verde azulado (muestra *(desde RC2)*) → azul (secuenciador de efectos). *(desde RC4)* Con el motor apagado, el pad se ve gris (blanco tenue). *(solo Beta 5.65)* En la Alpha 7.16 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx). |
 | 28 | Uno / dos osciladores (oscilador y VA-drum). |
 | 29 | Orden de la cadena: VCA → FX → filtro / filtro → VCA → FX (en el color de la página VCA-VCF *(desde RC2)*). *(solo Beta 5.65)*: **de fábrica filtro → VCA → FX**; encendido, VCA → FX → filtro. Un proyecto o patch guardado conserva el pad, así que su orden se invierte. |
 | **Shift + 29** *(desde RC2)* | **Gate retrigger**: encendido (verde con Shift, por defecto) = cada nota nueva vuelve a disparar la envolvente; apagado (amarillo) = **legato**: con otras notas pulsadas, una nota nueva solo cambia la altura. *(desde RC4)* Pasa por los ocho **modos de voz** del pad 32 (con Shift, en el color del modo). |
@@ -879,14 +880,14 @@ Una pista MIDI puede mover el patrón de otra: sus notas, en vez de sonar, hacen
 - **Clear + el botón de la pista** *(desde RC2)* devuelve todos los valores del motor a los iniciales (el motor elegido se queda; *(desde RC4)*: también los del FM, y la matriz se queda con sus destinos y la cantidad a cero).
 
 #### Los motores (pad 27)
-- **Elegir el motor** *(desde RC4)*: un toque al **pad 27** abre la **fila de motores** en los **pads 17-23**: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. *(solo Beta 5.65)*: **pads 17-24** = sin voz (blanco), solo VCA / VCF / FX (la entrada de línea), oscilador, oscilador VA-drum, oscilador wavetable (arena), muestra, granular y FM; **el secuenciador de efectos sale de la fila: es el pad 31** con «sin voz» (azul tenue; un toque lo enciende, brillante, y la fila sigue marcando «sin voz»; otro toque lo apaga). Tocar uno lo elige y la fila sigue abierta; **pad 27 otra vez** la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (antes de RC4, cada toque del pad 27). *(solo Beta 5.65)* En la Alpha 7.14 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx).
+- **Elegir el motor** *(desde RC4)*: un toque al **pad 27** abre la **fila de motores** en los **pads 17-23**: apagado (blanco), entrada de línea, oscilador, VA-drum, granular, muestra y secuenciador de efectos, en sus colores; el actual brillante, los demás tenues. *(solo Beta 5.65)*: **pads 17-24** = sin voz (blanco), solo VCA / VCF / FX (la entrada de línea), oscilador, oscilador VA-drum, oscilador wavetable (arena), muestra, granular y FM; **el secuenciador de efectos sale de la fila: es el pad 31** con «sin voz» (azul tenue; un toque lo enciende, brillante, y la fila sigue marcando «sin voz»; otro toque lo apaga). Tocar uno lo elige y la fila sigue abierta; **pad 27 otra vez** la cierra y vuelve la lista de patches (pads 9-24, que mientras tanto no cargan nada). Shift + pad 27 sigue pasando al motor siguiente (antes de RC4, cada toque del pad 27). *(solo Beta 5.65)* En la Alpha 7.16 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx).
 - **Wavetable** *(solo Beta 5.65)* (arena, pad 21): el oscilador leyendo una tabla de hasta 9 cuadros, para los dos osciladores; **K3** de OSC 1 / OSC 2 = la posición (en la Beta 5.24-5.26, K7), K7 de OSC 1 = LFO → posición, Shift + K3 = envolvente → posición, SHAPE (K4) = warp. Con ella sonando (también con la fila de motores abierta), **pad 7 mantenido** = las 16 wavetables del stock (un toque llena la tabla; **Shift** + una tabla = solo el cuadro que señala la posición (K3), con el mismo cuadro de esa tabla) y **pad 8 mantenido** = los samples del pack (Octave = página; un toque pone un ciclo del sample **en el cuadro que señala la posición**). Cada toque en una lista suena la tónica hasta soltar el pad. El pad 27 se ve en arena. *(solo Beta 5.65)* **Clear + pad 7** = el cuadro que señala la posición (K3) vuelve al de su tabla (la tabla del stock que tenía, o la de partida), con la tónica. **Warp** (SHAPE lejos del centro): mucho menos aliasing en los agudos; a cambio, en los extremos suena algo más apagado.
 - **Entrada de línea** (amarillo): la entrada de audio de la pista (línea 1 en MIDI 1, línea 2 en MIDI 2) pasa por el VCA-VCF; las notas de la pista lo disparan.
 - **Oscilador** (verde): morph seno → triángulo → sierra → cuadrada, SHAPE, segundo oscilador (pad 28) con FM, ring, sync y modos bit a bit; dos notas = parafonía (con un oscilador, *(desde RC2)*: la última nota manda y al soltarla vuelve la anterior).
 - **VA-drum** (naranja): VCA de un disparo, envolventes de decay para pitch (knob Sustain) y filtro (knob Release), ruido blanco (velocidad del LFO) y valores aleatorios en lugar del LFO.
 - **Granular** (magenta): hasta 16 granos desde un sample del pack o la captura (página 2, capítulo siguiente).
 - **Muestra** (verde azulado) *(desde RC2)*: un sample del pack de un golpe a la altura de la nota (C3 = como se grabó), con sample flips por paso; se elige en la vista Note ampliada (ver «Modo muestra»).
-- **Secuenciador de efectos** (azul): el step-drummer de la pista dispara los huecos de la fila inferior de Master FX (6.1). *(solo Beta 5.65)* En la Alpha 7.14 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx).
+- **Secuenciador de efectos** (azul): el step-drummer de la pista dispara los huecos de la fila inferior de Master FX (6.1). *(solo Beta 5.65)* En la Alpha 7.16 el secuenciador de efectos ya no está: lo sustituye el secuenciador de pasos de [Master FX](#master-fx).
 - **FM** (violeta) *(desde RC4)*: el **pad 24** de la fila: un sinte FM de 4 operadores, variante del oscilador, con 16 algoritmos (clásicos, percusivos, campanas y cuerdas) y sus knobs en la **página 7** (capítulo «FM de 4 operadores»).
 - La pista sigue mandando su MIDI con cualquier motor.
 
@@ -2681,6 +2682,7 @@ Mantén el pad 7 y toca un pad de la fila inferior: ese hueco toca el sample con
 - **Escenas con cadenas y repeticiones** *(desde RC2)* — una escena puede repetirse n veces y recordar el modo cadena.
 - **Entradas y salidas al compás** *(desde RC2)* — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
 - **Modo cue** *(desde RC2)* — la mezcla en mono por la izquierda y, por la derecha, las pistas que quieras escuchar antes de meterlas.
+- **Vista de macros global** *(solo Beta 5.65)* — Mixer + Patterns: cada knob mueve el mismo knob de las pistas que elijas.
 
 **Funciones de esta vista:** [A11 Mixer: Shift + knob = nivel a 100 / 0](#f-mixer-shift) · [A12 Modo cue, mutes al compás y cuantizar (desde RC2)](#f-mixer-cue)
 
@@ -2704,9 +2706,26 @@ Mantén el pad 7 y toca un pad de la fila inferior: ese hueco toca el sample con
 - **Escucha previa en el cue** *(desde RC4)*: con el modo cue encendido, elegir un patch de Synth 1 / 2 en su vista Preset (toque normal o con Shift) y **Shift + sample** en la vista Preset de un drum (en el original, la selección silenciosa) se oyen **solo en el cue** (derecha): mientras mantienes el pad y 0,8 s después, esa pista va solo al cue (también su patrón, en ese momento). El toque normal de un drum sigue sonando en la mezcla, y cualquier golpe en vivo de ese drum (sus pads, MIDI, el patrón) lo devuelve a la mezcla antes de sonar.
 - **Metrónomo en el cue** *(desde RC4)*: con el modo cue encendido, el clic del metrónomo (Shift + Clear) y el de la cuenta atrás suenan **solo en el cue** (salida derecha): la mezcla de la izquierda sale sin clic. Sin el modo cue, por las dos salidas, como siempre.
 
+#### Vista de macros global *(solo Beta 5.65)*
+**Mixer mantenido + Patterns** (o Patterns mantenido + Mixer) la abre y la cierra; mientras está abierta, Mixer y Patterns se ven en blanco y debajo queda la vista del primer botón. Cada **knob Kn mueve el knob n de todas las pistas enlazadas a él**, igual que si lo giraras en la vista de cada una: los macros de Synth 1 / 2, los knobs de los drums y, en MIDI 1 / 2, la **página 4** del sinte propio (pad 1, los knobs secuenciables).
+
+| Gesto | Qué hace |
+|---|---|
+| **Un knob** | Lo elige y mueve ese knob en sus pistas enlazadas (sin pistas no mueve nada; su LED, blanco tenue). |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 para el knob elegido: **brillante = enlazada**, tenue = no; un toque cambia. Los pads 9-32, apagados. |
+| **Mixer o Patterns solos**, o cualquier botón salvo Record, Play, Clear y Duplicate | Cierra la vista (y hace lo de siempre). |
+
+- Al empezar no hay ninguna pista enlazada; cada knob tiene las suyas y se guardan con el proyecto.
+- El LED de un knob enlazado lleva el color de su primera pista: más brillante el elegido.
+- El knob del filtro master sigue siendo el de siempre.
+
 ![Repetir una escena · desde RC2](wiki/img/anim-repeticiones-escena-es.svg)
 
 *Paso a paso: Repetir una escena · desde RC2*
+
+![Mover un knob en varias pistas · solo Alpha 7.16](wiki/img/anim-macros-global-es.svg)
+
+*Paso a paso: Mover un knob en varias pistas · solo Alpha 7.16*
 
 <a id="f-mixer-shift"></a>
 
@@ -2886,6 +2905,7 @@ Mantén el pad 7 y toca un pad de la fila inferior: ese hueco toca el sample con
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
 | *(solo Beta 5.65)* **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
+| *(solo Beta 5.65)* **Vista de macros global**: qué pistas mueve cada knob | [Mixer](#mixer) |
 | *(solo Beta 5.65)* **Cadenas de grupos**: la de cada pista y la de cada escena (en el fichero del proyecto, detrás de los carriles extra) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; *(desde RC4)* con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |

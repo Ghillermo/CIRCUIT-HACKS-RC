@@ -97,8 +97,8 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 - *(since RC2)* = new since RC2 (not in RC0.9 / RC0.9S). The safer build, RC4S (and the earlier S builds), writes nothing of its own to the card: what is marked «writes to the card» does nothing there (the Save LED turns red).
 - *(since RC2.02)* = new in RC2.02 (not in RC2.01).
 - *(since RC4)* = new in **RC4** (not in RC2.11 or earlier).
-- *(since RC4.05)* = a fix of **RC4.05** (in RC4.20 and Alpha 7.14 too; not in RC4.02 or earlier).
-- *(Beta 5.65 only)* = only in **Alpha 7.14** (not in RC4.20).
+- *(since RC4.05)* = a fix of **RC4.05** (in RC4.21 and Alpha 7.16 too; not in RC4.02 or earlier).
+- *(Beta 5.65 only)* = only in **Alpha 7.16** (not in RC4.21).
 - **The features are in the chapter of the view where they are used** (before, in the feature list): every chapter starts with the index of its features, goes on with the view and ends with each feature in its own section, with its drawings and animations. The **glossary**, at the end, lists them all under the groups of the former list (A-E).
 
 <a id="botones"></a>
@@ -137,6 +137,7 @@ Circuit Tracks running the official firmware 1.2.1 (build 4486), patched. This g
 | **Velocity twice** *(since RC4)* | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** *(since RC4)* | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. Since RC4.17, with that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
 | **Mixer twice** | all | Master FX (6.1). *(Beta 5.65 only)* In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
+| **Mixer + Patterns** *(Beta 5.65 only)* | all | The [global macro view](#mixer): each knob moves the same knob on the tracks you pick (pads 1-8). |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
 
 - The knob LEDs show the value of the new functions with their **brightness** (brighter = more; bipolar knobs are dark in the middle). *(Beta 5.65 only)* On bipolar knobs, **dim at the centre**, their usual colour to the right and **a lighter shade of the same colour to the left**, brighter further out (the MIDI 1 / 2 engine, drums, Digitise K4, the synced rate of Auto-Filter / Phaser).
@@ -776,9 +777,9 @@ Each of the 8 macro knobs of a patch has 4 slots, and each slot a destination, a
 - One morph at a time: holding patches for 0.4 s on another track opens its morph and stops the previous one.
 - Continuous parameters blend; type parameters take the nearest patch's. Nothing is saved.
 
-![Morph between patches · Beta 5.56 only](wiki/img/anim-morph-en.svg)
+![Morph between patches · Alpha 7.16 only](wiki/img/anim-morph-en.svg)
 
-*Step by step: Morph between patches · Beta 5.56 only*
+*Step by step: Morph between patches · Alpha 7.16 only*
 
 <a id="f-guardar-patch"></a>
 
@@ -834,7 +835,7 @@ Each of the 8 macro knobs of a patch has 4 slots, and each slot a destination, a
 | 9-24 | **Own-synth patches** *(since RC2)*: see below. |
 | 25 | **CC editor** of the MIDI macros ([CC editor](#midi-cc)). |
 | 26 | **Patch flip**: every note of the track goes out as a Program Change (on the track's channel; if that is a synth's or the drums' channel, also internally). Exclusive with the engine. |
-| 27 | Track **engine**: off → amber (line input) → green (oscillator) → orange (VA-drum) → magenta (granular) → teal (sample *(since RC2)*) → blue (FX sequencer). *(since RC4)* With the engine off, the pad shows grey (dim white). *(Beta 5.65 only)* In Alpha 7.14 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)). |
+| 27 | Track **engine**: off → amber (line input) → green (oscillator) → orange (VA-drum) → magenta (granular) → teal (sample *(since RC2)*) → blue (FX sequencer). *(since RC4)* With the engine off, the pad shows grey (dim white). *(Beta 5.65 only)* In Alpha 7.16 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)). |
 | 28 | One / two oscillators (oscillator and VA-drum). |
 | 29 | Chain order: VCA → FX → filter / filter → VCA → FX (in the VCA-VCF page's colour *(since RC2)*). *(Beta 5.65 only)*: **filter → VCA → FX by default**; on, VCA → FX → filter. A saved project or patch keeps the pad, so its order swaps. |
 | **Shift + 29** *(since RC2)* | **Gate retrigger**: on (green with Shift, the default) = every new note restarts the envelope; off (yellow) = **legato**: with other notes held, a new note only changes the pitch. *(since RC4)* It steps through the eight **voice modes** of pad 32 (with Shift, in the mode's colour). |
@@ -879,13 +880,13 @@ A MIDI track can move another track's pattern: instead of sounding, its notes ma
 - **Clear + the track button** *(since RC2)* puts every engine value back to its default (the chosen engine stays; *(since RC4)*: the FM's too, and the matrix keeps its destinations with the amounts at zero).
 
 #### The engines (pad 27)
-- **Choosing the engine** *(since RC4)*: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. *(Beta 5.65 only)*: **pads 17-24** = no voice (white), VCA / VCF / FX only (the line input), oscillator, oscillator VA-drum, oscillator wavetable (sand), sample, granular and FM; **the FX sequencer leaves the row: it is pad 31** with «no voice» (dim blue; a tap turns it on, bright, and the row keeps showing «no voice»; another tap turns it off). Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (before RC4, every tap of pad 27). *(Beta 5.65 only)* In Alpha 7.14 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
+- **Choosing the engine** *(since RC4)*: a tap on **pad 27** opens the **engine row** on **pads 17-23**: off (white), line input, oscillator, VA-drum, granular, sample and FX sequencer, in their colours; the current one bright, the others dim. *(Beta 5.65 only)*: **pads 17-24** = no voice (white), VCA / VCF / FX only (the line input), oscillator, oscillator VA-drum, oscillator wavetable (sand), sample, granular and FM; **the FX sequencer leaves the row: it is pad 31** with «no voice» (dim blue; a tap turns it on, bright, and the row keeps showing «no voice»; another tap turns it off). Tapping one picks it and the row stays open; **pad 27 again** closes it and the patch list comes back (pads 9-24, which load nothing meanwhile). Shift + pad 27 still steps to the next engine (before RC4, every tap of pad 27). *(Beta 5.65 only)* In Alpha 7.16 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
 - **Wavetable** *(Beta 5.65 only)* (sand, pad 21): the oscillator reading a table of up to 9 frames, for both oscillators; **K3** of OSC 1 / OSC 2 = the position (in Beta 5.24-5.26, K7), K7 of OSC 1 = LFO → position, Shift + K3 = envelope → position, SHAPE (K4) = warp. While it plays (with the engine row open too), **pad 7 held** = the stock's 16 wavetables (a tap fills the table; **Shift** + a table = only the frame the position (K3) points at, with the same frame of that table) and **pad 8 held** = the pack's samples (Octave = page; a tap puts a cycle of the sample **in the frame the position points at**). Every tap on a list sounds the tonic until the pad is let go. Pad 27 shows sand. *(Beta 5.65 only)* **Clear + pad 7** = the frame the position (K3) points at goes back to its table's (the stock table it had, or the starting one), with the tonic. **Warp** (SHAPE away from the centre): far less aliasing on high notes; in exchange, at the ends it sounds a little duller.
 - **Line input** (yellow): the track's audio input (line 1 on MIDI 1, line 2 on MIDI 2) goes through the VCA-VCF; the track's notes trigger it.
 - **Oscillator** (green): morph sine → triangle → saw → square, SHAPE, second oscillator (pad 28) with FM, ring, sync and bitwise modes; two notes = paraphony (with one oscillator, *(since RC2)*: the last note has priority and releasing it goes back to the previous one).
 - **VA-drum** (orange): one-shot VCA, decay envelopes for pitch (Sustain knob) and filter (Release knob), white noise (LFO speed) and random values instead of the LFO.
 - **Granular** (magenta): up to 16 grains from a pack sample or the capture (page 2, next section).
-- **FX sequencer** (blue): the track's step-drummer triggers the slots of Master FX's bottom row (6.1). *(Beta 5.65 only)* In Alpha 7.14 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
+- **FX sequencer** (blue): the track's step-drummer triggers the slots of Master FX's bottom row (6.1). *(Beta 5.65 only)* In Alpha 7.16 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
 - **FM** (violet) *(since RC4)*: **pad 24** of the row: a 4-operator FM synth, a variant of the oscillator, with 16 algorithms (classic, percussive, bells and strings) and its knobs on **page 7** (chapter «4-operator FM»).
 - The track keeps sending its MIDI with any engine.
 
@@ -1571,7 +1572,7 @@ With the FM page showing, pads 9-24 load no patches: load them from another knob
 - *(since RC2)* **Pitch-vel toggle:** every note of the track moves up / down **one degree of the project's scale** (stock or custom) **every 8 knob steps**: MIDI from the centre (−8 … +8 degrees), synths from 0 (0 … +16), within notes 0-127; auditioning a step too. With the toggle, the pitch page's pitch destinations (pitch of both oscillators / of OSC 2) no longer move the own synth: the note does. The velocity follows the velocity page.
 - *(since RC2)* On MIDI, pad 30 shows **dim** with the step-drummer off and **bright** when it is on (it was dark / dim).
 - With **Record**, touching a step records it on the playing step (real time).
-- With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** *(since RC2)* (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing; *since RC4*: it plays **the effect at the top of its column** (pad 26 = Master FX pad 1 … pad 30 = pad 5), with its knobs, and its LED shows that colour. *(Beta 5.65 only)* One more value, at the very end: **mute** (red LED): the whole master silent for the length of the step (a 2 ms fade in and out; the Master FX capture and the metronome click are not muted). *(Beta 5.65 only)* In Alpha 7.14 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
+- With the engine on **FX sequencer** (blue), each knob picks a slot of Master FX's bottom row: 0 none, 1-5 pads 26-30, 6 pad 31, and at the end **random** *(since RC2)* (white LED: one at random among the slots with an effect). It moves slowly (one slot every ~48 steps of turning). A slot with no effect assigned does nothing; *since RC4*: it plays **the effect at the top of its column** (pad 26 = Master FX pad 1 … pad 30 = pad 5), with its knobs, and its LED shows that colour. *(Beta 5.65 only)* One more value, at the very end: **mute** (red LED): the whole master silent for the length of the step (a 2 ms fade in and out; the Master FX capture and the metronome click are not muted). *(Beta 5.65 only)* In Alpha 7.16 the FX sequencer is gone: Master FX's step sequencer replaces it ([Master FX](#master-fx)).
 
 <a id="f-step-drummer"></a>
 
@@ -2680,6 +2681,7 @@ Hold pad 7 and touch a pad of the bottom row: that slot plays the sample with a 
 - **Scenes with chains and repeats** *(since RC2)* — a scene can repeat n times and remember chain mode.
 - **Drop-ins on the bar** *(since RC2)* — Shift + a track pad mutes or unmutes the track right as the next bar starts.
 - **Cue mode** *(since RC2)* — the mix in mono on the left and, on the right, the tracks you want to hear before bringing them in.
+- **Global macro view** *(Beta 5.65 only)* — Mixer + Patterns: each knob moves the same knob on the tracks you pick.
 
 **Features in this view:** [A11 Mixer: Shift + knob = level to 100 / 0](#f-mixer-shift) · [A12 Cue mode, mutes on the bar and quantize (since RC2)](#f-mixer-cue)
 
@@ -2703,9 +2705,26 @@ Hold pad 7 and touch a pad of the bottom row: that slot plays the sample with a 
 - **Cue preview** *(since RC4)*: with the cue mode on, choosing a Synth 1 / 2 patch in its Preset view (a normal or a Shift press) and **Shift + sample** in a drum's Preset view (on the original, the silent selection) are heard **only in the cue** (right): while you hold the pad and 0.8 s after, that track goes to the cue only (its pattern too, for that moment). A normal drum press still sounds in the mix, and any live hit of that drum (its pads, MIDI, the pattern) brings it back to the mix before it sounds.
 - **Metronome in the cue** *(since RC4)*: with the cue mode on, the metronome's click (Shift + Clear) and the count-in's sound **only in the cue** (right output): the mix on the left goes out without the click. Without the cue mode, on both outputs as always.
 
+#### Global macro view *(Beta 5.65 only)*
+**Mixer held + Patterns** (or Patterns held + Mixer) opens and closes it; while it is open, Mixer and Patterns show white and the first button's view stays underneath. Each **knob Kn moves knob n of every track linked to it**, just as if you turned it in that track's view: Synth 1 / 2's macros, the drums' knobs and, on MIDI 1 / 2, the own synth's **page 4** (pad 1, the sequenceable knobs).
+
+| Gesture | What it does |
+|---|---|
+| **A knob** | Picks it and moves that knob on its linked tracks (with no tracks it moves nothing; its LED dim white). |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 for the picked knob: **bright = linked**, dim = not; a tap toggles. Pads 9-32 dark. |
+| **Mixer or Patterns alone**, or any button but Record, Play, Clear and Duplicate | Closes the view (and does what it always does). |
+
+- At first no track is linked; each knob has its own tracks, saved with the project.
+- A linked knob's LED shows its first track's colour: brighter for the picked one.
+- The master filter knob is the same as always.
+
 ![Repeat a scene · since RC2](wiki/img/anim-repeticiones-escena-en.svg)
 
 *Step by step: Repeat a scene · since RC2*
+
+![Move one knob on several tracks · Alpha 7.16 only](wiki/img/anim-macros-global-en.svg)
+
+*Step by step: Move one knob on several tracks · Alpha 7.16 only*
 
 <a id="f-mixer-shift"></a>
 
@@ -2885,6 +2904,7 @@ Hold pad 7 and touch a pad of the bottom row: that slot plays the sample with a 
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
 | *(Beta 5.65 only)* **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
+| *(Beta 5.65 only)* **Global macro view**: which tracks each knob moves | [Mixer](#mixer) |
 | *(Beta 5.65 only)* **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; *(since RC4)* with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |

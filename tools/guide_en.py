@@ -50,6 +50,7 @@ VIEWS = {
 | **Velocity twice** {XB} | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. Since RC4.17, with that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
 | **Mixer twice** | all | Master FX (6.1). {YB} In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
+| **Mixer + Patterns** {YB} | all | The [global macro view](#mixer): each knob moves the same knob on the tracks you pick (pads 1-8). |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
 
 - The knob LEDs show the value of the new functions with their **brightness** (brighter = more; bipolar knobs are dark in the middle). {YB} On bipolar knobs, **dim at the centre**, their usual colour to the right and **a lighter shade of the same colour to the left**, brighter further out (the MIDI 1 / 2 engine, drums, Digitise K4, the synced rate of Auto-Filter / Phaser).
@@ -828,6 +829,19 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 - **Cue mode** {B}: the **left output** carries the mix in mono as always and the **right** one only the cued tracks, each at its send. A muted track in the cue plays only on the right, at the step its pattern is on; its pad stays dim and its pad (or Shift + pad, on the next bar) takes it into or out of the mix. The pans are not touched and come back when the mode goes off; saving the project saves the mix's mutes. Reverb, delay and Master FX are the mix's: the cue hears them too.
 - **Cue preview** {XB}: with the cue mode on, choosing a Synth 1 / 2 patch in its Preset view (a normal or a Shift press) and **Shift + sample** in a drum's Preset view (on the original, the silent selection) are heard **only in the cue** (right): while you hold the pad and 0.8 s after, that track goes to the cue only (its pattern too, for that moment). A normal drum press still sounds in the mix, and any live hit of that drum (its pads, MIDI, the pattern) brings it back to the mix before it sounds.
 - **Metronome in the cue** {XB}: with the cue mode on, the metronome's click (Shift + Clear) and the count-in's sound **only in the cue** (right output): the mix on the left goes out without the click. Without the cue mode, on both outputs as always.
+
+### Global macro view {YB}
+**Mixer held + Patterns** (or Patterns held + Mixer) opens and closes it; while it is open, Mixer and Patterns show white and the first button's view stays underneath. Each **knob Kn moves knob n of every track linked to it**, just as if you turned it in that track's view: Synth 1 / 2's macros, the drums' knobs and, on MIDI 1 / 2, the own synth's **page 4** (pad 1, the sequenceable knobs).
+
+| Gesture | What it does |
+|---|---|
+| **A knob** | Picks it and moves that knob on its linked tracks (with no tracks it moves nothing; its LED dim white). |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 for the picked knob: **bright = linked**, dim = not; a tap toggles. Pads 9-32 dark. |
+| **Mixer or Patterns alone**, or any button but Record, Play, Clear and Duplicate | Closes the view (and does what it always does). |
+
+- At first no track is linked; each knob has its own tracks, saved with the project.
+- A linked knob's LED shows its first track's colour: brighter for the picked one.
+- The master filter knob is the same as always.
 """),
 "projects": ("Projects view",
     "The **Projects** button: loading and saving projects as always, plus copying.", f"""
@@ -895,6 +909,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
+| {YB} **Global macro view**: which tracks each knob moves | [Mixer](#mixer) |
 | {YB} **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; {XB} with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -1190,6 +1205,7 @@ ABOUT = {
 - **Scenes with chains and repeats** {B} — a scene can repeat n times and remember chain mode.
 - **Drop-ins on the bar** {B} — Shift + a track pad mutes or unmutes the track right as the next bar starts.
 - **Cue mode** {B} — the mix in mono on the left and, on the right, the tracks you want to hear before bringing them in.
+- **Global macro view** {YB} — Mixer + Patterns: each knob moves the same knob on the tracks you pick.
 """,
     "master-fx": f"""
 - **Live effects on the whole master** — Gater, Auto-Filter, Digitise, Phaser, Glitch and the mechanical gesture {B}: while held or latched.

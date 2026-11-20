@@ -96,6 +96,7 @@ TRIMCC = False                                                # SC57.5 (use_trim
 LRRAM = False                                                 # Alpha 7.04 / RC4.16 (use_lrram)
 PCL = 0x2004F5A0                                              # (LRRAM) + 0 the LR, + 4 the frame (free: S514D 0x2004F4B0-0x2004F7FF, after fmmap's 0x2004F598)
 CCMAP = False                                                 # Alpha 7.04 (use_ccmap)
+RANGEFIX = False                                              # Alpha 7.16 / RC4.21 (use_rangefix)
 
 
 def use_lrram():
@@ -111,6 +112,18 @@ def use_ccmap():
     (H_MAP, + 4): a mask left from an earlier project could show a scene as chained; now the map bit must be set too."""
     global CCMAP
     CCMAP = True
+
+
+def use_rangefix():
+    """Alpha 7.16 / RC4.21 (S715D3 on the device, 2026-11-20: the root cause of the Beta 5.63 / 5.64 / S715D corruption): c_pcnext repeated the
+    stock's choice «forced or current = the chain's last -> first, else current + 1», which assumes the current pattern is inside the track's
+    chain [first, last].  Group chains, pattern mutate and scene rules leave a track outside it (Drum 4 on pattern 7 with the chain 0..0): the
+    choice was pattern 8, whose settings are garbage; no branch of the advance set the step, its strb r5 (0x0802CE4A) stored the low byte of the
+    playing store's pointer (0x200391F0 -> 240) and the stock view listener 0x0804EB70 -> 0x0804E736 wrote [view + 0x6C + 2 x 240] = the vtable
+    word 0x20043610.  Now current >= last or current < first -> the first (the stock's answer in every case it can reach), and an answer >= 8 ->
+    the first."""
+    global RANGEFIX
+    RANGEFIX = True
 
 
 def use_v2():
@@ -450,7 +463,9 @@ def arm_code(base, L, prev):
     E(push_list, [4, 5, 6, 7], lr=True)
     E(raw, ldrb_sp(4, F)); E(mov_reg, 5, 9)
     E(raw, ldrb_sp(0, F + 0x18)); E(cmp_imm, 0, 0); E(b_cond, "nx_f", "ne")
-    E(raw, ldrb_sp(1, F + 2)); E(cmp_reg, 5, 1); E(b_cond, "nx_f", "eq")
+    E(raw, ldrb_sp(1, F + 2)); E(cmp_reg, 5, 1); E(b_cond, "nx_f", "hs" if RANGEFIX else "eq")
+    if RANGEFIX:                                                                      # (use_rangefix) before the first: the first too
+        E(mov_reg, 0, 8); E(cmp_reg, 5, 0); E(b_cond, "nx_f", "lo")
     E(adds_imm3, 7, 5, 1); E(b, "nx_h")
     a.label("nx_f"); E(mov_reg, 7, 8)
     a.label("nx_h")                                                                   # r7 = the stock's choice
@@ -482,7 +497,11 @@ def arm_code(base, L, prev):
     a.label("nx_st")
     E(mov_reg, 0, 6); E(mov_reg, 1, 4); E(mov_reg, 2, 5); E(bl, "c_pcstep")
     E(cmp_imm, 0, 0xFF); E(b_cond, "nx_x", "eq"); E(mov_reg, 7, 0)
-    a.label("nx_x"); E(raw, strb_sp(7, F + 1)); E(pop_list, [4, 5, 6, 7], pc=True)
+    a.label("nx_x")
+    if RANGEFIX:                                                                      # (use_rangefix) never a pattern >= 8
+        E(cmp_imm, 7, 8); E(b_cond, "nx_ok", "lo"); E(mov_reg, 7, 8)
+        a.label("nx_ok")
+    E(raw, strb_sp(7, F + 1)); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_pcsflag (r0 = the tail, r1 = scene) -> r0 = the tracks that follow the rules in that scene (all of them when the project has
     #      nothing of ours); clobbers r1-r3
