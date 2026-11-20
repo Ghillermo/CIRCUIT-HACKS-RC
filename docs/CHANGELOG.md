@@ -746,6 +746,12 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.20 / RC4.20S — 2026-11-20
+
+**RC4.20 / RC4.20S** (marcas `R420` / `R420S`) = RC4.19 / RC4.19S + este arreglo (también en la **Alpha 7.14** = la Alpha 7.13 + este arreglo). Probado en el aparato.
+
+- **Un cuelgue del firmware oficial al recibir MIDI:** un **CC 27** o un **NRPN 1:27** por el canal 16 (el del proyecto) colgaba el aparato al momento, también con el firmware de Novation. **Un Circuit Rhythm lo manda al cambiar el recorte de −12 dB de su vista de grabación de samples** (con CC out y el mismo canal de proyecto). Ahora se ignora. → [Guía: MIDI propio](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#midi)
+
 ### RC4.19 / RC4.19S — 2026-11-20
 
 **RC4.19 / RC4.19S** (marcas `R419` / `R419S`) = RC4.17 / RC4.17S + estos arreglos (también en la Alpha 7.13; RC4.18 no se publicó).
@@ -1918,6 +1924,12 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.20 / RC4.20S — 2026-11-20
+
+**RC4.20 / RC4.20S** (markers `R420` / `R420S`) = RC4.19 / RC4.19S + this fix (also in **Alpha 7.14** = Alpha 7.13 + this fix). Tested on the device.
+
+- **A crash of the official firmware on incoming MIDI:** a **CC 27** or an **NRPN 1:27** on channel 16 (the project channel) crashed the device at once, with Novation's firmware too. **A Circuit Rhythm sends it when its sample record view's −12 dB trim is toggled** (with CC out and the same project channel). Now it is ignored. → [Guide: The mod's MIDI](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#midi)
 
 ### RC4.19 / RC4.19S — 2026-11-20
 
