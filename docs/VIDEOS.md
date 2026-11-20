@@ -1038,7 +1038,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 - Mutes en el compás siguiente.
 - Escenas con modo cadena y repeticiones.
 - El modo cue: escucha pistas por la salida derecha antes de meterlas.
-- [Alpha] La vista de macros global: un knob mueve el mismo knob de varias pistas.
+- [Alpha] La vista de macros global: un knob mueve el mismo knob, el nivel y los envíos de varias pistas.
 
 **Guion**
 
@@ -1060,7 +1060,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 8. **Escucha previa y clic.** *Muestra:* elige un patch de Synth 1: se oye solo por la derecha. *Di:* «Con el modo cue encendido, elegir un patch de sinte, o Shift más un sample de drum, se oye solo en el cue. El metrónomo también va solo al cue.»
 *Capítulo 4: vista de macros global*
 
-9. **[Alpha] Un knob, varias pistas.** *Muestra:* mantén Mixer y pulsa Patterns (los dos en blanco); gira K3; toca los pads 1 y 3; gira K3: se mueven el macro 3 de Synth 1 y el knob 3 de la página 4 de MIDI 1. *Di:* «En la Alpha, Mixer más Patterns abre la vista de macros global. Gira un knob y elige con los pads 1 a 8 qué pistas mueve: desde ahí, ese knob mueve el mismo knob de todas ellas a la vez; en las pistas MIDI, el de la página 4 del sinte propio. Cada knob tiene sus pistas y se guardan con el proyecto. Mixer o Patterns solos la cierran.»
+9. **[Alpha] Un knob, varias pistas.** *Muestra:* mantén Mixer y pulsa Patterns (los dos en blanco); gira K3; toca los pads 1 y 3; gira K3: se mueven el macro 3 de Synth 1 y el knob 3 de la página 4 de MIDI 1. *Di:* «En la Alpha, Mixer más Patterns abre la vista de macros global. Gira un knob y elige con los pads 1 a 8 qué pistas mueve: desde ahí, ese knob mueve el mismo knob de todas ellas a la vez; en las pistas MIDI, el de la página 4 del sinte propio. Las filas de abajo hacen lo mismo con el nivel del Mixer, el envío de reverb y el de delay de cada pista. Cada knob tiene sus enlaces y se guardan con el proyecto. Mixer o Patterns solos la cierran.» *Muestra:* toca el pad 9 y el 25; gira K3: suben también el nivel de Synth 1 y su envío de delay.
 10. **Cierre.** *Di:* «Mixer otra vez: Master FX. En el siguiente: los proyectos.»
 
 **A tener en cuenta**

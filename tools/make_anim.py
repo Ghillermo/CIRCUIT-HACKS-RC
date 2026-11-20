@@ -1056,12 +1056,14 @@ proc("modo-cue", "mixer", ["mixer-cue"], "Prepare tracks in the cue", "Preparar 
 ])
 
 def gmp(linked=()):
-    """the global macro view: pads 1-8 the eight tracks, bright = linked to the picked knob"""
-    return {i + 1: (TC[t], "", (i + 1) not in linked) for i, t in enumerate(T8)}
+    """the global macro view: four rows of the eight tracks (knobs, level, reverb, delay), bright = linked to the picked knob"""
+    rl = (V("Knobs", "Knobs"), V("Level", "Nivel"), V("Reverb", "Reverb"), V("Delay", "Delay"))
+    return {8 * r + i + 1: (TC[t], rl[r] if i == 0 else "", (8 * r + i + 1) not in linked) for r in range(4) for i, t in enumerate(T8)}
 GMB = {"Mixer": "white", "Patterns": "white"}
 proc("macros-global", "mixer", [], "Move one knob on several tracks", "Mover un knob en varias pistas", beta=True, vlabel=MXV, frames=[
-    F("Hold Mixer and press Patterns: the global macro view (Mixer and Patterns white). Pads 1-8 = the eight tracks, dim = not linked.",
-      "Mantén Mixer y pulsa Patterns: la vista de macros global (Mixer y Patterns en blanco). Pads 1-8 = las ocho pistas, tenues = sin enlazar.",
+    F("Hold Mixer and press Patterns: the global macro view (Mixer and Patterns white). Pads 1-8 = the eight tracks' knobs, dim = not linked.",
+      "Mantén Mixer y pulsa Patterns: la vista de macros global (Mixer y Patterns en blanco). Pads 1-8 = los knobs de las ocho pistas, tenues = "
+      "sin enlazar.",
       pads=gmp(), buttons=GMB, press=["Mixer", "Patterns"]),
     F("Turn K3: it becomes the picked knob (dim white: no tracks yet, it moves nothing).",
       "Gira K3: pasa a ser el knob elegido (blanco tenue: aún sin pistas, no mueve nada).",
@@ -1074,6 +1076,11 @@ proc("macros-global", "mixer", [], "Move one knob on several tracks", "Mover un 
       "Ahora K3 mueve a la vez el macro 3 de Synth 1 y el knob 3 de la página 4 de MIDI 1, como si los giraras en sus vistas. Cada knob tiene "
       "sus pistas, que se guardan con el proyecto. Mixer o Patterns solos cierran la vista.",
       pads=gmp((1, 3)), buttons=GMB, turn={3: 1}, kcol={3: "magenta"}),
+    F("The rows below are each track's Mixer level (pads 9-16), reverb send (17-24) and delay send (25-32). Tap pads 9 and 25: K3 now also "
+      "moves Synth 1's level and its delay send.",
+      "Las filas de abajo son el nivel del Mixer (pads 9-16), el envío de reverb (17-24) y el de delay (25-32) de cada pista. Toca los pads 9 y "
+      "25: ahora K3 mueve también el nivel de Synth 1 y su envío de delay.",
+      pads=gmp((1, 3, 9, 25)), buttons=GMB, press=[9, 25], turn={3: 1}, kcol={3: "magenta"}),
 ])
 
 # ===== Drums

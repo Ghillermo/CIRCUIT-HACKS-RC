@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.16"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.18"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
@@ -823,11 +823,13 @@ view("mixer", "VI", "Vista Mixer y escenas",
 | Gesto | Qué hace |
 |---|---|
 | **Un knob** | Lo elige y mueve ese knob en sus pistas enlazadas (sin pistas no mueve nada; su LED, blanco tenue). |
-| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 para el knob elegido: **brillante = enlazada**, tenue = no; un toque cambia. Los pads 9-32, apagados. |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 para el knob elegido: **brillante = enlazada**, tenue = no; un toque cambia. |
+| **Pads 9-16 / 17-24 / 25-32** | El **nivel del Mixer**, el **envío de reverb** y el **envío de delay** de esas mismas pistas (en el mismo orden) para el knob elegido, igual: el knob los mueve como su knob en el Mixer (página de niveles) o en la vista FX. |
 | **Mixer o Patterns solos**, o cualquier botón salvo Record, Play, Clear y Duplicate | Cierra la vista (y hace lo de siempre). |
 
 - Al empezar no hay ninguna pista enlazada; cada knob tiene las suyas y se guardan con el proyecto.
-- El LED de un knob enlazado lleva el color de su primera pista: más brillante el elegido.
+- El LED de un knob enlazado lleva el color de su primera pista enlazada en cualquier fila: brillante el elegido, tenue los demás; sin enlaces, apagado.
+- Un proyecto guardado con la Alpha 7.16 carga sus enlaces en los pads 1-8.
 - El knob del filtro master sigue siendo el de siempre.
 """, [("mixer-shift", 0)])
 
@@ -1016,7 +1018,7 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
-| {YB} **Vista de macros global**: qué pistas mueve cada knob | [Mixer](#mixer) |
+| {YB} **Vista de macros global**: qué mueve cada knob (los knobs de cada pista, su nivel, sus envíos de reverb y delay) | [Mixer](#mixer) |
 | {YB} **Cadenas de grupos**: la de cada pista y la de cada escena (en el fichero del proyecto, detrás de los carriles extra) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; {XB} con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -1324,7 +1326,7 @@ ABOUT = dict(
 - **Escenas con cadenas y repeticiones** {B} — una escena puede repetirse n veces y recordar el modo cadena.
 - **Entradas y salidas al compás** {B} — Shift + pad de pista silencia o activa la pista justo al empezar el compás siguiente.
 - **Modo cue** {B} — la mezcla en mono por la izquierda y, por la derecha, las pistas que quieras escuchar antes de meterlas.
-- **Vista de macros global** {YB} — Mixer + Patterns: cada knob mueve el mismo knob de las pistas que elijas.
+- **Vista de macros global** {YB} — Mixer + Patterns: cada knob mueve el mismo knob, el nivel y los envíos de las pistas que elijas.
 """,
     **{"master-fx": f"""
 - **Efectos en directo sobre todo el master** — Gater, Auto-Filter, Digitise, Phaser, Glitch y gesto mecánico {B}: mientras mantienes o fijados.

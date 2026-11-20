@@ -1038,7 +1038,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 - Mutes on the next bar.
 - Scenes with chain mode and repeats.
 - The cue mode: preview tracks on the right output.
-- [Alpha] The global macro view: one knob moves the same knob on several tracks.
+- [Alpha] The global macro view: one knob moves the same knob, the level and the sends of several tracks.
 
 **Script**
 
@@ -1060,7 +1060,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 8. **Previews and click.** *Show:* choose a Synth 1 patch: heard only on the right. *Say:* "With cue mode on, choosing a synth patch, or Shift plus a drum sample, is heard only in the cue. The metronome goes only to the cue too."
 *Chapter 4: global macro view*
 
-9. **[Alpha] One knob, several tracks.** *Show:* hold Mixer and press Patterns (both white); turn K3; tap pads 1 and 3; turn K3: Synth 1's macro 3 and knob 3 of MIDI 1's page 4 move. *Say:* "In the Alpha, Mixer plus Patterns opens the global macro view. Turn a knob and pick with pads 1 to 8 which tracks it moves: from then on, that knob moves the same knob on all of them at once; on the MIDI tracks, the own synth's page-4 knob. Each knob has its own tracks, saved with the project. Mixer or Patterns alone closes it."
+9. **[Alpha] One knob, several tracks.** *Show:* hold Mixer and press Patterns (both white); turn K3; tap pads 1 and 3; turn K3: Synth 1's macro 3 and knob 3 of MIDI 1's page 4 move. *Say:* "In the Alpha, Mixer plus Patterns opens the global macro view. Turn a knob and pick with pads 1 to 8 which tracks it moves: from then on, that knob moves the same knob on all of them at once; on the MIDI tracks, the own synth's page-4 knob. The rows below do the same with each track's Mixer level, reverb send and delay send. Each knob has its own links, saved with the project. Mixer or Patterns alone closes it." *Show:* tap pads 9 and 25; turn K3: Synth 1's level and delay send go up too.
 10. **Outro.** *Say:* "Mixer again: Master FX. Next: projects."
 
 **Keep in mind**

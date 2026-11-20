@@ -22,8 +22,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from thumb import (Asm, adds_imm8, adds_reg, b, b_cond, b_w, bics_reg, bl, blx_reg, cmp_imm, cmp_reg, eors_reg, h, ldr_imm, ldrb_imm,  # noqa: E402
-                   ldrh_reg, lsls_imm, lsls_reg, lsrs_imm, mov_reg, movs_imm, movt, movw, orrs_reg, pop_list, push_list, raw, str_imm, strb_imm,
-                   strh_reg, subs_imm8, tst_reg)
+                   ldrh_reg, lsls_imm, lsls_reg, lsrs_imm, lsrs_reg, mov_reg, movs_imm, movt, movw, orrs_reg, pop_list, push_list, raw, str_imm, strb_imm,
+                   strh_reg, subs_imm8, subs_reg, tst_reg)
 import fxdiag as FD  # noqa: E402
 import packio as PK  # noqa: E402
 import persist19 as P19  # noqa: E402
@@ -46,6 +46,36 @@ RESEND_CALL = 0x0802F5B4
 BSIG = 0xD7
 BLK = PS.AREA + PS.PSIZE * (8 + 7) + PS.SET + PS.BYTE0  # MIDI 2's pattern 8, settings + 8
 assert GM + 28 <= 0x2004F600
+ROWS = False                                            # Alpha 7.17 (use_rows)
+MIXV, MIX_KNOB, MIX_PAGE = 0x200447D4, 0x080466C4, 0xAD  # the Mixer view, its stock knob handler, its page byte (0 levels, 1 pans)
+FXV = 0x200443B4                                        # the FX view: [+ 0xC] the delay sends' sub-view, [+ 0x10] the reverb sends'
+BSIG2, OLD_BLK = 0xD8, 4                                # (ROWS) the block's signature; 7.16's block (0xD7, 8 masks, sum) at its + 4
+COMPAT = True                                           # (ROWS) a 7.16 project's links load into row 1
+DIMLED = False                                          # Alpha 7.18 (use_dimled)
+
+
+def use_dimled():
+    """Alpha 7.18 (the user, on 7.17 on the device: «the knob leds don't seem to paint much difference» -> «Clearer states only»): a linked knob
+    that is not the picked one in its first track's dim colour (the stock table's [9 + t]) at full brightness instead of its colour at a third;
+    the picked one stays full in the bright colour, an unlinked one off, the picked unlinked dim white.  The same size."""
+    global DIMLED
+    DIMLED = True
+
+
+def use_rows():
+    """Alpha 7.17 (the user, 2026-11-20: «Add level, reverb, delay»): pads 9-16 / 17-24 / 25-32 = the eight tracks' Mixer level / reverb send /
+    delay send for the selected knob, as pads 1-8 are their main knobs (bright = linked, a tap toggles).  A level = the stock Mixer handler
+    (0x080466C4, the Mixer view with its levels page set for the call: not Master FX, not the pans, not the cue); a send = the FX view's send
+    sub-view, slot 4 (the chain: fxparams, fxcap's cap with the returns on strips 3 / 4, the stock).  Knob strip k = track k in both views.
+    The masks: 4 rows x 8 knobs (+ 8 r + k); RAM GM + 8..39, then LR 40, frame 44, pads 48 (signed "GMV2").  Saved: the masks in bytes 8..39 of
+    MIDI 2's pattern 8 settings, the signature 0xD8 and the sum ^ 0xA5 in its bytes 4 / 5 (free with the group chains; patchain.use_keep46
+    keeps Clear off them); a 7.16 block (0xD7 at byte 8) loads into row 1."""
+    global ROWS, O_LR, O_FR, O_PADS, SIG, BLK
+    ROWS = True
+    O_LR, O_FR, O_PADS = 40, 44, 48
+    SIG = struct.unpack("<I", b"GMV2")[0]
+    BLK = PS.AREA + PS.PSIZE * (8 + 7) + PS.SET + 4
+    assert GM + O_PADS + 4 <= 0x2004F600
 
 
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -62,7 +92,13 @@ def arm_code(base, L, prev):
     # ---- c_gmst() -> r0 = GM, set up the first time; clobbers r1, r2
     a.label("c_gmst")
     imm32(0, GM); E(ldr_imm, 1, 0, O_SIG); imm32(2, SIG); E(cmp_reg, 1, 2); E(b_cond, "st_ok", "eq")
-    E(str_imm, 2, 0, O_SIG); E(movs_imm, 1, 0); E(str_imm, 1, 0, O_ON); E(str_imm, 1, 0, O_M); E(str_imm, 1, 0, O_M + 4); E(str_imm, 1, 0, O_PADS)
+    if ROWS:
+        E(str_imm, 2, 0, O_SIG); E(movs_imm, 1, 0); E(str_imm, 1, 0, O_ON); E(str_imm, 1, 0, O_PADS)
+        E(adds_imm8, 0, O_M); E(movs_imm, 2, 8)
+        a.label("st_z"); E(raw, h(0xC002)); E(subs_imm8, 2, 1); E(b_cond, "st_z", "ne")      # stm r0!, {r1}
+        imm32(0, GM)
+    else:
+        E(str_imm, 2, 0, O_SIG); E(movs_imm, 1, 0); E(str_imm, 1, 0, O_ON); E(str_imm, 1, 0, O_M); E(str_imm, 1, 0, O_M + 4); E(str_imm, 1, 0, O_PADS)
     a.label("st_ok"); E(raw, RET)
 
     # ---- c_gmbtn (ctrl, id): the head of the button presses
@@ -107,19 +143,32 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "kn_prev", "eq")
     E(cmp_imm, 5, 8); E(b_cond, "kn_prev", "hs")
     E(strb_imm, 5, 4, O_LAST)
-    E(adds_reg, 0, 4, 5); E(ldrb_imm, 7, 0, O_M)                                       # r7 = the knob's tracks
-    E(movs_imm, 4, 0)
-    a.label("kn_l")
-    E(movs_imm, 0, 1); E(lsls_reg, 0, 4); E(tst_reg, 7, 0); E(b_cond, "kn_n", "eq")
-    E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(bl, "c_gmcall")
-    a.label("kn_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "kn_l", "lo")
+    if ROWS:                                                                           # r7 = 8 row + track, over the four rows
+        E(movs_imm, 7, 0)
+        a.label("kn_l")
+        E(lsrs_imm, 0, 7, 3); E(lsls_imm, 0, 0, 3); E(adds_reg, 0, 0, 5); E(adds_reg, 0, 4, 0); E(ldrb_imm, 0, 0, O_M)   # the row's mask
+        E(lsls_imm, 1, 7, 29); E(lsrs_imm, 1, 1, 29); E(lsrs_reg, 0, 1); E(lsls_imm, 0, 0, 31); E(b_cond, "kn_n", "eq")
+        E(mov_reg, 0, 7); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(bl, "c_gmcall")
+        a.label("kn_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 32); E(b_cond, "kn_l", "lo")
+    else:
+        E(adds_reg, 0, 4, 5); E(ldrb_imm, 7, 0, O_M)                                   # r7 = the knob's tracks
+        E(movs_imm, 4, 0)
+        a.label("kn_l")
+        E(movs_imm, 0, 1); E(lsls_reg, 0, 4); E(tst_reg, 7, 0); E(b_cond, "kn_n", "eq")
+        E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(bl, "c_gmcall")
+        a.label("kn_n"); E(adds_imm8, 4, 1); E(cmp_imm, 4, 8); E(b_cond, "kn_l", "lo")
     E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("kn_prev"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
 
     # ---- c_gmcall(r0 track, r1 knob, r2 delta): the track's knob handler (MIDI 1 / 2: on page 4 for the call)
     a.label("c_gmcall")
     E(push_list, [4, 5, 6, 7], lr=True)
-    E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
+    if ROWS:                                                                           # r0 = 8 row + track
+        E(mov_reg, 5, 1); E(mov_reg, 6, 2)
+        E(lsls_imm, 4, 0, 29); E(lsrs_imm, 4, 4, 29); E(lsrs_imm, 3, 0, 3)               # r4 = the track, r3 = the row
+        E(cmp_imm, 3, 1); E(b_cond, "gc_lv", "eq"); E(b_cond, "gc_fx", "hi")
+    else:
+        E(mov_reg, 4, 0); E(mov_reg, 5, 1); E(mov_reg, 6, 2)
     imm32(0, CONT + HANDLERS); E(lsls_imm, 1, 4, 2); E(adds_reg, 0, 0, 1); E(ldr_imm, 7, 0, 0)
     E(cmp_imm, 7, 0); E(b_cond, "gc_x", "eq")
     E(mov_reg, 0, 4); E(subs_imm8, 0, 2); E(cmp_imm, 0, 1); E(b_cond, "gc_c", "hi")
@@ -128,6 +177,14 @@ def arm_code(base, L, prev):
     E(bl, "gc_go")
     E(pop_list, [1]); E(mov_reg, 0, 4); E(subs_imm8, 0, 2); E(bl, L["c_vsetpage"])     # and back
     E(b, "gc_x")
+    if ROWS:
+        a.label("gc_lv")                                                               # the level: the stock Mixer handler on its levels page
+        imm32(7, MIXV + MIX_PAGE); E(ldrb_imm, 0, 7, 0); E(push_list, [0]); E(movs_imm, 0, 0); E(strb_imm, 0, 7, 0)
+        E(mov_reg, 0, 7); E(subs_imm8, 0, MIX_PAGE); E(mov_reg, 1, 4); E(mov_reg, 2, 6); E(bl, MIX_KNOB)
+        E(pop_list, [0]); E(strb_imm, 0, 7, 0); E(b, "gc_x")
+        a.label("gc_fx")                                                               # a send: the sub-view's slot 4 (reverb + 0x10, delay + 0xC)
+        E(lsls_imm, 3, 3, 2); E(movs_imm, 0, 0x18); E(subs_reg, 0, 0, 3); imm32(1, FXV); E(raw, h(0x5808))   # ldr r0, [r1, r0]
+        E(movs_imm, 7, 0); E(adds_reg, 7, 7, 0); E(b_cond, "gc_x", "eq"); E(mov_reg, 5, 4)
     a.label("gc_c"); E(bl, "gc_go")
     a.label("gc_x"); E(pop_list, [4, 5, 6, 7], pc=True)
     a.label("gc_go")                                                                   # handler slot 4 (handler, knob, delta)
@@ -140,8 +197,13 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "pd_prev", "eq")
     E(raw, h(0x9901)); E(cmp_imm, 1, 32); E(b_cond, "pd_prev", "hs")                   # ldr r1, [sp, #4]: the pad
     E(movs_imm, 0, 1); E(lsls_reg, 0, 1); E(ldr_imm, 2, 4, O_PADS); E(orrs_reg, 2, 0); E(str_imm, 2, 4, O_PADS)
-    E(cmp_imm, 1, 8); E(b_cond, "pd_x", "hs")
-    E(ldrb_imm, 2, 4, O_LAST); E(adds_reg, 2, 4, 2); E(ldrb_imm, 3, 2, O_M); E(eors_reg, 3, 0); E(strb_imm, 3, 2, O_M)
+    if ROWS:                                                                           # pad = 8 row + track: that row's mask of the knob
+        E(lsrs_imm, 2, 1, 3); E(lsls_imm, 2, 2, 3); E(ldrb_imm, 3, 4, O_LAST); E(adds_reg, 2, 2, 3); E(adds_reg, 2, 4, 2)
+        E(lsls_imm, 3, 1, 29); E(lsrs_imm, 3, 3, 29); E(movs_imm, 0, 1); E(lsls_reg, 0, 3)
+    else:
+        E(cmp_imm, 1, 8); E(b_cond, "pd_x", "hs")
+        E(ldrb_imm, 2, 4, O_LAST); E(adds_reg, 2, 4, 2)
+    E(ldrb_imm, 3, 2, O_M); E(eors_reg, 3, 0); E(strb_imm, 3, 2, O_M)
     a.label("pd_x"); E(pop_list, [0, 1, 2, 4], pc=True)
     a.label("pd_prev"); E(raw, popw([0, 1, 2, 4], lr=True)); E(b_w, prev["pad"])
 
@@ -163,19 +225,32 @@ def arm_code(base, L, prev):
     E(bl, "c_gmst"); E(mov_reg, 4, 0)
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "ld_x", "eq")
     E(ldr_imm, 5, 4, O_FR)
-    E(ldrb_imm, 6, 4, O_LAST); E(adds_reg, 6, 4, 6); E(ldrb_imm, 6, 6, O_M)            # r6 = the selected knob's tracks
-    E(movs_imm, 7, 0)
-    a.label("ld_p")
-    E(movs_imm, 0, 1); E(lsls_reg, 0, 7); E(movs_imm, 1, 9); E(tst_reg, 6, 0); E(b_cond, "ld_pc", "eq"); E(movs_imm, 1, 1)
-    a.label("ld_pc")
-    E(adds_reg, 1, 1, 7); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
-    E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1)
-    E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ld_p", "lo")
-    E(movs_imm, 0, 0); E(movs_imm, 1, 16)
-    a.label("ld_z"); E(strh_reg, 0, 5, 1); E(adds_imm8, 1, 2); E(cmp_imm, 1, 64); E(b_cond, "ld_z", "lo")
+    if ROWS:                                                                           # the 32 pads: row = pad / 8, track = pad % 8
+        E(movs_imm, 7, 0)
+        a.label("ld_p")
+        E(lsrs_imm, 6, 7, 3); E(lsls_imm, 6, 6, 3); E(ldrb_imm, 0, 4, O_LAST); E(adds_reg, 6, 6, 0); E(adds_reg, 6, 4, 6); E(ldrb_imm, 6, 6, O_M)
+        E(lsls_imm, 2, 7, 29); E(lsrs_imm, 2, 2, 29)
+        E(movs_imm, 0, 1); E(lsls_reg, 0, 2); E(movs_imm, 1, 9); E(tst_reg, 6, 0); E(b_cond, "ld_pc", "eq"); E(movs_imm, 1, 1)
+        a.label("ld_pc")
+        E(adds_reg, 1, 1, 2); E(lsls_imm, 1, 1, 1); imm32(3, COLS); E(ldrh_reg, 0, 3, 1)
+        E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1)
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 32); E(b_cond, "ld_p", "lo")
+    else:
+        E(ldrb_imm, 6, 4, O_LAST); E(adds_reg, 6, 4, 6); E(ldrb_imm, 6, 6, O_M)        # r6 = the selected knob's tracks
+        E(movs_imm, 7, 0)
+        a.label("ld_p")
+        E(movs_imm, 0, 1); E(lsls_reg, 0, 7); E(movs_imm, 1, 9); E(tst_reg, 6, 0); E(b_cond, "ld_pc", "eq"); E(movs_imm, 1, 1)
+        a.label("ld_pc")
+        E(adds_reg, 1, 1, 7); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
+        E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1)
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ld_p", "lo")
+        E(movs_imm, 0, 0); E(movs_imm, 1, 16)
+        a.label("ld_z"); E(strh_reg, 0, 5, 1); E(adds_imm8, 1, 2); E(cmp_imm, 1, 64); E(b_cond, "ld_z", "lo")
     E(movs_imm, 7, 0)
     a.label("ld_k")
     E(adds_reg, 0, 4, 7); E(ldrb_imm, 6, 0, O_M)
+    if ROWS:                                                                           # linked = in any row
+        for r in (1, 2, 3): E(adds_imm8, 0, 8); E(ldrb_imm, 1, 0, O_M); E(orrs_reg, 6, 1)
     E(ldrb_imm, 3, 4, O_LAST)                                                           # r3 = the selected knob
     E(cmp_imm, 6, 0); E(b_cond, "ld_kl", "ne")
     E(movs_imm, 0, 0); E(cmp_reg, 7, 3); E(b_cond, "ld_kw", "ne")
@@ -184,8 +259,13 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, 0)
     a.label("ld_b"); E(movs_imm, 2, 1); E(lsls_reg, 2, 1); E(tst_reg, 6, 2); E(b_cond, "ld_bf", "ne"); E(adds_imm8, 1, 1); E(b, "ld_b")
     a.label("ld_bf")
-    E(adds_imm8, 1, 1); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
-    E(movs_imm, 2, BR_ON); E(cmp_reg, 7, 3); E(b_cond, "ld_kb", "ne"); E(movs_imm, 2, BR_SEL)
+    if DIMLED:                                                                         # (use_dimled) not the picked one: the dim colour, full
+        E(adds_imm8, 1, 1); E(cmp_reg, 7, 3); E(b_cond, "ld_bs", "eq"); E(adds_imm8, 1, 8)
+        a.label("ld_bs"); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
+        E(movs_imm, 2, BR_SEL)
+    else:
+        E(adds_imm8, 1, 1); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
+        E(movs_imm, 2, BR_ON); E(cmp_reg, 7, 3); E(b_cond, "ld_kb", "ne"); E(movs_imm, 2, BR_SEL)
     a.label("ld_kb"); E(lsls_imm, 2, 2, 8); E(orrs_reg, 0, 2)
     a.label("ld_kw"); E(lsls_imm, 1, 7, 1); E(adds_imm8, 1, 2 * KNOB_LED); E(strh_reg, 0, 5, 1)
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ld_k", "lo")
@@ -200,35 +280,84 @@ def arm_code(base, L, prev):
     imm32(1, BLK); E(adds_reg, 0, 0, 1)
     a.label("bk_x"); E(raw, RET)
 
-    # ---- c_gmsave (the bl of the stock save): the masks into the record (a mask set, or the block ours), then the chain
-    a.label("c_gmsave")
-    E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
-    E(bl, "c_gmst"); E(mov_reg, 4, 0)
-    E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "sv_x", "eq"); E(mov_reg, 5, 0)
-    E(ldr_imm, 0, 4, O_M); E(ldr_imm, 1, 4, O_M + 4); E(orrs_reg, 0, 1); E(b_cond, "sv_w", "ne")
-    E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG); E(b_cond, "sv_x", "ne")
-    a.label("sv_w")
-    E(movs_imm, 0, BSIG); E(strb_imm, 0, 5, 0); E(movs_imm, 6, 0); E(movs_imm, 7, 0)
-    a.label("sv_l")
-    E(adds_reg, 0, 4, 7); E(ldrb_imm, 0, 0, O_M); E(adds_reg, 6, 6, 0); E(adds_reg, 1, 5, 7); E(strb_imm, 0, 1, 1)
-    E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "sv_l", "lo")
-    E(movs_imm, 0, 0xA5); E(eors_reg, 6, 0); E(strb_imm, 6, 5, 9)
-    a.label("sv_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["save"])
+    if ROWS:
+        # ---- c_gmsum(r0 = 32 bytes) -> r0 = their sum ^ 0xA5, a byte; clobbers r1-r3
+        a.label("c_gmsum")
+        E(movs_imm, 1, 0); E(movs_imm, 2, 32)
+        a.label("su_l"); E(ldrb_imm, 3, 0, 0); E(adds_reg, 1, 1, 3); E(adds_imm8, 0, 1); E(subs_imm8, 2, 1); E(b_cond, "su_l", "ne")
+        E(movs_imm, 0, 0xA5); E(eors_reg, 0, 1); E(lsls_imm, 0, 0, 24); E(lsrs_imm, 0, 0, 24); E(raw, RET)
 
-    # ---- c_gmload (the load's re-send: a load, a new project, power-up): the masks from the block, or none; the view closed
-    a.label("c_gmload")
-    E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
-    E(bl, "c_gmst"); E(mov_reg, 4, 0)
-    E(movs_imm, 0, 0); E(str_imm, 0, 4, O_M); E(str_imm, 0, 4, O_M + 4); E(strb_imm, 0, 4, O_ON); E(strb_imm, 0, 4, O_LAST)
-    E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "lo_x", "eq"); E(mov_reg, 5, 0)
-    E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG); E(b_cond, "lo_x", "ne")
-    E(movs_imm, 6, 0); E(movs_imm, 7, 0)
-    a.label("lo_s"); E(adds_reg, 1, 5, 7); E(ldrb_imm, 0, 1, 1); E(adds_reg, 6, 6, 0); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "lo_s", "lo")
-    E(movs_imm, 0, 0xA5); E(eors_reg, 6, 0); E(lsls_imm, 6, 6, 24); E(lsrs_imm, 6, 6, 24)
-    E(ldrb_imm, 0, 5, 9); E(cmp_reg, 0, 6); E(b_cond, "lo_x", "ne")
-    E(movs_imm, 7, 0)
-    a.label("lo_c"); E(adds_reg, 1, 5, 7); E(ldrb_imm, 0, 1, 1); E(adds_reg, 1, 4, 7); E(strb_imm, 0, 1, O_M); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "lo_c", "lo")
-    a.label("lo_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["resend"])
+        # ---- c_gmsave (the bl of the stock save): the masks into the record (a mask set, or the block ours), then the chain
+        a.label("c_gmsave")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        E(bl, "c_gmst"); E(mov_reg, 4, 0)
+        E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "sv_x", "eq"); E(mov_reg, 5, 0)
+        E(movs_imm, 6, 0); E(movs_imm, 7, 0)
+        a.label("sv_o"); E(adds_reg, 0, 4, 7); E(ldr_imm, 0, 0, O_M); E(orrs_reg, 6, 0); E(adds_imm8, 7, 4); E(cmp_imm, 7, 32); E(b_cond, "sv_o", "lo")
+        E(cmp_imm, 6, 0); E(b_cond, "sv_w", "ne")
+        E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG2); E(b_cond, "sv_x", "ne")
+        a.label("sv_w")
+        E(movs_imm, 0, BSIG2); E(strb_imm, 0, 5, 0)
+        E(mov_reg, 0, 4); E(adds_imm8, 0, O_M); E(bl, "c_gmsum"); E(strb_imm, 0, 5, 1)
+        E(movs_imm, 7, 0)
+        a.label("sv_l"); E(adds_reg, 0, 4, 7); E(ldrb_imm, 0, 0, O_M); E(adds_reg, 1, 5, 7); E(strb_imm, 0, 1, 4); E(adds_imm8, 7, 1); E(cmp_imm, 7, 32); E(b_cond, "sv_l", "lo")
+        a.label("sv_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["save"])
+
+        # ---- c_gmload (the load's re-send: a load, a new project, power-up): the masks from the block (7.16's into row 1), or none; the view closed
+        a.label("c_gmload")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        E(bl, "c_gmst"); E(mov_reg, 4, 0)
+        E(movs_imm, 0, 0); E(strb_imm, 0, 4, O_ON); E(strb_imm, 0, 4, O_LAST)
+        E(mov_reg, 1, 4); E(adds_imm8, 1, O_M); E(movs_imm, 2, 8)
+        a.label("lo_z"); E(raw, h(0xC101)); E(subs_imm8, 2, 1); E(b_cond, "lo_z", "ne")      # stm r1!, {r0}
+        E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "lo_x", "eq"); E(mov_reg, 5, 0)
+        E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG2); E(b_cond, "lo_old" if COMPAT else "lo_x", "ne")
+        E(mov_reg, 0, 5); E(adds_imm8, 0, 4); E(bl, "c_gmsum"); E(ldrb_imm, 1, 5, 1); E(cmp_reg, 0, 1); E(b_cond, "lo_x", "ne")
+        E(movs_imm, 6, 32); E(movs_imm, 2, 4)
+        a.label("lo_cp")                                                               # r6 bytes from block + r2
+        E(movs_imm, 7, 0)
+        a.label("lo_c"); E(adds_reg, 1, 5, 7); E(adds_reg, 1, 1, 2); E(ldrb_imm, 0, 1, 0); E(adds_reg, 1, 4, 7); E(strb_imm, 0, 1, O_M)
+        E(adds_imm8, 7, 1); E(cmp_reg, 7, 6); E(b_cond, "lo_c", "lo")
+        if COMPAT:
+            E(b, "lo_x")
+            a.label("lo_old")                                                          # 7.16's block at + OLD_BLK: 0xD7, 8 masks, sum ^ 0xA5
+            E(ldrb_imm, 0, 5, OLD_BLK); E(cmp_imm, 0, BSIG); E(b_cond, "lo_x", "ne")
+            E(movs_imm, 6, 0); E(movs_imm, 7, 0)
+            a.label("lo_s"); E(adds_reg, 1, 5, 7); E(ldrb_imm, 0, 1, OLD_BLK + 1); E(adds_reg, 6, 6, 0); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "lo_s", "lo")
+            E(movs_imm, 0, 0xA5); E(eors_reg, 6, 0); E(lsls_imm, 6, 6, 24); E(lsrs_imm, 6, 6, 24)
+            E(ldrb_imm, 0, 5, OLD_BLK + 9); E(cmp_reg, 0, 6); E(b_cond, "lo_x", "ne")
+            E(movs_imm, 6, 8); E(movs_imm, 2, OLD_BLK + 1); E(b, "lo_cp")
+        a.label("lo_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["resend"])
+    else:
+        # ---- c_gmsave (the bl of the stock save): the masks into the record (a mask set, or the block ours), then the chain
+        a.label("c_gmsave")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        E(bl, "c_gmst"); E(mov_reg, 4, 0)
+        E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "sv_x", "eq"); E(mov_reg, 5, 0)
+        E(ldr_imm, 0, 4, O_M); E(ldr_imm, 1, 4, O_M + 4); E(orrs_reg, 0, 1); E(b_cond, "sv_w", "ne")
+        E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG); E(b_cond, "sv_x", "ne")
+        a.label("sv_w")
+        E(movs_imm, 0, BSIG); E(strb_imm, 0, 5, 0); E(movs_imm, 6, 0); E(movs_imm, 7, 0)
+        a.label("sv_l")
+        E(adds_reg, 0, 4, 7); E(ldrb_imm, 0, 0, O_M); E(adds_reg, 6, 6, 0); E(adds_reg, 1, 5, 7); E(strb_imm, 0, 1, 1)
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "sv_l", "lo")
+        E(movs_imm, 0, 0xA5); E(eors_reg, 6, 0); E(strb_imm, 6, 5, 9)
+        a.label("sv_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["save"])
+
+        # ---- c_gmload (the load's re-send: a load, a new project, power-up): the masks from the block, or none; the view closed
+        a.label("c_gmload")
+        E(raw, pushw([0, 1, 2, 3, 4, 5, 6, 7], lr=True))
+        E(bl, "c_gmst"); E(mov_reg, 4, 0)
+        E(movs_imm, 0, 0); E(str_imm, 0, 4, O_M); E(str_imm, 0, 4, O_M + 4); E(strb_imm, 0, 4, O_ON); E(strb_imm, 0, 4, O_LAST)
+        E(bl, "c_gmblk"); E(cmp_imm, 0, 0); E(b_cond, "lo_x", "eq"); E(mov_reg, 5, 0)
+        E(ldrb_imm, 0, 5, 0); E(cmp_imm, 0, BSIG); E(b_cond, "lo_x", "ne")
+        E(movs_imm, 6, 0); E(movs_imm, 7, 0)
+        a.label("lo_s"); E(adds_reg, 1, 5, 7); E(ldrb_imm, 0, 1, 1); E(adds_reg, 6, 6, 0); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "lo_s", "lo")
+        E(movs_imm, 0, 0xA5); E(eors_reg, 6, 0); E(lsls_imm, 6, 6, 24); E(lsrs_imm, 6, 6, 24)
+        E(ldrb_imm, 0, 5, 9); E(cmp_reg, 0, 6); E(b_cond, "lo_x", "ne")
+        E(movs_imm, 7, 0)
+        a.label("lo_c"); E(adds_reg, 1, 5, 7); E(ldrb_imm, 0, 1, 1); E(adds_reg, 1, 4, 7); E(strb_imm, 0, 1, O_M); E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "lo_c", "lo")
+        a.label("lo_x"); E(raw, popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["resend"])
     return a.assemble()
 
 

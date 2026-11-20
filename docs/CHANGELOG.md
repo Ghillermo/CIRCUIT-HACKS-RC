@@ -7,6 +7,14 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.18 — 2026-11-20
+
+**Alpha 7.18** (marca `A7.18`) = la Alpha 7.16 + esto (la 7.17 no se publicó). Las filas, probadas en el aparato. Sustituye a la 7.16 en el instalador.
+
+- **Vista de macros global: nivel, reverb y delay.** Con un knob elegido, los **pads 9-16** enlazan el **nivel del Mixer** de cada pista, los **pads 17-24** su **envío de reverb** y los **pads 25-32** su **envío de delay** (en el orden de los pads 1-8; brillante = enlazado, un toque cambia). El knob mueve a la vez todo lo que tiene enlazado en las cuatro filas, como su knob en el Mixer (página de niveles) o en la vista FX; el Mixer se queda en la página en que estaba. Se guarda con el proyecto; un proyecto guardado con la 7.16 carga sus enlaces en los pads 1-8. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **LEDs de los knobs más claros en esa vista:** el knob elegido, a tope en el color de su primera pista enlazada; los demás enlazados, en el color tenue de esa pista; sin enlaces, apagados. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- Clear + un patrón en la vista Patterns ya no borra los bytes 4..6 de sus ajustes (las reglas antiguas, sin uso con las cadenas de grupos): ahí guarda la vista de macros su firma.
+
 ### Alpha 7.16 — 2026-11-20
 
 **Alpha 7.16** (marca `A7.16`) = la Alpha 7.14 + esto y los arreglos de abajo (RC4.21 y la Alpha 7.15, que no se publicó). Sin probar en el aparato (solo la instalación). Sustituye a la 7.14 en el instalador.
@@ -1198,6 +1206,14 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.18 — 2026-11-20
+
+**Alpha 7.18** (marker `A7.18`) = Alpha 7.16 + this (7.17 was not released). The rows were tested on the device. It replaces 7.16 in the installer.
+
+- **Global macro view: level, reverb and delay.** With a knob picked, **pads 9-16** link each track's **Mixer level**, **pads 17-24** its **reverb send** and **pads 25-32** its **delay send** (in the order of pads 1-8; bright = linked, a tap toggles). The knob moves everything it has linked in the four rows at once, as its knob in the Mixer (levels page) or in the FX view; the Mixer stays on the page it was on. Saved with the project; a project saved with 7.16 loads its links into pads 1-8. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **Clearer knob LEDs in that view:** the picked knob full in its first linked track's colour; the other linked ones in that track's dim colour; with no links, off. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- Clear + a pattern in the Patterns view no longer clears bytes 4..6 of its settings (the old rules, unused with group chains): the macro view keeps its signature there.
 
 ### Alpha 7.16 — 2026-11-20
 

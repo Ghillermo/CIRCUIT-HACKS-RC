@@ -126,6 +126,17 @@ def use_rangefix():
     RANGEFIX = True
 
 
+KEEP46 = False                                                # Alpha 7.17 (use_keep46)
+
+
+def use_keep46():
+    """Alpha 7.17 (the macro view's save block: its signature and sum in bytes 4..5 of MIDI 2's pattern 8 settings): with the group chains the
+    old per-pattern rules (bytes 4..6) are never read, so Clear + a pattern in the Patterns view no longer zeroes them (c_pczr returns at
+    once); the play order (byte 7) is still cleared."""
+    global KEEP46
+    KEEP46 = True
+
+
 def use_v2():
     global V2
     V2 = True
@@ -384,10 +395,12 @@ def arm_code(base, L, prev):
 
     # ---- c_pczr (r0 = track, r1 = pattern): its rule gone; clobbers r0-r3
     a.label("c_pczr")
-    E(push_list, [4], lr=True)
-    E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq")
-    E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0); E(strb_imm, 1, 0, 1); E(strb_imm, 1, 0, 2)
-    a.label("zr_x"); E(pop_list, [4], pc=True)
+    if KEEP46 and GROUPS: E(raw, h(0x4770))                                      # (use_keep46) bytes 4..6 kept
+    else:
+        E(push_list, [4], lr=True)
+        E(bl, "c_pcrule"); E(cmp_imm, 0, 0); E(b_cond, "zr_x", "eq")
+        E(movs_imm, 1, 0); E(strb_imm, 1, 0, 0); E(strb_imm, 1, 0, 1); E(strb_imm, 1, 0, 2)
+        a.label("zr_x"); E(pop_list, [4], pc=True)
 
     # ---- c_pcstep (r0 = the tail, r1 = track, r2 = the pattern that ends, r3 = 1 to move the state on) -> r0 = the next pattern by the
     #      rules, 0xFF = the stock's choice

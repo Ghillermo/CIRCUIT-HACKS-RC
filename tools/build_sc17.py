@@ -436,6 +436,14 @@ LEDBUF = False                            # SC41.1 (see use_ledbuf)
 LEDBUF_OFF = 0x27024 + 192                # the session record's tail + 192 (tools/patchain.py: 0..127 its parts, tools/fxsess.py: 128..154)
 FSQRAND = False                           # SC41.1 (see use_fxseqrand)
 NOFSQ = False                             # Alpha 7.08: the old FX sequencer gone (vcf21.use_nofsq): its random slot is never asked for
+TRIMSLC = False                           # Alpha 7.17 (use_trimslc)
+
+
+def use_trimslc():
+    """Alpha 7.17 (room for the macro view's rows; the user: «Drop unused code first»): c_slotcol (a slot's colour, only the old FX sequencer's
+    knob LEDs called it: unreached since vcf21.use_nofsq, tools/fullwalk.py) left out: 106 B."""
+    global TRIMSLC
+    TRIMSLC = True
 
 
 def use_ledbuf():
@@ -1342,6 +1350,7 @@ def glitch_code(a, L, bc, zjmp):
         a.emit(pop_list, [5, 6, 7], pc=True)
         a.label("sl_d"); a.emit(mov_reg, 0, 5); a.emit(mov_reg, 1, 6); a.emit(bl, "c_sload"); a.emit(pop_list, [5, 6, 7], pc=True)
 
+    if GL2 and not (TRIMSLC and NOFSQ):
         a.label("c_slotcol")                                                   # r0 = slot j -> r0 = the colour of what it plays (0x03 dim white: nothing); from vcf21
         a.emit(push_list, [4, 5], lr=True)
         a.emit(mov_reg, 5, 0); a.emit(bl, "c_gfst"); a.emit(mov_reg, 4, 0); a.emit(movs_imm, 0, 0x03); a.emit(cmp_imm, 4, 0); bc("sc_x", "eq")

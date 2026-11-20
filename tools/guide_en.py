@@ -836,11 +836,13 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | Gesture | What it does |
 |---|---|
 | **A knob** | Picks it and moves that knob on its linked tracks (with no tracks it moves nothing; its LED dim white). |
-| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 for the picked knob: **bright = linked**, dim = not; a tap toggles. Pads 9-32 dark. |
+| **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 for the picked knob: **bright = linked**, dim = not; a tap toggles. |
+| **Pads 9-16 / 17-24 / 25-32** | The **Mixer level**, the **reverb send** and the **delay send** of the same tracks (same order) for the picked knob, the same way: the knob moves them as their knob in the Mixer (levels page) or in the FX view. |
 | **Mixer or Patterns alone**, or any button but Record, Play, Clear and Duplicate | Closes the view (and does what it always does). |
 
 - At first no track is linked; each knob has its own tracks, saved with the project.
-- A linked knob's LED shows its first track's colour: brighter for the picked one.
+- A linked knob's LED shows the colour of its first linked track in any row: bright for the picked one, dim for the others; with no links, off.
+- A project saved with Alpha 7.16 loads its links into pads 1-8.
 - The master filter knob is the same as always.
 """),
 "projects": ("Projects view",
@@ -909,7 +911,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
-| {YB} **Global macro view**: which tracks each knob moves | [Mixer](#mixer) |
+| {YB} **Global macro view**: what each knob moves (each track's knobs, its level, its reverb and delay sends) | [Mixer](#mixer) |
 | {YB} **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; {XB} with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -1205,7 +1207,7 @@ ABOUT = {
 - **Scenes with chains and repeats** {B} — a scene can repeat n times and remember chain mode.
 - **Drop-ins on the bar** {B} — Shift + a track pad mutes or unmutes the track right as the next bar starts.
 - **Cue mode** {B} — the mix in mono on the left and, on the right, the tracks you want to hear before bringing them in.
-- **Global macro view** {YB} — Mixer + Patterns: each knob moves the same knob on the tracks you pick.
+- **Global macro view** {YB} — Mixer + Patterns: each knob moves the same knob, the level and the sends of the tracks you pick.
 """,
     "master-fx": f"""
 - **Live effects on the whole master** — Gater, Auto-Filter, Digitise, Phaser, Glitch and the mechanical gesture {B}: while held or latched.

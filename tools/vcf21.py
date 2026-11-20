@@ -4256,7 +4256,7 @@ def install(img, report, base_addr, text):
         L["sx_pad"], L["sx_rel"], L["sx_leds"] = (w(SP_VT + 4 * k) & ~1 for k in (0, 1, 7))
         assert L["sx_pad"] == int(report["srcview"]["labels"]["c_xpad"], 16) and L["sx_leds"] == int(report["srcview"]["labels"]["c_xleds"], 16), (hex(L["sx_pad"]), hex(L["sx_leds"]))
     if OCTLED: L["c_ledtask"] = int(report["leds18"]["labels"]["c_ledtask"], 16)
-    if FXSEQ2: L["c_slotcol"] = int(report["sc17"]["labels"]["c_slotcol"], 16)
+    if FXSEQ2 and not NOFSQ: L["c_slotcol"] = int(report["sc17"]["labels"]["c_slotcol"], 16)
     if CCIO:
         import build_shared_channels as _sc
         for site, want in ((STK_EMIT, "push {r2, r3, r4, r5, r6, lr}|mov r4, r0"), (STK_MIDIIN, "ldrb r0, [r4, #0x14]|lsls r1, r0, #0x1e")):
