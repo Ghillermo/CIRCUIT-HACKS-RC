@@ -211,6 +211,21 @@ PV_OBJ = 0x20044128                              # the packs view object (heap, 
 CROSS_COL = MAGENTA                              # SC37.1: YELLOW
 PATCHX = False                                   # SC37.1: swap synth patches between packs (see 5.)
 TRIMX = False                                    # SC49 (use_trimx): the old swaps (c_xswap, c_xswap2) not emitted: c_xcopy2 replaced them (COPYX)
+ZLOOP = False                                    # Alpha 7.19 (use_zloop)
+
+
+def use_zloop():
+    """Alpha 7.19 (flash room; the user: «Keep cleaning up unused code, optimizing repeating code»): the request frames and c_zpad's buffer
+    zeroed by a 12-byte loop (zloop) instead of one str per word (2 B each): where r1 / r2 are dead (their arguments are kept in r4-r6)."""
+    global ZLOOP
+    ZLOOP = True
+
+
+def zloop(a, z, base, words, p, c, lab):
+    """(use_zloop) words zeroed from base: movs z, #0; mov p, base; movs c, #words; stm p!, {z}; subs c, #1; bne (12 B); p and c clobbered"""
+    from thumb import h as _h, raw as _raw
+    a.emit(movs_imm, z, 0); a.emit(mov_reg, p, base); a.emit(movs_imm, c, words)
+    a.label(lab); a.emit(_raw, _h(0xC000 | p << 8 | 1 << z)); a.emit(subs_imm8, c, 1); a.emit(b_cond, lab, "ne")
 TRIM2 = False                                    # SC57.5 (use_trim2): the tails that CROSS / PKLED2 branch around not emitted
 SP_VT = 0x0805AC9C                               # the synth Preset view: slot 0 pad, slot 7 LEDs
 KIND_PATCH, PATCH_SZ, PATCH_STRIDE, PER_BANK = 3, 340, 512, 8
@@ -1117,8 +1132,10 @@ def cross_code(a, L, imm32, bc):
 def exact_code(a, imm32, bc):
     """c_f2d, c_d2f, c_f2f, c_zpad, c_impdst, c_xswap2, c_swap2 (see 7.)."""
     def zero_frame(F):
+        if ZLOOP: zloop(a, 3, 7, F // 4, 1, 2, f"_zf{zero_frame.n}"); zero_frame.n += 1; return
         a.emit(movs_imm, 3, 0)
         for o in range(0, F, 4): a.emit(str_imm, 3, 7, o)
+    zero_frame.n = 0
     def take(o): a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, o); a.emit(bl, "c_take")
     def give(o): a.emit(mov_reg, 0, 7); a.emit(adds_imm8, 0, o); a.emit(bl, "c_give")
     def piece(size_o, off_o, piece_o, done_label):           # [piece] = min(4 KB, size - off); -> done_label when nothing is left
@@ -1222,8 +1239,11 @@ def exact_code(a, imm32, bc):
     a.label("c_zpad")
     a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, 8); a.emit(mov_reg, 7, 13); a.emit(mov_reg, 5, 0)
     a.emit(movs_imm, 0, 5); a.emit(bl, BUF_LOCK)
-    imm32(4, BUF); a.emit(movs_imm, 0, 0)
-    for o in range(0, 2 * NW, 4): a.emit(str_imm, 0, 4, o)
+    imm32(4, BUF)
+    if ZLOOP: zloop(a, 0, 4, 2 * NW // 4, 1, 2, "_zpz")
+    else:
+        a.emit(movs_imm, 0, 0)
+        for o in range(0, 2 * NW, 4): a.emit(str_imm, 0, 4, o)
     a.emit(mov_reg, 0, 7); a.emit(bl, "c_take"); a.emit(mov_reg, 0, 4); a.emit(movs_imm, 1, NW); a.emit(bl, "c_ywin"); a.emit(mov_reg, 0, 7); a.emit(bl, "c_give")
     a.emit(movs_imm, 6, 0)
     a.label("zp_l")
@@ -1486,8 +1506,10 @@ def patch_code(a, L, prev, imm32, bc):
     a.label("c_pswap")
     a.emit(push_list, [4, 5, 6, 7], lr=True); a.emit(sub_sp_imm, F); a.emit(mov_reg, 7, 13)
     a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
-    a.emit(movs_imm, 3, 0)
-    for o in range(0, F, 4): a.emit(str_imm, 3, 7, o)
+    if ZLOOP: zloop(a, 3, 7, F // 4, 1, 2, "_zps")
+    else:
+        a.emit(movs_imm, 3, 0)
+        for o in range(0, F, 4): a.emit(str_imm, 3, 7, o)
     if FIX2:
         a.emit(bl, "c_curpack"); a.emit(str_imm, 0, 7, 52); a.emit(mov_reg, 3, 0)
         item_at(16, 4, 5); item_at(28, 6, 3)                                                    # B: the loaded pack by its number

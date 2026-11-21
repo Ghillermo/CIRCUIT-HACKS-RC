@@ -437,6 +437,15 @@ LEDBUF_OFF = 0x27024 + 192                # the session record's tail + 192 (too
 FSQRAND = False                           # SC41.1 (see use_fxseqrand)
 NOFSQ = False                             # Alpha 7.08: the old FX sequencer gone (vcf21.use_nofsq): its random slot is never asked for
 TRIMSLC = False                           # Alpha 7.17 (use_trimslc)
+FOLD = False                              # Alpha 7.19 (use_fold)
+
+
+def use_fold():
+    """Alpha 7.19 (flash room; the user: «optimizing repeating code»): two unrolled blocks as loops / a table, the same results: c_slotbits'
+    seven slot tests (one loop; the index rides in r5's high byte) and c_f_leds' palette chain (a table of the (on, dim) codes read with
+    thumb.ldr_label)."""
+    global FOLD
+    FOLD = True
 
 
 def use_trimslc():
@@ -1738,11 +1747,20 @@ def slots_code(a, L, setmap_addr, pal_codes, bc, zjmp):
     a.emit(bl, "c_gact"); a.emit(cmp_imm, 0, 0); bc("sb_drop", "eq")
     a.label("sb_keep")
     a.emit(ldrb_w, 5, 4, S_SLOTH); a.emit(movs_imm, 6, 0)
-    for j in range(7):
-        a.emit(lsrs_imm, 0, 5, j + 1); a.emit(b_cond, f"sb_n{j}", "cc")
-        a.emit(movs_imm, 0, j); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, f"sb_n{j}", "eq")
+    if FOLD:                                                                   # (use_fold) r5 = j << 24 | the slot bits >> j (bit 0 = slot j)
+        a.label("sb_l")
+        a.emit(lsrs_imm, 0, 5, 1); a.emit(b_cond, "sb_n", "cc")
+        a.emit(lsrs_imm, 0, 5, 24); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, "sb_n", "eq")
         a.emit(movs_imm, 1, 1); a.emit(lsls_reg, 1, 0); a.emit(orrs_reg, 6, 1)
-        a.label(f"sb_n{j}")
+        a.label("sb_n")
+        a.emit(lsrs_imm, 0, 5, 24); a.emit(adds_imm8, 0, 1); a.emit(lsls_imm, 1, 5, 8); a.emit(lsrs_imm, 1, 1, 9); a.emit(lsls_imm, 5, 0, 24); a.emit(orrs_reg, 5, 1)
+        a.emit(cmp_imm, 0, 7); a.emit(b_cond, "sb_l", "lo")
+    else:
+        for j in range(7):
+            a.emit(lsrs_imm, 0, 5, j + 1); a.emit(b_cond, f"sb_n{j}", "cc")
+            a.emit(movs_imm, 0, j); a.emit(bl, "c_stype"); a.emit(cmp_imm, 0, 0xFF); a.emit(b_cond, f"sb_n{j}", "eq")
+            a.emit(movs_imm, 1, 1); a.emit(lsls_reg, 1, 0); a.emit(orrs_reg, 6, 1)
+            a.label(f"sb_n{j}")
     a.emit(mov_reg, 0, 6); a.emit(pop_list, [5, 6], pc=True)
     a.label("sb_drop")
     a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 4, S_SLOTH); a.emit(pop_list, [5, 6], pc=True)
@@ -1854,10 +1872,21 @@ def slots_code(a, L, setmap_addr, pal_codes, bc, zjmp):
     a.emit(ldrb_w, 1, 4, S_SLOTH); a.emit(movs_imm, 2, 1); a.emit(lsls_reg, 2, 5); a.emit(tst_reg, 1, 2); a.emit(b_cond, "fl2_pick", "eq")
     a.label("fl2_on"); a.emit(movs_imm, 3, 1)
     a.label("fl2_pick")
-    for kk, (on, dim) in enumerate(pal_codes):
-        a.emit(cmp_imm, 7, kk); a.emit(b_cond, f"fl2_c{kk}", "ne")
-        a.emit(movw, 0, dim); a.emit(cmp_imm, 3, 0); a.emit(b_cond, "fl2_s", "eq"); a.emit(movw, 0, on); a.emit(b, "fl2_s")
-        a.label(f"fl2_c{kk}")
+    if FOLD:                                                                   # (use_fold) the (on, dim) table
+        import struct as _st
+        from thumb import ldr_label, ldrh_imm
+        a.emit(cmp_imm, 7, len(pal_codes)); a.emit(b_cond, "fl2_rest", "hs")
+        a.emit(ldr_label, 0, "t_pal2"); a.emit(lsls_imm, 1, 7, 2); a.emit(adds_reg, 0, 0, 1)
+        a.emit(cmp_imm, 3, 0); a.emit(b_cond, "fl2_dm", "eq"); a.emit(ldrh_imm, 0, 0, 0); a.emit(b, "fl2_s")
+        a.label("fl2_dm"); a.emit(ldrh_imm, 0, 0, 2); a.emit(b, "fl2_s")
+        a.label("t_pal2")
+        for on, dim in pal_codes: a.emit(raw, _st.pack("<HH", on, dim))
+        a.label("fl2_rest")
+    else:
+        for kk, (on, dim) in enumerate(pal_codes):
+            a.emit(cmp_imm, 7, kk); a.emit(b_cond, f"fl2_c{kk}", "ne")
+            a.emit(movw, 0, dim); a.emit(cmp_imm, 3, 0); a.emit(b_cond, "fl2_s", "eq"); a.emit(movw, 0, on); a.emit(b, "fl2_s")
+            a.label(f"fl2_c{kk}")
     if GL2:
         a.emit(cmp_imm, 7, GL_SEL); a.emit(b_cond, "fl2_ngl", "ne")
         a.emit(movw, 0, GL_DIM); a.emit(cmp_imm, 3, 0); a.emit(b_cond, "fl2_s", "eq"); a.emit(movw, 0, GL_ON); a.emit(b, "fl2_s")

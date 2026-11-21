@@ -43,6 +43,13 @@ COL = (0x32, 0x17, 0x09, 0x3B)                                # the targets' col
 DIM = 0x02                                                    # the stock's not-chosen source pad
 PAD_DRUM0 = 4                                                 # pads 5-8: the stock's sources
 DRUMS = False                                                 # SC43.8 (use_drums)
+SRCSHARE = False                                              # Alpha 7.20 (use_srcshare)
+
+
+def use_srcshare():
+    """Alpha 7.20 (flash room): c_spsrc0..3 = push; movs r0, #t; b to one shared body (the same work, the same stack)."""
+    global SRCSHARE
+    SRCSHARE = True
 S16_BLK, PAL = 0x3A10, 0x08056464                             # SC16's DSP blocks (X:$3A10 + 9 d: word 0 = the trigger); the palette
 OWN0 = 4                                                      # (DRUMS) SC16's trigger byte [8 + d]: 0..3 a drum, 4..7 Synth 1, Synth 2, MIDI 1, MIDI 2
 DIM_I = 0x13                                                  # SC16's palette index of a source pad not chosen (the chosen: 5 + the drum)
@@ -123,7 +130,15 @@ def arm_code(base, L, prev):
     a.label("su_y"); E(movs_imm, 0, 1); E(pop_list, [4, 5], pc=True)
 
     # ---- c_spsrc0..3 (the groups' bl 0x080292F8 of the source: 0, value << 8, address): our source = the address of its trigger word - $99
-    for t in range(4):
+    if SRCSHARE:                                                                     # (use_srcshare) four entries, one body
+        for t in range(4):
+            a.label(f"c_spsrc{t}"); E(push_list, [0, 1, 2, 3, 4], lr=True); E(movs_imm, 0, t)
+            if t < 3: E(b, "sr_c")
+        a.label("sr_c"); E(bl, "c_spget"); E(cmp_imm, 0, 0); E(b_cond, "sr_k", "eq")
+        E(movw, 1, TRIG - FLAGS - 1); E(adds_reg, 1, 1, 0); E(lsls_imm, 1, 1, 8); E(str_sp, 1, 4)
+        a.label("sr_k"); E(raw, popw([0, 1, 2, 3, 4], lr=True))
+        E(b_w, DSP_W)
+    for t in (range(0) if SRCSHARE else range(4)):
         a.label(f"c_spsrc{t}")
         E(push_list, [0, 1, 2, 3, 4], lr=True)
         E(movs_imm, 0, t); E(bl, "c_spget"); E(cmp_imm, 0, 0); E(b_cond, f"sr_k{t}", "eq")

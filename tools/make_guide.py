@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.18"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.22"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
@@ -70,9 +70,9 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Shift** | todas | Con Shift pulsado, los atajos disponibles se iluminan en **amarillo**; la opción elegida, en otro color. {YB} Además, los ocho **botones de pista** (Synth 1 / 2, MIDI 1 / 2, Drum 1-4) destellan en **blanco** durante 100 ms con cada nota que toca su pista, venga del secuenciador, de los pads, del arpegiador o de MIDI. Una nota ligada es una sola nota: un destello. |
 | **Save** | todas | Guarda el proyecto como siempre; además escribe en el pack los samples sustituidos por capturas (Preset de drums) si caben en la memoria de samples *(escribe en la tarjeta)*. |
 | **Pulsar el botón de la pista otra vez** | Synth 1 / 2 | Abre la vista de la fuente del sinte (2.3). |
-| **Clear + Synth 1 / 2** | su vista | {B} Sus ocho macros a los valores del patch cargado. |
+| **Clear + Synth 1 / 2** | su vista | {B} Sus ocho macros a los valores del patch cargado. {YB} Desde la Alpha 7.22, Clear + Synth 1 / 2 o Clear + MIDI 1 / 2 (con el sinte propio) = **el sonido guardado en el proyecto** (lo de antes pasa a Shift + Preset). |
 | **Clear + Duplicate dos veces** | cualquier vista de una pista (Preset, Note, Note ampliada, Velocity, Gate, Micro Step, Pattern Settings, probabilidad, la vista cromática de los drums), las ocho pistas | {YB} **Devuelve el patrón a como está guardado en la tarjeta**: el patrón que se ve en esa vista pierde sus cambios desde el último Save. La primera vez **pregunta**: Duplicate parpadea en blanco unos 5 s; **Clear + Duplicate otra vez** en ese tiempo lo hace (en la misma pista y el mismo patrón; pasado ese tiempo, vuelve a preguntar). Vuelven los pasos, la automatización y los ajustes del patrón (primer y último paso, sync rate, dirección, orden fractal / deconstruido; en los drums, la frecuencia y las dinámicas de cada paso); en MIDI 1 / 2 también sus **carriles extra**. No vuelven los ajustes del arpegiador del patrón. **Save en rojo** un momento = no se ha hecho nada: un proyecto nuevo que aún no se ha guardado, un guardado pendiente (el guardado diferido, o uno en curso) o un fichero que no está en la tarjeta. En las demás vistas (Patterns, Mixer, FX…), Clear + Duplicate sigue terminando las listas del pattern mutate. |
-| **Shift + Preset** | vistas de Synth 1 / 2 y de MIDI 1 / 2 (con el sinte propio encendido) | {YB} El sonido de esa pista vuelve al del proyecto: Synth 1 / 2, el patch entero tal como está guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto (sin él, sus valores por defecto). Con Shift, Preset se ilumina en **amarillo** donde funciona. |
+| **Shift + Preset** | vistas de Synth 1 / 2 y de MIDI 1 / 2 (con el sinte propio encendido) | {YB} El sonido de esa pista vuelve al del proyecto: Synth 1 / 2, el patch entero tal como está guardado en el proyecto; MIDI 1 / 2, el sinte propio guardado con el proyecto (sin él, sus valores por defecto). Desde la Alpha 7.22, al revés con Clear + la pista: Shift + Preset = **el estado inicial del preset** (Synth 1 / 2: sus macros como están en el pack; MIDI 1 / 2: los valores por defecto del sinte propio). Con Shift, Preset se ilumina en **amarillo** donde funciona. |
 | **Clear + el botón de un drum** | su vista | {B} Borra la automatización de sus knobs en el patrón que suena y pone sus ocho knobs por defecto. |
 | **Dos botones de pista de notas a la vez** | todas | Teclado partido {B}: Synth 1 + Synth 2; {NB} cualquier par de Synth 1, Synth 2, MIDI 1 y MIDI 2. |
 | **Shift + Clear** | todas | Metrónomo en cuatro estados {B}: sin metrónomo → metrónomo → solo cuenta atrás → cuenta atrás y metrónomo. Con Shift pulsado, el LED de Clear enseña el estado: rojo (sin metrónomo) / verde (metrónomo) / magenta (solo cuenta atrás) / verde azulado (las dos). El volumen del clic es el de stock: **Tempo/Swing** y **K5**. {XB} Con el modo cue del Mixer, el clic solo en el cue (salida derecha). |
@@ -927,7 +927,7 @@ view("packs", "VII", "Vista de packs",
 """)
 
 view("setup", "VII", "Vista Setup",
-     "Ábrela como en el original. Canales MIDI y opciones del aparato como siempre, más:",
+     "Ábrela como en el original. Canales MIDI y opciones del aparato como siempre ({YB} sin Easy Start: desde la Alpha 7.22 el aparato es siempre USB MIDI y su pad no hace nada, apagado), más:".replace("{YB}", YB),
      f"""
 | Control | Qué hace |
 |---|---|

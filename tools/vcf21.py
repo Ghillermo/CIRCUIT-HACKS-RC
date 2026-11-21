@@ -115,6 +115,30 @@ FXSEQ2 = False                                    # SC36.1 (see use_fxseq2)
 DUALHIDE = False                                  # SC37.4 (see use_dualhide)
 STRETCH = False                                   # SC38.1 (see use_stretch)
 RESETALL = False                                  # SC38.7 (see use_resetall)
+DEFLOOP = False                                   # Alpha 7.19 (use_defloop)
+FOLD = False                                      # Alpha 7.19 (use_fold)
+FOLD2 = False                                     # Alpha 7.23 (use_fold2)
+
+
+def use_fold2():
+    """Alpha 7.23 (flash room): c_ednum's 32 cleared LEDs and c_edclean's 24 as strh loops (the same halfwords written)."""
+    global FOLD2
+    FOLD2 = True
+
+
+def use_fold():
+    """Alpha 7.19 (flash room): more unrolled code as loops, the same results: c_vclrled's eight knob LEDs with Clear held, c_vrow /
+    c_vrow2's first fill of the destination rows (from a table of 8 next to them), c_vtick's 16 state bytes cleared at the first use."""
+    global FOLD
+    FOLD = True
+
+
+def use_defloop():
+    """Alpha 7.19 (flash room; the user: «optimizing repeating code»): the default values written by loops over the defaults table t_def
+    (the one Clear + knob reads: index = code, DEFAULTS from 1, DEFAULTS_V2 after them) instead of one movs + strb per value: c_vtick's first
+    use (both tracks), c_vreset (one track), the second oscillator's volatile values (both, and one).  The same values; ≈ 470 B."""
+    global DEFLOOP
+    DEFLOOP = True
 RESETVIEW = False                                 # SC39.1 (see use_resetview)
 GRSRC = False                                     # SC39.1 (see use_grsrc)
 GRS_COL = (0x53, 0x45, 0x2D, 0x49, 0x4D)          # the source of the granular engine: the capture red, the sample of Drum 1..4 orange, yellow, violet, teal
@@ -1097,7 +1121,11 @@ def cced_routines(a, L, t_ed, tail, bc):
     a.emit(push_list, [4, 5, 6, 7], lr=True)
     a.emit(mov_reg, 4, 0); a.emit(mov_reg, 5, 1); a.emit(mov_reg, 6, 2)
     a.emit(movs_imm, 3, 0)
-    for i in range(32): a.emit(strh_imm, 3, 4, 2 * i)
+    if FOLD2:                                                                     # (use_fold2) r0 = the pointer, r7 = the count
+        a.emit(mov_reg, 0, 4); a.emit(movs_imm, 7, 32)
+        a.label("nd_z"); a.emit(strh_imm, 3, 0, 0); a.emit(adds_imm8, 0, 2); a.emit(subs_imm8, 7, 1); a.emit(b_cond, "nd_z", "ne")
+    else:
+        for i in range(32): a.emit(strh_imm, 3, 4, 2 * i)
     a.emit(movs_imm, 7, 0)
     a.emit(cmp_imm, 5, 100); a.emit(b_cond, "nd_t", "lo")
     a.emit(movs_imm, 7, 1); a.emit(movs_imm, 1, 0)
@@ -1143,7 +1171,11 @@ def cced_routines(a, L, t_ed, tail, bc):
         a.label("c_edclean")
         a.emit(push_list, [4], lr=True)
         a.emit(mov_reg, 4, 0); a.emit(ldr_imm, 1, 4, 4); a.emit(ldr_imm, 1, 1, 0); a.emit(movs_imm, 0, 0)
-        for i in range(8, 32): a.emit(strh_imm, 0, 1, 2 * i)
+        if FOLD2:                                                                 # (use_fold2) r1 = the pointer, r2 = the count
+            a.emit(adds_imm8, 1, 16); a.emit(movs_imm, 2, 24)
+            a.label("ec_z"); a.emit(strh_imm, 0, 1, 0); a.emit(adds_imm8, 1, 2); a.emit(subs_imm8, 2, 1); a.emit(b_cond, "ec_z", "ne")
+        else:
+            for i in range(8, 32): a.emit(strh_imm, 0, 1, 2 * i)
         a.emit(mov_reg, 0, 4); a.emit(bl, T_DRAW)
         a.emit(pop_list, [4], pc=True)
 
@@ -1582,18 +1614,30 @@ def p4_routines(a, base):
     E(push_list, [4], lr=True); E(mov_reg, 4, 0)
     imm32(1, P4RAM); E(ldr_imm, 2, 1, 16); imm32(3, P4SIG); E(cmp_reg, 2, 3); E(b_cond, "vr_ok", "eq")
     E(str_imm, 3, 1, 16)
-    for t in range(2):
-        for k, c in enumerate(LANE_TAB): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
+    if FOLD:                                                                      # (use_fold) both rows from t_vrw
+        from thumb import ldr_label
+        E(movs_imm, 2, 0); E(ldr_label, 3, "t_vrw")
+        a.label("vrw_l"); E(lsls_imm, 0, 2, 29); E(lsrs_imm, 0, 0, 29); E(ldrb_reg, 0, 3, 0); E(raw, h(0x5488)); E(adds_imm8, 2, 1); E(cmp_imm, 2, 16); E(b_cond, "vrw_l", "lo")   # strb r0, [r1, r2]
+    else:
+        for t in range(2):
+            for k, c in enumerate(LANE_TAB): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
     a.label("vr_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
+    if FOLD: a.label("t_vrw"); E(raw, bytes(LANE_TAB))
     if NSPAGE:
         # ---- c_vrow2(r0 = track) -> r0 = the track's row of the non-sequenceable page (NS_DEF, both tracks, the first time); clobbers r1-r3
         a.label("c_vrow2")
         E(push_list, [4], lr=True); E(mov_reg, 4, 0)
         imm32(1, NSRAM); E(ldr_imm, 2, 1, 16); imm32(3, NSSIG); E(cmp_reg, 2, 3); E(b_cond, "v2r_ok", "eq")
         E(str_imm, 3, 1, 16)
-        for t in range(2):
-            for k, c in enumerate(NS_DEF): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
+        if FOLD:                                                                  # (use_fold) both rows from t_vrw2
+            from thumb import ldr_label
+            E(movs_imm, 2, 0); E(ldr_label, 3, "t_vrw2")
+            a.label("vrw2_l"); E(lsls_imm, 0, 2, 29); E(lsrs_imm, 0, 0, 29); E(ldrb_reg, 0, 3, 0); E(raw, h(0x5488)); E(adds_imm8, 2, 1); E(cmp_imm, 2, 16); E(b_cond, "vrw2_l", "lo")
+        else:
+            for t in range(2):
+                for k, c in enumerate(NS_DEF): E(movs_imm, 2, c); E(strb_imm, 2, 1, 8 * t + k)
         a.label("v2r_ok"); E(lsls_imm, 0, 4, 3); E(adds_reg, 0, 0, 1); E(pop_list, [4], pc=True)
+        if FOLD: a.label("t_vrw2"); E(raw, bytes(NS_DEF))
     a.label("c_vkc")
     E(push_list, [4], lr=True); E(mov_reg, 4, 1)
     if KNOB_CODES_C_MX:                                                           # (use_osc2pg2) the granular keeps page 3's old layout
@@ -1740,7 +1784,13 @@ def clear_routines(a, L, base, t_def, tail, mulstride, bc):
     a.emit(push_list, [4, 5], lr=True)
     a.emit(mov_reg, 5, 1); a.emit(bl, "c_vobj"); a.emit(mov_reg, 4, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cl_x", "eq")
     a.emit(bl, "c_vclr"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "cl_rel", "eq")
-    for k in range(8):
+    if FOLD and CLRAUTO:                                                          # (use_fold) the eight knobs in a loop (r2 = k)
+        a.emit(movs_imm, 2, 0)
+        a.label("cl_l"); a.emit(adds_reg, 1, 4, 2); a.emit(raw, ldrb_w(1, 1, 0x40)); a.emit(movs_imm, 0, CLR_LAV); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, "cl_w", "eq")
+        a.emit(movs_imm, 0, CLR_RED); a.emit(cmp_imm, 1, 0x2A); a.emit(b_cond, "cl_n", "ne")
+        a.label("cl_w"); a.emit(lsls_imm, 3, 2, 1); a.emit(strh_reg, 0, 5, 3)
+        a.label("cl_n"); a.emit(adds_imm8, 2, 1); a.emit(cmp_imm, 2, 8); a.emit(b_cond, "cl_l", "lo")
+    for k in (range(0) if FOLD and CLRAUTO else range(8)):
         if CLRAUTO:
             a.emit(raw, ldrb_w(1, 4, 0x40 + k)); a.emit(movs_imm, 0, CLR_LAV); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, f"cl_w{k}", "eq")
             a.emit(movs_imm, 0, CLR_RED); a.emit(cmp_imm, 1, 0x2A); a.emit(b_cond, f"cl_n{k}", "ne")
@@ -3327,14 +3377,22 @@ def arm_code(base, L):
         a.emit(push_list, [4, 5], lr=True)
         a.emit(mov_reg, 4, 0)
         tail(5); mulstride(1, 4); a.emit(adds_reg, 1, 1, 5)                                              # r1 = TAIL + STRIDE t
-        for i, v in enumerate(DEFAULTS): a.emit(movs_imm, 2, v & 0xFF); a.emit(strb_w, 2, 1, O_PAR + i)
+        if DEFLOOP:                                                                                      # (use_defloop) from t_def
+            a.emit(adds_imm8, 1, O_PAR); a.emit(movs_imm, 3, 0); a.emit(movw, 0, (t_def + 1) & 0xFFFF); a.emit(movt, 0, (t_def + 1) >> 16)
+            a.label("vr_d"); a.emit(ldrb_reg, 2, 0, 3); a.emit(raw, h(0x54CA)); a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, len(DEFAULTS)); bc("vr_d", "lo")   # strb r2, [r1, r3]
+        else:
+            for i, v in enumerate(DEFAULTS): a.emit(movs_imm, 2, v & 0xFF); a.emit(strb_w, 2, 1, O_PAR + i)
         a.emit(lsls_imm, 1, 4, 3); a.emit(adds_reg, 1, 1, 5); a.emit(adds_imm8, 1, O_RT)                 # r1 = the track's RT bytes
         a.emit(movs_imm, 2, 0xFF); a.emit(strb_imm, 2, 1, RT_DLO); a.emit(strb_imm, 2, 1, RT_DHI)
         a.emit(movs_imm, 2, DX_MASK if OSC else 0); a.emit(strb_imm, 2, 1, RT_DX)
         a.emit(ldrb_imm, 2, 1, RT_AUX); a.emit(movs_imm, 3, 0x6F if OSC3 else 0x0F); a.emit(orrs_reg, 2, 3); a.emit(strb_imm, 2, 1, RT_AUX)
         a.emit(bl, L["c_gfst"]); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vr_s", "eq")                   # the volatile values (OSC 2): the sweep sends them
         a.emit(lsls_imm, 1, 4, 3); a.emit(adds_reg, 0, 0, 1)
-        for k, v in enumerate(DEFAULTS_V2): a.emit(movs_imm, 2, v & 0xFF); a.emit(strb_w, 2, 0, V2_OFF + k)
+        if DEFLOOP:                                                                                      # (use_defloop) from t_def
+            a.emit(adds_imm8, 0, V2_OFF); a.emit(movs_imm, 3, 0); a.emit(movw, 1, (t_def + 1 + len(DEFAULTS)) & 0xFFFF); a.emit(movt, 1, (t_def + 1 + len(DEFAULTS)) >> 16)
+            a.label("vr_v"); a.emit(ldrb_reg, 2, 1, 3); a.emit(raw, h(0x54C2)); a.emit(adds_imm8, 3, 1); a.emit(cmp_imm, 3, len(DEFAULTS_V2)); bc("vr_v", "lo")   # strb r2, [r0, r3]
+        else:
+            for k, v in enumerate(DEFAULTS_V2): a.emit(movs_imm, 2, v & 0xFF); a.emit(strb_w, 2, 0, V2_OFF + k)
         a.label("vr_s")
         a.emit(bl, "c_vsave")
         a.emit(pop_list, [4, 5], pc=True)
@@ -4189,8 +4247,14 @@ def arm_code(base, L):
     else:
         bc("vt_vol", "ne")
     a.emit(strb_w, 1, 5, O_FLAGS)                                                 # first use: flags = initialised, both off; the default values
-    for i, v in enumerate(DEFAULTS):
-        a.emit(movs_imm, 1, v); a.emit(strb_w, 1, 5, O_PAR + i); a.emit(strb_w, 1, 5, O_PAR + STRIDE + i)
+    if DEFLOOP:                                                                   # (use_defloop) from t_def: r2 = i, r3 = the table
+        assert CLEARK and all(0 <= v < 256 for v in DEFAULTS)
+        a.emit(movs_imm, 2, 0); a.emit(movw, 3, (t_def + 1) & 0xFFFF); a.emit(movt, 3, (t_def + 1) >> 16)
+        a.label("vd_l"); a.emit(ldrb_reg, 1, 3, 2); a.emit(adds_reg, 0, 5, 2); a.emit(strb_w, 1, 0, O_PAR); a.emit(strb_w, 1, 0, O_PAR + STRIDE)
+        a.emit(adds_imm8, 2, 1); a.emit(cmp_imm, 2, len(DEFAULTS)); bc("vd_l", "lo")
+    else:
+        for i, v in enumerate(DEFAULTS):
+            a.emit(movs_imm, 1, v); a.emit(strb_w, 1, 5, O_PAR + i); a.emit(strb_w, 1, 5, O_PAR + STRIDE + i)
     if SIGNED: a.emit(movs_imm, 0, SIG_VAL); a.emit(strb_w, 0, 5, O_SIG)
     if SDRUM: a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 5, O_SD); a.emit(strb_w, 0, 5, O_SD + 1)
     a.label("vt_vol")
@@ -4199,10 +4263,20 @@ def arm_code(base, L):
     a.emit(movs_imm, 1, 0)
     if CCED:
         for j in range(2 if SDRUM else 4): a.emit(strb_w, 1, 5, O_ED + j)
-    for t in (0, 1):
-        for j in range(8): a.emit(strb_w, 1, 5, O_RT + 8 * t + j)
+    if FOLD:                                                                      # (use_fold) the 16 state bytes, r1 = 0
+        a.emit(movs_imm, 2, 0)
+        a.label("vt_rz"); a.emit(adds_reg, 3, 5, 2); a.emit(strb_w, 1, 3, O_RT); a.emit(adds_imm8, 2, 1); a.emit(cmp_imm, 2, 16); bc("vt_rz", "lo")
+    else:
+        for t in (0, 1):
+            for j in range(8): a.emit(strb_w, 1, 5, O_RT + 8 * t + j)
     a.emit(strb_w, 1, 5, O_SAVED)
-    if DUALUI:                                                                    # the volatile values of the second oscillator (heap block r4) and the default note of the second oscillator
+    if DUALUI and DEFLOOP:                                                        # (use_defloop) the 16 volatile values: t_def's DEFAULTS_V2 for k = i & 7
+        assert len(DEFAULTS_V2) == 8 and all(0 <= v < 256 for v in DEFAULTS_V2)
+        a.emit(movs_imm, 2, 0); a.emit(movw, 0, (t_def + 1 + len(DEFAULTS)) & 0xFFFF); a.emit(movt, 0, (t_def + 1 + len(DEFAULTS)) >> 16)
+        a.label("vd_v"); a.emit(lsls_imm, 1, 2, 29); a.emit(lsrs_imm, 1, 1, 29); a.emit(ldrb_reg, 1, 0, 1); a.emit(adds_reg, 3, 4, 2); a.emit(strb_w, 1, 3, V2_OFF)
+        a.emit(adds_imm8, 2, 1); a.emit(cmp_imm, 2, 16); bc("vd_v", "lo")
+        a.emit(movs_imm, 2, 60); a.emit(strb_w, 2, 5, O_PAR + 13); a.emit(strb_w, 2, 5, O_PAR + STRIDE + 13)
+    elif DUALUI:                                                                  # the volatile values of the second oscillator (heap block r4) and the default note of the second oscillator
         for t in (0, 1):
             for k, v in enumerate(DEFAULTS_V2): a.emit(movs_imm, 2, v); a.emit(strb_w, 2, 4, V2_OFF + 8 * t + k)
             a.emit(movs_imm, 2, 60); a.emit(strb_w, 2, 5, O_PAR + STRIDE * t + 13)

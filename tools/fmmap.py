@@ -101,6 +101,13 @@ def custom_entry(params):
 
 # ---------------------------------------------------------------------------------------------------------------------------- the code
 LRRAM = False               # (SC56.7) c_mmled: LR in RAM while the chain below runs (the LED task's stack, issue #22)
+FAMTAB = False              # Alpha 7.20 (use_famtab)
+
+
+def use_famtab():
+    """Alpha 7.20 (flash room): the map's colour r3 = FAM[r2] from a byte table after c_mmled (thumb.ldr_label) instead of a compare chain."""
+    global FAMTAB
+    FAMTAB = True
 LR_SLOT = 0x2004FAC8        # 4 B (free: after knobhold's 0x2004F900..0x2004FAA7, below 0x2004FC00)
 
 
@@ -379,13 +386,19 @@ def arm_code(base, L, prev, fmalg_back):
     lab("le_pu"); E(adds_imm8, 2, 2); E(b, "le_tb")
     lab("le_wh"); E(movs_imm, 3, WHITE); E(b, "le_w")
     lab("le_tb"); E(movs_imm, 3, 0)                                                      # r3 = FAM[r2]
-    for i, code in enumerate(c_ for fam in FAM for c_ in fam):
-        E(cmp_imm, 2, i); E(b_cond, f"le_t{i}", "ne"); E(movs_imm, 3, code); lab(f"le_t{i}")
+    famc = bytes(c_ for fam in FAM for c_ in fam)
+    if FAMTAB:                                                                           # (use_famtab) from t_fam
+        from thumb import ldr_label
+        E(cmp_imm, 2, len(famc)); E(b_cond, "le_w", "hs"); E(ldr_label, 3, "t_fam"); E(ldrb_reg, 3, 3, 2)
+    else:
+        for i, code in enumerate(famc):
+            E(cmp_imm, 2, i); E(b_cond, f"le_t{i}", "ne"); E(movs_imm, 3, code); lab(f"le_t{i}")
     lab("le_w"); E(mov_reg, 0, 9); E(adds_imm8, 0, 8); E(lsls_imm, 0, 0, 1); E(strh_reg, 3, 5, 0)
     E(mov_reg, 0, 9); E(adds_imm8, 0, 1); E(mov_reg, 9, 0); E(cmp_imm, 0, 24); bc("le_c", "lo")
     lab("le_x"); E(mov_reg, 0, 5)
     if LRRAM: E(raw, h(0xE8BD) + h(0x0FF0)); imm32(1, LR_SLOT); E(raw, h(0xF8D1) + h(0xF000))  # pop.w {r4-r11}; ldr.w pc, [r1]
     else: E(raw, h(0xE8BD) + h(0x8FF0))
+    if FAMTAB: lab("t_fam"); E(raw, famc + bytes(len(famc) & 1))
     return a.assemble()
 
 

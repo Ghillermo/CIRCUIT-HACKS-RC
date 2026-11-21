@@ -388,6 +388,10 @@ KEEP = dict(c_m1=8, c_m2=8, c_ckledtask=16, c_shbtn2=0x3C, c_conv0=64)
 NOPOOL = {}
 
 
+def ldr_label(rd, label):          # (Alpha 7.19) rd = a label's address, from the literal pool: COMPACT assembly only
+    raise AssertionError("ldr_label needs thumb.COMPACT")
+
+
 def ldr_lit_n(rt, off):             # LDR Rt,[PC,#off] T1 (off from Align(PC, 4))
     _lo(rt); assert off % 4 == 0 and 0 <= off <= 1020, off
     return h(0x4800 | rt << 8 | off // 4)
@@ -507,6 +511,9 @@ def _assemble_compact(asm, external):
             seq.append(("label", p)); i += 1; continue
         fn, args, kw = p
         nx = items[i + 1] if i + 1 < n else None
+        if fn is ldr_label:                                                   # (Alpha 7.19) a label's address into the pool
+            assert not it_left and not kw
+            seq.append(("lit", args[0], args[1])); u += 8; i += 1; continue
         u += _size(fn, args)
         if (fn is movw and u - 4 >= keep and not it_left and not kw and nx and nx[0] == "ins" and nx[1][0] is movt and not nx[1][2]
                 and nx[1][1][0] == args[0] and isinstance(args[1], int) and isinstance(nx[1][1][1], int)
@@ -590,10 +597,11 @@ def _assemble_compact(asm, external):
             if e[0] == "site":
                 if k in pools:
                     if addrs[k] & 2: out += nop()
-                    for v in pools[k]: out += struct.pack("<I", v)
+                    for v in pools[k]: out += struct.pack("<I", labels[v] if isinstance(v, str) else v)
                 continue
             if e[0] == "lit":
                 rd, v = e[1], e[2]
+                if isinstance(v, str): v = labels[v]
                 out += (movw(rd, v & 0xFFFF) + movt(rd, v >> 16) if k in pair else
                         ldr_lit_n(rd, offs[k]) if lsz[k] == 2 else ldr_lit_w(rd, offs[k]))
                 continue

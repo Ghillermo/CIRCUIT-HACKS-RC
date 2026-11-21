@@ -31,6 +31,17 @@ SESSION_OBJ = 0x2003D71C
 SYN_RELOAD = 0x0802FC82                # (this = the session object, synth, 0): the record's patch of that synth into its store, applied
 LED_PRESET = 32 + PRESET               # the buttons' panel LEDs = 32 + id
 COL_SHIFT = 0x2D                       # yellow
+CLEARTRK = False                       # Alpha 7.22 (use_clear)
+
+
+def use_clear():
+    """Alpha 7.22 (the user, 2026-11-21: «clear+track should load init saved for the project (the state loaded when a project starts) right
+    now, it restores back to patch default instead» -> «switch them. clear+track=session default. Shift+preset: preset initial state»): Clear held (Duplicate not) + Synth 1 / 2 or MIDI 1 / 2 (own engine on), with a view of
+    that track on the screen = the same as Shift + Preset there (the sound saved in the project); the press goes no further (clrtrk's macros
+    from the pack and psave's engine defaults are no longer reached for these); Shift + Preset = what Clear did: Synth 1 / 2 the patch's macros
+    from the pack (clrtrk.c_crsyn), MIDI 1 / 2 the engine's defaults (vcf21.c_vreset).  The drums: as before."""
+    global CLEARTRK
+    CLEARTRK = True
 
 
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
@@ -57,9 +68,19 @@ def arm_code(base, L, prev):
     a.label("c_pibtn")
     E(push_list, [0, 1, 2, 4, 5], lr=True)
     E(mov_reg, 4, 0)
+    if CLEARTRK:                                                                         # (use_clear) Clear + the track's own button
+        E(cmp_imm, 1, 3); E(b_cond, "pb_np", "hi"); E(mov_reg, 5, 1)
+        E(ldr_imm, 0, 4, 0x20); E(ldr_imm, 0, 0, 0xC); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0)
+        E(movs_imm, 1, 3); E(raw, h(0x4008)); E(cmp_imm, 0, 1); E(b_cond, "pb_p", "ne")                  # ands r0, r1: Clear held, Duplicate not
+        E(bl, "c_pivoice"); E(cmp_reg, 0, 5); E(b_cond, "pb_p", "ne"); E(b, "pb_go")
+        a.label("pb_np")
     E(cmp_imm, 1, PRESET); E(b_cond, "pb_p", "ne")
     E(ldr_imm, 0, 4, 0xC); E(movs_imm, 1, 0); E(bl, PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "pb_p", "eq")   # Shift
     E(bl, "c_pivoice"); E(cmp_imm, 0, 3); E(b_cond, "pb_p", "hi"); E(mov_reg, 5, 0)
+    if CLEARTRK:                                                                         # (use_clear) Shift + Preset = the preset's initial state
+        E(cmp_imm, 5, 2); E(b_cond, "pb_sm", "hs"); E(mov_reg, 0, 5); E(bl, L["c_crsyn"]); E(b, "pb_x")   # Synth: the macros from the pack
+        a.label("pb_sm"); E(subs_imm8, 5, 2); E(b, "pb_d")                                                # MIDI: the engine's defaults
+        a.label("pb_go")
     E(cmp_imm, 5, 2); E(b_cond, "pb_m", "hs")
     imm32(0, SESSION_OBJ); E(ldr_imm, 1, 0, 0x14); E(cmp_imm, 1, 0); E(b_cond, "pb_x", "eq")
     E(mov_reg, 1, 5); E(movs_imm, 2, 0); E(bl, SYN_RELOAD); E(b, "pb_x")                  # Synth 1 / 2
@@ -91,6 +112,7 @@ def install(img, report, base_addr):
     L = {k: lab("vcf20", k) for k in ("c_von", "c_vreset")}
     L.update({k: lab("projsyn", k) for k in ("c_ysget", "c_ysrun")})
     L["c_shift"] = lab("sc15", "c_shift")
+    if CLEARTRK: L["c_crsyn"] = lab("clrtrk", "c_crsyn")
     prev = dict(btn=MP.bw_target(img, SV.BTN, BASE), ledtask=FD.bl_target(img, PK.LED_CALLS[0], BASE))
     assert FD.bl_target(img, PK.LED_CALLS[1], BASE) == prev["ledtask"]
     code, labels = arm_code(base_addr, L, prev)

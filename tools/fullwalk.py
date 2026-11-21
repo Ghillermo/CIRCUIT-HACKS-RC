@@ -59,7 +59,9 @@ def ram_roots(end):
     return out
 
 
-def walk(img, data=(), stock=None):
+def walk(img, data=(), stock=None, cut=(), noroot=()):
+    """cut: addresses never entered (a feature's entries, to measure what cutting it frees); noroot: words never taken as pointers"""
+    cut, noroot = set(cut), set(noroot)
     end = BASE + len(img)
     md = capstone.Cs(capstone.CS_ARCH_ARM, capstone.CS_MODE_THUMB | capstone.CS_MODE_MCLASS); md.detail = True
     cache = {}
@@ -83,7 +85,7 @@ def walk(img, data=(), stock=None):
     def scan_ptrs():
         new = set()
         for o in range(0, len(img) - 3, 4):
-            if covered[o] & 1 or covered[o + 2] & 1 or isdata(BASE + o): continue
+            if covered[o] & 1 or covered[o + 2] & 1 or isdata(BASE + o) or BASE + o in noroot: continue
             v = struct.unpack_from("<I", img, o)[0]
             if stock is not None and BASE + o < STOCK_END and v - 1 >= STOCK_END and img[o:o + 4] == stock[o:o + 4]:
                 continue                                       # a word left as in the stock cannot point into our code (a stock data word)
@@ -98,7 +100,7 @@ def walk(img, data=(), stock=None):
         while todo:
             pc = todo.pop(); state = {}; itn = 0
             if isinstance(pc, tuple): pc, state = pc
-            while BASE <= pc < end and pc not in ins_at and not isdata(pc):
+            while BASE <= pc < end and pc not in ins_at and not isdata(pc) and pc not in cut:
                 ins = dec(pc)
                 if ins is None: warn.append(("undecodable", pc)); break
                 ins_at.add(pc); cover(pc, ins.size, 1)

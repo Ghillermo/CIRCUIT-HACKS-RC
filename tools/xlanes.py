@@ -74,6 +74,13 @@ VALID_OLD = bytes.fromhex("42688a4204bf08498a42")
 
 
 RELOAD = False
+ZLOOP = False                                   # Alpha 7.19 (use_zloop)
+
+
+def use_zloop():
+    """Alpha 7.19 (flash room): the API frames zeroed by packio.zloop (12 B) instead of one str per word, with r2 / r3 (dead there)."""
+    global ZLOOP
+    ZLOOP = True
 O_RQ, O_NB = 19, 33                            # use_reload(): a block to read again from the card + 1 (0 none); the project is new and never saved
 
 
@@ -315,8 +322,10 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 4, O_FL); E(ldrb_imm, 1, 4, O_QN); E(orrs_reg, 1, 0)
     if RELOAD: E(ldrb_imm, 2, 4, O_RQ); E(orrs_reg, 1, 2)
     E(ldrh_imm, 2, 4, O_CM); E(ldrh_imm, 3, 4, O_CM + 4); E(raw, h(0x405A)); E(orrs_reg, 1, 2); bc("wk_x", "eq")   # eors r2, r3: wanted = cached?
-    E(movs_imm, 1, 0)
-    for o in range(0, F, 4): E(str_imm, 1, 7, o)
+    if ZLOOP: PK.zloop(a, 1, 7, F // 4, 2, 3, "_zwk")
+    else:
+        E(movs_imm, 1, 0)
+        for o in range(0, F, 4): E(str_imm, 1, 7, o)
     E(mov_reg, 1, 7); E(adds_imm8, 1, 12); E(str_imm, 1, 7, 8)                       # &done
     E(movs_imm, 0, 0); E(bl, "c_xlflush"); E(movs_imm, 0, 1); E(bl, "c_xlflush")        # changed playing blocks back to the DSP first
     # the queued block copies (pattern pastes): BLKW words, NW at a time, DSP to DSP; a failed one leaves its destination empty
@@ -752,9 +761,12 @@ def arm_code(base, L, prev):
     # frame r7 (40 B, at sp: the READ's cb / ctx / &done): [0] 0 [4] 0 [8] &done [12] done [16..27] the item [28] off [32] k [36] sum
     def frame_in():
         E(push_list, [4, 5, 6, 7], lr=True); E(sub_sp_imm, F); E(mov_reg, 7, 13)
-        E(movs_imm, 1, 0)
-        for o in range(0, F, 4): E(str_imm, 1, 7, o)
+        if ZLOOP: PK.zloop(a, 1, 7, F // 4, 2, 3, f"_zfi{frame_in.n}"); frame_in.n += 1
+        else:
+            E(movs_imm, 1, 0)
+            for o in range(0, F, 4): E(str_imm, 1, 7, o)
         E(mov_reg, 1, 7); E(adds_imm8, 1, 12); E(str_imm, 1, 7, 8)
+    frame_in.n = 0
     def frame_out(): E(add_sp_imm, F); E(pop_list, [4, 5, 6, 7], pc=True)
     def rd(off_fn, n_reg, fail):                                                       # READ(the item, off, TB, n) -> fail on an error
         iptr(0); off_fn(); imm32(2, TB); E(mov_reg, 3, n_reg); E(bl, PK.READ); E(cmp_imm, 0, 0); bc(fail, "ne")

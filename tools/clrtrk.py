@@ -33,6 +33,14 @@ def use_synth():
     global SYNTH
     SYNTH = True
 AUTOCLR = False                                 # SC43.7 (use_autoclr)
+CALLABLE = False                                # Alpha 7.22 (use_callable)
+
+
+def use_callable():
+    """Alpha 7.22: the macros-from-the-pack restore of Synth s as a routine, c_crsyn(r0 = s) (projinit's Shift + Preset calls it); Clear +
+    Synth goes through it too."""
+    global CALLABLE
+    CALLABLE = True
 
 
 def use_autoclr():
@@ -89,10 +97,14 @@ def arm_code(base, L, prev):
         E(movs_imm, 1, 3); E(ands_reg, 0, 1); E(cmp_imm, 0, 1); E(b_cond, "cs_p", "ne")                   # Clear held, Duplicate not
         imm32(0, MGR); E(ldr_imm, 1, 0, 0x6C); E(ldr_imm, 2, 0, 0x2C); E(cmp_reg, 1, 2); E(b_cond, "cs_p", "ne")
         E(ldrb_w, 1, 0, S_CUR); E(movs_imm, 2, SYN_SUBS); E(muls, 2, 4); E(subs_reg, 1, 1, 2); E(cmp_imm, 1, 1); E(b_cond, "cs_p", "hi")
+        if CALLABLE:
+            E(mov_reg, 0, 4); E(bl, "c_crsyn"); E(pop_list, [0, 1, 4, 5, 6, 7], pc=True)
+            a.label("c_crsyn")                                                                           # (r0 = s): the macros of its patch in the pack
+            E(push_list, [4, 5, 6, 7], lr=True); E(mov_reg, 4, 0)
         imm32(0, CONT + 0x78); E(lsls_imm, 1, 4, 2); E(adds_reg, 0, 0, 1); E(ldr_imm, 5, 0, 0)            # r5 = its Preset view
-        E(ldr_imm, 0, 5, 0); imm32(1, SYN_VT); E(cmp_reg, 0, 1); E(b_cond, "cs_p", "ne")
+        E(ldr_imm, 0, 5, 0); imm32(1, SYN_VT); E(cmp_reg, 0, 1); E(b_cond, "cs_r" if CALLABLE else "cs_p", "ne")
         E(ldr_imm, 0, 5, 0x14); E(movs_imm, 1, 10); E(bl, PARAM_GET); E(ldrb_imm, 6, 0, 0)               # r6 = the patch it plays
-        E(cmp_imm, 6, 127); E(b_cond, "cs_p", "hi")
+        E(cmp_imm, 6, 127); E(b_cond, "cs_r" if CALLABLE else "cs_p", "hi")
         E(movs_imm, 0, 5); E(bl, PK.BUF_LOCK)
         E(lsrs_imm, 0, 6, 3); E(lsls_imm, 1, 6, 29); E(lsrs_imm, 1, 1, 20); imm32(2, PK.BUF); imm32(3, PK.PATCH_SZ); E(bl, L["c_mpr"])
         E(cmp_imm, 0, 0); E(b_cond, "cs_u", "ne")
@@ -103,7 +115,8 @@ def arm_code(base, L, prev):
         E(mov_reg, 0, 4); E(bl, L["c_mcset"])
         E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "cs_m", "lo")
         a.label("cs_u"); E(bl, PK.BUF_UNLOCK)
-        E(pop_list, [0, 1, 4, 5, 6, 7], pc=True)
+        if CALLABLE: a.label("cs_r"); E(pop_list, [4, 5, 6, 7], pc=True)
+        else: E(pop_list, [0, 1, 4, 5, 6, 7], pc=True)
         a.label("cs_p"); E(raw, popw([0, 1, 4, 5, 6, 7], lr=True)); E(b_w, prev["btn"])
     return a.assemble()
 

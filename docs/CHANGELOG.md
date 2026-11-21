@@ -7,6 +7,14 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.22 — 2026-11-21
+
+**Alpha 7.22** (marca `A7.22`) = la Alpha 7.18 + esto (las 7.19-7.21 no se publicaron). Instalada en el aparato (contesta y funciona por USB MIDI); lo demás, sin probar. Sustituye a la 7.18 en el instalador.
+
+- **Clear + pista y Shift + Preset, intercambiados:** **Clear + Synth 1 / 2** (o **Clear + MIDI 1 / 2** con el sinte propio), en una vista de esa pista = **el sonido guardado en el proyecto** (como al cargarlo); **Shift + Preset** = **el estado inicial del preset** (Synth 1 / 2: sus macros como están en el pack; MIDI 1 / 2: los valores por defecto del sinte propio). → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones)
+- **Sin Easy Start (la unidad USB):** el aparato es siempre USB MIDI; el pad de Easy Start en Setup no hace nada y queda apagado. Su código deja sitio para las funciones. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup)
+- **≈ 2,2 KB más de flash libre** sin cambios de uso (código repetido convertido en bucles y tablas), para lo que venga.
+
 ### Alpha 7.18 — 2026-11-20
 
 **Alpha 7.18** (marca `A7.18`) = la Alpha 7.16 + esto (la 7.17 no se publicó). Las filas, probadas en el aparato. Sustituye a la 7.16 en el instalador.
@@ -1206,6 +1214,14 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.22 — 2026-11-21
+
+**Alpha 7.22** (marker `A7.22`) = Alpha 7.18 + this (7.19-7.21 were not released). Installed on the device (answers and works over USB MIDI); the rest untested. It replaces 7.18 in the installer.
+
+- **Clear + track and Shift + Preset swapped:** **Clear + Synth 1 / 2** (or **Clear + MIDI 1 / 2** with the own synth on), in a view of that track = **the sound saved in the project** (as when it was loaded); **Shift + Preset** = **the preset's initial state** (Synth 1 / 2: its macros as stored in the pack; MIDI 1 / 2: the own synth's defaults). → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones)
+- **No Easy Start (the USB drive):** the device is always USB MIDI; Easy Start's pad in Setup does nothing and stays dark. Its code makes room for features. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
+- **≈ 2.2 KB more free flash** with no change in use (repeated code turned into loops and tables), for what comes next.
 
 ### Alpha 7.18 — 2026-11-20
 

@@ -125,6 +125,15 @@ def use_keepstall(ms=400):
 RCC_CSR, CSR_RMVF, CSR_WD = 0x40023874, 1 << 24, (1 << 29) | (1 << 30)
 SCB_CFSR = 0xE000ED28                                         # + 4 HFSR, + 12 MMFAR, + 16 BFAR
 FAULT_VECS = (3, 4, 5, 6)
+VECSHARE = False                                         # Alpha 7.20 (use_vecshare)
+
+
+def use_vecshare():
+    """Alpha 7.20 (flash room): the four fault vectors' stubs share one body: c_bbv<v> = movs r0, #v; b c_bbvc; the body keeps v on the stack
+    across c_bbfltc and goes on to the stock's handler of v from a table (r12, scratch on an exception).  The same frame, registers and
+    stack as before (r0-r3 / r12 are the exception's scratch: the stock's handlers loop or reset)."""
+    global VECSHARE
+    VECSHARE = True
 SYSTICK_VEC = 15
 O2 = type("O2", (), dict(XTRA=76, CSR=176, RTCB=180, RPC=184, RLR=188, MTCB=192, CFSR=196, HFSR=200, FADR=204))
 N_MGR1_V2 = 32                                                # MGR1 copies 32 B; + 176..207 = the fields above
@@ -447,8 +456,22 @@ def v2_code(a, E, bc, imm32, now, prev):
         E(raw, h(0x4671)); E(raw, TST_LR4); E(raw, ITE_EQ); E(raw, MRS_MSP2); E(raw, MRS_PSP2)   # mov r1, lr
         E(raw, pushw([4, 5, 6, 7], lr=True)); E(movs_imm, 0, vec_no); E(bl, body)
         E(raw, popw([4, 5, 6, 7], lr=True)); E(b_w, orig)
-    for v in FAULT_VECS:
-        stub(f"c_bbv{v}", v, "c_bbfltc", prev[f"vec{v}"])
+    if VECSHARE:                                                                         # (use_vecshare) one body, a table of the stock's handlers
+        import struct
+        from thumb import ldr_label
+        for v in FAULT_VECS:
+            a.label(f"c_bbv{v}"); E(movs_imm, 0, v); E(b, "c_bbvc")
+        a.label("c_bbvc")
+        E(raw, h(0x4671)); E(raw, TST_LR4); E(raw, ITE_EQ); E(raw, MRS_MSP2); E(raw, MRS_PSP2)
+        E(raw, pushw([4, 5, 6, 7], lr=True)); E(push_list, [0]); E(bl, "c_bbfltc"); E(pop_list, [3])
+        E(ldr_label, 2, "t_bbvec"); E(subs_imm8, 3, FAULT_VECS[0]); E(lsls_imm, 3, 3, 2); E(raw, h(0x58D3))   # ldr r3, [r2, r3]
+        E(raw, h(0x469C)); E(raw, popw([4, 5, 6, 7], lr=True)); E(raw, h(0x4760))                         # mov ip, r3; pop; bx ip
+        a.label("t_bbvec")
+        assert list(FAULT_VECS) == list(range(FAULT_VECS[0], FAULT_VECS[0] + len(FAULT_VECS)))
+        for v in FAULT_VECS: E(raw, struct.pack("<I", prev[f"vec{v}"] | 1))
+    else:
+        for v in FAULT_VECS:
+            stub(f"c_bbv{v}", v, "c_bbfltc", prev[f"vec{v}"])
     stub("c_bbsys", SYSTICK_VEC, "c_bbsysc", prev[f"vec{SYSTICK_VEC}"])
 
     # ---- c_bbfltc(r0 = the vector, r1 = EXC_RETURN, r2 = the frame): a fault, unless something is frozen
