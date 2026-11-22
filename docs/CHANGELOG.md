@@ -768,6 +768,14 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.22 / RC4.22S y Alpha 7.27 — 2026-11-22
+
+**RC4.22 / RC4.22S** (marcas `R422` / `R422S`) = RC4.21 / RC4.21S + este arreglo. **Alpha 7.27** (marca `A7.27`) = la Alpha 7.22 + este arreglo y los de abajo (las 7.23-7.26 no se publicaron); instalada en el aparato.
+
+- **El song pointer de Master FX a tiempo:** cada vez que la frase daba la vuelta (o un paso mantenido se repetía) se perdía un pulso de reloj: el paso de inicio sonaba un poco tarde, el paso de después del final se encendía un instante y, tras varias vueltas, el reloj se atrasaba. Ahora la frase vuelve justo a tiempo, el paso de inicio suena en su sitio de la rejilla (el siguiente 1/16) y el reloj no se atrasa. → [Guía: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guia.html#master-fx)
+- **Alpha 7.27: Easy Start apagado de verdad.** Las Alpha 7.21 y 7.22 lo dejaban encendido sin querer: el aparato se presentaba al ordenador como MIDI y además como una unidad USB que no funcionaba. Ahora es solo USB MIDI, como el original con Easy Start apagado. → [Guía: Vista Setup](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#setup)
+- **Alpha 7.27:** ≈ 0,6 KB más de flash libre (código repetido convertido en bucles), sin cambios de uso.
+
 ### RC4.21 / RC4.21S — 2026-11-20
 
 **RC4.21 / RC4.21S** (marcas `R421` / `R421S`) = RC4.20 / RC4.20S + este arreglo (también en la **Alpha 7.16**). El arreglo está probado en el aparato con una build de diagnóstico: una hora de cadenas y cambios de escena sin fallo (antes fallaba a los 15-30 minutos).
@@ -1975,6 +1983,14 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.22 / RC4.22S and Alpha 7.27 — 2026-11-22
+
+**RC4.22 / RC4.22S** (markers `R422` / `R422S`) = RC4.21 / RC4.21S + this fix. **Alpha 7.27** (marker `A7.27`) = Alpha 7.22 + this fix and the ones below (7.23-7.26 were not released); installed on the device.
+
+- **Master FX's song pointer on time:** every time the phrase wrapped around (or a held step repeated) one clock pulse was lost: the start step played a little late, the step after the end lit up for an instant and, after several loops, the clock fell behind. Now the phrase wraps exactly on time, the start step plays on its place in the grid (the next 1/16) and the clock does not fall behind. → [Guide: Master FX](https://ghillermo.github.io/CIRCUIT-HACKS-RC/rc/guide.html#master-fx)
+- **Alpha 7.27: Easy Start really off.** Alpha 7.21 and 7.22 left it on by mistake: the device showed up on the computer as MIDI plus a USB drive that did not work. Now it is USB MIDI only, as the original with Easy Start off. → [Guide: Setup view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#setup)
+- **Alpha 7.27:** ≈ 0.6 KB more free flash (repeated code turned into loops), no change in use.
 
 ### RC4.21 / RC4.21S — 2026-11-20
 

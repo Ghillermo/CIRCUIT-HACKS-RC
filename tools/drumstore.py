@@ -17,6 +17,13 @@ PROB_VIEW0, PROB_SZ = 0x200438DC, 0x3C
 DP0, DP_SZ = 0x20040810, 0x90
 PARAM_GET, PARAM_WPTR = 0x0803542C, 0x080354FA
 ARRAYS = ((0, 0x00), (8, 0x20), (16, 0x60), (24, 0x40))      # (the store's first parameter, the raw array)
+FOLD = False                                                    # Alpha 7.24 (use_fold)
+
+
+def use_fold():
+    """Alpha 7.24 (flash room, the same results): emit_sync's four unrolled arrays as emit_syncall's loop, from the step's word in steps of 8."""
+    global FOLD
+    FOLD = True
 
 
 def _store(a, name, from_player):
@@ -37,6 +44,11 @@ def emit_syncall(a, name):
     E(mov_reg, 7, 1)
     _store(a, name, False)
     E(movs_imm, 5, 0)                                                                     # r5 = the store's parameter 0..31
+    _loop(a, name, 1)
+
+
+def _loop(a, name, step):
+    E = a.emit
     a.label(name + "_l")
     E(lsrs_imm, 0, 5, 3); E(cmp_imm, 0, 2); E(b_cond, name + "_a", "lo")                  # the raw array: groups 0 / 1 at 0x00 / 0x20, 2 / 3 at 0x60 / 0x40
     E(movs_imm, 1, 5); E(subs_reg, 0, 1, 0)
@@ -45,7 +57,7 @@ def emit_syncall(a, name):
     E(adds_reg, 0, 0, 1); E(adds_reg, 0, 0, 7); E(ldr_imm, 6, 0, 0)
     for fn in (PARAM_GET, PARAM_WPTR):
         E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, fn); E(str_imm, 6, 0, 0)
-    E(adds_imm8, 5, 1); E(cmp_imm, 5, 32); E(b_cond, name + "_l", "lo")
+    E(adds_imm8, 5, step); E(cmp_imm, 5, 32); E(b_cond, name + "_l", "lo")
     a.label(name + "_x"); E(pop_list, [4, 5, 6, 7], pc=True)
 
 
@@ -55,6 +67,8 @@ def emit_sync(a, name):
     E(push_list, [4, 5, 6, 7], lr=True)
     E(mov_reg, 7, 2); E(lsrs_imm, 5, 1, 2)                                                # r7 = the base, r5 = the word (step / 4)
     _store(a, name, True)
+    if FOLD:
+        _loop(a, name, 8); return
     for k0, off in ARRAYS:
         E(lsls_imm, 0, 5, 2); E(adds_reg, 0, 0, 7)
         if off: E(adds_imm8, 0, off)

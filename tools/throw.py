@@ -31,6 +31,15 @@ MAGIC = 0x5E2D01
 BTN_ENTRY = MP.BTN_ENTRY
 
 
+FOLD = False                          # Alpha 7.24 (use_fold)
+
+
+def use_fold():
+    """Alpha 7.24 (flash room, the same results): c_thon's eight send writes as a loop."""
+    global FOLD
+    FOLD = True
+
+
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
@@ -65,7 +74,9 @@ def arm_code(base, L, prev):
             E(lsls_imm, 6, 6, 7); E(orrs_reg, 6, 0)
         take(); imm32(0, addr); E(mov_reg, 1, 6); E(bl, L["c_xw"]); give()
     take(); imm32(0, FLAG); imm32(1, MAGIC); E(bl, L["c_xw"]); give()
-    for i in range(NTRK): E(movs_imm, 0, i); E(mov_reg, 1, 7); E(bl, "c_thw")
+    if FOLD:                                                                     # (use_fold) the eight sends in a loop (r4 is free here)
+        E(movs_imm, 4, 0); a.label("on_l"); E(mov_reg, 0, 4); E(mov_reg, 1, 7); E(bl, "c_thw"); E(adds_imm8, 4, 1); E(cmp_imm, 4, NTRK); E(b_cond, "on_l", "ne")
+    for i in (range(0) if FOLD else range(NTRK)): E(movs_imm, 0, i); E(mov_reg, 1, 7); E(bl, "c_thw")
     a.label("on_x"); E(add_sp_imm, 8); E(pop_list, [4, 5, 6, 7], pc=True)
 
     # ---- c_thoff(): a throw is on (the mark) = the eight sends back, the mark gone

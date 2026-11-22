@@ -74,6 +74,13 @@ SYNC_RAM = MXR + 0x100                # (SYNC) the last sequencer tick seen by e
 
 SHSYNC = False                        # SC46.1 (use_shsync)
 ZERO = False                          # SC46.6 (use_zero)
+FOLD = False                          # Alpha 7.24 (use_fold)
+
+
+def use_fold():
+    """Alpha 7.24 (flash room, the same results): c_mxst's per-track defaults as one word store each."""
+    global FOLD
+    FOLD = True
 
 
 def use_zero():
@@ -205,7 +212,13 @@ def arm_code(base, L, prev):
     E(movs_imm, 1, 0); E(movs_imm, 3, SIZE // 4)
     a.label("st_z"); E(str_imm, 1, 0, 0); E(adds_imm8, 0, 4); E(subs_imm8, 3, 1); E(b_cond, "st_z", "ne")
     E(mov_reg, 0, 4); E(movs_imm, 1, 0xFF); E(strb_imm, 1, 0, G_OVK)
-    for t in (0, 1):
+    if FOLD:                                                                       # (use_fold) the four parameter bytes as one word, the notes after
+        assert len(PAR_DEF) == 4 and all((T0 + TS * t + B_PAR) % 4 == 0 and T0 + TS * t + B_PAR < 128 for t in (0, 1))
+        imm32(1, int.from_bytes(bytes(PAR_DEF), "little"))
+        for t in (0, 1): E(str_imm, 1, 0, T0 + TS * t + B_PAR)
+        E(movs_imm, 1, 60)
+        for t in (0, 1): E(strb_w, 1, 0, T0 + TS * t + B_NOTE)
+    for t in (() if FOLD else (0, 1)):
         for j, v in enumerate(PAR_DEF): E(movs_imm, 1, v); E(strb_imm, 1, 0, T0 + TS * t + B_PAR + j) if T0 + TS * t + B_PAR + j < 32 else E(strb_w, 1, 0, T0 + TS * t + B_PAR + j)
         E(movs_imm, 1, 60); E(strb_w, 1, 0, T0 + TS * t + B_NOTE)
     imm32(1, SIG); E(str_imm, 1, 0, 0)

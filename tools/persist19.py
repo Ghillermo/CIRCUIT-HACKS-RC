@@ -188,6 +188,15 @@ def use_leftcol():
 
 KNOB_LEVELS = False                   # SC19.6: the new drum knobs (K1 / K3 / K5 / K7) show their value as LED brightness, like the stock K2 / K4 / K6 / K8 (see knob_levels_code)
 TRIMKL = False                        # SC57.5 (use_trimkl)
+FOLD = False                          # Alpha 7.24 (use_fold)
+
+
+def use_fold():
+    """Alpha 7.24 (flash room, the same results): c_mhleds19's Clear feedback (red / blue on the four stock knobs) as a loop; c_dk19's three
+    knob -> code chains (plain, Shift, Clear + knob's Shift layer) as one 16-byte table (t_dkc)."""
+    global FOLD
+    FOLD = True
+
 
 
 def use_trimkl():
@@ -443,7 +452,11 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
         a.emit(raw, ldrb_w(1, 0, 0x51)); a.emit(lsls_imm, 1, 1, 31); a.emit(b_cond, "dk_nc", "eq")
         a.emit(movs_imm, 5, 1); a.emit(b, "dk_old")
         a.label("dk_nc")
-    for knob, code in sorted((REMAP_SHIFT if REMAP else MAP2["shift"]).items()):
+    if FOLD:                                                                        # (use_fold) the code from t_dkc (Shift: + 8), 0xFF = none
+        from thumb import ldr_label
+        assert REMAP
+        a.emit(cmp_imm, 5, 7); a.emit(b_cond, "dk_fsx", "hi"); a.emit(ldr_label, 1, "t_dkc"); a.emit(adds_imm8, 1, 8); a.emit(ldrb_reg, 1, 1, 5); a.emit(cmp_imm, 1, 0xFF); bc("dk_code", "ne"); a.label("dk_fsx")
+    for knob, code in (() if FOLD else sorted((REMAP_SHIFT if REMAP else MAP2["shift"]).items())):
         a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_code", "eq")
     if REMAP:
         if EXTRAS:
@@ -461,7 +474,10 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     if CLEAR and CLEAR_BOTH:
         # Clear held + a plain knob: the Shift layer of the same knob goes to its default too (codes of REMAP_SHIFT; K8: the distortion type).  r4 = handler, r5 = knob, r7 = drum.
         a.emit(mov_reg, 0, 4); a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); bc("dk_nbc", "eq")
-        for knob, code in sorted(REMAP_SHIFT.items()):
+        if FOLD:
+            a.emit(cmp_imm, 5, 7); a.emit(b_cond, "dk_fbx", "hi"); a.emit(ldr_label, 1, "t_dkc"); a.emit(adds_imm8, 1, 8); a.emit(ldrb_reg, 1, 1, 5); a.emit(cmp_imm, 1, 0xFF); a.emit(b_cond, "dk_fbx", "eq")
+            a.emit(mov_reg, 0, 7); a.emit(bl, "c_dzero"); a.emit(b, "dk_nbc"); a.label("dk_fbx")
+        for knob, code in (() if FOLD else sorted(REMAP_SHIFT.items())):
             a.emit(cmp_imm, 5, knob); a.emit(b_cond, f"dk_bc{knob}", "ne"); a.emit(mov_reg, 0, 7); a.emit(movs_imm, 1, code); a.emit(bl, "c_dzero"); a.emit(b, "dk_nbc"); a.label(f"dk_bc{knob}")
         if EXTRAS:
             for knob, which in sorted(xt_map().items()):
@@ -470,7 +486,9 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
                 a.emit(mov_reg, 0, 7); a.emit(movs_imm, 1, 0); a.emit(bl, "c_xt_set"); a.emit(mov_reg, 0, 7); a.emit(bl, L["c_mh"]); a.emit(movs_imm, 1, 10); a.emit(bl, "c_mark")
                 a.label(f"dk_bx{knob}")
         a.label("dk_nbc")
-    for knob, code in sorted((REMAP_PLAIN if REMAP else MAP2["plain"]).items()):
+    if FOLD:
+        a.emit(cmp_imm, 5, 7); a.emit(b_cond, "dk_fpx", "hi"); a.emit(ldr_label, 1, "t_dkc"); a.emit(ldrb_reg, 1, 1, 5); a.emit(cmp_imm, 1, 0xFF); bc("dk_code", "ne"); a.label("dk_fpx")
+    for knob, code in (() if FOLD else sorted((REMAP_PLAIN if REMAP else MAP2["plain"]).items())):
         a.emit(movs_imm, 1, code); a.emit(cmp_imm, 5, knob); bc("dk_code", "eq")
     if REMAP:
         for knob, s in sorted(REMAP_PLAIN_STOCK.items()):
@@ -543,6 +561,8 @@ def arm_code(base, tab, L, DB, STRIDE, EXT):
     a.emit(mov_reg, 0, 7); a.emit(bl, L["c_mh"]); a.emit(mov_reg, 1, 4); a.emit(bl, "c_mark")
     a.label("dk_done")
     a.emit(pop_list, [4, 5, 6, 7], pc=True)
+    if FOLD:                                                                        # (use_fold) knob -> code: 0..7 plain, 8..15 Shift
+        a.label("t_dkc"); a.emit(raw, bytes(REMAP_PLAIN.get(k, 0xFF) for k in range(8)) + bytes(REMAP_SHIFT.get(k, 0xFF) for k in range(8)))
 
     # ---------------------------------------------------------------- XMEM <-> RAM
     # ---- c_xm_zero: the 65 bytes to 0
@@ -1120,7 +1140,15 @@ def knob_levels_code(a, L):
         a.emit(bl, "c_clr_held"); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "ml_on", "ne")
         a.emit(raw, ldrb_w(1, 4, O_CLR)); a.emit(movs_imm, 2, 7); a.emit(ands_reg, 1, 2); a.emit(raw, strb_w(1, 4, O_CLR)); a.emit(b, "ml_x")
         a.label("ml_on")
-        for sb, pos in ((0, 0), (1, 2), (2, 7), (3, 4)):
+        if FOLD:                                                                     # (use_fold) the four knobs in a loop: r2 = sb, r3 = the LED offsets (a byte each), r6 = this one's
+            E = a.emit
+            E(push_list, [6]); E(movw, 3, 0x0400); E(movt, 3, 0x080E); E(movs_imm, 2, 0)   # 2 x pos for sb 0..3 = 0, 4, 14, 8
+            a.label("ml_fl"); E(lsls_imm, 6, 3, 24); E(lsrs_imm, 6, 6, 24); E(adds_reg, 1, 4, 2); E(mov_reg, 0, 1)
+            for off, code in ((0x36, CLR_RED), (0x3A, CLR_BLUE)):
+                E(raw, ldrb_w(1, 0, off)); E(cmp_imm, 1, 0x28); E(b_cond, f"ml_fn{off}", "ne"); E(movs_imm, 1, code); E(strh_reg, 1, 5, 6)
+                a.label(f"ml_fn{off}")
+            E(lsrs_imm, 3, 3, 8); E(adds_imm8, 2, 1); E(cmp_imm, 2, 4); E(b_cond, "ml_fl", "ne"); E(pop_list, [6])
+        for sb, pos in (() if FOLD else ((0, 0), (1, 2), (2, 7), (3, 4))):
             for off, code in ((0x36, CLR_RED), (0x3A, CLR_BLUE)):
                 a.emit(raw, ldrb_w(1, 4, off + sb)); a.emit(cmp_imm, 1, 0x28); a.emit(b_cond, f"ml_n{off}_{sb}", "ne")
                 a.emit(movs_imm, 0, code); a.emit(strh_imm, 0, 5, 2 * pos)

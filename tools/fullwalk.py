@@ -59,8 +59,24 @@ def ram_roots(end):
     return out
 
 
-def walk(img, data=(), stock=None, cut=(), noroot=()):
-    """cut: addresses never entered (a feature's entries, to measure what cutting it frees); noroot: words never taken as pointers"""
+# (2026-11-21, S721D trapped at boot) the stock's boot calls code through two self-relative tables that the pointer scan cannot see: the
+# scatter-load table (0x0805B7B4..0x0805B7D8, entries of 16 B: offset to the handler, then its arguments; loop 0x0805B590) and the C++
+# static constructors (0x0805B5B8..0x0805B5E0, one offset per word; loop 0x0805B978).  walk(..., prel=True) takes their targets as roots.
+PREL_TABLES = ((0x0805B7B4, 0x0805B7D8, 16), (0x0805B5B8, 0x0805B5E0, 4))
+
+
+def prel_roots(img):
+    out = []
+    for lo, hi, step in PREL_TABLES:
+        for a in range(lo, hi, step):
+            v = (a + struct.unpack_from("<I", img, a - BASE)[0]) & 0xFFFFFFFF
+            if v & 1: out.append(v - 1)
+    return out
+
+
+def walk(img, data=(), stock=None, cut=(), noroot=(), prel=False):
+    """cut: addresses never entered (a feature's entries, to measure what cutting it frees); noroot: words never taken as pointers;
+    prel: also the boot's self-relative tables (PREL_TABLES) as roots"""
     cut, noroot = set(cut), set(noroot)
     end = BASE + len(img)
     md = capstone.Cs(capstone.CS_ARCH_ARM, capstone.CS_MODE_THUMB | capstone.CS_MODE_MCLASS); md.detail = True
@@ -94,6 +110,8 @@ def walk(img, data=(), stock=None, cut=(), noroot=()):
         return new
 
     todo = sorted(r for r in ram_roots(min(end, STOCK_END)) if not isdata(r)); roots |= set(todo)
+    if prel:
+        extra = [r for r in prel_roots(img) if not isdata(r) and r not in roots]; roots |= set(extra); todo += extra
     while True:
         new = scan_ptrs(); roots |= new; todo += list(new)
         if not todo: break
@@ -116,6 +134,7 @@ def walk(img, data=(), stock=None, cut=(), noroot=()):
                     if BASE <= lit < end - 3:
                         cover(lit, 4, 2)
                         v = struct.unpack_from("<I", img, lit - BASE)[0]
+                        if prel: state[("l", ops[0].reg)] = v                # a pc-relative base: ldr rX, =off; add rX, pc; adds rX, #k
                         if v & 1 and BASE <= v - 1 < end: todo.append(v - 1)
                         elif BASE <= v < end and not isdata(v) and dec(v) is not None: todo.append(v)   # a base for computed calls (c_conv0 + 16 d + 1)
                 elif iid == CA.ARM_INS_MOVW and ops[0].type == CA.ARM_OP_REG:
@@ -133,6 +152,14 @@ def walk(img, data=(), stock=None, cut=(), noroot=()):
                     if imm is not None:
                         v = ((pc + 4) & ~3) + imm
                         if v & 1 and BASE <= v - 1 < end and not isdata(v - 1): todo.append(v - 1)
+                if prel and iid == CA.ARM_INS_ADD and len(ops) == 2 and ops[0].type == CA.ARM_OP_REG and is_pc0(ops[1])                         and ("l", ops[0].reg) in state:
+                    # (S721D2, 2026-11-21) the C library's sprintf passes its char-store callback (0x0802244A) as
+                    # ldr r0, [pc, #x]; add r0, pc; adds r0, #0x1e: follow the sum (and a following adds / add #k)
+                    v = (pc + 4 + state.pop(("l", ops[0].reg))) & 0xFFFFFFFF
+                    n2 = dec(pc + ins.size)
+                    if n2 is not None and n2.id == CA.ARM_INS_ADD and n2.operands[0].type == CA.ARM_OP_REG                             and n2.operands[0].reg == ops[0].reg and n2.operands[-1].type == CA.ARM_OP_IMM                             and (len(n2.operands) == 2 or n2.operands[1].reg == ops[0].reg):
+                        v = (v + n2.operands[-1].imm) & 0xFFFFFFFF
+                    if v & 1 and BASE <= v - 1 < end and not isdata(v - 1): todo.append(v - 1)
                 if iid in (CA.ARM_INS_TBB, CA.ARM_INS_TBH):
                     t0 = pc + 4; w = 1 if iid == CA.ARM_INS_TBB else 2
                     reg = ops[0].mem.index if ops and ops[0].type == CA.ARM_OP_MEM else None

@@ -21,6 +21,21 @@ ICIALLU, CCR = 0xE000EF50, 0xE000ED14
 DWT = False                                      # (S703D, use_dwt)
 DEMCR, DWT_LAR, DWT_CTRL = 0xE000EDFC, 0xE0001FB0, 0xE0001000
 SAMP, SAMP_LEN = 0x2004F600, 0x200               # blackbox.use_samp's tables (free: S514D, 0x2004F4B0-0x2004F7FF; fmmap's ends at 0x2004F598)
+BKP = False                                      # (S725D, use_bkp)
+BKPSRAM, BKP_MAGIC = 0x40024000, 0x31504B42      # "BKP1"
+BKP_SEED, BKP_K, BKP_HDR = 0xB4C0FFEE, 0x9E3779B9, 64
+RCC_AHB1ENR, RCC_APB1ENR, RCC_CSR, PWR_CR1 = 0x40023830, 0x40023840, 0x40023874, 0x40007000
+
+
+def use_bkp():
+    """S725D (diagnostic, the user, 2026-11-21: «test whether we can use that RAM»): at reset, the backup SRAM (4 KB at 0x40024000, the stock's USB
+    drive buffer, unused since msdcut) probed.  Kept first: RCC_AHB1ENR, RCC_APB1ENR, PWR_CR1 as the reset left them and RCC_CSR (the reset
+    cause); then the PWR clock, PWR_CR1.DBP and BKPSRAMEN on.  Header (bytes): + 0 "BKP1", + 4 boots, + 8 / + 12 / + 16 / + 20 the four words
+    above, + 24 words of the pattern (+ 64 .. + 4095, word i = SEED + i x K) that differ from the last boot's (0xFFFFFFFF: no "BKP1" = lost),
+    + 28 the same right after writing it again (0 = the RAM works).  tools/bbread.py --mem 0x40024000 4096 reads it while the device runs: a
+    differing pattern word = someone else writes there."""
+    global BKP
+    BKP = True
 
 
 def use_dwt():
@@ -51,6 +66,38 @@ def arm_code(base):
         E(movw, 1, SAMP & 0xFFFF); E(movt, 1, SAMP >> 16); E(movs_imm, 0, 0); E(movs_imm, 2, SAMP_LEN // 4)
         a.label("ic_z"); E(str_imm, 0, 1, 0); E(adds_imm8, 1, 4); E(subs_imm8, 2, 1); E(b_cond, "ic_z", "ne")
         E(raw, DSB); E(raw, ISB)
+    if BKP:
+        from thumb import orrs_reg, push_list, pop_list, adds_reg, cmp_reg, mov_reg, bl, b
+        def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)
+        E(push_list, [4, 5, 6, 7], lr=True)
+        imm32(1, RCC_AHB1ENR); E(ldr_imm, 4, 1, 0)
+        imm32(1, RCC_APB1ENR); E(ldr_imm, 5, 1, 0)
+        imm32(1, PWR_CR1); E(ldr_imm, 6, 1, 0)
+        imm32(1, RCC_APB1ENR); E(ldr_imm, 0, 1, 0); E(movs_imm, 2, 1); E(lsls_imm, 2, 2, 28); E(orrs_reg, 0, 2); E(str_imm, 0, 1, 0); E(raw, DSB)
+        imm32(1, PWR_CR1); E(ldr_imm, 0, 1, 0); E(movs_imm, 2, 1); E(lsls_imm, 2, 2, 8); E(orrs_reg, 0, 2); E(str_imm, 0, 1, 0)
+        imm32(1, RCC_AHB1ENR); E(ldr_imm, 0, 1, 0); E(movs_imm, 2, 1); E(lsls_imm, 2, 2, 18); E(orrs_reg, 0, 2); E(str_imm, 0, 1, 0)
+        E(raw, DSB); E(raw, ISB)
+        imm32(7, BKPSRAM)
+        E(str_imm, 4, 7, 8); E(str_imm, 5, 7, 12); E(str_imm, 6, 7, 16)
+        imm32(1, RCC_CSR); E(ldr_imm, 0, 1, 0); E(str_imm, 0, 7, 20)
+        E(ldr_imm, 0, 7, 0); imm32(1, BKP_MAGIC); E(cmp_reg, 0, 1); E(b_cond, "bk_new", "ne")
+        E(ldr_imm, 0, 7, 4); E(adds_imm8, 0, 1); E(str_imm, 0, 7, 4)
+        E(bl, "bk_chk"); E(b, "bk_wr")
+        a.label("bk_new"); E(movs_imm, 0, 1); E(str_imm, 0, 7, 4); E(movs_imm, 6, 0); E(raw, bytes.fromhex("f643"))   # mvns r6, r6 = 0xFFFFFFFF
+        a.label("bk_wr"); E(str_imm, 6, 7, 24)
+        imm32(1, BKP_SEED); imm32(4, BKP_K); E(mov_reg, 2, 7); E(adds_imm8, 2, BKP_HDR); imm32(5, BKPSRAM + 4096)
+        a.label("bk_wl"); E(str_imm, 1, 2, 0); E(adds_reg, 1, 1, 4); E(adds_imm8, 2, 4); E(cmp_reg, 2, 5); E(b_cond, "bk_wl", "ne")
+        E(raw, DSB)
+        E(bl, "bk_chk"); E(str_imm, 6, 7, 28)
+        imm32(1, BKP_MAGIC); E(str_imm, 1, 7, 0); E(raw, DSB)
+        E(raw, bytes.fromhex("bde8f040"))                                          # pop.w {r4-r7, lr}
+        E(b_w, BACK)
+        a.label("bk_chk")                                                          # r7 = BKPSRAM -> r6 = pattern words that differ (r0-r5 clobbered)
+        imm32(1, BKP_SEED); imm32(4, BKP_K); E(mov_reg, 2, 7); E(adds_imm8, 2, BKP_HDR); imm32(5, BKPSRAM + 4096); E(movs_imm, 6, 0)
+        a.label("bk_cl"); E(ldr_imm, 0, 2, 0); E(cmp_reg, 0, 1); E(b_cond, "bk_ok", "eq"); E(adds_imm8, 6, 1)
+        a.label("bk_ok"); E(adds_reg, 1, 1, 4); E(adds_imm8, 2, 4); E(cmp_reg, 2, 5); E(b_cond, "bk_cl", "ne")
+        E(raw, h(0x4770))
+        return a.assemble()
     E(b_w, BACK)                                 # back to the stock routine (its own bx lr returns to its caller)
     return a.assemble()
 

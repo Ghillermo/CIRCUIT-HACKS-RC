@@ -1,7 +1,7 @@
 """Alpha 7.21 (the user, 2026-11-20: «Cut unused stock features» -> «Easy Start USB drive»): the stock's USB mass-storage mode (Easy Start: the
 Tracks shown as a USB drive) removed, and its disk-command handler's flash given to our code.
 
-  * Settings parameter 2, bit 17: 1 = USB MIDI, 0 = the USB drive (Easy Start).  Its three reads that choose the USB mode now read 1: the
+  * Settings parameter 2, bit 17 (WRONG, see use_midionly: 1 = Easy Start on = MIDI + the USB drive, 0 = USB MIDI only).  Its three reads that choose the USB mode now read 1: the
     settings listener's compare (0x08029E1A / 0x08029E1E: old = new, so a toggle does nothing) and the mode choice (0x08029E3C: always USB MIDI);
     the Setup view's Easy Start LED (0x0804732C) is dark (unavailable = no light, the user's rule).
   * The three calls of the SCSI command handler 0x0803B27C (in the drive's bulk-only transport, 0x08026DCE / 0x08026E28 / 0x08026E9A) are
@@ -22,6 +22,21 @@ PATCHES = [                                             # (address, the stock's 
     (0x08029E3C, bytes.fromhex("c1f34040"), bytes.fromhex("0120c046")),       # ubfx r0, r1, #17, #1 -> movs r0, #1; nop
     (0x0804732C, None, bytes.fromhex("0020")),                                # ldrh r0, [r5, r0] -> movs r0, #0
 ]
+MIDIONLY = False                                        # (S725D3, use_midionly)
+
+
+def use_midionly():
+    """S725D3 (a fix, 2026-11-21): bit 17 = 1 is Easy Start ON (the factory default; the RAM dump of the user's unit has it at 1): the mode
+    choice 0x08029E3C turns it into the second byte of the USB set-up's mode (0x08038C54), and 0x08038C98 registers the drive class
+    (0x200000F8 -> the class table 0x0805A480) next to MIDI only when that byte is not 0.  So the three reads above made the Tracks a MIDI + USB
+    drive device with a dead disk handler (S725D / S725D2 trapped in its DeInit and its descriptor getter, called by the USB stack at
+    1.9 s).  With this the three reads give 0: USB MIDI only, the drive class never registered (the stock's own Easy Start off path)."""
+    global MIDIONLY, PATCHES
+    MIDIONLY = True
+    PATCHES = [(a, old, bytes.fromhex("0021c046") if new == bytes.fromhex("0121c046") else bytes.fromhex("0020c046") if new == bytes.fromhex("0120c046") else new)
+               for a, old, new in PATCHES]
+
+
 CALLS = (0x08026DCE, 0x08026E28, 0x08026E9A)            # bl 0x0803B27C -> mvn r0, #0
 MVN_M1 = bytes.fromhex("6ff00000")
 DONE = {}

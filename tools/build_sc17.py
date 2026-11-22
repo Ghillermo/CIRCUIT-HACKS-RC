@@ -438,6 +438,20 @@ FSQRAND = False                           # SC41.1 (see use_fxseqrand)
 NOFSQ = False                             # Alpha 7.08: the old FX sequencer gone (vcf21.use_nofsq): its random slot is never asked for
 TRIMSLC = False                           # Alpha 7.17 (use_trimslc)
 FOLD = False                              # Alpha 7.19 (use_fold)
+FOLD2 = False                             # Alpha 7.24 (use_fold2)
+SPFIX = False                             # Alpha 7.27 (use_spfix)
+
+
+def use_spfix():
+    """Alpha 7.27 (a fix; the user, 2026-11-22: «When the last step is played, next step is unplayed, but flashed for ~20 ms. The selected
+    starting step is played later, with a delay. After a few iterations, the master clock slows down»): the stock's set-position routine
+    (SET_TICKS, 0x0802BFE0) ends with engine + 0xA4 = 1 ("repositioned"), and the clock handler (0x0802B8D2) then replays the position on the
+    next clock (0x0802CA78) instead of ticking: the transport start's way of playing tick 0.  c_sptick repositions inside a tick that it then
+    runs, so every jump of the song pointer lost a clock (emulated on the real clock path: the start step started twice, everything after a
+    clock late).  Now c_sptick clears that flag after its SET_TICKS, and the playhead cache (SPCACHE) is written again with the step that
+    plays (it held the step past the end for that clock: the ~20 ms flash)."""
+    global SPFIX
+    SPFIX = True
 
 
 def use_fold():
@@ -446,6 +460,13 @@ def use_fold():
     thumb.ldr_label)."""
     global FOLD
     FOLD = True
+
+
+def use_fold2():
+    """Alpha 7.24 (flash room, the same results): c_fsqfx's four Glitch-knob copies (a slot of the Glitch played by the FX sequencer) as a loop
+    over k (r0 = the slot's bytes + k, r5 = the live knob byte, pushed around the loop); c_s_leds' bottom-row copy as four words; c_gleds' six pad colours from c_f_leds' (on, dim) table (needs use_fold)."""
+    global FOLD2
+    FOLD2 = True
 
 
 def use_trimslc():
@@ -910,7 +931,16 @@ def arm_code(base, L, tabaddr, defaults_addr, setmap_addr, fxbits_addr, pal_code
         for k in (32, 33):
             a.emit(raw, ldrh_w(0, 7, 2 * k)); a.emit(raw, strh_w(0, 6, 2 * k))
     a.emit(ldrb_imm, 7, 4, S_HELD); a.emit(ldrb_imm, 0, 4, S_LATCH); a.emit(orrs_reg, 7, 0)   # r7 = on bits
-    for i, (on, dim) in enumerate(pal_codes):
+    if FOLD2:                                                                  # (use_fold2) c_f_leds' (on, dim) table (use_fold): r2 = i + 1, r3 = the entry
+        assert FOLD
+        from thumb import ldr_label, ldrh_imm, strh_reg
+        a.emit(ldr_label, 3, "t_pal2"); a.emit(movs_imm, 2, 0)
+        a.label("gl_fl")
+        a.emit(ldrh_imm, 0, 3, 2); a.emit(mov_reg, 1, 7); a.emit(adds_imm8, 2, 1); a.emit(lsrs_reg, 1, 2); a.emit(b_cond, "gl_fd", "cc")
+        a.emit(ldrh_imm, 0, 3, 0)
+        a.label("gl_fd"); a.emit(lsls_imm, 1, 2, 1); a.emit(subs_imm8, 1, 2); a.emit(strh_reg, 0, 6, 1)
+        a.emit(adds_imm8, 3, 4); a.emit(cmp_imm, 2, len(pal_codes)); a.emit(b_cond, "gl_fl", "ne")
+    for i, (on, dim) in enumerate(() if FOLD2 else pal_codes):
         a.emit(movw, 0, dim); a.emit(lsrs_imm, 1, 7, i + 1); a.emit(b_cond, f"gl_d{i}", "cc")
         a.emit(movw, 0, on)
         a.label(f"gl_d{i}"); a.emit(strh_imm, 0, 6, 2 * i)
@@ -1335,7 +1365,17 @@ def glitch_code(a, L, bc, zjmp):
         a.emit(mov_reg, 1, 0); a.emit(mov_reg, 0, 7); a.emit(bl, "c_sldif"); a.emit(b, "fq_n")
         a.label("fq_ga")                                                       # a slot of the Glitch: its knobs (bit 7 of the live bytes kept), then on
         a.emit(lsls_imm, 0, 7, 2); a.emit(adds_reg, 0, 0, 4)
-        for k in range(4):
+        if FOLD2:
+            a.emit(push_list, [5]); a.emit(movs_imm, 5, KG); a.emit(adds_reg, 5, 5, 4)
+            a.label("fq_kl")
+            a.emit(ldrb_w, 1, 0, S_SLOT); a.emit(lsls_imm, 1, 1, 25); a.emit(lsrs_imm, 1, 1, 25)
+            a.emit(ldrb_imm, 2, 5, 0); a.emit(lsls_imm, 3, 2, 25); a.emit(lsrs_imm, 3, 3, 25); a.emit(cmp_reg, 3, 1); a.emit(b_cond, "fq_kn", "eq")
+            a.emit(movs_imm, 3, 0x80); a.emit(ands_reg, 2, 3); a.emit(orrs_reg, 2, 1); a.emit(strb_imm, 2, 5, 0)
+            a.emit(ldrb_w, 2, 4, KG + 1); a.emit(orrs_reg, 2, 3); a.emit(strb_w, 2, 4, KG + 1)            # (r3 = 0x80: to send)
+            a.label("fq_kn"); a.emit(adds_imm8, 0, 1); a.emit(adds_imm8, 5, 1)
+            a.emit(movs_imm, 3, KG + 4); a.emit(adds_reg, 3, 3, 4); a.emit(cmp_reg, 5, 3); a.emit(b_cond, "fq_kl", "ne")
+            a.emit(pop_list, [5])
+        for k in (range(0) if FOLD2 else range(4)):
             a.emit(ldrb_w, 1, 0, S_SLOT + k); a.emit(lsls_imm, 1, 1, 25); a.emit(lsrs_imm, 1, 1, 25)
             a.emit(ldrb_w, 2, 4, KG + k); a.emit(lsls_imm, 3, 2, 25); a.emit(lsrs_imm, 3, 3, 25); a.emit(cmp_reg, 3, 1); a.emit(b_cond, f"fq_k{k}", "eq")
             a.emit(movs_imm, 3, 0x80); a.emit(ands_reg, 2, 3); a.emit(orrs_reg, 2, 1); a.emit(strb_w, 2, 4, KG + k)
@@ -2033,7 +2073,9 @@ def slots_code(a, L, setmap_addr, pal_codes, bc, zjmp):
     a.emit(bl, "c_gleds"); a.emit(mov_reg, 4, 0)                               # r4 = buffer (Master FX's or stock's)
     a.emit(bl, "c_gact"); zjmp(0, "sl2_out")
     fxview(0); a.emit(bl, "c_f_leds")                                          # r0 = FX view's LED buffer
-    for i in range(24, 32):                                                    # bottom row from the FX view
+    if FOLD2:                                                                  # (use_fold2) the same 16 bytes as four words
+        for i in range(24, 32, 2): a.emit(ldr_imm, 1, 0, 2 * i); a.emit(str_imm, 1, 4, 2 * i)
+    for i in (range(0) if FOLD2 else range(24, 32)):                           # bottom row from the FX view
         a.emit(raw, ldrh_w(1, 0, 2 * i)); a.emit(raw, strh_w(1, 4, 2 * i))
     if SONGPTR: a.emit(mov_reg, 0, 4); a.emit(bl, "c_sp_leds")                  # rows 2 and 3: the song pointer
     if CLEARPAD: a.emit(mov_reg, 0, 4); a.emit(bl, "c_clrled")                  # pad 8
@@ -2415,6 +2457,13 @@ def songptr_code(a, L, pal_codes, bc, zjmp):
     a.emit(movw, 0, SP_BIG & 0xFFFF); a.emit(movt, 0, SP_BIG >> 16); a.emit(adds_reg, 6, 6, 0)
     a.label("spt_nz")
     a.emit(subs_imm8, 6, 1); a.emit(mov_reg, 1, 6); a.emit(mov_reg, 0, 8); a.emit(bl, SET_TICKS)   # stock sets ticks and resyncs the tracks; the tick adds 1
+    if SPFIX:                                                                  # (use_spfix) no replay on the next clock; the playhead = the step that plays
+        from thumb import adds_imm3
+        a.emit(movs_imm, 0, 0); a.emit(strb_w, 0, 8, 0xA4)
+        if SPCACHE:
+            a.emit(adds_imm3, 2, 6, 1); a.emit(movs_imm, 1, 6); a.emit(raw, udiv(2, 2, 1)); a.emit(movs_imm, 3, 15); a.emit(ands_reg, 2, 3)
+            a.emit(movw, 0, s14.TICK & 0xFFFF); a.emit(movt, 0, s14.TICK >> 16); a.emit(ldr_imm, 0, 0, 0); a.emit(lsrs_imm, 0, 0, 6); a.emit(lsls_imm, 0, 0, 8); a.emit(orrs_reg, 0, 2)
+            a.emit(str_imm, 0, 7, GFX_OFF + S_SPS)
     a.label("spt_d")
     a.emit(mov_reg, 0, 8); a.emit(b_w, TICK_BACK)
     if ARMPLAY2:
