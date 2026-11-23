@@ -281,6 +281,7 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 - The audio inputs as the synth's noise source (pads 25-29). [Beta] Gone in Alpha 7.04: pads 25-29 are dark and do nothing.
 - The macro destination editor (pad 32).
 - The synth's step-drummer (pad 30).
+- [Beta] Alpha 7.37: the section pages (pads 1-8), Macros 2 (Shift + pad 1) and the macro slots (pads 1 / 9 / 17 / 25); the macro editor moves to pad 26 and the step-drummer to pad 32.
 
 **Script**
 
@@ -290,11 +291,14 @@ Videos 00, 01 and 30 are not views: they open and close the series.
 4. **Macro destinations.** *Show:* pad 32 (teal); turn macro K1 (white LED); Octave ▼ through the fields; the pads drawing numbers. *Say:* "Pad 32 opens the macro editor. Turn a knob to pick its macro: the first turn changes nothing. Each macro has four slots, and each slot has a destination, a start, an end and a depth. Octave moves between fields: slot, start, end, destination, depth. The pads draw the number."
 5. **Hear it and keep it.** *Show:* turn the macro: the new destination moves. *Say:* "Changes sound at once. To keep them in the pack, save the patch from the Preset view: that's the next video."
 6. **The synth's step-drummer.** *Show:* pad 30; pad 17 = macro 1; turn K1-K8. *Say:* "Pad 30 opens the synth's step-drummer: pads 17 to 24 pick which macro it moves, and the eight knobs set that macro on eight pairs of steps. Play and Record don't close it, and if you leave, pressing Synth 1 brings it back. It works like the MIDI tracks' step-drummer in video 15."
-7. **Outro.** *Say:* "Next: the synth's Preset view."
+7. **[Beta] Section pages.** *Show:* pads 1-8; pad 2 (OSC 1): turn K1 (semitones) and K3 (wave); pad 5 (VCF): turn K1; leave to the Note view and turn K1: still the filter; come back and press pad 1. *Say:* "In Alpha 7.37 the top row picks what the eight knobs move: the macros, oscillator one, oscillator two, the amp, the filter, the effects, the mod sources and the mod matrix. The page you pick follows you into the synth's other views until you go back to Macros with pad 1. Shift plus pad 1 is eight more knobs, Macros 2, each one straight to one parameter."
+8. **[Beta] A parameter onto a macro.** *Show:* on Macros, turn K3: pads 1, 9, 17 and 25; hold pad 9 and turn K3 (white); pad 2; Duplicate + K1: K3 blinks white; pad 1 and turn K3. *Say:* "Move a macro and, for two seconds, four pads show its four slots: bright in use, dim free. Hold one and turn the macro: it is picked. Now go to the parameter's page and do Duplicate plus its knob: that parameter goes into that slot, over its whole range, and the macro blinks white. With no slot picked, it goes to the first free knob of Macros 2. Clear plus a slot pad frees it."
+9. **Outro.** *Say:* "Next: the synth's Preset view."
 
 **Keep in mind**
 - The destination list walks the 31 parameters with a CC first, then the 39 with an NRPN only.
 - The step-drummer writes its values as automation: they are part of the pattern.
+- [Beta] The section pages' and Macros 2's knobs are not recorded as automation; Macros 2 is saved with the project, the picked page and slot are not. A parameter that cannot be a macro destination (an oscillator's wave) always goes to Macros 2. Orange = no room; red = a knob freed (pad 1 held + knob, with Macros 2 on the knobs).
 
 ---
 

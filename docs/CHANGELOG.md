@@ -7,6 +7,16 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.37 — 2026-11-23
+
+**Alpha 7.37** (marca `A7.37`) = la Alpha 7.27 + esto (las 7.28-7.36 no se publicaron). Las páginas de sección, la asignación y sus luces se han usado en el aparato; el resto, sin probar. Sustituye a la 7.27 en el instalador.
+
+- **Páginas de sección en Synth 1 / 2:** en la vista de la fuente (el botón del sinte otra vez), los **pads 1-8** eligen qué mueven los 8 knobs: Macros, OSC 1, OSC 2, VCA, VCF, FX, fuentes de modulación y matriz de modulación, con los parámetros del sinte directamente. La página elegida sigue en los knobs del sinte en sus otras vistas hasta que vuelves a Macros (pad 1). → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+- **Macros 2:** **Shift + pad 1** = 8 knobs más, cada uno directo a un parámetro; se guardan con el proyecto. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+- **Parámetros a los macros desde el panel:** al mover un macro, los **pads 1 / 9 / 17 / 25** enseñan sus 4 ranuras; **pad de ranura mantenido + el knob del macro** la elige y **Duplicate + knob** en una página de sección pone ahí ese parámetro con todo su recorrido (sin ranura elegida, en Macros 2). **Clear + pad de ranura** la libera; el knob afectado parpadea (blanco asignado, rojo liberado, naranja sin sitio). El editor de macros pasa al **pad 26** y el step-drummer del sinte al **pad 32**. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+- **Sinte propio de MIDI 1 / 2:** un hueco de las páginas de knobs asignados se libera con **pad 1 mantenido + su knob** (Duplicate + knob ahí ya no libera), con los mismos parpadeos. → [Guía: Páginas de knobs del motor](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Shift + Mixer** = Master FX, como pulsar Mixer dos veces. → [Guía: Botones que funcionan en todas las vistas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#botones)
+
 ### Alpha 7.22 — 2026-11-21
 
 **Alpha 7.22** (marca `A7.22`) = la Alpha 7.18 + esto (las 7.19-7.21 no se publicaron). Instalada en el aparato (contesta y funciona por USB MIDI); lo demás, sin probar. Sustituye a la 7.18 en el instalador.
@@ -1222,6 +1232,16 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.37 — 2026-11-23
+
+**Alpha 7.37** (marker `A7.37`) = Alpha 7.27 + this (7.28-7.36 were not released). The section pages, the assignment and its lights were used on the device; the rest is untested. It replaces 7.27 in the installer.
+
+- **Section pages on Synth 1 / 2:** in the source view (the synth's button again), **pads 1-8** pick what the 8 knobs move: Macros, OSC 1, OSC 2, VCA, VCF, FX, mod sources and mod matrix, the synth's parameters directly. The picked page stays on the synth's knobs in its other views until you go back to Macros (pad 1). → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
+- **Macros 2:** **Shift + pad 1** = 8 more knobs, each one straight to one parameter; saved with the project. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
+- **Parameters onto the macros from the panel:** moving a macro shows its 4 slots on **pads 1 / 9 / 17 / 25**; **a slot pad held + the macro's knob** picks it and **Duplicate + knob** on a section page puts that parameter there over its whole range (no slot picked: on Macros 2). **Clear + slot pad** frees it; the knob concerned blinks (white assigned, red freed, orange no room). The macro editor moves to **pad 26** and the synth's step-drummer to **pad 32**. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
+- **MIDI 1 / 2 own synth:** a slot of the assigned-knob pages is freed with **pad 1 held + its knob** (Duplicate + knob there no longer frees), with the same blinks. → [Guide: Engine knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Shift + Mixer** = Master FX, like pressing Mixer twice. → [Guide: Buttons that work in every view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#botones)
 
 ### Alpha 7.22 — 2026-11-21
 

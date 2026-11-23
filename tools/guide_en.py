@@ -49,7 +49,7 @@ VIEWS = {
 | **Shift + Scales** | all | Custom scale editor {B} (2.2). {XB}: also **Scales twice**. |
 | **Velocity twice** {XB} | Velocity view | **Fixed velocity** on / off, like the stock's Shift + Velocity. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | all | The same as pressing the button twice: Synth = the source view (2.3), MIDI = its Preset view. Since RC4.17, with that view already on the screen, **Shift + the same button** goes back to its Note view (Shift + another track button opens that track's). |
-| **Mixer twice** | all | Master FX (6.1). {YB} In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
+| **Mixer twice** | all | Master FX (6.1). {YB} Also **Shift + Mixer**. {YB} In the Mixer, **Mixer held** for ½ s or more = Master FX only until you let go; in Master FX, held = the Mixer until you let go. |
 | **Mixer + Patterns** {YB} | all | The [global macro view](#mixer): each knob moves the same knob on the tracks you pick (pads 1-8). |
 | **Scales + Preset + Note** at power-up | — | Novation's bootloader recovery mode: lets you install any firmware again. |
 
@@ -143,7 +143,7 @@ VIEWS = {
 
 - The patch needs some noise level (CC 56) for the source to be heard. The source is saved with the project.
 - If Setup routes the reverb / delay returns through strips 3 / 4, that signal is what reaches the synth.
-- {YB} No external source: pads 25-29 are dark and do nothing; pads 30 and 32 stay.
+- {YB} No external source: pads 25-29 pick no source; the step-drummer is on **pad 32** and the macro editor on **pad 26** (below).
 
 ### Pad 32: editor of the macro knob destinations {B}
 Every macro knob has 4 slots; every slot, a destination, a span of the travel (start and end) and a depth.
@@ -156,6 +156,39 @@ Every macro knob has 4 slots; every slot, a destination, a span of the travel (s
 ### Pad 30: the synth's step-drummer
 The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer)): pads 1-16 steps, 17-24 = **macro 1-8** as destination, K1-K8 = the 8 step pairs. Each pair's value is the macro's position, written as automation; an empty pair starts at 0 {B} (it started at the macro's present position).
 - {B} Play and Record no longer close the synth's step-drummer; if you go to another view, **pressing Synth 1 / 2** opens it again (until you close it with pad 30).
+
+### Section pages, Macros 2 and macro slots {YB}
+**Pads 1-8** pick what the synth's 8 knobs move (the picked one bright, the others dim; the row hides while the step-drummer or the macro editor is open). Pad 1 is in the synth's colour; the others use the page colours of the MIDI 1 / 2 own synth.
+
+| Pad | Page | K1-K8 |
+|---|---|---|
+| 1 | **Macros** | The 8 macros as always (their LEDs in the synth's colour). |
+| 2 | **OSC 1** | Semitones, cents, wave, wave interpolate, pulse width, virtual sync, density, density detune |
+| 3 | **OSC 2** | The same for oscillator 2 |
+| 4 | **VCA** | Envelope 1: attack, decay, sustain, release, velocity; level of OSC 1, of OSC 2 and of the noise |
+| 5 | **VCF** | Frequency, resonance, drive, envelope 2 → frequency, filter type, key tracking, drive type, envelope 2 attack |
+| 6 | **FX** | Distortion: level and type; chorus: level, type, rate, feedback and depth; post-FX level |
+| 7 | **Mod sources** | LFO 1: rate and wave; LFO 2: rate and wave; envelope 3: attack, decay, sustain, release |
+| 8 | **Mod matrix** | K1 = the slot (1-20), K2 source 1, K3 source 2, K4 destination, K5 that slot's depth |
+
+- The knob LEDs take the page's colour, brighter the higher the value. A type knob (wave, filter type…) moves slowly, one value every few clicks.
+- The picked page **stays on the synth's knobs in its other views** (Note, Velocity, Preset…) until you pick Macros again (pad 1). Not while the step-drummer is on screen.
+- These knobs change the project's sound (saved with it; to keep it in the pack, save the patch in the [Preset view](#synth-preset)). They are not recorded as automation: only the macros are.
+- **Clear + knob**: on Macros, the original's (left clears its automation, right the default value); on the other pages, nothing.
+- The **macro editor** moves to **pad 26** and the **step-drummer** to **pad 32**; pad 30 does nothing.
+
+**Macros 2 (Shift + pad 1):** 8 more knobs, each one straight to one synth parameter. They cannot be sequenced. An assigned knob lights with its value; a free one is dark. They are saved with the project.
+
+**Assigning a parameter to a macro or to Macros 2:**
+1. *(For a macro.)* On Macros, move the macro's knob: for 2 s **pads 1 / 9 / 17 / 25** show its **4 slots** (bright = in use, dim = free). **Hold one of those pads and turn the macro's knob**: that slot is picked (the pad white; the knob moves nothing).
+2. Open the parameter's page (pads 2-8) and do **Duplicate + its knob**:
+   - with a slot picked, the parameter becomes that slot's destination, over its whole range (whatever the slot held is replaced); that macro's knob blinks **white**;
+   - with no slot picked, or when the parameter cannot be a macro destination (an oscillator's wave, for instance), it goes to the first free knob of **Macros 2**, which blinks white;
+   - with no room, the knob you turned blinks **orange**.
+- **Clear + slot pad** (while the slots show) frees that slot.
+- **Pad 1 held + knob**, with Macros 2 on the knobs (or with Shift), frees that Macros 2 knob (it blinks **red**).
+- To fine-tune a slot's start, end or depth, use the macro editor (pad 26).
+- Duplicate + knob also works in the synth's other views while its section page stays on the knobs.
 """),
 "synth-preset": ("Synth 1 / 2 Preset view",
     "Press **Preset** with Synth 1 / 2 selected. The pads pick a patch as always (4 pages, the pack's 128 patches).", f"""
@@ -356,7 +389,7 @@ The levels go from off (fully left; Clear + knob) to the oscillator's; their LED
   - **K5 FM with a centre** {YB}: its LED: dim at the centre, the track's colour to the right and its lighter shade to the left; past the maximum (the reciprocal, towards 50 / 50), **violet**. At the centre, no FM; to the right **OSC 2 modulates OSC 1** (finer at first: the first half of the travel reaches the maximum); past the maximum, OSC 2 → OSC 1 goes down while **OSC 1 → OSC 2** goes up, to 50 / 50 fully right. To the left, the same with the roles swapped. Older patches and projects load with the same amount of FM in its new place.
   - **K7 sync** {YB}: the sync zone is now the **classic sync**: OSC 2 starts again on every cycle of OSC 1; inside the zone, the knob raises OSC 2 by up to about 32 semitones (the usual sync sweep; the timbre also follows K1 / K2's ratio / detune). The old one (OSC 2 reversed every 1-8 cycles) made subharmonics off the note: it sounded like noise. The bitwise zones (xor, or, nor, and, nand) stay, with a **soft low-pass** on what they add (less white noise).
   - **Less noise in the interactions** {YB}: OSC 1's antialiasing takes FM into account (it used to correct in the wrong place and crackled). Measured in emulation (note 84, noise below 8 kHz): FM saw ← sine from −37 to −63 dB, FM at its maximum from −18 to −57 dB, sync from −5 to −36 dB. **Fix:** in poly (the factory mode) with two oscillators, OSC 2's ratio (K1) other than 1 sent it to the top of the pitch range.
-- **Page 4 — sequenceable knobs:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect). {YB} **While recording** (Record armed and playing), turning a knob of the engine that is **not one of these 8** records it into its **extra lane** (below). {XB}: **Shift + knob** = that knob's **destination**: the engine's 33 parameters in the modulation matrix's order and colours (the LED in its page's colour; 4 clicks a parameter); with **Clear held before Shift**, the factory one. While you pick, **pads 9-24 show where the destination lives**, as when a matrix knob turns: its page's pad bright and that page's knobs (K1-K8 above, Shift + K1-K8 below; the destination bright). The lane records and plays the new destination (what it already held now moves that parameter). They are saved with the own-synth patches (MIDI 1 / 2's Preset view); a patch without them loads the factory ones. {YB} In Beta 5.58 the destination is picked with **Duplicate**: **Duplicate + a knob of another page** of the engine sends its parameter to the first free slot of these 8 (then to the non-sequenceable ones; with all 16 taken, nothing); **Duplicate + a knob here** frees that slot (the knob does nothing, its LED off); {YB} since Alpha 7.10 it also clears its automation in the track's 8 patterns. With Duplicate held here, each knob in its destination's page colour. Shift + knob no longer changes the destination.
+- **Page 4 — sequenceable knobs:** the 8 sequenceable values: with Record + Play their moves are recorded into the pattern (TUNE, Release, Env → level, Env → filter, Filter, Resonance, LFO speed, Effect). {YB} **While recording** (Record armed and playing), turning a knob of the engine that is **not one of these 8** records it into its **extra lane** (below). {XB}: **Shift + knob** = that knob's **destination**: the engine's 33 parameters in the modulation matrix's order and colours (the LED in its page's colour; 4 clicks a parameter); with **Clear held before Shift**, the factory one. While you pick, **pads 9-24 show where the destination lives**, as when a matrix knob turns: its page's pad bright and that page's knobs (K1-K8 above, Shift + K1-K8 below; the destination bright). The lane records and plays the new destination (what it already held now moves that parameter). They are saved with the own-synth patches (MIDI 1 / 2's Preset view); a patch without them loads the factory ones. {YB} In Beta 5.58 the destination is picked with **Duplicate**: **Duplicate + a knob of another page** of the engine sends its parameter to the first free slot of these 8 (then to the non-sequenceable ones; with all 16 taken, nothing); **Duplicate + a knob here** frees that slot (the knob does nothing, its LED off); {YB} since Alpha 7.10 it also clears its automation in the track's 8 patterns. With Duplicate held here, each knob in its destination's page colour. Shift + knob no longer changes the destination. {YB} In Alpha 7.37 a slot is freed with **pad 1 held + its knob** (it blinks red; with Shift, or with the non-sequenceable knobs on, that page's) and Duplicate + a knob here does nothing any more; on an assignment the slot that takes the parameter blinks white (no room: the turned knob, orange).
 - **Non-sequenceable knobs** {XB} (**Shift + pad 4**; pad 4 pink while they are on the knobs, dim pink with Shift): 8 knobs with an **assignable destination** like the sequenceable ones (**Shift + knob** = the destination among the 33 parameters, in its page's colour; **Clear held, then Shift + knob** = the factory one; while you pick, pads 9-24 show where it lives). By default: Attack, Decay, Sustain, SHAPE, LFO → filter, Env → pitch, MIX OSC 1 / 2, VCA gain. They move that parameter's value **without recording it** (a destination that is also on the sequenceable knobs is recorded, as from any page). Their destinations are saved with the own patches. {YB} Beta 5.58: **Duplicate + knob**, as the sequenceable ones.
 - **Snapshot of the values into a step** {XB}: in MIDI 1 / 2's track view (engine on), **Record held + a step pad** (pads 1-16; with 17-32, steps 17-32) writes into that step's lanes the parameters that are **not at their initial value** (the one of Clear + knob to the right), and only those. A parameter without a lane takes one whose parameter is at its initial value (in lane order), and that lane is cleared in the pattern first; when they do not fit, the first ones in the matrix's order. The step keeps its notes and Record stays as it was. {YB} Also on **Synth 1 / 2** (their macros) and the **drums** (pitch, decay, distortion, EQ): [Synth 1 / 2 track view](#synth-nota), [a drum's track view](#drum-pista). {YB} While you hold the step, it lights **yellow**.
 - **Extra lanes** {YB}: every parameter of the engine that is **not on the sequenceable knobs** has a lane of its own (up to 25 a pattern, on MIDI 1 / 2 × 8 patterns): with Record + Play, turning its knob records it, **two values a step** (at its start and halfway; the sequenceable knobs keep their 6 a step). **Clear + knob to the left** (erases its own, in the pattern shown), the Record + step **snapshot** (parameters without a sequenceable lane go into their extra lane, the destinations unchanged), **Nudge** and the steps that **release the automation** all work. They are saved **in the project's file**, after its 160 780 bytes (about 25 KB more): saving to another slot, the device's project copy, Duplicate and Clear of patterns (between MIDI 1 and MIDI 2), the SD card app and any copy of the pack folder keep them; Components, when the same project is sent back. A Components backup does not carry them, and a project of the internal pack does not save them. On the official firmware or an RC the project loads the same, without them (shown dim in the Projects view).
@@ -912,6 +945,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
 | {YB} **Global macro view**: what each knob moves (each track's knobs, its level, its reverb and delay sends) | [Mixer](#mixer) |
+| {YB} Synth 1 / 2's **Macros 2**: which parameter each knob moves | [Synth source](#synth-fuente) |
 | {YB} **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
 | **Arpeggiator** of notes and of drums (per track and pattern; {XB} with its modifiers), **gate by holding**, **fixed length** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -954,6 +988,7 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | {YB} **Knob hold** (Setup's Preset) | Off |
 | In the Side-chain view, the **triggers of a drum** by another drum or by a pattern (pads of the drum pages) | Those of the drum's preset |
 | Pending **mutes on the next bar** (Mixer, Shift + pad) | — |
+| {YB} Synth 1 / 2's **section page** and the picked **macro slot** | Macros; none |
 | **Latched notes and chords** (Shift + key, Shift + root), the **chord screen** (type and modifiers) and the half-step of **Octave with Jankó** {XB} | No latch; the defaults; Octave at 0 |
 | **Split keyboard** and open views (step-drummer, macro editor, picker, {YB} the flip view); {YB} the step flip's **last target** | Closed; the target, Synth 1 |
 | A **sample or patch waiting** to be copied into another pack (Duplicate + A) | Nothing waiting |
@@ -1001,7 +1036,7 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 ### Synth 1 / 2 macros (stock) and their editor {B}
 - 8 macros per patch, position = **CC 80-87**; every macro, 4 slots A-D. Slot r (0-3) of macro k (1-8): **NRPN 3:(16 (k − 1) + 4 r)** = destination, + 1 start, + 2 end (the stretch of the knob's travel, 0 / 127 by default), + 3 depth (64 = 0).
 - The official guide gives the destination as «0 – 70» without naming them: the list below names each one (70 destinations, 0-69).
-- **On the device:** [source view](#synth-fuente), pad 32 = editor (slot, start, end, destination, depth). The edits go into the project's patch; Clear + pad twice in the [Preset view](#synth-preset) saves it to the pack.
+- **On the device:** [source view](#synth-fuente), pad 32 = editor (slot, start, end, destination, depth). The edits go into the project's patch; Clear + pad twice in the [Preset view](#synth-preset) saves it to the pack. {YB} The editor is on pad 26; **Duplicate + knob** on the section pages also puts a parameter into a slot.
 - The editor's knob walks the destinations with a CC first (by CC number), then the NRPN-only ones; on the pads, white = CC, light blue / magenta / violet = NRPN of banks 0 / 1 / 2.
 
 ### The MIDI 1 / 2 own synth's matrix (own) {NB}

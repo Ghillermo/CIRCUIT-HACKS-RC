@@ -74,6 +74,16 @@ KEEPPLAY = False                      # SC43.7 (use_keepplay)
 ID_KEEP = (16, 17)                    # (KEEPPLAY) Record, Play
 
 
+KEEPCD = False                        # Alpha 7.29 (use_keepcd)
+
+
+def use_keepcd():
+    """Alpha 7.29: Clear (23) and Duplicate (24) keep the source view open (novasec.use_v2: Clear / Duplicate + knob on Synth 1 / 2's alt page;
+    before, any button but Shift closed it)."""
+    global KEEPCD
+    KEEPCD = True
+
+
 def use_keepplay():
     """SC43.7 (the user, 2026-10-17: «en sinte 1 y 2 step-drummer, pulsar play o record envía a la vista Preset»): Record and Play (ids 16 / 17)
     keep the source view open (and the step-drummer view inside it), as Shift does; they do not change the view in the stock."""
@@ -131,6 +141,8 @@ def arm_code(base, L, K):
     a.emit(cmp_imm, 5, ID_SHIFT); bc("be_stock", "eq")                         # Shift keeps the view
     if KEEPPLAY:
         for k in ID_KEEP: a.emit(cmp_imm, 5, k); bc("be_stock", "eq")          # so do Record and Play
+    if KEEPCD:                                                                 # (Alpha 7.29) and Clear / Duplicate (novasec's Clear / Duplicate + knob)
+        a.emit(cmp_imm, 5, 23); bc("be_stock", "eq"); a.emit(cmp_imm, 5, 24); bc("be_stock", "eq")
     a.emit(adds_imm8, 0, S_PAINT); a.emit(movs_imm, 1, 0); a.emit(bl, "c_rmw"); a.emit(b, "be_stock")      # clear the flag (r2 = F_SRC)
     a.label("be_closed")                                                       # view closed: a second press of a Synth button?
     a.emit(cmp_imm, 5, 1); bc("be_stock", "hi")

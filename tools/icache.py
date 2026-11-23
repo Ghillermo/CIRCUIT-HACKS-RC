@@ -27,6 +27,16 @@ BKP_SEED, BKP_K, BKP_HDR = 0xB4C0FFEE, 0x9E3779B9, 64
 RCC_AHB1ENR, RCC_APB1ENR, RCC_CSR, PWR_CR1 = 0x40023830, 0x40023840, 0x40023874, 0x40007000
 
 
+BKPON = False                                    # (Alpha 7.28, use_bkpon)
+
+
+def use_bkpon():
+    """Alpha 7.28: at reset the backup SRAM switched on for our use (the PWR clock, PWR_CR1.DBP, BKPSRAMEN; S725D4 on the device: 4 KB that
+    nothing else writes with Easy Start off, lost at power-off): tools/novasec.py keeps its state there."""
+    global BKPON
+    BKPON = True
+
+
 def use_bkp():
     """S725D (diagnostic, the user, 2026-11-21: «test whether we can use that RAM»): at reset, the backup SRAM (4 KB at 0x40024000, the stock's USB
     drive buffer, unused since msdcut) probed.  Kept first: RCC_AHB1ENR, RCC_APB1ENR, PWR_CR1 as the reset left them and RCC_CSR (the reset
@@ -66,6 +76,11 @@ def arm_code(base):
         E(movw, 1, SAMP & 0xFFFF); E(movt, 1, SAMP >> 16); E(movs_imm, 0, 0); E(movs_imm, 2, SAMP_LEN // 4)
         a.label("ic_z"); E(str_imm, 0, 1, 0); E(adds_imm8, 1, 4); E(subs_imm8, 2, 1); E(b_cond, "ic_z", "ne")
         E(raw, DSB); E(raw, ISB)
+    if BKPON and not BKP:
+        from thumb import orrs_reg
+        for reg, bit in ((RCC_APB1ENR, 28), (PWR_CR1, 8), (RCC_AHB1ENR, 18)):
+            E(movw, 1, reg & 0xFFFF); E(movt, 1, reg >> 16); E(ldr_imm, 0, 1, 0); E(movs_imm, 2, 1); E(lsls_imm, 2, 2, bit); E(orrs_reg, 0, 2); E(str_imm, 0, 1, 0); E(raw, DSB)
+        E(raw, ISB)
     if BKP:
         from thumb import orrs_reg, push_list, pop_list, adds_reg, cmp_reg, mov_reg, bl, b
         def imm32(rd, v): E(movw, rd, v & 0xFFFF); E(movt, rd, (v >> 16) & 0xFFFF)

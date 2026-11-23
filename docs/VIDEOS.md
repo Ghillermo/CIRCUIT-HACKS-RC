@@ -281,6 +281,7 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 - Las entradas de audio como fuente de ruido del sinte (pads 25-29). [Beta] En la Alpha 7.04 desaparecen: los pads 25-29 están apagados y no hacen nada.
 - El editor de los destinos de los macros (pad 32).
 - El step-drummer del sinte (pad 30).
+- [Beta] Alpha 7.37: las páginas de sección (pads 1-8), Macros 2 (Shift + pad 1) y las ranuras de macro (pads 1 / 9 / 17 / 25); el editor de macros pasa al pad 26 y el step-drummer al pad 32.
 
 **Guion**
 
@@ -290,11 +291,14 @@ Los vídeos 00, 01 y 30 no son vistas: abren y cierran la serie.
 4. **Destinos de los macros.** *Muestra:* el pad 32 (verde azulado); gira el macro K1 (LED blanco); Octave ▼ por los campos; los pads dibujando números. *Di:* «El pad 32 abre el editor de macros. Gira un knob para elegir su macro: el primer giro no cambia nada. Cada macro tiene cuatro ranuras, y cada ranura tiene un destino, un inicio, un fin y una profundidad. Octave te mueve entre los campos: ranura, inicio, fin, destino y profundidad. Los pads dibujan el número.»
 5. **Oírlo y conservarlo.** *Muestra:* gira el macro: se mueve el destino nuevo. *Di:* «Los cambios suenan al momento. Para conservarlos en el pack, guarda el patch desde la vista Preset: eso lo vemos en el siguiente vídeo.»
 6. **El step-drummer del sinte.** *Muestra:* el pad 30; pad 17 = macro 1; gira K1-K8. *Di:* «El pad 30 abre el step-drummer del sinte: los pads 17 a 24 eligen qué macro mueve, y los ocho knobs fijan ese macro en ocho pares de pasos. Play y Record no lo cierran, y si te vas a otra vista, al pulsar Synth 1 vuelve. Funciona como el step-drummer de las pistas MIDI, el del vídeo 15.»
-7. **Cierre.** *Di:* «En el siguiente: la vista Preset del sinte.»
+7. **[Beta] Páginas de sección.** *Muestra:* los pads 1-8; pad 2 (OSC 1): gira K1 (semitonos) y K3 (onda); pad 5 (VCF): gira K1; sal a la vista Note y gira K1: sigue en el filtro; vuelve y pulsa el pad 1. *Di:* «En la Alpha 7.37, la fila de arriba elige qué mueven los ocho knobs: los macros, el oscilador uno, el dos, el amplificador, el filtro, los efectos, las fuentes de modulación y la matriz. La página que elijas te sigue a las otras vistas del sinte hasta que vuelves a Macros con el pad 1. Shift más pad 1 son ocho knobs más, Macros 2, cada uno directo a un parámetro.»
+8. **[Beta] Un parámetro a un macro.** *Muestra:* en Macros, gira K3: los pads 1, 9, 17 y 25; mantén el pad 9 y gira K3 (blanco); pad 2; Duplicate + K1: K3 parpadea en blanco; pad 1 y gira K3. *Di:* «Mueve un macro y, durante dos segundos, cuatro pads enseñan sus cuatro ranuras: brillante en uso, tenue libre. Mantén una y gira el macro: queda elegida. Ahora ve a la página del parámetro y haz Duplicate más su knob: ese parámetro pasa a esa ranura, con todo su recorrido, y el macro parpadea en blanco. Sin ranura elegida, va al primer knob libre de Macros 2. Clear más el pad de una ranura la deja libre.»
+9. **Cierre.** *Di:* «En el siguiente: la vista Preset del sinte.»
 
 **A tener en cuenta**
 - La lista de destinos recorre primero los 31 parámetros con CC y luego los 39 que solo tienen NRPN.
 - El step-drummer escribe sus valores como automatización: son parte del patrón.
+- [Beta] Los knobs de las páginas de sección y de Macros 2 no se graban como automatización; Macros 2 se guarda con el proyecto, la página y la ranura elegidas no. Un parámetro que no puede ser destino de un macro (la onda de un oscilador) va siempre a Macros 2. Naranja = sin sitio; rojo = knob liberado (pad 1 mantenido + knob, con Macros 2 en los knobs).
 
 ---
 

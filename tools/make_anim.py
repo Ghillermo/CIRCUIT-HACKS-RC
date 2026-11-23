@@ -595,9 +595,9 @@ DIMTEAL = {k: ("teal", True) for k in range(1, 9)}
 proc("editor-macros", "synth-fuente", ["destinos-macro"], "Edit the macro knobs' destinations", "Editar los destinos de los macro knobs", since="RC2",
      vlabel=("Synth source", "Fuente del sinte"), frames=[
     F("With Synth 1's view on screen, press Synth 1 again: the source view. Pad 32 (teal) turns the macro destination editor on: the knobs no "
-      "longer move the macros.",
+      "longer move the macros. Beta 5.56 only: the editor is on pad 26.",
       "Con la vista de Synth 1 en pantalla, pulsa Synth 1 otra vez: la vista de la fuente. El pad 32 (verde azulado) enciende el editor de "
-      "destinos: los knobs ya no mueven los macros.",
+      "destinos: los knobs ya no mueven los macros. Solo Beta 5.56: el editor está en el pad 26.",
       pads=merge(SRC, {32: ("teal", "Macros", False)}), buttons={"Synth 1": "magenta"}, press=[32]),
     F("Turn a knob (K4) to pick its macro: its LED turns white; the first turn changes nothing. The pads draw the current field's number: "
       "the slot, 1-4, in yellow.",
@@ -1060,6 +1060,49 @@ def gmp(linked=()):
     rl = (V("Knobs", "Knobs"), V("Level", "Nivel"), V("Reverb", "Reverb"), V("Delay", "Delay"))
     return {8 * r + i + 1: (TC[t], rl[r] if i == 0 else "", (8 * r + i + 1) not in linked) for r in range(4) for i, t in enumerate(T8)}
 GMB = {"Mixer": "white", "Patterns": "white"}
+def nsrow(sel=1, extra=None):
+    """Synth 1's section row (Alpha 7.28+): pads 1-8, the picked page bright"""
+    names = [("magenta", "Macros"), ("green", "OSC 1"), ("teal", "OSC 2"), ("amber", "VCA"), ("amber", "VCF"), ("amber", "FX"), ("magenta", "Mod"),
+             ("sky", V("Matrix", "Matriz"))]
+    out = {k + 1: (c, n, k + 1 != sel) for k, (c, n) in enumerate(names)}
+    out.update(extra or {})
+    return out
+
+
+NSB = {"Synth 1": "magenta"}
+NSK = {k: ("magenta", True) for k in range(1, 9)}
+NSG = {k: ("green", True) for k in range(1, 9)}
+proc("macro-ranuras", "synth-fuente", ["destinos-macro"], "Put a synth parameter on a macro", "Poner un parámetro del sinte en un macro", beta=True,
+     vlabel=("Synth source", "Fuente del sinte"), frames=[
+    F("Synth 1's source view (press Synth 1 again). Pads 1-8 = what the knobs move: Macros (pad 1, the synth's colour), OSC 1, OSC 2, VCA, VCF, FX, "
+      "mod sources, mod matrix.",
+      "La vista de la fuente de Synth 1 (pulsa Synth 1 otra vez). Pads 1-8 = qué mueven los knobs: Macros (pad 1, el color del sinte), OSC 1, OSC 2, "
+      "VCA, VCF, FX, fuentes de modulación, matriz.",
+      pads=nsrow(1), buttons=NSB, kcol=NSK),
+    F("Move macro knob K3: for 2 s pads 1 / 9 / 17 / 25 show its four slots: bright = in use, dim = free.",
+      "Mueve el knob del macro K3: durante 2 s los pads 1 / 9 / 17 / 25 enseñan sus cuatro ranuras: brillante = en uso, tenue = libre.",
+      pads=nsrow(1, {1: ("magenta", "1", False), 9: ("magenta", "2", True), 17: ("magenta", "3", True), 25: ("magenta", "4", True)}),
+      buttons=NSB, kcol=NSK, turn={3: 1}),
+    F("Hold pad 9 and turn K3: slot 2 of macro 3 is picked (pad 9 white). The knob moves nothing.",
+      "Mantén el pad 9 y gira K3: la ranura 2 del macro 3 queda elegida (pad 9 en blanco). El knob no mueve nada.",
+      pads=nsrow(1, {1: ("magenta", "1", False), 9: ("white", "2", False), 17: ("magenta", "3", True), 25: ("magenta", "4", True)}),
+      buttons=NSB, kcol=NSK, press=[9], turn={3: 1}),
+    F("Pad 2 = the OSC 1 page: the knobs now set oscillator 1 (K1 semitones, K2 cents, K3 wave...).",
+      "Pad 2 = la página OSC 1: los knobs fijan ahora el oscilador 1 (K1 semitonos, K2 cents, K3 onda...).",
+      pads=nsrow(2, {9: ("white", "2", False), 17: ("magenta", "3", True), 25: ("magenta", "4", True)}), buttons=NSB, kcol=NSG, press=[2]),
+    F("Duplicate + K1: the semitones become the destination of that slot, over their whole range. K3 (the macro) blinks white. With no slot picked, "
+      "or a parameter a macro cannot move, it goes to the first free knob of Macros 2 (Shift + pad 1); no room = the turned knob blinks orange.",
+      "Duplicate + K1: los semitonos pasan a ser el destino de esa ranura, con todo su recorrido. K3 (el macro) parpadea en blanco. Sin ranura "
+      "elegida, o con un parámetro que un macro no puede mover, va al primer knob libre de Macros 2 (Shift + pad 1); sin sitio, el knob girado "
+      "parpadea en naranja.",
+      pads=nsrow(2, {9: ("magenta", "2", False)}), buttons=dict(NSB, Duplicate="white"), kcol=merge(NSG, {3: "white"}), press=["Duplicate"], turn={1: 1}),
+    F("Pad 1 = Macros again: K3 now also moves oscillator 1's semitones. Clear + a slot pad (while the slots show) frees it; pad 26 = the macro "
+      "editor, for a slot's start, end and depth.",
+      "Pad 1 = Macros otra vez: K3 mueve ahora también los semitonos del oscilador 1. Clear + un pad de ranura (con las ranuras a la vista) la "
+      "libera; pad 26 = el editor de macros, para el inicio, el fin y la profundidad de una ranura.",
+      pads=nsrow(1), buttons=NSB, kcol=NSK, press=[1], turn={3: 1}),
+])
+
 proc("macros-global", "mixer", [], "Move one knob on several tracks", "Mover un knob en varias pistas", beta=True, vlabel=MXV, frames=[
     F("Hold Mixer and press Patterns: the global macro view (Mixer and Patterns white). Pads 1-8 = the eight tracks' knobs, dim = not linked.",
       "Mantén Mixer y pulsa Patterns: la vista de macros global (Mixer y Patterns en blanco). Pads 1-8 = los knobs de las ocho pistas, tenues = "

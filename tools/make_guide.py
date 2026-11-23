@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.27"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.37"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
@@ -81,7 +81,7 @@ view("botones", "I", "Botones que funcionan en todas las vistas",
 | **Shift + Scales** | todas | Editor de la escala propia {B} (2.2). {XB}: también **Scales dos veces**. |
 | **Velocity dos veces** {XB} | vista Velocity | **Velocity fija** encendida / apagada, como el Shift + Velocity del original. |
 | **Shift + Synth 1 / 2, Shift + MIDI 1 / 2** {XB} | todas | Lo mismo que pulsar el botón dos veces: Synth = la vista de la fuente (2.3), MIDI = su vista Preset. Desde RC4.17, con esa vista ya en pantalla, **Shift + el mismo botón** vuelve a su vista Note (Shift + otro botón de pista abre la de esa pista). |
-| **Mixer dos veces** | todas | Master FX (6.1). {YB} En el Mixer, **Mixer mantenido** ½ s o más = Master FX solo hasta que lo sueltas; en Master FX, mantenido = el Mixer hasta que lo sueltas. |
+| **Mixer dos veces** | todas | Master FX (6.1). {YB} También **Shift + Mixer**. {YB} En el Mixer, **Mixer mantenido** ½ s o más = Master FX solo hasta que lo sueltas; en Master FX, mantenido = el Mixer hasta que lo sueltas. |
 | **Mixer + Patterns** {YB} | todas | La [vista de macros global](#mixer): cada knob mueve el mismo knob de las pistas que elijas (pads 1-8). |
 | **Scales + Preset + Note** al encender | — | Modo de recuperación del bootloader de Novation: permite volver a instalar cualquier firmware. |
 
@@ -155,7 +155,7 @@ view("synth-fuente", "II", "Vista de la fuente del sinte",
 
 - El patch debe tener nivel de ruido (CC 56) para oír la fuente. La fuente se guarda con el proyecto.
 - Si en Setup los retornos de reverb / delay van por las tiras 3 / 4, esa señal es la que entra al sinte.
-- {YB} Sin fuente externa: los pads 25-29 están apagados y no hacen nada; los pads 30 y 32 siguen.
+- {YB} Sin fuente externa: los pads 25-29 no eligen fuente; el step-drummer está en el **pad 32** y el editor de macros en el **pad 26** (abajo).
 
 ### Pad 32: editor de los destinos de los macro knobs {B}
 Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido (inicio y fin) y una profundidad.
@@ -168,6 +168,39 @@ Cada macro knob tiene 4 ranuras; cada ranura, un destino, un tramo del recorrido
 ### Pad 30: step-drummer del sinte
 La vista del step-drummer es la misma que la de las pistas MIDI ([vista del step-drummer](#step-drummer)): pads 1-16 pasos, 17-24 = **macro 1-8** como destino, K1-K8 = los 8 pares de pasos. El valor de cada par es la posición del macro, escrita como automatización; un par vacío empieza en 0 {B} (antes, en la posición actual del macro).
 - {B} Play y Record no cierran el step-drummer del sinte; si vas a otra vista, **pulsar Synth 1 / 2** lo vuelve a abrir (hasta que lo cierras con el pad 30).
+
+### Páginas de sección, Macros 2 y ranuras de macro {YB}
+Los **pads 1-8** eligen qué mueven los 8 knobs del sinte (el elegido brillante, los demás tenues; la fila se esconde con el step-drummer o el editor de macros abiertos). El pad 1 va en el color del sinte; los demás, en los colores de las páginas del sinte propio de MIDI 1 / 2.
+
+| Pad | Página | K1-K8 |
+|---|---|---|
+| 1 | **Macros** | Los 8 macros de siempre (sus LEDs, en el color del sinte). |
+| 2 | **OSC 1** | Semitonos, cents, onda, interpolación de onda, ancho de pulso, sync virtual, densidad, desafinación de la densidad |
+| 3 | **OSC 2** | Lo mismo para el oscilador 2 |
+| 4 | **VCA** | Envolvente 1: ataque, decay, sustain, release, velocity; nivel de OSC 1, de OSC 2 y del ruido |
+| 5 | **VCF** | Frecuencia, resonancia, drive, envolvente 2 → frecuencia, tipo de filtro, seguimiento de teclado, tipo de drive, ataque de la envolvente 2 |
+| 6 | **FX** | Distorsión: nivel y tipo; chorus: nivel, tipo, velocidad, feedback y profundidad; nivel post-FX |
+| 7 | **Fuentes de modulación** | LFO 1: velocidad y onda; LFO 2: velocidad y onda; envolvente 3: ataque, decay, sustain, release |
+| 8 | **Matriz de modulación** | K1 = la ranura (1-20), K2 fuente 1, K3 fuente 2, K4 destino, K5 profundidad de esa ranura |
+
+- Los LEDs de los knobs llevan el color de la página, más brillantes cuanto más alto el valor. Un knob de tipos (onda, tipo de filtro…) avanza despacio, un valor cada varios clics.
+- La página elegida **sigue en los knobs del sinte en sus otras vistas** (Note, Velocity, Preset…) hasta que eliges Macros otra vez (pad 1). Con el step-drummer en pantalla, no.
+- Estos knobs cambian el sonido del proyecto (se guarda con él; para dejarlo en el pack, guarda el patch en la [vista Preset](#synth-preset)). No se graban como automatización: eso solo lo hacen los macros.
+- **Clear + knob**: en Macros, lo del original (izquierda borra su automatización, derecha el valor por defecto); en las demás páginas, nada.
+- El **editor de macros** pasa al **pad 26** y el **step-drummer** al **pad 32**; el pad 30 no hace nada.
+
+**Macros 2 (Shift + pad 1):** 8 knobs más, cada uno directo a un parámetro del sinte. No son secuenciables. Un knob asignado se enciende con su valor; uno libre está apagado. Se guardan con el proyecto.
+
+**Asignar un parámetro a un macro o a Macros 2:**
+1. *(Para un macro.)* En Macros, mueve el knob del macro: durante 2 s los **pads 1 / 9 / 17 / 25** enseñan sus **4 ranuras** (brillante = en uso, tenue = libre). **Mantén uno de esos pads y gira el knob del macro**: esa ranura queda elegida (el pad en blanco; el knob no mueve nada).
+2. Abre la página del parámetro (pads 2-8) y haz **Duplicate + su knob**:
+   - con una ranura elegida, el parámetro pasa a ser el destino de esa ranura, con su recorrido entero (lo que tuviera la ranura se sustituye); el knob de ese macro parpadea en **blanco**;
+   - sin ranura elegida, o si el parámetro no puede ser destino de un macro (la onda de un oscilador, por ejemplo), va al primer knob libre de **Macros 2**, que parpadea en blanco;
+   - sin sitio, el knob que has girado parpadea en **naranja**.
+- **Clear + pad de ranura** (con las ranuras a la vista) deja esa ranura libre.
+- **Pad 1 mantenido + knob**, con Macros 2 en los knobs (o con Shift), deja libre ese knob de Macros 2 (parpadea en **rojo**).
+- Para afinar el inicio, el fin o la profundidad de una ranura, usa el editor de macros (pad 26).
+- Duplicate + knob también funciona en las otras vistas del sinte mientras su página de sección sigue en los knobs.
 """, [("fuente-sinte", 0), ("destinos-macro", 0)])
 
 view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
@@ -378,7 +411,7 @@ Los niveles van de apagado (a la izquierda del todo; Clear + knob) al del oscila
   - **K5 FM con centro** {YB}: su LED: tenue en el centro, en el color de la pista hacia la derecha y en su tono claro hacia la izquierda; pasado el máximo (el recíproco, hacia 50 / 50), **violeta**. En el centro, sin FM; a la derecha **OSC 2 modula a OSC 1** (más fino al principio: la primera mitad del recorrido llega al máximo); pasado el máximo, OSC 2 → OSC 1 baja mientras **OSC 1 → OSC 2** sube, hasta 50 / 50 a la derecha del todo. A la izquierda, lo mismo con los papeles cambiados. Los patches y proyectos anteriores se cargan con la misma cantidad de FM en su sitio nuevo.
   - **K7 sync** {YB}: la zona sync es ahora el **sync clásico**: OSC 2 vuelve a empezar en cada ciclo de OSC 1; dentro de la zona, el knob sube OSC 2 hasta unos 32 semitonos (el barrido típico del sync; el timbre también cambia con el ratio / detune de K1 / K2). El de antes (OSC 2 al revés cada 1-8 ciclos) daba subarmónicos que no casaban con la nota: sonaba a ruido. Las zonas bitwise (xor, or, nor, and, nand) siguen igual, con un **paso bajo suave** sobre lo que añaden (menos ruido blanco).
   - **Menos ruido en las interacciones** {YB}: el antialias de OSC 1 tiene en cuenta el FM (antes corregía en el sitio equivocado y crepitaba). Medido en emulación (nota 84, ruido por debajo de 8 kHz): FM sierra ← seno de −37 a −63 dB, FM al máximo de −18 a −57 dB, sync de −5 a −36 dB. **Arreglo:** en poly (el modo de fábrica) con dos osciladores, el ratio de OSC 2 (K1) distinto de 1 lo mandaba al tope de afinación.
-- **Página 4 — knobs secuenciables:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {YB} **Grabando** (Record armado y sonando), girar un knob del motor que **no está en estos 8** lo graba en su **carril extra** (abajo). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica. {YB} En la Beta 5.58 el destino se elige con **Duplicate**: **Duplicate + un knob de otra página** del motor manda su parámetro al primer hueco libre de estos 8 (después, al de los no secuenciables; con los 16 ocupados, nada); **Duplicate + un knob de aquí** deja ese hueco libre (el knob no hace nada, su LED apagado); {YB} desde la Alpha 7.10 borra también su automatización en los 8 patrones de la pista. Con Duplicate mantenido aquí, cada knob en el color de la página de su destino. Shift + knob ya no cambia el destino.
+- **Página 4 — knobs secuenciables:** los 8 valores secuenciables: con Record + Play sus movimientos se graban en el patrón (TUNE, Release, Env → nivel, Env → filtro, Filtro, Resonancia, Velocidad del LFO, Efecto). {YB} **Grabando** (Record armado y sonando), girar un knob del motor que **no está en estos 8** lo graba en su **carril extra** (abajo). {XB}: **Shift + knob** = el **destino** de ese knob: los 33 parámetros del motor en el orden y los colores de la matriz de modulación (el LED en el color de su página; 4 clics por parámetro); con **Clear mantenido antes de Shift**, el de fábrica. Mientras eliges, **los pads 9-24 enseñan dónde está el destino**, como al girar un knob de la matriz: el pad de su página brillante y los knobs de esa página (K1-K8 arriba, Shift + K1-K8 abajo; el destino brillante). El carril graba y reproduce el destino nuevo (lo que ya tenía grabado mueve ahora ese parámetro). Se guardan con los patches del sinte propio (vista Preset de MIDI 1 / 2); un patch sin ellos carga los de fábrica. {YB} En la Beta 5.58 el destino se elige con **Duplicate**: **Duplicate + un knob de otra página** del motor manda su parámetro al primer hueco libre de estos 8 (después, al de los no secuenciables; con los 16 ocupados, nada); **Duplicate + un knob de aquí** deja ese hueco libre (el knob no hace nada, su LED apagado); {YB} desde la Alpha 7.10 borra también su automatización en los 8 patrones de la pista. Con Duplicate mantenido aquí, cada knob en el color de la página de su destino. Shift + knob ya no cambia el destino. {YB} En la Alpha 7.37 un hueco se libera con **pad 1 mantenido + su knob** (parpadea en rojo; con Shift, o con los no secuenciables en los knobs, el de esa página) y Duplicate + un knob de aquí ya no hace nada; al asignar, el hueco donde queda el parámetro parpadea en blanco (sin sitio, el knob girado en naranja).
 - **Knobs no secuenciables** {XB} (**Shift + pad 4**; el pad 4 en rosa mientras están en los knobs, rosa tenue con Shift): 8 knobs con **destino asignable** como los secuenciables (**Shift + knob** = el destino entre los 33 parámetros, en el color de su página; **Clear mantenido, luego Shift + knob** = el de fábrica; mientras eliges, los pads 9-24 enseñan dónde vive). De fábrica: Ataque, Decay, Sustain, SHAPE, LFO → filtro, Env → tono, MIX OSC 1 / 2, Gain del VCA. Mueven el valor de ese parámetro **sin grabarlo** (un destino que también esté en los knobs secuenciables sí se graba, como desde cualquier página). Sus destinos se guardan con los patches propios. {YB} Beta 5.58: **Duplicate + knob**, como los secuenciables.
 - **Foto de los valores en un paso** {XB}: con la vista de pista de MIDI 1 / 2 (motor encendido), **Record mantenido + un pad de paso** (pads 1-16; con 17-32, los pasos 17-32) escribe en los carriles de ese paso los parámetros que **no están en su valor inicial** (el de Clear + knob a la derecha), y solo esos. Un parámetro que no tiene carril toma uno cuyo parámetro sí está en el inicial (en orden de carril), y ese carril se borra antes en el patrón; si no caben, los primeros en el orden de la matriz. El paso no cambia sus notas y Record queda como estaba. {YB} También en **Synth 1 / 2** (sus macros) y en los **drums** (pitch, decay, distorsión y EQ): [vista de pista de Synth 1 / 2](#synth-nota), [vista de pista de un drum](#drum-pista). {YB} Mientras mantienes el paso, se ve en **amarillo**.
 - **Carriles extra** {YB}: cada parámetro del motor que **no está en los knobs secuenciables** tiene su propio carril (hasta 25 por patrón, en MIDI 1 / 2 × 8 patrones): con Record + Play, girar su knob lo graba, **dos valores por paso** (al principio y a la mitad; los knobs secuenciables siguen con sus 6 por paso). Valen **Clear + knob a la izquierda** (borra el suyo en el patrón que estás viendo), la **foto** de Record + paso (los parámetros sin carril de los secuenciables van a su carril extra, sin cambiar los destinos), **Nudge** y los pasos que **sueltan la automatización**. Se guardan **en el fichero del proyecto**, detrás de sus 160 780 bytes (unos 25 KB más): los conservan el guardado en otro hueco, la copia de proyectos del aparato, Duplicate y Clear de patrones (entre MIDI 1 y MIDI 2), la app de la tarjeta y cualquier copia de la carpeta del pack; Components, al volver a enviar el mismo proyecto. Una copia de seguridad de Components no los lleva, y un proyecto del pack interno no los guarda. Con el firmware original o una RC el proyecto carga igual, sin ellos (en la vista Projects se ve tenue).
@@ -1019,6 +1052,7 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
 | {YB} **Vista de macros global**: qué mueve cada knob (los knobs de cada pista, su nivel, sus envíos de reverb y delay) | [Mixer](#mixer) |
+| {YB} **Macros 2** de Synth 1 / 2: qué parámetro mueve cada knob | [Fuente del sinte](#synth-fuente) |
 | {YB} **Cadenas de grupos**: la de cada pista y la de cada escena (en el fichero del proyecto, detrás de los carriles extra) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
 | **Arpegiador** de notas y de drums (por pista y patrón; {XB} con sus modificadores), **gate por pulsación**, **longitud fija** | [Pattern Settings](#pattern-settings), [Micro Step](#micropasos) |
@@ -1063,6 +1097,7 @@ view("datos-perdido", "XI", "Qué se pierde al reiniciar",
 | {YB} **Retener knob** (Preset de Setup) | Apagado |
 | En la vista Sidechain, los **disparos de un drum** por otro drum o por un patrón (pads de las páginas de drums) | Los del preset del drum |
 | **Mutes en el compás siguiente** pendientes (Mixer, Shift + pad) | — |
+| {YB} La **página de sección** de Synth 1 / 2 y la **ranura de macro** elegida | Macros; ninguna |
 | **Notas y acordes en latch** (Shift + tecla, Shift + fundamental), **pantalla de acordes** (tipo y modificadores) y el medio tono de **Octave con Jankó** {XB} | Sin latch; los de fábrica; Octave a 0 |
 | **Teclado partido** y vistas abiertas (step-drummer, editor de macros, selector, {YB} la vista de flip); {YB} el **último destino** del step flip | Cerrados; el destino, Synth 1 |
 | Un **sample o patch esperando** a copiarse en otro pack (Duplicate + A) | Nada esperando |
@@ -1114,7 +1149,7 @@ La referencia oficial es la **Programmer's Reference Guide** de Novation, versi�
 ### Macros de Synth 1 / 2 (stock) y su editor {B}
 - 8 macros por patch, posición = **CC 80-87**; cada macro, 4 ranuras A-D. Ranura r (0-3) del macro k (1-8): **NRPN 3:(16 (k − 1) + 4 r)** = destino, + 1 inicio, + 2 fin (el tramo del recorrido del knob, 0 / 127 de fábrica), + 3 profundidad (64 = 0).
 - La guía oficial da el destino como «0 – 70» sin nombrarlos: la lista de abajo nombra cada uno (70 destinos, 0-69).
-- **En el aparato:** [vista de la fuente](#synth-fuente), pad 32 = editor (ranura, inicio, fin, destino, profundidad). Lo editado va en el patch del proyecto; Clear + pad dos veces en la [vista Preset](#synth-preset) lo guarda en el pack.
+- **En el aparato:** [vista de la fuente](#synth-fuente), pad 32 = editor (ranura, inicio, fin, destino, profundidad). Lo editado va en el patch del proyecto; Clear + pad dos veces en la [vista Preset](#synth-preset) lo guarda en el pack. {YB} El editor está en el pad 26; **Duplicate + knob** en las páginas de sección también pone un parámetro en una ranura.
 - El knob del editor recorre primero los destinos con CC (por número de CC) y después los que solo tienen NRPN; en los pads, blanco = CC, azul claro / magenta / violeta = NRPN de los bancos 0 / 1 / 2.
 
 ### Matriz del sinte propio de MIDI 1 / 2 (propia) {NB}
