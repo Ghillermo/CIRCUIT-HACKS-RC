@@ -389,6 +389,7 @@ DESC["A7.27"] = ("Alpha 7.27 — experimental", "Alpha 7.27 — experimental")
 DESC["A7.37"] = ("Alpha 7.37 — experimental", "Alpha 7.37 — experimental")
 DESC["R423"] = ("RC4.23 — versión candidata actual", "RC4.23 — current release candidate")
 DESC["R423S"] = ("RC4.23S — sin escrituras propias en la SD", "RC4.23S — no own writes to the SD card")
+DESC["A7.51"] = ("Alpha 7.51 — páginas de sinte, colores por familia", "Alpha 7.51 — synth pages, colour families")
 DESC["A7.48"] = ("Alpha 7.48 — solo del Mixer, macros página 2", "Alpha 7.48 — Mixer solo, macro view page 2")
 DESC["R416S"] = ("RC4.16S — sin escrituras propias en la SD", "RC4.16S — no own writes to the SD card")
 assert all(len(t) <= 50 for k in ("R411", "R411S", "B5.41", "B5.48", "B5.51", "B5.56", "ALPHA7", "A7.01") for t in DESC[k])
@@ -944,7 +945,7 @@ setLang(LANG); updateSend();
 </html>
 """
 
-OLD = ["A7.37", "A7PROT", "R422", "R422S", "A7.27", "A7.22", "R421", "R421S", "A7.18", "A7.16", "R420", "R420S", "A7.14", "R419", "R419S", "A7.13", "R417", "R417S", "A7.09", "R416", "R416S", "A7.08b", "A7.08", "A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
+OLD = ["A7.48", "A7.37", "A7PROT", "R422", "R422S", "A7.27", "A7.22", "R421", "R421S", "A7.18", "A7.16", "R420", "R420S", "A7.14", "R419", "R419S", "A7.13", "R417", "R417S", "A7.09", "R416", "R416S", "A7.08b", "A7.08", "A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
        "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"]
 
 
@@ -954,4 +955,4 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--old"]:
         main(OLD, "tools/rc_uploader_old.html")
     else:
-        main(sys.argv[1:] or ["A7.48", "B5.56", "R423", "R423S"])
+        main(sys.argv[1:] or ["A7.51", "B5.56", "R423", "R423S"])

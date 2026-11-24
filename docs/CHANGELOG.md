@@ -7,6 +7,14 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.51 — 2026-11-24
+
+**Alpha 7.51** (marca `A7.51`) = la Alpha 7.48 + esto (las 7.49 y 7.50 no se publicaron). Instalada y usada en el aparato salvo el color del EQ (7.51). Sustituye a la 7.48 en el instalador.
+
+- **Colores por familia en los knobs de los sintes:** la envolvente y lo que modula rosa, el LFO y lo que modula violeta, el VCA amarillo, el VCF dorado, el efecto limón (en Synth 1 / 2, el EQ lima), en el sinte propio de MIDI 1 / 2 y en las páginas de sección de Synth 1 / 2. → [Guía: Páginas de knobs del motor](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#midi-knobs)
+- **Las páginas de sección de Synth 1 / 2 como las del sinte propio:** pad 2 OSC 1, 3 OSC 2, **4 VCA-VCF-FX**, 5 fuentes de modulación, **6 matriz**, 7 FX (chorus y EQ), y **cada página con capa Shift**. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+- **La matriz de Synth 1 / 2:** cada fuente y cada destino con su color y su brillo; la profundidad en el color del destino; **las ranuras en los pads 9-24** (un toque elige una). En el sinte propio, los destinos de la matriz en el color de su familia. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+
 ### Alpha 7.48 — 2026-11-24
 
 **Alpha 7.48** (marca `A7.48`) = la Alpha 7.37 + esto y los arreglos de abajo (las 7.38-7.47 no se publicaron). El solo / flip del Mixer, la página 2 de la vista de macros global y su guardado se han usado en el aparato; el resto, sin probar. Sustituye a la 7.37 en el instalador.
@@ -1250,6 +1258,14 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.51 — 2026-11-24
+
+**Alpha 7.51** (marker `A7.51`) = Alpha 7.48 + these (7.49 and 7.50 were not published). Installed and used on the device except the EQ colour (7.51). It replaces 7.48 in the installer.
+
+- **Colour families on the synths' knobs:** the envelope and what it modulates pink, the LFO and what it modulates violet, the VCA yellow, the VCF gold, the effect lemon (on Synth 1 / 2, the EQ lime), on MIDI 1 / 2's own synth and on Synth 1 / 2's section pages. → [Guide: The engine's knob pages](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#midi-knobs)
+- **Synth 1 / 2's section pages like the own synth's:** pad 2 OSC 1, 3 OSC 2, **4 VCA-VCF-FX**, 5 mod sources, **6 matrix**, 7 FX (chorus and EQ), and **every page with a Shift layer**. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
+- **Synth 1 / 2's matrix:** each source and each destination with its own colour and brightness; the depth in the destination's colour; **the slots on pads 9-24** (a tap picks one). On the own synth, the matrix destinations in their family's colour. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
 
 ### Alpha 7.48 — 2026-11-24
 

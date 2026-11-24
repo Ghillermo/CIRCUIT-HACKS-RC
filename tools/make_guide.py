@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.48"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.51"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
@@ -172,18 +172,20 @@ La vista del step-drummer es la misma que la de las pistas MIDI ([vista del step
 ### Páginas de sección, Macros 2 y ranuras de macro {YB}
 Los **pads 1-8** eligen qué mueven los 8 knobs del sinte (el elegido brillante, los demás tenues; la fila se esconde con el step-drummer o el editor de macros abiertos). El pad 1 va en el color del sinte; los demás, en los colores de las páginas del sinte propio de MIDI 1 / 2.
 
-| Pad | Página | K1-K8 |
+| Pad | Página | K1-K8 (con Shift) |
 |---|---|---|
-| 1 | **Macros** | Los 8 macros de siempre (sus LEDs, en el color del sinte). |
-| 2 | **OSC 1** | Semitonos, cents, onda, interpolación de onda, ancho de pulso, sync virtual, densidad, desafinación de la densidad |
-| 3 | **OSC 2** | Lo mismo para el oscilador 2 |
-| 4 | **VCA** | Envolvente 1: ataque, decay, sustain, release, velocity; nivel de OSC 1, de OSC 2 y del ruido |
-| 5 | **VCF** | Frecuencia, resonancia, drive, envolvente 2 → frecuencia, tipo de filtro, seguimiento de teclado, tipo de drive, ataque de la envolvente 2 |
-| 6 | **FX** | Distorsión: nivel y tipo; chorus: nivel, tipo, velocidad, feedback y profundidad; nivel post-FX |
-| 7 | **Fuentes de modulación** | LFO 1: velocidad y onda; LFO 2: velocidad y onda; envolvente 3: ataque, decay, sustain, release |
-| 8 | **Matriz de modulación** | K1 = la ranura (1-20), K2 fuente 1, K3 fuente 2, K4 destino, K5 profundidad de esa ranura |
+| 1 | **Macros** | Los 8 macros de siempre (sus LEDs, en el color del sinte); Shift + pad 1 = Macros 2. |
+| 2 | **OSC 1** | Semitonos (pitch bend), cents (portamento), onda (interpolación de onda), ancho de pulso, sync virtual, densidad (desafinación de la densidad), —, nivel de OSC 1 (nivel del ruido) |
+| 3 | **OSC 2** | Semitonos (pitch bend), cents, onda (interpolación de onda), ancho de pulso, densidad (desafinación de la densidad), nivel del ring mod, sync virtual, nivel de OSC 2 |
+| 4 | **VCA-VCF-FX** | Env 1 ataque (sustain), Env 1 release (decay), Env 1 velocity (nivel pre-FX), Env 2 → frecuencia (seguimiento de teclado), frecuencia (tipo de filtro), resonancia (drive), velocidad del LFO 1 (tipo de drive), nivel de distorsión (tipo de distorsión) |
+| 5 | **Fuentes de modulación** | Env 2 ataque, decay, sustain, release (Env 3 lo mismo); velocidad del LFO 1 (slew), onda del LFO 1 (fase), velocidad del LFO 2 (slew), onda del LFO 2 (fase) |
+| 6 | **Matriz de modulación** | K1 = la ranura (1-20), K2 fuente 1, K3 fuente 2, K4 destino, K5 profundidad de esa ranura |
+| 7 | **FX** | Chorus: nivel (tipo), velocidad (sync), feedback (profundidad), delay (compensación de la distorsión); EQ: frecuencia de graves (de agudos), nivel de graves (de agudos), frecuencia de medios, nivel de medios |
+| 8 | — | Nada. |
 
-- Los LEDs de los knobs llevan el color de la página, más brillantes cuanto más alto el valor. Un knob de tipos (onda, tipo de filtro…) avanza despacio, un valor cada varios clics.
+- {YB} **La misma disposición que el sinte propio de MIDI 1 / 2** (pads 2-6, cada página con capa Shift: con Shift los knobs mueven lo que va entre paréntesis; un knob sin nada ahí está apagado).
+- {YB} **Colores por familia**, los mismos en los dos sintes: envolventes y lo que modulan **rosa**, LFO y lo que modulan **violeta**, VCA **amarillo**, VCF **dorado**, FX **limón** (el EQ **lima**); los knobs de oscilador, en el color de la página. Más brillantes cuanto más alto el valor. Un knob de tipos (onda, tipo de filtro…) avanza despacio, un valor cada varios clics.
+- {YB} **Matriz:** K1 en blanco; **cada fuente y cada destino se ven distintos** en K2-K4: directo blanco, mod wheel / aftertouch / expresión blanco en escalones más tenues, velocity / teclado verde azulado, LFO + violeta, LFO ± violeta claro, las envolventes rosa en tres escalones; destinos: tono en el color de OSC 1, sync virtual en el de OSC 2, ancho de pulso blanco, niveles amarillo, filtro dorado, velocidades de LFO violeta, decays de envolvente rosa. K5 (profundidad) en el color del destino a la derecha, en su tono claro a la izquierda, tenue en el centro. **Pads 9-24 = las ranuras** (1-16; con una de la 17-20 elegida, esas): en uso = el color de su destino, libre = blanco tenue, la elegida en blanco; un toque la elige.
 - La página elegida **sigue en los knobs del sinte en sus otras vistas** (Note, Velocity, Preset…) hasta que eliges Macros otra vez (pad 1). Con el step-drummer en pantalla, no.
 - Estos knobs cambian el sonido del proyecto (se guarda con él; para dejarlo en el pack, guarda el patch en la [vista Preset](#synth-preset)). No se graban como automatización: eso solo lo hacen los macros.
 - **Clear + knob**: en Macros, lo del original (izquierda borra su automatización, derecha el valor por defecto); en las demás páginas, nada.
@@ -331,6 +333,8 @@ El audio se calcula en el DSP por bloques, y todo lo que suena comparte su tiemp
 view("midi-knobs", "III", "Páginas de knobs del motor de MIDI 1 / 2",
      "Con el motor encendido, los pads 1-5 de la vista Preset eligen qué hacen los 8 knobs; Shift da una segunda capa.",
      f"""
+{YB} **Colores por familia** en los LEDs de los knobs (también en Synth 1 / 2): la envolvente y lo que modula **rosa**, el LFO y lo que modula **violeta**, el VCA **amarillo**, el VCF **dorado**, el efecto **limón**; los knobs de oscilador, en el color de la pista; los de tipo (tipo de filtro / efecto, ondas), con sus colores por tipo. En la matriz (pad 6), cada destino en el color de su familia.
+
 ### Página 1 — VCA-VCF
 | Knob | Solo | Con Shift |
 |---|---|---|

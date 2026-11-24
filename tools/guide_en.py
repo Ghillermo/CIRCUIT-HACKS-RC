@@ -160,18 +160,20 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 ### Section pages, Macros 2 and macro slots {YB}
 **Pads 1-8** pick what the synth's 8 knobs move (the picked one bright, the others dim; the row hides while the step-drummer or the macro editor is open). Pad 1 is in the synth's colour; the others use the page colours of the MIDI 1 / 2 own synth.
 
-| Pad | Page | K1-K8 |
+| Pad | Page | K1-K8 (with Shift) |
 |---|---|---|
-| 1 | **Macros** | The 8 macros as always (their LEDs in the synth's colour). |
-| 2 | **OSC 1** | Semitones, cents, wave, wave interpolate, pulse width, virtual sync, density, density detune |
-| 3 | **OSC 2** | The same for oscillator 2 |
-| 4 | **VCA** | Envelope 1: attack, decay, sustain, release, velocity; level of OSC 1, of OSC 2 and of the noise |
-| 5 | **VCF** | Frequency, resonance, drive, envelope 2 → frequency, filter type, key tracking, drive type, envelope 2 attack |
-| 6 | **FX** | Distortion: level and type; chorus: level, type, rate, feedback and depth; post-FX level |
-| 7 | **Mod sources** | LFO 1: rate and wave; LFO 2: rate and wave; envelope 3: attack, decay, sustain, release |
-| 8 | **Mod matrix** | K1 = the slot (1-20), K2 source 1, K3 source 2, K4 destination, K5 that slot's depth |
+| 1 | **Macros** | The 8 macros as always (their LEDs in the synth's colour); Shift + pad 1 = Macros 2. |
+| 2 | **OSC 1** | Semitones (pitch bend), cents (portamento), wave (wave interpolate), pulse width, virtual sync, density (density detune), —, osc 1 level (noise level) |
+| 3 | **OSC 2** | Semitones (pitch bend), cents, wave (wave interpolate), pulse width, density (density detune), ring mod level, virtual sync, osc 2 level |
+| 4 | **VCA-VCF-FX** | Env 1 attack (sustain), Env 1 release (decay), Env 1 velocity (pre-FX level), Env 2 → frequency (key tracking), frequency (filter type), resonance (drive), LFO 1 rate (drive type), distortion level (distortion type) |
+| 5 | **Mod sources** | Env 2 attack, decay, sustain, release (Env 3 the same); LFO 1 rate (slew), LFO 1 wave (phase), LFO 2 rate (slew), LFO 2 wave (phase) |
+| 6 | **Mod matrix** | K1 = the slot (1-20), K2 source 1, K3 source 2, K4 destination, K5 that slot's depth |
+| 7 | **FX** | Chorus level (type), rate (rate sync), feedback (mod depth), delay (distortion compensation); EQ bass frequency (treble frequency), bass level (treble level), mid frequency, mid level |
+| 8 | — | Nothing. |
 
-- The knob LEDs take the page's colour, brighter the higher the value. A type knob (wave, filter type…) moves slowly, one value every few clicks.
+- {YB} **The same layout as MIDI 1 / 2's own synth** (pads 2-6, each page with a Shift layer: hold Shift and the knobs move what is in brackets; a knob with nothing there is dark).
+- {YB} **Colours by family**, the same on both synths: envelopes and what they modulate **pink**, LFOs and what they modulate **violet**, VCA **yellow**, VCF **gold**, FX **lemon** (the EQ **lime**); the oscillator knobs in the page's colour. Brighter the higher the value. A type knob (wave, filter type…) moves slowly, one value every few clicks.
+- {YB} **Mod matrix:** K1 white; **each source and destination has its own look** on K2-K4: Direct white, mod wheel / aftertouch / expression white in dimmer steps, velocity / keyboard teal, LFO + violet, LFO ± light violet, the envelopes pink in three steps; destinations: pitch in OSC 1's colour, virtual sync in OSC 2's, pulse width white, levels yellow, filter gold, LFO rates violet, envelope decays pink. K5 (depth) in the destination's colour to the right, its light shade to the left, dim at the centre. **Pads 9-24 = the slots** (1-16; while 17-20 is picked, those): in use = its destination's colour, free = dim white, the picked one white; a tap picks it.
 - The picked page **stays on the synth's knobs in its other views** (Note, Velocity, Preset…) until you pick Macros again (pad 1). Not while the step-drummer is on screen.
 - These knobs change the project's sound (saved with it; to keep it in the pack, save the patch in the [Preset view](#synth-preset)). They are not recorded as automation: only the macros are.
 - **Clear + knob**: on Macros, the original's (left clears its automation, right the default value); on the other pages, nothing.
@@ -309,6 +311,8 @@ The DSP computes the audio in blocks, and everything sounding shares its time: t
 """),
 "midi-knobs": ("Knob pages of the MIDI 1 / 2 engine",
     "With the engine on, pads 1-5 of the Preset view pick what the 8 knobs do; Shift gives a second layer.", f"""
+{YB} **Colours by family** on the knob LEDs (also on Synth 1 / 2): the envelope and what it modulates **pink**, the LFO and what it modulates **violet**, the VCA **yellow**, the VCF **gold**, the effect **lemon**; the oscillator knobs in the track's colour; the type knobs (filter / FX type, waves) keep their per-type colours. In the matrix (pad 6), each destination in its family's colour.
+
 ### Page 1 — VCA-VCF
 | Knob | Alone | With Shift |
 |---|---|---|

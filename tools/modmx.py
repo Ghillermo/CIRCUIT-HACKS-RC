@@ -77,6 +77,15 @@ ZERO = False                          # SC46.6 (use_zero)
 FOLD = False                          # Alpha 7.24 (use_fold)
 
 
+FAMCOL = False                                    # Alpha 7.50 (use_famcol)
+
+
+def use_famcol():
+    """Alpha 7.50 (the user, 2026-11-24: the matrix in the synth pages' colour families): a destination's colour = its family (vcf21.FAM_TAB:
+    envelope pink, LFO violet, VCA yellow, VCF gold, FX lemon), else its page's as before (the oscillator codes)."""
+    global FAMCOL
+    FAMCOL = True
+
 def use_fold():
     """Alpha 7.24 (flash room, the same results): c_mxst's per-track defaults as one word store each."""
     global FOLD
@@ -183,7 +192,7 @@ def arm_code(base, L, prev):
         while len(data) % 2: data.append(0)
         T[name] = base + len(data); data.extend(bs)
     put("dcode", bytes(c for c, _p, _i in D))
-    put("dcol", bytes(pcol[p][0] for _c, p, _i in D))
+    put("dcol", bytes(((V.FAM_TAB[c] if c < len(V.FAM_TAB) else 0) or pcol[p][0]) if FAMCOL else pcol[p][0] for c, p, _i in D))   # (FAMCOL) the destination's family colour
     put("dmap", bytes(p << 4 | i for _c, p, i in D))
     put("rows", bytes(c if c != 14 else 0 for r in rows for c in r))
     put("pbri", bytes(c[0] for c in pcol)); put("pdim", bytes(c[1] for c in pcol))

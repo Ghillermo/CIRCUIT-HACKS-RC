@@ -394,6 +394,22 @@ CMIN = 16                                         # (BIPCOL) a bipolar knob at i
 FM_VIOLET = 0x49                                  # (BIPCOL) K5's reciprocal stretch: the FM engine's violet
 
 
+FAMCOL = False                                    # Alpha 7.49 (use_famcol)
+FAM_ENV, FAM_LFO, FAM_VCA, FAM_VCF, FAM_FX = 0x5F, 0x49, 0x2D, 0x6D, 0x63   # pink, violet; yellow, gold, lemon (all steady codes)
+# code -> its family's colour (0 = the track's colour): the envelope and what it modulates, the LFO and what it modulates; the VCA, VCF, FX sections
+FAM_TAB = bytes([0, FAM_VCF, FAM_VCF, FAM_ENV, FAM_LFO, FAM_ENV, FAM_ENV, FAM_ENV, FAM_ENV, FAM_FX, FAM_VCA, FAM_LFO, FAM_LFO, FAM_FX, 0, FAM_ENV,
+                 FAM_VCF, 0, 0, 0, 0, FAM_LFO, FAM_ENV, FAM_ENV, FAM_LFO, FAM_ENV, FAM_LFO, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+
+def use_famcol():
+    """Alpha 7.49 (the user, 2026-11-24: «All envelope parameters get their own color, All lfos get another color. All envelope/lfo modulated
+    parameters get the envelope/lfo color too … on vca-vcf-fx, separate colors for vca, vcf and fx» -> «Pink + violet / yellow family»): the own
+    synth's knob LEDs in their parameter's family colour (FAM_TAB by code, on every page, both layers; the brightness and the bipolar light shade
+    as before); the type knobs (FX / filter type, the waves) keep their per-type colours; the oscillator knobs stay in the track's colour."""
+    global FAMCOL
+    FAMCOL = True
+
+
 def use_bipcol():
     """SC52.6 (the user, 2026-11-06: «En los knobs bipolares, usa un color de la misma gama para la izquierda» → «Claros, en todos los bipolares»;
     «Centro dim»; «Colorea los modos recíprocos del FM» → «Dirección + recíproco violeta»): the own synth's bipolar knobs (the oscillator /
@@ -3327,6 +3343,13 @@ def arm_code(base, L):
     a.emit(pop_list, [4], pc=True)
     if BIPCOL:
         # ---- c_vbc(r0 = brightness | 0x80 left | 0x100 violet, r6 = the colour) -> r0 = the LED halfword (left: 0x82 + b / 2, persist19.use_leftcol)
+        if FAMCOL:
+            # ---- c_vfam(r1 = code): r6 = its family's colour when it has one; keeps r0, r1; clobbers r3
+            a.label("c_vfam")
+            a.emit(push_list, [3], lr=True); a.emit(cmp_imm, 1, len(FAM_TAB) - 1); a.emit(b_cond, "vf_x", "hi")
+            a.emit(bl, "c_vfamt"); a.emit(ldrb_reg, 3, 3, 1); a.emit(cmp_imm, 3, 0); a.emit(b_cond, "vf_x", "eq"); a.emit(mov_reg, 6, 3)
+            a.label("vf_x"); a.emit(pop_list, [3], pc=True)
+            a.label("c_vfamt"); a.emit(raw, h(0x467B) + h(0x4770) + FAM_TAB)          # mov r3, pc; bx lr: r3 = the table
         a.label("c_vbc")
         a.emit(lsrs_imm, 1, 0, 8); a.emit(b_cond, "vc_v", "ne")
         a.emit(lsrs_imm, 1, 0, 7); a.emit(b_cond, "vc_r", "eq")
@@ -3549,6 +3572,8 @@ def arm_code(base, L):
     a.label("vk2_c")
     a.emit(bl, L["c_shift"]); a.emit(movs_imm, 4, 0); a.emit(cmp_imm, 0, 0); a.emit(b_cond, "vk2_l", "eq"); a.emit(movs_imm, 4, 8)
     a.label("vk2_l")                                                              # r4 = code - 1 (0..7, or 8..15 with Shift)
+    if FAMCOL:                                                                    # (use_famcol) the track's colour again for this knob
+        a.emit(movs_imm, 6, COL_TRACK[0]); a.emit(cmp_imm, 7, 0); a.emit(b_cond, "vk2_fc", "eq"); a.emit(movs_imm, 6, COL_TRACK[1]); a.label("vk2_fc")
     if LFOSHAPE:                                                                  # page 5, Shift + K8: the shape's colour
         a.emit(cmp_imm, 4, LS_KNOB); a.emit(b_cond, "vk2_nls", "ne")
         a.emit(mov_reg, 0, 7); a.emit(bl, "c_vpage"); a.emit(cmp_imm, 0, LS_PAGE); a.emit(b_cond, "vk2_nls", "ne")
@@ -3578,6 +3603,7 @@ def arm_code(base, L):
                 a.emit(cmp_imm, 1, 13); bc("vk2_tz", "eq"); a.emit(cmp_imm, 1, 16); bc("vk2_tz", "eq"); a.emit(cmp_imm, 1, 19); bc("vk2_nt", "ne")
             a.label("vk2_tz"); a.emit(mov_reg, 0, 7); a.emit(bl, "c_vtype"); a.emit(b, "vk2_st")
             a.label("vk2_nt")
+        if FAMCOL: a.emit(bl, "c_vfam")                                           # (use_famcol) r6 = the code's family colour
         a.emit(mov_reg, 0, 7); a.emit(bl, "c_vlvl")
     else:
         a.emit(movw, 1, base & 0xFFFF); a.emit(movt, 1, base >> 16); a.emit(ldrb_reg, 1, 1, 4); a.emit(mov_reg, 0, 7); a.emit(bl, "c_vlvl")

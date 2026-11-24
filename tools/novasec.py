@@ -185,6 +185,85 @@ def use_v8():
 V9 = False                                           # Alpha 7.42 (use_v9)
 
 
+FAMCOL = False                                       # Alpha 7.49 (use_famcol)
+
+
+def fam_tab():
+    """(FAMCOL) page p, knob k -> the family colour (vcf21's FAM_*), 0 = the page colour; pages 0 Macros .. 8 Macros 2"""
+    import vcf21 as V
+    E_, L_, A_, F_, X_ = V.FAM_ENV, V.FAM_LFO, V.FAM_VCA, V.FAM_VCF, V.FAM_FX
+    t = [[0] * 8 for _ in range(9)]
+    t[3] = [E_, E_, E_, E_, A_, A_, A_, A_]          # VCA: Env 1 ADSR; velocity, Osc 1 / Osc 2 / noise levels
+    t[4] = [F_, F_, F_, E_, F_, F_, F_, E_]          # VCF: frequency, resonance, drive, Env 2 -> frequency, type, tracking, drive type, Env 2 attack
+    t[5] = [X_] * 8                                  # FX
+    t[6] = [L_, L_, L_, L_, E_, E_, E_, E_]          # Mod sources: LFO 1 / 2 rate and wave; Env 3 ADSR
+    return bytes(b for row in t for b in row)
+
+
+def use_famcol():
+    """Alpha 7.49 (the user, 2026-11-24, with the own synth's vcf21.use_famcol: «Both»): the section pages' knob LEDs in their parameter's family
+    colour (envelopes pink, LFOs violet, VCA yellow, VCF gold, FX lemon: fam_tab); the OSC, matrix and Macros pages as before."""
+    global FAMCOL
+    FAMCOL = True
+
+
+V10 = False                                          # Alpha 7.50 (use_v10)
+MXPG = 7                                             # the matrix's page (V10: 5)
+NOP = 0xFF
+# (V10) the pages on the own synth's pads, each K1..K8 then Shift + K1..K8 (rows of the parameter table; NOP = nothing): page 1 OSC 1, 2 OSC 2,
+# 3 VCA-VCF-FX, 4 Mod sources, 5 the matrix (its own fields), 6 FX, 7 nothing (pad 8)
+ROWS10 = [[12, 13, 6, 8, 9, 10, NOP, 24,   14, 3, 7, NOP, NOP, 11, NOP, 27],     # OSC 1: semitones, cents, wave, PW, v-sync, density, -, osc 1 level / bend, portamento, interpolate, density detune, noise
+          [21, 22, 15, 17, 19, 26, 18, 25,  23, NOP, 16, NOP, 20, NOP, NOP, NOP],  # OSC 2: semitones, cents, wave, PW, density, ring, v-sync, osc 2 level / bend, interpolate, density detune
+          [40, 43, 39, 38, 34, 36, 59, 78,  42, 41, 28, 35, 33, 31, 32, 86],      # VCA-VCF-FX: Env 1 A / S, R / D, velocity / pre-FX, Env 2 -> freq / tracking, freq / type, res / drive, LFO 1 rate / drive type, distortion / its type
+          [45, 46, 47, 48, 59, 54, 71, 66,  50, 51, 52, 53, 56, 55, 68, 67],      # Mod sources: Env 2 ADSR, LFO 1 rate, wave, LFO 2 rate, wave / Env 3 ADSR, LFO 1 slew, phase, LFO 2 slew, phase
+          [NOP] * 16,                                                             # (the matrix)
+          [79, 89, 91, 93, 80, 81, 82, 83,  88, 90, 92, 87, 84, 85, NOP, NOP],     # FX: chorus level, rate, feedback, delay, EQ bass f / l, mid f / l / chorus type, rate sync, mod depth, distortion comp., treble f / l
+          [NOP] * 16]
+# (V10) the matrix's options: (colour, brightness 0..127) -> the LED halfword colour | (b + 2) << 8
+def _mx_tabs():
+    import vcf21 as V
+    W, TEAL, OSC, OSC2 = 0x01, 0x4D, V.COL_PAGE[1][0], V.COL_PAGE[2][0]
+    E_, L_, LL, A_, F_ = V.FAM_ENV, V.FAM_LFO, 0x5C, V.FAM_VCA, V.FAM_VCF
+    src = [(W, 127), (W, 80), (W, 55), (W, 35), (TEAL, 127), (TEAL, 60), (L_, 127), (LL, 127), (L_, 60), (LL, 60), (E_, 127), (E_, 80), (E_, 40)]
+    dst = [(OSC, 127), (OSC, 80), (OSC, 40), (OSC2, 127), (OSC2, 50), (W, 127), (W, 50), (A_, 127), (A_, 85), (A_, 55), (A_, 30),
+           (F_, 40), (F_, 127), (F_, 80), (L_, 127), (L_, 60), (E_, 127), (E_, 60)]
+    hw = lambda t: b"".join((c | (b + 2) << 8).to_bytes(2, "little") for c, b in t)
+    return hw(src), hw(dst)
+def _rf_tab():
+    """(V10) a row -> its family colour (0 = the page colour), rows 0..93"""
+    import vcf21 as V
+    t = bytearray(94)
+    for r in range(24, 30): t[r] = V.FAM_VCA
+    for r in range(30, 38): t[r] = V.FAM_VCF
+    for r in range(38, 54): t[r] = V.FAM_ENV
+    for r in range(54, 78): t[r] = V.FAM_LFO
+    for r in range(78, 94): t[r] = V.FAM_FX
+    return bytes(t)
+
+
+def use_v10():
+    """Alpha 7.50 (the user, 2026-11-24: «this interface would be inconsistent with the mod synth, can we make both look more alike?»; the matrix:
+    «signal them better … separate colors for slot, source, destination», «make each option look different»): Synth 1 / 2's section pages on the
+    own synth's pads (1 Macros, 2 OSC 1, 3 OSC 2, 4 VCA-VCF-FX, 5 Mod sources, 6 the matrix, 7 FX, 8 nothing), each with a Shift layer (ROWS10);
+    the knobs in their parameter's family colour (by row); the matrix: K1 the slot (white), K2 / K3 each source its colour and brightness step,
+    K4 each destination its own, K5 the depth in the destination's colour (right) / its light shade (left), dim at the centre; pads 9-24 = the
+    slots (1-16, or 17-20 while one of them is picked): in use = the destination's colour, free dim white, the picked one white; a tap picks it."""
+    global V10, MXPG
+    V10 = True
+    MXPG = 5
+
+
+V11 = False                                          # Alpha 7.51 (use_v11)
+EQ_COL = 0x70                                        # (V11) lime: the EQ, next to the chorus / distortion's lemon
+
+
+def use_v11():
+    """Alpha 7.51 (the user, 2026-11-24: «make chorus and eq two different tones»): on the section pages the EQ's knobs (rows 80-85) lime (0x70,
+    steady); the chorus and the distortion stay lemon (vcf21.FAM_FX)."""
+    global V11
+    V11 = True
+
+
 def use_v9():
     """Alpha 7.42 (the user, 2026-11-24: Macros 2 gets automation lanes, «Like the macros», «Two: start and middle»; tools/m2lanes.py): two
     calls for m2lanes, each a bl to c_nsret (bx lr) that m2lanes points at its own code (labels kn_m2 / kn_m2c in the report):
@@ -198,6 +277,7 @@ def page_colours():
     """(bright, dim) of the 8 pads, from the own synth's constants (a change there changes these on the next build)"""
     import vcf21 as V, modmx as MX
     c = [V.COL_PAGE2[0], V.COL_PAGE[1], V.COL_PAGE[2], V.COL_PAGE[0], V.COL_PAGE[0], V.COL_PAGE[0], V.COL_PAGE2[1], MX.COL_MX]
+    if V10: c = [V.COL_PAGE2[0], V.COL_PAGE[1], V.COL_PAGE[2], V.COL_PAGE[0], V.COL_PAGE2[1], MX.COL_MX, (V.FAM_FX, 0x64), (0, 0)]
     return c + [(V.NS_COL, V.NS_SHIFT)] if V2 else c
 
 
@@ -277,8 +357,13 @@ def arm_code(base, L, prev):
     # ---- c_nsrow(r4 = synth, r1 = knob, r2 = page 1..7) -> r0 = the row, 0xFE = the matrix's slot knob, 0xFF = nothing; clobbers r1-r3
     a.label("c_nsrow")
     if V2: E(cmp_imm, 2, 8); E(b_cond, "rw_n8", "ne"); E(b, "c_nsxrow"); a.label("rw_n8")          # (V2) Macros 2: the extra knob's row
-    E(cmp_imm, 2, 7); E(b_cond, "rw_m", "eq")
-    E(subs_imm8, 2, 1); E(lsls_imm, 2, 2, 3); E(adds_reg, 2, 2, 1); E(ldr_label, 3, "t_rows"); E(ldrb_reg, 0, 3, 2); E(raw, h(0x4770))
+    E(cmp_imm, 2, MXPG); E(b_cond, "rw_m", "eq")
+    if V10:                                                                                        # (V10) 16 a page: Shift = the second 8
+        E(push_list, [1, 2, 4], lr=True); E(bl, L["c_shift"]); E(mov_reg, 3, 0); E(pop_list, [1, 2, 4])
+        E(subs_imm8, 2, 1); E(lsls_imm, 2, 2, 4); E(adds_reg, 2, 2, 1); E(cmp_imm, 3, 0); E(b_cond, "rw_ns", "eq"); E(adds_imm8, 2, 8)
+        a.label("rw_ns"); E(ldr_label, 3, "t_rows"); E(ldrb_reg, 0, 3, 2); E(pop_list, [], pc=True)
+    else:
+        E(subs_imm8, 2, 1); E(lsls_imm, 2, 2, 3); E(adds_reg, 2, 2, 1); E(ldr_label, 3, "t_rows"); E(ldrb_reg, 0, 3, 2); E(raw, h(0x4770))
     a.label("rw_m"); E(movs_imm, 0, 0xFE); E(cmp_imm, 1, 0); E(b_cond, "rw_x", "eq"); E(movs_imm, 0, 0xFF); E(cmp_imm, 1, 4); E(b_cond, "rw_x", "hi")
     E(ldr_label, 3, "t_mx"); E(subs_imm8, 1, 1); E(ldrb_reg, 2, 3, 1)                                     # the slot's field
     imm32(3, NS + 5); E(ldrb_reg, 0, 3, 4); E(lsls_imm, 0, 0, 2); E(adds_reg, 0, 0, 2); E(adds_imm8, 0, MX0)
@@ -466,6 +551,14 @@ def arm_code(base, L, prev):
     E(movs_imm, 0, PAD_SD); E(cmp_imm, 5, PAD_SD2); E(b_cond, "pd_as", "eq")                       # pad 32 = the knob sequencer (as pad 30)
     E(cmp_imm, 5, PAD_SD); E(b_cond, "pd_s", "eq")                                                 # pad 30: nothing
     E(movs_imm, 0, PAD_ED); E(cmp_imm, 5, ED2); E(b_cond, "pd_as", "eq")                           # pad 25 (V8: 26) = the macro editor (as pad 32)
+    if V10:                                                                                        # (V10) pad 8 nothing; the matrix: pads 9-24 pick a slot
+        E(cmp_imm, 5, 7); E(b_cond, "pd_s", "eq")
+        E(bl, "c_nspg"); E(cmp_imm, 0, MXPG); E(b_cond, "pd_nm", "ne"); E(cmp_imm, 5, 8); E(b_cond, "pd_nm", "lo"); E(cmp_imm, 5, 23); E(b_cond, "pd_nm", "hi")
+        E(bl, L["c_mcsrc"]); E(cmp_imm, 0, 1); E(b_cond, "pd_f", "hi"); E(bl, L["c_mcon"]); E(cmp_imm, 0, 0); E(b_cond, "pd_f", "ne")
+        imm32(3, NS + 5); E(ldrb_reg, 1, 3, 4); E(movs_imm, 2, 0); E(cmp_imm, 1, 16); E(b_cond, "pd_mb", "lo"); E(movs_imm, 2, 16)
+        a.label("pd_mb"); E(mov_reg, 1, 5); E(subs_imm8, 1, 8); E(adds_reg, 1, 1, 2); E(cmp_imm, 1, 20); E(b_cond, "pd_s", "hs"); E(raw, h(0x5519))   # (strb r1, [r3, r4])
+        E(b, "pd_s")
+        a.label("pd_nm")
     if V8:                                                                                         # (V8) pads 9 / 17 / 25 stay ours
         E(cmp_imm, 5, 8); E(b_cond, "pd_lo", "lo"); E(movs_imm, 0, 7); E(tst_reg, 5, 0); E(b_cond, "pd_f", "ne"); E(cmp_imm, 5, 24); E(b_cond, "pd_f", "hi")
         a.label("pd_lo")
@@ -495,24 +588,39 @@ def arm_code(base, L, prev):
     a.label("pd_f"); E(raw, popw([0, 1, 2, 4, 5], lr=True)); E(b_w, prev["pad"])
 
     # ---- c_nsleds (that view's slot 7: view) -> the LED buffer: the chain first, nothing on the stack
+    LX = "le_xt" if V10 else "le_x"                                                              # (V10) a trampoline: the function grew
     a.label("c_nsleds")
     imm32(1, NS); E(raw, str_lr(1, 12)); E(str_imm, 0, 1, 20)
     E(bl, prev["leds"])
     E(push_list, [4, 5, 6, 7]); E(mov_reg, 5, 0)
-    imm32(0, NS); E(ldr_imm, 0, 0, 20); E(bl, "c_nsalt"); E(mov_reg, 4, 0); E(cmp_imm, 4, 1); E(b_cond, "le_x", "hi")
-    E(bl, "c_nsmz"); E(cmp_imm, 0, 0); E(b_cond, "le_x", "ne")
+    imm32(0, NS); E(ldr_imm, 0, 0, 20); E(bl, "c_nsalt"); E(mov_reg, 4, 0); E(cmp_imm, 4, 1); E(b_cond, LX, "hi")
+    E(bl, "c_nsmz"); E(cmp_imm, 0, 0); E(b_cond, LX, "ne")
     E(bl, L["c_mcon"]); E(cmp_imm, 0, 0); E(b_cond, "le_m", "eq")
-    E(ldrb_imm, 1, 0, 1); E(movs_imm, 2, F_SEL); E(tst_reg, 1, 2); E(b_cond, "le_x", "ne")           # a macro picked: its number on the pads
+    E(ldrb_imm, 1, 0, 1); E(movs_imm, 2, F_SEL); E(tst_reg, 1, 2); E(b_cond, LX, "ne")           # a macro picked: its number on the pads
     a.label("le_m")
     E(ldrh_imm, 0, 5, 2 * PAD_ED); E(ldrh_imm, 1, 5, 2 * PAD_SD)                                   # the two pads moved
     E(strh_imm, 0, 5, 2 * ED2); E(strh_imm, 1, 5, 2 * PAD_SD2); E(movs_imm, 0, 0); E(strh_imm, 0, 5, 2 * PAD_SD)
-    E(bl, L["c_mcsrc"]); E(cmp_imm, 0, 1); E(b_cond, "le_x", "hi")
-    E(bl, L["c_mcon"]); E(cmp_imm, 0, 0); E(b_cond, "le_x", "ne")
+    E(bl, L["c_mcsrc"]); E(cmp_imm, 0, 1); E(b_cond, LX, "hi")
+    E(bl, L["c_mcon"]); E(cmp_imm, 0, 0); E(b_cond, LX, "ne")
     E(bl, "c_nspg"); E(mov_reg, 6, 0); E(movs_imm, 7, 0); E(ldr_label, 3, "t_col")
     a.label("le_p")
     E(adds_reg, 1, 3, 7); E(ldrb_imm, 0, 1, len(cols)); E(cmp_reg, 7, 6); E(b_cond, "le_w", "ne"); E(ldrb_imm, 0, 1, 0)
     a.label("le_w"); E(lsls_imm, 1, 7, 1); E(raw, h(0x5268))                                       # (strh r0, [r5, r1])
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "le_p", "lo")
+    if V10:                                                                                        # (V10) the matrix: pads 9-24 = the slots
+        E(b, "lm_c"); a.label("le_xt"); E(b, "le_x"); a.label("lm_c")
+        E(cmp_imm, 6, MXPG); E(b_cond, "lm_x", "ne"); E(movs_imm, 7, 0)
+        a.label("lm_l")
+        imm32(3, NS + 5); E(ldrb_reg, 1, 3, 4); E(movs_imm, 2, 0); E(cmp_imm, 1, 16); E(b_cond, "lm_1", "lo"); E(movs_imm, 2, 16)
+        a.label("lm_1"); E(adds_reg, 2, 2, 7); E(movs_imm, 0, 0); E(cmp_imm, 2, 20); E(b_cond, "lm_w", "hs"); E(movs_imm, 0, 1); E(cmp_reg, 2, 1); E(b_cond, "lm_w", "eq")
+        E(push_list, [2, 3]); E(lsls_imm, 0, 2, 2); E(adds_imm8, 0, 96); E(bl, "c_nsval"); E(pop_list, [2, 3]); E(cmp_imm, 0, 64); E(b_cond, "lm_d", "eq")
+        E(push_list, [2, 3]); E(lsls_imm, 0, 2, 2); E(adds_imm8, 0, 97); E(bl, "c_nsval"); E(pop_list, [2, 3]); E(cmp_imm, 0, 17); E(b_cond, "lm_d", "hi")
+        E(lsls_imm, 0, 0, 1); E(ldr_label, 1, "t_mdst"); E(ldrb_reg, 0, 1, 0); E(b, "lm_w")
+        a.label("lm_d"); E(movs_imm, 0, 2)
+        a.label("lm_w"); E(mov_reg, 1, 7); E(adds_imm8, 1, 8); E(lsls_imm, 1, 1, 1); E(raw, h(0x5268))   # (strh r0, [r5, r1])
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 16); E(b_cond, "lm_l", "lo")
+        E(ldr_label, 3, "t_col")
+        a.label("lm_x")
     if V3:                                                                                         # (V3) pad 1 in the synth's colour
         E(ldr_label, 3, "t_syn"); E(adds_reg, 3, 3, 4); E(ldrb_imm, 0, 3, 0); E(cmp_imm, 6, 0); E(b_cond, "le_s", "eq"); E(ldrb_imm, 0, 3, 2)
         a.label("le_s"); E(strh_imm, 0, 5, 0); E(ldr_label, 3, "t_col")
@@ -692,10 +800,26 @@ def arm_code(base, L, prev):
     E(mov_reg, 1, 7); E(mov_reg, 2, 6); E(bl, "c_nsrow"); E(movs_imm, 1, 0); E(cmp_imm, 0, 0xFE); E(b_cond, "kl_w", "hi"); E(b_cond, "kl_r", "lo")
     imm32(1, NS + 5); E(ldrb_reg, 0, 1, 4); E(movs_imm, 1, 6); E(muls, 0, 1); E(b, "kl_c")         # the slot: 6 x slot (0..114)
     a.label("kl_r")
+    if V10: E(cmp_imm, 0, 94); E(b_cond, "kl_nr", "lo"); E(bl, "c_nsmxled"); E(b, "kl_w"); a.label("kl_nr")   # (V10) a matrix field: its option's look
     E(bl, "c_nsval"); E(subs_reg, 0, 0, 1); E(movs_imm, 3, 127); E(muls, 0, 3); E(subs_reg, 2, 2, 1)   # (value - lo) x 127 / (hi - lo)
     E(b_cond, "kl_c", "eq"); E(raw, udiv(0, 0, 2))
     a.label("kl_c")                                                                                # r0 = 0..127: the page colour, that bright
-    E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(ldr_label, 1, "t_col"); E(ldrb_reg, 1, 1, 6); E(orrs_reg, 1, 0)
+    E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8)
+    if V10:                                                                                        # (V10) the row's family colour; the slot knob white
+        E(push_list, [0, 1]); E(mov_reg, 1, 7); E(mov_reg, 2, 6); E(bl, "c_nsrow")
+        E(movs_imm, 1, 1); E(cmp_imm, 0, 0xFE); E(b_cond, "kl_g", "eq"); E(cmp_imm, 0, 24); E(b_cond, "kl_p", "lo")
+        V_ = __import__("vcf21")
+        fams = ((30, V_.FAM_VCA), (38, V_.FAM_VCF), (54, V_.FAM_ENV), (78, V_.FAM_LFO), (94, V_.FAM_FX))
+        if V11: fams = fams[:4] + ((80, V_.FAM_FX), (86, EQ_COL), (94, V_.FAM_FX))       # (V11) the EQ (rows 80-85) its own tone
+        for top, colr in fams:                                                                     # the rows' families (as _rf_tab)
+            E(movs_imm, 1, colr); E(cmp_imm, 0, top); E(b_cond, "kl_g", "lo")
+        a.label("kl_p"); E(ldr_label, 1, "t_col"); E(ldrb_reg, 1, 1, 6)
+        a.label("kl_g"); E(pop_list, [0, 2]); E(orrs_reg, 1, 0); E(b, "kl_w")
+    if FAMCOL and not V10:                                                                         # (use_famcol) the knob's family colour first
+        E(lsls_imm, 2, 6, 3); E(adds_reg, 2, 2, 7); E(ldr_label, 1, "t_kf"); E(ldrb_reg, 1, 1, 2); E(cmp_imm, 1, 0); E(b_cond, "kl_fc", "ne")
+    E(ldr_label, 1, "t_col"); E(ldrb_reg, 1, 1, 6)
+    if FAMCOL and not V10: a.label("kl_fc")
+    E(orrs_reg, 1, 0)
     a.label("kl_w"); E(lsls_imm, 0, 7, 1); E(raw, h(0x5229))                                       # (strh r1, [r5, r0])
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "kl_l", "lo")
     if V3: E(b, "kl_fl")
@@ -723,9 +847,32 @@ def arm_code(base, L, prev):
         a.label("kl_rs"); E(ldrb_imm, 0, 7, O_SV); E(movs_imm, 1, 7); E(ands_reg, 1, 0); E(lsls_imm, 1, 1, 1); E(ldrh_imm, 3, 7, O_SVH); E(raw, h(0x526B))
         E(movs_imm, 0, 0); E(strb_imm, 0, 7, O_SV); E(raw, h(0x4770))
 
+    if V10:
+        # ---- c_nsmxled(r4 = synth, r0 = a matrix field's row) -> r1 = its LED: a source / destination = its option's colour and step; the depth =
+        #      the slot's destination's colour, bright by |depth| to the right, its light shade (persist19's left mark) to the left, dim at 0
+        a.label("c_nsmxled")
+        E(push_list, [5, 6, 7], lr=True); E(mov_reg, 5, 0); E(mov_reg, 6, 0); E(subs_imm8, 6, 94); E(movs_imm, 1, 3); E(ands_reg, 6, 1)
+        E(bl, "c_nsval"); E(cmp_imm, 6, 2); E(b_cond, "mx_dp", "eq")
+        E(ldr_label, 1, "t_msrc"); E(movs_imm, 2, 12); E(cmp_imm, 6, 3); E(b_cond, "mx_s", "ne"); E(ldr_label, 1, "t_mdst"); E(movs_imm, 2, 17)
+        a.label("mx_s"); E(cmp_reg, 0, 2); E(b_cond, "mx_0", "hi")
+        E(lsls_imm, 0, 0, 1); E(adds_reg, 1, 1, 0); E(ldrb_imm, 0, 1, 1); E(lsls_imm, 0, 0, 8); E(ldrb_imm, 1, 1, 0); E(orrs_reg, 1, 0); E(b, "mx_x")
+        a.label("mx_0"); E(movs_imm, 1, 0); E(b, "mx_x")
+        a.label("mx_dp"); E(mov_reg, 7, 0); E(mov_reg, 0, 5); E(adds_imm8, 0, 1); E(bl, "c_nsval")
+        E(cmp_imm, 0, 17); E(b_cond, "mx_0", "hi"); E(lsls_imm, 0, 0, 1); E(ldr_label, 1, "t_mdst"); E(ldrb_reg, 1, 1, 0)
+        E(mov_reg, 0, 7); E(subs_imm8, 0, 64); E(b_cond, "mx_z", "eq"); E(b_cond, "mx_l", "mi")
+        E(lsls_imm, 0, 0, 1); E(adds_imm8, 0, 2); E(lsls_imm, 0, 0, 8); E(orrs_reg, 1, 0); E(b, "mx_x")
+        a.label("mx_l"); E(raw, h(0x43C0)); E(adds_imm8, 0, 1 + 0x82); E(lsls_imm, 0, 0, 8); E(orrs_reg, 1, 0); E(b, "mx_x")   # (mvns r0, r0: -d - 1)
+        a.label("mx_z"); E(movs_imm, 0, 10); E(lsls_imm, 0, 0, 8); E(orrs_reg, 1, 0)
+        a.label("mx_x"); E(pop_list, [5, 6, 7], pc=True)
+
     # ---- data
     a.label("t_col"); E(raw, bytes(c[0] for c in cols) + bytes(c[1] for c in cols))
-    a.label("t_rows"); E(raw, bytes(r for page in ROWS for r in page))
+    if FAMCOL and not V10: a.label("t_kf"); E(raw, fam_tab())
+    a.label("t_rows"); E(raw, bytes(r for page in (ROWS10 if V10 else ROWS) for r in page))
+    if V10:
+        ms, md = _mx_tabs()
+        a.label("t_msrc"); E(raw, bytes(b for k in range(0, len(ms), 2) for b in (ms[k], ms[k + 1])))
+        a.label("t_mdst"); E(raw, md)
     a.label("t_mx"); E(raw, bytes(MX_MAP))
     if V2: a.label("t_drow"); E(raw, bytes(DROW))
     if V2 and FIX: a.label("t_dupv"); E(raw, bytes([0xFF, 0, 127, 127]) + (bytes([0, 0, 127, 64]) if V4 else b""))   # (V4) + an unused slot

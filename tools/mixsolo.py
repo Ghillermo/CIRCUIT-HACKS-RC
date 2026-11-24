@@ -116,6 +116,16 @@ COL_FLIP = 0x45                                              # orange (the user,
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 
 
+TRIM2 = False                                                # Alpha 7.50 (use_trim2)
+
+
+def use_trim2():
+    """Alpha 7.50: v2's pad / LED / load entries are only b.w trampolines once mixsolo4 / 5 is installed (their install writes b.w at the
+    entries): the bodies go (≈ 360 B of dspz's first gap); c_sost / c_somute / c_soget / c_soset stay (mixsolo4 / 5 use them)."""
+    global TRIM2
+    TRIM2 = True
+
+
 def arm_code2(base, L, prev):
     from thumb import ands_reg, bx_lr, eors_reg, str_imm, tst_reg
     a = Asm(base)
@@ -151,74 +161,77 @@ def arm_code2(base, L, prev):
     a.label("se_n"); E(adds_imm8, 5, 1); E(cmp_imm, 5, 8); E(b_cond, "se_l", "lo")
     E(pop_list, [3, 4, 5, 7], pc=True)
 
-    # ---- c_sopad2 (the Mixer view's slot 0: view, pad, velocity)
-    a.label("c_sopad2")
-    E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
-    E(mov_reg, 4, 0); E(mov_reg, 5, 1)
-    E(bl, L["c_gact"]); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "ne")                       # Master FX: its pads
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "ne")                      # Shift: the repeats, the queued mutes
-    E(bl, "c_sost"); E(mov_reg, 6, 0)
-    E(cmp_imm, 5, PAD_SOLO); E(b_cond, "sp_t", "ne")
-    E(movs_imm, 0, 1); E(strb_imm, 0, 6, 6); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 8); E(b, "sp_f")   # pad 16 down: the choice anew
-    a.label("sp_t")
-    E(cmp_imm, 5, 8); E(b_cond, "sp_f", "hs")
-    imm32(0, Q.MGR); held(0, 0); E(lsls_imm, 0, 0, 16); E(b_cond, "sp_nh", "pl")       # bit 15: pad 16 held
-    E(ldrb_imm, 0, 6, 6); E(movs_imm, 1, 2); E(orrs_reg, 0, 1); E(strb_imm, 0, 6, 6)   # pad 16 used
-    E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 1); E(b_cond, "sp_ns", "eq")                   # solo already: the first saved state stays
-    E(cmp_imm, 0, 2); E(b_cond, "sp_sv", "ne")
-    E(ldrb_imm, 1, 6, 7); E(cmp_imm, 1, 0); E(b_cond, "sp_ns", "ne")                   # flip with pads held: saved already
-    a.label("sp_sv"); E(bl, "c_soget"); E(strb_imm, 0, 6, 5)
-    a.label("sp_ns"); E(movs_imm, 0, 1); E(strb_imm, 0, 6, 4); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 7)
-    E(ldrb_imm, 7, 6, 8); E(movs_imm, 0, 1); E(raw, h(0x40A8)); E(orrs_reg, 7, 0); E(strb_imm, 7, 6, 8)   # lsls r0, r5
-    E(mov_reg, 0, 7); E(b, "sp_ap")
-    a.label("sp_nh")                                                                    # flip: the pads held sound
-    E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 2); E(b_cond, "sp_f", "ne")
-    E(ldrb_imm, 7, 6, 7); E(cmp_imm, 7, 0); E(b_cond, "sp_fh", "ne")
-    E(bl, "c_soget"); E(strb_imm, 0, 6, 5)
-    a.label("sp_fh"); E(movs_imm, 0, 1); E(raw, h(0x40A8)); E(orrs_reg, 7, 0); E(strb_imm, 7, 6, 7); E(mov_reg, 0, 7)
-    a.label("sp_ap"); E(movs_imm, 1, 0xFF); E(eors_reg, 0, 1); E(bl, "c_soset")
-    E(add_sp_imm, 12); E(pop_list, [4, 5, 6, 7], pc=True)
-    a.label("sp_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["pad"])
+    if TRIM2:                                                                # (use_trim2) the three entries as stubs: mixsolo4 / 5 write b.w over them
+        for nm in ("c_sopad2", "c_soled2", "c_soload"): a.label(nm); E(raw, h(0xB510) + h(0xBD10))   # push {r4, lr}; pop {r4, pc}
+    else:
+        # ---- c_sopad2 (the Mixer view's slot 0: view, pad, velocity)
+        a.label("c_sopad2")
+        E(push_list, [0, 1, 2, 4, 5, 6, 7], lr=True)
+        E(mov_reg, 4, 0); E(mov_reg, 5, 1)
+        E(bl, L["c_gact"]); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "ne")                       # Master FX: its pads
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "sp_f", "ne")                      # Shift: the repeats, the queued mutes
+        E(bl, "c_sost"); E(mov_reg, 6, 0)
+        E(cmp_imm, 5, PAD_SOLO); E(b_cond, "sp_t", "ne")
+        E(movs_imm, 0, 1); E(strb_imm, 0, 6, 6); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 8); E(b, "sp_f")   # pad 16 down: the choice anew
+        a.label("sp_t")
+        E(cmp_imm, 5, 8); E(b_cond, "sp_f", "hs")
+        imm32(0, Q.MGR); held(0, 0); E(lsls_imm, 0, 0, 16); E(b_cond, "sp_nh", "pl")       # bit 15: pad 16 held
+        E(ldrb_imm, 0, 6, 6); E(movs_imm, 1, 2); E(orrs_reg, 0, 1); E(strb_imm, 0, 6, 6)   # pad 16 used
+        E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 1); E(b_cond, "sp_ns", "eq")                   # solo already: the first saved state stays
+        E(cmp_imm, 0, 2); E(b_cond, "sp_sv", "ne")
+        E(ldrb_imm, 1, 6, 7); E(cmp_imm, 1, 0); E(b_cond, "sp_ns", "ne")                   # flip with pads held: saved already
+        a.label("sp_sv"); E(bl, "c_soget"); E(strb_imm, 0, 6, 5)
+        a.label("sp_ns"); E(movs_imm, 0, 1); E(strb_imm, 0, 6, 4); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 7)
+        E(ldrb_imm, 7, 6, 8); E(movs_imm, 0, 1); E(raw, h(0x40A8)); E(orrs_reg, 7, 0); E(strb_imm, 7, 6, 8)   # lsls r0, r5
+        E(mov_reg, 0, 7); E(b, "sp_ap")
+        a.label("sp_nh")                                                                    # flip: the pads held sound
+        E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 2); E(b_cond, "sp_f", "ne")
+        E(ldrb_imm, 7, 6, 7); E(cmp_imm, 7, 0); E(b_cond, "sp_fh", "ne")
+        E(bl, "c_soget"); E(strb_imm, 0, 6, 5)
+        a.label("sp_fh"); E(movs_imm, 0, 1); E(raw, h(0x40A8)); E(orrs_reg, 7, 0); E(strb_imm, 7, 6, 7); E(mov_reg, 0, 7)
+        a.label("sp_ap"); E(movs_imm, 1, 0xFF); E(eors_reg, 0, 1); E(bl, "c_soset")
+        E(add_sp_imm, 12); E(pop_list, [4, 5, 6, 7], pc=True)
+        a.label("sp_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["pad"])
 
-    # ---- c_soled2 (the LED task calls: ctrl, frame): pad 16 let go, the flip pads let go, pad 16's LED
-    a.label("c_soled2")
-    E(push_list, [3, 4, 5, 6, 7], lr=True); E(mov_reg, 4, 1); E(bl, prev["ledtask"])
-    E(bl, "c_sost"); E(mov_reg, 6, 0)
-    imm32(0, Q.MGR); held(7, 0)
-    E(ldrb_imm, 0, 6, 6); E(movs_imm, 1, 1); E(tst_reg, 0, 1); E(b_cond, "sl_r", "eq")  # pad 16 down?
-    E(lsls_imm, 1, 7, 16); E(b_cond, "sl_r", "mi")                                     # still held
-    E(movs_imm, 1, 0); E(strb_imm, 1, 6, 6)
-    E(movs_imm, 1, 2); E(tst_reg, 0, 1); E(b_cond, "sl_r", "ne")                       # used with a track: nothing more
-    E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 0); E(b_cond, "sl_lv", "ne")
-    E(movs_imm, 0, 2); E(strb_imm, 0, 6, 4); E(b, "sl_r")                              # a tap with nothing on: flip
-    a.label("sl_lv"); E(cmp_imm, 0, 1); E(b_cond, "sl_rs", "eq")
-    E(ldrb_imm, 1, 6, 7); E(cmp_imm, 1, 0); E(b_cond, "sl_of", "eq")
-    a.label("sl_rs"); E(ldrb_imm, 0, 6, 5); E(bl, "c_soset")                            # the mutes before
-    a.label("sl_of"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 4); E(strb_imm, 0, 6, 7)
-    a.label("sl_r")
-    E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 2); E(b_cond, "sl_l", "ne")                    # flip: pads let go
-    E(ldrb_imm, 5, 6, 7); E(cmp_imm, 5, 0); E(b_cond, "sl_l", "eq")
-    E(mov_reg, 0, 5); E(ands_reg, 0, 7); E(cmp_reg, 0, 5); E(b_cond, "sl_l", "eq")
-    E(strb_imm, 0, 6, 7); E(cmp_imm, 0, 0); E(b_cond, "sl_pt", "ne")
-    E(ldrb_imm, 0, 6, 5); E(b, "sl_st")                                                 # the last one: the mixer as it was
-    a.label("sl_pt"); E(movs_imm, 1, 0xFF); E(eors_reg, 0, 1)
-    a.label("sl_st"); E(bl, "c_soset")
-    a.label("sl_l")
-    imm32(0, Q.MGR); E(ldr_imm, 0, 0, 0x6C); imm32(1, Q.MIX_VIEW); E(cmp_reg, 0, 1); E(b_cond, "sl_x2", "ne")
-    E(bl, L["c_gact"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x2", "ne")
-    E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x2", "ne")
-    E(movs_imm, 1, COL_ON); E(lsls_imm, 0, 7, 16); E(b_cond, "sl_w2", "mi")            # held: bright white
-    E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 1); E(b_cond, "sl_w2", "eq")                   # solo: white
-    E(movs_imm, 1, COL_FLIP); E(cmp_imm, 0, 2); E(b_cond, "sl_w2", "eq")               # flip: orange
-    E(movs_imm, 1, COL_DIM)
-    a.label("sl_w2"); E(strh_imm, 1, 4, 2 * PAD_SOLO)
-    a.label("sl_x2"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
+        # ---- c_soled2 (the LED task calls: ctrl, frame): pad 16 let go, the flip pads let go, pad 16's LED
+        a.label("c_soled2")
+        E(push_list, [3, 4, 5, 6, 7], lr=True); E(mov_reg, 4, 1); E(bl, prev["ledtask"])
+        E(bl, "c_sost"); E(mov_reg, 6, 0)
+        imm32(0, Q.MGR); held(7, 0)
+        E(ldrb_imm, 0, 6, 6); E(movs_imm, 1, 1); E(tst_reg, 0, 1); E(b_cond, "sl_r", "eq")  # pad 16 down?
+        E(lsls_imm, 1, 7, 16); E(b_cond, "sl_r", "mi")                                     # still held
+        E(movs_imm, 1, 0); E(strb_imm, 1, 6, 6)
+        E(movs_imm, 1, 2); E(tst_reg, 0, 1); E(b_cond, "sl_r", "ne")                       # used with a track: nothing more
+        E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 0); E(b_cond, "sl_lv", "ne")
+        E(movs_imm, 0, 2); E(strb_imm, 0, 6, 4); E(b, "sl_r")                              # a tap with nothing on: flip
+        a.label("sl_lv"); E(cmp_imm, 0, 1); E(b_cond, "sl_rs", "eq")
+        E(ldrb_imm, 1, 6, 7); E(cmp_imm, 1, 0); E(b_cond, "sl_of", "eq")
+        a.label("sl_rs"); E(ldrb_imm, 0, 6, 5); E(bl, "c_soset")                            # the mutes before
+        a.label("sl_of"); E(movs_imm, 0, 0); E(strb_imm, 0, 6, 4); E(strb_imm, 0, 6, 7)
+        a.label("sl_r")
+        E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 2); E(b_cond, "sl_l", "ne")                    # flip: pads let go
+        E(ldrb_imm, 5, 6, 7); E(cmp_imm, 5, 0); E(b_cond, "sl_l", "eq")
+        E(mov_reg, 0, 5); E(ands_reg, 0, 7); E(cmp_reg, 0, 5); E(b_cond, "sl_l", "eq")
+        E(strb_imm, 0, 6, 7); E(cmp_imm, 0, 0); E(b_cond, "sl_pt", "ne")
+        E(ldrb_imm, 0, 6, 5); E(b, "sl_st")                                                 # the last one: the mixer as it was
+        a.label("sl_pt"); E(movs_imm, 1, 0xFF); E(eors_reg, 0, 1)
+        a.label("sl_st"); E(bl, "c_soset")
+        a.label("sl_l")
+        imm32(0, Q.MGR); E(ldr_imm, 0, 0, 0x6C); imm32(1, Q.MIX_VIEW); E(cmp_reg, 0, 1); E(b_cond, "sl_x2", "ne")
+        E(bl, L["c_gact"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x2", "ne")
+        E(bl, L["c_shift"]); E(cmp_imm, 0, 0); E(b_cond, "sl_x2", "ne")
+        E(movs_imm, 1, COL_ON); E(lsls_imm, 0, 7, 16); E(b_cond, "sl_w2", "mi")            # held: bright white
+        E(ldrb_imm, 0, 6, 4); E(cmp_imm, 0, 1); E(b_cond, "sl_w2", "eq")                   # solo: white
+        E(movs_imm, 1, COL_FLIP); E(cmp_imm, 0, 2); E(b_cond, "sl_w2", "eq")               # flip: orange
+        E(movs_imm, 1, COL_DIM)
+        a.label("sl_w2"); E(strh_imm, 1, 4, 2 * PAD_SOLO)
+        a.label("sl_x2"); E(pop_list, [3, 4, 5, 6, 7], pc=True)
 
-    # ---- c_soload (the end of the stock's Â«apply sessionÂ»): either mode off, nothing restored
-    a.label("c_soload")
-    E(raw, pushw([0, 1, 2, 3, 12], lr=True))
-    E(bl, "c_sost"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 4); E(strb_imm, 1, 0, 6); E(strb_imm, 1, 0, 7)
-    E(raw, popw([0, 1, 2, 3, 12], lr=True)); E(b_w, prev["load"])
+        # ---- c_soload (the end of the stock's Â«apply sessionÂ»): either mode off, nothing restored
+        a.label("c_soload")
+        E(raw, pushw([0, 1, 2, 3, 12], lr=True))
+        E(bl, "c_sost"); E(movs_imm, 1, 0); E(strb_imm, 1, 0, 4); E(strb_imm, 1, 0, 6); E(strb_imm, 1, 0, 7)
+        E(raw, popw([0, 1, 2, 3, 12], lr=True)); E(b_w, prev["load"])
     return a.assemble()
 
 
