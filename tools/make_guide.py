@@ -25,11 +25,11 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.37"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.48"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
-RCNOW = "RC4.22"                      # the newest published release candidate (update it with each release): the conventions and the rc set's title (docset.rc_name)
+RCNOW = "RC4.23"                      # the newest published release candidate (update it with each release): the conventions and the rc set's title (docset.rc_name)
 PARTS = [("0", "Introducción"), ("1", "Setup"), ("2", "Sintes de stock (Synth 1 / 2)"), ("3", "Pistas MIDI (MIDI 1 / 2)"), ("4", "Pattern Settings"),
          ("5", "Drums"), ("6", "Master FX"), ("7", "FX"), ("8", "Sidechain"), ("9", "Escenas y patterns"), ("10", "Projects y packs"), ("11", "Datos: guardado, MIDI y modulación"), ("A", "Apéndice")]
 # the chapters the user listed (2026-10-15): setup, sintes de stock, pistas MIDI, pattern settings, drums, Master FX, FX, sidechain, scenes y patterns, projects y packs
@@ -189,7 +189,9 @@ Los **pads 1-8** eligen qué mueven los 8 knobs del sinte (el elegido brillante,
 - **Clear + knob**: en Macros, lo del original (izquierda borra su automatización, derecha el valor por defecto); en las demás páginas, nada.
 - El **editor de macros** pasa al **pad 26** y el **step-drummer** al **pad 32**; el pad 30 no hace nada.
 
-**Macros 2 (Shift + pad 1):** 8 knobs más, cada uno directo a un parámetro del sinte. No son secuenciables. Un knob asignado se enciende con su valor; uno libre está apagado. Se guardan con el proyecto.
+**Macros 2 (Shift + pad 1):** 8 knobs más, cada uno directo a un parámetro del sinte. Un knob asignado se enciende con su valor; uno libre está apagado. Se guardan con el proyecto.
+
+**Automatización de Macros 2** {YB}: con Record y sonando, girar un knob de Macros 2 graba su movimiento en el patrón (dos valores por paso: al principio y a la mitad); con un **paso mantenido**, el knob escribe en ese paso. **Clear + knob a la izquierda** = borra su carril; **a la derecha** = vuelve al valor del patch. Los carriles se guardan con el proyecto; copiar, borrar y Nudge de un patrón los llevan.
 
 **Asignar un parámetro a un macro o a Macros 2:**
 1. *(Para un macro.)* En Macros, mueve el knob del macro: durante 2 s los **pads 1 / 9 / 17 / 25** enseñan sus **4 ranuras** (brillante = en uso, tenue = libre). **Mantén uno de esos pads y gira el knob del macro**: esa ranura queda elegida (el pad en blanco; el knob no mueve nada).
@@ -217,7 +219,7 @@ view("synth-preset", "II", "Vista Preset de Synth 1 / 2",
 
 - El original no puede guardar patches desde el aparato. El patch guardado conserva el nombre del que estaba cargado.
 - No funciona en el pack de la memoria interna (solo lectura para el mod): el LED de Save se pone rojo.
-- **Morph de patches** {YB}: en la vista Preset, **mantén de dos a cuatro patches** 0,4 s (o mantenidos + Duplicate): se abre la **vista del morph**, que pasa de uno a otro de los patches mantenidos, en el orden de los pads. Solo funcionan los knobs: **K1** = la posición en la cadena; **K2** = LFO cuadrado (cantidad); **K3** = la velocidad de los dos LFO; **K4** = LFO de pasos al azar (cantidad; un valor nuevo en cada medio ciclo); **K5** = destino del **morph lento**; **K6** = su duración (a la izquierda del todo, al momento; luego de ¼ a 32 compases del tempo del proyecto: más a la derecha, más largo); **K7 / K8** = envolvente (cantidad / tiempo); **K8** también suaviza los dos LFO (más a la derecha, cambios más lentos). Las cantidades a la derecha van hacia el final de la cadena. **Morph lento:** gira K5 y déjalo quieto medio segundo: el sonido va de K1 a K5 en el tiempo de K6 y, al llegar, K1 toma el valor de K5; girar K5 otra vez cambia el destino desde donde está el sonido; girar K1 lo para ahí. **K1 y K5 en color:** patch 1 rojo, 2 amarillo, 3 verde, 4 azul, con tonos intermedios entre ellos. **Clear + knob** = 0 (Clear no sale de la vista); **Clear + el botón de la pista** = los knobs a 0. **Pads 1 / 8** = la envolvente desde arriba, **sostenida mientras los mantienes**; K8 marca solo la caída (en Synth 1 / 2, desde la Beta 5.56, el ataque llega a todo el patch a la vez). **Pad 32** (rojo) = salir. **Preset** = los patches, los de la cadena en blanco: un toque carga ese patch y sale; mantener 0,4 s = cadena nueva con los knobs como están. El morph sigue en las otras vistas; el **botón de la pista** vuelve a la vista del morph (desde ella, a la Note). **Un morph a la vez:** mantener patches 0,4 s en la vista Preset de otra pista abre el morph de esa pista y para el anterior (su sonido se queda donde está); un toque en otra pista solo carga ese patch. Los parámetros continuos se mezclan; los de tipo (onda, algoritmo, modo…) toman el del patch más cercano. No se guarda nada.
+- **Morph de patches** {YB}: en la vista Preset, **mantén de dos a cuatro patches** 0,4 s (o mantenidos + Duplicate): se abre la **vista del morph**, que pasa de uno a otro de los patches mantenidos, en el orden de los pads. Solo funcionan los knobs: **K1** = la posición en la cadena; **K2** = LFO cuadrado (cantidad); **K3** = la velocidad de los dos LFO ({YB} bipolar: a la derecha libre, hasta ≈ 75 % de la de antes; a la izquierda a tempo, de 1/16T a 8 compases); **K4** = LFO de pasos al azar (cantidad; un valor nuevo en cada medio ciclo); **K5** = destino del **morph lento**; **K6** = su duración (a la izquierda del todo, al momento; luego de ¼ a 32 compases del tempo del proyecto: más a la derecha, más largo); **K7 / K8** = envolvente (cantidad / tiempo); **K8** también suaviza los dos LFO (más a la derecha, cambios más lentos). Las cantidades a la derecha van hacia el final de la cadena. **Morph lento:** gira K5 y déjalo quieto medio segundo: el sonido va de K1 a K5 en el tiempo de K6 y, al llegar, K1 toma el valor de K5; girar K5 otra vez cambia el destino desde donde está el sonido; girar K1 lo para ahí. **K1 y K5 en color:** patch 1 rojo, 2 amarillo, 3 verde, 4 azul, con tonos intermedios entre ellos. **Clear + knob** = 0 (Clear no sale de la vista); **Clear + el botón de la pista** = los knobs a 0. **Pads 1 / 8** = la envolvente desde arriba, **sostenida mientras los mantienes**; K8 marca solo la caída (en Synth 1 / 2, desde la Beta 5.56, el ataque llega a todo el patch a la vez). **Pad 32** (rojo) = salir. **Preset** = los patches, los de la cadena en blanco: un toque carga ese patch y sale; mantener 0,4 s = cadena nueva con los knobs como están. El morph sigue en las otras vistas; el **botón de la pista** vuelve a la vista del morph (desde ella, a la Note). **Un morph a la vez:** mantener patches 0,4 s en la vista Preset de otra pista abre el morph de esa pista y para el anterior (su sonido se queda donde está); un toque en otra pista solo carga ese patch. Los parámetros continuos se mezclan; los de tipo (onda, algoritmo, modo…) toman el del patch más cercano. {YB} En Synth 1 / 2 se mueve todo el patch (osciladores, mezclador, filtro, envolventes, LFO, destinos de los macros) salvo la octava del teclado, y los osciladores sin escalones. No se guarda nada.
 """, [("colores-patch", 0), ("colores-patch", 1), ("guardar-patch", 0)])
 
 # ===================================================================================================== III
@@ -838,8 +840,9 @@ view("mixer", "VI", "Vista Mixer y escenas",
 | **Página de panorama: Shift + knob a la derecha / izquierda** {B} | **Modo cue** encendido / apagado (Octave ▼ rosa / blanco; se guarda en el aparato). |
 | **Modo cue: un knob de panorama** {B} | El envío de esa pista al **cue** (salida derecha), del centro a la derecha (a la izquierda nada); Clear + knob = sin cue. Los knobs en rosa, más brillantes cuanto más envío. |
 | **Pads de escena** | Como siempre; una escena guardada con el **modo cadena** se ve en **melocotón** y al cargarla vuelve el modo; una normal lo desactiva. {B} {YB} **Clear + pad de escena** (el borrado de escena de siempre) borra también sus cadenas de grupos. |
-| **Pad 16 mantenido + pads 1-8** {YB} | **Solo**: se guardan los mutes del Mixer, las pistas que pulses siguen sonando y se silencian todas las demás. El pad 16 queda en **blanco** mientras el solo está activo; mantenerlo otra vez con otras pistas las pone en solo a ellas. **Un toque al pad 16** solo (sin pistas) vuelve a los mutes de antes del solo. |
-| **Toque al pad 16 sin solo** {YB} | **Solo flip**: el pad 16 en **naranja**. Mientras mantienes una o varias pistas (silenciadas o no), suenan solo ellas; al soltarlas, el Mixer vuelve a como estaba. Pad 16 mantenido + pistas = solo (sale del flip); otro toque al pad 16 sale. Cargar otro proyecto apaga el solo y el flip sin tocar sus mutes. |
+| **Toque al pad 16** {YB} | **Solo**: el pad 16 en **blanco** (se guardan los mutes del Mixer, todavía no cambia nada). Cada **pad de pista** que toques entra o sale del **grupo de solo**, que suena solo (el grupo vacío = los mutes guardados). **Otro toque al pad 16** vuelve a los mutes de antes. |
+| **Pad 16 mantenido + pads 1-8** {YB} | **Grupo nuevo**: las pistas que toques mientras lo mantienes suenan solas y se silencian todas las demás; el solo sigue al soltarlo. |
+| **Toque al pad 15** {YB} | **Flip** encendido / apagado (pad 15 en **naranja**): mientras mantienes un pad de pista, esa pista cambia de silenciada a sonando (o al revés); al soltarlo, vuelve. Funciona **encima de un solo**: el flip parte de lo que suena con el solo. Encender o apagar el flip no toca el solo, ni el solo el flip. Cargar otro proyecto apaga los dos sin tocar sus mutes. |
 | **Shift + pads 1-8** {B} | **Silenciar / activar esa pista en el compás siguiente**: el pad parpadea mientras espera; otra vez lo cancela. Parado, al momento. |
 | **Shift + pads 9-16** | **Repeticiones** de la escena actual (1-8; con Shift la fila en amarillo, la elegida en verde). {B} Sonando, con Shift, **la repetición que suena en blanco** (pad 9 = la primera vez; en la última, el pad verde parpadea blanco / verde). {XB} |
 | Pistas que parpadean | Están siguiendo una regla de cadena. {B} |
@@ -858,11 +861,14 @@ view("mixer", "VI", "Vista Mixer y escenas",
 | **Un knob** | Lo elige y mueve ese knob en sus pistas enlazadas (sin pistas no mueve nada; su LED, blanco tenue). |
 | **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 para el knob elegido: **brillante = enlazada**, tenue = no; un toque cambia. |
 | **Pads 9-16 / 17-24 / 25-32** | El **nivel del Mixer**, el **envío de reverb** y el **envío de delay** de esas mismas pistas (en el mismo orden) para el knob elegido, igual: el knob los mueve como su knob en el Mixer (página de niveles) o en la vista FX. |
+| **Octave ▲ / ▼** {YB} | **Página 2** / página 1 (el Octave encendido es el camino a la otra). Al abrir la vista, página 1. |
+| **Página 2: los pads** {YB} | Una **cuadrícula**: la **columna n es el knob Kn y la pista n** (K1 Synth 1 … K8 Drum 4); **fila 1 = el K5 de la pista (corte), fila 2 = su panorama, fila 3 = su K3 (envolvente), fila 4 = su K8 (efecto)**. Encendido (color de la pista) = ese knob lo mueve; tenue = no; un toque cambia. |
+| **Página 2: un knob** {YB} | Mueve a la vez todo lo encendido de su columna (MIDI 1 / 2: su página 4, como en la página 1). La cuadrícula se guarda con el proyecto. |
 | **Mixer o Patterns solos**, o cualquier botón salvo Record, Play, Clear y Duplicate | Cierra la vista (y hace lo de siempre). |
 
 - Al empezar no hay ninguna pista enlazada; cada knob tiene las suyas y se guardan con el proyecto.
 - El LED de un knob enlazado lleva el color de su primera pista enlazada en cualquier fila: brillante el elegido, tenue los demás; sin enlaces, apagado.
-- Un proyecto guardado con la Alpha 7.16 carga sus enlaces en los pads 1-8.
+- {YB} Desde la Alpha 7.47 los enlaces de un proyecto guardado con la Alpha 7.16 ya no se cargan.
 - El knob del filtro master sigue siendo el de siempre.
 """, [("mixer-shift", 0)])
 
@@ -1051,7 +1057,8 @@ view("guardado", "XI", "Qué vuelve tras reiniciar y dónde se guarda",
 | **Sidechain**: Synth 1 / 2 y MIDI 1 / 2 como fuente; K1-K4 de las páginas de drums | [Sidechain](#sidechain) |
 | **Modo cadena** (y en cada escena), **repeticiones de escena**, envíos del **modo cue** | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Mutate de patrones**: qué pistas mutan, la semilla y los ajustes (y en cada escena) | [Patterns](#patterns) |
-| {YB} **Vista de macros global**: qué mueve cada knob (los knobs de cada pista, su nivel, sus envíos de reverb y delay) | [Mixer](#mixer) |
+| {YB} **Vista de macros global**: qué mueve cada knob (los knobs de cada pista, su nivel, sus envíos de reverb y delay) y la cuadrícula de la página 2 | [Mixer](#mixer) |
+| {YB} **Automatización de Macros 2** de Synth 1 / 2 | [Fuente del sinte](#synth-fuente) |
 | {YB} **Macros 2** de Synth 1 / 2: qué parámetro mueve cada knob | [Fuente del sinte](#synth-fuente) |
 | {YB} **Cadenas de grupos**: la de cada pista y la de cada escena (en el fichero del proyecto, detrás de los carriles extra) | [Patterns](#patterns) |
 | **Cuenta atrás** (el metrónomo, como en el original, no se guarda) | [Botones](#botones) |
@@ -1169,7 +1176,7 @@ La referencia oficial es la **Programmer's Reference Guide** de Novation, versi�
 view("instalar", "VIII", "Instalar y volver atrás",
      "`tools/rc_uploader.html` parchea el firmware oficial en el navegador y lo envía por Web MIDI.",
      """
-1. Descarga el firmware oficial 1.2.1 de Novation, abre `tools/rc_uploader.html` en Chrome y conecta el Circuit Tracks por USB.
+1. Descarga el firmware oficial 1.2.1 de Novation, abre `tools/rc_uploader.html` en Chrome y conecta el Circuit Tracks por USB **en modo bootloader: mantén Scales + Preset + Note al encenderlo**. **Nunca instales con el aparato encendido de forma normal**: con el firmware en marcha la instalación puede escribir sobre la memoria interna (se pierden el pack 0 y los ajustes). El instalador solo envía tras **Identificar** el aparato en modo bootloader; desde RC4.23 / Alpha 7.48 el firmware en marcha ignora una instalación.
 2. Elige la versión (RC4, la más segura RC4S, o una anterior) y envía. El bootloader de Novation no se toca.
 3. **Haz antes una copia de la tarjeta.** Con las versiones que no acaban en «S», no uses la memoria interna para proyectos.
 - **Volver atrás:** envía otra versión o el firmware oficial. Si no arranca: **Scales + Preset + Note** al encender.

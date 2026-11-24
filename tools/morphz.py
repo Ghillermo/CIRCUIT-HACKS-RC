@@ -84,6 +84,7 @@ AIM_MS = 500                             # K5 at rest this long = the glide star
 GRAD = bytes([0x53, 0x45, 0x7F, 0x51, 0x6D, 0x2D, 0x6F, 0x70, 0x71, 0x72, 0x17, 0x74, 0x4D, 0x13, 0x12, 0x09])   # red > yellow > green > blue
 SLOW_FUNCS = ("c_mzslow", "c_mzslw", "c_mzgc")
 TEMPO = 0x20011404
+TRANSPORT, ENG = 0x20011034, 0x20038EC0         # (LFSYNC) the transport store (p0 playing); the engine: [+ 0x90] p0 = the global tick
 TRIMP = False                            # SC56 (use_trimpanel): c_mzpanel left out (NOCUR never calls it)
 TRIMNC = False                           # Alpha 7.03 (use_trimnc): the initial patch's place code left out (NOCUR never runs it)
 ENDLAST = False                          # SC56: the image's end only when nothing else fits (dspz v2's first gap is bigger than the end)
@@ -137,6 +138,43 @@ RRFIX = False                            # SC56.9 (use_rrfix): c_mznova's round-
 NEWSTOP = False                          # SC57 (use_newstop): patches held 0.4 s on another track = its morph, the running one stopped
 NEWSTOP_FUNCS = ("c_mzarm",)
 FASTATK = False                          # SC57.1 (use_fastatk): an envelope trigger = Synth 1 / 2's whole patch rewritten in one service pass
+TYPEFIX = False                          # Alpha 7.39 (use_typefix): the «packed field: left alone» test reads the row's own MIDI type
+OCT_ROW = 5                              # (TYPEFIX) the keyboard octave (patch byte 35, CC 13): the Octave buttons', never morphed
+SMOOTH = False                           # Alpha 7.40 (use_smooth): the oscillator rows written every frame, outside the round robin
+OSC_LO, OSC_HI = 6, 23                   # (SMOOTH) OSC 1 / OSC 2's rows (wave, interpolation, pulse width, sync, density, detune, semitones, cents)
+
+
+LFSYNC = False                           # Alpha 7.41 (use_lfsync): K3 bipolar, right free (75 % of the old top speed), left synced
+FREE_MUL = 7                             # (LFSYNC) the free side: rate = v x 7 / 4 (v 0..63: 0..110 of the old 0..127)
+
+
+def use_lfsync():
+    """Alpha 7.41 (the user, 2026-11-24: «Make the lfo behave like the other lfos (right: free / left: synced). limit the maximum speed ~75%»):
+    K3, the rate of the morph's two LFOs, is bipolar as the other LFO rates (lfosync): the centre dim, to the right a free LFO (faster further
+    right, the top = rate 110 of the old 0..127 scale: about 75 % of the old top speed), to the left synced to the tempo, from the centre outwards
+    1/16T, 1/16, 1/8T, 1/8, 1/4T, 1/4, 1/2T, 1/2, 1 bar T, 1 bar, 2T, 2, 4T, 4, 8T, 8 bars (4 clicks each; d = (4 or 6) << (i >> 1) ticks of
+    24 a quarter); playing, the phase = (the global tick mod d) / d (cycles on the bar's first beat), stopped it runs at the tempo.  The morph's
+    state signature changes (MRZ4: the knobs back to their defaults once), K3's default = 37 (the old default speed)."""
+    global LFSYNC
+    LFSYNC = True
+    if SLOW: _lfsync_knobs()
+
+
+def _lfsync_knobs():
+    global UNI, DEF_K, SIG
+    UNI = 0xB1                           # K1, K5, K6, K8 unipolar; K3 bipolar
+    DEF_K = (0, 0, 37, 0, 0, 64, 0, 64)
+    SIG = 0x345A524D                     # "MRZ4"
+
+
+def use_smooth():
+    """Alpha 7.40 (the user, 2026-11-24, on 7.39: «en morph, k2 (lfo) hace un poco de ruido, suena como aliasing o ruido blanco», «los demás
+    parámetros parecen estar bien» -> «Smoother steps»): with use_typefix the oscillator rows morph too, but c_mznova writes at most BUDGET rows a
+    frame in a round robin over ~300 rows, so while the LFO / envelope moves the morph each oscillator row was updated only every few frames: a
+    staircase of pitch / sync / density steps.  Now each pass first writes the oscillator rows 6-23 (all of them, outside the budget: at most 18
+    writes more a frame), then the round robin skips them."""
+    global SMOOTH
+    SMOOTH = True
 
 
 def use_newstop():
@@ -162,6 +200,24 @@ def use_fastatk():
     global FASTATK
     assert SVC
     FASTATK = True
+
+
+def use_typefix():
+    """Alpha 7.39 (fix; found while studying the table under the factory-test blocks (factcut), the user: «fix»): the stock's rows are 8 bytes
+    from 0x0805454C (u16 byte, kind, 3 range bytes, MIDI type, number: the sender 0x0803BF96 and the NRPN / CC maps agree only with this grid);
+    TABLE = 0x0805454A here puts the byte and the kind at + 2 / + 4 (right) but makes + 0 the PREVIOUS row's MIDI type.  c_mznova's «a packed
+    field: left alone» test read + 0 >= 0xFD: so every row after a CC row (type 0xFF) was skipped (rows 3-44: the oscillators, the mixer, the
+    filter, the amp envelope; 79-80; each macro's slot-1 destination 175 + 17 m), and the packed rows 61 / 73 were written with their whole byte.
+    Now every row with a byte in 30..339 but row 5 morphs (kinds 1 / 2 in steps, the rest at the halfway point): 307 rows (7.38: 246; + 3, 4,
+    6-44, 62-66, 74-80 and the macros' slot-1 destinations 175 + 17 m; 61 / 73 now by their field), and:
+      * the ten packed rows (own type 0xFD / 0xFE: 61-65 / 73-77 = the LFO 1 / 2 flags in the bytes 91 / 99) field by field at the halfway
+        point, as the stock's setter (0x0803BC1E) and getter (0x0803BD00) see them: kind 5 = bit o, kind 0 = (byte >> o) & smear(max), o = the
+        row's + 3, max = + 5 (here max | 1: 0 for the bits, 1 or 3 for the others; install() checks the table);
+      * row 5, the keyboard octave (byte 35, CC 13: what the Octave buttons change, without the setter), is never morphed (the review of 7.39's
+        first build: a running morph undid every Octave press and moved the keyboard by octaves).
+    tools/emu_morph.py uses the same rows when report["morphz"]["typefix"] is there."""
+    global TYPEFIX
+    TYPEFIX = True
 
 
 def use_rrfix():
@@ -191,6 +247,7 @@ def use_slow():
     DEF_K = (0, 0, 64, 0, 0, 64, 0, 64)
     SIG = 0x335A524D                     # "MRZ3"
     assert NV_END <= SL and SL_END <= 0x2004EE00
+    if LFSYNC: _lfsync_knobs()
 
 
 def use_trimpanel():
@@ -750,9 +807,27 @@ def c_mzfill(c):                         # (r4 = t, r6 = MZ): one uncached link 
 @fn
 def c_mzlfo(c):                          # (r0 = the phase's address, r1 = rate 0..127, r5 = dt) -> r0 = the phase (u16), r1 = 1 when it wrapped; clobbers r2
     E = c.E
+    if LFSYNC:                                                                              # (LFSYNC) r1 = K3 -64..63: < 0 synced, else free x 7 / 4
+        E(lsls_imm, 1, 1, 24); E(raw, h(0x1000 | 24 << 6 | 1 << 3 | 1)); E(b_cond, "lf_sy", "mi")   # asrs r1, r1, #24
+        E(movs_imm, 2, FREE_MUL); E(muls, 1, 2); E(lsrs_imm, 1, 1, 2)
     E(adds_imm8, 1, 1); E(muls, 1, 1); E(adds_imm8, 1, 16); E(muls, 1, 5); E(lsrs_imm, 1, 1, 4)
     E(ldrh_imm, 2, 0, 0); E(adds_reg, 2, 2, 1); E(strh_imm, 2, 0, 0)
     E(lsrs_imm, 1, 2, 16); E(lsls_imm, 0, 2, 16); E(lsrs_imm, 0, 0, 16); E(raw, RET)
+    if LFSYNC:
+        c.lab("lf_sy"); E(push_list, [3, 4, 6, 7], lr=True); E(mov_reg, 7, 0)
+        E(raw, h(0x43C9)); E(lsrs_imm, 6, 1, 2)                                             # mvns r1, r1: r6 = the division's index 0..15
+        E(movs_imm, 1, 1); E(ands_reg, 1, 6); E(movs_imm, 3, 4); E(cmp_imm, 1, 0); E(b_cond, "lf_d", "eq"); E(movs_imm, 3, 6)
+        c.lab("lf_d"); E(lsrs_imm, 1, 6, 1); E(lsls_reg, 3, 1); E(mov_reg, 6, 3)             # r6 = d ticks
+        c.imm32(0, TRANSPORT); E(movs_imm, 1, 0); c.call(PK.PARAM_GET); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 0); E(b_cond, "lf_fr", "eq")
+        c.imm32(0, ENG + 0x90); E(ldr_imm, 0, 0, 0); E(movs_imm, 1, 0); c.call(PK.PARAM_GET); E(ldr_imm, 4, 0, 0)   # r4 = the global tick
+        E(raw, udiv(0, 4, 6)); E(muls, 0, 6); E(subs_reg, 0, 4, 0); E(lsls_imm, 0, 0, 16); E(raw, udiv(0, 0, 6)); E(b, "lf_st")
+        c.lab("lf_fr")                                                                      # stopped: 65536 x 24 x BPM / (60000 d) a ms
+        c.imm32(0, TEMPO); E(movs_imm, 1, 0); c.call(PK.PARAM_GET); E(ldrb_imm, 4, 0, 0)
+        E(movw, 0, 26214); E(muls, 4, 0); E(muls, 4, 5); E(movw, 0, 1000); E(muls, 0, 6); E(raw, udiv(4, 4, 0))
+        E(ldrh_imm, 0, 7, 0); E(adds_reg, 0, 0, 4)
+        c.lab("lf_st"); E(ldrh_imm, 1, 7, 0); E(strh_imm, 0, 7, 0); E(lsls_imm, 0, 0, 16); E(lsrs_imm, 0, 0, 16)
+        E(cmp_reg, 0, 1); E(movs_imm, 1, 1); E(b_cond, "lf_w", "lo"); E(movs_imm, 1, 0)
+        c.lab("lf_w"); E(pop_list, [3, 4, 6, 7], pc=True)
 
 
 @fn
@@ -930,6 +1005,9 @@ def c_mznova(c):                         # (r4 = t, r5 = f, r6 = MZ, r8 / r11 = 
         c.imm32(3, NV); E(ldrb_imm, 2, 3, 6); E(cmp_imm, 2, 0); E(b_cond, "nv_b", "eq"); E(movs_imm, 2, 0); E(strb_imm, 2, 3, 6); E(movw, 0, NROWS + 1)
         c.lab("nv_b")
     E(raw, mov_hi(12, 0))                                                                   # r12 = the budget (kept on the stack around the call)
+    if SMOOTH:                                                                              # (SMOOTH) [sp] = 1: the oscillator rows first, then 0: the round robin
+        E(movs_imm, 7, OSC_LO); E(movs_imm, 0, 1); E(push_list, [0]); E(b, "nv_k")
+        c.lab("nv_rr")
     E(ldrh_imm, 7, 6, O_RR)
     if RRFIX:                                                                               # out of range (the RAM never set): from row 0
         E(movw, 0, NROWS); E(cmp_reg, 7, 0); E(b_cond, "nv_r", "lo"); E(movs_imm, 7, 0); E(strh_imm, 7, 6, O_RR)
@@ -938,21 +1016,45 @@ def c_mznova(c):                         # (r4 = t, r5 = f, r6 = MZ, r8 / r11 = 
     E(movw, 0, NROWS); E(cmp_reg, 7, 0); E(b_cond, "nv_k", "lo"); E(movs_imm, 7, 0)
     c.lab("nv_k")
     E(lsls_imm, 0, 7, 3); c.imm32(1, TABLE); E(adds_reg, 3, 0, 1)                          # r3 = the row
-    E(ldrb_imm, 0, 3, 0); E(cmp_imm, 0, 0xFD); E(b_cond, "nv_s", "hs")                      # a bitfield: left alone
+    if TYPEFIX:                                                                             # (TYPEFIX) row 5 = the keyboard octave (the Octave buttons'): left alone
+        c.lab("nv_tf"); E(cmp_imm, 7, OCT_ROW); E(b_cond, "nv_s", "eq")
+    else:
+        E(ldrb_imm, 0, 3, 0); E(cmp_imm, 0, 0xFD); E(b_cond, "nv_s", "hs")                  # a bitfield: left alone (in fact the previous row's type: use_typefix)
+    if SMOOTH:                                                                              # (SMOOTH) the round robin: the oscillator rows are the first pass's
+        E(raw, h(0x9800)); E(cmp_imm, 0, 0); E(b_cond, "nv_q", "ne"); E(cmp_imm, 7, OSC_LO); E(b_cond, "nv_q", "lo")
+        E(cmp_imm, 7, OSC_HI); E(b_cond, "nv_s", "ls")
+        c.lab("nv_q")
     E(ldrb_imm, 0, 3, 2); E(ldrb_imm, 1, 3, 3); E(lsls_imm, 1, 1, 8); E(orrs_reg, 0, 1); E(subs_imm8, 0, 30)
     E(movw, 1, NOVA_LEN); E(cmp_reg, 0, 1); E(b_cond, "nv_s", "hs")                         # r0 = the byte - 30
     E(raw, mov_hi(1, 8)); E(ldrb_reg, 2, 1, 0); E(raw, mov_hi(1, 11)); E(ldrb_reg, 1, 1, 0)   # r2 = A, r1 = B
-    E(push_list, [0]); E(ldrb_imm, 0, 3, 4); E(subs_imm8, 0, 1); E(cmp_imm, 0, 1); E(b_cond, "nv_c", "ls")    # kinds 1 / 2 (a range): continuous
+    E(push_list, [0])
+    if TYPEFIX:                                                                             # (TYPEFIX) this row's own MIDI type 0xFD / 0xFE: a field of a packed byte
+        E(ldrb_imm, 0, 3, 8); E(subs_imm8, 0, 0xFD); E(cmp_imm, 0, 1); E(b_cond, "nv_pk", "ls")
+    E(ldrb_imm, 0, 3, 4); E(subs_imm8, 0, 1); E(cmp_imm, 0, 1); E(b_cond, "nv_c", "ls")    # kinds 1 / 2 (a range): continuous
     E(cmp_imm, 5, 64); E(b_cond, "nv_v", "lo"); E(mov_reg, 2, 1); E(b, "nv_v")
     c.lab("nv_c"); E(subs_reg, 1, 1, 2); E(muls, 1, 5); E(raw, asrs(1, 1, 7)); E(adds_reg, 2, 2, 1)
     c.lab("nv_v"); E(pop_list, [0]); E(raw, mov_hi(1, 9)); E(ldrb_reg, 1, 1, 0); E(cmp_reg, 1, 2); E(b_cond, "nv_s", "eq")
-    E(mov_reg, 3, 2); E(raw, mov_hi(0, 10)); E(mov_reg, 1, 4); E(mov_reg, 2, 7)
+    c.lab("nv_w"); E(mov_reg, 3, 2); E(raw, mov_hi(0, 10)); E(mov_reg, 1, 4); E(mov_reg, 2, 7)
     E(raw, h(0xF84D) + h(0xCD04)); c.call(PARAM_SET); E(raw, h(0xF85D) + h(0xCB04))       # str.w r12, [sp, #-4]! / ldr.w r12, [sp], #4
+    if SMOOTH: E(raw, h(0x9800)); E(cmp_imm, 0, 0); E(b_cond, "nv_s", "ne")                  # (SMOOTH) the first pass: outside the budget
     E(raw, h(0xF1BC) + h(0x0C01)); E(b_cond, "nv_e", "eq")                                  # subs.w r12, r12, #1
     c.lab("nv_s"); E(adds_imm8, 7, 1)
+    if SMOOTH:                                                                              # (SMOOTH) the first pass's end: the round robin from its place
+        E(raw, h(0x9800)); E(cmp_imm, 0, 0); E(b_cond, "nv_s0", "eq"); E(cmp_imm, 7, OSC_HI + 1); E(b_cond, "nv_k", "lo")
+        E(movs_imm, 0, 0); E(raw, h(0x9000)); E(b, "nv_rr")
+        c.lab("nv_s0")
     E(movw, 0, NROWS); E(cmp_reg, 7, 0); E(b_cond, "nv_t", "lo"); E(movs_imm, 7, 0)
     c.lab("nv_t"); E(ldrh_imm, 0, 6, O_RR); E(cmp_reg, 0, 7); E(b_cond, "nv_l", "ne")       # a whole round: done
-    c.lab("nv_e"); E(strh_imm, 7, 6, O_RR); E(pop_list, [], pc=True)
+    c.lab("nv_e")
+    if SMOOTH: E(raw, h(0xB001))                                                            # add sp, #4: the pass flag
+    E(strh_imm, 7, 6, O_RR); E(pop_list, [], pc=True)
+    if TYPEFIX:                                                                             # (TYPEFIX) a packed field: A's or B's at the halfway point, as the stock's
+        c.lab("nv_pk")                                                                      # setter / getter see it (o = row + 3, the field = (byte >> o) & (max | 1))
+        E(cmp_imm, 5, 64); E(b_cond, "nv_pa", "lo"); E(mov_reg, 2, 1)                       # r2 = the byte of the side the morph is on
+        c.lab("nv_pa"); E(pop_list, [0]); E(raw, mov_hi(1, 9)); E(ldrb_reg, 1, 1, 0)        # r1 = the live byte
+        E(ldrb_imm, 0, 3, 5); E(lsrs_reg, 2, 0); E(lsrs_reg, 1, 0)
+        E(ldrb_imm, 0, 3, 7); E(movs_imm, 3, 1); E(orrs_reg, 0, 3); E(ands_reg, 2, 0); E(ands_reg, 1, 0)
+        E(cmp_reg, 1, 2); E(b_cond, "nv_s", "eq"); E(b, "nv_w")
 
 
 @fn
@@ -1135,6 +1237,14 @@ def place(img, report):
     BASE = ct_fw.APP_BASE
     u = lambda a_: struct.unpack_from("<I", img, a_ - BASE)[0]
     lab = lambda m, k: int(report[m]["labels"][k], 16)
+    if TYPEFIX:                                                                     # the stock table as c_mznova reads it (rows from TABLE + 2)
+        row = lambda r: bytes(img[TABLE + 2 + 8 * r - BASE:TABLE + 2 + 8 * r + 8 - BASE])
+        assert row(OCT_ROW)[0] == 35 and row(OCT_ROW)[2] == 2 and row(OCT_ROW)[6:] == bytes([0xFF, 13]), "row 5 = the keyboard octave (byte 35, CC 13)"
+        packed = [r for r in range(NROWS) if row(r)[6] in (0xFD, 0xFE)]
+        assert packed == list(range(61, 66)) + list(range(73, 78)), packed
+        for r in packed:
+            k, o, mx = row(r)[2], row(r)[3], row(r)[5]
+            assert (k == 5 and mx == 0) or (k == 0 and mx in (1, 3)), (r, k, o, mx)   # the field mask = max | 1
     L = dict(c_pson=lab("psave", "c_pson"), c_mpon=lab("mpatch", "c_mpon"), c_mpc=lab("mpatch", "c_mpc"), c_mpr=lab("mpatch", "c_mpr"),
              c_von=lab("vcf20", "c_von"), c_vvaddr=lab("vcf20", "c_vvaddr"), c_vstore=lab("vcf20", "c_vstore"), c_mxclrh=lab("modmx", "c_mxclrh"),
              c_gst=lab("sc14", "c_gst"), c_rmw=lab("srcview", "c_rmw"), c_shift=lab("sc15", "c_shift"),
@@ -1214,4 +1324,8 @@ def place(img, report):
     report["morphz"] = dict(labels={n: hex(v) for n, v in lab2.items() if "." not in n}, prev={k: hex(v) for k, v in prev.items()},
                             parts={k: [hex(base_of[k]), hex(base_of[k] + len(out[k])), parts[k]] for k in out},
                             listing={k: _dis(sc, out[k], base_of[k]) for k in out}, free={k: hi_of[k] - base_of[k] - len(out[k]) for k in out})
+    if TYPEFIX:
+        report["morphz"]["typefix"] = hex(lab2["c_mznova.nv_tf"]) if "c_mznova.nv_tf" in lab2 else True
+    if SMOOTH:
+        report["morphz"]["smooth"] = [OSC_LO, OSC_HI]
     return lab2

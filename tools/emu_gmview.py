@@ -129,6 +129,60 @@ def main(a):
               f"  K5 picked: K3 = Synth 1's {'dim colour, full' if dim else 'colour at a third'} ({hex(f[62])}), K5 dim white ({hex(f[64])})")
         knob(2, 0); f = X.frame(e)
         check(f[62] == cols[1] | G.BR_SEL << 8, f"  K3 picked again: its bright colour ({hex(f[62])})")
+    if "kg_l" in L:                                                                    # Alpha 7.47: page 2 = the grid
+        G.use_page2col()
+        press(20); release(20); f = X.frame(e)
+        pg = lambda: e.r8(G.GM + G.O_PG); mx = lambda r: e.r8(G.GM + G.O_MX + r)
+        check(on() == 1 and pg() == 1 and f[:32] == [cols[9 + k % 8] for k in range(32)] and f[32 + 19] == G.COL_WHITE,
+              f"Octave up: page 2, the grid all dim (track colours by column), Octave down lit ({[hex(x) for x in f[:9]]})")
+        for p_ in (0, 8, 3, 27): pad(p_); padup(p_)
+        f = X.frame(e)
+        check([mx(r) for r in range(4)] == [0x09, 0x01, 0x00, 0x08] and f[0] == cols[1] and f[8] == cols[1] and f[3] == cols[4] and f[27] == cols[4] and f[1] == cols[10],
+              f"pads 1, 9, 4, 28: K1 = Synth 1's K5 + pan, K4 = MIDI 2's K5 + K8, lit ({[hex(mx(r)) for r in range(4)]})")
+        calls.clear(); seen.clear(); knob(0, 5)
+        got = [(H.index(c[0]) if c[0] in H else hex(c[0]), c[1], c[2]) for c in calls]
+        check(got == [(0, 4, 5)] and seen == [("lv", G.MIXV, 0, 5, 1)] and e.r8(G.MIXV + G.MIX_PAGE) == 0,
+              f"  K1 +5: Synth 1's K5 and its pan (the Mixer's pans page, put back) ({got}, {seen})")
+        calls.clear(); seen.clear(); knob(3, 2)
+        got = [(H.index(c[0]) if c[0] in H else hex(c[0]), c[1], c[2], c[4]) for c in calls]
+        check(got == [(3, 4, 2, G.MIDI_PAGE), (3, 7, 2, G.MIDI_PAGE)] and not seen, f"  K4 +2: MIDI 2's K5 and K8, on page 4 ({got})")
+        calls.clear(); seen.clear(); knob(5, 3)
+        check(not calls and not seen, "  K6 with nothing lit: nothing")
+        pad(8); padup(8); calls.clear(); seen.clear(); knob(0, 1)
+        check(mx(1) == 0 and len(calls) == 1 and not seen, "  pad 9 again: K1's pan off")
+        m0 = [mask(k) for k in range(32)]
+        check(m0 == [mask(k) for k in range(32)], "  page 1's links untouched")
+        press(19); release(19); f = X.frame(e)
+        check(pg() == 0 and on() == 1 and f[32 + 20] == G.COL_WHITE and f[8] == cols[1], "Octave down: page 1 again")
+        press(20); release(20); press(14); release(14); press(14); press(13); release(13); release(14)
+        check(on() == 1 and pg() == 0 and mx(0) == 0x09, "closed on page 2, opened again: page 1, the grid kept")
+    elif "kn_pan" in L:                                                                # Alpha 7.46: page 2
+        G.use_page2()
+        press(20); release(20); f = X.frame(e)
+        pg = lambda: e.r8(G.GM + G.O_PG); pk = lambda: e.r8(G.GM + G.O_P2)
+        check(on() == 1 and pg() == 1 and f[:4] == [1, 2, 2, 2] and all(x == 0 for x in f[4:32]) and f[32 + 19] == G.COL_WHITE and f[32 + 20] == 0,
+              f"Octave up: page 2, pads 1-4 the picks (1 white), the rest dark, Octave down lit ({[hex(x) for x in f[:5]]}, {hex(f[51])}, {hex(f[52])})")
+        check([f[60 + k] for k in range(8)] == [cols[1 + k] | G.BR_SEL << 8 for k in range(8)], "  the knobs in their tracks' colours")
+        calls.clear(); seen.clear(); knob(0, 5)
+        got = [(H.index(c[0]) if c[0] in H else hex(c[0]), c[1], c[2]) for c in calls]
+        check(got == [(0, 4, 5)] and not seen, f"  K1 +5 (cutoff): Synth 1's K5 ({got})")
+        pad(1); padup(1); calls.clear(); seen.clear(); knob(3, 4)
+        check(pk() == 1 and not calls and seen == [("lv", G.MIXV, 3, 4, 1)] and e.r8(G.MIXV + G.MIX_PAGE) == 0,
+              f"  pad 2 (pan), K4 +4: the Mixer handler, MIDI 2, on the pans page, the page put back ({seen})")
+        pad(2); padup(2); calls.clear(); knob(5, 2)
+        got = [(H.index(c[0]) if c[0] in H else hex(c[0]), c[1], c[2]) for c in calls]
+        check(got == [(5, 2, 2)], f"  pad 3 (envelope), K6 +2: Drum 2's K3 ({got})")
+        pad(3); padup(3); calls.clear(); knob(2, 1)
+        got = [(H.index(c[0]) if c[0] in H else hex(c[0]), c[1], c[2]) for c in calls]
+        mid = [c[3] for c in calls]
+        check(got == [(2, 7, 1)] and mid == [G.MIDI_PAGE], f"  pad 4 (FX), K3 +1: MIDI 1's K8 on page 4 ({got}, {mid})")
+        m0 = bytes(mask(k) for k in range(32)); pad(12); padup(12); f = X.frame(e)
+        check(pk() == 3 and bytes(mask(k) for k in range(32)) == m0 and f[:4] == [2, 2, 2, 1], "  pad 13: nothing (no link changed), pad 4 picked")
+        press(19); release(19); f = X.frame(e)
+        check(pg() == 0 and on() == 1 and f[32 + 20] == G.COL_WHITE and f[32 + 19] == 0 and f[8] == cols[1],
+              "Octave down: page 1 again (Octave up lit, the rows back)")
+        press(20); release(20); press(14); release(14); press(14); press(13); release(13); release(14)
+        check(on() == 1 and pg() == 0, "closed on page 2, opened again: page 1")
     hits["knob"] = 0; knob(8, 4)
     check(hits["knob"] == 1, "the master filter knob: the stock's")
     press(17); release(17)
@@ -163,10 +217,12 @@ def main(a):
             check(bytes(mask(k) for k in range(32)) == ms, "load: the four rows back")
             uc.mem_write(blk + 1, bytes([b_[1] ^ 1])); run("c_gmload")
             check(all(mask(k) == 0 for k in range(32)), "load: a wrong sum = none linked")
-            old = bytes([0x01, 0, 0x30, 0, 0, 0, 0, 0x80])                             # 7.16's block at settings + 8: 0xD7, 8 masks, sum ^ 0xA5
-            uc.mem_write(blk, bytes(4) + bytes([G.BSIG]) + old + bytes([(sum(old) ^ 0xA5) & 0xFF]))
-            run("c_gmload")
-            check([mask(k) for k in range(8)] == list(old) and all(mask(k) == 0 for k in range(8, 32)), "load: a 7.16 project's links into row 1")
+            if "lo_old" in L:
+                old = bytes([0x01, 0, 0x30, 0, 0, 0, 0, 0x80])                         # 7.16's block at settings + 8: 0xD7, 8 masks, sum ^ 0xA5
+                uc.mem_write(blk, bytes(4) + bytes([G.BSIG]) + old + bytes([(sum(old) ^ 0xA5) & 0xFF]))
+                run("c_gmload")
+                check([mask(k) for k in range(8)] == list(old) and all(mask(k) == 0 for k in range(8, 32)), "load: a 7.16 project's links into row 1")
+            else: print("skip: a 7.16 block (not loaded since 7.47)")
             pz = int(R["patchain"]["labels"]["c_pczr"], 16)
             check(struct.unpack_from("<H", img, pz - B)[0] == 0x4770, "patchain: Clear + pattern keeps the settings bytes 4..6 (c_pczr returns at once)")
         else:

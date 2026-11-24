@@ -55,7 +55,6 @@
   <section>
     <h2>3 · Envío</h2>
     <p id="modeNote" class="warn">Pulsa «Identificar el dispositivo»: solo se envía al aparato en modo bootloader.</p>
-    <label><input type="checkbox" id="anyMode"> Enviar aunque el aparato esté con el firmware en marcha (no recomendado: puede no instalarse)</label>
     <div class="row" style="margin-top:8px"><button id="btnSend" disabled>Enviar firmware</button><button id="btnAbort" disabled>Cancelar</button></div>
     <p id="phase" class="warn"></p>
     <progress id="prog" value="0" max="100"></progress>
@@ -583,6 +582,20 @@ const KNOWN = {
   "af42b240a6f8b4aa163db37532d03e429c73761f59924406e638b48cb2e76853": "4486 + Alpha 7.36: Alpha 7.35 + la página de sección sigue en las otras vistas del sinte (Duplicate + knob también)",
   "4a403b24b252eec2e654e973f089889273823894d5ca4609ee79e7726dea5a80": "4486 + Alpha 7.37: Alpha 7.36 + pads 1 / 9 / 17 / 25 = las 4 ranuras de la macro, ranura elegida + Duplicate, editor en el pad 26",
   "6bdc4ac080d454401612d47a91de55adb056774bb6a93b7dc957cc247d860556": "4486 + S737D: diagnóstico = Alpha 7.37 + contador de envíos del programa del DSP",
+  "3507603baa8e174db20f6d6c69a7d5162c58f0feee62c342acc09130ab184ac1": "4486 + Alpha 7.38: la 7.37 sin el modo de prueba de fábrica (3,5 KB de flash más), sin cambios de uso",
+  "26f2c06e84f3c56963749ee48d74282b4cb98d6ab0d529d9a03960006bf50064": "4486 + Alpha 7.39: la 7.38 + el morph de Synth 1 / 2 mueve todo el patch (arreglo)",
+  "d7ef656a9af2e4a7af7a32b3609ee6f2daac57518d1c2b240a07065d621dd7bf": "4486 + Alpha 7.40: la 7.39 + los osciladores del morph en cada fotograma (menos ruido con el LFO)",
+  "6dd5279a7f89a57d6f3b87b5dae5511541f8a50734b140ce1dbb544eccfc253d": "4486 + Alpha 7.42: la 7.41 + carriles de automatización de Macros 2 (Synth 1 / 2)",
+  "ff5d97acdb5576534e2595b83864d00dc8bf1f322a66606c1430a101ac506ad0": "4486 + Alpha 7.48: la 7.47 + la cuadrícula de la página 2 se guarda con el proyecto",
+  "e2e8578994145c6ae6c109febfe72289bbf6257bc6d14eb8c4bae24aeacfe319": "4486 + Alpha 7.47: la 7.45 + página 2 de la vista de macros global en cuadrícula (columna = knob = pista; filas K5, panorama, K3, K8)",
+  "634f6d28dc38da218e90ab02af5881c59aabae978afb69452b1eeb286e2221c9": "4486 + Alpha 7.46: la 7.45 + segunda página de la vista de macros global (Octave; pads 1-4 = corte, panorama, envolvente, FX)",
+  "a13236ff98f63f495f8bf6144913dbb25a737453ad037a8e97abc4b362759948": "4486 + Alpha 7.45: la 7.44 con el flip del pad 15 encima de un solo",
+  "b9377472ae38ef44f44a34eb589af6fd6a23748872d5ce2786b5b2cbbab695df": "4486 + Alpha 7.44: la 7.43 + Mixer: pad 16 = un solo modo de solo (toque = grupo), pad 15 = flip on / off",
+  "f92e2b28931e7c5c10fb7359dd98b06e807ad754d3ddff689a27873c99eece20": "4486 + NORFXD (diagnóstico): stock + órdenes para leer / borrar / escribir bloques del sistema de ficheros interno",
+  "7e6af783ddd42d2235d1554a1707a92104504692b3160bebf6798769bdd8ede0": "4486 + Alpha 7.43: la 7.42 + el firmware en marcha ignora una instalación (solo el bootloader instala)",
+  "071838c3b57727b9fd5e6323b921af4eafed56b1bfc8ff650fe5a02d3c2fbaa4": "4486 + RC4.23: la RC4.22 + el firmware en marcha ignora una instalación",
+  "dfa295fd77ac2f98175575bf756bae9daacacad6024d116a89d1d6a979c341c0": "4486 + RC4.23S: la RC4.22S + el firmware en marcha ignora una instalación",
+  "028a2370cf66d18df2e285078342102091658df629aff985a0196afb37c36a7c": "4486 + Alpha 7.41: la 7.40 + K3 del morph bipolar (derecha libre, izquierda a tempo)",
   "d8083676fccde350f095463b1b9b7a12f29f08ff20e8ddb07c2d94e813b878fc": "4486 + S725D: diagnóstico = Alpha 7.25 + trampas en lo que queda de la unidad USB + prueba de la SRAM de respaldo",
   "1c14dff61afb06ba51b54a70e1dca4dbbcf7fe267bda03d55d195f9a0ad71029": "4486 + S725D2: diagnóstico = S725D sin trampa en el DeInit de la clase de la unidad USB",
   "abb35ad5c10d69834678220804d57e94e5e7f52d54365bf02da77ac4527509a0": "4486 + S725D3: diagnóstico = S725D + Easy Start apagado de verdad (solo USB MIDI)",
@@ -870,7 +883,7 @@ $("file").onchange = async () => {
   $("fileInfo").innerHTML = html; updateSend();
 };
 // a send to a running firmware can end in «success» and the unit keep the old build (Beta 5.39, 2026-11-08): the bootloader mode by default
-function modeOk() { return devMode === "bootloader" || $("anyMode").checked; }
+function modeOk() { return devMode === "bootloader"; }   // (2026-11-24) never to a running firmware: its updater can write over the internal file system
 function showMode() {
   const n = $("modeNote");
   if (devMode === "bootloader") { n.textContent = "Aparato en modo bootloader: listo para enviar."; n.className = "ok"; }
@@ -879,7 +892,6 @@ function showMode() {
   updateSend();
 }
 function updateSend() { $("btnSend").disabled = !(fileOk && outPort() && inPort() && !xfer && !idPending && modeOk()); }
-$("anyMode").onchange = updateSend;
 
 // ---------- transfer (pull protocol, as Components does)
 const STATUS = { 0: "inicio de actualización", 1: "esperando confirmación: PULSA PLAY en el Circuit Tracks", 16: "cancelado en el dispositivo",

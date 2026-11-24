@@ -182,6 +182,9 @@ def patch_hook(img, report, patch_p):
     patch_p(img, RET_AT, [0x0BF080, RET_OLD], [0x0BF080, dl["fx_cap"]])
 
 
+POST = []                                               # callables (img, report) run after `extra`, just before encoding
+
+
 def main(name, build, s15, argv, extra=None):
     """As linein2.main; `extra(img, report)` may patch the image further before it is encoded."""
     import argparse, json
@@ -203,6 +206,7 @@ def main(name, build, s15, argv, extra=None):
                              ybuf=[hex(x) for x in YBUF], fxbuf=[hex(x) for x in FXBUF], modes=N_MODES, fx_gain_shift=FX_GAIN_SHIFT,
                              **({"meter": [hex(x) for x in METER_Y]} if METER else {}), **({"setup_ret": hex(SETUP_FLAGS)} if SETUP_RET else {}), **({"synth_ret": False} if not SYNTH_RET else {}), **({"fx_modes": False} if not FX_MODES else {}))
     if extra: extra(img, report)
+    for f in POST: f(img, report)                        # (2026-11-24) last patches of a build (noinapp)
     img = bytes(img)
     syx = ct_fw.encode(img)
     info = ct_fw.decode(syx)

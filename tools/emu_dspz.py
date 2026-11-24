@@ -35,7 +35,9 @@ def run(img, mode):
         elif a == dspz.WAIT: ev.append(("wait",)); ret()
         elif a == dspz.SELECT: ev.append(("select", r0)); ret()
         elif a == dspz.END: ev.append(("end", r0)); ret()
-        elif a in RETURN_AT: ret()
+        elif a in RETURN_AT:
+            if a == 0x08029492: ev.append(("tail",))                    # (Alpha 7.38) the mode-0 tail (the tables after the programs): seen, not run
+            ret()
         elif a in ZERO_AT: ret(0)
     e.uc.hook_add(UC_HOOK_CODE, h)
     e.call(UPLOAD, mode, maxins=200_000_000)

@@ -182,6 +182,18 @@ def use_v8():
     V8 = True
 
 
+V9 = False                                           # Alpha 7.42 (use_v9)
+
+
+def use_v9():
+    """Alpha 7.42 (the user, 2026-11-24: Macros 2 gets automation lanes, «Like the macros», «Two: start and middle»; tools/m2lanes.py): two
+    calls for m2lanes, each a bl to c_nsret (bx lr) that m2lanes points at its own code (labels kn_m2 / kn_m2c in the report):
+      * a Macros 2 knob that changed its parameter: kn_m2 (r0 = synth, r1 = knob, r2 = the value written, r3 = the macro handler);
+      * Clear + knob on Macros 2 (before: nothing): kn_m2c (r0 = synth, r1 = knob, r2 = the delta, r3 = the knob's row or 0xFF)."""
+    global V9
+    V9 = True
+
+
 def page_colours():
     """(bright, dim) of the 8 pads, from the own synth's constants (a change there changes these on the next build)"""
     import vcf21 as V, modmx as MX
@@ -198,6 +210,7 @@ def arm_code(base, L, prev):
     E = a.emit
     def imm32(r, v): E(movw, r, v & 0xFFFF); E(movt, r, (v >> 16) & 0xFFFF)
     cols = page_colours()
+    assert not V9 or V8, "use_v9 needs use_v8"
     ED2 = 25 if V8 else PAD_ED2                                                                     # (V8) the macro editor's pad: 26
 
     # ---- c_nsst() -> r0 = NS + 4 (the first time: zeroed, signed); clobbers r1, r2
@@ -270,6 +283,8 @@ def arm_code(base, L, prev):
     E(ldr_label, 3, "t_mx"); E(subs_imm8, 1, 1); E(ldrb_reg, 2, 3, 1)                                     # the slot's field
     imm32(3, NS + 5); E(ldrb_reg, 0, 3, 4); E(lsls_imm, 0, 0, 2); E(adds_reg, 0, 0, 2); E(adds_imm8, 0, MX0)
     a.label("rw_x"); E(raw, h(0x4770))
+
+    if V9: a.label("c_nsret"); E(raw, h(0x4770))                                              # (V9) m2lanes' two calls, until it points them
 
     # ---- c_nsrng(r0 = row) -> r0 = lo, r1 = hi (raw bytes); clobbers r2, r3
     a.label("c_nsrng")
@@ -565,14 +580,24 @@ def arm_code(base, L, prev):
     E(cmp_reg, 3, 1); E(b_cond, "kn_lo", "ge"); E(mov_reg, 3, 1)
     a.label("kn_lo"); E(cmp_reg, 3, 2); E(b_cond, "kn_hi", "le"); E(mov_reg, 3, 2)
     a.label("kn_hi"); E(cmp_reg, 3, 0); E(b_cond, "kn_e", "eq")
+    if V9: E(mov_reg, 6, 3)                                                                        # (V9) the value kept (the delta is done with)
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 3); E(bl, L["c_mcset"])
+    if V9:                                                                                         # (V9) Macros 2: m2lanes records it
+        E(bl, "c_nspg"); E(cmp_imm, 0, 8); E(b_cond, "kn_e", "ne")
+        E(mov_reg, 0, 4); E(ldr_sp, 1, 4); E(mov_reg, 2, 6); E(ldr_sp, 3, 0); a.label("kn_m2"); E(bl, "c_nsret")
     a.label("kn_e"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("kn_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
     if V3:
         a.label("kn_v3")
         E(bl, "c_nsheld"); E(mov_reg, 3, 0)                                                        # (r6 = the delta: kept for kn_nb)
         E(lsrs_imm, 1, 3, 1); E(b_cond, "kn_d", "cc")                                              # Clear: Macros = the stock's, else nothing
-        E(bl, "c_nspg"); E(cmp_imm, 0, 0); E(b_cond, "k3_e", "ne"); E(b, "k3_f")
+        E(bl, "c_nspg"); E(cmp_imm, 0, 0)
+        if V9:                                                                                     # (V9) Macros 2: m2lanes (left = the lane cleared, right = the patch's value)
+            E(b_cond, "k3_f", "eq"); E(cmp_imm, 0, 8); E(b_cond, "k3_e", "ne")
+            E(mov_reg, 1, 5); E(movs_imm, 2, 8); E(bl, "c_nsrow"); E(mov_reg, 3, 0); E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 6)
+            a.label("kn_m2c"); E(bl, "c_nsret"); E(b, "k3_e")
+        else:
+            E(b_cond, "k3_e", "ne"); E(b, "k3_f")
         a.label("kn_d"); E(lsrs_imm, 1, 3, 2); E(b_cond, "kn_p", "cc")                             # Duplicate: a section page's parameter assigned
         E(bl, "c_nspg"); E(mov_reg, 2, 0); E(cmp_imm, 2, 0); E(b_cond, "k3_e", "eq"); E(cmp_imm, 2, 8); E(b_cond, "k3_e", "eq")
         E(mov_reg, 1, 5); E(bl, "c_nsrow"); E(cmp_imm, 0, 0xFE); E(b_cond, "k3_e", "hs"); E(bl, "c_nsdup")

@@ -387,6 +387,9 @@ DESC["R422"] = ("RC4.22 — versión candidata actual", "RC4.22 — current rele
 DESC["R422S"] = ("RC4.22S — sin escrituras propias en la SD", "RC4.22S — no own writes to the SD card")
 DESC["A7.27"] = ("Alpha 7.27 — experimental", "Alpha 7.27 — experimental")
 DESC["A7.37"] = ("Alpha 7.37 — experimental", "Alpha 7.37 — experimental")
+DESC["R423"] = ("RC4.23 — versión candidata actual", "RC4.23 — current release candidate")
+DESC["R423S"] = ("RC4.23S — sin escrituras propias en la SD", "RC4.23S — no own writes to the SD card")
+DESC["A7.48"] = ("Alpha 7.48 — solo del Mixer, macros página 2", "Alpha 7.48 — Mixer solo, macro view page 2")
 DESC["R416S"] = ("RC4.16S — sin escrituras propias en la SD", "RC4.16S — no own writes to the SD card")
 assert all(len(t) <= 50 for k in ("R411", "R411S", "B5.41", "B5.48", "B5.51", "B5.56", "ALPHA7", "A7.01") for t in DESC[k])
 assert all(len(t) <= 50 for t in DESC["B5.33"])
@@ -449,7 +452,7 @@ TEMPLATE = r"""<!doctype html>
       <li class="note"><span class="es"><b>Haz una copia de seguridad de la tarjeta SD</b> (proyectos, packs y samples) y no trabajes con proyectos importantes mientras pruebas el mod. No se han reportado fallos, pero las versiones están en prueba. Si no quieres arriesgar la SD, elige __SAFER__.</span><span class="en"><b>Back up the SD card</b> (projects, packs and samples) and do not work on important projects while you test the mod. No failures have been reported, but the versions are being tested. If you do not want to risk the card, pick __SAFER__.</span></li>
       <li><span class="es">Descarga el firmware oficial <b>Circuit Tracks 1.2.1 (build 4486)</b> desde Novation: <a href="https://components.novationmusic.com/api/v2/firmwares/168/file" target="_blank" rel="noopener">circuittracks-firmware-4486.syx</a> (descarga directa de Novation Components: el navegador guarda el <code>.syx</code>, 432 961 bytes). Novation Components: <a href="https://components.novationmusic.com/" target="_blank" rel="noopener">components.novationmusic.com</a>.</span><span class="en">Download the official <b>Circuit Tracks 1.2.1 (build 4486)</b> firmware from Novation: <a href="https://components.novationmusic.com/api/v2/firmwares/168/file" target="_blank" rel="noopener">circuittracks-firmware-4486.syx</a> (Novation Components’ direct download: the browser saves the <code>.syx</code>, 432,961 bytes). Novation Components: <a href="https://components.novationmusic.com/" target="_blank" rel="noopener">components.novationmusic.com</a>.</span></li>
       <li><span class="es">Cierra Novation Components y cualquier DAW o programa MIDI (en Windows, un puerto MIDI solo lo puede abrir una aplicación).</span><span class="en">Close Novation Components and any DAW or MIDI program (on Windows a MIDI port can only be opened by one application).</span></li>
-      <li><span class="es">Conecta el Circuit Tracks por USB y enciéndelo de forma normal (o en modo bootloader: Scales + Preset + Note al encender). No lo desconectes durante el envío.</span><span class="en">Connect the Circuit Tracks over USB and power it on normally (or in bootloader mode: Scales + Preset + Note at power-on). Do not disconnect it while sending.</span></li>
+      <li class="note"><span class="es">Conecta el Circuit Tracks por USB y <b>enciéndelo en modo bootloader: mantén Scales + Preset + Note al encenderlo</b>. No lo desconectes durante el envío. <b>Nunca envíes un firmware al aparato encendido de forma normal</b>: con el firmware en marcha, la instalación comparte la memoria interna con el disco USB y puede escribir sobre él (se pierde el pack 0 y los ajustes). Esta página solo envía en modo bootloader.</span><span class="en">Connect the Circuit Tracks over USB and <b>power it on in bootloader mode: hold Scales + Preset + Note while switching it on</b>. Do not disconnect it while sending. <b>Never send a firmware to a normally running unit</b>: with the firmware running, the install shares the internal memory with the USB drive and can write over it (pack 0 and the settings are lost). This page only sends in bootloader mode.</span></li>
       <li><span class="es">Usa Chrome o Edge (Web MIDI con SysEx).</span><span class="en">Use Chrome or Edge (Web MIDI with SysEx).</span></li>
       <li class="note"><span class="es"><b>Los sonidos de partida del FM ya no van en el firmware</b> (desde la Beta 5.58): los 48 instrumentos del FM de 8 operadores y 33 sonidos clásicos están en la <a href="https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html" target="_blank" rel="noopener">app de la tarjeta</a> (pestaña <b>Parches</b> → <b>Sonidos de partida…</b>: los sube a los huecos de parches custom de uno o varios packs) y como ficheros en <a href="https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches" target="_blank" rel="noopener">docs/patches</a>.</span><span class="en"><b>The FM starter sounds are no longer in the firmware</b> (since Beta 5.58): the 48 instruments of the 8-operator FM and 33 classic sounds live in the <a href="https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html" target="_blank" rel="noopener">card app</a> (<b>Patches</b> tab → <b>Starter sounds…</b>: it uploads them into the custom-patch slots of one or several packs) and as files in <a href="https://github.com/Ghillermo/CIRCUIT-HACKS-RC/tree/main/docs/patches" target="_blank" rel="noopener">docs/patches</a>.</span></li>
       <li class="note"><div class="es"><b>Caja negra: qué hacer si algo falla</b> (Beta 5.51 y posteriores). El aparato guarda en su memoria lo que pasó, pero <b>esa memoria se borra al apagarlo</b>: <b>no lo apagues ni lo desenchufes antes de conectarlo por USB y guardar el registro</b> (un reinicio no lo borra; apagarlo, sí).<ul><li><b>Save parpadeando en violeta = hay un registro esperando</b>: desde la Alpha 7.01 parpadea hasta que vacías la caja negra con la app (en las versiones anteriores, solo unos 30 s tras un reinicio). Aparece si el aparato se colgó o se reinició solo, y si se saltó un valor (abajo).</li><li><b>Valor saltado</b> (Alpha 7 y posteriores): si un paso tiene un valor que la vista de probabilidad o la barra de velocity de un drum no pueden dibujar, la vista se lo salta (antes, el aparato se reiniciaba) y la caja negra guarda ese valor y los botones, pads y knobs que tocaste antes. El aparato sigue funcionando y <b>Save empieza a parpadear en violeta</b> (Alpha 7.01; en la Alpha 7 no se ve ninguna luz).</li><li>Conéctalo por USB, abre la <a href="https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html" target="_blank" rel="noopener">app</a> (vista <b>Hacks</b> → <b>Caja negra…</b>): dice qué se guardó («fallo del procesador», «bloqueo» o «valor saltado» con el valor). Guárdalo con <b>Guardar…</b> y luego pulsa <b>Vaciar</b>: solo se guarda el primer suceso hasta vaciarla.</li></ul><b>Por favor, adjunta el registro a tu informe</b> (issue en GitHub o mensaje): es lo que permite encontrar el fallo.</div><div class="en"><b>Black box: what to do if something goes wrong</b> (Beta 5.51 and later). The device keeps a record of what happened in its memory, but <b>that memory is cleared when it is switched off</b>: <b>do not switch it off or unplug it before connecting it by USB and saving the record</b> (a restart keeps it; switching off does not).<ul><li><b>Save blinking violet = a record is waiting</b>: since Alpha 7.01 it blinks until you clear the black box in the app (in earlier versions, only for about 30 s after a restart). It shows when the device hung or restarted by itself, and when a value was skipped (below).</li><li><b>Skipped value</b> (Alpha 7 and later): if a step holds a value that the probability view or a drum's velocity bar cannot draw, the view skips it (before, the device restarted) and the black box keeps that value and the buttons, pads and knobs you used before it. The device keeps working and <b>Save starts blinking violet</b> (Alpha 7.01; Alpha 7 shows no light).</li><li>Connect it by USB, open the <a href="https://ghillermo.github.io/CIRCUIT-HACKS-RC/app.html" target="_blank" rel="noopener">app</a> (<b>Hacks</b> view → <b>Black box…</b>): it says what was recorded («processor fault», «lock-up» or «skipped value» with the value). Save it with <b>Save…</b>, then press <b>Clear</b>: only the first event is kept until it is cleared.</li></ul><b>Please add the record to your report</b> (GitHub issue or message): it is what lets us find the bug.</div></li>
@@ -478,6 +481,7 @@ TEMPLATE = r"""<!doctype html>
     <p><span class="es">Salida hacia el Tracks</span><span class="en">Output to the Tracks</span></p><select id="outSel"></select>
     <p><span class="es">Entrada desde el Tracks</span><span class="en">Input from the Tracks</span></p><select id="inSel"></select>
     <div class="row" style="margin-top:10px"><button id="btnId" disabled><span class="es">Identificar</span><span class="en">Identify</span></button><span id="idState"></span></div>
+    <p class="note"><span class="es"><b>Enviar</b> se activa solo cuando «Identificar» encuentra el aparato en modo bootloader (Scales + Preset + Note al encender).</span><span class="en"><b>Send</b> is enabled only after «Identify» finds the unit in bootloader mode (Scales + Preset + Note at power-on).</span></p>
   </section>
 
   <section>
@@ -511,7 +515,7 @@ const log = (m, cls) => { const d = document.createElement("div"); if (cls) d.cl
 // Text that goes into innerHTML is escaped: a file name like "<img onerror=…>.syx" must not run script on a page with SysEx access.
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const hex = a => Array.from(a, b => b.toString(16).padStart(2, "0")).join(" ");
-let midi = null, packets = null, stockImg = null, stockSyx = null, xfer = null, idPending = null;
+let devMode = null, midi = null, packets = null, stockImg = null, stockSyx = null, xfer = null, idPending = null;
 
 // ---------- the versions ("Oficial" = the official firmware, its value in either language)
 const verLabel = v => v === "Oficial" ? t("Oficial — Novation sin cambios (volver atrás)", "Official — Novation unchanged (to go back)")
@@ -866,7 +870,7 @@ $("btnId").onclick = () => {
   function h(ev) { const d = ev.data;
     if (d.length === 17 && d[0] === 0xF0 && d[1] === 0x7E && d[3] === 0x06 && d[4] === 0x02) {
       const mode = d[9] === 1 ? "firmware" : d[9] === 17 ? "bootloader" : t("modo ", "mode ") + d[9]; const build = d[14] * 128 + d[15];
-      idDone(`Circuit Tracks · ${mode} · build ${build}`, "ok"); } }
+      devMode = d[9] === 17 ? "bootloader" : "other"; idDone(`Circuit Tracks · ${mode} · build ${build}` + (devMode === "bootloader" ? "" : t(" — apágalo y enciéndelo con Scales + Preset + Note, luego «Identificar»", " — switch it off and on holding Scales + Preset + Note, then «Identify»")), devMode === "bootloader" ? "ok" : "bad"); updateSend(); } }
   idPending = { inp, out, h, t: setTimeout(() => idDone(t("sin respuesta", "no answer"), "bad"), 2000) };
   inp.addEventListener("midimessage", h);
   openPorts(inp, out).then(() => { if (idPending && idPending.h === h) out.send([0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7]); }).catch(e => idDone(t("no se pudo abrir el puerto: ", "could not open the port: ") + e.message, "bad"));
@@ -877,7 +881,7 @@ function isAlpha(v) { return /^A(7|LPHA)/.test(v || ""); }
 function updateAck(reset) { const need = needsAck($("ver").value); $("ackRow").style.display = need ? "flex" : "none"; if (reset || !need) $("ack").checked = false;  $("alphaRow").style.display = isAlpha($("ver").value) ? "block" : "none"; }
 $("ack").onchange = () => updateSend();
 function updateSend() { updateAck(false); $("ack").disabled = !!xfer;
-  $("btnSend").disabled = !(packets && outPort() && inPort() && !xfer && !idPending && (!needsAck($("ver").value) || $("ack").checked)); }
+  $("btnSend").disabled = !(packets && outPort() && inPort() && !xfer && !idPending && devMode === "bootloader" && (!needsAck($("ver").value) || $("ack").checked)); }
 
 // ---------- transfer (pull protocol, as Components does)
 const STATUS = { 0: ["inicio de actualización", "update started"], 1: ["esperando confirmación: PULSA PLAY en el Circuit Tracks", "waiting for confirmation: PRESS PLAY on the Circuit Tracks"],
@@ -929,9 +933,9 @@ function finish(msg, cls) {
   if (!xfer) return; const { inp, out } = xfer;
   clearTimeout(xfer.timer); inp.removeEventListener("midimessage", onMsg); xfer = null; closePort(inp); closePort(out);
   $("phase").textContent = msg; $("phase").className = cls; log(msg, cls);
-  $("btnAbort").disabled = true; $("file").disabled = $("ver").disabled = false; updateSend();
+  $("btnAbort").disabled = true; $("file").disabled = $("ver").disabled = false; devMode = null; updateSend();
 }
-$("outSel").onchange = $("inSel").onchange = updateSend;
+$("outSel").onchange = $("inSel").onchange = () => { devMode = null; updateSend(); };
 setMidiState("sin acceso", "no access", "warn");
 if (!navigator.requestMIDIAccess) setMidiState("este navegador no soporta Web MIDI: usa Chrome o Edge", "this browser does not support Web MIDI: use Chrome or Edge", "bad");
 setLang(LANG); updateSend();
@@ -940,7 +944,7 @@ setLang(LANG); updateSend();
 </html>
 """
 
-OLD = ["A7.27", "A7.22", "R421", "R421S", "A7.18", "A7.16", "R420", "R420S", "A7.14", "R419", "R419S", "A7.13", "R417", "R417S", "A7.09", "R416", "R416S", "A7.08b", "A7.08", "A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
+OLD = ["A7.37", "A7PROT", "R422", "R422S", "A7.27", "A7.22", "R421", "R421S", "A7.18", "A7.16", "R420", "R420S", "A7.14", "R419", "R419S", "A7.13", "R417", "R417S", "A7.09", "R416", "R416S", "A7.08b", "A7.08", "A7.04", "A7.01", "R411", "R411S", "B5.51", "B5.48", "B5.41", "ALPHA7", "B5.40", "R410", "R410S", "B5.38", "B5.33", "R408", "R408S", "B5.32", "B5.29", "B5.28", "R407", "R407S", "B5.25", "B5.16", "B5.12", "B5.11", "B5.10", "B5.9", "R405", "R405S", "B5.6", "B5.4", "R402", "R402S", "B5.0", "RC4", "RC4S", "R211", "R211S", "B3.41", "B3.41S", "R210", "R210S", "B3.37", "B3.37S", "B3.36", "B3.36S",
        "B3.35", "R209", "R209S", "R208", "R208S", "R206", "R206S", "R205", "R205S", "R204", "R204S", "R202", "R202S", "R201", "R201S", "RC2", "RC2S", "RC0.9", "RC0.9S"]
 
 
@@ -950,4 +954,4 @@ if __name__ == "__main__":
     if sys.argv[1:] == ["--old"]:
         main(OLD, "tools/rc_uploader_old.html")
     else:
-        main(sys.argv[1:] or ["A7.37", "A7PROT", "B5.56", "R422", "R422S"])
+        main(sys.argv[1:] or ["A7.48", "B5.56", "R423", "R423S"])

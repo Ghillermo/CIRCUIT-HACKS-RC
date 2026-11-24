@@ -57,6 +57,8 @@ El mod ha crecido deprisa. La etapa siguiente va de **calidad más que de cantid
 Nada de esto está decidido: los comentarios son bienvenidos en [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions).
 
 ### Control y usabilidad
+- **Segunda página de la vista de macros global** (Mixer + Patterns): Octave ▲ / ▼ cambia de página; en esta, cada knob controla un parámetro de la pista de su mismo número (K1 = Synth 1 … K8 = Drum 4). Los parámetros, por orden: K5 de la pista (cutoff), panorama, K3 (envolvente) y K8 (efecto).
+- **Un solo modo de solo en el pad 16 del Mixer:** un toque lo deja preparado hasta que tocas una o varias pistas, que quedan como grupo de solo; mantenerlo y tocar varias pistas también empieza o rehace el grupo. **El modo flip pasa a ser un interruptor en el pad 15.**
 - **Transponer el patrón por MIDI:** las notas que llegan por el canal de una pista de sinte transponen el patrón que suena (transposición desde un teclado, como la entrada de un arpegiador), en vez de tocar el sinte.
 - **Lectura del valor:** mientras gira un knob, su valor exacto como número en los pads (el mod ya enseña números así en algunos sitios), como opción.
 - **Deshacer la última edición destructiva** (cuantizar, Nudge, Clear de un patrón, la foto de Record + paso): un nivel.

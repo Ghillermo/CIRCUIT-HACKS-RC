@@ -75,6 +75,9 @@ ITCMCR = 0xE000EF90                              #   of RYTHM): mem reads 0x0-0x
 IT_START, IT_END = 0x100, 0x4000                 #   ITCMCR.EN and SZ >= 5); 14 itchk key -> bad words, the first one (address, value); nothing set right
 RAMCK = False                                    # S514D: 16 rfill lo len key = every word of [lo, lo + len) = its address XOR key (RAM only, below the
                                                  #   stack pointer - 256); 17 rchk lo len key -> status, bad words, the first (address, value), the last address
+NOR = False                                      # (2026-11-24, NORFXD) 18 nore addr32 / 19 norw addr32 n data / 20 norr addr32 n: the internal NOR through
+NOR_DEV = 0x20003C88                             #   the stock device [[NOR_DEV]] (vt + 0x0C read, + 0x10 write (5th arg 0), + 0x18 erase (start, end)); erase / write
+NOR_LO, NOR_HI = 0xD4000, 0x2000000              #   only inside the file-system partition [NOR_LO, NOR_HI), erase 4 KB aligned, a write inside one 4 KB block
 ITEXEC = False                                   # S494D2: 15 itexec key = a 3-instruction routine written at IT_X, run (blx) and the two words
 IT_X = 0x3F00                                    #   put back: status, ITCMCR, key ^ 0x5A when the ITCM runs code (a fault = no answer, the device stops)
 CORE1 = False                                    # S494D: dspr space bit 1 / dspw address bit 31 = DSP core 1 (the stock read / write take the core in r0)
@@ -157,12 +160,12 @@ def arm_code(base, router_ptr):
     for o in range(0, 40, 4): a.emit(str_imm, 0, 7, o)
     a.emit(ldrb_imm, 0, 4, 4); a.emit(movs_imm, 1, 0x40); a.emit(orrs_reg, 1, 0); a.emit(strb_imm, 1, 4, 4)   # cmd | 0x40 (r0 = cmd)
     a.emit(push_list, [0]); a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(mov_reg, 1, 0); a.emit(pop_list, [0])  # r1 = payload pointer
-    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()) + (((13, "rc_itfill"), (14, "rc_itchk")) if ITCM else ()) + (((15, "rc_itexec"),) if ITEXEC else ()) + (((16, "rc_rfill"), (17, "rc_rchk")) if RAMCK else ()):
+    for cmd, lab in ((1, "rc_ping"), (2, "rc_mem"), (4, "rc_info"), (5, "rc_read"), (6, "rc_write")) + (((7, "rc_del"),) if DELETE else ()) + (((3, "rc_dspr"), (8, "rc_dspx")) if DSPX else ()) + (((10, "rc_watch"), (11, "rc_poke"), (12, "rc_wlog")) if WATCH else ()) + (((9, "rc_dspw"),) if DSPW else ()) + (((13, "rc_itfill"), (14, "rc_itchk")) if ITCM else ()) + (((15, "rc_itexec"),) if ITEXEC else ()) + (((16, "rc_rfill"), (17, "rc_rchk")) if RAMCK else ()) + (((18, "rc_nore"), (19, "rc_norw"), (20, "rc_norr")) if NOR else ()):
         a.emit(cmp_imm, 0, cmd); bc(lab, "eq")
     a.emit(mov_reg, 0, 1); imm32(1, 0xFFFFFFFF); a.emit(bl, "c_p32"); a.emit(b, "rc_send")   # unknown command: status -1
 
     a.label("rc_ping")
-    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0) + (0x100 if ITCM else 0) + (0x200 if CORE1 else 0) + (0x400 if ITEXEC else 0) + (0x800 if RAMCK else 0)); a.emit(bl, "c_p32")
+    a.emit(mov_reg, 0, 1); imm32(1, VERSION + (1 if DELETE else 0) + (0x10 if DSPX else 0) + (0x20 if DEL_PACK else 0) + (0x40 if DSPW else 0) + (0x80 if WATCH else 0) + (0x100 if ITCM else 0) + (0x200 if CORE1 else 0) + (0x400 if ITEXEC else 0) + (0x800 if RAMCK else 0) + (0x1000 if NOR else 0)); a.emit(bl, "c_p32")
     a.emit(mov_reg, 1, 6); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
 
     def item_from(off):                          # the item {kind, idx, pack} from buf[off..off+2] into the frame; pack 0x7F -> 0xFF
@@ -464,6 +467,53 @@ def arm_code(base, router_ptr):
         a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(movs_imm, 1, 0); a.emit(bl, "c_p32")
         for o in (0, 12): a.emit(ldr_imm, 1, 7, o); a.emit(bl, "c_p32")
         a.emit(b, "rc_send")
+
+    if NOR:
+        def nor_vt(off):                         # r0 = the device, r12 = its method (r0-r3 kept for the arguments: loaded after)
+            imm32(0, NOR_DEV); a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0)
+        def status_reply(reg):
+            a.emit(mov_reg, 1, reg); a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_p32"); a.emit(b, "rc_send")
+        def addr_to(off_frame):                  # [r7 + off] = g32(buf + 6)
+            a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_g32"); a.emit(str_imm, 0, 7, off_frame)
+        def in_fs(fail):                         # [r7 + 16] in [NOR_LO, NOR_HI)
+            a.emit(ldr_imm, 0, 7, 16); imm32(1, NOR_LO); a.emit(cmp_reg, 0, 1); bc(fail, "lo")
+            imm32(1, NOR_HI); a.emit(cmp_reg, 0, 1); bc(fail, "hs")
+        def call_vt(off):                        # r1-r3 set from the frame by the caller after this loads r0 = dev into [r7 + 28]
+            pass
+        # 18 nore: erase the 4 KB block at addr
+        a.label("rc_nore")
+        addr_to(16); in_fs("nr_bad")
+        a.emit(ldr_imm, 0, 7, 16); a.emit(lsls_imm, 0, 0, 20); bc("nr_bad", "ne")
+        imm32(0, NOR_DEV); a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(ldr_imm, 1, 7, 16); a.emit(movs_imm, 2, 1); a.emit(lsls_imm, 2, 2, 12); a.emit(adds_reg, 2, 2, 1)
+        a.emit(ldr_imm, 3, 0, 0); a.emit(ldr_imm, 3, 3, 0x18); a.emit(raw, h(0x4798))        # blx r3
+        status_reply(0)
+        a.label("nr_bad"); imm32(0, 0xFFFFFFFE); status_reply(0)
+        # 19 norw: addr32, n = buf[14] (<= NMAX), data nibbles from buf + 15; inside the FS and inside one 4 KB block
+        a.label("rc_norw")
+        addr_to(16); in_fs("nr_bad")
+        clamp_n(14, 2); a.emit(str_imm, 2, 7, 20)
+        a.emit(ldr_imm, 0, 7, 16); a.emit(lsls_imm, 0, 0, 20); a.emit(lsrs_imm, 0, 0, 20); a.emit(adds_reg, 0, 0, 2)
+        imm32(1, 0x1000); a.emit(cmp_reg, 0, 1); bc("nr_bad", "hi")
+        raw_ptr(0); a.emit(mov_reg, 1, 4); a.emit(adds_imm8, 1, 15); a.emit(bl, "c_gbytes")
+        a.emit(movs_imm, 0, 0); a.emit(movs_imm, 1, 0); a.emit(push_list, [0, 1])         # the 5th argument = 0 at [sp]
+        imm32(0, NOR_DEV); a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(ldr_imm, 1, 7, 16); raw_ptr(2); a.emit(ldr_imm, 3, 7, 20)
+        a.emit(push_list, [3]); a.emit(ldr_imm, 3, 0, 0); a.emit(ldr_imm, 3, 3, 0x10); a.emit(mov_reg, 12, 3); a.emit(pop_list, [3])
+        a.emit(raw, h(0x47E0))                                                     # blx ip
+        a.emit(add_sp_imm, 8)
+        status_reply(0)
+        # 20 norr: addr32 (< NOR_HI), n = buf[14] -> status, n bytes
+        a.label("rc_norr")
+        addr_to(16)
+        a.emit(ldr_imm, 0, 7, 16); imm32(1, NOR_HI); a.emit(cmp_reg, 0, 1); bc("nr_bad", "hs")
+        clamp_n(14, 2); a.emit(str_imm, 2, 7, 20)
+        imm32(0, NOR_DEV); a.emit(ldr_imm, 0, 0, 0); a.emit(ldr_imm, 0, 0, 0)
+        a.emit(ldr_imm, 1, 7, 16); raw_ptr(2); a.emit(ldr_imm, 3, 7, 20)
+        a.emit(push_list, [3]); a.emit(ldr_imm, 3, 0, 0); a.emit(ldr_imm, 3, 3, 0x0C); a.emit(mov_reg, 12, 3); a.emit(pop_list, [3])
+        a.emit(raw, h(0x47E0))
+        a.emit(mov_reg, 1, 0); a.emit(mov_reg, 0, 4); a.emit(adds_imm8, 0, 6); a.emit(bl, "c_p32")
+        raw_ptr(1); a.emit(ldr_imm, 2, 7, 20); a.emit(bl, "c_pbytes"); a.emit(b, "rc_send")
 
     # r0 = end of the payload: F7, then send {buf, end + 1 - buf} to the port it came from
     a.label("rc_send")

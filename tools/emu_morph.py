@@ -30,12 +30,16 @@ SLOW = "--slow" in sys.argv                                 # SC56.5 (use_slow):
 BASE = 0x08010000
 
 
+TYPEFIX = False                                              # (Alpha 7.39, morphz.use_typefix: report["morphz"]["typefix"]) the row's own MIDI type
+
+
 def rows(img):
     out = []
     for k in range(M.NROWS):
         r = img[M.TABLE - BASE + 8 * k:M.TABLE - BASE + 8 * k + 8]
         off = r[2] | r[3] << 8
-        if r[0] >= 0xFD or not 30 <= off < 340: continue
+        own = img[M.TABLE - BASE + 8 * k + 8]                                          # the stock's row k + 6 (its MIDI type)
+        if (own in (0xFD, 0xFE) or k == M.OCT_ROW if TYPEFIX else r[0] >= 0xFD) or not 30 <= off < 340: continue   # (TYPEFIX: the packed rows checked apart; the octave never)
         out.append((k, off, r[4] in (1, 2), r[6] - 256 if r[6] > 127 else r[6], r[7]))
     return out
 
@@ -54,6 +58,8 @@ def main(img, man):
     e.uc.hook_add(UC_HOOK_CODE, flush, begin=0x08035A50, end=0x08035A50)
     e.btn = lambda b: (drain(), e.call(0x08033320, MGR, b, maxins=20_000_000), drain(), e.call(0x0803381A, MGR, b, maxins=20_000_000))   # (the morph's own taps need more than ET's budget)
     R = man["report"]
+    global TYPEFIX
+    TYPEFIX = "typefix" in R["morphz"] or "--allrows" in sys.argv                     # (--allrows: the fixed test on a build without the fix = the bug shown)
     SVCL = R["morphz"]["labels"].get("c_mzsvc")                                          # (SC55.4 use_svc) Synth 1 / 2's writes in the DSP service's head
     sem = [0, 0]                                                                         # the semaphore taken in the writes / 0x08021FDC calls
     if SVCL:
@@ -159,12 +165,18 @@ def main(img, man):
     e.btn(0); e.btn(8); frames(2)
     p0 = live()
     RW = rows(img)
+    PK = (91, 99)                                                              # (7.39) the bytes of the packed rows 61-65 / 73-77 (fields in bits 0-5)
     def patch_like(seed):
         b = bytearray(p0)
         for k, off, cont, lo, hi in RW:
             if cont:
                 span = (hi - lo) if lo < 0 else hi
                 b[off - 30] = (64 + lo + (seed * 37 + k * 11) % (span + 1)) if lo < 0 else (seed * 29 + k * 7) % (hi + 1)
+            elif TYPEFIX and hi > lo:                                          # (7.39) the lists too: any value of the row
+                b[off - 30] = lo + (seed * 13 + k * 5) % (hi - lo + 1)
+        if TYPEFIX:                                                            # (7.39) the packed LFO flags and the keyboard octave differ too
+            for off in PK: b[off - 30] = (seed * 41 + off * 3) & 0x7F
+            b[35 - 30] = 64 + seed - 2
         return bytes(range(0)) + bytes(30) + bytes(b)
     P4, P5, P6, P7 = patch_like(1), patch_like(2), patch_like(3), patch_like(4)
     for n, p in ((4, P4), (5, P5), (6, P6), (7, P7)): recs[(n >> 3, 512 * (n & 7))] = p
@@ -185,6 +197,10 @@ def main(img, man):
     lv = live()
     bad = [(k, off) for k, off, cont, lo, hi in RW if lv[off - 30] != P5[off]]
     check(not bad, f"K1 at the end: the live patch = patch 5 ({len(bad)} rows differ: {bad[:6]})")
+    if TYPEFIX:
+        pk = [(off, lv[off - 30] & 0x3F, P5[off] & 0x3F) for off in PK]
+        check(all(a_ == b_ for _, a_, b_ in pk) and lv[5] == p0[5] and P5[35] != p0[5],
+              f"(7.39) K1 at the end: the packed LFO flags = patch 5's ({pk}); the keyboard octave untouched ({p0[5]} -> {lv[5]}; patch 5 has {P5[35]})")
     if SVCL:
         check(sem[0] == 0 and sem[1] > 0, f"the writes in the DSP service's head: the semaphore never taken ({sem[0]}), marked directly ({sem[1]} times)")
         sem[:] = [0, 0]; nv = M.NV
@@ -192,6 +208,12 @@ def main(img, man):
         check(e.r8(nv + 5) == 0, "out of the service's writes the flag is down")
     for _ in range(127 - 32): e.knob(0, -1)
     check(st(M.O_K) == 32, f"K1 = 32 ({st(M.O_K)})")
+    if "smooth" in R["morphz"] and NOCUR:                                      # (Alpha 7.40) the oscillator rows: all written in one frame
+        lo_, hi_ = R["morphz"]["smooth"]; frames(1); lv = live()
+        q = lambda a, b: a + (((b - a) * 32) >> 7)
+        osc = [(k, off) for k, off, cont, lo, hi in RW if lo_ <= k <= hi_ and cont and P4[off] != P5[off]]
+        bad = [(k, off, lv[off - 30], q(P4[off], P5[off])) for k, off in osc if lv[off - 30] != q(P4[off], P5[off])]
+        check(len(osc) > 5 and not bad, f"(7.40) one frame after K1 32: the {len(osc)} oscillator rows that differ already in place ({bad[:4]})")
     frames(14)
     lv = live()
     def mid(a, b): return a + (((b - a) * 64) >> 7)
@@ -199,6 +221,12 @@ def main(img, man):
         q = lambda a, b: a + (((b - a) * 32) >> 7)
         bad = [(k, off, lv[off - 30], P4[off], P5[off]) for k, off, cont, lo, hi in RW if cont and lv[off - 30] != q(P4[off], P5[off])]
         check(not bad, f"no present sound in the chain: K1 32 = a quarter from patch 4 to patch 5 ({len(bad)} rows differ: {bad[:4]})")
+        if TYPEFIX:
+            bd = [(k, off, lv[off - 30], P4[off]) for k, off, cont, lo, hi in RW if not cont and lv[off - 30] != P4[off]]
+            nd = sum(1 for k, off, cont, lo, hi in RW if not cont and P4[off] != P5[off])
+            pk = [off for off in PK if lv[off - 30] & 0x3F != P4[off] & 0x3F]
+            check(not bd and not pk and nd > 10 and lv[5] == p0[5],
+                  f"(7.39) K1 32: the {nd} lists that differ and the packed LFO flags still patch 4's ({len(bd)} rows, bytes {pk} differ: {bd[:4]}), the octave untouched")
     else:
         bad = [(k, off, lv[off - 30], p0[off - 30], P4[off]) for k, off, cont, lo, hi in RW if cont and lv[off - 30] != mid(p0[off - 30], P4[off])]
         check(not bad, f"K1 a quarter: halfway between the present sound and patch 4 ({len(bad)} rows differ: {bad[:4]})")
@@ -247,6 +275,10 @@ def main(img, man):
     check(src() and f[31] == M.RED and f[0] in (pal(9), pal(1)), f"Synth 1's button from the Mixer: the morph view ({src()}, pad 32 {f[31]:#x})")
     e.btn(0); frames(1)
     check(not src() and st(M.O_ACT) == 0 and e.r8(MGR + 0x152) == 1, f"Synth 1's button in the morph view: the stock (the Note view, {e.r8(MGR + 0x152)})")
+    if TYPEFIX:                                                                # (7.39) the morph runs on: the Octave buttons still move the keyboard
+        o0 = live()[5]; e.btn(M.ID_UP); frames(3); o1 = live()[5]; frames(10); o2 = live()[5]
+        e.btn(M.ID_DOWN); frames(3); o3 = live()[5]
+        check(o1 == o0 + 1 and o2 == o1 and o3 == o0 and st(M.O_ACT) == 0, f"(7.39) the Note view with the morph running: Octave up {o0} -> {o1}, kept ({o2}); down {o3}")
     e.btn(0); f = frames(1)
     check(src() and f[31] == M.RED, f"Synth 1's button again: the morph view ({src()})")
     e.btn(0); frames(1)

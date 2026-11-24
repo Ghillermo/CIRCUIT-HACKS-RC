@@ -7,6 +7,16 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.48 — 2026-11-24
+
+**Alpha 7.48** (marca `A7.48`) = la Alpha 7.37 + esto y los arreglos de abajo (las 7.38-7.47 no se publicaron). El solo / flip del Mixer, la página 2 de la vista de macros global y su guardado se han usado en el aparato; el resto, sin probar. Sustituye a la 7.37 en el instalador.
+
+- **Mixer: un solo modo de solo en el pad 16:** un toque lo prepara (blanco); cada pista que toques entra o sale del grupo, que suena solo; otro toque vuelve a los mutes de antes. **Pad 16 mantenido + pistas** = un grupo nuevo. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **Mixer: flip en el pad 15:** encendido / apagado (naranja); mientras mantienes una pista, cambia de silenciada a sonando (o al revés). Funciona encima de un solo. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **Vista de macros global, página 2:** Octave ▲ / ▼ cambia de página; en la 2, una cuadrícula: columna = knob = pista (K1 Synth 1 … K8 Drum 4), filas = su K5 (corte), panorama, K3 (envolvente) y K8 (efecto); lo encendido es lo que mueve cada knob. Se guarda con el proyecto. → [Guía: Vista Mixer y escenas](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#mixer)
+- **Automatización de Macros 2** en Synth 1 / 2: grabando, los 8 knobs de Macros 2 se graban en el patrón (dos valores por paso); paso mantenido + knob = ese paso; Clear + knob a la izquierda borra el carril, a la derecha el valor del patch. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+- **Morph de Synth 1 / 2:** **K3** (la velocidad de los LFO) bipolar: a la derecha libre, a la izquierda a tempo (1/16T a 8 compases). → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+
 ### Alpha 7.37 — 2026-11-23
 
 **Alpha 7.37** (marca `A7.37`) = la Alpha 7.27 + esto (las 7.28-7.36 no se publicaron). Las páginas de sección, la asignación y sus luces se han usado en el aparato; el resto, sin probar. Sustituye a la 7.27 en el instalador.
@@ -778,6 +788,14 @@ Primera versión candidata (= SC36.2; RC0S = SC362S, sin escrituras propias en l
 <a id="arreglos"></a>
 ## Arreglos
 
+### RC4.23 / RC4.23S y Alpha 7.48 — 2026-11-24
+
+**RC4.23 / RC4.23S** (marcas `R423` / `R423S`) = RC4.22 / RC4.22S + este arreglo. **Alpha 7.48** lleva este arreglo y los de abajo.
+
+- **Instalar solo en modo bootloader.** Una instalación enviada al aparato **encendido de forma normal** (no en modo bootloader) puede escribir sobre la memoria interna y dañar el sistema de ficheros del aparato: se pierden el pack 0 y los ajustes (le pasó a un aparato el 2026-11-24; se reparó). Ahora el firmware en marcha **ignora una instalación**: solo instala el bootloader (**mantén Scales + Preset + Note al encender**). El instalador solo envía con el aparato en modo bootloader. → [Guía: Instalación](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#instalar)
+- **Alpha 7.48: el morph de Synth 1 / 2 mueve todo el patch** (antes se saltaba los osciladores, el mezclador, el filtro, la envolvente de amplitud y parte de los destinos de los macros), y los osciladores sin escalones con el LFO. → [Guía: Vista Preset de Synth 1 / 2](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-preset)
+- **Alpha 7.48:** ≈ 3,5 KB más de flash libre (fuera el modo de prueba de fábrica del original), sin cambios de uso.
+
 ### RC4.22 / RC4.22S y Alpha 7.27 — 2026-11-22
 
 **RC4.22 / RC4.22S** (marcas `R422` / `R422S`) = RC4.21 / RC4.21S + este arreglo. **Alpha 7.27** (marca `A7.27`) = la Alpha 7.22 + este arreglo y los de abajo (las 7.23-7.26 no se publicaron); instalada en el aparato.
@@ -1232,6 +1250,16 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.48 — 2026-11-24
+
+**Alpha 7.48** (marker `A7.48`) = Alpha 7.37 + these and the fixes below (7.38-7.47 were not published). The Mixer solo / flip, the global macro view's page 2 and its saving have been used on the device; the rest is untested. It replaces 7.37 in the installer.
+
+- **Mixer: one solo mode on pad 16:** a tap arms it (white); each track you tap goes in or out of the group, which sounds alone; another tap brings back the mutes from before. **Pad 16 held + tracks** = a new group. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **Mixer: flip on pad 15:** on / off (orange); while you hold a track it switches from muted to sounding (or the other way). It works on top of a solo. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **Global macro view, page 2:** Octave ▲ / ▼ switches pages; page 2 is a grid: column = knob = track (K1 Synth 1 … K8 Drum 4), rows = its K5 (cutoff), pan, K3 (envelope) and K8 (FX); what is lit is what each knob moves. Saved with the project. → [Guide: Mixer view and scenes](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#mixer)
+- **Macros 2 automation** on Synth 1 / 2: recording, the 8 Macros 2 knobs are recorded into the pattern (two values a step); a held step + knob = that step; Clear + knob left clears the lane, right = the patch's value. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
+- **Synth 1 / 2 morph:** **K3** (the LFOs' rate) bipolar: right free, left synced (1/16T to 8 bars). → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
 
 ### Alpha 7.37 — 2026-11-23
 
@@ -2003,6 +2031,14 @@ First release candidate (= SC36.2; RC0S = SC362S, no writes of its own to the SD
 
 <a id="fixes"></a>
 ## Fixes
+
+### RC4.23 / RC4.23S and Alpha 7.48 — 2026-11-24
+
+**RC4.23 / RC4.23S** (markers `R423` / `R423S`) = RC4.22 / RC4.22S + this fix. **Alpha 7.48** has this fix and the ones below.
+
+- **Install only in bootloader mode.** An install sent to a unit **switched on normally** (not in bootloader mode) can write over the internal memory and damage the unit's file system: pack 0 and the settings are lost (it happened to one unit on 2026-11-24; it was repaired). Now the running firmware **ignores an install**: only the bootloader installs (**hold Scales + Preset + Note while switching on**). The installer only sends with the unit in bootloader mode. → [Guide: Installing](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#instalar)
+- **Alpha 7.48: the Synth 1 / 2 morph moves the whole patch** (it skipped the oscillators, the mixer, the filter, the amp envelope and some macro destinations), and the oscillators without steps under the LFO. → [Guide: Synth 1 / 2 Preset view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-preset)
+- **Alpha 7.48:** ≈ 3.5 KB more free flash (the original's factory-test mode removed), no change in use.
 
 ### RC4.22 / RC4.22S and Alpha 7.27 — 2026-11-22
 

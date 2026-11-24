@@ -448,6 +448,7 @@ OUT_BASE = 0x08000400
 OUT_USED = {}       # key -> sites folded (all assemblies, trials included)
 OUT_NAMES = None    # (outline.use) label name -> its latest assembled address
 OUT_KEEP = {}       # (outline.KEEP) labels whose next N bytes another module reads or patches by their bytes: not folded
+OUT_ZONES = []      # (factcut, Alpha 7.38) more of our zones below the stock code's end: (lo, hi) ranges whose modules are outlined too
 
 
 def out_target(key):
@@ -499,7 +500,7 @@ def _outline(items):
 
 
 def _assemble_compact(asm, external):
-    ours = asm.base >= 0x0805CE86 or 0x080101F0 <= asm.base < 0x08018110 + 1098       # our zones only (past the stock code and SC03's cave, which jumpseq reuses at a fixed address; the hole): not code patched inside a stock function
+    ours = asm.base >= 0x0805CE86 or 0x080101F0 <= asm.base < 0x08018110 + 1098 or any(lo <= asm.base < hi for lo, hi in OUT_ZONES)       # our zones only (past the stock code and SC03's cave, which jumpseq reuses at a fixed address; the hole): not code patched inside a stock function
     items = _outline(asm.items) if OUTLINE is not None and ours else asm.items
     n = len(items)
     seq, it_left, i, u, keep, nopool = [], 0, 0, 0, -1, -1

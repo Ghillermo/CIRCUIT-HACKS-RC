@@ -57,6 +57,8 @@ The mod has grown fast. The next stage is about **quality rather than quantity**
 None of these is decided: comments are welcome in [Discussions](https://github.com/Ghillermo/CIRCUIT-HACKS-RC/discussions).
 
 ### Control and usability
+- **A second page for the global macro view** (Mixer + Patterns): Octave ▲ / ▼ switches pages; on it, each knob controls a parameter of the track with its own number (K1 = Synth 1 … K8 = Drum 4). The parameters, in order: the track's K5 (cutoff), pan, K3 (envelope) and K8 (FX).
+- **One solo mode on the Mixer's pad 16:** a tap arms it until you tap one or more tracks, which become the solo group; holding it and tapping several tracks also starts or redoes the group. **Flip mode becomes a toggle on pad 15.**
 - **Pattern transpose over MIDI:** notes coming in on a synth track's channel transpose its playing pattern (keyboard-driven transpose, like an arpeggiator's key input), instead of playing the synth.
 - **Value readout:** while a knob turns, its exact value as a number on the pads (the mod already shows numbers this way in a few places), as an option.
 - **Undo the last destructive edit** (quantize, Nudge, Clear of a pattern, the snapshot of Record + step): one level.

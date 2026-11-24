@@ -52,6 +52,11 @@ FXV = 0x200443B4                                        # the FX view: [+ 0xC] t
 BSIG2, OLD_BLK = 0xD8, 4                                # (ROWS) the block's signature; 7.16's block (0xD7, 8 masks, sum) at its + 4
 COMPAT = True                                           # (ROWS) a 7.16 project's links load into row 1
 DIMLED = False                                          # Alpha 7.18 (use_dimled)
+PAGE2 = False                                           # Alpha 7.46 (use_page2)
+O_PG, O_P2 = 52, 53
+P2COL = False                                           # Alpha 7.47 (use_page2col)
+O_MX = 56                                               # (P2COL) the grid: 4 rows (K5, pan, K3, K8) x bit = knob
+OCT_DN, OCT_UP = 19, 20
 
 
 def use_dimled():
@@ -78,12 +83,39 @@ def use_rows():
     assert GM + O_PADS + 4 <= 0x2004F600
 
 
+def use_page2():
+    """Alpha 7.46 (the user, 2026-11-24; the roadmap: «a second page for the global macro view», «One page, pads pick»): in the view, Octave
+    up = page 2, Octave down = page 1 (the lit one is the way to the other; their presses and releases go nowhere).  Page 2: knob Kn = track n
+    (K1 Synth 1 .. K8 Drum 4), pads 1-4 pick what they move: 1 the track's K5 (cutoff), 2 its pan (the Mixer's pans page), 3 its K3 (envelope),
+    4 its K8 (FX); MIDI 1 / 2 on page 4 as in page 1; the picked pad white, the other three dim, the rest dark; the knobs in their tracks'
+    colours.  Opening the view = page 1.  RAM + 52 the page, + 53 the pick (signed "GMV3": a state from before starts clean)."""
+    global PAGE2
+    PAGE2 = True                                        # (the signature and the ROWS check in arm_code: use_rows runs later in the chain)
+
+
+def use_page2col():
+    """Alpha 7.47 (the user, on 7.46 on the device: «Each knob gets their own column. The lit pads signal wether that knob adresses same
+    track's k5, pan, k3 and k8 on their macros»): page 2 is a grid: column n = knob Kn = track n (K1 Synth 1 .. K8 Drum 4); row 1 = the
+    track's K5 (cutoff), row 2 its pan, row 3 its K3 (envelope), row 4 its K8 (FX); a pad lit (the track's bright colour; dim = off) = that
+    knob moves that parameter; a tap toggles; a knob moves every lit row of its column at once.  The knob LEDs: the tracks' colours (as 7.46).  The grid in RAM (GM + 56..59, a byte per row), kept across loads, cleared with the state ("GMV4")."""
+    global P2COL, COMPAT
+    use_page2()
+    P2COL = True
+    COMPAT = False                                      # (room) 7.16's one-row block no longer loaded: a 7.16 project opens with no links
+
+
 def pushw(regs, lr=False): return h(0xE92D) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
 def popw(regs, lr=False): return h(0xE8BD) + h(sum(1 << r for r in regs) | (1 << 14 if lr else 0))
+def ldrbw(rt, rn, imm): return h(0xF890 | rn) + h(rt << 12 | imm)   # ldrb.w (offsets past 31)
+def strbw(rt, rn, imm): return h(0xF880 | rn) + h(rt << 12 | imm)
 def str_lr(rn): return h(0xF8C0 | rn) + h(0xE000)          # str.w lr, [rn]
 
 
 def arm_code(base, L, prev):
+    global SIG
+    if PAGE2:
+        assert ROWS, "page 2 needs use_rows"
+        SIG = struct.unpack("<I", b"GMV4" if P2COL else b"GMV3")[0]
     a = Asm(base)
     E = a.emit
     def imm32(r, v): E(movw, r, v & 0xFFFF); E(movt, r, (v >> 16) & 0xFFFF)
@@ -94,6 +126,8 @@ def arm_code(base, L, prev):
     imm32(0, GM); E(ldr_imm, 1, 0, O_SIG); imm32(2, SIG); E(cmp_reg, 1, 2); E(b_cond, "st_ok", "eq")
     if ROWS:
         E(str_imm, 2, 0, O_SIG); E(movs_imm, 1, 0); E(str_imm, 1, 0, O_ON); E(str_imm, 1, 0, O_PADS)
+        if PAGE2: E(str_imm, 1, 0, O_PG)
+        if P2COL: E(str_imm, 1, 0, O_MX)
         E(adds_imm8, 0, O_M); E(movs_imm, 2, 8)
         a.label("st_z"); E(raw, h(0xC002)); E(subs_imm8, 2, 1); E(b_cond, "st_z", "ne")      # stm r0!, {r1}
         imm32(0, GM)
@@ -110,11 +144,17 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 3, 4, O_HELD); E(tst_reg, 3, 2); E(b_cond, "bt_hold", "eq")
     E(bics_reg, 3, 2); E(strb_imm, 3, 4, O_HELD)                                     # the chord: the first one's release goes on as it is
     E(ldrb_imm, 0, 4, O_ON); E(movs_imm, 2, 1); E(eors_reg, 0, 2); E(strb_imm, 0, 4, O_ON)
+    if PAGE2: E(movs_imm, 2, 0); E(raw, strbw(2, 4, O_PG))
     E(ldrb_imm, 0, 4, O_SWAL); E(orrs_reg, 0, 1); E(strb_imm, 0, 4, O_SWAL)
     E(pop_list, [0, 1, 4, 5], pc=True)
     a.label("bt_hold"); E(orrs_reg, 3, 1); E(strb_imm, 3, 4, O_HELD); E(b, "bt_prev")
     a.label("bt_oth")
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "bt_prev", "eq")
+    if PAGE2:                                                                          # Octave: the pages
+        E(movs_imm, 0, 1); E(cmp_imm, 5, OCT_UP); E(b_cond, "bt_pg", "eq")
+        E(movs_imm, 0, 0); E(cmp_imm, 5, OCT_DN); E(b_cond, "bt_pgn", "ne")
+        a.label("bt_pg"); E(raw, strbw(0, 4, O_PG)); E(pop_list, [0, 1, 4, 5], pc=True)
+        a.label("bt_pgn")
     for k in PASS:
         E(cmp_imm, 5, k); E(b_cond, "bt_prev", "eq")
     E(movs_imm, 0, 0); E(strb_imm, 0, 4, O_ON)
@@ -124,6 +164,11 @@ def arm_code(base, L, prev):
     a.label("c_gmrel")
     E(push_list, [0, 1, 4, 5], lr=True)
     E(mov_reg, 5, 1); E(bl, "c_gmst"); E(mov_reg, 4, 0)
+    if PAGE2:
+        E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "rl_np", "eq")
+        E(mov_reg, 0, 5); E(subs_imm8, 0, OCT_DN); E(cmp_imm, 0, 1); E(b_cond, "rl_np", "hi")
+        E(pop_list, [0, 1, 4, 5], pc=True)
+        a.label("rl_np")
     E(mov_reg, 0, 5); E(subs_imm8, 0, PAT_BTN); E(cmp_imm, 0, 1); E(b_cond, "rl_prev", "hi")
     E(movs_imm, 1, 1); E(lsls_reg, 1, 0)
     E(ldrb_imm, 2, 4, O_SWAL); E(tst_reg, 2, 1); E(b_cond, "rl_h", "eq")
@@ -142,7 +187,34 @@ def arm_code(base, L, prev):
     E(bl, "c_gmst"); E(mov_reg, 4, 0)
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "kn_prev", "eq")
     E(cmp_imm, 5, 8); E(b_cond, "kn_prev", "hs")
-    E(strb_imm, 5, 4, O_LAST)
+    if not P2COL: E(strb_imm, 5, 4, O_LAST)
+    if PAGE2:                                                                          # page 2: knob n = track n, the picked parameter
+        E(raw, ldrbw(0, 4, O_PG)); E(cmp_imm, 0, 0); E(b_cond, "kn_p1", "eq")
+        if P2COL:                                                                      # the grid: every lit row of this knob's column
+            E(movs_imm, 7, 0)
+            a.label("kg_l")
+            E(adds_reg, 0, 4, 7); E(raw, ldrbw(0, 0, O_MX)); E(lsrs_reg, 0, 5); E(lsls_imm, 0, 0, 31); E(b_cond, "kg_n", "eq")
+            E(mov_reg, 0, 7); E(bl, "c_gmp2")
+            a.label("kg_n"); E(adds_imm8, 7, 1); E(cmp_imm, 7, 4); E(b_cond, "kg_l", "lo")
+            E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
+            a.label("c_gmp2")                                                          # r0 = the row, r5 = the knob / track, r6 = the delta
+            E(push_list, [4, 7], lr=True)
+            E(cmp_imm, 0, 1); E(b_cond, "kn_pan", "eq")
+        else:
+            E(raw, ldrbw(0, 4, O_P2)); E(cmp_imm, 0, 1); E(b_cond, "kn_pan", "eq")
+        E(movs_imm, 1, 4); E(cmp_imm, 0, 0); E(b_cond, "kn_go", "eq")
+        E(movs_imm, 1, 2); E(cmp_imm, 0, 2); E(b_cond, "kn_go", "eq")
+        E(movs_imm, 1, 7)
+        a.label("kn_go"); E(mov_reg, 0, 5); E(mov_reg, 2, 6); E(bl, "c_gmcall"); E(b, "kn_end")
+        a.label("kn_pan")                                                              # the pan: the stock Mixer handler on its pans page
+        imm32(7, MIXV + MIX_PAGE); E(ldrb_imm, 0, 7, 0); E(push_list, [0]); E(movs_imm, 0, 1); E(strb_imm, 0, 7, 0)
+        E(mov_reg, 0, 7); E(subs_imm8, 0, MIX_PAGE); E(mov_reg, 1, 5); E(mov_reg, 2, 6); E(bl, MIX_KNOB)
+        E(pop_list, [0]); E(strb_imm, 0, 7, 0)
+        a.label("kn_end")
+        if P2COL: E(pop_list, [4, 7], pc=True)
+        else: E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
+        a.label("kn_p1")
+        if P2COL: E(strb_imm, 5, 4, O_LAST)                                           # (the grid's knobs leave page 1's pick alone)
     if ROWS:                                                                           # r7 = 8 row + track, over the four rows
         E(movs_imm, 7, 0)
         a.label("kn_l")
@@ -197,6 +269,14 @@ def arm_code(base, L, prev):
     E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "pd_prev", "eq")
     E(raw, h(0x9901)); E(cmp_imm, 1, 32); E(b_cond, "pd_prev", "hs")                   # ldr r1, [sp, #4]: the pad
     E(movs_imm, 0, 1); E(lsls_reg, 0, 1); E(ldr_imm, 2, 4, O_PADS); E(orrs_reg, 2, 0); E(str_imm, 2, 4, O_PADS)
+    if PAGE2:                                                                          # page 2: pads 1-4 pick, the rest nothing
+        E(raw, ldrbw(0, 4, O_PG)); E(cmp_imm, 0, 0); E(b_cond, "pd_p1", "eq")
+        if P2COL:                                                                      # the grid: row = pad / 8, column = pad % 8
+            E(lsrs_imm, 2, 1, 3); E(adds_reg, 2, 4, 2); E(lsls_imm, 3, 1, 29); E(lsrs_imm, 3, 3, 29)
+            E(movs_imm, 0, 1); E(lsls_reg, 0, 3); E(raw, ldrbw(3, 2, O_MX)); E(eors_reg, 3, 0); E(raw, strbw(3, 2, O_MX)); E(b, "pd_x")
+        else:
+            E(cmp_imm, 1, 4); E(b_cond, "pd_x", "hs"); E(raw, strbw(1, 4, O_P2)); E(b, "pd_x")
+        a.label("pd_p1")
     if ROWS:                                                                           # pad = 8 row + track: that row's mask of the knob
         E(lsrs_imm, 2, 1, 3); E(lsls_imm, 2, 2, 3); E(ldrb_imm, 3, 4, O_LAST); E(adds_reg, 2, 2, 3); E(adds_reg, 2, 4, 2)
         E(lsls_imm, 3, 1, 29); E(lsrs_imm, 3, 3, 29); E(movs_imm, 0, 1); E(lsls_reg, 0, 3)
@@ -223,8 +303,34 @@ def arm_code(base, L, prev):
     E(bl, prev["led"])
     E(push_list, [4, 5, 6, 7])
     E(bl, "c_gmst"); E(mov_reg, 4, 0)
-    E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0); E(b_cond, "ld_x", "eq")
+    E(ldrb_imm, 0, 4, O_ON); E(cmp_imm, 0, 0)
+    if P2COL: E(b_cond, "ld_on", "ne"); E(b, "ld_x"); a.label("ld_on")              # (the grid makes the function longer than a short branch)
+    else: E(b_cond, "ld_x", "eq")
     E(ldr_imm, 5, 4, O_FR)
+    if PAGE2:
+        E(raw, ldrbw(0, 4, O_PG)); E(cmp_imm, 0, 0); E(b_cond, "ld_p1", "eq")
+        E(movs_imm, 7, 0)
+        if P2COL:
+            a.label("ld_q")                                                            # the grid: lit = the track's bright colour, else its dim one
+            E(lsrs_imm, 6, 7, 3); E(adds_reg, 6, 4, 6); E(raw, ldrbw(6, 6, O_MX))
+            E(lsls_imm, 2, 7, 29); E(lsrs_imm, 2, 2, 29); E(lsrs_reg, 6, 2); E(movs_imm, 1, 9); E(lsls_imm, 6, 6, 31); E(b_cond, "ld_qc", "eq"); E(movs_imm, 1, 1)
+            a.label("ld_qc"); E(adds_reg, 1, 1, 2); E(lsls_imm, 1, 1, 1); imm32(3, COLS); E(ldrh_reg, 0, 3, 1)
+            E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1); E(adds_imm8, 7, 1); E(cmp_imm, 7, 32); E(b_cond, "ld_q", "lo")
+        else:
+            a.label("ld_q")                                                            # pads: 1-4 the picks (white / dim), the rest dark
+            E(movs_imm, 0, 0); E(cmp_imm, 7, 4); E(b_cond, "ld_qw", "hs"); E(movs_imm, 0, 2)
+            E(raw, ldrbw(1, 4, O_P2)); E(cmp_reg, 7, 1); E(b_cond, "ld_qw", "ne"); E(movs_imm, 0, 1)
+            a.label("ld_qw"); E(lsls_imm, 1, 7, 1); E(strh_reg, 0, 5, 1); E(adds_imm8, 7, 1); E(cmp_imm, 7, 32); E(b_cond, "ld_q", "lo")
+        E(movs_imm, 7, 0)
+        a.label("ld_q2")                                                               # knobs: their tracks' colours
+        E(movs_imm, 1, 1); E(adds_reg, 1, 1, 7); E(lsls_imm, 1, 1, 1); imm32(2, COLS); E(ldrh_reg, 0, 2, 1)
+        E(movs_imm, 2, BR_SEL); E(lsls_imm, 2, 2, 8); E(orrs_reg, 0, 2)
+        E(lsls_imm, 1, 7, 1); E(adds_imm8, 1, 2 * KNOB_LED); E(strh_reg, 0, 5, 1)
+        E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ld_q2", "lo")
+        E(movs_imm, 0, COL_WHITE); E(movs_imm, 1, 2 * (LED_BTN + OCT_DN)); E(strh_reg, 0, 5, 1)
+        E(movs_imm, 0, 0); E(adds_imm8, 1, 2); E(strh_reg, 0, 5, 1)
+        E(b, "ld_btn")
+        a.label("ld_p1")
     if ROWS:                                                                           # the 32 pads: row = pad / 8, track = pad % 8
         E(movs_imm, 7, 0)
         a.label("ld_p")
@@ -269,6 +375,10 @@ def arm_code(base, L, prev):
     a.label("ld_kb"); E(lsls_imm, 2, 2, 8); E(orrs_reg, 0, 2)
     a.label("ld_kw"); E(lsls_imm, 1, 7, 1); E(adds_imm8, 1, 2 * KNOB_LED); E(strh_reg, 0, 5, 1)
     E(adds_imm8, 7, 1); E(cmp_imm, 7, 8); E(b_cond, "ld_k", "lo")
+    if PAGE2:                                                                          # page 1: Octave up lit (the way to page 2)
+        E(movs_imm, 0, 0); E(movs_imm, 1, 2 * (LED_BTN + OCT_DN)); E(strh_reg, 0, 5, 1)
+        E(movs_imm, 0, COL_WHITE); E(adds_imm8, 1, 2); E(strh_reg, 0, 5, 1)
+        a.label("ld_btn")
     E(movs_imm, 0, COL_WHITE); E(movs_imm, 1, 2 * (LED_BTN + PAT_BTN)); E(strh_reg, 0, 5, 1); E(adds_imm8, 1, 2); E(strh_reg, 0, 5, 1)
     a.label("ld_x")
     E(pop_list, [4, 5, 6, 7])

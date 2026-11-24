@@ -177,7 +177,9 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 - **Clear + knob**: on Macros, the original's (left clears its automation, right the default value); on the other pages, nothing.
 - The **macro editor** moves to **pad 26** and the **step-drummer** to **pad 32**; pad 30 does nothing.
 
-**Macros 2 (Shift + pad 1):** 8 more knobs, each one straight to one synth parameter. They cannot be sequenced. An assigned knob lights with its value; a free one is dark. They are saved with the project.
+**Macros 2 (Shift + pad 1):** 8 more knobs, each one straight to one synth parameter. An assigned knob lights with its value; a free one is dark. They are saved with the project.
+
+**Macros 2 automation** {YB}: recording while playing, turning a Macros 2 knob records its movement into the pattern (two values a step: at its start and its middle); with a **step held**, the knob writes that step. **Clear + knob left** = clears its lane; **right** = back to the patch's value. The lanes are saved with the project; copying, clearing and Nudge of a pattern carry them.
 
 **Assigning a parameter to a macro or to Macros 2:**
 1. *(For a macro.)* On Macros, move the macro's knob: for 2 s **pads 1 / 9 / 17 / 25** show its **4 slots** (bright = in use, dim = free). **Hold one of those pads and turn the macro's knob**: that slot is picked (the pad white; the knob moves nothing).
@@ -203,7 +205,7 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 
 - The original cannot save patches from the device. The saved patch keeps the name of the one that was loaded.
 - Not in the internal memory's pack (read-only for the mod): the Save LED turns red.
-- **Patch morph** {YB}: in the Preset view, **hold two to four patches** for 0.4 s (or hold them + Duplicate): the **morph view** opens and moves from one held patch to the next, in pad order. Only the knobs work: **K1** = the position along the chain; **K2** = square LFO (depth); **K3** = the rate of both LFOs; **K4** = random-step LFO (depth; a new value every half cycle); **K5** = the **slow morph**'s destination; **K6** = its length (fully left, at once; then ¼ to 32 bars of the project's tempo: further right, longer); **K7 / K8** = envelope (depth / time); **K8** also smooths both LFOs (further right, slower changes). The depths to the right go towards the chain's end. **Slow morph:** turn K5 and leave it for half a second: the sound moves from K1 to K5 over K6's time and, once there, K1 takes K5's value; turning K5 again re-aims from where the sound is; turning K1 stops it there. **K1 and K5 in colour:** patch 1 red, 2 yellow, 3 green, 4 blue, with shades in between. **Clear + knob** = 0 (Clear stays in the view); **Clear + the track button** = every knob to 0. **Pads 1 / 8** = the envelope from the top, **held while you hold them**; K8 sets only the fall (on Synth 1 / 2, since Beta 5.56, the attack reaches the whole patch at once). **Pad 32** (red) = out. **Preset** = the patches, the chain's in white: a tap loads that patch and leaves; holding 0.4 s = a new chain with the knobs as they are. The morph keeps going in the other views; the **track button** brings the morph view back (from it, to the Note view). **One morph at a time:** holding patches for 0.4 s in another track's Preset view opens that track's morph and stops the previous one (its sound stays where it is); a tap on another track only loads that patch. Continuous parameters blend; type parameters (wave, algorithm, mode…) take the nearest patch's. Nothing is saved.
+- **Patch morph** {YB}: in the Preset view, **hold two to four patches** for 0.4 s (or hold them + Duplicate): the **morph view** opens and moves from one held patch to the next, in pad order. Only the knobs work: **K1** = the position along the chain; **K2** = square LFO (depth); **K3** = the rate of both LFOs ({YB} bipolar: right free, up to ≈ 75 % of the old top speed; left synced, 1/16T to 8 bars); **K4** = random-step LFO (depth; a new value every half cycle); **K5** = the **slow morph**'s destination; **K6** = its length (fully left, at once; then ¼ to 32 bars of the project's tempo: further right, longer); **K7 / K8** = envelope (depth / time); **K8** also smooths both LFOs (further right, slower changes). The depths to the right go towards the chain's end. **Slow morph:** turn K5 and leave it for half a second: the sound moves from K1 to K5 over K6's time and, once there, K1 takes K5's value; turning K5 again re-aims from where the sound is; turning K1 stops it there. **K1 and K5 in colour:** patch 1 red, 2 yellow, 3 green, 4 blue, with shades in between. **Clear + knob** = 0 (Clear stays in the view); **Clear + the track button** = every knob to 0. **Pads 1 / 8** = the envelope from the top, **held while you hold them**; K8 sets only the fall (on Synth 1 / 2, since Beta 5.56, the attack reaches the whole patch at once). **Pad 32** (red) = out. **Preset** = the patches, the chain's in white: a tap loads that patch and leaves; holding 0.4 s = a new chain with the knobs as they are. The morph keeps going in the other views; the **track button** brings the morph view back (from it, to the Note view). **One morph at a time:** holding patches for 0.4 s in another track's Preset view opens that track's morph and stops the previous one (its sound stays where it is); a tap on another track only loads that patch. Continuous parameters blend; type parameters (wave, algorithm, mode…) take the nearest patch's. {YB} On Synth 1 / 2 the whole patch moves (oscillators, mixer, filter, envelopes, LFOs, macro destinations) except the keyboard octave, and the oscillators without steps. Nothing is saved.
 """),
 "midi-preset": ("MIDI 1 / 2 Preset view",
     "Press **MIDI 1** or **MIDI 2**, then **Preset** (*since RC4*: or **MIDI 1 / MIDI 2 again** with its Note view on the screen, or **Shift + MIDI 1 / 2**). Besides the stock templates, the track's own synth lives here.", f"""
@@ -851,8 +853,9 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Pan page: Shift + knob to the right / left** {B} | **Cue mode** on / off (Octave ▼ pink / white; stored in the unit). |
 | **Cue mode: a pan knob** {B} | That track's send to the **cue** (right output), from the centre to the right (to the left nothing); Clear + knob = no cue. The knobs pink, brighter with more send. |
 | **Scene pads** | As always; a scene saved in **chain mode** shows **peach** and loading it brings the mode back; a normal one turns it off. {B} {YB} **Clear + a scene pad** (the usual scene clear) clears its group chains too. |
-| **Pad 16 held + pads 1-8** {YB} | **Solo**: the Mixer's mutes are saved, the tracks you press go on sounding and all the others are muted. Pad 16 stays **white** while the solo is on; holding it again with other tracks puts those in solo. **A tap on pad 16** alone (no tracks) brings back the mutes from before the solo. |
-| **A tap on pad 16 with no solo** {YB} | **Solo flip**: pad 16 **orange**. While you hold one or more tracks (muted or not), only they sound; when you let go, the Mixer goes back to how it was. Pad 16 held + tracks = solo (flip off); another tap on pad 16 leaves. Loading another project turns solo and flip off without touching its mutes. |
+| **A tap on pad 16** {YB} | **Solo**: pad 16 **white** (the Mixer's mutes are saved, nothing changes yet). Each **track pad** you tap goes in or out of the **solo group**, which sounds alone (an empty group = the saved mutes). **Another tap on pad 16** brings back the mutes from before. |
+| **Pad 16 held + pads 1-8** {YB} | **A new group**: the tracks you tap while holding it sound alone and all the others are muted; the solo stays on when you let go. |
+| **A tap on pad 15** {YB} | **Flip** on / off (pad 15 **orange**): while you hold a track pad, that track switches from muted to sounding (or the other way); let go, it goes back. It works **on top of a solo**: the flip starts from what the solo plays. Turning flip on or off leaves the solo alone, and the solo leaves flip alone. Loading another project turns both off without touching its mutes. |
 | **Shift + pads 1-8** {B} | **Mute / unmute that track on the next bar**: the pad blinks while it waits; again cancels it. Stopped, at once. |
 | **Shift + pads 9-16** | **Repeats** of the current scene (1-8; with Shift the row is yellow, the chosen one green). {B} While playing, with Shift, **the repeat now playing is white** (pad 9 = the first time; on the last one the green pad blinks white / green). {XB} |
 | Blinking tracks | They are following a chain rule. {B} |
@@ -871,11 +874,14 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **A knob** | Picks it and moves that knob on its linked tracks (with no tracks it moves nothing; its LED dim white). |
 | **Pads 1-8** | Synth 1, Synth 2, MIDI 1, MIDI 2, Drum 1-4 for the picked knob: **bright = linked**, dim = not; a tap toggles. |
 | **Pads 9-16 / 17-24 / 25-32** | The **Mixer level**, the **reverb send** and the **delay send** of the same tracks (same order) for the picked knob, the same way: the knob moves them as their knob in the Mixer (levels page) or in the FX view. |
+| **Octave ▲ / ▼** {YB} | **Page 2** / page 1 (the lit Octave is the way to the other). Opening the view = page 1. |
+| **Page 2: the pads** {YB} | A **grid**: **column n is knob Kn and track n** (K1 Synth 1 … K8 Drum 4); **row 1 = the track's K5 (cutoff), row 2 = its pan, row 3 = its K3 (envelope), row 4 = its K8 (FX)**. Lit (the track's colour) = that knob moves it; dim = it doesn't; a tap toggles. |
+| **Page 2: a knob** {YB} | Moves everything lit in its column at once (MIDI 1 / 2: their page 4, as on page 1). The grid is saved with the project. |
 | **Mixer or Patterns alone**, or any button but Record, Play, Clear and Duplicate | Closes the view (and does what it always does). |
 
 - At first no track is linked; each knob has its own tracks, saved with the project.
 - A linked knob's LED shows the colour of its first linked track in any row: bright for the picked one, dim for the others; with no links, off.
-- A project saved with Alpha 7.16 loads its links into pads 1-8.
+- {YB} Since Alpha 7.47 the links of a project saved with Alpha 7.16 are no longer loaded.
 - The master filter knob is the same as always.
 """),
 "projects": ("Projects view",
@@ -944,7 +950,8 @@ The same view for a drum: **Pattern Settings twice** (mode 1) or **pad 25** of i
 | **Side-chain**: Synth 1 / 2 and MIDI 1 / 2 as a source; K1-K4 of the drum pages | [Side-chain](#sidechain) |
 | **Chain mode** (and in each scene), **scene repeats**, the **cue mode** sends | [Patterns](#patterns), [Mixer](#mixer) |
 | {YB} **Pattern mutate**: which tracks mutate, the seed and the settings (and in each scene) | [Patterns](#patterns) |
-| {YB} **Global macro view**: what each knob moves (each track's knobs, its level, its reverb and delay sends) | [Mixer](#mixer) |
+| {YB} **Global macro view**: what each knob moves (each track's knobs, its level, its reverb and delay sends) and the page-2 grid | [Mixer](#mixer) |
+| {YB} **Macros 2 automation** of Synth 1 / 2 | [Synth source](#synth-fuente) |
 | {YB} Synth 1 / 2's **Macros 2**: which parameter each knob moves | [Synth source](#synth-fuente) |
 | {YB} **Chains of groups**: each track's and each scene's (in the project's file, after the extra lanes) | [Patterns](#patterns) |
 | **Count-in** (the click, as on the original, is not saved) | [Buttons](#botones) |
@@ -1053,7 +1060,7 @@ The official reference is Novation's **Programmer's Reference Guide**, version 3
 """),
 "instalar": ("Installing and going back",
     "`tools/rc_uploader.html` patches the official firmware in the browser and sends it over Web MIDI.", """
-1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB.
+1. Download Novation's official firmware 1.2.1, open `tools/rc_uploader.html` in Chrome and connect the Circuit Tracks over USB **in bootloader mode: hold Scales + Preset + Note while switching it on**. **Never install with the unit switched on normally**: with the firmware running, the install can write over the internal memory (pack 0 and the settings are lost). The installer only sends after **Identify** finds the unit in bootloader mode; since RC4.23 / Alpha 7.48 the running firmware ignores an install.
 2. Pick the version (RC4, the safer RC4S, or an earlier one) and send. Novation's bootloader is not touched.
 3. **Back up the card first.** With the versions that do not end in «S», do not use the internal memory for projects.
 - **Going back:** send another version or the official firmware. If it does not boot: **Scales + Preset + Note** at power-up.
