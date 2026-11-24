@@ -25,7 +25,7 @@ XB = f"*(desde {XBETA})*"
 YBETA = "Beta 5.65"                    # the newest beta: «solo Beta 5.3» (3.44-3.49 never went out: 5.0 holds them;
                                       # the user: «betas that expand RC4 get 5.xx version»)
 YB = f"*(solo {YBETA})*"
-YNAME = "Alpha 7.51"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
+YNAME = "Alpha 7.52"                     # (2026-11-17, the user: «release as alpha7», «Beta 5.65 as Alpha 7») the name the beta set shows:
                                       # docset.beta() renames every «solo Beta 5.x» mark of the beta set to it; the sources keep YBETA
 ZBETA = "RC4.05"                      # the newest release candidate's fixes (2026-10-29), in RC4.02 and the beta: «desde RC4.02»
 ZB = f"*(desde {ZBETA})*"
@@ -192,6 +192,8 @@ Los **pads 1-8** eligen qué mueven los 8 knobs del sinte (el elegido brillante,
 - El **editor de macros** pasa al **pad 26** y el **step-drummer** al **pad 32**; el pad 30 no hace nada.
 
 **Macros 2 (Shift + pad 1):** 8 knobs más, cada uno directo a un parámetro del sinte. Un knob asignado se enciende con su valor; uno libre está apagado. Se guardan con el proyecto.
+
+**Dos destinos por knob de Macros 2** {YB}: como las ranuras de los macros: al girar un knob de Macros 2, durante 2 s los **pads 1 / 9** enseñan sus dos destinos (brillante = puesto, tenue = libre); **pad 9 mantenido + ese knob** elige el segundo (pad 9 en blanco) y **Duplicate + knob** en una página de sección lo escribe ahí. El knob mueve los dos, cada uno al mismo sitio de su recorrido (la primera vez el segundo salta a ese sitio). **Clear + pad 9** con los pads a la vista quita el segundo; pad 1 mantenido + knob, los dos. Se guarda con el proyecto.
 
 **Automatización de Macros 2** {YB}: con Record y sonando, girar un knob de Macros 2 graba su movimiento en el patrón (dos valores por paso: al principio y a la mitad); con un **paso mantenido**, el knob escribe en ese paso. **Clear + knob a la izquierda** = borra su carril; **a la derecha** = vuelve al valor del patch. Los carriles se guardan con el proyecto; copiar, borrar y Nudge de un patrón los llevan.
 

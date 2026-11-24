@@ -181,6 +181,8 @@ The step-drummer view is the MIDI tracks' one ([step-drummer view](#step-drummer
 
 **Macros 2 (Shift + pad 1):** 8 more knobs, each one straight to one synth parameter. An assigned knob lights with its value; a free one is dark. They are saved with the project.
 
+**Two destinations per Macros 2 knob** {YB}: like the macros' slots: turning a Macros 2 knob, for 2 s **pads 1 / 9** show its two destinations (bright = set, dim = free); **pad 9 held + that knob** picks the second (pad 9 white) and **Duplicate + knob** on a section page writes it there. The knob moves both, each to the same place in its range (the first time, the second jumps there). **Clear + pad 9** while the pads show removes the second; pad 1 held + knob, both. Saved with the project.
+
 **Macros 2 automation** {YB}: recording while playing, turning a Macros 2 knob records its movement into the pattern (two values a step: at its start and its middle); with a **step held**, the knob writes that step. **Clear + knob left** = clears its lane; **right** = back to the patch's value. The lanes are saved with the project; copying, clearing and Nudge of a pattern carry them.
 
 **Assigning a parameter to a macro or to Macros 2:**

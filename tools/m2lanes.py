@@ -76,6 +76,14 @@ assert OFF == 187392 and DATA == 8192 and IT0 + DATA == 0x4000
 HELPERS = ("c_m2ok", "c_m2adr", "c_m2bit", "c_m2trk", "c_m2ff", "c_m2cpy", "c_m2sum")
 
 
+X2 = False                                       # Alpha 7.52 (use_x2)
+
+
+def use_x2():
+    """Alpha 7.52 (novasec.use_v12): the playback of a Macros 2 lane also sets the knob's second destination (novasec.c_nsx2)."""
+    global X2
+    X2 = True
+
 def ldr_reg(rt, rn, rm): return h(0x5800 | rm << 6 | rn << 3 | rt)
 def ldrb_reg(rt, rn, rm): return h(0x5C00 | rm << 6 | rn << 3 | rt)
 
@@ -251,6 +259,7 @@ def arm_code(base, L, prev, part="A"):
         E(mov_reg, 1, 5); E(bl, L["c_nsxrow"]); E(cmp_imm, 0, 0xFE); E(b_cond, "pl_n", "hs")
         E(str_sp, 0, 0); E(mov_reg, 1, 0); E(bl, L["c_nsget"]); E(cmp_reg, 0, 7); E(b_cond, "pl_n", "eq")
         E(mov_reg, 0, 4); E(ldr_sp, 1, 0); E(mov_reg, 2, 7); E(bl, L["c_mcset"])
+        if X2: E(mov_reg, 1, 5); E(ldr_sp, 2, 0); E(mov_reg, 3, 7); E(bl, L["c_nsx2"])              # (X2) novasec.use_v12: the knob's second destination
         a.label("pl_n"); E(adds_imm8, 6, 64); E(adds_imm8, 5, 1); E(cmp_imm, 5, 8); E(b_cond, "pl_l", "lo")
         a.label("pl_x"); E(add_sp_imm, 4); E(raw, PC.popw([0, 1, 2, 3, 4, 5, 6, 7], lr=True)); E(b_w, prev["play"])
 
@@ -446,6 +455,7 @@ class H:
         BASE = ct_fw.APP_BASE
         lab = lambda m, k: int(report[m]["labels"][k], 16)
         L = dict(c_mcset=lab("macroed", "c_mcset"), c_nsxrow=lab("novasec", "c_nsxrow"), c_nsget=lab("novasec", "c_nsget"))
+        if X2: L["c_nsx2"] = lab("novasec", "c_nsx2")
         prev = dict(play=struct.unpack_from("<I", img, PLAYER_VT + 8 - BASE)[0] & ~1)
         base = (BASE + len(img) + 3) & ~3
         img += bytes([0xFF]) * (base - BASE - len(img))

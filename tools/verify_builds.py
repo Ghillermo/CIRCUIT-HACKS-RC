@@ -599,6 +599,7 @@ BUILDS = [
     ("a7.49", "build_a7_49.py", []),
     ("a7.50", "build_a7_50.py", []),
     ("a7.51", "build_a7_51.py", []),
+    ("a7.52", "build_a7_52.py", []),
     ("norfxd", "build_norfxd.py", []),
     ("s725d", "build_s725d.py", []),
     ("s725d2", "build_s725d2.py", []),

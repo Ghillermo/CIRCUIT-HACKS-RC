@@ -253,6 +253,21 @@ def use_v10():
     MXPG = 5
 
 
+V12 = False                                          # Alpha 7.52 (use_v12)
+O_P2 = 40                                            # (V12) from NS + 4: Macros 2's picked second destination (0x80 | synth << 6 | knob)
+
+
+def use_v12():
+    """Alpha 7.52 (the user, 2026-11-24: «2 destinations on all 8 knobs», «Like the macro slots»): each Macros 2 knob gets a second destination
+    (byte 6 of the settings of Synth s's pattern k, 0 in all 192 sessions scanned; not in the block's sum: 0 / 0xFF / < 3 = none), moved with
+    the first over its own range (the same place in it: c_nsx2), by the knob and by m2lanes' playback (m2lanes.X2);  a Macros 2 knob turned:
+    for 2 s pads 1 / 9 = its two destinations (the synth's colour bright = set, dim = free; O_SH with 0x08);  pad 9 held + a Macros 2 knob =
+    its second destination picked (pad 9 white);  Duplicate + knob on a section page then writes it there (the knob flashes white);  Clear +
+    pad 9 while they show = the second freed;  pad 1 held + knob frees both."""
+    global V12
+    V12 = True                                       # (V8 and V9 needed: checked in arm_code, the chain sets them later)
+
+
 V11 = False                                          # Alpha 7.51 (use_v11)
 EQ_COL = 0x70                                        # (V11) lime: the EQ, next to the chorus / distortion's lemon
 
@@ -291,6 +306,7 @@ def arm_code(base, L, prev):
     def imm32(r, v): E(movw, r, v & 0xFFFF); E(movt, r, (v >> 16) & 0xFFFF)
     cols = page_colours()
     assert not V9 or V8, "use_v9 needs use_v8"
+    assert not V12 or (V8 and V9), "use_v12 needs use_v8 / use_v9"
     ED2 = 25 if V8 else PAD_ED2                                                                     # (V8) the macro editor's pad: 26
 
     # ---- c_nsst() -> r0 = NS + 4 (the first time: zeroed, signed); clobbers r1, r2
@@ -417,6 +433,30 @@ def arm_code(base, L, prev):
         a.label("xw_v"); E(adds_imm8, 5, 2); E(mov_reg, 1, 5); E(bl, "c_nsxa"); E(strb_imm, 6, 0, 0)
         E(bl, "c_nsxsum"); E(mov_reg, 5, 0); E(movs_imm, 1, 0); E(bl, "c_nsxa"); E(movs_imm, 1, XSIG); E(strb_imm, 1, 0, 0); E(strb_imm, 5, 0, 1)
         a.label("xw_x"); E(pop_list, [5, 6], pc=True)
+        if V12:
+            # ---- c_nsxa2(r4 = synth, r1 = knob) -> r0 = its second destination's byte (0 = no record); clobbers r1-r3
+            a.label("c_nsxa2")
+            imm32(0, SESSION); E(ldr_imm, 0, 0, 0x14); E(cmp_imm, 0, 0); E(b_cond, "x2_x", "eq")
+            E(lsls_imm, 3, 4, 3); E(adds_reg, 1, 1, 3); imm32(3, PSIZE); E(muls, 1, 3); E(adds_reg, 0, 0, 1); imm32(1, SYN_AREA + PSET + 6); E(adds_reg, 0, 0, 1)
+            a.label("x2_x"); E(raw, h(0x4770))
+            # ---- c_nsxrow2(r4, r1 = knob) -> r0 = its second row, 0xFF = none
+            a.label("c_nsxrow2")
+            E(push_list, [5], lr=True); E(mov_reg, 5, 1); E(bl, "c_nsxsum"); E(movs_imm, 0, 0xFF); E(cmp_imm, 1, 0); E(b_cond, "r2_x", "eq")
+            E(mov_reg, 1, 5); E(bl, "c_nsxa2"); E(cmp_imm, 0, 0); E(b_cond, "r2_f", "eq"); E(ldrb_imm, 0, 0, 0); E(cmp_imm, 0, 3); E(b_cond, "r2_x", "hs")
+            a.label("r2_f"); E(movs_imm, 0, 0xFF)
+            a.label("r2_x"); E(pop_list, [5], pc=True)
+            # ---- c_nsxset2(r4, r1 = knob, r2 = row or 0xFF)
+            a.label("c_nsxset2")
+            E(push_list, [5], lr=True); E(mov_reg, 5, 2); E(bl, "c_nsxa2"); E(cmp_imm, 0, 0); E(b_cond, "s2_x", "eq"); E(strb_imm, 5, 0, 0)
+            a.label("s2_x"); E(pop_list, [5], pc=True)
+            # ---- c_nsx2(r4 = synth, r1 = knob, r2 = its first row, r3 = that row's new value): the second row to the same place in its range
+            a.label("c_nsx2")
+            E(push_list, [5, 6, 7], lr=True); E(mov_reg, 6, 2); E(mov_reg, 7, 3)
+            E(bl, "c_nsxrow2"); E(cmp_imm, 0, 0xFE); E(b_cond, "n2_x", "hs"); E(mov_reg, 5, 0)
+            E(mov_reg, 0, 6); E(bl, "c_nsrng"); E(subs_reg, 1, 1, 0); E(b_cond, "n2_x", "eq"); E(subs_reg, 7, 7, 0); E(mov_reg, 6, 1)
+            E(mov_reg, 0, 5); E(bl, "c_nsrng"); E(subs_reg, 1, 1, 0); E(muls, 1, 7); E(raw, udiv(1, 1, 6)); E(adds_reg, 2, 0, 1)
+            E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(bl, L["c_mcset"])
+            a.label("n2_x"); E(pop_list, [5, 6, 7], pc=True)
         # ---- c_nsget(r4 = synth, r1 = parameter) -> r0 = its value; clobbers r1-r3
         a.label("c_nsget")
         E(push_list, [], lr=True); E(mov_reg, 0, 4); E(bl, GETTER); E(movs_imm, 1, 0xFF); E(ands_reg, 0, 1); E(pop_list, [], pc=True)
@@ -437,7 +477,13 @@ def arm_code(base, L, prev):
             E(cmp_imm, 1, 127); E(b_cond, "d8_dk", "ls"); E(movs_imm, 1, 127)
             a.label("d8_dk"); E(mov_reg, 2, 1); E(pop_list, [1]); E(mov_reg, 0, 4); E(bl, L["c_mcset"])
             E(pop_list, [6]); E(movs_imm, 0, 7); E(ands_reg, 0, 6); E(movs_imm, 1, 0x10); E(orrs_reg, 0, 1); E(b, "d8_x")
-            a.label("d8_e"); E(movs_imm, 6, 0)                                                         # Macros 2: already there
+            a.label("d8_e")
+            if V12:                                                                                # (V12) a picked second destination: written there
+                E(bl, "c_nsst"); E(raw, h(0xF890) + h(1 << 12 | O_P2)); E(lsrs_imm, 2, 1, 6); E(mov_reg, 3, 4); E(adds_imm8, 3, 2); E(cmp_reg, 2, 3); E(b_cond, "d8_e0", "ne")
+                E(movs_imm, 2, 0); E(raw, h(0xF880) + h(2 << 12 | O_P2)); E(movs_imm, 2, 7); E(ands_reg, 1, 2); E(mov_reg, 6, 1); E(mov_reg, 2, 5); E(bl, "c_nsxset2")
+                E(movs_imm, 0, 0x18); E(orrs_reg, 0, 6); E(b, "d8_x")
+                a.label("d8_e0")
+            E(movs_imm, 6, 0)                                                                      # Macros 2: already there
             a.label("d8_xa"); E(mov_reg, 1, 6); E(bl, "c_nsxrow"); E(cmp_reg, 0, 5); E(b_cond, "d8_hx", "eq"); E(adds_imm8, 6, 1); E(cmp_imm, 6, 8); E(b_cond, "d8_xa", "lo")
             E(movs_imm, 6, 0)                                                                           # else the first free extra knob
             a.label("d8_el"); E(mov_reg, 1, 6); E(bl, "c_nsxrow"); E(cmp_imm, 0, 0xFF); E(b_cond, "d8_en", "ne")
@@ -569,6 +615,10 @@ def arm_code(base, L, prev):
         E(movs_imm, 0, 7); E(tst_reg, 5, 0); E(b_cond, "pd_n8", "ne")
         E(bl, "c_nsheld"); E(lsrs_imm, 0, 0, 1); E(b_cond, "pd_nc", "cc")
         E(bl, "c_nsshow"); E(cmp_imm, 0, 0); E(b_cond, "pd_s", "eq")
+        if V12:                                                                                    # (V12) Macros 2's: Clear + pad 9 = the second freed
+            E(movs_imm, 1, 8); E(tst_reg, 0, 1); E(b_cond, "pd_mc", "eq"); E(cmp_imm, 5, 8); E(b_cond, "pd_s", "ne")
+            E(movs_imm, 1, 7); E(ands_reg, 1, 0); E(movs_imm, 2, 0xFF); E(bl, "c_nsxset2"); E(b, "pd_s")
+            a.label("pd_mc")
         E(movs_imm, 1, 7); E(ands_reg, 1, 0); E(movs_imm, 0, 17); E(muls, 1, 0); E(lsrs_imm, 0, 5, 1); E(adds_reg, 1, 1, 0); E(adds_imm8, 1, MAC0)
         E(bl, "c_nsunuse"); E(b, "pd_s")
         a.label("pd_nc"); E(cmp_imm, 5, 0); E(b_cond, "pd_s", "ne")
@@ -630,6 +680,15 @@ def arm_code(base, L, prev):
         a.label("le_8"); E(strh_imm, 0, 5, 0)
     if V8:                                                                                         # (V8) the slot pads: in use bright, free dim, the picked one white
         a.label("le_fl"); E(bl, "c_nsshow"); E(mov_reg, 6, 0); E(cmp_imm, 6, 0); E(b_cond, "le_x", "eq"); E(movs_imm, 7, 0)
+        if V12:                                                                                    # (V12) a Macros 2 knob: pads 1 / 9 = its two destinations
+            E(movs_imm, 1, 8); E(tst_reg, 6, 1); E(b_cond, "le_sl", "eq"); E(movs_imm, 1, 7); E(ands_reg, 6, 1)
+            E(mov_reg, 1, 6); E(bl, "c_nsxrow"); E(mov_reg, 7, 0); E(ldr_label, 3, "t_syn"); E(adds_reg, 3, 3, 4); E(ldrb_imm, 1, 3, 2)
+            E(cmp_imm, 7, 0xFF); E(b_cond, "l2_a", "eq"); E(ldrb_imm, 1, 3, 0)
+            a.label("l2_a"); E(strh_imm, 1, 5, 0)
+            E(mov_reg, 1, 6); E(bl, "c_nsxrow2"); E(mov_reg, 7, 0); E(bl, "c_nsst"); E(raw, h(0xF890) + h(2 << 12 | O_P2))
+            E(ldr_label, 3, "t_syn"); E(adds_reg, 3, 3, 4); E(ldrb_imm, 1, 3, 2); E(cmp_imm, 7, 0xFF); E(b_cond, "l2_b", "eq"); E(ldrb_imm, 1, 3, 0)
+            a.label("l2_b"); E(lsls_imm, 0, 4, 6); E(orrs_reg, 0, 6); E(movs_imm, 3, 0x80); E(orrs_reg, 0, 3); E(cmp_reg, 0, 2); E(b_cond, "l2_c", "ne"); E(movs_imm, 1, 1)
+            a.label("l2_c"); E(strh_imm, 1, 5, 16); E(b, "le_x")
         a.label("le_sl"); E(movs_imm, 1, 7); E(ands_reg, 1, 6); E(movs_imm, 0, 17); E(muls, 1, 0); E(lsls_imm, 0, 7, 2); E(adds_reg, 1, 1, 0); E(adds_imm8, 1, MAC0 + 3)
         E(bl, "c_nsget"); E(ldr_label, 3, "t_syn"); E(adds_reg, 3, 3, 4); E(ldrb_imm, 1, 3, 2); E(cmp_imm, 0, 64); E(b_cond, "le_sw", "eq"); E(ldrb_imm, 1, 3, 0)
         a.label("le_sw"); E(lsls_imm, 0, 7, 4); E(raw, h(0x5229)); E(adds_imm8, 7, 1); E(cmp_imm, 7, 4); E(b_cond, "le_sl", "lo")   # (strh r1, [r5, r0])
@@ -692,6 +751,10 @@ def arm_code(base, L, prev):
     E(mov_reg, 0, 4); E(mov_reg, 1, 5); E(mov_reg, 2, 3); E(bl, L["c_mcset"])
     if V9:                                                                                         # (V9) Macros 2: m2lanes records it
         E(bl, "c_nspg"); E(cmp_imm, 0, 8); E(b_cond, "kn_e", "ne")
+        if V12:                                                                                    # (V12) the second destination; its pads for 2 s
+            E(ldr_sp, 1, 4); E(mov_reg, 2, 5); E(mov_reg, 3, 6); E(bl, "c_nsx2")
+            E(ldr_sp, 0, 4); E(lsls_imm, 1, 4, 6); E(orrs_reg, 0, 1); E(movs_imm, 1, 0x88); E(orrs_reg, 0, 1); E(strb_imm, 0, 7, O_SH)
+            imm32(1, HAL_TICK); E(ldr_imm, 1, 1, 0); E(str_imm, 1, 7, O_ST)
         E(mov_reg, 0, 4); E(ldr_sp, 1, 4); E(mov_reg, 2, 6); E(ldr_sp, 3, 0); a.label("kn_m2"); E(bl, "c_nsret")
     a.label("kn_e"); E(pop_list, [0, 1, 2, 4, 5, 6, 7], pc=True)
     a.label("kn_f"); E(raw, popw([0, 1, 2, 4, 5, 6, 7], lr=True)); E(b_w, prev["knob"])
@@ -719,10 +782,18 @@ def arm_code(base, L, prev):
             E(bl, "c_nsst"); E(ldrb_imm, 0, 0, O_BEF); E(cmp_imm, 0, 8); E(b_cond, "kn_x8", "eq"); E(mov_reg, 0, 6)
             a.label("kn_pk"); E(movs_imm, 1, 0)
             a.label("kn_pl"); E(lsrs_imm, 2, 0, 1); E(b_cond, "kn_pf", "cs"); E(lsrs_imm, 0, 0, 8); E(adds_imm8, 1, 1); E(b, "kn_pl")
-            a.label("kn_pf"); E(lsls_imm, 6, 1, 3); E(orrs_reg, 6, 5); E(lsls_imm, 0, 4, 6); E(orrs_reg, 6, 0); E(movs_imm, 0, 0xA0); E(orrs_reg, 6, 0)
+            a.label("kn_pf")
+            if V12:                                                                                # (V12) Macros 2 on the knobs, pad 9: its second destination picked
+                E(cmp_imm, 1, 1); E(b_cond, "kn_pf0", "ne"); E(mov_reg, 6, 1); E(bl, "c_nspg"); E(mov_reg, 1, 6); E(cmp_imm, 0, 8); E(b_cond, "kn_pf0", "ne")
+                E(lsls_imm, 0, 4, 6); E(orrs_reg, 0, 5); E(movs_imm, 2, 0x80); E(orrs_reg, 0, 2); E(mov_reg, 6, 0); E(bl, "c_nsst")
+                E(raw, h(0xF880) + h(6 << 12 | O_P2))                                              # strb.w r6, [r0, #O_P2]
+                E(movs_imm, 2, 0x08); E(orrs_reg, 6, 2); E(strb_imm, 6, 0, O_SH); imm32(1, HAL_TICK); E(ldr_imm, 1, 1, 0); E(str_imm, 1, 0, O_ST); E(b, "k3_e")
+                a.label("kn_pf0")
+            E(lsls_imm, 6, 1, 3); E(orrs_reg, 6, 5); E(lsls_imm, 0, 4, 6); E(orrs_reg, 6, 0); E(movs_imm, 0, 0xA0); E(orrs_reg, 6, 0)
             E(bl, "c_nsst"); E(strb_imm, 6, 0, O_PK); E(lsrs_imm, 1, 6, 3); E(movs_imm, 2, 3); E(ands_reg, 1, 2); E(b_cond, "k3_e", "ne")
             E(ldrb_imm, 3, 0, O_BEF); E(bl, "c_nsput"); E(b, "k3_e")                                # pad 1: the page before its press back
             a.label("kn_x8"); E(movs_imm, 3, 8); E(bl, "c_nsput"); E(mov_reg, 1, 5); E(movs_imm, 2, 0xFF); E(bl, "c_nsxset")
+            if V12: E(mov_reg, 1, 5); E(movs_imm, 2, 0xFF); E(bl, "c_nsxset2")                       # (V12) the second too
             E(movs_imm, 0, 0x28); E(orrs_reg, 0, 5); E(ldr_sp, 1, 0); E(bl, "c_nsflash"); E(b, "k3_e")
         else:
             a.label("kn_p")

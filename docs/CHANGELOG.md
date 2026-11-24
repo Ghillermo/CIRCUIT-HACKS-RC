@@ -7,6 +7,12 @@ Dos capítulos: **[Novedades](#novedades)**, cada función con un enlace a su p�
 <a id="novedades"></a>
 ## Novedades
 
+### Alpha 7.52 — 2026-11-25
+
+**Alpha 7.52** (marca `A7.52`) = la Alpha 7.51 + esto. Instalada en el aparato; sin probar. Sustituye a la 7.51 en el instalador.
+
+- **Dos destinos en cada knob de Macros 2** de Synth 1 / 2: como las ranuras de los macros (pads 1 / 9 al girar el knob, pad 9 mantenido + knob elige el segundo, Duplicate + knob lo escribe); el knob mueve los dos, cada uno en su recorrido; también al reproducir sus carriles. Se guarda con el proyecto. → [Guía: Vista de la fuente del sinte](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guia.html#synth-fuente)
+
 ### Alpha 7.51 — 2026-11-24
 
 **Alpha 7.51** (marca `A7.51`) = la Alpha 7.48 + esto (las 7.49 y 7.50 no se publicaron). Instalada y usada en el aparato salvo el color del EQ (7.51). Sustituye a la 7.48 en el instalador.
@@ -1258,6 +1264,12 @@ Two chapters: **[New features](#new-features)**, each one linked to its page of 
 
 <a id="new-features"></a>
 ## New features
+
+### Alpha 7.52 — 2026-11-25
+
+**Alpha 7.52** (marker `A7.52`) = Alpha 7.51 + this. Installed on the device; untested. It replaces 7.51 in the installer.
+
+- **Two destinations on each Macros 2 knob** of Synth 1 / 2: like the macros' slots (pads 1 / 9 when the knob turns, pad 9 held + knob picks the second, Duplicate + knob writes it); the knob moves both, each over its own range; also when its lanes play. Saved with the project. → [Guide: Synth source view](https://ghillermo.github.io/CIRCUIT-HACKS-RC/beta/guide.html#synth-fuente)
 
 ### Alpha 7.51 — 2026-11-24
 
